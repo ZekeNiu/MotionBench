@@ -625,7 +625,7 @@
   function jumpBars(items, layout = {}) {
     items = items.filter(item => num(item.height ?? item.value) !== null || num(item.rsi) !== null);
     if (!items.length) return empty("跳跃表现", "录入跳高或 RSI 后显示结果");
-    const w=Math.max(320,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?42:72,right=w-(small?43:74),top=58,bottom=h-98,barColor="#7895ad",dotColor="#176b68";
+    const w=Math.max(240,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?38:62,right=w-(small?38:62),top=58,bottom=h-98,barColor="#7895ad",dotColor="#176b68";
     const heightMax=Math.max(10,...items.map(item=>num(item.height??item.value)||0))*1.22;
     const hasRSI=items.some(item=>num(item.rsi)!==null),rsiMax=Math.max(1,...items.map(item=>num(item.rsi)||0))*1.22;
     const heightY=value=>bottom-value/heightMax*(bottom-top),rsiY=value=>bottom-value/rsiMax*(bottom-top);
@@ -634,9 +634,9 @@
     if(hasRSI){out+=text(right,28,"RSI · m/s",`text-anchor="end" font-size="13" fill="${dotColor}"`);ticks(0,rsiMax).forEach(value=>{out+=text(right+12,rsiY(value)+4,fmt(value,2),`font-size="12" fill="${dotColor}"`);});}
     out+=line(left,bottom,right,bottom,`stroke="${C.gray}"`);
     items.forEach((item,i)=>{
-      const x=left+(i+.5)*(right-left)/items.length,height=num(item.height??item.value),rsi=num(item.rsi),width=Math.min(72,(right-left)/items.length*.48);
-      if(height!==null){const tip=`${item.label} · 跳高 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,heightY(height)-11,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
-      if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x+13,rsiY(rsi)+5,fmt(rsi,2),`font-size="13" font-weight="600" fill="${dotColor}"`)}</g>`;}
+      const x=left+(i+.5)*(right-left)/items.length,height=num(item.height??item.value),rsi=num(item.rsi),width=Math.min(56,(right-left)/items.length*.4);
+      if(height!==null){const tip=`${item.label} · 跳高 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,rsi!==null&&Math.abs(rsiY(rsi)-(heightY(height)-11))<20?heightY(height)+18:heightY(height)-11,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
+      if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x,rsiY(rsi)+20,fmt(rsi,2),`text-anchor="middle" font-size="${small?11:13}" font-weight="600" fill="${dotColor}"`)}</g>`;}
       const label=small?({cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"}[item.id]||item.label):item.label;
       out+=text(x,bottom+31,label,`text-anchor="middle" font-size="${small?11:14}" font-weight="600" fill="${C.ink}"`);
     });

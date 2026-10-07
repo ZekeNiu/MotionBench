@@ -1,0 +1,91 @@
+{
+  "pass": true,
+  "version": "2.11.0",
+  "acceptanceScope": "Core acceptance requested by user; no claim to repeat every historical suite.",
+  "html": "MotionBench.html",
+  "sha256": "9cf99b5fd0985dd10811721e667d53846d8eee1569cb3a21bc4be77ec972dcb2",
+  "bytes": 4418316,
+  "reproducibleBuild": true,
+  "sourceModules": {
+    "src/ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "src/ringside-app.js": "3ba1a4368137697a6312e7358bffd17b364b90df8b0d8a17ddb9187e7f57cc37",
+    "src/ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "src/ringside-definitions.js": "10123be75c1c40bf2b6bc7ba3ccf1c9bfb88edde063db7495cc288cc447f09e2",
+    "src/ringside-evaluation.js": "67303a545a81e81e940f869e29bb4749cea894da42445a72ed5226d7d570243e",
+    "src/ringside-interventions.js": "c160e2d9c15b91acf19164986319ff434a71f3acbbb6ac61947589fc5d27863f",
+    "src/ringside-management-refinement.css": "156274b924aa6f03f31cc74f24dffd1e97b11bf40411b93d4ba65325a887bccf",
+    "src/ringside-management.js": "531a5d4cdc2c7ae630350ec37d4b802fb60219d37c9712f197b7af1e3a12d8a2",
+    "src/ringside-model.js": "05aa8353dfe0dd419448aa0d5becd8061f53c867f59f03ca988889687df61293",
+    "src/ringside-pdf.js": "d61d9c5fb814e781f0b3b686231edb903e50ed5756fff0cecb976356adf5e9d9",
+    "src/ringside-report-refinement.css": "435817e12cd1ff6271b35bde8eb390079f9a6f2c37be514d853a93ee0ed64995",
+    "src/ringside-report.js": "636bd53e7863b5bbd0728a831a2951156192eb3b4995e4eb50459e47dcf5daaf",
+    "src/ringside-settings.js": "93a53bfbc6d999e4f1530b8f2c96dc013f509b8710a2c9c749d1f931f42ee79d",
+    "src/ringside-shell.html": "38c0b2baeeaf94a7f56008322fdf37acd2d4d4065cd8cfcb782d8ce354c7f1f4",
+    "src/ringside-sources.js": "bc98eee7ba4067ba57674aece4530b3e95b34baa939d9fae784c56dc641b9e45",
+    "src/ringside-store.js": "58cfc5ff70c183807770dd7761924cd6a4997699f6f98ff44155ccd1addf02eb",
+    "src/ringside-tests.js": "7e9e6c08aa3813bb76914d6367e9c2dae3bbb14fc635ea3852c0bb634f4e93e0",
+    "src/ringside-viz.js": "e9f46f6b7898da11b6169853cc9093d34663028b1d263e60f3ff5432b3c275d6",
+    "src/ringside-workflow.css": "67bc3ccc097a3fb88c0597e303a21d96f40af8ac01dc1183715518c41f0aa632",
+    "src/ringside.css": "7fa91754f760a9f73388ed58ecf840ec8ccbd161942609118665081c5f3a7b8c"
+  },
+  "serverModules": {
+    "scripts/serve.py": "45dc34d2c76036f60f9f0a2a53b93c77d6fdfcbda600596a3676b2c2b4de4dac",
+    "scripts/ai_credentials.py": "de7146a6f50432201577bb481d8715e96b12f20b7ff58df27e0c8f78135577da"
+  },
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "1fbffd7b57ff4fa6c4cf92228f43a672e5c90a1a363fa09c0d0961e351a5cf3d"
+    },
+    "chromeEntry": {
+      "path": "output/v211-entry/chrome-results.json",
+      "sha256": "e4dfe4083c57b8107ca36417adb5b7355dfa6eeb70d0f1dbce4c8204306bf999"
+    },
+    "chromeInteraction": {
+      "path": "output/playwright/v211/chrome-interaction.json",
+      "sha256": "b4d0ab5baeef4af6ca5928229e3a93a4ec889fdeab39657f8e752e2291dadbcd"
+    },
+    "msedgeEntry": {
+      "path": "output/v211-entry/msedge-results.json",
+      "sha256": "f9837a0e753375a0373ef124ef28879609c0331283e705182feb3c4e75346ff8"
+    },
+    "msedgeInteraction": {
+      "path": "output/playwright/v211/msedge-interaction.json",
+      "sha256": "553349a8bd8b9ee74a95bc9a566a0a9538f7042d504209fcee198d68a1408eaa"
+    },
+    "legacyWorkflow": {
+      "path": "output/playwright/refinement/chrome-workflow.json",
+      "sha256": "ae7c4dfdf39b47c90748d1d8599c42009dca399b22c6255a1d047cd1530e240c"
+    },
+    "legacyRaces": {
+      "path": "output/playwright/refinement-races/chrome-races.json",
+      "sha256": "17e8c00bec450622c5c05c6ee2c6c40492fcdfd9dbd9e4575251055101bab5c2"
+    },
+    "localServer": {
+      "path": "output/tests/local-server-results.json",
+      "sha256": "447c1289cca59da565edfd585e9577c29827b8dccd8fb006fd0fa10c21d4ddb5"
+    },
+    "encryptedAI": {
+      "path": "output/playwright/ai-settings/results.json",
+      "sha256": "3229d9945c4a1c7421717376842510f1d5c4b39b29698ab2a75566d473798615"
+    },
+    "pdfVisual": {
+      "path": "output/playwright/v211/pdf-review.json",
+      "sha256": "b9e748caffe718cf45a9d5e10cb6c200a56b5ad92d4a274bbefd7036ce03f3a8"
+    }
+  },
+  "modelChecks": 246,
+  "serverChecks": 22,
+  "browserChecks": 76,
+  "pdfPagesVisuallyReviewed": 8,
+  "rollback": {
+    "tag": "v2.10.0",
+    "commit": "73e7ef56f1ebe6c91db84aeeac3923a1ea8de7be"
+  },
+  "verificationLimits": [
+    "Synthetic measurements and isolated Chrome/Edge profiles; no personal athlete records used.",
+    "Windows DPAPI, browser restart and launcher restart tested with synthetic keys and a mock upstream; real provider quality and physical test devices were not checked.",
+    "Narrow-screen layout uses browser viewports; no physical phone or printer acceptance.",
+    "Focused final-artifact verification; historical capacity and exhaustive PDF suites were not all repeated."
+  ]
+}

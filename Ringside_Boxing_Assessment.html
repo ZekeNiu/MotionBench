@@ -2957,13 +2957,6 @@ body.sidebar-collapsed .workspace {
 @media(max-width:600px){.report-toolbar{display:block;padding:14px 16px}.report-selection{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.report-selection input[type=search],.report-selection>#reportGroupFilter{width:100%;max-width:none;min-width:0}.report-selection .sidebar-field{min-width:0}.report-selection #sampleLabel{display:none}.report-selection #editButton{grid-column:1/-1}.report-actions{margin-top:8px;display:block}.export-menu>summary{width:100%;justify-content:center}.export-options{left:0;min-width:0}.workflow-steps{gap:6px;margin:14px 0}.workflow-step{font-size:10px;display:block;line-height:1.5}.workflow-step b{margin-bottom:6px}.creation-page>.modal-head{padding:18px 16px 0}.creation-page .creation-content{padding:0 16px 18px}.creation-page .modal-foot{padding:14px 16px;flex-wrap:wrap}.creation-choice{gap:16px;flex-wrap:wrap}.entry-project-nav{max-height:164px;overflow:auto}.entry-project-nav button{padding:8px 10px}.entry-project-nav .entry-status-pill{display:none}}
 
 .metric-ability-group { margin:28px 0 36px; }
-.derived-library-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
-.derived-library-item { padding:20px; background:#f8fafc; border:1px solid #dbe3eb; border-radius:11px; min-width:0; }
-.derived-library-title { display:flex; justify-content:space-between; align-items:start; gap:12px; }
-.derived-library-title h3 { margin:0; font-size:16px; }
-.derived-library-item p { font-size:13px; }
-.derived-library-item .source-link { display:block; margin-top:6px; }
-@media(max-width:800px){.derived-library-grid{grid-template-columns:minmax(0,1fr)}}
 .metric-ability-group h2 { margin:0 0 12px; font-size:19px; letter-spacing:.02em; }
 .metric-ability-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin:0 0 12px; padding-bottom:12px; border-bottom:2px solid #d4dee7; }
 .metric-ability-heading h2 { margin:0; }
@@ -3034,26 +3027,29 @@ body.sidebar-collapsed .workspace {
 }
 
 /* Report content follows the selected test snapshot. */
-.detail-pair.jump-detail { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; }
-.jump-detail .chart-wrap { width:100%; max-width:900px; margin-inline:auto; }
+.jump-detail .chart-wrap { width:100%; margin-inline:auto; }
 .jump-detail .detail-data { min-width:0; }
 .jump-detail table { table-layout:auto; }
 .hop-counts { color:#425d70; font-variant-numeric:tabular-nums; }
 .derived-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-.derived-card { border:1px solid #d9e3eb; border-radius:13px; padding:22px; background:linear-gradient(145deg,#f8fafc,#fff); min-width:0; }
+.derived-card { border:1px solid var(--line,#e2e5e9); border-radius:8px; padding:20px; background:#fff; min-width:0; }
 .derived-card-heading { display:flex; gap:14px; align-items:start; justify-content:space-between; }
 .derived-card-heading h3 { margin:0; font-size:16px; line-height:1.45; }
-.derived-value { margin:0; font-size:28px; line-height:1.2; font-weight:650; color:#345d78; white-space:nowrap; }
+.derived-value { margin:0; font-size:28px; line-height:1.2; font-weight:650; color:var(--ink,#20252b); white-space:nowrap; }
 .derived-value small { font-size:12px; margin-left:5px; font-weight:400; }
 .derived-formula { color:#526777; font-size:12px; overflow-wrap:anywhere; margin:13px 0; }
-.derived-associated { margin:8px 0 0; color:#527184; font-size:12px; text-align:right; }
+.derived-associated { margin:12px 0 0; color:var(--ink,#20252b); font-size:14px; }
 .derived-associated strong { margin-left:8px; font-weight:600; }
 .derived-components { margin:14px 0; display:grid; gap:7px; }
 .derived-components > div { display:flex; justify-content:space-between; gap:14px; border-top:1px solid #e6ecf1; padding-top:7px; }
-.derived-components dt { color:#586d7c; font-size:12px; }
-.derived-components dd { margin:0; text-align:right; font-size:13px; font-variant-numeric:tabular-nums; }
+.derived-components dt { color:var(--muted,#606874); font-size:14px; }
+.derived-components dd { margin:0; text-align:right; font-size:14px; font-variant-numeric:tabular-nums; }
 .derived-components dd small { font-size:11px; color:#627783; }
-.derived-direction { border-left:3px solid #608a98; padding-left:11px; font-size:13px; color:#334f60; }
+.derived-direction { border-top:1px solid var(--line,#e2e5e9); padding-top:12px; margin:14px 0 0; font-size:14px; color:var(--ink,#20252b); font-weight:500; }
+.idsi-window { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; font-size:14px; }
+.idsi-window select { flex:1; min-width:0; font:inherit; }
+.idsi-print-window { display:none; }
+.derived-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
 .fdsi-bands { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px; margin:16px 0; }
 .fdsi-bands > span { padding:8px 5px; background:#edf1f4; color:#647580; text-align:center; font-size:12px; border-bottom:3px solid transparent; }
 .fdsi-bands small { display:block; margin-top:3px; font-size:10px; line-height:1.5; }
@@ -4623,7 +4619,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ["cmj", "CMJ", "performance", "jumps"],
     ["sj", "SJ", "performance", "jumps"],
     ["dj", "DJ 下落跳", "performance", "jumps"],
-    ["hop", "Hop 连续反应跳", "performance", "jumps"],
+    ["hop", "10/5 Hop Test 连续反应跳", "performance", "jumps"],
     ["cmrj", "CMRJ 反向反弹跳", "performance", "jumps"],
     ["imtp", "IMTP", "performance", "imtp"],
     ["landmine", "地雷杠出拳投掷", "performance", "lvp"],
@@ -4683,8 +4679,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ]) : jumpFields;
   }
   const derivedRegistry = [
-    ["eur", "EUR · 跳高", "比值", "CMJ 跳高 / SJ 跳高", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "CMJ 与 SJ 使用一致的手臂条件和测高方法；结合两项成绩解释。"],
-    ["gain", "CMJ–SJ 增益", "%", "(CMJ 跳高 / SJ 跳高 − 1) × 100", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "EUR 的百分比表达，不作为额外独立证据。"],
+    ["eur", "EUR", "比值", "CMJ 垂直跳跃高度 / SJ 垂直跳跃高度", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "CMJ 与 SJ 使用一致的手臂条件和测高方法；结合两项成绩解释。"],
+    ["gain", "CMJ–SJ 增益", "%", "(CMJ 垂直跳跃高度 / SJ 垂直跳跃高度 − 1) × 100", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "EUR 的百分比表达，不作为额外独立证据。"],
     ["fdsi", "DSI / fDSI", "比值", "CMJ 推进期峰值力 / 等长峰值力", ["cmj", "imtp"], ["dsi-context-2020"], "常用", "相同力单位、净/总力口径及可比协议；结合最大力量和跳跃表现。"],
     ["idsi_matched", "iDSI · 匹配时窗", "比值", "CMJ 完整推进期冲量 / IMTP 同等时窗冲量", ["cmj", "imtp"], ["dsi-impulse-2021", "dsi-impulse-2025"], "研究", "IMTP 从发力起点积分至 CMJ 推进期同等时长；双方冲量口径一致。"],
     ["idsi_fixed250", "iDSI · 固定 250 ms", "比值", "CMJ 完整推进期冲量 / IMTP 0–250 ms 冲量", ["cmj", "imtp"], ["dsi-impulse-2025"], "研究", "仅分母固定为 250 ms；不沿用 fDSI 训练界值。"],
@@ -6936,7 +6932,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       gain: "与 EUR 表达同一关系；对照 CMJ、SJ 原始成绩，避免把比值上升直接解释为能力改善。",
       idsi_matched: "与同口径历史测试比较，结合最大力量、CMJ 成绩和力时曲线判断；目前不使用通用训练界值。",
       idsi_fixed250: "用于固定时窗下的纵向监测；与匹配时窗 iDSI 分开解释，不套用 fDSI 界值。",
-      rqr: "结合 DJ、Hop 各自的跳高与触地时间，识别不同反应跳任务的表现差异；当前协议须保持一致。",
+      rqr: "结合 DJ、Hop 各自的垂直跳跃高度与触地时间，识别不同反应跳任务的表现差异；当前协议须保持一致。",
       asr: "同时查看 MSS 与 MAS，区分速度端和有氧端的变化；结合专项要求制定训练。",
       srr: "结合 MSS、MAS 和专项要求解释；耐力章节中的参考分组须按其适用人群使用。",
     };
@@ -6944,8 +6940,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const result = { ...definition, enabled: true, value: null, available: false, reason: "", components: [], directionHint: directions[definition.id] || "", aggregation: record.mode === "mean" ? "各测试代表值（均值）之比；不配对独立试次" : "各测试最佳完整尝试的代表值之比" };
       if (["eur","gain"].includes(definition.id)) {
         result.value = raw[definition.id];
-        result.components = [component("CMJ 跳高",values.cmj_height,"cm"),component("SJ 跳高",values.sj_height,"cm")];
-        result.reason = "需有效 CMJ 与 SJ 跳高";
+        result.components = [component("CMJ 垂直跳跃高度",values.cmj_height,"cm"),component("SJ 垂直跳跃高度",values.sj_height,"cm")];
+        result.reason = "需有效 CMJ 与 SJ 垂直跳跃高度";
       } else if (definition.id === "fdsi") {
         result.value = raw.dsi;
         result.components = [component("CMJ 推进期峰值力",raw.cmj?.row?.force,record.dsi.cmjUnit || "N"),component("等长峰值力",raw.dsiForce,record.dsi.source === "manual" ? record.dsi.unit || "N" : record.imtpConfig.unit)];
@@ -6966,10 +6962,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         const hopRatio = chosen.length && chosen.every((s) => positive(s.rqr?.value) !== null) ? average(chosen.map((s) => s.rqr.value)) : null;
         result.components = [component("DJ FT/CT 代表值",djRatio,"比值"),component("Hop 平均 FT/CT 代表值",hopRatio,"比值")];
         result.value = djRatio !== null && hopRatio !== null ? djRatio / hopRatio : null;
-        result.reason = "所选 DJ 与 Hop 须均有完整 FT/CT，不能用跳高/触地时间 RSI 替代";
+        result.reason = "所选 DJ 与 Hop 须均有完整 FT/CT，不能用垂直跳跃高度/触地时间 RSI 替代";
         const original = record.mode === "mean" && djRows.length === 3 && djRows.every((r) => N(r.dropHeightCm) === 45) && chosen.length === 1 && chosen.every((s) => s.rqr.originalSelection);
         result.selection = { djIds: djRows.map((r) => r.id), hopSets: chosen.map((s) => ({ id:s.id, ...s.rqr })) };
-        result.selectionNote = "RQR 单独按 FT/CT 排序选跳；图中 Hop RSI 仍按跳高/触地时间排序。";
+        result.selectionNote = "RQR 单独按 FT/CT 排序选跳；图中 Hop RSI 仍按垂直跳跃高度/触地时间排序。";
         result.protocolMatch = original;
         result.name = original ? definition.name : "DJ/Hop 反应比 · 当前协议";
         result.protocol += original ? " 当前汇总符合以上主要取值条件。" : " 当前数据按所选汇总模式与 Hop 选跳规则计算，不等同原研究协议。";
@@ -6981,6 +6977,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         if (mas !== null && mss !== null && mss < mas) result.directionHint = "MSS 低于 MAS：请先核对单位、协议及测试结果，再讨论训练方向。";
       }
       result.available = Number.isFinite(result.value);
+      if (result.available) {
+        const percent = (n) => Math.abs(n).toFixed(1) + "%";
+        if (["eur", "gain"].includes(result.id)) {
+          const change = result.id === "eur" ? (result.value - 1) * 100 : result.value;
+          result.directionHint = change === 0 ? "CMJ 与 SJ 垂直跳跃高度相同。" : `CMJ 垂直跳跃高度较 SJ ${change > 0 ? "高" : "低"} ${percent(change)}。`;
+        } else if (result.id === "fdsi") result.directionHint = result.value < .6 ? "训练侧重：弹道与快速力量。" : result.value > .8 ? "训练侧重：最大力量。" : "训练侧重：最大力量与快速力量结合。";
+        else if (result.id.startsWith("idsi_")) result.directionHint = `CMJ 推进期冲量为 IMTP ${result.id === "idsi_matched" ? "同期" : "前 250 ms"}冲量的 ${percent(result.value * 100)}。`;
+        else if (result.id === "rqr") result.directionHint = result.value === 1 ? "DJ 与 Hop 的腾空／触地时间比相同。" : `DJ 腾空／触地时间比较 Hop ${result.value > 1 ? "高" : "低"} ${percent((result.value - 1) * 100)}。`;
+      }
       if (!result.available) { result.value = null; result.reason ||= "缺少可计算的数据或结果超出有效数值范围"; }
       else result.reason = "";
       return result;
@@ -11001,7 +11006,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function jumpBars(items, layout = {}) {
     items = items.filter(item => num(item.height ?? item.value) !== null || num(item.rsi) !== null);
     if (!items.length) return empty("跳跃表现", "录入跳高或 RSI 后显示结果");
-    const w=Math.max(320,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?42:72,right=w-(small?43:74),top=58,bottom=h-98,barColor="#7895ad",dotColor="#176b68";
+    const w=Math.max(240,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?38:62,right=w-(small?38:62),top=58,bottom=h-98,barColor="#7895ad",dotColor="#176b68";
     const heightMax=Math.max(10,...items.map(item=>num(item.height??item.value)||0))*1.22;
     const hasRSI=items.some(item=>num(item.rsi)!==null),rsiMax=Math.max(1,...items.map(item=>num(item.rsi)||0))*1.22;
     const heightY=value=>bottom-value/heightMax*(bottom-top),rsiY=value=>bottom-value/rsiMax*(bottom-top);
@@ -11010,9 +11015,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if(hasRSI){out+=text(right,28,"RSI · m/s",`text-anchor="end" font-size="13" fill="${dotColor}"`);ticks(0,rsiMax).forEach(value=>{out+=text(right+12,rsiY(value)+4,fmt(value,2),`font-size="12" fill="${dotColor}"`);});}
     out+=line(left,bottom,right,bottom,`stroke="${C.gray}"`);
     items.forEach((item,i)=>{
-      const x=left+(i+.5)*(right-left)/items.length,height=num(item.height??item.value),rsi=num(item.rsi),width=Math.min(72,(right-left)/items.length*.48);
-      if(height!==null){const tip=`${item.label} · 跳高 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,heightY(height)-11,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
-      if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x+13,rsiY(rsi)+5,fmt(rsi,2),`font-size="13" font-weight="600" fill="${dotColor}"`)}</g>`;}
+      const x=left+(i+.5)*(right-left)/items.length,height=num(item.height??item.value),rsi=num(item.rsi),width=Math.min(56,(right-left)/items.length*.4);
+      if(height!==null){const tip=`${item.label} · 跳高 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,rsi!==null&&Math.abs(rsiY(rsi)-(heightY(height)-11))<20?heightY(height)+18:heightY(height)-11,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
+      if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x,rsiY(rsi)+20,fmt(rsi,2),`text-anchor="middle" font-size="${small?11:13}" font-weight="600" fill="${dotColor}"`)}</g>`;}
       const label=small?({cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"}[item.id]||item.label):item.label;
       out+=text(x,bottom+31,label,`text-anchor="middle" font-size="${small?11:14}" font-weight="600" fill="${C.ink}"`);
     });
@@ -12791,7 +12796,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           fieldMap.get(key).ids.push(field.id);fieldMap.get(key).units.add(field.unit);
         }));
         const fields=[...fieldMap.values()].map(field=>({...field,unit:field.units.size===1?[...field.units][0]:""}));
-        const activeFields = fields
+        tests.forEach(test=>T.fieldsForTest(test.id).forEach(field=>consumedMetrics.add(test.id+"_"+field.suffix)));
+        const activeFields = fields.filter(field=>["height","rsi"].includes(field.key))
           .filter((field) =>
             summaries.some(({ data }) =>
               data?.metrics.some(metric=>field.ids.includes(metric.id)&&metric.value!==null)||data?.attempts?.some((a) =>
@@ -12803,6 +12809,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             ),
           );
         const repeated = hasStatistics(activeFields.flatMap((field) => field.ids.map(repeatedMetric)));
+        const byTest = repeated || tests.length > 2;
         const jumpCell = (test, data, field) => {
           const metric = data?.metrics.find((m) => field.ids.includes(m.id));
           if (!metric) return "—";
@@ -12811,11 +12818,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           return `<span data-metric-id="${E(metric.id)}">${F(metric.value, 2)}${metric.unit !== field.unit ? " " + E(metric.unit) : ""}</span>` +
             (metric.value === null ? "" : (d && positive(d.target) ? `<small class="metric-meta">目标 ${F(d.target)}</small>` : "") + (d ? evaluationPill(d) : ""));
         };
-        const metricRows = repeated ? summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
+        const metricRows = byTest ? summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
           field.ids.some((id) => data?.metrics.some((metric) => metric.id === id&&metric.value!==null)||data?.attempts?.some(attempt=>attempt.values.some(value=>value.id===id&&value.value!==null)))).map((field) => {
             const metric = data.metrics.find((m) => field.ids.includes(m.id));
             return [E(test.name + " · " + field.label) + `<small class="metric-meta">${E(field.unit || metric.unit)}</small>`,
-              jumpCell(test, data, field), ...statisticCells(repeatedMetric(metric.id))];
+              jumpCell(test, data, field), ...(repeated ? statisticCells(repeatedMetric(metric.id)) : [])];
           })) : activeFields.map((field) => [
             E(field.label) +
               '<small class="muted"> ' +
@@ -12829,9 +12836,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           "",
           pair(
             V.jumpBars(chartItems),
-            table(repeated ? ["指标", "结果", "均值 ± SD", "CV"] : ["指标", ...tests.map((t) => t.name)], metricRows, [], repeated ? "with-repeat-columns" : "") +
+            table(repeated ? ["指标", "结果", "均值 ± SD", "CV"] : byTest ? ["指标", "结果"] : ["指标", ...tests.map((t) => t.name)], metricRows, [], repeated ? "with-repeat-columns" : "") +
               supplemental(tests),
-            "jump-detail wide-results",
+            "jump-detail",
             {kind:"jumpBars",args:[chartItems]},
           ),
         );
@@ -13075,16 +13082,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const allResults=report.derived?.results||[],gain=allResults.find(item=>item.id==="gain"&&item.available),hasEUR=allResults.some(item=>item.id==="eur");
       const results=allResults.filter(item=>!["asr","srr"].includes(item.id)&&!(item.id==="gain"&&hasEUR)&&(item.available||definitions.find(d=>d.id===item.id)?.dependencies?.some(id=>state.enabled[id])));
       if(!results.length)return "";
-      const sources=item=>(global.RingsideSources?.forIds(item.sourceIds||[])||[]).map(source=>`<a class="source-link" href="${E(source.url)}" target="_blank" rel="noopener noreferrer">${E(source.authors.split(",")[0])}${source.authors.includes(",")?" 等":""}（${E(source.year)}）</a>`).join(" · ");
-      const cards=results.filter(item=>item.available&&N(item.value)!==null).map(item=>{
-        const components=(item.components||[]).map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,3)} <small>${E(component.unit||"")}</small></dd></div>`).join("");
-        const bands=item.id==="fdsi"?`<div class="fdsi-bands" aria-label="fDSI 文献训练方向参考"><span${item.value<.6?' class="current" aria-current="true"':""}>＜0.60<small>弹道式发力</small></span><span${item.value>=.6&&item.value<=.8?' class="current" aria-current="true"':""}>0.60–0.80<small>结合力量与弹道训练</small></span><span${item.value>.8?' class="current" aria-current="true"':""}>＞0.80<small>最大力量</small></span></div>`:"";
+      const impulseResults=results.filter(item=>item.id.startsWith("idsi_"));
+      const selectedImpulse=impulseResults.find(item=>item.id===(state.views?.idsiWindow||"idsi_matched"))||impulseResults[0];
+      const visible=results.filter(item=>!item.id.startsWith("idsi_")||item===selectedImpulse);
+      const cards=visible.map(item=>{
+        const isImpulse=item.id.startsWith("idsi_");
+        const components=(item.components||[]).map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)} ${E(component.unit||"")}</dd></div>`).join("");
+        const selector=isImpulse?`<label class="idsi-window">时间窗口<span class="idsi-print-window">${item.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 250 ms"}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${impulseResults.map(choice=>`<option value="${E(choice.id)}"${choice===item?' selected':""}>${choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 250 ms"}</option>`).join("")}</select></label>`:"";
         const associated=item.id==="eur"&&gain?`<p class="derived-associated" data-derived-associated="gain">CMJ–SJ 增益 <strong>${F(gain.value,1)}%</strong></p>`:"";
-        return `<article class="derived-card" data-derived-result="${E(item.id)}" data-pdf-atomic><div class="derived-card-heading"><h3>${E(item.name)}</h3><p class="derived-value">${F(item.value,item.unit==="%"?1:3)}<small>${E(item.unit||"")}</small></p></div>${associated}<p class="derived-formula">${E(item.formula)}</p><dl class="derived-components">${components}</dl>${bands}${item.directionHint?`<p class="derived-direction">${E(item.directionHint)}</p>`:""}${item.selectionNote?`<p class="note">${E(item.selectionNote)}</p>`:""}<p class="note">${E(item.protocol||"")}</p>${sources(item)?`<p class="derived-sources">${sources(item)}</p>`:""}</article>`;
+        const missing=isImpulse?`<div class="derived-actions"><button class="btn secondary" onclick="App.openEntry('cmj')">录入 CMJ 冲量</button><button class="btn secondary" onclick="App.openEntry('imtp')">录入 IMTP 冲量</button></div>`:"";
+        return `<article class="derived-card" data-derived-result="${E(item.id)}" data-pdf-atomic><div class="derived-card-heading"><h3>${E(isImpulse?"iDSI 冲量比":item.name)}</h3><p class="derived-value">${item.available?F(item.value,item.unit==="%"?1:3):"—"}${item.unit==="%"?"%":""}</p></div>${selector}${associated}<dl class="derived-components">${components}</dl>${item.available?`<p class="derived-direction">${E(item.directionHint)}</p>`:missing}</article>`;
       }).join("");
-      const missing=results.filter(item=>!item.available||N(item.value)===null);
-      const pending=missing.length?`<div class="derived-pending"><h4>待补充分析</h4>${table(["指标","所需信息"],missing.map(item=>[E(item.name),E(item.reason||"相关测试数据不完整")]))}</div>`:"";
-      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>训练方向分析<span>测试之间的关系与训练线索</span></summary><div class="quality-group"><div class="derived-results">${cards}</div>${pending}</div></details>`;
+      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>训练方向分析</summary><div class="quality-group"><div class="derived-results">${cards}</div></div></details>`;
     }
     // LVP is a shared comparison renderer across its explicitly registered projects.
     function renderLVP(limb, s) {
@@ -13697,7 +13706,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
     .ringside-pdf-document .jump-detail table{table-layout:auto!important;}
-    .ringside-pdf-document .derived-card{width:100%!important;padding:17px!important;border:1px solid #d9e3eb!important;border-radius:9px!important;background:#f8fafc!important;}
+    .ringside-pdf-document .derived-card{width:100%!important;padding:17px!important;border:1px solid #e2e5e9!important;border-radius:8px!important;background:#fff!important;}
+    .ringside-pdf-document .derived-actions{display:none!important;}
+    .ringside-pdf-document .idsi-print-window{display:inline!important;}
     .ringside-pdf-document .derived-card-heading{display:flex!important;justify-content:space-between!important;gap:18px!important;}
     .ringside-pdf-document .derived-value{font-size:25px!important;white-space:nowrap!important;}
     .ringside-pdf-document .derived-components{margin:9px 0!important;}
@@ -14550,7 +14561,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             (node.dataset.pdfTitle || "测试结果") + " · 数据续表",
           ),
         );
-        remainder.forEach(addBlock);
+        if (node.matches(".jump-detail")) {
+          const continuation=node.cloneNode(false), blankFigure=node.firstElementChild.cloneNode(false), continuationData=data.cloneNode(false);
+          blankFigure.removeAttribute("data-chart-kind");blankFigure.removeAttribute("data-chart-input");
+          remainder.forEach(block=>continuationData.append(block.element));
+          continuation.append(blankFigure,continuationData);
+          placePair(continuation);
+        } else remainder.forEach(addBlock);
       }
     }
     function placeAtomic(node) {
@@ -15048,7 +15065,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function derivedLibrary(q="") {
     const definitions=(T.derivedDefinitions?.()||[]).filter(d=>!q||["训练方向分析",d.name,d.id,d.formula].join(" ").toLocaleLowerCase().includes(q));
     if(!definitions.length)return "";
-    return `<section class="metric-ability-group" data-metric-ability="training-analysis"><div class="metric-ability-heading"><h2>训练方向分析</h2></div><p class="note">组合多个测试结果计算。启用设置用于后续测试；本次报告可在数据录入中单独选择。</p><div class="derived-library-grid">${definitions.map(d=>{const enabled=lib().catalog.derivedEnabled?.[d.id]!==false;return `<article class="derived-library-item" data-derived-definition="${esc(d.id)}"><div class="derived-library-title"><h3>${esc(d.name)}</h3>${button(enabled?"停用":"启用","derived-toggle",d.id,`aria-pressed="${enabled}"`)}</div><p class="derived-formula">${esc(d.formula)}</p><p>${esc(d.protocol)}</p><p class="note">${esc(d.unit||"比值")} · ${enabled?"默认启用":"已停用"}</p>${derivedSources(d.sourceIds)}</article>`;}).join("")}</div></section>`;
+    return `<section class="metric-ability-group" data-metric-ability="training-analysis"><div class="metric-ability-heading"><h2>训练方向分析</h2></div><div class="management-table-wrap"><table class="management-table metric-library-table"><thead><tr><th>关联测试</th><th>指标</th><th>单位</th><th>数据方式</th><th>计算公式</th><th>操作</th></tr></thead><tbody>${definitions.map(d=>{const enabled=lib().catalog.derivedEnabled?.[d.id]!==false;return `<tr data-derived-definition="${esc(d.id)}"><td data-label="关联测试">${esc(d.dependencies.map(id=>id.toUpperCase()).join(" / "))}</td><td data-label="指标">${esc(d.name)}${enabled?"":' <span class="pill">已停用</span>'}</td><td data-label="单位">${esc(d.unit||"比值")}</td><td data-label="数据方式">跨测试计算</td><td data-label="计算公式">${esc(d.formula)}</td><td data-label="操作"><div class="row">${button(enabled?"停用":"启用","derived-toggle",d.id,`aria-pressed="${enabled}"`)}</div></td></tr>`;}).join("")}</tbody></table></div></section>`;
   }
   function derivedSources(ids) {
     return (root.RingsideSources?.forIds(ids||[])||[]).map(source=>`<a class="source-link" href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.authors)}（${esc(source.year)}） · ${esc(source.title)}</a>`).join("");
@@ -15488,7 +15505,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     apiURL = "https://api.apikey.fan",
     model = "";
   let aiStatus = { kind: "idle" }, aiTicker;
-  let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null;
+  let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null, aiEditSequence = 0;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -18856,6 +18873,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return raw.endsWith("/v1") ? raw : raw + "/v1";
   }
   function markAISettingsDirty() {
+    aiEditSequence++;
     if (!window.MotionBenchLocal) return;
     aiDirty = true;
     if ($("aiConfigStatus")) $("aiConfigStatus").textContent="有未保存的设置，请保存后再连接服务。";
@@ -18873,7 +18891,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     aiConfigLoad=(async()=>{
       try {
         acceptAIConfig(await window.RingsideAISettings.status());
-        if (ui.mode==="settings"&&settingsTab==="ai"&&!aiDirty) renderSettings();
+        if (ui.mode==="settings"&&settingsTab==="ai") {
+          if (!aiDirty) renderSettings();
+          else if ($("saveAISettingsButton")) $("saveAISettingsButton").disabled=aiBusy;
+        }
         return aiConfig;
       } catch(error) {
         if ($("aiConfigStatus")) $("aiConfigStatus").textContent=safeAIError(error);
@@ -18945,7 +18966,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       try { json = JSON.parse(body); } catch {}
       if (!response.ok || json?.error) {
         const rawDetail=String(json?.error?.message || (typeof json?.error === "string" ? json.error : json?.message || "")),detail=requestKey?rawDetail.split(requestKey).join("[密钥已隐藏]"):rawDetail;
-        if(bridge&&response.status===409)await loadAISettings(true);
+        if(bridge&&response.status===409) {
+          await loadAISettings(true);
+          setAIStatus("error","AI 配置已变更","本机 AI 配置已变更，请核对设置后重试。");
+        }
         const hint = { 401: "密钥无效或已失效", 403: "服务拒绝访问，请核对密钥权限和模型权限", 404: "接口或模型不存在，请核对地址和模型名称", 409:"本机AI配置已变更，请核对设置后重试", 429: "额度不足或请求过于频繁，请稍后重试", 502: "上游服务暂时不可用", 504: "上游服务响应超时" }[response.status] || "AI 服务未能完成请求";
         throw Error(hint + "（HTTP " + response.status + "）" + (detail ? "：" + safeAIError(detail) : ""));
       }
@@ -18959,8 +18983,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
   }
   async function models() {
+    const button=$("modelButton"), list=$("modelList"), message=$("apiMessage"), input=$("apiModel"), sequence=aiEditSequence;
+    if(!button||!list||!message||!input)return;
+    const active=()=>button.isConnected&&list===$("modelList")&&sequence===aiEditSequence;
     let connection;
     try {connection=await configuredAI();}catch(error){if($("apiMessage"))$("apiMessage").textContent=safeAIError(error);return;}
+    if(!active())return;
     $("modelButton").disabled = true;
     $("modelButton").textContent = "正在读取模型…";
     $("apiMessage").textContent = "正在连接服务，请稍候…";
@@ -18969,7 +18997,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         ids = (json.data || [])
           .map((x) => x.id)
           .filter((x) => typeof x === "string");
-      if(!$("modelList"))return;
+      if(!active()||(connection.configRevision&&connection.configRevision!==aiConfig?.revision))return;
       $("modelList").innerHTML = ids
         .map((x) => `<option value="${E(x)}"></option>`)
         .join("");
@@ -18983,20 +19011,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         $("apiMessage").textContent += "，已选用 " + model + "。模型列表读取成功不代表每个模型都有调用权限。";
       }
     } catch (e) {
-      if ($("apiMessage")) $("apiMessage").textContent = safeAIError(e);
+      if (active()) message.textContent = safeAIError(e);
     } finally {
-      if ($("modelButton")) $("modelButton").disabled = false;
-      if ($("modelButton")) $("modelButton").textContent = "读取可用模型";
+      if (button.isConnected) { button.disabled = false; button.textContent = "读取可用模型"; }
     }
   }
   async function ai() {
     if (job) return toast("当前分析正在生成", "ai");
     if (!M.stats(effectiveRecord()).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
+    const requestedRecord = state.recordId;
     let connection;
     try {connection=await configuredAI(true);}catch(error){
       openSettings("ai");
       return setAIStatus("error", "AI 服务尚未配置完整", safeAIError(error));
     }
+    if(state.recordId!==requestedRecord)return;
     saveEditor();
     const binding = snapshot(),
       task = {
@@ -19542,6 +19571,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     addIso,
     changeMode(v) {
       state.mode = v;
+      persist();
+      renderReport();
+    },
+    setIDSIWindow(value) {
+      if (!["idsi_matched", "idsi_fixed250"].includes(value)) return;
+      state.views.idsiWindow = value;
       persist();
       renderReport();
     },

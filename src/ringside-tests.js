@@ -8,7 +8,7 @@
     ["cmj", "CMJ", "performance", "jumps"],
     ["sj", "SJ", "performance", "jumps"],
     ["dj", "DJ 下落跳", "performance", "jumps"],
-    ["hop", "Hop 连续反应跳", "performance", "jumps"],
+    ["hop", "10/5 Hop Test 连续反应跳", "performance", "jumps"],
     ["cmrj", "CMRJ 反向反弹跳", "performance", "jumps"],
     ["imtp", "IMTP", "performance", "imtp"],
     ["landmine", "地雷杠出拳投掷", "performance", "lvp"],
@@ -68,8 +68,8 @@
     ]) : jumpFields;
   }
   const derivedRegistry = [
-    ["eur", "EUR · 跳高", "比值", "CMJ 跳高 / SJ 跳高", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "CMJ 与 SJ 使用一致的手臂条件和测高方法；结合两项成绩解释。"],
-    ["gain", "CMJ–SJ 增益", "%", "(CMJ 跳高 / SJ 跳高 − 1) × 100", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "EUR 的百分比表达，不作为额外独立证据。"],
+    ["eur", "EUR", "比值", "CMJ 垂直跳跃高度 / SJ 垂直跳跃高度", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "CMJ 与 SJ 使用一致的手臂条件和测高方法；结合两项成绩解释。"],
+    ["gain", "CMJ–SJ 增益", "%", "(CMJ 垂直跳跃高度 / SJ 垂直跳跃高度 − 1) × 100", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "EUR 的百分比表达，不作为额外独立证据。"],
     ["fdsi", "DSI / fDSI", "比值", "CMJ 推进期峰值力 / 等长峰值力", ["cmj", "imtp"], ["dsi-context-2020"], "常用", "相同力单位、净/总力口径及可比协议；结合最大力量和跳跃表现。"],
     ["idsi_matched", "iDSI · 匹配时窗", "比值", "CMJ 完整推进期冲量 / IMTP 同等时窗冲量", ["cmj", "imtp"], ["dsi-impulse-2021", "dsi-impulse-2025"], "研究", "IMTP 从发力起点积分至 CMJ 推进期同等时长；双方冲量口径一致。"],
     ["idsi_fixed250", "iDSI · 固定 250 ms", "比值", "CMJ 完整推进期冲量 / IMTP 0–250 ms 冲量", ["cmj", "imtp"], ["dsi-impulse-2025"], "研究", "仅分母固定为 250 ms；不沿用 fDSI 训练界值。"],

@@ -579,7 +579,8 @@
           fieldMap.get(key).ids.push(field.id);fieldMap.get(key).units.add(field.unit);
         }));
         const fields=[...fieldMap.values()].map(field=>({...field,unit:field.units.size===1?[...field.units][0]:""}));
-        const activeFields = fields
+        tests.forEach(test=>T.fieldsForTest(test.id).forEach(field=>consumedMetrics.add(test.id+"_"+field.suffix)));
+        const activeFields = fields.filter(field=>["height","rsi"].includes(field.key))
           .filter((field) =>
             summaries.some(({ data }) =>
               data?.metrics.some(metric=>field.ids.includes(metric.id)&&metric.value!==null)||data?.attempts?.some((a) =>
@@ -591,6 +592,7 @@
             ),
           );
         const repeated = hasStatistics(activeFields.flatMap((field) => field.ids.map(repeatedMetric)));
+        const byTest = repeated || tests.length > 2;
         const jumpCell = (test, data, field) => {
           const metric = data?.metrics.find((m) => field.ids.includes(m.id));
           if (!metric) return "—";
@@ -599,11 +601,11 @@
           return `<span data-metric-id="${E(metric.id)}">${F(metric.value, 2)}${metric.unit !== field.unit ? " " + E(metric.unit) : ""}</span>` +
             (metric.value === null ? "" : (d && positive(d.target) ? `<small class="metric-meta">目标 ${F(d.target)}</small>` : "") + (d ? evaluationPill(d) : ""));
         };
-        const metricRows = repeated ? summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
+        const metricRows = byTest ? summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
           field.ids.some((id) => data?.metrics.some((metric) => metric.id === id&&metric.value!==null)||data?.attempts?.some(attempt=>attempt.values.some(value=>value.id===id&&value.value!==null)))).map((field) => {
             const metric = data.metrics.find((m) => field.ids.includes(m.id));
             return [E(test.name + " · " + field.label) + `<small class="metric-meta">${E(field.unit || metric.unit)}</small>`,
-              jumpCell(test, data, field), ...statisticCells(repeatedMetric(metric.id))];
+              jumpCell(test, data, field), ...(repeated ? statisticCells(repeatedMetric(metric.id)) : [])];
           })) : activeFields.map((field) => [
             E(field.label) +
               '<small class="muted"> ' +
@@ -617,9 +619,9 @@
           "",
           pair(
             V.jumpBars(chartItems),
-            table(repeated ? ["指标", "结果", "均值 ± SD", "CV"] : ["指标", ...tests.map((t) => t.name)], metricRows, [], repeated ? "with-repeat-columns" : "") +
+            table(repeated ? ["指标", "结果", "均值 ± SD", "CV"] : byTest ? ["指标", "结果"] : ["指标", ...tests.map((t) => t.name)], metricRows, [], repeated ? "with-repeat-columns" : "") +
               supplemental(tests),
-            "jump-detail wide-results",
+            "jump-detail",
             {kind:"jumpBars",args:[chartItems]},
           ),
         );
@@ -863,16 +865,18 @@
       const allResults=report.derived?.results||[],gain=allResults.find(item=>item.id==="gain"&&item.available),hasEUR=allResults.some(item=>item.id==="eur");
       const results=allResults.filter(item=>!["asr","srr"].includes(item.id)&&!(item.id==="gain"&&hasEUR)&&(item.available||definitions.find(d=>d.id===item.id)?.dependencies?.some(id=>state.enabled[id])));
       if(!results.length)return "";
-      const sources=item=>(global.RingsideSources?.forIds(item.sourceIds||[])||[]).map(source=>`<a class="source-link" href="${E(source.url)}" target="_blank" rel="noopener noreferrer">${E(source.authors.split(",")[0])}${source.authors.includes(",")?" 等":""}（${E(source.year)}）</a>`).join(" · ");
-      const cards=results.filter(item=>item.available&&N(item.value)!==null).map(item=>{
-        const components=(item.components||[]).map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,3)} <small>${E(component.unit||"")}</small></dd></div>`).join("");
-        const bands=item.id==="fdsi"?`<div class="fdsi-bands" aria-label="fDSI 文献训练方向参考"><span${item.value<.6?' class="current" aria-current="true"':""}>＜0.60<small>弹道式发力</small></span><span${item.value>=.6&&item.value<=.8?' class="current" aria-current="true"':""}>0.60–0.80<small>结合力量与弹道训练</small></span><span${item.value>.8?' class="current" aria-current="true"':""}>＞0.80<small>最大力量</small></span></div>`:"";
+      const impulseResults=results.filter(item=>item.id.startsWith("idsi_"));
+      const selectedImpulse=impulseResults.find(item=>item.id===(state.views?.idsiWindow||"idsi_matched"))||impulseResults[0];
+      const visible=results.filter(item=>!item.id.startsWith("idsi_")||item===selectedImpulse);
+      const cards=visible.map(item=>{
+        const isImpulse=item.id.startsWith("idsi_");
+        const components=(item.components||[]).map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)} ${E(component.unit||"")}</dd></div>`).join("");
+        const selector=isImpulse?`<label class="idsi-window">时间窗口<span class="idsi-print-window">${item.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 250 ms"}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${impulseResults.map(choice=>`<option value="${E(choice.id)}"${choice===item?' selected':""}>${choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 250 ms"}</option>`).join("")}</select></label>`:"";
         const associated=item.id==="eur"&&gain?`<p class="derived-associated" data-derived-associated="gain">CMJ–SJ 增益 <strong>${F(gain.value,1)}%</strong></p>`:"";
-        return `<article class="derived-card" data-derived-result="${E(item.id)}" data-pdf-atomic><div class="derived-card-heading"><h3>${E(item.name)}</h3><p class="derived-value">${F(item.value,item.unit==="%"?1:3)}<small>${E(item.unit||"")}</small></p></div>${associated}<p class="derived-formula">${E(item.formula)}</p><dl class="derived-components">${components}</dl>${bands}${item.directionHint?`<p class="derived-direction">${E(item.directionHint)}</p>`:""}${item.selectionNote?`<p class="note">${E(item.selectionNote)}</p>`:""}<p class="note">${E(item.protocol||"")}</p>${sources(item)?`<p class="derived-sources">${sources(item)}</p>`:""}</article>`;
+        const missing=isImpulse?`<div class="derived-actions"><button class="btn secondary" onclick="App.openEntry('cmj')">录入 CMJ 冲量</button><button class="btn secondary" onclick="App.openEntry('imtp')">录入 IMTP 冲量</button></div>`:"";
+        return `<article class="derived-card" data-derived-result="${E(item.id)}" data-pdf-atomic><div class="derived-card-heading"><h3>${E(isImpulse?"iDSI 冲量比":item.name)}</h3><p class="derived-value">${item.available?F(item.value,item.unit==="%"?1:3):"—"}${item.unit==="%"?"%":""}</p></div>${selector}${associated}<dl class="derived-components">${components}</dl>${item.available?`<p class="derived-direction">${E(item.directionHint)}</p>`:missing}</article>`;
       }).join("");
-      const missing=results.filter(item=>!item.available||N(item.value)===null);
-      const pending=missing.length?`<div class="derived-pending"><h4>待补充分析</h4>${table(["指标","所需信息"],missing.map(item=>[E(item.name),E(item.reason||"相关测试数据不完整")]))}</div>`:"";
-      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>训练方向分析<span>测试之间的关系与训练线索</span></summary><div class="quality-group"><div class="derived-results">${cards}</div>${pending}</div></details>`;
+      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>训练方向分析</summary><div class="quality-group"><div class="derived-results">${cards}</div></div></details>`;
     }
     // LVP is a shared comparison renderer across its explicitly registered projects.
     function renderLVP(limb, s) {

@@ -85,7 +85,9 @@
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
     .ringside-pdf-document .jump-detail table{table-layout:auto!important;}
-    .ringside-pdf-document .derived-card{width:100%!important;padding:17px!important;border:1px solid #d9e3eb!important;border-radius:9px!important;background:#f8fafc!important;}
+    .ringside-pdf-document .derived-card{width:100%!important;padding:17px!important;border:1px solid #e2e5e9!important;border-radius:8px!important;background:#fff!important;}
+    .ringside-pdf-document .derived-actions{display:none!important;}
+    .ringside-pdf-document .idsi-print-window{display:inline!important;}
     .ringside-pdf-document .derived-card-heading{display:flex!important;justify-content:space-between!important;gap:18px!important;}
     .ringside-pdf-document .derived-value{font-size:25px!important;white-space:nowrap!important;}
     .ringside-pdf-document .derived-components{margin:9px 0!important;}
@@ -938,7 +940,13 @@
             (node.dataset.pdfTitle || "测试结果") + " · 数据续表",
           ),
         );
-        remainder.forEach(addBlock);
+        if (node.matches(".jump-detail")) {
+          const continuation=node.cloneNode(false), blankFigure=node.firstElementChild.cloneNode(false), continuationData=data.cloneNode(false);
+          blankFigure.removeAttribute("data-chart-kind");blankFigure.removeAttribute("data-chart-input");
+          remainder.forEach(block=>continuationData.append(block.element));
+          continuation.append(blankFigure,continuationData);
+          placePair(continuation);
+        } else remainder.forEach(addBlock);
       }
     }
     function placeAtomic(node) {

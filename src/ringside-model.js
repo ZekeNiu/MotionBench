@@ -1916,7 +1916,7 @@
       gain: "与 EUR 表达同一关系；对照 CMJ、SJ 原始成绩，避免把比值上升直接解释为能力改善。",
       idsi_matched: "与同口径历史测试比较，结合最大力量、CMJ 成绩和力时曲线判断；目前不使用通用训练界值。",
       idsi_fixed250: "用于固定时窗下的纵向监测；与匹配时窗 iDSI 分开解释，不套用 fDSI 界值。",
-      rqr: "结合 DJ、Hop 各自的跳高与触地时间，识别不同反应跳任务的表现差异；当前协议须保持一致。",
+      rqr: "结合 DJ、Hop 各自的垂直跳跃高度与触地时间，识别不同反应跳任务的表现差异；当前协议须保持一致。",
       asr: "同时查看 MSS 与 MAS，区分速度端和有氧端的变化；结合专项要求制定训练。",
       srr: "结合 MSS、MAS 和专项要求解释；耐力章节中的参考分组须按其适用人群使用。",
     };
@@ -1924,8 +1924,8 @@
       const result = { ...definition, enabled: true, value: null, available: false, reason: "", components: [], directionHint: directions[definition.id] || "", aggregation: record.mode === "mean" ? "各测试代表值（均值）之比；不配对独立试次" : "各测试最佳完整尝试的代表值之比" };
       if (["eur","gain"].includes(definition.id)) {
         result.value = raw[definition.id];
-        result.components = [component("CMJ 跳高",values.cmj_height,"cm"),component("SJ 跳高",values.sj_height,"cm")];
-        result.reason = "需有效 CMJ 与 SJ 跳高";
+        result.components = [component("CMJ 垂直跳跃高度",values.cmj_height,"cm"),component("SJ 垂直跳跃高度",values.sj_height,"cm")];
+        result.reason = "需有效 CMJ 与 SJ 垂直跳跃高度";
       } else if (definition.id === "fdsi") {
         result.value = raw.dsi;
         result.components = [component("CMJ 推进期峰值力",raw.cmj?.row?.force,record.dsi.cmjUnit || "N"),component("等长峰值力",raw.dsiForce,record.dsi.source === "manual" ? record.dsi.unit || "N" : record.imtpConfig.unit)];
@@ -1946,10 +1946,10 @@
         const hopRatio = chosen.length && chosen.every((s) => positive(s.rqr?.value) !== null) ? average(chosen.map((s) => s.rqr.value)) : null;
         result.components = [component("DJ FT/CT 代表值",djRatio,"比值"),component("Hop 平均 FT/CT 代表值",hopRatio,"比值")];
         result.value = djRatio !== null && hopRatio !== null ? djRatio / hopRatio : null;
-        result.reason = "所选 DJ 与 Hop 须均有完整 FT/CT，不能用跳高/触地时间 RSI 替代";
+        result.reason = "所选 DJ 与 Hop 须均有完整 FT/CT，不能用垂直跳跃高度/触地时间 RSI 替代";
         const original = record.mode === "mean" && djRows.length === 3 && djRows.every((r) => N(r.dropHeightCm) === 45) && chosen.length === 1 && chosen.every((s) => s.rqr.originalSelection);
         result.selection = { djIds: djRows.map((r) => r.id), hopSets: chosen.map((s) => ({ id:s.id, ...s.rqr })) };
-        result.selectionNote = "RQR 单独按 FT/CT 排序选跳；图中 Hop RSI 仍按跳高/触地时间排序。";
+        result.selectionNote = "RQR 单独按 FT/CT 排序选跳；图中 Hop RSI 仍按垂直跳跃高度/触地时间排序。";
         result.protocolMatch = original;
         result.name = original ? definition.name : "DJ/Hop 反应比 · 当前协议";
         result.protocol += original ? " 当前汇总符合以上主要取值条件。" : " 当前数据按所选汇总模式与 Hop 选跳规则计算，不等同原研究协议。";
@@ -1961,6 +1961,15 @@
         if (mas !== null && mss !== null && mss < mas) result.directionHint = "MSS 低于 MAS：请先核对单位、协议及测试结果，再讨论训练方向。";
       }
       result.available = Number.isFinite(result.value);
+      if (result.available) {
+        const percent = (n) => Math.abs(n).toFixed(1) + "%";
+        if (["eur", "gain"].includes(result.id)) {
+          const change = result.id === "eur" ? (result.value - 1) * 100 : result.value;
+          result.directionHint = change === 0 ? "CMJ 与 SJ 垂直跳跃高度相同。" : `CMJ 垂直跳跃高度较 SJ ${change > 0 ? "高" : "低"} ${percent(change)}。`;
+        } else if (result.id === "fdsi") result.directionHint = result.value < .6 ? "训练侧重：弹道与快速力量。" : result.value > .8 ? "训练侧重：最大力量。" : "训练侧重：最大力量与快速力量结合。";
+        else if (result.id.startsWith("idsi_")) result.directionHint = `CMJ 推进期冲量为 IMTP ${result.id === "idsi_matched" ? "同期" : "前 250 ms"}冲量的 ${percent(result.value * 100)}。`;
+        else if (result.id === "rqr") result.directionHint = result.value === 1 ? "DJ 与 Hop 的腾空／触地时间比相同。" : `DJ 腾空／触地时间比较 Hop ${result.value > 1 ? "高" : "低"} ${percent((result.value - 1) * 100)}。`;
+      }
       if (!result.available) { result.value = null; result.reason ||= "缺少可计算的数据或结果超出有效数值范围"; }
       else result.reason = "";
       return result;

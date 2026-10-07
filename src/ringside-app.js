@@ -60,7 +60,7 @@
     apiURL = "https://api.apikey.fan",
     model = "";
   let aiStatus = { kind: "idle" }, aiTicker;
-  let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null;
+  let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null, aiEditSequence = 0;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -3428,6 +3428,7 @@
     return raw.endsWith("/v1") ? raw : raw + "/v1";
   }
   function markAISettingsDirty() {
+    aiEditSequence++;
     if (!window.MotionBenchLocal) return;
     aiDirty = true;
     if ($("aiConfigStatus")) $("aiConfigStatus").textContent="有未保存的设置，请保存后再连接服务。";
@@ -3445,7 +3446,10 @@
     aiConfigLoad=(async()=>{
       try {
         acceptAIConfig(await window.RingsideAISettings.status());
-        if (ui.mode==="settings"&&settingsTab==="ai"&&!aiDirty) renderSettings();
+        if (ui.mode==="settings"&&settingsTab==="ai") {
+          if (!aiDirty) renderSettings();
+          else if ($("saveAISettingsButton")) $("saveAISettingsButton").disabled=aiBusy;
+        }
         return aiConfig;
       } catch(error) {
         if ($("aiConfigStatus")) $("aiConfigStatus").textContent=safeAIError(error);
@@ -3517,7 +3521,10 @@
       try { json = JSON.parse(body); } catch {}
       if (!response.ok || json?.error) {
         const rawDetail=String(json?.error?.message || (typeof json?.error === "string" ? json.error : json?.message || "")),detail=requestKey?rawDetail.split(requestKey).join("[密钥已隐藏]"):rawDetail;
-        if(bridge&&response.status===409)await loadAISettings(true);
+        if(bridge&&response.status===409) {
+          await loadAISettings(true);
+          setAIStatus("error","AI 配置已变更","本机 AI 配置已变更，请核对设置后重试。");
+        }
         const hint = { 401: "密钥无效或已失效", 403: "服务拒绝访问，请核对密钥权限和模型权限", 404: "接口或模型不存在，请核对地址和模型名称", 409:"本机AI配置已变更，请核对设置后重试", 429: "额度不足或请求过于频繁，请稍后重试", 502: "上游服务暂时不可用", 504: "上游服务响应超时" }[response.status] || "AI 服务未能完成请求";
         throw Error(hint + "（HTTP " + response.status + "）" + (detail ? "：" + safeAIError(detail) : ""));
       }
@@ -3531,8 +3538,12 @@
     }
   }
   async function models() {
+    const button=$("modelButton"), list=$("modelList"), message=$("apiMessage"), input=$("apiModel"), sequence=aiEditSequence;
+    if(!button||!list||!message||!input)return;
+    const active=()=>button.isConnected&&list===$("modelList")&&sequence===aiEditSequence;
     let connection;
     try {connection=await configuredAI();}catch(error){if($("apiMessage"))$("apiMessage").textContent=safeAIError(error);return;}
+    if(!active())return;
     $("modelButton").disabled = true;
     $("modelButton").textContent = "正在读取模型…";
     $("apiMessage").textContent = "正在连接服务，请稍候…";
@@ -3541,7 +3552,7 @@
         ids = (json.data || [])
           .map((x) => x.id)
           .filter((x) => typeof x === "string");
-      if(!$("modelList"))return;
+      if(!active()||(connection.configRevision&&connection.configRevision!==aiConfig?.revision))return;
       $("modelList").innerHTML = ids
         .map((x) => `<option value="${E(x)}"></option>`)
         .join("");
@@ -3555,20 +3566,21 @@
         $("apiMessage").textContent += "，已选用 " + model + "。模型列表读取成功不代表每个模型都有调用权限。";
       }
     } catch (e) {
-      if ($("apiMessage")) $("apiMessage").textContent = safeAIError(e);
+      if (active()) message.textContent = safeAIError(e);
     } finally {
-      if ($("modelButton")) $("modelButton").disabled = false;
-      if ($("modelButton")) $("modelButton").textContent = "读取可用模型";
+      if (button.isConnected) { button.disabled = false; button.textContent = "读取可用模型"; }
     }
   }
   async function ai() {
     if (job) return toast("当前分析正在生成", "ai");
     if (!M.stats(effectiveRecord()).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
+    const requestedRecord = state.recordId;
     let connection;
     try {connection=await configuredAI(true);}catch(error){
       openSettings("ai");
       return setAIStatus("error", "AI 服务尚未配置完整", safeAIError(error));
     }
+    if(state.recordId!==requestedRecord)return;
     saveEditor();
     const binding = snapshot(),
       task = {
@@ -4114,6 +4126,12 @@
     addIso,
     changeMode(v) {
       state.mode = v;
+      persist();
+      renderReport();
+    },
+    setIDSIWindow(value) {
+      if (!["idsi_matched", "idsi_fixed250"].includes(value)) return;
+      state.views.idsiWindow = value;
       persist();
       renderReport();
     },

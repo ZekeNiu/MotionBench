@@ -46,9 +46,9 @@ test("EUR and gain use representative source values without fake paired trial st
   assert.ok(!M.stats(r).repetitions.some(g=>g.testId==="eur"));assert.ok(!r.definitions.some(d=>d.ability==="训练方向分析"));
 });
 test("fDSI requires confirmed comparable force definitions and explicit source force",()=>{
-  const r=populated();near(result(r,"fdsi").value,.6);assert.match(result(r,"fdsi").directionHint,/并行/);
+  const r=populated();near(result(r,"fdsi").value,.6);assert.match(result(r,"fdsi").directionHint,/结合/);
   r.dsi.confirmed=false;assert.equal(result(r,"fdsi").available,false);r.dsi.confirmed=true;r.cmjConfig.definition="net";assert.equal(result(r,"fdsi").value,null);
-  r.cmjConfig.definition="gross";r.data.cmj[0].force=1400;assert.match(result(r,"fdsi").directionHint,/动态/);r.data.cmj[0].force=2100;assert.match(result(r,"fdsi").directionHint,/最大力量/);
+  r.cmjConfig.definition="gross";r.data.cmj[0].force=1400;assert.match(result(r,"fdsi").directionHint,/弹道/);r.data.cmj[0].force=2100;assert.match(result(r,"fdsi").directionHint,/最大力量/);
 });
 test("iDSI uses full propulsion impulse and each specified denominator window",()=>{
   const r=populated();near(result(r,"idsi_matched").value,300/350);near(result(r,"idsi_fixed250").value,.75);

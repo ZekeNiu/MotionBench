@@ -139,11 +139,11 @@ test("repeated changes stale analysis; raw expansion is presentation-only and so
   r.data.custom_repeat[0].metrics.time=13;assert.notEqual(M.fingerprint(r),before);
   const changed=M.fingerprint(r);r.views.details={"trials-custom_repeat":true};assert.equal(M.fingerprint(r),changed);
 });
-test("all demo statistics appear exactly once inside result rows, including isometric sides and IMTP", () => {
+test("displayed primary statistics appear exactly once, including isometric sides and IMTP", () => {
   const fixture=JSON.parse(fs.readFileSync('examples/three-trials.json','utf8')),r=fixture.record || fixture;
   const report=R.build(r),html=R.render(report);
   assert.deepEqual(copy(report.diagnostics),[]);
-  const expected=M.stats(r).repetitions.flatMap(g=>g.statistics).filter(m=>m.n>=3).length;
+  const expected=M.stats(r).repetitions.flatMap(g=>g.statistics.filter(m=>!["cmj","sj","dj","hop","cmrj"].includes(g.testId)||m.id===g.testId+"_height"||m.id===g.testId+"_rsi")).filter(m=>m.n>=3).length;
   assert.equal((html.match(/data-repeat-stat=/g)||[]).length,expected);
   assert.doesNotMatch(html,/repeat-stat-table|repeat-statistics|力来源|有效次数 力\/RFD/);
   const iso=html.match(/<article[^>]+id="detail-iso"[\s\S]*?<\/article>/)[0];
