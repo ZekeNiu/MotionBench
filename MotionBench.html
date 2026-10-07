@@ -934,6 +934,9 @@ section {
   display: inline-block;
   margin-right: 4px;
 }
+.iso-results .iso-status {
+  white-space: nowrap;
+}
 .metric-meta {
   display: block;
   color: var(--muted);
@@ -2767,13 +2770,12 @@ body.sidebar-collapsed .workspace {
 .stat-condition{font-size:11px;color:var(--muted);}
 .stat-side,.stat-load{min-height:58px;}
 .stat-side:last-child,.stat-load:last-child{margin-bottom:0;}
-.iso-detail{grid-template-columns:clamp(300px,34%,380px) minmax(0,1fr);}
-.iso-results.with-repeat-columns{table-layout:auto;min-width:720px;}
+.iso-results.with-repeat-columns{table-layout:auto;}
 .iso-results.with-repeat-columns th{width:auto;}
 .iso-results.with-repeat-columns th:nth-child(4){width:1%;min-width:48px;}
 .iso-results.with-repeat-columns th,.iso-results.with-repeat-columns td{overflow-wrap:normal;word-break:normal;padding-inline:8px;}
 .iso-results.with-repeat-columns td:first-child{overflow-wrap:anywhere;}
-.iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type,.iso-results.with-repeat-columns .repeat-stat-cv>span:last-of-type{white-space:nowrap;}
+.iso-results.with-repeat-columns .repeat-stat-cv>span:last-of-type{white-space:nowrap;}
 @container (max-width:759px){.iso-detail{grid-template-columns:minmax(0,1fr);}}
 .lvp-results.with-repeat-columns th:nth-child(1){width:12%;}
 .lvp-results.with-repeat-columns th:nth-child(2){width:18%;}
@@ -11197,6 +11199,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           if (!balancesByRow.has(owner)) balancesByRow.set(owner, []);
           balancesByRow.get(owner).push(balance);
         }
+        // Compact wording is a display choice; keep the original assessment accessible.
+        const statusPill = (prefix, status, description, ungraded = "") => {
+          const label = { green: "达标", amber: "关注", red: "严重" }[status] || ungraded;
+          return `<span class="pill ${E(status)} iso-status" role="img" aria-label="${E(description)}" title="${E(description)}"><i class="dot"></i>${prefix ? `<span class="iso-status-value">${E(prefix)}</span>` : ""}${label ? ` <span class="iso-status-label">${label}</span>` : ""}</span>`;
+        };
         const balanceCell = (row) =>
           (balancesByRow.get(row.id) || [])
             .filter((balance) => balance.results.some((result) => result.value !== null))
@@ -11209,9 +11216,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
                 .map((result) => {
                   const side = result.side ? result.side + " · " : "";
                   if (result.value === null) return `<div>${E(side)}-</div>`;
-                  return `<div>${pill(
-                    side + F(result.value, 2) + " · " + result.label,
+                  return `<div>${statusPill(
+                    side + F(result.value, 2),
                     result.status,
+                    side + F(result.value, 2) + " · " + result.label,
+                    balance.referenceEnabled && balance.ranges?.length ? "未评" : "",
                   )}</div>`;
                 })
                 .join("");
@@ -11225,9 +11234,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           if (!available) return "-";
           return row.sides.map((side) => {
             const label = side.side ? side.side + " · " : "";
-            const value = side.pain ? pill(label + "疼痛", "red")
+            const description = label + (side.reasons.length ? side.reasons.join("；") : "达到目标");
+            const value = side.pain ? statusPill(label.trim(), "red", description)
               : side.value === null || !positive(row.target) ? E(label) + "-"
-              : pill(label + (side.value >= row.target ? "达到目标" : "低于目标"), side.status);
+              : statusPill(label.trim(), side.status, description);
             return repeated ? `<div class="stat-side">${value}</div>` : value;
           }).join(repeated ? "" : "<br>");
         };
@@ -12115,12 +12125,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     .ringside-pdf-document .card-foot{padding:8px 9px!important;font-size:10px!important;line-height:1.6!important;}
     .ringside-pdf-document .legend{gap:6px!important;font-size:10px!important;}
     .ringside-pdf-document .pill{font-size:11px!important;line-height:1.5!important;padding:2px 5px!important;white-space:normal!important;}
+    .ringside-pdf-document .iso-status{white-space:nowrap!important;}
     .ringside-pdf-document .chart-wrap{display:block!important;padding:7px 0!important;margin:0!important;max-width:none!important;min-width:0!important;}
     .ringside-pdf-document svg{max-width:100%!important;max-height:none!important;width:100%!important;height:auto!important;}
     .ringside-pdf-document .chart-wrap>img,.ringside-pdf-document .iso-charts>img{display:block!important;margin:0 auto!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
-    .ringside-pdf-document .iso-detail{grid-template-columns:minmax(0,32fr) minmax(0,68fr)!important;}
     .ringside-pdf-document .iso-detail[data-pdf-iso-layout="stacked"]{display:block!important;}
     .ringside-pdf-document .iso-detail[data-pdf-iso-layout="stacked"]>.chart-wrap{margin-bottom:12px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:auto!important;min-width:0!important;}

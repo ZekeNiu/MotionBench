@@ -40,8 +40,75 @@ unit = read("unit", "output/tests/unit-results.json")
 assert len(unit["suites"]) == 8 and all(s["exitCode"] == 0 for s in unit["suites"])
 checks = sum(s["checksPassed"] for s in unit["suites"])
 version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
-assert checks == (148 if version in {"2.6.2", "2.6.3", "2.7.0", "2.7.1"} else 146)
+assert checks == (148 if version in {"2.6.2", "2.6.3", "2.7.0", "2.7.1", "2.7.2"} else 146)
 evidence["unit"]["checks"] = checks
+
+if version == "2.7.2":
+    assert digest(ROOT / "MotionBench.html") == source_hash
+    layout = read("isometricLayout", "output/playwright/iso-layout/review.json")
+    comparison = read("comparison", "output/playwright/iso-compact/comparison/review.json")
+    pdf = read("pdfDownloads", "output/pdf/iso-layout-download-verification.json")
+    render = read("pdfRender", "output/pdf/iso-compact-render-verification.json")
+    visual = read("visualReview", "output/playwright/iso-compact/visual-review.json")
+    failure = read("pdfFailure", "output/pdf/failure-ui-verification.json")
+    for item in [layout, comparison, pdf, render, visual, failure]:
+        assert item["pass"] and not item.get("errors")
+    assert len(layout["checks"]) == 5 and not layout["network"]
+    normal = [x for x in layout["layouts"] if x["scenario"] == "demo"]
+    assert {x["viewport"] for x in normal} == {1920, 1440, 1366, 1280, 900, 390}
+    for row in layout["layouts"]:
+        assert not row["pageOverflow"] and not row["brokenNumbers"] and not row["labelsOutside"]
+        assert not row["misalignedSides"] and row["font"] == "13px"
+        if row["scenario"] != "stress":
+            assert not row["localScroll"]
+        if row["scenario"] == "demo":
+            assert row["peers"] and all(abs(p["x"] - row["table"]["x"]) < 1 and abs(p["width"] - row["table"]["width"]) < 1 for p in row["peers"])
+    images(layout["images"])
+    images(layout["downloads"])
+    assert len(comparison["comparisons"]) == 4 and all(x["equal"] for x in comparison["comparisons"])
+    assert len(comparison["images"]) == 6
+    images(comparison["images"])
+    baseline = ROOT / "output/backups/iso-labels-20261007"
+    assert digest(baseline / "MotionBench.html") == comparison["baselineHash"]
+    unchanged = {}
+    for name in ["ringside-calc.js", "ringside-definitions.js", "ringside-model.js", "ringside-tests.js", "ringside-interventions.js", "ringside-viz.js", "ringside-app.js"]:
+        unchanged[name] = digest(ROOT / "src" / name)
+        assert unchanged[name] == digest(baseline / "src" / name), name
+    assert len(pdf["cases"]) == len(render["cases"]) == 7 and pdf["foldAndViewportIndependent"]
+    assert {c["mode"] for c in pdf["cases"]} == {"side-by-side", "stacked"}
+    for case in pdf["cases"]:
+        assert case["pass"] and case["pdfSha256"] == digest(ROOT / "output/pdf" / (case["id"] + ".pdf"))
+        for field in ["missingRows", "duplicateRows", "changedRows", "missingCharts", "duplicateCharts"]:
+            assert not case["diagnostics"][field]
+        decision = case["diagnostics"]["isometricLayouts"][0]
+        assert (case["mode"] == "side-by-side") == (decision["sideBySideHeight"] <= decision["capacity"])
+        assert all(not p["overflow"] and not p["brokenNumbers"] and not p["misalignedSides"] for p in case["pages"])
+        assert all(p["rowColors"] == ["rgb(255, 255, 255)"] or not p["rowColors"] for p in case["pages"])
+        assert all(t["font"] == "12px" for p in case["pages"] for t in p["iso"])
+    for case in render["cases"]:
+        assert case["pdfSha256"] == digest(ROOT / "output/pdf" / (case["id"] + ".pdf"))
+        assert all(p["a4"] for p in case["pageChecks"])
+    assert visual["allPagesVisuallyReviewed"] and visual["allComparisonPairsReviewed"]
+    assert visual["sameRecordDesktopMobilePixelsEqual"]
+    images(visual["images"])
+    assert visual["pages"] == sum(c["pages"] for c in render["cases"])
+    assert {(c["id"], p) for c in render["cases"] for p in range(1, c["pages"] + 1)} == {(c["id"], p) for c in visual["pdfCases"] for p in c["reviewedPages"]}
+    result = {"pass": True, "version": version, "html": "MotionBench.html", "sha256": source_hash,
+        "bytes": (ROOT / "MotionBench.html").stat().st_size, "reproducibleBuild": True,
+        "modules": modules, "unchangedCalculationAndInteractionModules": unchanged, "evidence": evidence,
+        "modelChecks": checks, "isometricLayoutGroups": 5, "widths": 6,
+        "sameDataComparisons": 4, "visualComparisonPairs": 3,
+        "pdfFilesReviewed": 7, "pdfPagesReviewed": visual["pages"], "rollbackTag": "v2.7.1",
+        "confidence": "high", "verificationLimits": [
+            "Targeted isometric display and PDF regression; earlier AI/sidebar evidence remains specific to version 2.7.1.",
+            "Extreme custom values can require scrolling inside the table; standard and configured-grade fixtures fit at tested widths.",
+            "Mobile checks use browser viewport simulation; physical devices and paper printing were not tested."]}
+    (ROOT / "output/acceptance-manifest.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    public = {k: v for k, v in result.items() if k not in {"evidence", "modules"}}
+    (ROOT / "docs/acceptance-2.7.2.json").write_text(json.dumps(public, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print("PASS MotionBench 2.7.2: compact labels, aligned tables, unchanged data and current-artifact PDF review")
+    print(source_hash)
+    raise SystemExit(0)
 
 if version == "2.7.1":
     assert digest(ROOT / "MotionBench.html") == source_hash

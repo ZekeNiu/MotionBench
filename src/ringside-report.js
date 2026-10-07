@@ -457,6 +457,11 @@
           if (!balancesByRow.has(owner)) balancesByRow.set(owner, []);
           balancesByRow.get(owner).push(balance);
         }
+        // Compact wording is a display choice; keep the original assessment accessible.
+        const statusPill = (prefix, status, description, ungraded = "") => {
+          const label = { green: "达标", amber: "关注", red: "严重" }[status] || ungraded;
+          return `<span class="pill ${E(status)} iso-status" role="img" aria-label="${E(description)}" title="${E(description)}"><i class="dot"></i>${prefix ? `<span class="iso-status-value">${E(prefix)}</span>` : ""}${label ? ` <span class="iso-status-label">${label}</span>` : ""}</span>`;
+        };
         const balanceCell = (row) =>
           (balancesByRow.get(row.id) || [])
             .filter((balance) => balance.results.some((result) => result.value !== null))
@@ -469,9 +474,11 @@
                 .map((result) => {
                   const side = result.side ? result.side + " · " : "";
                   if (result.value === null) return `<div>${E(side)}-</div>`;
-                  return `<div>${pill(
-                    side + F(result.value, 2) + " · " + result.label,
+                  return `<div>${statusPill(
+                    side + F(result.value, 2),
                     result.status,
+                    side + F(result.value, 2) + " · " + result.label,
+                    balance.referenceEnabled && balance.ranges?.length ? "未评" : "",
                   )}</div>`;
                 })
                 .join("");
@@ -485,9 +492,10 @@
           if (!available) return "-";
           return row.sides.map((side) => {
             const label = side.side ? side.side + " · " : "";
-            const value = side.pain ? pill(label + "疼痛", "red")
+            const description = label + (side.reasons.length ? side.reasons.join("；") : "达到目标");
+            const value = side.pain ? statusPill(label.trim(), "red", description)
               : side.value === null || !positive(row.target) ? E(label) + "-"
-              : pill(label + (side.value >= row.target ? "达到目标" : "低于目标"), side.status);
+              : statusPill(label.trim(), side.status, description);
             return repeated ? `<div class="stat-side">${value}</div>` : value;
           }).join(repeated ? "" : "<br>");
         };

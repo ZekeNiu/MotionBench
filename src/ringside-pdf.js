@@ -66,12 +66,12 @@
     .ringside-pdf-document .card-foot{padding:8px 9px!important;font-size:10px!important;line-height:1.6!important;}
     .ringside-pdf-document .legend{gap:6px!important;font-size:10px!important;}
     .ringside-pdf-document .pill{font-size:11px!important;line-height:1.5!important;padding:2px 5px!important;white-space:normal!important;}
+    .ringside-pdf-document .iso-status{white-space:nowrap!important;}
     .ringside-pdf-document .chart-wrap{display:block!important;padding:7px 0!important;margin:0!important;max-width:none!important;min-width:0!important;}
     .ringside-pdf-document svg{max-width:100%!important;max-height:none!important;width:100%!important;height:auto!important;}
     .ringside-pdf-document .chart-wrap>img,.ringside-pdf-document .iso-charts>img{display:block!important;margin:0 auto!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
-    .ringside-pdf-document .iso-detail{grid-template-columns:minmax(0,32fr) minmax(0,68fr)!important;}
     .ringside-pdf-document .iso-detail[data-pdf-iso-layout="stacked"]{display:block!important;}
     .ringside-pdf-document .iso-detail[data-pdf-iso-layout="stacked"]>.chart-wrap{margin-bottom:12px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:auto!important;min-width:0!important;}

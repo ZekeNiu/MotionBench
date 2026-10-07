@@ -1,0 +1,31 @@
+{
+  "pass": true,
+  "version": "2.7.2",
+  "html": "MotionBench.html",
+  "sha256": "9b4b019ece8262f299399e687a880af15c628c1be982ce5c8ec48885ab418e32",
+  "bytes": 4164109,
+  "reproducibleBuild": true,
+  "unchangedCalculationAndInteractionModules": {
+    "ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "ringside-definitions.js": "c8ac3ee5047b647fb813451ed2fc165d05c9a7dff82f4d136a4a253c918a9d9f",
+    "ringside-model.js": "0dd0935d6a7d9cb7144e33b0a16baf9e2a1b09360b441b6ac4f066fc63589308",
+    "ringside-tests.js": "5523cf28e582f4a9cfa4fc83dd60797024d14a7b557f415cc34de92ac503d45b",
+    "ringside-interventions.js": "c160e2d9c15b91acf19164986319ff434a71f3acbbb6ac61947589fc5d27863f",
+    "ringside-viz.js": "77a15ec38f311a8bc509c43b3f82a7d52b21023e50222db6bb3e40a9f62270d6",
+    "ringside-app.js": "ba75aed3f1d46f46132f1e8d123210fbaf6eb8b6ee59764f4bfa4a88c4a8d4de"
+  },
+  "modelChecks": 148,
+  "isometricLayoutGroups": 5,
+  "widths": 6,
+  "sameDataComparisons": 4,
+  "visualComparisonPairs": 3,
+  "pdfFilesReviewed": 7,
+  "pdfPagesReviewed": 62,
+  "rollbackTag": "v2.7.1",
+  "confidence": "high",
+  "verificationLimits": [
+    "Targeted isometric display and PDF regression; earlier AI/sidebar evidence remains specific to version 2.7.1.",
+    "Extreme custom values can require scrolling inside the table; standard and configured-grade fixtures fit at tested widths.",
+    "Mobile checks use browser viewport simulation; physical devices and paper printing were not tested."
+  ]
+}

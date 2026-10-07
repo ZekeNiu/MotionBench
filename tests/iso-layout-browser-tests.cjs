@@ -53,6 +53,18 @@ function stressFixture() {
   r.balancePairs.push(...[1, 2].map(i => ({ ...pair, id: "layout-balance-" + i, label: "补充平衡配对 " + i })));
   return r;
 }
+function gradingFixture() {
+  const r = fixture("grades", 3);
+  r.data.iso.slice(0, 3).forEach((row, i) => {
+    const value = Math.max(...row.trials.map(t => Number(row.paired ? t.left : t.center)));
+    row.target = value / [1, .9, .6][i];
+  });
+  r.balancePairs.forEach((pair, i) => {
+    if (i < 3) Object.assign(pair, { referenceEnabled: true, ranges: [{ min: 0, max: 10, label: ['处于绿色区间', '处于黄色区间', '处于红色区间'][i], status: ['green', 'amber', 'red'][i] }] });
+    else Object.assign(pair, { referenceEnabled: i !== 3, ranges: [] });
+  });
+  return r;
+}
 // Token rectangles catch decimal values being broken across lines even when
 // the table itself fits its container. Every visible digit sequence stays whole.
 function geometry() {
@@ -76,6 +88,7 @@ function geometry() {
     for (let side = 0; side < 2; side++) { const tops = columns.map(c => c[side]?.getBoundingClientRect().top).filter(x => x !== undefined); if (tops.length && Math.max(...tops) - Math.min(...tops) > 1) misalignedSides.push(row.dataset.rowId + ':' + side); }
   }
   return { viewport: innerWidth, chart: rect(chart), table: rect(table), wrap: rect(wrap), pair: rect(pair),
+    peers: [...document.querySelectorAll('#detail-cmj .detail-pair table,#detail-imtp .detail-pair table')].map(rect),
     pageOverflow: document.documentElement.scrollWidth > innerWidth, localScroll: wrap.scrollWidth > wrap.clientWidth + 1,
     font: getComputedStyle(table.querySelector("td")).fontSize, labelsOutside, brokenNumbers, misalignedSides,
     columns: [...table.querySelectorAll("th")].map(t => ({ label: t.textContent, width: t.getBoundingClientRect().width })) };
@@ -88,16 +101,18 @@ async function screenshot(name) {
 async function check(name, run) { await run(); evidence.checks.push(name); console.log("PASS " + name); }
 async function browserChecks() {
   await open(); await importRecord(demo);
-  await check("five-width-seven-columns-local-scroll-and-readable-numbers", async () => {
-    for (const width of [1920, 1440, 1280, 900, 390]) {
+  await check("six-width-seven-columns-aligned-tables-and-readable-numbers", async () => {
+    for (const width of [1920, 1440, 1366, 1280, 900, 390]) {
       await page.setViewportSize({ width, height: 1000 }); await page.waitForTimeout(200);
       const g = await page.evaluate(geometry); evidence.layouts.push({ scenario: "demo", ...g });
       assert.equal(g.pageOverflow, false); assert.deepEqual(g.labelsOutside, []); assert.deepEqual(g.brokenNumbers, []); assert.deepEqual(g.misalignedSides, []); assert.equal(g.font, "13px");
       assert.equal(g.columns.length, 7);
-      if (width > 600) { assert.ok(g.chart.x + g.chart.width <= g.wrap.x + 1); assert.ok(Math.abs(g.chart.y - g.wrap.y) < 1); assert.ok(g.chart.width >= 299 && g.chart.width <= 381); assert.ok(g.table.width >= 719); }
+      assert.equal(g.localScroll, false, 'standard data fits without table scrolling');
+      assert.ok(g.peers.length >= 2);
+      assert.ok(g.peers.every(p => Math.abs(p.x - g.table.x) < 1 && Math.abs(p.width - g.table.width) < 1), 'align both table edges with CMJ and IMTP');
+      if (width > 600) { assert.ok(g.chart.x + g.chart.width <= g.wrap.x + 1); assert.ok(Math.abs(g.chart.y - g.wrap.y) < 1); }
       else { assert.ok(g.wrap.y >= g.chart.y + g.chart.height); assert.equal(g.localScroll, false); }
-      if ([1440, 1280, 390].includes(width)) await screenshot("demo-" + width);
-      if (width === 1280) { assert.ok(g.localScroll); await page.locator("#detail-iso .iso-detail .table-wrap").evaluate(n => n.scrollLeft = n.scrollWidth); assert.ok(await page.locator("#detail-iso .iso-detail .table-wrap").evaluate(n => n.scrollLeft > 0)); await screenshot("demo-scrolled-1280"); }
+      if ([1440, 1366, 1280, 390].includes(width)) await screenshot("demo-" + width);
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     const cv = evidence.layouts[0].columns[3].width, stats = evidence.layouts[0].columns[2].width;
@@ -137,6 +152,28 @@ async function browserChecks() {
     }
     const clean = await browser.newContext({ offline: true }), p = await clean.newPage(); await p.goto(pathToFileURL(path.join(root, "output/demo/Ringside_三次重复演示.html")).href); await p.waitForFunction(() => window.App?.getState);
     assert.equal(await p.evaluate(() => App.stats().repetitions.filter(g => g.attempts.length === 3).length), 56); assert.equal(await p.locator("[data-repeat-stat]").count(), 71); await clean.close();
+  });
+  await check("compact-labels-retain-grades-ratios-sides-and-full-accessible-explanations", async () => {
+    await importRecord(gradingFixture());
+    for (const column of ['评价', '关节平衡']) {
+      for (const [status, label] of Object.entries({green: '达标', amber: '关注', red: '严重'})) {
+        const pills = page.locator(`#detail-iso td[data-label="${column}"] .iso-status.${status}`);
+        assert.ok(await pills.count(), column + status);
+        assert.ok((await pills.locator('.iso-status-label').allTextContents()).every(t => t === label));
+        assert.ok((await pills.evaluateAll(nodes => nodes.map(n => n.title === n.getAttribute('aria-label') && n.title.length > 2))).every(Boolean));
+      }
+    }
+    const gray = page.locator('#detail-iso td[data-label="关节平衡"] .iso-status.gray');
+    assert.ok(await gray.count());
+    assert.ok((await gray.allTextContents()).every(t => /\d/.test(t) && !/[\u4e00-\u9fff]/.test(t)), 'unconfigured gray pills retain ratios without status text');
+    assert.ok((await gray.evaluateAll(nodes => nodes.map(n => /未启用评价标准|未设等级区间/.test(n.title)))).every(Boolean));
+    for (const width of [1440, 1366, 1280, 900, 390]) {
+      await page.setViewportSize({width, height:1000}); await page.waitForTimeout(180);
+      const g = await page.evaluate(geometry); evidence.layouts.push({scenario:'grades', ...g});
+      assert.equal(g.pageOverflow, false); assert.equal(g.localScroll, false);
+      assert.deepEqual(g.brokenNumbers, []); assert.deepEqual(g.misalignedSides, []);
+    }
+    await page.setViewportSize({width:1366,height:1000}); await screenshot('compact-grades-1366');
   });
   assert.deepEqual(evidence.errors, []); assert.deepEqual(evidence.network, []); evidence.pass = true;
   await context.close(); fs.writeFileSync(path.join(out, "review.json"), JSON.stringify(evidence, null, 2));
@@ -202,6 +239,7 @@ async function pdfCase(id, record, mode, width = 1440, expanded = false) {
       await pdfCase("iso-layout-demo", demo, "stacked");
       await pdfCase("iso-layout-small-mobile", fixture("pdf-small", 3, 3), "side-by-side", 390, true);
       assert.deepEqual(pdfEvidence.cases[0].pages, pdfEvidence.cases.at(-1).pages);
+      await pdfCase("iso-layout-grades", gradingFixture(), "stacked");
       assert.deepEqual(evidence.errors, []); assert.deepEqual(evidence.network, []);
       pdfEvidence.foldAndViewportIndependent = true; pdfEvidence.pass = true;
       fs.writeFileSync(path.join(pdfOut, "iso-layout-download-verification.json"), JSON.stringify(pdfEvidence, null, 2));

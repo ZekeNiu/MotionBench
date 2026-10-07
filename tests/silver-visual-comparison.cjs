@@ -1,14 +1,20 @@
 "use strict";
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict");
 const {createHash}=require("node:crypto"),{pathToFileURL}=require("node:url"),{chromium}=require("./helpers/playwright.cjs");
-const root=path.resolve(__dirname,".."),out=path.join(root,"output/playwright/silver-ui/comparison");
+const root=path.resolve(__dirname,".."),isometric=process.argv.includes("--isometric");
+const version=JSON.parse(fs.readFileSync(path.join(root,"package.json"))).version,baselineVersion=isometric?"2.7.1":"2.7.0";
+const out=path.join(root,isometric?"output/playwright/iso-compact/comparison":"output/playwright/silver-ui/comparison");
 fs.mkdirSync(out,{recursive:true});
-const current=path.join(root,"MotionBench.html"),baseline=path.join(root,"output/backups/silver-ai-sidebar-20261007/MotionBench.html");
+const current=path.join(root,"MotionBench.html"),baseline=path.join(root,isometric?"output/backups/iso-labels-20261007/MotionBench.html":"output/backups/silver-ai-sidebar-20261007/MotionBench.html");
 const hash=p=>createHash("sha256").update(fs.readFileSync(p)).digest("hex");
 const fixture=JSON.parse(fs.readFileSync(path.join(root,"examples/three-trials.json")));
 const record=fixture.record||fixture;
 const result={sourceHash:hash(current),baselineHash:hash(baseline),fixtureHash:hash(path.join(root,"examples/three-trials.json")),checks:[],images:[],comparisons:[],errors:[],pass:false};
-const scenes=[
+const scenes=isometric?[
+  {id:"table-1366",label:"等长力量 · 1366px",width:1366,height:1000},
+  {id:"table-1280",label:"等长力量 · 1280px",width:1280,height:1000},
+  {id:"mobile-table",label:"等长力量 · 390px",width:390,height:844},
+]:[
   {id:"report",label:"报告首页 · 四张摘要卡片",width:1366,height:900},
   {id:"table",label:"测试结果 · 白底表格",width:1366,height:900},
   {id:"entry",label:"运动员与背景 · 原有表单排列",width:1366,height:900},
@@ -85,7 +91,7 @@ async function comparisonValues(page){
       await context.close();
     }
     assert.deepEqual(result.errors,[]);result.checks.push('same-data-best-mean-complete-missing-pain-results-and-ai-facts-unchanged','four-cards-and-no-horizontal-page-overflow','white-data-rows-across-report-and-entry');
-    const html=`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MotionBench 2.7.1 · 前后对比</title><style>*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#262a30;font:15px/1.7 "Segoe UI","Microsoft YaHei",sans-serif}main{max-width:1600px;margin:auto;padding:40px 28px}h1{margin:0;font-size:28px;font-weight:650}p{color:#636b76}nav{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}a{color:#365b7a}nav a{padding:6px 12px;border:1px solid #dce2e7;border-radius:7px;background:white;text-decoration:none}section{padding:24px 0;border-top:1px solid #dde2e7}h2{font-size:19px;font-weight:600}figure{margin:0;min-width:0}figcaption{color:#636b76;padding:10px 0}img{display:block;max-width:100%;height:auto;border:1px solid #dde2e7;border-radius:8px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}.phone img{max-width:390px}@media(max-width:800px){.pair{grid-template-columns:1fr}main{padding:24px 16px}}</style><main><h1>MotionBench · 银灰精修</h1><p>同一份三试次示例，原版 2.7.0 与新版 2.7.1。点击图片查看原尺寸。</p><nav>${scenes.map(s=>`<a href="#${s.id}">${s.label.split(' · ')[0]}</a>`).join('')}</nav>${scenes.map(s=>`<section id="${s.id}"><h2>${s.label}</h2><div class="pair ${s.width<500?'phone':''}">${['before','after'].map(v=>`<figure><figcaption>${v==='before'?'原版 · 2.7.0':'新版 · 2.7.1'}</figcaption><a href="${s.id}-${v}.png"><img loading="lazy" src="${s.id}-${v}.png" alt="${s.label} ${v==='before'?'原版':'新版'}"></a></figure>`).join('')}</div></section>`).join('')}</main></html>`;
+    const html=`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MotionBench ${version} · 前后对比</title><style>*{box-sizing:border-box}body{margin:0;background:#f5f6f8;color:#262a30;font:15px/1.7 "Segoe UI","Microsoft YaHei",sans-serif}main{max-width:1600px;margin:auto;padding:40px 28px}h1{margin:0;font-size:28px;font-weight:650}p{color:#636b76}nav{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}a{color:#365b7a}nav a{padding:6px 12px;border:1px solid #dce2e7;border-radius:7px;background:white;text-decoration:none}section{padding:24px 0;border-top:1px solid #dde2e7}h2{font-size:19px;font-weight:600}figure{margin:0;min-width:0}figcaption{color:#636b76;padding:10px 0}img{display:block;max-width:100%;height:auto;border:1px solid #dde2e7;border-radius:8px}.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}.phone img{max-width:390px}@media(max-width:800px){.pair{grid-template-columns:1fr}main{padding:24px 16px}}</style><main><h1>MotionBench · ${isometric?"等长力量表格精简":"银灰精修"}</h1><p>同一份三试次示例，原版 ${baselineVersion} 与新版 ${version}。点击图片查看原尺寸。</p><nav>${scenes.map(s=>`<a href="#${s.id}">${s.label.split(' · ')[0]}</a>`).join('')}</nav>${scenes.map(s=>`<section id="${s.id}"><h2>${s.label}</h2><div class="pair ${s.width<500?'phone':''}">${['before','after'].map(v=>`<figure><figcaption>${v==='before'?'原版 · '+baselineVersion:'新版 · '+version}</figcaption><a href="${s.id}-${v}.png"><img loading="lazy" src="${s.id}-${v}.png" alt="${s.label} ${v==='before'?'原版':'新版'}"></a></figure>`).join('')}</div></section>`).join('')}</main></html>`;
     fs.writeFileSync(path.join(out,'index.html'),html);result.pass=true;
     console.log('PASS',result.comparisons.length,'identical data comparisons and',scenes.length,'visual pairs');
   }catch(e){result.failure=e.stack;process.exitCode=1;console.error(e.stack);}
