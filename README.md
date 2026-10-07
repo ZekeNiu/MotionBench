@@ -1,6 +1,6 @@
 # MotionBench
 
-跨项目的运动表现评估与训练建议工作台。当前版本 **2.7.2**。录入、计算、图表、备份与 PDF 导出均可离线使用。
+跨项目的运动表现评估与训练建议工作台。当前版本 **2.8.0**。录入、计算、图表、备份与 PDF 导出均可离线使用。
 
 ![MotionBench](assets/motionbench-logo.svg)
 
@@ -8,8 +8,14 @@
 
 - **离线评估**：双击 `MotionBench.html`，无需安装。直接打开 HTML 时，AI 服务需要允许浏览器跨域访问。
 - **使用中转 AI 服务**：Windows 双击 `Start_MotionBench.cmd`，在自动打开的页面中使用；保持启动窗口开启。需要 Python 3.10 或更新版本。其他系统运行 `python3 scripts/serve.py`。
-- **更新旧版**：`Ringside_Boxing_Assessment.html` 保留为内容相同的兼容入口。把新版放回原文件位置，用原浏览器打开，可继续访问该路径的记录。切换到新文件名、另一浏览器或本机启动入口前，请先在旧页面“保存与导入”中导出运动员库，再导入新入口；不同页面地址的浏览器数据不会自动合并。
+- **更新旧版**：`Ringside_Boxing_Assessment.html` 保留为内容相同的兼容入口。把新版放回原文件位置，用原浏览器打开，可继续访问该路径的记录。切换到新文件名、另一浏览器或本机启动入口前，请先在旧页面导出运动员库（2.8.0 使用“备份与恢复”），再导入新入口；不同页面地址的浏览器数据不会自动合并。
 - 下载后的两个 HTML 均可独立工作。无需使用 GitHub 网站上传测试数据。
+
+### 迁移与回退
+
+在原路径、原浏览器打开新版时，会先校验旧资料并写入新资料库；成功后切换，旧浏览器存储继续保留。“备份与恢复”可下载迁移前资料、导出完整备份或恢复上次导入前资料库。导入校验失败不替换现有资料。
+
+回退到 v2.7.2 时使用迁移前备份；也可导出旧版兼容 JSON，保留已测试记录和当前生效标准，但不包含队伍、空档案和回收站。不要把新版完整 JSONL 直接交给旧应用。
 
 ### 两种建议有什么区别
 
@@ -34,18 +40,21 @@ API Key 仅在当前页面和请求的内存中使用，不写入源码、浏览
 
 ## 评估功能
 
-- 运动员库、历次测试、测试项目库与自定义指标；专项和惯用手分别填写。
+- 报告工作台负责选人与查看报告；管理中心维护运动员、测试记录、队伍、项目库、指标库和共用评价方案。
+- 支持先建档后测试、搜索分页、队伍筛选、批量分组或更换方案、归档和回收站。专项和惯用手分别填写。
+- 共用评价方案更新后，关联的历史记录自动使用最新标准；测量条件不匹配时保留实测值。现有解读保留，并在评价依据变化时标记待复核。
 - FMS、等长力量、CMJ/SJ、IMTP、负荷-速度、MAS/MSS、30-15 IFT、乳酸等测试与报告。
 - 同条件重复试次按最佳或均值汇总；至少 3 个有效值显示均值、样本 SD 与适用时的 CV。缺测不当成零。
 - 等长力量保留五轴雷达；桌面左图右表，手机按方向展示。PDF 根据完整图表高度选择左右或上下排版，长表逐页续排。
 - 等长力量评价与关节平衡采用“达标／关注／严重”短标签；未设标准的平衡比值显示灰底。悬停可查看完整原因，数值与侧别保留，常规表格与 CMJ、IMTP 对齐。
-- HTML/JSON 备份、可编辑报告与离线 A4 PDF。图表和计算不依赖联网。
+- 完整资料库使用分批处理的 `.motionbench.jsonl` 备份；继续接受旧 JSON。单报告 HTML／JSON 和离线 A4 PDF 保留导出时的评价内容。
+- 数据按运动员、记录、队伍和评价方案保存在本机 IndexedDB；列表只读取摘要，打开记录时再读取测量数据。
 
 更换专项时，请核对本次评价标准、协议和适用人群。部分内置测试与参考原用于拳击，品牌更名不会自动把这些标准变成跨项目通用常模。原始方向、单位、公式、历史记录和导入结构继续兼容。
 
 页面与 PDF 采用统一的银灰样式，数据行白底。低矮窗口的侧栏可整体滚动，顶部关闭按钮保持可见；重新打开时会显示当前导航项。
 
-方法说明：[速度参考](docs/speed-reference.md) · [软件结构](docs/architecture.md) · [本版验收](docs/motionbench-2.7.2.md)。
+方法说明：[速度参考](docs/speed-reference.md) · [软件结构](docs/architecture.md) · [本版验收](docs/motionbench-2.8.0.md)。
 
 ## 开发与验证
 
@@ -55,9 +64,10 @@ API Key 仅在当前页面和请求的内存中使用，不写入源码、浏览
 python scripts/build.py
 npm ci
 npm test
-npm run test:ai-service
-node tests/ai-scope-browser-tests.cjs
-node tests/sidebar-browser-tests.cjs
+npm run test:management
+npm run test:capacity
+npm run test:management-pdf
+python scripts/review_pdf.py --manifest=management-download-verification.json --output=management-render-verification.json --focused
 python tests/local-server-tests.py
 ```
 

@@ -1,0 +1,174 @@
+{
+  "pass": true,
+  "implementationComplete": true,
+  "approvedAcceptancePass": true,
+  "version": "2.8.0",
+  "approvedRevision": "MB-20261007-MANAGEMENT",
+  "html": "Ringside_Boxing_Assessment.html",
+  "sha256": "fab0a6d238bc020e3ae4e9050d2a09fa24394c61ed8265cae59237c9da3ef839",
+  "bytes": 4247741,
+  "reproducibleBuild": true,
+  "modules": {
+    "ringside-app.js": "162891471fefb27e0baf5f79a1fd701ca641a043443eaa81ca020714fe3c5906",
+    "ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "ringside-definitions.js": "c8ac3ee5047b647fb813451ed2fc165d05c9a7dff82f4d136a4a253c918a9d9f",
+    "ringside-evaluation.js": "2d39e5245d9ba4c0251f7e97cbdde05dcc0445fda4db4320fb95a8c1cf00a810",
+    "ringside-interventions.js": "c160e2d9c15b91acf19164986319ff434a71f3acbbb6ac61947589fc5d27863f",
+    "ringside-management.js": "63f807ecb1fd2a5fa867186ab3ac9801edcc90080ae9baedd93208b165f39e23",
+    "ringside-model.js": "831813891d619bef5d612ffffb5dc251dc138a13b37a036af6881b8c5a19f8ae",
+    "ringside-pdf.js": "a4a198372e6a682de76b4081562b174d1cf0e26a3cacaef9f7080ec0d896bace",
+    "ringside-report.js": "a5bd65eca0aee5869380775014a0a5d43ac8d4475bad9824b79a4e4d2c1e3ba0",
+    "ringside-settings.js": "c02453b62ee9a09d1aff2a5e06217a15a4a64a1919fe297dfe8950b70435f357",
+    "ringside-store.js": "736451e53f3bdec9f4802881176fcfcbbe9e70c20b9ee4d51f1556089c4a186b",
+    "ringside-tests.js": "5523cf28e582f4a9cfa4fc83dd60797024d14a7b557f415cc34de92ac503d45b",
+    "ringside-viz.js": "77a15ec38f311a8bc509c43b3f82a7d52b21023e50222db6bb3e40a9f62270d6"
+  },
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "d9662cab9e19407164455ed165f967ee57ce6f77cc589cd2b81717e4bf7e9592",
+      "checks": 158
+    },
+    "chromeWorkflow": {
+      "path": "output/playwright/management/chrome-workflow.json",
+      "sha256": "6a4e7fae2db1aba5983a3e1276c824332cfcf092e879aac9892ce003ff205dab"
+    },
+    "chromeCapacity": {
+      "path": "output/playwright/management/chrome-capacity.json",
+      "sha256": "46f9d7f45ff440490e9dca6bf52820ad62580f98040c06735d75e8a3275a7112"
+    },
+    "msedgeWorkflow": {
+      "path": "output/playwright/management/msedge-workflow.json",
+      "sha256": "8075060444c740a9d232da824782fcd34e92b3108a0216f5860f58e850ad76a7"
+    },
+    "msedgeCapacity": {
+      "path": "output/playwright/management/msedge-capacity.json",
+      "sha256": "793ee0ad5e2c516b9f609cfc1ec9e77092c95170cc66cbec3071fd8c406f58f5"
+    },
+    "admin": {
+      "path": "output/playwright/management/admin.json",
+      "sha256": "968f80760695fbe3ae38b4a774de6d385a511a014e8215d174454fa8fb763a84"
+    },
+    "resilience": {
+      "path": "output/playwright/management/resilience.json",
+      "sha256": "b3fb62fbb6ddd17eab8a7dd712250e46f1f48689ae596e3e6a754657ff0644b3"
+    },
+    "managementLayouts": {
+      "path": "output/playwright/management/visual-layouts.json",
+      "sha256": "be05e497e7fa8064e2f41704f85282475541219844aee63f455aacde9ca60aab"
+    },
+    "browserRestart": {
+      "path": "output/playwright/management/restart.json",
+      "sha256": "2f8c6ab7849edbd952723e9c7594816026e47de17fefaf401bda9b3f8aafeb19"
+    },
+    "pdfDownloads": {
+      "path": "output/pdf/management-download-verification.json",
+      "sha256": "a119b92084add79485f95ef70d1524fad7b12cf5890be8e3d0c359e45bac5a18"
+    },
+    "pdfRender": {
+      "path": "output/pdf/management-render-verification.json",
+      "sha256": "595d725ab42fc37eda3dd2c0600fdcb15cebedcad8d0f8b9711b6d63be201281"
+    },
+    "visualReview": {
+      "path": "output/playwright/management/visual-review.json",
+      "sha256": "e75e790e81d8f038d2e627b8e037dbc71565f0448ee3929016cd5714bc6fdf35"
+    }
+  },
+  "modelChecks": 158,
+  "browserWorkflowChecks": 46,
+  "capacity": {
+    "chrome": {
+      "athletes": 300,
+      "records": 3000,
+      "timings": {
+        "seedMs": 2744.2000000178814,
+        "startupMs": [
+          225,
+          168,
+          171
+        ],
+        "searchMs": [
+          132,
+          123,
+          128
+        ],
+        "openMs": 36.400000005960464,
+        "saveMs": 3.9000000059604645,
+        "backupMs": 2758,
+        "restoreMs": 3179
+      },
+      "backupBytes": 260307491,
+      "allEntitiesRoundtrip": {
+        "sha256": "98964f25818675f97b1c50f3a7060073d6a50ecdf09cabcb2672b1822ddcbb02",
+        "counts": {
+          "config": 1,
+          "group": 10,
+          "profile": 1,
+          "athlete": 300,
+          "record": 3000
+        }
+      }
+    },
+    "msedge": {
+      "athletes": 300,
+      "records": 3000,
+      "timings": {
+        "seedMs": 2821.5999999940395,
+        "startupMs": [
+          228,
+          181,
+          174
+        ],
+        "searchMs": [
+          137,
+          125,
+          128
+        ],
+        "openMs": 37.20000001788139,
+        "saveMs": 12,
+        "backupMs": 2841,
+        "restoreMs": 3103
+      },
+      "backupBytes": 260307491,
+      "allEntitiesRoundtrip": {
+        "sha256": "76cd4f5535c6368d826602b25d08edcf24a410e9ff172be6217accc72b3a6c9e",
+        "counts": {
+          "config": 1,
+          "group": 10,
+          "profile": 1,
+          "athlete": 300,
+          "record": 3000
+        }
+      }
+    }
+  },
+  "browserRestart": [
+    {
+      "channel": "chrome",
+      "pass": true,
+      "errors": [],
+      "processRestartMs": 747,
+      "listReadyMs": 358
+    },
+    {
+      "channel": "msedge",
+      "pass": true,
+      "errors": [],
+      "processRestartMs": 619,
+      "listReadyMs": 326
+    }
+  ],
+  "pdfPagesChecked": 61,
+  "uniquePDFPagesVisuallyReviewed": 31,
+  "scope": "Separate report workspace and management center; live shared evaluation profiles; IndexedDB migration, streamed backups, teams, archive and recycle bin.",
+  "rollback": {
+    "tag": "v2.7.2",
+    "commit": "bfa9164c3110f7d1e24e65648a0a6c5f237c3ef9",
+    "use": "Pre-migration backup, or tested v2-compatible JSON without new management fields."
+  },
+  "verificationLimits": [
+    "Capacity data are synthetic. Timings describe this Windows host and isolated installed Chrome/Edge browsers, not every device.",
+    "AI facts and stale-task protection were tested with synthetic responses; no new live-provider content-quality claim.",
+    "Mobile layout uses browser emulation; physical mobile devices and printing were not tested."
+  ]
+}

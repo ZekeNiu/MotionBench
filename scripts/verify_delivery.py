@@ -36,12 +36,74 @@ def images(items):
     for item in items:
         assert item["sha256"] == digest(ROOT / item["path"]), item["path"]
 
-unit = read("unit", "output/tests/unit-results.json")
-assert len(unit["suites"]) == 8 and all(s["exitCode"] == 0 for s in unit["suites"])
-checks = sum(s["checksPassed"] for s in unit["suites"])
 version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
-assert checks == (148 if version in {"2.6.2", "2.6.3", "2.7.0", "2.7.1", "2.7.2"} else 146)
+unit = read("unit", "output/tests/unit-results.json")
+assert len(unit["suites"]) == (9 if version == "2.8.0" else 8) and all(s["exitCode"] == 0 for s in unit["suites"])
+checks = sum(s["checksPassed"] for s in unit["suites"])
+assert checks == (158 if version == "2.8.0" else 148 if version in {"2.6.2", "2.6.3", "2.7.0", "2.7.1", "2.7.2"} else 146)
 evidence["unit"]["checks"] = checks
+
+if version == "2.8.0":
+    assert digest(ROOT / "MotionBench.html") == source_hash
+    assert re.search(r'<script id="embedded-data" type="application/json">\s*null\s*</script>', html)
+    workflows = []
+    capacity = {}
+    for channel in ["chrome", "msedge"]:
+        flow = read(channel + "Workflow", f"output/playwright/management/{channel}-workflow.json")
+        assert flow["pass"] and len(flow["checks"]) == 14 and not flow["errors"] and not flow["network"]
+        workflows.extend(flow["checks"])
+        cap = read(channel + "Capacity", f"output/playwright/management/{channel}-capacity.json")
+        assert cap["pass"] and cap["synthetic"] and not cap["errors"]
+        assert cap["athletes"] == 300 and cap["records"] == 3000
+        assert cap["before"] == cap["after"] and cap["before"]["count"] == 3000
+        assert cap["allEntitiesExact"] and cap["allEntitiesRoundtrip"]["counts"] == {"config": 1, "group": 10, "profile": 1, "athlete": 300, "record": 3000}
+        assert cap["backupBytes"] > 50 * 1024 * 1024
+        timing = cap["timings"]
+        assert len(timing["startupMs"]) == len(timing["searchMs"]) == 3
+        assert max(timing["startupMs"]) <= 3000 and max(timing["searchMs"]) <= 300
+        assert timing["openMs"] <= 1000 and timing["saveMs"] <= 1000
+        capacity[channel] = {k: cap[k] for k in ["athletes", "records", "timings", "backupBytes", "allEntitiesRoundtrip"]}
+    for name, count in [("admin", 5), ("resilience", 13)]:
+        data = read(name, f"output/playwright/management/{name}.json")
+        assert data["pass"] and not data["errors"] and len(data["checks"]) == count
+        workflows.extend(data["checks"])
+    layout = read("managementLayouts", "output/playwright/management/visual-layouts.json")
+    assert layout["pass"] and not layout["errors"] and len(layout["layouts"]) == 18
+    assert all(not row["overflow"] for row in layout["layouts"])
+    images(layout["images"])
+    restart = read("browserRestart", "output/playwright/management/restart.json")
+    assert restart["pass"] and {c["channel"] for c in restart["cases"]} == {"chrome", "msedge"}
+    assert all(c["pass"] and not c["errors"] and c["listReadyMs"] <= 3000 for c in restart["cases"])
+    pdf = read("pdfDownloads", "output/pdf/management-download-verification.json")
+    render = read("pdfRender", "output/pdf/management-render-verification.json")
+    visual = read("visualReview", "output/playwright/management/visual-review.json")
+    assert pdf["pass"] and render["pass"] and visual["pass"]
+    assert len(pdf["cases"]) == len(render["cases"]) == 5
+    assert any(c.get("failureRecovered") for c in pdf["cases"])
+    for case in pdf["cases"]:
+        assert case["pass"] and not case["errors"] and not case["network"] and case["pdfTarget"] == 80
+        for field in ["missingRows", "duplicateRows", "changedRows", "missingCharts", "duplicateCharts"]:
+            assert not case["diagnostics"][field]
+        assert all(not figure["outside"] for figure in case["figures"])
+    for case in render["cases"]:
+        assert case["pdfSha256"] == digest(ROOT / "output/pdf" / (case["id"] + ".pdf"))
+        assert all(p["a4"] and p["bodyInkPixels"] > 0 for p in case["pageChecks"])
+    pages = sum(c["pages"] for c in render["cases"])
+    assert visual["pages"] == pages and visual["uniquePagesVisuallyReviewed"] == 31
+    assert len(visual["identicalPixelCases"]) == 3 and all(visual["identicalPixelCases"].values())
+    images(visual["images"])
+    result = {"pass": True, "implementationComplete": True, "approvedAcceptancePass": True,
+        "version": version, "approvedRevision": "MB-20261007-MANAGEMENT", "html": HTML.name,
+        "sha256": source_hash, "bytes": HTML.stat().st_size, "reproducibleBuild": True,
+        "modules": modules, "evidence": evidence, "modelChecks": checks, "browserWorkflowChecks": len(workflows),
+        "capacity": capacity, "browserRestart": restart["cases"], "pdfPagesChecked": pages, "uniquePDFPagesVisuallyReviewed": 31,
+        "scope": "Separate report workspace and management center; live shared evaluation profiles; IndexedDB migration, streamed backups, teams, archive and recycle bin.",
+        "rollback": {"tag": "v2.7.2", "commit": "bfa9164c3110f7d1e24e65648a0a6c5f237c3ef9", "use": "Pre-migration backup, or tested v2-compatible JSON without new management fields."},
+        "verificationLimits": ["Capacity data are synthetic. Timings describe this Windows host and isolated installed Chrome/Edge browsers, not every device.", "AI facts and stale-task protection were tested with synthetic responses; no new live-provider content-quality claim.", "Mobile layout uses browser emulation; physical mobile devices and printing were not tested."]}
+    (ROOT / "output/acceptance-manifest.json").write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"PASS 2.8.0: {checks} model checks, {len(workflows)} browser checks, Chrome/Edge 300/3000, {pages} PDF pages")
+    print(source_hash)
+    raise SystemExit(0)
 
 if version == "2.7.2":
     assert digest(ROOT / "MotionBench.html") == source_hash
