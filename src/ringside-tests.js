@@ -7,6 +7,9 @@
     ["iso", "各方位等长力量", "screen", "iso"],
     ["cmj", "CMJ", "performance", "jumps"],
     ["sj", "SJ", "performance", "jumps"],
+    ["dj", "DJ 下落跳", "performance", "jumps"],
+    ["hop", "Hop 连续反应跳", "performance", "jumps"],
+    ["cmrj", "CMRJ 反向反弹跳", "performance", "jumps"],
     ["imtp", "IMTP", "performance", "imtp"],
     ["landmine", "地雷杠出拳投掷", "performance", "lvp"],
     ["squat", "深蹲 LVP", "performance", "lvp"],
@@ -22,6 +25,11 @@
     Object.freeze({ id, name, category, renderer }),
   );
   const registry = new Map(builtins.map((test) => [test.id, test]));
+  const reactiveIds = ["dj","hop","cmrj"];
+  function isNative(source, id) {
+    return registry.has(id) && !(source.customTests || []).some((t) => t.id === id) &&
+      !(source.tests || source.projectSnapshots || []).some((t) => t.id === id && t.legacyCustom === true);
+  }
   const jumpFields = [
     { key: "height", suffix: "height", label: "跳高", unit: "cm" },
     {
@@ -38,9 +46,43 @@
       unit: "N",
     },
   ];
+  const reactiveFields = [
+    { key: "height", suffix: "height", label: "反弹跳高", unit: "cm" },
+    { key: "rsi", suffix: "rsi", label: "RSI", unit: "m/s", computed: true },
+    { key: "contactTimeMs", suffix: "contact_time", label: "触地时间", unit: "ms" },
+    { key: "flightTimeMs", suffix: "flight_time", label: "腾空时间", unit: "ms" },
+    { key: "flightTimeRatio", suffix: "flight_time_ratio", label: "腾空 / 触地时间", unit: "比值", computed: true },
+  ];
+  function fieldsForTest(id) {
+    if (id === "dj") return reactiveFields.concat({ key: "dropHeightCm", suffix: "drop_height", label: "跌落高度", unit: "cm" });
+    if (id === "hop") return reactiveFields;
+    if (id === "cmrj") return [
+      { key: "firstHeight", suffix: "first_height", label: "首跳跳高", unit: "cm" },
+      { key: "firstTimeToTakeoffMs", suffix: "first_time_to_takeoff", label: "首跳起跳用时", unit: "ms" },
+      { key: "firstRsiModified", suffix: "first_rsi_modified", label: "首跳 RSI-modified", unit: "m/s", computed: true },
+      ...reactiveFields,
+    ];
+    return id === "cmj" ? jumpFields.concat([
+      { key: "propulsiveImpulse", suffix: "propulsive_impulse", label: "推进期冲量", unit: "N·s" },
+      { key: "propulsiveDurationMs", suffix: "propulsive_duration", label: "推进期时长", unit: "ms" },
+    ]) : jumpFields;
+  }
+  const derivedRegistry = [
+    ["eur", "EUR · 跳高", "比值", "CMJ 跳高 / SJ 跳高", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "CMJ 与 SJ 使用一致的手臂条件和测高方法；结合两项成绩解释。"],
+    ["gain", "CMJ–SJ 增益", "%", "(CMJ 跳高 / SJ 跳高 − 1) × 100", ["cmj", "sj"], ["eur-mcguigan-2006", "eur-critique"], "常用", "EUR 的百分比表达，不作为额外独立证据。"],
+    ["fdsi", "DSI / fDSI", "比值", "CMJ 推进期峰值力 / 等长峰值力", ["cmj", "imtp"], ["dsi-context-2020"], "常用", "相同力单位、净/总力口径及可比协议；结合最大力量和跳跃表现。"],
+    ["idsi_matched", "iDSI · 匹配时窗", "比值", "CMJ 完整推进期冲量 / IMTP 同等时窗冲量", ["cmj", "imtp"], ["dsi-impulse-2021", "dsi-impulse-2025"], "研究", "IMTP 从发力起点积分至 CMJ 推进期同等时长；双方冲量口径一致。"],
+    ["idsi_fixed250", "iDSI · 固定 250 ms", "比值", "CMJ 完整推进期冲量 / IMTP 0–250 ms 冲量", ["cmj", "imtp"], ["dsi-impulse-2025"], "研究", "仅分母固定为 250 ms；不沿用 fDSI 训练界值。"],
+    ["rqr", "RQR · DJ/Hop 反应比", "比值", "DJ 平均 FT/CT / Hop 平均 FT/CT", ["dj", "hop"], ["rqr-southey-2024"], "研究", "FT/CT 为腾空与触地时间之比；原研究为 DJ 45 cm 三次平均、Hop 十跳中按 FT/CT 选最高五跳。"],
+    ["asr", "ASR · 无氧速度储备", "m/s", "MSS − MAS", ["mss", "mas"], ["sandford-asr-2019"], "常用", "使用有效 MSS 与 MAS，保留具体测量方法；不以 VIFT 替代 MAS。"],
+    ["srr", "SRR · 速度储备比", "比值", "MSS / MAS", ["mss", "mas"], ["sandford-asr-2019", "buchheit-srr-2025"], "常用", "结合 MSS、MAS 与专项要求解释，不套用其他专项的分组界值。"],
+  ].map(([id, name, unit, formula, dependencies, sourceIds, evidenceLevel, protocol]) =>
+    ({ id, name, unit, formula, dependencies, sourceIds, evidenceLevel, protocol, ability: "训练方向分析", scoring: false }));
+  const derivedDefinitions = () => JSON.parse(JSON.stringify(derivedRegistry));
+  const derivedDefaults = () => Object.fromEntries(derivedRegistry.map((d) => [d.id, true]));
   const extraMetrics = [
     ...["cmj", "sj"].flatMap((id) =>
-      jumpFields
+      fieldsForTest(id)
         .slice(1)
         .map((field) => [
           id + "_" + field.suffix,
@@ -50,6 +92,8 @@
           "爆发力",
         ]),
     ),
+    ...["dj", "hop", "cmrj"].flatMap((id) => fieldsForTest(id).map((field) =>
+      [id + "_" + field.suffix, id, id.toUpperCase() + " " + field.label, field.unit, "反应力量"])),
     ["squat_1rm", "squat", "深蹲预估1RM / 体重", "kg/kg", "最大力量"],
     ["bench_1rm", "bench", "卧推预估1RM / 体重", "kg/kg", "最大力量"],
     ["deadlift_1rm", "deadlift", "硬拉预估1RM / 体重", "kg/kg", "最大力量"],
@@ -62,6 +106,9 @@
     ["imtp_f200", "imtp", "IMTP 200 ms 力", "N", "早期发力"],
     ["imtp_rfd100", "imtp", "IMTP 0–100 ms RFD", "N/s", "早期发力"],
     ["imtp_rfd200", "imtp", "IMTP 0–200 ms RFD", "N/s", "早期发力"],
+    ["imtp_impulse250", "imtp", "IMTP 0–250 ms 冲量", "N·s", "早期发力"],
+    ["imtp_matched_impulse", "imtp", "IMTP 匹配时窗冲量", "N·s", "早期发力"],
+    ["imtp_matched_duration", "imtp", "IMTP 匹配时窗", "ms", "早期发力"],
   ];
   const computedIds = new Set([
     ...(global.Def?.builtins || []).map((d) => d.id),
@@ -83,7 +130,7 @@
       protocol: "使用实际测试协议与匹配评价标准",
     }));
   const isManualMetric = (definition) =>
-    !!definition && !computedIds.has(definition.id);
+    !!definition && (definition.legacyManual === true || !computedIds.has(definition.id));
   const supportsAttemptMetrics = (testId) =>
     ["jumps", "imtp", "speed", "scalar"].includes(registry.get(testId)?.renderer || "scalar");
   const isAttemptMetric = (definition) =>
@@ -91,7 +138,7 @@
     definition.entryScope === "attempt" &&
     supportsAttemptMetrics(definition.testId);
   function repeatPolicy(source, testId) {
-    const renderer = registry.get(testId)?.renderer || "scalar";
+    const renderer = isNative(source,testId) ? registry.get(testId).renderer : "scalar";
     const fields = (source.definitions || []).filter((d) => d.testId === testId && isAttemptMetric(d));
     const test = (source.tests || []).find((t) => t.id === testId)
       || (source.projectSnapshots || []).find((t) => t.id === testId)
@@ -105,7 +152,8 @@
     };
   }
   function attemptFields(source, testId) {
-    return jumpFields
+    return fieldsForTest(testId)
+      .filter((field) => !(source.definitions || []).some((d) => d.id === testId + "_" + field.suffix && d.legacyManual === true))
       .map((field) => ({
         ...field,
         id: testId + "_" + field.suffix,
@@ -148,6 +196,9 @@
       ["baselineForce", "起点力 N"],
       ["peakTimeMs", "峰值时间 ms"],
       ["timePoints", "时间点"],
+      ["impulse250", "0–250 ms 冲量 N·s"],
+      ["matchedImpulse", "匹配时窗冲量 N·s"],
+      ["matchedDurationMs", "匹配时窗 ms"],
     ],
     lactate: [
       ["speed", "速度 m/s"],
@@ -173,7 +224,7 @@
     ],
   };
   function dataContract(source, testId) {
-    const renderer = registry.get(testId)?.renderer || "scalar";
+    const renderer = isNative(source,testId) ? registry.get(testId).renderer : "scalar";
     const fields =
       renderer === "jumps"
         ? attemptFields(source, testId).map((f) => [
@@ -188,9 +239,9 @@
             ]
           : nativeFields[testId] || [];
     return {
-      shape: ["pushup", "ift", "mas", "mss"].includes(testId)
+      shape: isNative(source,testId) && ["pushup", "ift", "mas", "mss", "hop"].includes(testId)
         ? "object"
-        : registry.has(testId)
+        : isNative(source,testId)
           ? "rows"
           : "scalar",
       fields: fields.concat(!["fms", "lactate"].includes(testId) ? [
@@ -245,8 +296,8 @@
     const supplied = source.tests || source.projectSnapshots || builtins;
     const projects = new Map();
     for (const test of [
-      ...supplied,
       ...(source.customTests || []),
+      ...supplied,
       ...(source.tests ? [] : builtins),
     ]) {
       if (!projects.has(test.id)) projects.set(test.id, test);
@@ -267,8 +318,9 @@
         disabled: test.disabled === true,
         abilities,
         definitions: metrics,
-        renderer: registry.get(test.id)?.renderer || "scalar",
-        inputKind: registry.has(test.id) ? test.id : "scalar",
+        renderer: isNative(source,test.id) ? registry.get(test.id).renderer : "scalar",
+        inputKind: isNative(source,test.id) ? test.id : "scalar",
+        ...(test.legacyCustom ? { legacyCustom: true } : {}),
         dataContract: dataContract(source, test.id),
         repeatPolicy: repeatPolicy(source, test.id),
         primaryMetricId: test.primaryMetricId || "",
@@ -280,6 +332,7 @@
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
       return { id, name: prior?.name ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
+        ...(reactiveIds.includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
         ...(primaryMetricId ? { primaryMetricId } : {}) };
     });
   }
@@ -320,12 +373,16 @@
   ];
   global.RingsideTests = Object.freeze({
     jumpFields,
+    fieldsForTest,
+    derivedDefinitions,
+    derivedDefaults,
     attemptFields,
     dataContract,
     isAttemptMetric,
     supportsAttemptMetrics,
     repeatPolicy,
     builtins,
+    isNative,
     registry,
     extraDefinitions,
     isManualMetric,

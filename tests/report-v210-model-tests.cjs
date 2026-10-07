@@ -75,6 +75,11 @@ test("recovery alternatives and sourced RST examples remain explicit in every fo
 
 test("every builtin project uses its captured display name without altering metrics or formulas", () => {
   const r = M.sampleRecord(); r.enabled = Object.fromEntries(T.builtins.map(test => [test.id, true]));
+  // This test promises a measured result for every built-in project. The
+  // legacy demonstration record intentionally has no newly added jump data.
+  r.data.dj=[{id:"name-dj",height:30,contactTimeMs:150}];
+  r.data.cmrj=[{id:"name-cmrj",firstHeight:35,height:25,contactTimeMs:125}];
+  r.data.hop={id:"name-hop",inputMode:"summary",summary:{height:25,rsi:2,selectionBasis:"height_rsi"},jumps:[]};
   const before = R.build(r);
   r.projectSnapshots = T.snapshots(r).map(test => ({ ...test, name: "本次名称_" + test.id }));
   const report = R.build(r), html = R.render(report);

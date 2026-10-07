@@ -60,6 +60,7 @@
     apiURL = "https://api.apikey.fan",
     model = "";
   let aiStatus = { kind: "idle" }, aiTicker;
+  let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -84,6 +85,23 @@
     undoDeletes = new Map();
   const rawNumbers = new WeakMap();
   let bodyRegionAnchor = null, bodyRegionPinned = false, bodyRegionHideTimer, bodyTouchInteraction = false;
+  let tooltipAnchor = null, tooltipDismissed = null;
+  function hideTooltip() {
+    if (tooltipAnchor?.getAttribute("aria-describedby") === "tooltip") tooltipAnchor.removeAttribute("aria-describedby");
+    tooltipAnchor = null;
+    $("tooltip").style.display = "none";
+  }
+  function showTooltip(anchor, text, x, y) {
+    if (!anchor || !text || anchor === tooltipDismissed || bodyRegionPinned) return hideTooltip();
+    hideBodyRegionTooltip();
+    if (tooltipAnchor !== anchor) hideTooltip();
+    tooltipAnchor = anchor;
+    anchor.setAttribute("aria-describedby","tooltip");
+    const tip=$("tooltip"), bounds=anchor.getBoundingClientRect();
+    tip.textContent=text;tip.style.display="block";
+    tip.style.left=Math.max(6,Math.min(x??bounds.right+8,innerWidth-tip.offsetWidth-6))+"px";
+    tip.style.top=Math.max(6,Math.min(y??bounds.bottom+8,innerHeight-tip.offsetHeight-6))+"px";
+  }
   function hideBodyRegionTooltip() {
     clearTimeout(bodyRegionHideTimer);
     if (bodyRegionAnchor) {
@@ -124,7 +142,7 @@
     anchor.setAttribute("aria-describedby", "bodyRegionTooltip");
     anchor.setAttribute("aria-expanded", "true");
     $("bodyRegionTooltip").hidden = false;
-    $("tooltip").style.display = "none";
+    hideTooltip();
     positionBodyRegionTooltip();
   }
   function scheduleBodyRegionHide() {
@@ -167,8 +185,10 @@
   async function loadDirectory(preserve = true) {
     const current = preserve ? state?.recordId : null;
     library = await repository.directory();
+    library.catalog = M.normalizeCatalog(library.catalog);
     const id = current || library.activeRecordId;
     state = id ? await repository.loadRecord(id) : null;
+    if(state)state=M.normalizeRecord(state);
     const owner = state && library.athletes.find(a => a.id === state.athleteId);
     if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
     if (state) {
@@ -562,6 +582,8 @@
   }
   function renderWorkspace() {
     hideBodyRegionTooltip();
+    hideTooltip();
+    if (ui.mode !== "management") window.RingsideManagement.cancelPending?.();
     const management = ui.mode === "management";
     $("managementView").hidden = !management;
     $("creationView").hidden = ui.mode !== "creation";
@@ -575,7 +597,7 @@
     $("settingsView").hidden = ui.mode !== "settings";
     $("entryNav").hidden = ui.mode !== "entry";
     $("editButton").hidden = !state;
-    $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? "应用设置" : "测试报告";
+    $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
     if (management || ui.mode === "creation") $("recordContext").textContent = "";
     $("workspaceBack").hidden = ui.mode === "report";
     $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
@@ -588,11 +610,17 @@
       button.classList.toggle("active",selected);
       if(selected)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
     });
-    document.querySelectorAll("[data-settings-open]").forEach(button=>button.classList.toggle("sidebar-scope-active",ui.mode==="settings"));
+    document.querySelectorAll("[data-settings-open]").forEach(button=>{
+      const selected=ui.mode==="settings"&&button.dataset.settingsOpen===window.RingsideSettings.scopeFor(settingsTab);
+      button.classList.toggle("sidebar-scope-active",selected);
+      if(selected)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
+    });
     $("settingsTabs").hidden=ui.mode!=="settings";
     if(ui.mode==="settings") {
       const scope=window.RingsideSettings.scopeFor(settingsTab);
-      $("settingsTabs").innerHTML=window.RingsideSettings.sections[scope].map(([id,label])=>`<button data-settings-tab="${id}" class="btn small ${settingsTab===id?"active":""}" ${settingsTab===id?'aria-current="page"':""} onclick="App.settings('${id}')">${label}</button>`).join("");
+      const tabs=window.RingsideSettings.sections[scope];
+      $("settingsTabs").hidden=tabs.length<2;
+      $("settingsTabs").innerHTML=tabs.map(([id,label])=>`<button data-settings-tab="${id}" class="btn small ${settingsTab===id?"active":""}" ${settingsTab===id?'aria-current="page"':""} onclick="App.settings('${id}')">${label}</button>`).join("");
     }
     reportObserver?.disconnect(); revealActiveNavigation();
   }
@@ -780,7 +808,7 @@
                 ]),
               )
             : '<div class="empty">尚未录入时间点；只有峰值时，报告显示峰值参考线。</div>'
-        }<button class="btn small" style="margin-top:12px" onclick="App.addForcePoint(${i})">＋ 时间点</button><div class="form-grid">${T.repeatPolicy(state, "imtp").fields.map((d) => field(d.name + " " + d.unit, forceInput(`data.imtp.${i}.metrics.${d.id}`, row.metrics?.[d.id] ?? ""))).join("")}${field("试次备注", input(`data.imtp.${i}.notes`, row.notes || "", { type: "text" }))}</div><div data-force-warnings="${i}"></div></article>`;
+        }<button class="btn small" style="margin-top:12px" onclick="App.addForcePoint(${i})">＋ 时间点</button><details class="supplement"><summary>冲量（用于 iDSI）</summary><div class="form-grid">${field("0–250 ms 冲量 N·s", input(`data.imtp.${i}.impulse250`, row.impulse250, {label:`试次${i+1} 0–250 ms 冲量 N·s`}))}${field("匹配时窗冲量 N·s", input(`data.imtp.${i}.matchedImpulse`, row.matchedImpulse, {label:`试次${i+1} 匹配时窗冲量 N·s`}))}${field("匹配时窗长度 ms", input(`data.imtp.${i}.matchedDurationMs`, row.matchedDurationMs, {label:`试次${i+1} 匹配时窗长度 ms`}))}</div><p class="note">填写设备从发力起点积分的结果；匹配时窗须与本次采用的 CMJ 推进期时长一致。</p></details><div class="form-grid">${T.repeatPolicy(state, "imtp").fields.map((d) => field(d.name + " " + d.unit, forceInput(`data.imtp.${i}.metrics.${d.id}`, row.metrics?.[d.id] ?? ""))).join("")}${field("试次备注", input(`data.imtp.${i}.notes`, row.notes || "", { type: "text" }))}</div><div data-force-warnings="${i}"></div></article>`;
       })
       .join("");
     return (
@@ -827,6 +855,7 @@
       if (ui.mode === "report" && render) renderReport();
       else renderNarrativeStatus();
       if (ui.mode === "entry" && entryTab === "imtp") updateForceWarnings();
+      updateJumpEntryResults();
       refreshEntryChrome();
     }, 180);
   }
@@ -900,7 +929,8 @@
     const sequence = ++selectionSequence;
     if (state) { captureReportUI(); saveEditor(); }
     if (!await persist()) return;
-    const loaded = r ? await repository.loadRecord(r.recordId) : null;
+    const stored = r ? await repository.loadRecord(r.recordId) : null,
+      loaded = stored ? M.normalizeRecord(stored) : null;
     if (sequence !== selectionSequence) return;
     cancelJob();
     state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
@@ -946,10 +976,12 @@
       "views",
       "imtpConfig",
       "cmjConfig",
+      "derivedEnabled",
       "trainingContext",
     ])
       if (source[k]) r[k] = copy(source[k]);
     r.dsi = { ...copy(source.dsi), force: "", confirmed: false };
+    r.impulseConfig = { confirmed:false };
     r.thresholds = { ...copy(source.thresholds), lt1: "", lt2: "" };
     r.data.iso = copy(source.data.iso).map((x) => ({
       ...x,
@@ -1338,7 +1370,7 @@
   }
   function entryReview() {
     const computed=M.stats(effectiveRecord()),projects=orderedEntryProjects();
-    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed);return[E(t.name),E(progress?.detail||"未录入"),`<button class="btn small" onclick="App.entry('${E(t.id)}')">继续录入</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p>`;
+    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed);return[E(t.name),E(progress?.detail||"未录入"),`<button class="btn small" onclick="App.entry('${E(t.id)}')">继续录入</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次训练方向分析</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
   }
   async function finishEntry() {
     if(!state)return;
@@ -1435,14 +1467,39 @@
         : "")
     );
   }
+  const pendingSelectUpdates = new WeakMap();
+  function updateSelectOptions(selectElement, rows, selected) {
+    if (!selectElement) return;
+    const same = selectElement.options.length === rows.length && rows.every(([value,label],i) =>
+      selectElement.options[i].value === value && selectElement.options[i].textContent === label);
+    let opened = false;
+    try { opened = selectElement.matches(":open"); } catch {}
+    if (opened && !same) {
+      pendingSelectUpdates.set(selectElement, {rows,selected});
+      if (!selectElement.dataset.deferredOptions) {
+        selectElement.dataset.deferredOptions = "true";
+        const flush = () => {
+          const pending = pendingSelectUpdates.get(selectElement);
+          pendingSelectUpdates.delete(selectElement);
+          if (pending) updateSelectOptions(selectElement, pending.rows, selectElement.value || pending.selected);
+        };
+        selectElement.addEventListener("blur",flush);
+        selectElement.addEventListener("change",flush);
+      }
+      return;
+    }
+    pendingSelectUpdates.delete(selectElement);
+    if (!same) selectElement.replaceChildren(...rows.map(([value,label]) => new Option(label,value)));
+    if (!opened && selectElement.value !== (selected || "")) selectElement.value = selected || "";
+  }
   function renderSelectors() {
     if (!library) return;
     const a = activeAthlete(), q = ($("reportAthleteSearch")?.value || "").trim().toLocaleLowerCase(), group = $("reportGroupFilter")?.value || "";
     const groups = $("reportGroupFilter");
-    if (groups) groups.innerHTML = '<option value="">全部队伍</option>' + library.groups.map(g=>`<option value="${E(g.id)}" ${g.id===group?"selected":""}>${E(g.name)}</option>`).join("");
+    updateSelectOptions(groups, [["","全部队伍"],...library.groups.map(g=>[g.id,g.name])],group);
     const athletes = library.athletes.filter(x=>!x.deletedAt&&!x.archived&&(!group||x.groupId===group)&&(!q||[x.name,x.profile?.sport].join(" ").toLocaleLowerCase().includes(q)));
-    $("athleteSelect").innerHTML = '<option value="">选择运动员</option>' + athletes.map(x=>`<option value="${E(x.id)}" ${x.id===a?.id?"selected":""}>${E(x.name)} · ${E(library.groups.find(g=>g.id===x.groupId)?.name||x.profile?.sport||"未分组")} · ${E(x.id.slice(-6))}</option>`).join("");
-    $("recordSelect").innerHTML = '<option value="">选择测试记录</option>' + [...(a?.records||[])].filter(r=>!r.deletedAt&&!r.archived).sort((x,y)=>(y.athlete.date||"").localeCompare(x.athlete.date||"")||y.recordId.localeCompare(x.recordId)).map(r=>`<option value="${E(r.recordId)}" ${r.recordId===state?.recordId?"selected":""}>${E(r.athlete.date||"未填日期")} · ${E(r.title||Object.values(r.enabled).filter(Boolean).length+"个项目 · "+r.recordId.slice(-4))}</option>`).join("");
+    updateSelectOptions($("athleteSelect"), [["","选择运动员"],...athletes.map(x=>[x.id,`${x.name} · ${library.groups.find(g=>g.id===x.groupId)?.name||x.profile?.sport||"未分组"} · ${x.id.slice(-6)}`])],a?.id);
+    updateSelectOptions($("recordSelect"), [["","选择测试记录"],...[...(a?.records||[])].filter(r=>!r.deletedAt&&!r.archived).sort((x,y)=>(y.athlete.date||"").localeCompare(x.athlete.date||"")||y.recordId.localeCompare(x.recordId)).map(r=>[r.recordId,`${r.athlete.date||"未填日期"} · ${r.title||Object.values(r.enabled).filter(Boolean).length+"个项目 · "+r.recordId.slice(-4)}`])],state?.recordId);
     $("sampleLabel").classList.toggle("hidden", !state?.demo);
     $("recordContext").textContent = state ? `${a?.name || state.athlete.name} · ${state.athlete.date}` : a ? a.name + " · 暂无测试" : "选择一条测试记录";
 
@@ -1457,7 +1514,7 @@
     const report = window.RingsideReport.build(effectiveRecord()),
       s = report.stats,
       a = state.athlete;
-    $("reportTitle").textContent=state.title||"运动表现与损伤风险筛查";
+    $("reportTitle").textContent=state.title&&state.title!=="运动表现与损伤风险筛查"?state.title:"运动表现与损伤风险筛查报告";
     $("athleteMeta").innerHTML=[a.date,state.testPlanSnapshot?.name,state.demo?"示例":""].filter(Boolean).map(x=>`<span>${E(x)}</span>`).join("");
     $("aggMode").value = state.mode;
     const migrationReasons = [
@@ -1629,8 +1686,68 @@
       `<button class="btn small" style="margin-top:12px" onclick="App.addRow('${t}')">＋ ${t === "lactate" ? "增加阶段" : lvp ? "新增负荷" : "新增试次"}</button>`
     );
   }
+  function reactiveJumpForm(t) {
+    const fields=T.attemptFields(state,t).filter(f=>!f.computed);
+    return '<p class="intro">按 RSI 选择同一次有效试跳，或按有效试次均值汇总。RSI 使用反弹跳高与触地时间计算。</p>'+
+      field("协议 / 设备",input("protocol."+t,state.protocol[t],{type:"text"}))+
+      state.data[t].map((row,i)=>`<article class="imtp-attempt"><div class="imtp-attempt-head"><h4>试次 ${i+1}</h4><button class="remove" onclick="App.removeRow('${t}',${i})" aria-label="删除试次 ${i+1}">删除试次</button></div><div class="form-grid">${fields.map(f=>field(f.label+" "+f.unit,input(`data.${t}.${i}.${f.key||"metrics."+f.id}`,f.key?row[f.key]:row.metrics?.[f.id],{label:`试次 ${i+1} ${f.label} ${f.unit}`}))).join("")}${field("试次备注",input(`data.${t}.${i}.notes`,row.notes||"",{type:"text"}))}</div><p class="note" data-reactive-result="${t}:${i}"></p></article>`).join("")+
+      `<button class="btn small" onclick="App.addRow('${t}')">＋ 新增试次</button>`;
+  }
+  function hopSetPath(index) {return Array.isArray(state.data.hop.trials)?`data.hop.trials.${index}`:"data.hop";}
+  function hopSetAt(index) {return Array.isArray(state.data.hop.trials)?state.data.hop.trials[index]:state.data.hop;}
+  function hopForm() {
+    const sets=Array.isArray(state.data.hop.trials)?state.data.hop.trials:[state.data.hop];
+    const fields=[["rsi","平均 RSI","m/s"],["height","平均跳高","cm"],["contactTimeMs","平均触地时间","ms"],["flightTimeMs","平均腾空时间","ms"],["flightTimeRatio","平均腾空 / 触地时间比",""],["suppliedCount","设备录入跳数","跳"],["validCount","设备有效跳数","跳"],["selectedCount","设备采用跳数","跳"]];
+    return field("协议 / 设备",input("protocol.hop",state.protocol.hop,{type:"text"}))+
+      '<p class="intro">一次连续跳为一次完整测试。可录入设备汇总，或录入单跳数据：有效跳数不超过5跳时全部采用，超过5跳时自动选取 RSI 最高的5跳。</p>'+
+      sets.map((set,index)=>{
+        const base=hopSetPath(index),summary=set.summary||{};
+        return `<article class="imtp-attempt" data-hop-set="${index}"><div class="imtp-attempt-head"><h4>第 ${index+1} 次完整测试</h4>${Array.isArray(state.data.hop.trials)?`<button class="remove" onclick="App.removeRepeat('hop',${index})">删除本次测试</button>`:""}</div>`+
+          field("录入方式",select(base+".inputMode",set.inputMode,[["summary","设备汇总值"],["jumps","逐跳数据"]]))+
+          (set.inputMode!=="jumps"?'<div class="form-grid">'+fields.map(([key,label,unit])=>field(label+(unit?" "+unit:""),input(base+".summary."+key,summary[key],{label, ...(key.endsWith("Count")?{step:1}:{})}))).join("")+
+            field("设备筛选依据",select(base+".summary.selectionBasis",summary.selectionBasis||"unknown",[["unknown","未注明"],["height_rsi","跳高 / 触地时间（RSI）"],["flight_ratio","腾空 / 触地时间比"]]))+'</div><p class="note">保留设备给出的平均 RSI，不用平均跳高除以平均触地时间替代。</p>':
+            table(["跳次","跳高 cm","触地 ms","腾空 ms","RSI m/s","采用","备注","操作"],(set.jumps||[]).map((jump,j)=>[j+1,input(`${base}.jumps.${j}.height`,jump.height,{label:`第${j+1}跳 跳高 cm`}),input(`${base}.jumps.${j}.contactTimeMs`,jump.contactTimeMs,{label:`第${j+1}跳 触地 ms`}),input(`${base}.jumps.${j}.flightTimeMs`,jump.flightTimeMs,{label:`第${j+1}跳 腾空 ms`}),`<span data-hop-rsi="${index}:${j}">—</span>`,`<span data-hop-selected="${index}:${j}">—</span>`,input(`${base}.jumps.${j}.notes`,jump.notes||"",{type:"text"}),`<button class="remove" onclick="App.removeHopJump(${index},${j})" aria-label="删除第${j+1}跳">删除</button>`]))+
+            `<div class="row"><button class="btn small" onclick="App.addHopJump(${index})">＋ 增加1跳</button><button class="btn small" onclick="App.addHopJump(${index},5)">＋ 增加5跳</button></div>`)+
+          `<p class="note" data-hop-counts="${index}"></p>`+field("本次测试备注",input(base+".notes",set.notes||"",{type:"text"}))+"</article>";
+      }).join("")+`<button class="btn small" onclick="App.addHopSet()">＋ 新增一次完整测试</button>`;
+  }
+  function addHopJump(index,count=1) {
+    const set=hopSetAt(index);if(!set)return;
+    set.jumps||=[];if(set.jumps.length+count>1000)return toast("每次测试最多保留1000跳");
+    for(let i=0;i<count;i++)set.jumps.push({id:uid(),height:"",contactTimeMs:"",flightTimeMs:"",notes:""});
+    changed(false);renderEntry();rowFocus(`${hopSetPath(index)}.jumps.${set.jumps.length-count}.height`);
+  }
+  function removeHopJump(index,jumpIndex) {
+    const path=hopSetPath(index)+".jumps",rows=atPath(path);if(!rows?.[jumpIndex])return;
+    const prefix=stablePath(path+"."+jumpIndex+".id").replace(/\.id$/,".");
+    undoDeletes.set(state.recordId,{type:"repeat",arrayPath:stablePath(path),index:jumpIndex,item:copy(rows[jumpIndex]),drafts:copy(Object.fromEntries(Object.entries(draftsFor()).filter(([key])=>key.startsWith(prefix))))});
+    Object.keys(draftsFor()).filter(key=>key.startsWith(prefix)).forEach(key=>delete draftsFor()[key]);
+    rows.splice(jumpIndex,1);saveDrafts();changed(false);renderEntry();toast("已删除，可在底部撤销");
+  }
+  function addHopSet() {
+    const sets=M.ensureRepeatRows(state,"hop");if(sets.length>=1000)return toast("最多保留1000次完整测试");
+    sets.push(M.newHopSet());changed(false);renderEntry();rowFocus(`data.hop.trials.${sets.length-1}.summary.rsi`);
+  }
+  function updateJumpEntryResults() {
+    if(ui.mode!=="entry")return;
+    if(["dj","cmrj"].includes(entryTab)&&T.isNative(state,entryTab))state.data[entryTab].forEach((row,i)=>{
+      const el=$("entryContent").querySelector(`[data-reactive-result="${entryTab}:${i}"]`);
+      if(el)el.textContent="RSI "+F(positive(row.height)&&positive(row.contactTimeMs)?Number(row.height)*10/Number(row.contactTimeMs):null,2)+" m/s";
+    });
+    if(entryTab!=="hop"||!T.isNative(state,entryTab))return;
+    const sets=Array.isArray(state.data.hop.trials)?state.data.hop.trials:[state.data.hop];
+    sets.forEach((set,index)=>{
+      const result=M.hopSetSummary(set),counts=$("entryContent").querySelector(`[data-hop-counts="${index}"]`);
+      if(counts)counts.textContent=`录入 ${result.counts?.supplied??result.suppliedCount??"—"} 跳 · 有效 ${result.counts?.valid??result.validCount??"—"} 跳 · 采用 ${result.counts?.selected??result.selectedCount??"—"} 跳 · RSI ${F(result.row?.rsi??result.rsi,2)} m/s`;
+      (set.jumps||[]).forEach((jump,j)=>{
+        const value=$("entryContent").querySelector(`[data-hop-rsi="${index}:${j}"]`),chosen=$("entryContent").querySelector(`[data-hop-selected="${index}:${j}"]`);
+        if(value)value.textContent=F(positive(jump.height)&&positive(jump.contactTimeMs)?Number(jump.height)*10/Number(jump.contactTimeMs):null,2);
+        if(chosen)chosen.textContent=(result.selectedIds||result.selectedJumpIds||[]).includes(jump.id)?"采用":"—";
+      });
+    });
+  }
   function repeatArrayPath(t, isoIndex = -1) {
-    return t === "iso" ? `data.iso.${isoIndex}.trials` : ["pushup", "mas", "mss", "ift"].includes(t) ? `data.${t}.trials` : `data.${t}`;
+    return t === "iso" ? `data.iso.${isoIndex}.trials` : (["pushup", "mas", "mss", "ift"].includes(t)||(t==="hop"&&T.isNative(state,t))) ? `data.${t}.trials` : `data.${t}`;
   }
   function atPath(path) { return path.split(".").reduce((value, key) => value?.[key], state); }
   function repeatEditor(t, isoIndex = -1) {
@@ -1862,9 +1979,11 @@
             ),
           )
           .join("");
-    } else if (["cmj", "sj"].includes(entryTab)) {
+    } else if (entryTab==="hop"&&T.isNative(state,entryTab)) h+=hopForm();
+    else if (["dj","cmrj"].includes(entryTab)&&T.isNative(state,entryTab)) h+=reactiveJumpForm(entryTab);
+    else if (["cmj", "sj"].includes(entryTab)) {
       const t = entryTab,
-        fields = T.attemptFields(state, t);
+        fields = T.attemptFields(state, t).filter(f=>!f.computed&&!['propulsiveImpulse','propulsiveDurationMs'].includes(f.key));
       h +=
         '<p class="intro">按最高跳高选择同一次试跳，或按有效试次均值汇总；缺测留空。</p>' +
         field(
@@ -1884,6 +2003,7 @@
             ),
           ],
         );
+      if(t==="cmj")h+='<details class="supplement"><summary>推进期冲量与时长（用于 iDSI）</summary>'+state.data.cmj.map((row,i)=>`<div class="subheading">试次 ${i+1}</div><div class="form-grid">${field("推进期冲量 N·s",input(`data.cmj.${i}.propulsiveImpulse`,row.propulsiveImpulse,{label:`试次${i+1} 推进期冲量 N·s`}))}${field("推进期时长 ms",input(`data.cmj.${i}.propulsiveDurationMs`,row.propulsiveDurationMs,{label:`试次${i+1} 推进期时长 ms`}))}</div>`).join("")+'</details>';
       if (t === "cmj")
         h +=
           '<div class="subheading">DSI数据来源</div><div class="form-grid">' +
@@ -2020,7 +2140,7 @@
         ) +
         "</div>";
     }
-    else if (!T.registry.has(entryTab) && T.repeatPolicy(state, entryTab).fields.length) h += repeatEditor(entryTab);
+    else if (!T.isNative(state,entryTab) && T.repeatPolicy(state, entryTab).fields.length) h += repeatEditor(entryTab);
     if (["pushup", "mas", "mss", "ift"].includes(entryTab) && !Array.isArray(state.data[entryTab].trials)) {
       h += T.repeatPolicy(state, entryTab).fields.map((d) => field(d.name + " " + d.unit, input(`data.${entryTab}.metrics.${d.id}`, state.data[entryTab].metrics?.[d.id] ?? "", { allowNegative: true }))).join("");
       h += `<button type="button" class="btn small" onclick="App.addRepeat('${entryTab}')">＋ 新增试次</button>`;
@@ -2056,6 +2176,7 @@
       const key=entryTab==="cmj"?"cmjConfig":"imtpConfig";
       h='<div class="form-grid">'+field("设备输出力定义",select(key+".definition",state[key].definition,[["gross","总力"],["net","净力"]]))+'</div>'+h;
       if(entryTab==="cmj")h+=check("dsi.confirmed",state.dsi.confirmed,"确认 CMJ 与等长测试的力定义、单位及协议可比较")+(state.dsi.source==="manual"?field("其他等长力定义",select("dsi.definition",state.dsi.definition,[["gross","总力"],["net","净力"]])):"");
+      h+='<div class="subheading">冲量计算口径</div><div class="form-grid">'+field("设备冲量口径",select(key+".impulseDefinition",state[key].impulseDefinition,[["gross","总力积分"],["net","净力积分（扣除体重）"]]))+'</div>'+check("impulseConfig.confirmed",state.impulseConfig.confirmed,"确认 CMJ 与 IMTP 冲量口径及发力起点可比较");
     }
     if (["landmine","squat","bench","deadlift"].includes(entryTab)) {
       const keys=entryTab==="landmine"?["landmineL","landmineR"]:[entryTab];
@@ -2067,6 +2188,7 @@
       .querySelectorAll("table")
       .forEach((t) => t.classList.add("entry-table"));
     if (entryTab === "imtp") updateForceWarnings();
+    updateJumpEntryResults();
     applyInputDrafts($("entryContent"));
     $("entryContent")
       .querySelectorAll("textarea[data-path]")
@@ -2434,7 +2556,7 @@
       lactate: { speed: "", lactate: "", hr: "" },
     };
     const group = state.data[t][groupIndex];
-    state.data[t].push({ id: uid(), ...templates[t], ...(group && ["landmine", "squat", "bench", "deadlift"].includes(t) ? { load: group.load, ...(t === "landmine" ? { side: group.side } : {}) } : {}) });
+    state.data[t].push({ id: uid(), ...(["cmj","sj","dj","cmrj"].includes(t)?M.newJumpAttempt(t):templates[t]), ...(group && ["landmine", "squat", "bench", "deadlift"].includes(t) ? { load: group.load, ...(t === "landmine" ? { side: group.side } : {}) } : {}) });
     persist();
     renderEntry();
     renderReport();
@@ -2484,6 +2606,7 @@
     closeMobileSidebar();
     window.scrollTo({ top: 0, behavior: "instant" });
     focusContentTitle();
+    if (tab === "ai" && window.MotionBenchLocal) loadAISettings();
   }
   function renderSettings() {
     if (ui.mode === "management") { window.RingsideManagement.render(); return; }
@@ -2495,6 +2618,7 @@
       apiURL,
       key,
       model,
+      aiConfig, aiDirty, aiBusy,
       controls: { E, input, select, field, check, table, regionOptions },
     });
     selectedDef = component.selectedDef;
@@ -2723,10 +2847,10 @@
     if (!projectOnly)
       fields += label(
         "录入层级",
-        `<select id="catalogEntryScope" aria-label="录入层级" ${definition ? "disabled" : ""}><option value="record">本次测试汇总</option><option value="attempt" ${definition?.entryScope === "attempt" || mode === "new-test" || (mode === "new-metric" && !T.registry.has(selectedTest?.id)) ? "selected" : ""}>每次试次</option></select>`,
+        `<select id="catalogEntryScope" aria-label="录入层级" ${definition ? "disabled" : ""}><option value="record">本次测试汇总</option><option value="attempt" ${definition?.entryScope === "attempt" || mode === "new-test" || (mode === "new-metric" && !T.isNative(catalog, selectedTest?.id)) ? "selected" : ""}>每次试次</option></select>`,
       );
     if (!projectOnly && !builtIn) fields += label("变异系数 CV", `<label class="row"><input id="catalogCVEligible" type="checkbox" ${definition?.cvEligible === true ? "checked" : ""}>该指标有真实零点，适合计算 CV</label>`);
-    if (mode !== "new-metric" && !T.registry.has(test?.id || "")) {
+    if (mode !== "new-metric" && !T.isNative(catalog, test?.id || "")) {
       const candidates = catalog.definitions.filter((d) => d.testId === test?.id && T.isAttemptMetric(d));
       fields += label("最佳试次主指标", `<select id="catalogPrimaryMetric" aria-label="最佳试次主指标"><option value="">首个试次指标</option>${candidates.map((d) => `<option value="${E(d.id)}" ${test?.primaryMetricId === d.id ? "selected" : ""}>${E(d.name)}</option>`).join("")}</select>`);
     }
@@ -2910,7 +3034,7 @@
       }
       if (edit.mode !== "new-metric")
         test.primaryAbility = value("catalogPrimaryAbility");
-      if (edit.mode !== "new-metric" && !T.registry.has(testId)) test.primaryMetricId = value("catalogPrimaryMetric") || catalog.definitions.find((d) => d.testId === testId && T.isAttemptMetric(d))?.id || "";
+      if (edit.mode !== "new-metric" && !T.isNative(catalog, testId)) test.primaryMetricId = value("catalogPrimaryMetric") || catalog.definitions.find((d) => d.testId === testId && T.isAttemptMetric(d))?.id || "";
       catalog.definitions
         .filter((d) => d.testId === testId)
         .forEach((d) => (d.category = test.category));
@@ -3126,7 +3250,7 @@
       trainingContext: copy(state.trainingContext),
       evaluationPolicy: "仅 referenceEnabled 为 true 的目标和区间可用于达标判断；未启用评价的测量仍可用于描述、指标间比较和训练安排。时间点力的百分比评价须使用evaluationValue与evaluationUnit，不得将N数值直接与%PF目标比较。",
       fms: s.raw.fms?.items || [],
-      jumps: { cmj: s.raw.cmj, sj: s.raw.sj },
+      jumps: { cmj: s.raw.cmj, sj: s.raw.sj, dj:s.raw.dj, hop:s.raw.hop, cmrj:s.raw.cmrj },
       aggregation: state.mode,
       aggregationExplanation: "results、forceTime 和 isometric 是当前代表成绩；repetitions 是逐指标的原始试次统计，不能把其均值、有效次数或推算来源误当成最佳试次本身。正式重复统计在有效次数至少3次时展示，不足3次先描述试次和复测需要。",
       repetitions: s.repetitions.map(({ testId, key, label, primaryMetricId, selectedIds, statistics }) => ({ testId, key, label, primaryMetricId, selectedIds, statistics })),
@@ -3157,7 +3281,7 @@
       },
       findings: s.findings.map(item => ({...item, ability:T.abilityLabel(analysisRecord,item.ability)})),
       advantages: {...s.advantages,items:s.advantages.items.map(item => ({...item, ability:T.abilityLabel(analysisRecord,item.ability)}))},
-      derived: { EUR: s.raw.eur, DSI: s.raw.dsi, ASR_mps: s.raw.asr },
+      derived: { EUR: s.raw.eur, DSI: s.raw.dsi, ASR_mps: s.raw.asr, analysis:s.derived },
       forceTime: s.raw.forceTime,
       isometric: s.isoAnalyses.filter((x) =>
         x.sides.some((y) => y.value !== null || y.pain),
@@ -3303,26 +3427,98 @@
     if (u.protocol !== "https:" || u.username || u.password || u.search || u.hash) throw Error("请填写不含密钥、参数或账号信息的 HTTPS API 基础地址");
     return raw.endsWith("/v1") ? raw : raw + "/v1";
   }
+  function markAISettingsDirty() {
+    if (!window.MotionBenchLocal) return;
+    aiDirty = true;
+    if ($("aiConfigStatus")) $("aiConfigStatus").textContent="有未保存的设置，请保存后再连接服务。";
+  }
+  function acceptAIConfig(config) {
+    const prior=aiConfig?.revision;
+    aiConfig=config;
+    if (prior && prior!==config.revision) cancelJob();
+    if (!aiDirty) { apiURL=config.base||"https://api.apikey.fan";model=config.model||"";key=""; }
+  }
+  async function loadAISettings(force=false) {
+    if (!window.MotionBenchLocal) return null;
+    if (aiConfigLoad) return aiConfigLoad;
+    if (aiConfig && !force) return aiConfig;
+    aiConfigLoad=(async()=>{
+      try {
+        acceptAIConfig(await window.RingsideAISettings.status());
+        if (ui.mode==="settings"&&settingsTab==="ai"&&!aiDirty) renderSettings();
+        return aiConfig;
+      } catch(error) {
+        if ($("aiConfigStatus")) $("aiConfigStatus").textContent=safeAIError(error);
+        return null;
+      } finally { aiConfigLoad=null; }
+    })();
+    return aiConfigLoad;
+  }
+  async function saveAISettings() {
+    if (!window.MotionBenchLocal || aiBusy) return false;
+    try {
+      await loadAISettings();
+      if (!aiConfig) throw Error("未能读取本机设置，请重新打开本机启动入口。");
+      const base=baseURL(), suppliedKey=key.trim(), selectedModel=model.trim();
+      aiBusy=true;cancelJob();renderSettings();
+      const config=await window.RingsideAISettings.save({base,model:selectedModel,key:suppliedKey,expectedRevision:aiConfig.revision});
+      aiDirty=false;acceptAIConfig(config);key="";
+      toast("AI 设置已加密保存在本机", "ai");
+      return true;
+    } catch(error) {
+      if(error.status===409)await loadAISettings(true);
+      setAIStatus("error","AI 设置未保存",safeAIError(error));
+      return false;
+    } finally { aiBusy=false;if(ui.mode==="settings"&&settingsTab==="ai")renderSettings(); }
+  }
+  async function forgetAIKey() {
+    if (!window.MotionBenchLocal || aiBusy) return false;
+    try {
+      await loadAISettings();
+      if (!aiConfig) throw Error("未能读取本机设置，请重试。");
+      aiBusy=true;cancelJob();renderSettings();
+      const config=await window.RingsideAISettings.forget({expectedRevision:aiConfig.revision});
+      aiDirty=false;acceptAIConfig(config);key="";
+      toast("已删除本机保存的密钥", "ai");
+      return true;
+    } catch(error) {
+      if(error.status===409)await loadAISettings(true);
+      setAIStatus("error","密钥未删除",safeAIError(error));return false;
+    } finally { aiBusy=false;if(ui.mode==="settings"&&settingsTab==="ai")renderSettings(); }
+  }
+  async function configuredAI(requireModel=false) {
+    if (window.MotionBenchLocal) {
+      await loadAISettings();
+      if(aiBusy||aiDirty)throw Error("AI 设置有未保存的修改，请先保存设置。");
+      if(!aiConfig?.hasKey)throw Error("请先保存 API 地址与密钥。");
+      if(requireModel&&!aiConfig.model)throw Error("请选择模型并保存设置。");
+      return {configRevision:aiConfig.revision,model:aiConfig.model};
+    }
+    if(!key.trim()||(requireModel&&!model.trim()))throw Error("请填写密钥并读取或填写模型名称，然后重新生成。");
+    return {base:baseURL(),key:key.trim(),model:model.trim()};
+  }
   async function request(path, payload, controller = new AbortController(), timeoutMs = 60000, connection) {
     let timedOut = false;
     const timer = setTimeout(() => { timedOut = true; controller.abort(); }, timeoutMs);
     try {
-      const base = connection?.base || baseURL(), requestKey = connection?.key ?? key.trim(), bridge = window.MotionBenchLocal;
+      const bridge=window.MotionBenchLocal, config=connection||await configuredAI(path!=="/models"),
+        base=bridge?"":config.base, requestKey=bridge?"":config.key;
       const response = await fetch(bridge ? "/api/relay" : base + path, {
         method: bridge || payload ? "POST" : "GET",
         headers: bridge ? { "Content-Type": "application/json", "X-MotionBench-Token": bridge.token } : {
           Authorization: "Bearer " + requestKey,
           ...(payload ? { "Content-Type": "application/json" } : {}),
         },
-        body: bridge ? JSON.stringify({ base, path, key: requestKey, payload }) : payload ? JSON.stringify(payload) : undefined,
+        body: bridge ? JSON.stringify({ path, payload, configRevision:config.configRevision }) : payload ? JSON.stringify(payload) : undefined,
         signal: controller.signal,
       });
       const body = await response.text();
       let json;
       try { json = JSON.parse(body); } catch {}
       if (!response.ok || json?.error) {
-        const detail = String(json?.error?.message || (typeof json?.error === "string" ? json.error : json?.message || "")).split(requestKey).join("[密钥已隐藏]");
-        const hint = { 401: "密钥无效或已失效", 403: "服务拒绝访问，请核对密钥权限和模型权限", 404: "接口或模型不存在，请核对地址和模型名称", 429: "额度不足或请求过于频繁，请稍后重试", 502: "上游服务暂时不可用", 504: "上游服务响应超时" }[response.status] || "AI 服务未能完成请求";
+        const rawDetail=String(json?.error?.message || (typeof json?.error === "string" ? json.error : json?.message || "")),detail=requestKey?rawDetail.split(requestKey).join("[密钥已隐藏]"):rawDetail;
+        if(bridge&&response.status===409)await loadAISettings(true);
+        const hint = { 401: "密钥无效或已失效", 403: "服务拒绝访问，请核对密钥权限和模型权限", 404: "接口或模型不存在，请核对地址和模型名称", 409:"本机AI配置已变更，请核对设置后重试", 429: "额度不足或请求过于频繁，请稍后重试", 502: "上游服务暂时不可用", 504: "上游服务响应超时" }[response.status] || "AI 服务未能完成请求";
         throw Error(hint + "（HTTP " + response.status + "）" + (detail ? "：" + safeAIError(detail) : ""));
       }
       if (!json) throw Error("服务返回的不是有效 JSON，请核对 API 地址是否指向聊天接口");
@@ -3335,15 +3531,17 @@
     }
   }
   async function models() {
-    if (!key.trim()) { $("apiMessage").textContent = "请先填写密钥，再读取可用模型。"; return; }
+    let connection;
+    try {connection=await configuredAI();}catch(error){if($("apiMessage"))$("apiMessage").textContent=safeAIError(error);return;}
     $("modelButton").disabled = true;
     $("modelButton").textContent = "正在读取模型…";
     $("apiMessage").textContent = "正在连接服务，请稍候…";
     try {
-      const json = await request("/models"),
+      const json = await request("/models",undefined,undefined,60000,connection),
         ids = (json.data || [])
           .map((x) => x.id)
           .filter((x) => typeof x === "string");
+      if(!$("modelList"))return;
       $("modelList").innerHTML = ids
         .map((x) => `<option value="${E(x)}"></option>`)
         .join("");
@@ -3352,6 +3550,7 @@
         : "连接成功，请填写模型名称";
       if (!ids.includes(model) && ids.length) {
         model = ids.find(id => !/image|embed|tts|whisper|rerank/i.test(id)) || ids[0];
+        markAISettingsDirty();
         $("apiModel").value = model;
         $("apiMessage").textContent += "，已选用 " + model + "。模型列表读取成功不代表每个模型都有调用权限。";
       }
@@ -3365,9 +3564,10 @@
   async function ai() {
     if (job) return toast("当前分析正在生成", "ai");
     if (!M.stats(effectiveRecord()).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
-    if (!key.trim() || !model.trim()) {
+    let connection;
+    try {connection=await configuredAI(true);}catch(error){
       openSettings("ai");
-      return setAIStatus("error", "AI 服务尚未配置完整", "填写密钥并读取或填写模型名称，然后重新生成。");
+      return setAIStatus("error", "AI 服务尚未配置完整", safeAIError(error));
     }
     saveEditor();
     const binding = snapshot(),
@@ -3386,8 +3586,7 @@
         { role: "system", content: window.RingsideInterventions.systemPrompt },
         { role: "user", content: "生成解读与干预建议：\n" + JSON.stringify(facts()) },
       ];
-      const selectedModel = model;
-      const connection = { base: baseURL(), key: key.trim() };
+      const selectedModel = connection.model;
       let validated, pages;
       for (let attempt = 0; attempt < 2; attempt++) {
         const json = await request("/chat/completions", { model: selectedModel, messages, stream: false }, task.controller, 300000, connection);
@@ -3904,6 +4103,7 @@
     selectAthlete,
     selectRecord,
     addRow,
+    addHopJump, removeHopJump, addHopSet,
     removeRow,
     addRepeat,
     removeRepeat,
@@ -3930,6 +4130,7 @@
     applyAI,
     ai,
     models,
+    saveAISettings, forgetAIKey, loadAISettings,
     copyAIFacts,
     saveMenu() { openManagement("backup"); },
     downloadHTML,
@@ -3986,14 +4187,17 @@
     }
     if (t.id === "apiKey") {
       key = t.value;
+      markAISettingsDirty();
       return;
     }
     if (t.id === "apiURL") {
       apiURL = t.value;
+      markAISettingsDirty();
       return;
     }
     if (t.id === "apiModel") {
       model = t.value;
+      markAISettingsDirty();
       return;
     }
     if (t.id === "interpEditor") {
@@ -4062,7 +4266,7 @@
       setPath(t.dataset.path, t.type === "checkbox" ? t.checked : t.value);
       if (/^views\.lvp(Upper|Lower)\.showBand$/.test(t.dataset.path))
         state.views[t.dataset.path.split(".")[1]].bandExplicit = true;
-      if (ui.mode === "entry" && ["dsi.source"].includes(t.dataset.path))
+      if (ui.mode === "entry" && (["dsi.source"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)))
         renderEntry();
     }
     if (t.dataset.axis) {
@@ -4131,6 +4335,9 @@
     } else if (!e.target.closest("#bodyRegionTooltip")) hideBodyRegionTooltip();
   });
   document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && tooltipAnchor) {
+      tooltipDismissed=tooltipAnchor;hideTooltip();e.preventDefault();return;
+    }
     bodyTouchInteraction = false;
     if (
       e.target.type === "number" &&
@@ -4201,6 +4408,9 @@
     const region = e.target.closest("[data-body-detail]");
     if (region) { if (!bodyTouchInteraction) showBodyRegionTooltip(region); }
     else if (!e.target.closest("#bodyRegionTooltip")) hideBodyRegionTooltip();
+    const tipTarget=e.target.closest("[data-tooltip]");
+    if(!region&&tipTarget){tooltipDismissed=null;showTooltip(tipTarget,tipTarget.dataset.tooltip);}
+    else hideTooltip();
     if (
       e.target.type === "number" &&
       e.target.dataset.path &&
@@ -4208,7 +4418,7 @@
     )
       rawNumbers.set(e.target, { value: e.target.value, selected: false });
   });
-  document.addEventListener("focusout", scheduleBodyRegionHide);
+  document.addEventListener("focusout", () => {scheduleBodyRegionHide();hideTooltip();tooltipDismissed=null;});
   document.addEventListener("pointerdown", (e) => {
     // Touch synthesizes focus and mouse events before click. Opening here would
     // move the click target under the finger, so touch opens only on click.
@@ -4222,6 +4432,8 @@
   });
   document.addEventListener("pointerout", (e) => {
     if (e.target.closest("[data-body-detail],#bodyRegionTooltip") && !e.relatedTarget?.closest?.("[data-body-detail],#bodyRegionTooltip")) scheduleBodyRegionHide();
+    const target=e.target.closest("[data-tooltip],[data-lvp-series]");
+    if(target&&!target.contains(e.relatedTarget)){hideTooltip();tooltipDismissed=null;}
   });
   window.addEventListener("resize", positionBodyRegionTooltip);
   window.addEventListener("scroll", positionBodyRegionTooltip, {passive:true});
@@ -4238,14 +4450,15 @@
   });
   document.addEventListener("pointermove", (e) => {
     if (e.target.closest("[data-body-detail],#bodyRegionTooltip")) {
-      $("tooltip").style.display = "none";
+      hideTooltip();
       return;
     }
     const hit = e.target.closest("[data-lvp-series]"),
       hover = hit ? V.lvpHover(hit, e) : null,
       el = e.target.closest("[data-tooltip]");
+    let text;
     if (hover) {
-      $("tooltip").textContent =
+      text =
         hover.label +
         " · " +
         hover.metric +
@@ -4256,16 +4469,12 @@
         " m/s\n" +
         (hover.zone || "未配置素质区间") +
         (hover.supported ? "" : " · 外推");
-    } else if (el) $("tooltip").textContent = el.dataset.tooltip;
+    } else if (el) text = el.dataset.tooltip;
     else {
-      $("tooltip").style.display = "none";
+      hideTooltip();
       return;
     }
-    $("tooltip").style.display = "block";
-    $("tooltip").style.left =
-      Math.max(6, Math.min(e.clientX + 12, innerWidth - 300)) + "px";
-    $("tooltip").style.top =
-      Math.max(6, Math.min(e.clientY + 12, innerHeight - 100)) + "px";
+    showTooltip(hover?hit:el,text,e.clientX+12,e.clientY+12);
   });
   window.addEventListener("beforeunload", (event) => {
     saveEditor();
@@ -4340,4 +4549,5 @@
     }
   }
   window.App.ready=initializeApplication();
+  if(window.MotionBenchLocal)loadAISettings();
 })();

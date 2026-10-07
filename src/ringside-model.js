@@ -160,6 +160,30 @@
     });
   }
   const extraDefs = T.extraDefinitions;
+  function preserveAddedMetricCollisions(definitions, source) {
+    if (source.derivedEnabled !== undefined) return definitions;
+    const added = new Set(extraDefs().filter((d) => ["dj","hop","cmrj"].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => d.id));
+    return definitions.map((d) => added.has(d.id) ? { ...d, legacyManual: true } : d);
+  }
+  function newJumpAttempt(testId) {
+    return { id: uid(), ...Object.fromEntries(T.fieldsForTest(testId).filter((f) => !f.computed).map((f) => [f.key, ""])), metrics: {}, notes: "" };
+  }
+  function newHopSet() {
+    return { id: uid(), inputMode: "summary", summary: { height: "", contactTimeMs: "", flightTimeMs: "", rsi: "", flightTimeRatio: "", selectionBasis: "unknown", suppliedCount: "", validCount: "", selectedCount: "", notes: "" },
+      jumps: [{ id: uid(), height: "", contactTimeMs: "", flightTimeMs: "", notes: "" }], notes: "" };
+  }
+  function normalizeHopSet(input, prefix = "hop") {
+    const base = newHopSet(), s = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+    const result = { ...base, ...s, inputMode: s.inputMode === "jumps" ? "jumps" : "summary", summary: { ...base.summary, ...s.summary },
+      jumps: (Array.isArray(s.jumps) ? s.jumps : base.jumps).map((row, i) => ({ ...row, id: row.id || prefix + "_jump_" + i })) };
+    if (Array.isArray(s.trials)) result.trials = s.trials.map((set, i) => {
+      const normalized = normalizeHopSet({ ...set, trials: undefined }, prefix + "_set_" + i);
+      normalized.id = set.id || prefix + "_set_" + i;
+      delete normalized.trials;
+      return normalized;
+    });
+    return result;
+  }
   function convertDefinition(input, legacy = false) {
     const d = clone(input);
     d.ranges = Array.isArray(d.ranges) ? d.ranges : [];
@@ -247,6 +271,9 @@
             metrics: {},
           },
         ],
+        dj: [newJumpAttempt("dj")],
+        hop: newHopSet(),
+        cmrj: [newJumpAttempt("cmrj")],
         imtp: [
           normalizeIMTP({
             id: uid(),
@@ -277,6 +304,9 @@
       protocol: {
         cmj: "双手叉腰；测量方法与设备待记录",
         sj: "双手叉腰；静止起跳；测量方法与设备待记录",
+        dj: "双手叉腰；记录跌落高度；落地后立即反弹；RSI 为跳高/触地时间。",
+        hop: "垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按跳高/触地时间选最高5个；保留实际数量。",
+        cmrj: "双手叉腰；最大 CMJ 后落地立即反弹；分别记录首跳和第二跳。",
         imtp: "IMTP；姿势、固定方式、采样率与力起点待记录",
         iso: "",
         landmine: "峰值速度；负荷定义、设备与固定方式待记录",
@@ -286,8 +316,10 @@
         deadlift: "传统硬拉；起始方式与设备待记录",
         lactate: "跑台；每级3 min；采样恢复1 min",
       },
-      cmjConfig: { definition: "gross" },
-      imtpConfig: { unit: "N", definition: "gross" },
+      cmjConfig: { definition: "gross", impulseDefinition: "gross" },
+      imtpConfig: { unit: "N", definition: "gross", impulseDefinition: "gross" },
+      impulseConfig: { confirmed: false },
+      derivedEnabled: T.derivedDefaults(),
       imtpTimeStandards: [],
       lvp: {
         squat: { metric: "MV", mvt: "", zones: [] },
@@ -611,7 +643,11 @@
     out.athlete = { ...d.athlete, ...s.athlete };
     out.trainingContext = { ...d.trainingContext, ...s.trainingContext };
     out.enabled = { ...d.enabled, ...s.enabled };
+    ["dj", "hop", "cmrj"].forEach((id) => { if (!Object.hasOwn(s.enabled || {}, id)) out.enabled[id] = false; });
     out.data = { ...d.data, ...s.data };
+    if (T.isNative(s,"hop")) out.data.hop = normalizeHopSet(s.data?.hop);
+    out.derivedEnabled = { ...d.derivedEnabled, ...s.derivedEnabled };
+    out.impulseConfig = { ...d.impulseConfig, ...s.impulseConfig };
     ["ift", "mas", "mss", "pushup"].forEach((t) => {
       out.data[t] = { ...d.data[t], ...s.data?.[t] };
     });
@@ -674,6 +710,8 @@
       "iso",
       "cmj",
       "sj",
+      "dj",
+      "cmrj",
       "imtp",
       "landmine",
       "squat",
@@ -688,6 +726,8 @@
       "fms",
       "cmj",
       "sj",
+      "dj",
+      "cmrj",
       "imtp",
       "landmine",
       "squat",
@@ -714,18 +754,18 @@
           ),
         )
       : inferredPairs;
-    out.definitions = (
+    out.definitions = preserveAddedMetricCollisions((
       Array.isArray(s.definitions) ? s.definitions : d.definitions
-    ).map((x) => convertDefinition(x, legacy));
+    ).map((x) => convertDefinition(x, legacy)), s);
     const existing = new Set(out.definitions.map((x) => x.id));
     extraDefs()
       .filter(
-        (x) => ["imtp", "cmj", "sj"].includes(x.testId) && !existing.has(x.id),
+        (x) => ["imtp", "cmj", "sj", "dj", "hop", "cmrj"].includes(x.testId) && T.isNative(out,x.testId) && !existing.has(x.id),
       )
       .forEach((x) => out.definitions.push(x));
     out.projectSnapshots = T.snapshots(out);
     T.describe(out).forEach((test) => {
-      if (!T.registry.has(test.id) && test.repeatPolicy.fields.length) {
+      if (!T.isNative(out,test.id) && test.repeatPolicy.fields.length) {
         if (!Array.isArray(out.data[test.id])) out.data[test.id] = [{ id: "row_" + test.id + "_0", metrics: {}, notes: "" }];
         out.data[test.id] = out.data[test.id].map((row, i) => ({ ...row, id: row.id || "row_" + test.id + "_" + i, metrics: { ...row.metrics } }));
       }
@@ -735,7 +775,7 @@
     };
     ["pushup", "mas", "mss", "ift"].forEach((id) => normalizeTrials(out.data[id], id));
     out.data.iso.forEach((row) => normalizeTrials(row, row.id));
-    ["cmj", "sj"].forEach((id) => {
+    ["cmj", "sj", "dj", "cmrj"].filter((id) => T.isNative(out,id)).forEach((id) => {
       out.data[id] = out.data[id].map((row) => ({
         ...d.data[id][0],
         ...row,
@@ -900,7 +940,7 @@
     return row;
   }
   function imtpTimeContext(record) {
-    return { protocol: record.protocol?.imtp || "", force: clone(record.imtpConfig || { unit: "N", definition: "gross" }) };
+    return { protocol: record.protocol?.imtp || "", force: { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } };
   }
   function imtpTimeStandard(record, timeMs, kind) {
     const rule = (record.imtpTimeStandards || []).find(r => r.timeMs === timeMs && r.kind === kind);
@@ -1529,17 +1569,62 @@
       reference: 100,
     };
   }
+  function reactiveJump(row) {
+    const height = positive(row.height), contact = positive(row.contactTimeMs), flight = positive(row.flightTimeMs);
+    const firstHeight = positive(row.firstHeight), firstTime = positive(row.firstTimeToTakeoffMs);
+    const ratio = (a,b,factor=1) => a !== null && b !== null && Number.isFinite(a / b * factor) ? a / b * factor : null;
+    return { ...row, rsi: ratio(height,contact,10), flightTimeRatio: ratio(flight,contact), firstRsiModified: ratio(firstHeight,firstTime,10) };
+  }
+  const average = (values) => { const valid = values.filter((v) => N(v) !== null).map(N); return valid.length ? valid.reduce((a,b) => a+b/valid.length, 0) : null; };
+  function hopSetSummary(set) {
+    const mode = set.inputMode === "jumps" ? "jumps" : "summary";
+    if (mode === "summary") {
+      const s = set.summary || {}, row = Object.fromEntries(T.fieldsForTest("hop").map((f) => [f.key, positive(s[f.key])]));
+      const count = (key) => Number.isInteger(N(s[key])) && N(s[key]) >= 0 ? N(s[key]) : null;
+      return { id: set.id, inputMode: mode, row, counts: { supplied: count("suppliedCount"), valid: count("validCount"), selected: count("selectedCount") },
+        selectedIds: [], selectionBasis: s.selectionBasis || "unknown", jumps: [], flightRatioComplete: row.flightTimeRatio !== null, notes: set.notes || s.notes || "",
+        rqr: { value: row.flightTimeRatio, selectedIds: [], counts: { supplied: count("suppliedCount"), valid: count("validCount"), selected: count("selectedCount") }, originalSelection: s.selectionBasis === "flight_ratio" && count("suppliedCount") === 10 && count("validCount") === 10 && count("selectedCount") === 5 } };
+    }
+    const jumps = (set.jumps || []).map((jump, index) => ({ ...reactiveJump(jump), id: jump.id || set.id + "_jump_" + index, index: index + 1 }));
+    const valid = jumps.filter((j) => j.rsi !== null);
+    const selected = valid.length > 5 ? [...valid].sort((a,b) => b.rsi-a.rsi || a.index-b.index).slice(0,5) : valid;
+    const selectedIds = selected.map((j) => j.id), flightRatioComplete = selected.length > 0 && selected.every((j) => j.flightTimeRatio !== null);
+    const supplied = jumps.filter((j) => [j.height,j.contactTimeMs,j.flightTimeMs,j.notes].some((v) => v !== "" && v !== null && v !== undefined)).length;
+    const timeValid = jumps.filter((j) => positive(j.flightTimeRatio) !== null);
+    const timeSelected = timeValid.length > 5 ? [...timeValid].sort((a,b) => b.flightTimeRatio-a.flightTimeRatio || a.index-b.index).slice(0,5) : timeValid;
+    const row = Object.fromEntries(T.fieldsForTest("hop").map((f) => [f.key, average(selected.map((j) => positive(j[f.key])))]));
+    // A mean ratio requires the ratio from every selected jump, never a ratio of means.
+    if (!flightRatioComplete) row.flightTimeRatio = null;
+    return { id: set.id, inputMode: mode, row,
+      counts: { supplied, valid: valid.length, selected: selected.length },
+      selectedIds, selectionBasis: "height_rsi", jumps: jumps.map((j) => ({ ...j, valid: j.rsi !== null, selected: selectedIds.includes(j.id) })), flightRatioComplete, notes: set.notes || "",
+      rqr: { value: average(timeSelected.map((j) => j.flightTimeRatio)), selectedIds: timeSelected.map((j) => j.id), counts: { supplied, valid: timeValid.length, selected: timeSelected.length }, originalSelection: supplied === 10 && timeValid.length === 10 && timeSelected.length === 5 } };
+  }
+  function hopSummary(record) {
+    const sets = repeatRows(record, "hop").map(hopSetSummary), fields = T.attemptFields(record, "hop");
+    const eligible = sets.filter((s) => positive(s.row.rsi) !== null);
+    const best = eligible.reduce((a,b) => !a || b.row.rsi > a.row.rsi ? b : a, null);
+    const selected = record.mode === "mean" ? eligible : best ? [best] : [];
+    const row = selected.length ? Object.fromEntries(T.fieldsForTest("hop").map((f) => [f.key,
+      f.key === "flightTimeRatio" && !selected.every((s) => s.flightRatioComplete) ? null : average(selected.map((s) => s.row[f.key]))])) : null;
+    return { row, count: eligible.length, sets, selectedSetIds: selected.map((s) => s.id),
+      counts: Object.fromEntries(["supplied","valid","selected"].map((key) => [key, selected.length && selected.every((s) => s.counts[key] !== null) ? selected.reduce((sum,s) => sum+s.counts[key],0) : null])),
+      fields, metrics: fields.map((f) => ({ ...f, value: row?.[f.key] ?? null, count: selected.filter((s) => N(s.row[f.key]) !== null).length })),
+      attempts: sets.map((s,index) => ({ id: s.id, index: index+1, values: fields.map((f) => ({ id: f.id, value: s.row[f.key] ?? null })) })) };
+  }
   function jumpSummary(record, id) {
+    if (id === "hop") return hopSummary(record);
     const fields = T.attemptFields(record, id),
       rows = record.data[id] || [];
-    const clean = rows.map((row) => ({
+    const reactive = ["dj", "cmrj"].includes(id), primary = reactive ? "rsi" : "height";
+    const clean = rows.map((input) => { const row = reactive ? reactiveJump(input) : input; return ({
       ...row,
       ...Object.fromEntries(
-        T.jumpFields.map((f) => [f.key, positive(row[f.key]) ?? ""]),
+        T.fieldsForTest(id).map((f) => [f.key, positive(row[f.key]) ?? ""]),
       ),
-    }));
-    const result = aggregate(clean, "height", record.mode);
-    const eligible = clean.filter((row) => positive(row.height) !== null);
+    }); });
+    const result = aggregate(clean, primary, record.mode);
+    const eligible = clean.filter((row) => positive(row[primary]) !== null);
     const selected =
       record.mode === "best" ? (result.row ? [result.row] : []) : eligible;
     result.metrics = fields.map((field) => {
@@ -1556,7 +1641,9 @@
         count: values.length,
       };
     });
-    result.attempts = rows.map((row, index) => ({
+    result.selectedIds = selected.map((row) => row.id);
+    result.selectedRows = selected;
+    result.attempts = clean.map((row, index) => ({
       id: row.id,
       index: index + 1,
       values: fields.map((f) => ({
@@ -1671,6 +1758,11 @@
     return [];
   }
   function ensureRepeatRows(record, testId, isoIndex) {
+    if (testId === "hop" && T.isNative(record,testId)) {
+      const data = record.data.hop;
+      if (!Array.isArray(data.trials)) data.trials = [normalizeHopSet({ ...data, trials: undefined })];
+      return data.trials;
+    }
     if (testId === "iso") {
       const row = record.data.iso[isoIndex];
       if (!Array.isArray(row.trials)) row.trials = repeatRows(record, testId, isoIndex).map((r) => ({
@@ -1732,10 +1824,14 @@
       if (test.renderer === "jumps") {
         const fields = T.attemptFields(record, id).map((f) => field(f.id, f.key || "metrics." + f.id, f.label, f.unit,
           f.key ? { positive: true } : { minimum: null, cvEligible: record.definitions.find((d) => d.id === f.id)?.cvEligible === true }));
-        add(id, id, test.name, fields, rows, id + "_height");
+        const observations = id === "hop" ? rows.map((r) => ({ ...hopSetSummary(r).row, id: r.id, notes: r.notes, metrics: r.metrics })) : ["dj","cmrj"].includes(id) ? rows.map(reactiveJump) : rows;
+        add(id, id, test.name, fields, observations, id + (["dj","hop","cmrj"].includes(id) ? "_rsi" : "_height"));
       } else if (test.renderer === "imtp") {
         const normalized = rows.map((row) => syncIMTPLegacy(normalizeIMTP(row)));
         const fields = [field("imtp_peak_force", "peakForce", "峰值力", "N", { positive: true })];
+        fields.push(field("imtp_impulse250", "impulse250", "0–250 ms 冲量", "N·s", { positive: true }),
+          field("imtp_matched_impulse", "matchedImpulse", "匹配时窗冲量", "N·s", { positive: true }),
+          field("imtp_matched_duration", "matchedDurationMs", "匹配时窗", "ms", { positive: true, cvEligible: false }));
         if (positive(record.athlete.mass) !== null && record.imtpConfig.unit === "N") fields.push(field("imtp_relative_force", "relative", "相对峰值力", "N/kg", { positive: true, read: (row) => positive(row.peakForce) === null ? null : N(row.peakForce) / N(record.athlete.mass) }));
         const times = [...new Set(normalized.flatMap((row) => row.timePoints.map((p) => positive(p.timeMs)).filter((t) => t !== null)))].sort((a,b) => a-b);
         times.forEach((time) => ["force", "rfd"].forEach((kind) => fields.push(field("imtp_" + (kind === "force" ? "f" : "rfd") + time, kind + time,
@@ -1803,6 +1899,74 @@
     });
     return { ...record, data };
   }
+  function derivedResults(record, values, raw, repetitions) {
+    const cmjRows = raw.cmj?.selectedRows || [];
+    const imtpIds = repetitions.find((g) => g.testId === "imtp")?.selectedIds || [];
+    const imtpRows = (record.data.imtp || []).filter((r) => imtpIds.includes(r.id));
+    const completeMean = (rows, key) => rows.length && rows.every((r) => positive(r[key]) !== null) ? average(rows.map((r) => N(r[key]))) : null;
+    const impulse = completeMean(cmjRows, "propulsiveImpulse"), duration = completeMean(cmjRows, "propulsiveDurationMs");
+    const matched = completeMean(imtpRows, "matchedImpulse"), fixed = completeMean(imtpRows, "impulse250");
+    const basis = record.cmjConfig?.impulseDefinition || "gross";
+    const impulseReason = record.impulseConfig?.confirmed !== true ? "需确认推进期、发力起点及冲量口径可比"
+      : basis !== (record.imtpConfig?.impulseDefinition || "gross") ? "CMJ 与 IMTP 冲量净/总力口径不同"
+      : impulse === null || duration === null ? "所选 CMJ 尝试需完整推进期冲量和时长" : "";
+    const component = (label,value,unit) => ({ label, value: N(value), unit });
+    const directions = {
+      eur: "结合 CMJ 与 SJ 的绝对成绩、动作控制和纵向变化分析；单凭 EUR 高低不能确定训练优先级。",
+      gain: "与 EUR 表达同一关系；对照 CMJ、SJ 原始成绩，避免把比值上升直接解释为能力改善。",
+      idsi_matched: "与同口径历史测试比较，结合最大力量、CMJ 成绩和力时曲线判断；目前不使用通用训练界值。",
+      idsi_fixed250: "用于固定时窗下的纵向监测；与匹配时窗 iDSI 分开解释，不套用 fDSI 界值。",
+      rqr: "结合 DJ、Hop 各自的跳高与触地时间，识别不同反应跳任务的表现差异；当前协议须保持一致。",
+      asr: "同时查看 MSS 与 MAS，区分速度端和有氧端的变化；结合专项要求制定训练。",
+      srr: "结合 MSS、MAS 和专项要求解释；耐力章节中的参考分组须按其适用人群使用。",
+    };
+    const results = T.derivedDefinitions().filter((d) => record.derivedEnabled?.[d.id] !== false).map((definition) => {
+      const result = { ...definition, enabled: true, value: null, available: false, reason: "", components: [], directionHint: directions[definition.id] || "", aggregation: record.mode === "mean" ? "各测试代表值（均值）之比；不配对独立试次" : "各测试最佳完整尝试的代表值之比" };
+      if (["eur","gain"].includes(definition.id)) {
+        result.value = raw[definition.id];
+        result.components = [component("CMJ 跳高",values.cmj_height,"cm"),component("SJ 跳高",values.sj_height,"cm")];
+        result.reason = "需有效 CMJ 与 SJ 跳高";
+      } else if (definition.id === "fdsi") {
+        result.value = raw.dsi;
+        result.components = [component("CMJ 推进期峰值力",raw.cmj?.row?.force,record.dsi.cmjUnit || "N"),component("等长峰值力",raw.dsiForce,record.dsi.source === "manual" ? record.dsi.unit || "N" : record.imtpConfig.unit)];
+        result.reason = raw.dsiReason;
+        if (result.value !== null) result.directionHint = result.value < .6 ? "文献启发：可优先检查动态力量表达与弹道训练需求；须结合最大力量和跳跃成绩。" : result.value > .8 ? "文献启发：可优先检查最大力量储备与力量训练需求；须结合最大力量和跳跃成绩。" : "文献启发：可考虑最大力量与动态力量表达并行发展；须结合专项与训练阶段。";
+        result.protocol += " 默认参考区间：<0.60、0.60–0.80、>0.80；属训练方向假设，不是能力等级。";
+      } else if (definition.id.startsWith("idsi_")) {
+        const isMatched = definition.id === "idsi_matched", denominator = isMatched ? matched : fixed;
+        result.reason = impulseReason || (denominator === null ? "所选 IMTP 尝试缺少完整冲量" : "");
+        if (!result.reason && isMatched && !imtpRows.every((r) => positive(r.matchedDurationMs) !== null && Math.abs(N(r.matchedDurationMs)-duration) <= 1e-6)) result.reason = "每个所选 IMTP 积分时窗须与 CMJ 代表推进期时长一致";
+        result.value = result.reason ? null : impulse / denominator;
+        result.components = [component("CMJ 完整推进期冲量",impulse,"N·s"),component("CMJ 推进期时长",duration,"ms"),component(isMatched ? "IMTP 匹配时窗冲量" : "IMTP 0–250 ms 冲量",denominator,"N·s"),component("IMTP 积分时窗",isMatched ? completeMean(imtpRows,"matchedDurationMs") : 250,"ms")];
+        result.protocol += " 当前冲量口径：" + (basis === "net" ? "净力" : "总力") + "；冲量须由原始力时数据积分获得。";
+      } else if (definition.id === "rqr") {
+        const djRows = raw.dj?.selectedRows || [], hop = raw.hop;
+        const djRatio = completeMean(djRows,"flightTimeRatio");
+        const chosen = (hop?.sets || []).filter((s) => hop.selectedSetIds.includes(s.id));
+        const hopRatio = chosen.length && chosen.every((s) => positive(s.rqr?.value) !== null) ? average(chosen.map((s) => s.rqr.value)) : null;
+        result.components = [component("DJ FT/CT 代表值",djRatio,"比值"),component("Hop 平均 FT/CT 代表值",hopRatio,"比值")];
+        result.value = djRatio !== null && hopRatio !== null ? djRatio / hopRatio : null;
+        result.reason = "所选 DJ 与 Hop 须均有完整 FT/CT，不能用跳高/触地时间 RSI 替代";
+        const original = record.mode === "mean" && djRows.length === 3 && djRows.every((r) => N(r.dropHeightCm) === 45) && chosen.length === 1 && chosen.every((s) => s.rqr.originalSelection);
+        result.selection = { djIds: djRows.map((r) => r.id), hopSets: chosen.map((s) => ({ id:s.id, ...s.rqr })) };
+        result.selectionNote = "RQR 单独按 FT/CT 排序选跳；图中 Hop RSI 仍按跳高/触地时间排序。";
+        result.protocolMatch = original;
+        result.name = original ? definition.name : "DJ/Hop 反应比 · 当前协议";
+        result.protocol += original ? " 当前汇总符合以上主要取值条件。" : " 当前数据按所选汇总模式与 Hop 选跳规则计算，不等同原研究协议。";
+      } else {
+        const mas = positive(values.mas_speed), mss = positive(values.mss_speed);
+        result.components = [component("MSS",mss,"m/s"),component("MAS",mas,"m/s")];
+        result.value = mas !== null && mss !== null ? definition.id === "asr" ? mss-mas : mss/mas : null;
+        result.reason = "需有效 MSS 与 MAS";
+        if (mas !== null && mss !== null && mss < mas) result.directionHint = "MSS 低于 MAS：请先核对单位、协议及测试结果，再讨论训练方向。";
+      }
+      result.available = Number.isFinite(result.value);
+      if (!result.available) { result.value = null; result.reason ||= "缺少可计算的数据或结果超出有效数值范围"; }
+      else result.reason = "";
+      return result;
+    });
+    return { results, enabledCount: results.length };
+  }
   function stats(record) {
     let state = record || defaults();
     // Calculations must use canonical results AND definitions even before a
@@ -1832,7 +1996,7 @@
       values = {},
       raw = {},
       validTests = new Set();
-    ["cmj", "sj"].forEach((t) => {
+    ["cmj", "sj", "dj", "hop", "cmrj"].filter((id) => T.isNative(state,id)).forEach((t) => {
       if (!use(t)) return;
       const a = jumpSummary(state, t);
       raw[t] = a;
@@ -1869,6 +2033,11 @@
       )
         validTests.add("imtp");
       if (a.row) {
+        [["impulse250","imtp_impulse250"],["matchedImpulse","imtp_matched_impulse"],["matchedDurationMs","imtp_matched_duration"]].forEach(([key,id]) => {
+          const v = repetitions.find((g) => g.testId === "imtp")?.representatives[id];
+          a.row[key] = v ?? "";
+          if (v !== null && v !== undefined) values[id] = v;
+        });
         values.imtp_peak_force = N(a.row.peakForce);
         if (
           positive(state.athlete.mass) !== null &&
@@ -2107,6 +2276,7 @@
       positive(values.mas_speed) !== null && positive(values.mss_speed) !== null
         ? values.mss_speed - values.mas_speed
         : null;
+    const derived = derivedResults(state, values, raw, repetitions);
     const qualityIssues =
       raw.asr !== null && raw.asr < 0
         ? [
@@ -2468,6 +2638,7 @@
     };
     return {
       values,
+      derived,
       imtpTimeResults,
       repetitions,
       representativeData: state.data,
@@ -2563,6 +2734,11 @@
           return label + (n ? " " + n + " 次" : "未录入");
         })
         .join("；");
+    } else if (testId === "hop" && T.isNative(record,testId)) {
+      const hop = s.raw.hop, counts = hop?.counts;
+      detail = "有效测试组 " + (hop?.count || 0) + "/" + (hop?.sets.length || 0) + (counts?.selected !== null && counts?.selected !== undefined ? "；代表结果采用 " + counts.selected + " 跳" : "");
+    } else if (["dj", "cmrj"].includes(testId) && T.isNative(record,testId)) {
+      detail = "有效 RSI " + rows.filter((r) => reactiveJump(r).rsi !== null).length + "/" + rows.length;
     } else if (["cmj", "sj"].includes(testId)) {
       const attempts = s.raw[testId]?.attempts || [];
       const partial = attempts.filter(
@@ -2644,25 +2820,49 @@
   }
 
   function fingerprint(record) {
+    // Empty additive defaults must not invalidate existing 2.10 narratives.
+    // Real measurements, changed protocols/standards and explicit switches remain inputs.
+    const data = clone(record.data), enabled = { ...record.enabled }, protocol = { ...record.protocol };
+    const cmjConfig = { ...record.cmjConfig }, imtpConfig = { ...record.imtpConfig };
+    if (cmjConfig.impulseDefinition === "gross") delete cmjConfig.impulseDefinition;
+    if (imtpConfig.impulseDefinition === "gross") delete imtpConfig.impulseDefinition;
+    const empty = (value) => value === "" || value === null || value === undefined;
+    ["cmj","imtp"].forEach((id) => (data[id] || []).forEach((row) =>
+      (id === "cmj" ? ["propulsiveImpulse","propulsiveDurationMs"] : ["impulse250","matchedImpulse","matchedDurationMs"]).forEach((key) => { if (empty(row[key])) delete row[key]; })));
+    const meaningful = (value, key = "") => {
+      if (["id","inputMode","selectionBasis","measurementVersion"].includes(key)) return false;
+      if (Array.isArray(value)) return value.some((v) => meaningful(v));
+      if (value && typeof value === "object") return Object.entries(value).some(([k,v]) => meaningful(v,k));
+      return !empty(value) && value !== false;
+    };
+    const defaultProtocol = defaults().protocol;
+    const invisible = new Set(["dj","hop","cmrj"].filter((id) => T.isNative(record,id) && !enabled[id] && !meaningful(data[id]) && (!protocol[id] || protocol[id] === defaultProtocol[id])));
+    invisible.forEach((id) => { delete data[id]; delete enabled[id]; delete protocol[id]; });
+    const extras = new Map(extraDefs().filter((d) => ["dj","hop","cmrj"].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => [d.id,d]));
+    const same = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every((key) => JSON.stringify(a[key]) === JSON.stringify(b[key]));
+    const definitions = withoutReplacedIMTPStandards(record).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
+    const derivedEnabled = Object.fromEntries(Object.entries(record.derivedEnabled || {}).filter(([,enabled]) => enabled === false));
     return JSON.stringify({
       athlete: record.athlete,
       trainingContext: record.trainingContext,
-      enabled: record.enabled,
+      enabled,
       mode: record.mode,
-      data: record.data,
-      definitions: withoutReplacedIMTPStandards(record),
+      data,
+      definitions,
       custom: record.customValues,
-      projects: record.projectSnapshots,
+      projects: record.projectSnapshots?.filter((t) => !invisible.has(t.id)),
       rules: record.rules,
       lvp: record.lvp,
       thresholds: record.thresholds,
       dsi: record.dsi,
-      cmjConfig: record.cmjConfig,
-      imtpConfig: record.imtpConfig,
+      cmjConfig,
+      imtpConfig,
+      ...(record.impulseConfig?.confirmed ? { impulseConfig: record.impulseConfig } : {}),
+      ...(Object.keys(derivedEnabled).length ? { derivedEnabled } : {}),
       ...(record.imtpTimeStandards?.length ? { imtpTimeStandards: record.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
       balancePairs: record.balancePairs,
       axes: record.axes,
-      protocol: record.protocol,
+      protocol,
     });
   }
   function recordEnvelope(record, profile, catalog) {
@@ -2712,27 +2912,31 @@
       abilityGroupConflicts: [],
       protocol: record.protocol,
       conflicts: [],
+      derivedEnabled: T.derivedDefaults(),
     };
   }
   function normalizeCatalog(input) {
     const base = catalogDefaults(),
       catalog = input ? clone(input) : base;
+    const originalCatalog = clone(catalog);
     catalog.revision =
       Number.isSafeInteger(catalog.revision) && catalog.revision >= 1
         ? catalog.revision
         : 1;
     catalog.tests = Array.isArray(catalog.tests) ? catalog.tests : base.tests;
+    catalog.tests.forEach((test) => { if (["dj","hop","cmrj"].includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
+    catalog.derivedEnabled = { ...T.derivedDefaults(), ...catalog.derivedEnabled };
     base.tests.forEach((test) => {
       if (!catalog.tests.some((t) => t.id === test.id))
         catalog.tests.push(test);
     });
-    catalog.definitions = (
+    catalog.definitions = preserveAddedMetricCollisions((
       Array.isArray(catalog.definitions)
         ? catalog.definitions
         : base.definitions
-    ).map(convertDefinition);
+    ).map(convertDefinition), originalCatalog);
     base.definitions.forEach((definition) => {
-      if (!catalog.definitions.some((d) => d.id === definition.id))
+      if (T.isNative(catalog,definition.testId) && !catalog.definitions.some((d) => d.id === definition.id))
         catalog.definitions.push(definition);
     });
     const disabledTests = new Set(catalog.tests.filter(t => t.disabled).map(t => t.id));
@@ -2866,6 +3070,7 @@
   function recordFromCatalog(input, profile, enabled = {}, testDate = date()) {
     const catalog = normalizeCatalog(input),
       record = defaults();
+    record.derivedEnabled = clone(catalog.derivedEnabled);
     const blocked = new Set(
       catalog.conflicts.filter((c) => c.resolved !== true).map((c) => c.testId),
     );
@@ -2887,7 +3092,7 @@
     record.data.ift.method = "";
     record.customTests = clone(
       catalog.tests.filter(
-        (t) => !TESTS.some((b) => b[0] === t.id) && selected.has(t.id),
+        (t) => !T.isNative(catalog,t.id) && selected.has(t.id),
       ),
     );
     record.enabled = Object.fromEntries(
@@ -3013,6 +3218,7 @@
   }
   function validateField(record, path, value) {
     path = path.replace(/^(data\.(?:pushup|mas|mss|ift))\.trials\.\d+\./, "$1.")
+      .replace(/^(data\.hop)\.trials\.\d+\./, "$1.")
       .replace(/^(data\.iso\.\d+)\.trials\.\d+\./, "$1.");
     const empty = value === "" || value === null || value === undefined;
     const number = N(value),
@@ -3071,11 +3277,14 @@
     if (path === "trainingContext.experienceYears") return bounds(0, 80);
     if (path === "trainingContext.weeklySessions") return bounds(0, 14, true);
     if (
-      /^data\.(cmj|sj)\.\d+\.(height|force|rsiModified|landingPeakForce)$/.test(
+      /^data\.(cmj|sj|dj|cmrj)\.\d+\.(height|force|rsiModified|landingPeakForce|propulsiveImpulse|propulsiveDurationMs|contactTimeMs|flightTimeMs|dropHeightCm|firstHeight|firstTimeToTakeoffMs)$/.test(
         path,
       )
     )
       return bounds(0, null, false, true);
+    if (/^data\.hop\.(?:summary|jumps\.\d+)\.(height|contactTimeMs|flightTimeMs|rsi|flightTimeRatio)$/.test(path)) return bounds(0, null, false, true);
+    if (/^data\.hop\.summary\.(suppliedCount|validCount|selectedCount)$/.test(path)) return bounds(0, null, true);
+    if (/^data\.imtp\.\d+\.(impulse250|matchedImpulse|matchedDurationMs)$/.test(path)) return bounds(0, null, false, true);
     if (/^data\.[\w-]+\.(?:\d+\.)?metrics\.[\w-]+$/.test(path))
       return empty ? "" : requireNumber();
     if (
@@ -3143,6 +3352,10 @@
             check(base + key, row[key]);
             if (test.id === "ift") check(base + "partial", row.partial);
           }
+          if (test.id === "hop" && T.isNative(record,"hop")) {
+            ["height","contactTimeMs","flightTimeMs","rsi","flightTimeRatio","suppliedCount","validCount","selectedCount"].forEach((key) => check(base + "summary." + key,row.summary?.[key]));
+            (row.jumps || []).forEach((jump,j) => ["height","contactTimeMs","flightTimeMs"].forEach((key) => check(base + "jumps." + j + "." + key,jump[key])));
+          }
         });
       }
     });
@@ -3152,8 +3365,7 @@
     const fields = {
       fms: ["score", "left", "right"],
       iso: ["left", "right", "center", "target"],
-      cmj: T.jumpFields.map((field) => field.key),
-      sj: T.jumpFields.map((field) => field.key),
+      ...Object.fromEntries(["cmj","sj","dj","cmrj"].map((id) => [id,T.fieldsForTest(id).filter((field) => !field.computed).map((field) => field.key)])),
       imtp: [
         "peakForce",
         "f100",
@@ -3162,6 +3374,7 @@
         "rfd200",
         "baselineForce",
         "peakTimeMs",
+        "impulse250", "matchedImpulse", "matchedDurationMs",
       ],
       landmine: ["load", "velocity"],
       squat: ["load", "velocity"],
@@ -3277,12 +3490,29 @@
         if (row.unit !== undefined && !["m/s", "km/h"].includes(row.unit)) throw new Error("试次速度单位无效");
       });
     };
-    ["pushup", "mas", "mss", "ift"].forEach((id) => { if (input.data[id]?.trials !== undefined) validateRows(input.data[id].trials); });
+    ["pushup", "mas", "mss", "ift", "hop"].forEach((id) => { if (input.data[id]?.trials !== undefined) validateRows(input.data[id].trials); });
+    ["dj","cmrj"].forEach((id) => { if (input.data[id] !== undefined) validateRows(input.data[id]); });
+    if (input.data.hop !== undefined && T.isNative(input,"hop")) {
+      if (!plainObject(input.data.hop)) throw new Error("Hop 测试组结构无效");
+      repeatRows(input,"hop").forEach((set) => {
+        if (!["summary","jumps"].includes(set.inputMode) || !plainObject(set.summary)) throw new Error("Hop 录入方式或汇总结构无效");
+        validateRows(set.jumps);
+        if (!["height_rsi","flight_ratio","unknown"].includes(set.summary.selectionBasis)) throw new Error("Hop 选跳依据无效");
+        const supplied = N(set.summary.suppliedCount), valid = N(set.summary.validCount), selected = N(set.summary.selectedCount);
+        if ((supplied !== null && valid !== null && valid > supplied) || (valid !== null && selected !== null && selected > valid) || (supplied !== null && selected !== null && selected > supplied)) throw new Error("Hop 跳数须满足录入数 ≥ 有效数 ≥ 采用数");
+      });
+    }
     input.data.iso.forEach((row) => { if (row.trials !== undefined) validateRows(row.trials); });
     (input.customTests || []).forEach((test) => { if (input.data[test.id] !== undefined) validateRows(input.data[test.id]); });
     validatePrimaryMetrics(input);
   }
+  function validateDerivedOptions(source) {
+    if (source.derivedEnabled !== undefined && (!plainObject(source.derivedEnabled) || Object.entries(source.derivedEnabled).some(([id,v]) => !safeId(id) || typeof v !== "boolean"))) throw new Error("训练方向指标开关无效");
+    if (source.impulseConfig !== undefined && (!plainObject(source.impulseConfig) || typeof source.impulseConfig.confirmed !== "boolean")) throw new Error("冲量可比性确认无效");
+    ["cmjConfig","imtpConfig"].forEach((key) => { if (source[key]?.impulseDefinition !== undefined && !["gross","net"].includes(source[key].impulseDefinition)) throw new Error("冲量力口径无效"); });
+  }
   function validateCatalog(catalog) {
+    validateDerivedOptions(catalog);
     if (
       !plainObject(catalog) ||
       !Array.isArray(catalog.tests) ||
@@ -3425,6 +3655,7 @@
     )
       throw new Error("不是有效的 Ringside 报告数据");
     validateDataTree(input);
+    validateDerivedOptions(input);
     validateAbilityGroups(input.abilityGroupSnapshot);
     if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
     if (
@@ -3457,6 +3688,8 @@
       "imtpConfig",
       "cmjConfig",
       "trainingContext",
+      "impulseConfig",
+      "derivedEnabled",
     ].forEach((key) => {
       if (input[key] !== undefined && !plainObject(input[key]))
         throw new Error(key + " 必须为数据字典");
@@ -3507,7 +3740,7 @@
         !plainObject(test) ||
         !safeId(test.id) ||
         customIds.has(test.id) ||
-        TESTS.some((t) => t[0] === test.id) ||
+        (TESTS.some((t) => t[0] === test.id) && !["dj","hop","cmrj"].includes(test.id)) ||
         typeof test.name !== "string" ||
         !["screen", "performance"].includes(test.category)
       )
@@ -3566,8 +3799,8 @@
       if (row.unit !== undefined && !speedUnits.includes(row.unit))
         throw new Error("速度单位仅支持 m/s 或 km/h");
     });
-    ["cmj", "sj"].forEach((id) =>
-      input.data[id].forEach((row) => {
+    ["cmj", "sj", "dj", "cmrj"].forEach((id) =>
+      (input.data[id] || []).forEach((row) => {
         if (
           row.metrics !== undefined &&
           (!plainObject(row.metrics) ||
@@ -3952,6 +4185,10 @@
     isoRows,
     isoRadar,
     jumpSummary,
+    hopSummary,
+    hopSetSummary,
+    newJumpAttempt,
+    newHopSet,
     repeatRows,
     ensureRepeatRows,
     repeatAnalysis,

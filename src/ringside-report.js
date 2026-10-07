@@ -132,6 +132,7 @@
       diagnostics: [],
       projects: results,
       groups: T.groups(results, snapshot),
+      derived: stats.derived || { results: [] },
       speedReference: buildSpeedReference(snapshot, results),
     };
   }
@@ -276,6 +277,7 @@
     const pair = (figure, data, className = "", spec) =>
       `<div class="detail-pair ${className}" data-pdf-pair>${chart(figure, spec)}<div class="detail-data">${data}</div></div>`;
     function repeatPanel(test) {
+      if(test.id === "hop") return hopRawPanel(test);
       const groups = (report.stats.repetitions || []).filter((group) => group.testId === test.id);
       const nativeRaw = ["imtp", "lvp", "ball"].includes(test.renderer);
       const nativeRows = nativeRaw ? state.data[test.id] || [] : [];
@@ -298,6 +300,23 @@
         return heading + table(fields.length > 4 ? ["试次", "指标", "结果", "单位", "备注"] : ["试次", ...fields.map((field) => field.label + (field.unit ? " · " + field.unit : "")), "备注"], rows, [], "repeat-raw-table");
       }).join("");
       return `<div class="repeat-panel" data-repeat-test="${E(test.id)}"><details class="attempt-details" id="trials-${E(test.id)}" data-raw-trials="${E(test.id)}" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · 原始试次 · 共 ${count} 次</summary>${raw}</details></div>`;
+    }
+    function hopRawPanel(test) {
+      const sets=r.hop?.sets||[];
+      if(!sets.length)return "";
+      const basis=value=>({height_rsi:"按跳高 / 触地时间选取",flight_ratio:"按腾空时间 / 触地时间选取",unknown:"选取依据未记录"})[value]||value||"选取依据未记录";
+      const detail=sets.map((set,index)=>{
+        const counts=set.counts||{},count=value=>N(value)===null?"未记录":F(value,0);
+        const selected=(r.hop.selectedSetIds||[]).includes(set.id);
+        let body=`<h4>第 ${index+1} 组${sets.length>1?(selected?" · 纳入本次结果":" · 未纳入本次结果"):""}</h4><p class="hop-counts" data-hop-counts="${E(set.id)}">录入 ${count(counts.supplied)} 跳 · 有效 ${count(counts.valid)} 跳 · 选取 ${count(counts.selected)} 跳</p><p class="note">${set.inputMode==="jumps"?"逐跳计算":"设备汇总"} · ${E(basis(set.selectionBasis))}</p>`;
+        const showRQR=state.derivedEnabled?.rqr!==false&&state.enabled.dj&&set.rqr;
+        if(showRQR)body+=`<p class="note">RQR 单独按 FT/CT 选跳：有效 ${count(set.rqr.counts?.valid)} 跳 · 选取 ${count(set.rqr.counts?.selected)} 跳</p>`;
+        if(set.notes)body+=`<p class="metric-note">${E(set.notes)}</p>`;
+        if(set.inputMode==="jumps")body+=table(["跳次","RSI 选取",...(showRQR?["RQR 选取"]:[]),"跳高 cm","触地 ms","腾空 ms","RSI m/s","FT/CT","备注"],(set.jumps||[]).map((jump,i)=>[i+1,jump.selected?"已选":jump.valid?"未选":"数据不完整",...(showRQR?[(set.rqr.selectedIds||[]).includes(jump.id)?"已选":N(jump.flightTimeRatio)!==null?"未选":"数据不完整"]:[]),F(jump.height,2),F(jump.contactTimeMs,1),F(jump.flightTimeMs,1),F(jump.rsi,3),F(jump.flightTimeRatio,3),E(jump.notes||"—")]),[],"repeat-raw-table hop-raw-table");
+        else body+=table(["跳高 cm","触地 ms","腾空 ms","RSI m/s","FT/CT"],[[F(set.row?.height,2),F(set.row?.contactTimeMs,1),F(set.row?.flightTimeMs,1),F(set.row?.rsi,3),F(set.row?.flightTimeRatio,3)]],[],"repeat-raw-table");
+        return body;
+      }).join("");
+      return `<div class="repeat-panel" data-repeat-test="hop"><details class="attempt-details" id="trials-hop" data-raw-trials="hop" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · ${sets.length} 组测试及逐跳记录</summary>${detail}</details></div>`;
     }
     function rawTable(test) {
       const contract = test.dataContract || T.dataContract(state, test.id);
@@ -552,32 +571,18 @@
       },
       jumps: (tests) => {
         const summaries = tests.map((test) => ({ test, data: r[test.id] }));
-        const fields = T.jumpFields.map((field) => {
-          const units = [
-            ...new Set(
-              tests.map(
-                (test) =>
-                  T.attemptFields(state, test.id).find(
-                    (f) => f.key === field.key,
-                  ).unit,
-              ),
-            ),
-          ];
-          return {
-            ...field,
-            unit: units.length === 1 ? units[0] : "",
-            ids: tests.map((test) => test.id + "_" + field.suffix),
-          };
-        });
-        const extra = tests.flatMap((test) =>
-          T.attemptFields(state, test.id)
-            .filter((field) => !field.key)
-            .map((field) => ({ ...field, ids: [field.id] })),
-        );
-        const activeFields = [...fields, ...extra]
+        const chartItems=summaries.map(({test,data})=>({id:test.id,label:test.name,value:data?.row?.height,rsi:["dj","hop","cmrj"].includes(test.id)?data?.row?.rsi:null}));
+        const fieldMap=new Map();
+        tests.forEach(test=>T.attemptFields(state,test.id).forEach(field=>{
+          const key=field.key||field.id;
+          if(!fieldMap.has(key))fieldMap.set(key,{...field,ids:[],units:new Set()});
+          fieldMap.get(key).ids.push(field.id);fieldMap.get(key).units.add(field.unit);
+        }));
+        const fields=[...fieldMap.values()].map(field=>({...field,unit:field.units.size===1?[...field.units][0]:""}));
+        const activeFields = fields
           .filter((field) =>
             summaries.some(({ data }) =>
-              data?.attempts.some((a) =>
+              data?.metrics.some(metric=>field.ids.includes(metric.id)&&metric.value!==null)||data?.attempts?.some((a) =>
                 a.values.some(
                   (value) =>
                     field.ids.includes(value.id) && value.value !== null,
@@ -595,7 +600,7 @@
             (metric.value === null ? "" : (d && positive(d.target) ? `<small class="metric-meta">目标 ${F(d.target)}</small>` : "") + (d ? evaluationPill(d) : ""));
         };
         const metricRows = repeated ? summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
-          field.ids.some((id) => data?.metrics.some((metric) => metric.id === id))).map((field) => {
+          field.ids.some((id) => data?.metrics.some((metric) => metric.id === id&&metric.value!==null)||data?.attempts?.some(attempt=>attempt.values.some(value=>value.id===id&&value.value!==null)))).map((field) => {
             const metric = data.metrics.find((m) => field.ids.includes(m.id));
             return [E(test.name + " · " + field.label) + `<small class="metric-meta">${E(field.unit || metric.unit)}</small>`,
               jumpCell(test, data, field), ...statisticCells(repeatedMetric(metric.id))];
@@ -611,14 +616,11 @@
           tests.map((t) => t.name).join(" / "),
           "",
           pair(
-            V.jumpBars(
-              summaries.map(({ test, data }) => ({
-                label: test.name,
-                value: data?.row?.height,
-              })),
-            ),
+            V.jumpBars(chartItems),
             table(repeated ? ["指标", "结果", "均值 ± SD", "CV"] : ["指标", ...tests.map((t) => t.name)], metricRows, [], repeated ? "with-repeat-columns" : "") +
               supplemental(tests),
+            "jump-detail wide-results",
+            {kind:"jumpBars",args:[chartItems]},
           ),
         );
       },
@@ -667,6 +669,7 @@
             });
           }
         }
+        resultRows.push(...["imtp_impulse250","imtp_matched_impulse","imtp_matched_duration"].map(id=>metrics.find(metric=>metric.id===id)).filter(Boolean));
         resultRows.push(...metrics.filter((metric) => T.isManualMetric(metric)));
         const repeated = hasStatistics(resultRows.map((metric) => repeatedMetric(metric.id)));
         const data = resultRows.length ? table(
@@ -854,7 +857,23 @@
           "</div>";
       }
     }
-    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>`;
+    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderDerived()}`;
+    function renderDerived() {
+      const definitions=T.derivedDefinitions?.()||[];
+      const allResults=report.derived?.results||[],gain=allResults.find(item=>item.id==="gain"&&item.available),hasEUR=allResults.some(item=>item.id==="eur");
+      const results=allResults.filter(item=>!["asr","srr"].includes(item.id)&&!(item.id==="gain"&&hasEUR)&&(item.available||definitions.find(d=>d.id===item.id)?.dependencies?.some(id=>state.enabled[id])));
+      if(!results.length)return "";
+      const sources=item=>(global.RingsideSources?.forIds(item.sourceIds||[])||[]).map(source=>`<a class="source-link" href="${E(source.url)}" target="_blank" rel="noopener noreferrer">${E(source.authors.split(",")[0])}${source.authors.includes(",")?" 等":""}（${E(source.year)}）</a>`).join(" · ");
+      const cards=results.filter(item=>item.available&&N(item.value)!==null).map(item=>{
+        const components=(item.components||[]).map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,3)} <small>${E(component.unit||"")}</small></dd></div>`).join("");
+        const bands=item.id==="fdsi"?`<div class="fdsi-bands" aria-label="fDSI 文献训练方向参考"><span${item.value<.6?' class="current" aria-current="true"':""}>＜0.60<small>弹道式发力</small></span><span${item.value>=.6&&item.value<=.8?' class="current" aria-current="true"':""}>0.60–0.80<small>结合力量与弹道训练</small></span><span${item.value>.8?' class="current" aria-current="true"':""}>＞0.80<small>最大力量</small></span></div>`:"";
+        const associated=item.id==="eur"&&gain?`<p class="derived-associated" data-derived-associated="gain">CMJ–SJ 增益 <strong>${F(gain.value,1)}%</strong></p>`:"";
+        return `<article class="derived-card" data-derived-result="${E(item.id)}" data-pdf-atomic><div class="derived-card-heading"><h3>${E(item.name)}</h3><p class="derived-value">${F(item.value,item.unit==="%"?1:3)}<small>${E(item.unit||"")}</small></p></div>${associated}<p class="derived-formula">${E(item.formula)}</p><dl class="derived-components">${components}</dl>${bands}${item.directionHint?`<p class="derived-direction">${E(item.directionHint)}</p>`:""}${item.selectionNote?`<p class="note">${E(item.selectionNote)}</p>`:""}<p class="note">${E(item.protocol||"")}</p>${sources(item)?`<p class="derived-sources">${sources(item)}</p>`:""}</article>`;
+      }).join("");
+      const missing=results.filter(item=>!item.available||N(item.value)===null);
+      const pending=missing.length?`<div class="derived-pending"><h4>待补充分析</h4>${table(["指标","所需信息"],missing.map(item=>[E(item.name),E(item.reason||"相关测试数据不完整")]))}</div>`:"";
+      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>训练方向分析<span>测试之间的关系与训练线索</span></summary><div class="quality-group"><div class="derived-results">${cards}</div>${pending}</div></details>`;
+    }
     // LVP is a shared comparison renderer across its explicitly registered projects.
     function renderLVP(limb, s) {
       const upper = limb === "upper",
@@ -950,8 +969,8 @@
     // A wrapped mean/SD must not push the right-side statistics below the
     // corresponding right-side result and evaluation in neighboring columns.
     alignIsometricSides(container);
-    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380] };
-    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330 };
+    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390] };
+    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350 };
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);

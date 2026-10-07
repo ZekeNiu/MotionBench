@@ -14,7 +14,7 @@
   function profileOptions(selected="") {return lib().evaluationProfiles.filter(p=>!p.disabled||p.id===selected).map(p=>option(p.id,p.name,selected)).join("");}
   const profileName=id=>lib().evaluationProfiles.find(p=>p.id===id)?.name||"未关联";
   function navigation(){return sections.map(([id,label])=>`<button data-manager-action="section" data-id="${id}" class="${current===id?"active":""}" ${current===id?'aria-current="page"':""}>${label}</button>`).join("");}
-  function open(tab="athletes"){if(tab==="catalog")tab="metrics";current=sections.some(s=>s[0]===tab)?tab:"athletes";selected.clear();render();requestAnimationFrame(()=>window.scrollTo({top:filter().scroll||0,behavior:"instant"}));}
+  function open(tab="athletes"){clearTimeout(filterTimer);if(tab==="catalog")tab="metrics";current=sections.some(s=>s[0]===tab)?tab:"athletes";selected.clear();render();requestAnimationFrame(()=>window.scrollTo({top:filter().scroll||0,behavior:"instant"}));}
   function visibleStatus(item,owner) {return item.deletedAt||owner?.deletedAt?"trash":item.archived||owner?.archived?"archived":"active";}
   function allRows() {
     const f=filter();let rows;
@@ -100,7 +100,16 @@
       groups.get(ability).push(`<tbody data-metric-project="${esc(t.id)}"><tr class="metric-project-heading"><th colspan="6"><div class="metric-project-header"><div><h3>${esc(t.name)} ${t.disabled?'<span class="pill">已停用</span>':""}${conflicted?'<span class="pill">待确认版本</span>':""}</h3><p class="note">${t.category==="screen"?"筛查":"运动表现"}${otherAbilities.length?" · 指标还涉及："+esc(otherAbilities.join("、")):""}</p></div><div class="row">${button("编辑项目","catalog-edit",t.id,conflicted?"disabled":"")}${button("新增指标","new-metric",t.id,conflicted?"disabled":"")}${t.id==="imtp"?button("添加时点标准","standard-time-new"):""}${button(t.disabled?"启用":"停用","catalog-toggle",t.id)}</div></div>${lib().catalog.protocol[t.id]?`<p class="metric-project-protocol">${esc(lib().catalog.protocol[t.id])}</p>`:""}</th></tr>${rows.join("")||'<tr><td colspan="6" class="empty">此项目暂无数值指标，可从项目上方新增。</td></tr>'}</tbody>`);
     }
     const sections=[...groups].filter(([key,tables])=>(!f.ability||f.ability===key)&&(tables.length||!f.test&&(!q||T.abilityLabel(lib().catalog,key).toLocaleLowerCase().includes(q)))).map(([key,tables])=>{const i=abilities.findIndex(g=>g.key===key);return `<section class="metric-ability-group" data-metric-ability="${esc(key)}"><div class="metric-ability-heading"><h2>${esc(T.abilityLabel(lib().catalog,key))}</h2><div class="row">${button("改名","ability-edit",key)}${button("上移","ability-up",key,i<=0?"disabled":"")}${button("下移","ability-down",key,i<0||i>=abilities.length-1?"disabled":"")}</div></div>${tables.length?`<div class="management-table-wrap"><table class="management-table metric-library-table"><thead><tr><th>项目</th><th>指标</th><th>单位</th><th>数据方式</th><th>评价标准</th><th>操作</th></tr></thead>${tables.join("")}</table></div>`:'<div class="metric-ability-empty"><p>此能力分类暂无项目。新建项目或编辑已有项目时，可选择此分类。</p>'+button("新建项目","new-test",key)+'</div>'}</section>`;}).join("");
-    return catalogNotices()+`<div class="management-filters metrics-filters">${field("搜索",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="项目、指标或能力">`)}${field("能力分类",`<select data-manager-filter="ability">${option("","全部能力",f.ability)}${abilities.map(g=>option(g.key,g.name,f.ability)).join("")}</select>`)}${field("所属项目",`<select data-manager-filter="test">${option("","全部项目",f.test)}${lib().catalog.tests.map(t=>option(t.id,t.name+(t.disabled?"（已停用）":""),f.test)).join("")}</select>`)}${field("查看 / 编辑评价方案",`<select id="metricEvaluationProfile" data-manager-filter="profileId">${profileOptions(profile?.id)}</select>`)}</div><p class="note">分类、项目与指标定义的修改用于后续测试。${esc(profile?.name||"暂无评价方案")}中的评价标准修改会用于关联此方案的记录。</p>${sections||'<p class="empty">没有符合条件的项目或指标。</p>'}`;
+    const derived=(!f.ability||f.ability==="training-analysis")&&!f.test?derivedLibrary(q):"";
+    return catalogNotices()+`<div class="management-filters metrics-filters">${field("搜索",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="项目、指标或能力">`)}${field("能力分类",`<select data-manager-filter="ability">${option("","全部能力",f.ability)}${abilities.map(g=>option(g.key,g.name,f.ability)).join("")}${option("training-analysis","训练方向分析",f.ability)}</select>`)}${field("所属项目",`<select data-manager-filter="test">${option("","全部项目",f.test)}${lib().catalog.tests.map(t=>option(t.id,t.name+(t.disabled?"（已停用）":""),f.test)).join("")}</select>`)}${field("查看 / 编辑评价方案",`<select id="metricEvaluationProfile" data-manager-filter="profileId">${profileOptions(profile?.id)}</select>`)}</div><p class="note">分类、项目与指标定义的修改用于后续测试。${esc(profile?.name||"暂无评价方案")}中的评价标准修改会用于关联此方案的记录。</p>${sections+derived||'<p class="empty">没有符合条件的项目或指标。</p>'}`;
+  }
+  function derivedLibrary(q="") {
+    const definitions=(T.derivedDefinitions?.()||[]).filter(d=>!q||["训练方向分析",d.name,d.id,d.formula].join(" ").toLocaleLowerCase().includes(q));
+    if(!definitions.length)return "";
+    return `<section class="metric-ability-group" data-metric-ability="training-analysis"><div class="metric-ability-heading"><h2>训练方向分析</h2></div><p class="note">组合多个测试结果计算。启用设置用于后续测试；本次报告可在数据录入中单独选择。</p><div class="derived-library-grid">${definitions.map(d=>{const enabled=lib().catalog.derivedEnabled?.[d.id]!==false;return `<article class="derived-library-item" data-derived-definition="${esc(d.id)}"><div class="derived-library-title"><h3>${esc(d.name)}</h3>${button(enabled?"停用":"启用","derived-toggle",d.id,`aria-pressed="${enabled}"`)}</div><p class="derived-formula">${esc(d.formula)}</p><p>${esc(d.protocol)}</p><p class="note">${esc(d.unit||"比值")} · ${enabled?"默认启用":"已停用"}</p>${derivedSources(d.sourceIds)}</article>`;}).join("")}</div></section>`;
+  }
+  function derivedSources(ids) {
+    return (root.RingsideSources?.forIds(ids||[])||[]).map(source=>`<a class="source-link" href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.authors)}（${esc(source.year)}） · ${esc(source.title)}</a>`).join("");
   }
   async function saveCatalog(catalog) {
     M.validateCatalog(catalog);
@@ -199,12 +208,24 @@
     if(["iso","balance","lvp"].includes(kind))requestAnimationFrame(()=>{const el=[...$("profileEditorFields").querySelectorAll("[data-standard-key]")].find(n=>n.dataset.standardKey===id);el?.scrollIntoView({block:"center"});el?.querySelector("input,textarea,select")?.focus({preventScroll:true});});
   }
   function backup() {return `<div class="backup-grid"><article class="form-card"><h2>完整备份</h2><p>包含运动员、历次测试、队伍、回收站、测试方案、指标库和评价方案。</p><button class="btn primary" onclick="App.downloadLibrary()">导出完整备份</button></article><article class="form-card"><h2>导入与恢复</h2>${field("导入方式",'<select id="backupImportMode"><option value="merge">合并到当前资料库</option><option value="replace">恢复为完整资料库</option></select>')}<button class="btn primary" onclick="document.getElementById('importFile').click()">选择备份文件</button><p class="note">支持完整 JSONL 备份、旧 JSON 和已保存的 HTML。</p>${button("恢复上次资料库","restore-library")}</article><article class="form-card"><h2>旧版兼容与迁移前资料</h2><p>旧版兼容导出包含未删除的测试记录及旧版支持的生效标准；不包含队伍、无测试档案、测试方案、新增 IMTP 时点标准、独立能力分类编号与顺序快照。VIFT 方法原文保留，旧版不提供其编辑入口。峰值百分比不会写成 N 标准。</p><div class="row"><button class="btn" onclick="App.downloadLegacyLibrary()">导出旧版兼容 JSON</button><button class="btn" onclick="App.downloadPreMigration()">下载迁移前资料</button></div></article></div>`;}
-  function render() {
+  function render(options={}) {
     if(!lib())return;
     const focused=document.activeElement, key=focused?.dataset.managerFilter, caret=focused?.selectionStart;
     const title=sections.find(([id])=>id===current)[1];
     const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("＋ 新建能力","ability-new")+button("＋ 新建项目","new-test")+button("＋ 新增指标","new-metric"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
-    $("managementContent").innerHTML=`<div class="management-heading"><div><h1>${title}</h1></div><div class="row">${action}</div></div>`+(current==="athletes"||current==="records"?lists():current==="teams"?teams():current==="plans"?testPlans():current==="metrics"?metrics():current==="profiles"?profiles():backup());
+    const content=$("managementContent"),html=`<div class="management-heading"><div><h1>${title}</h1></div><div class="row">${action}</div></div>`+(current==="athletes"||current==="records"?lists():current==="teams"?teams():current==="plans"?testPlans():current==="metrics"?metrics():current==="profiles"?profiles():backup());
+    const filterBar=node=>{const control=node.querySelector("[data-manager-filter]");return control?.closest(".management-filters")||control?.closest(".field");};
+    const retained=options.preserveFilters&&filterBar(content);
+    if(retained?.parentNode===content){
+      const draft=document.createElement("div");draft.innerHTML=html;
+      const incoming=filterBar(draft);
+      if(incoming?.parentNode===draft){
+        // An open native select must stay connected. Replace only its siblings.
+        [...content.children].filter(node=>node!==retained).forEach(node=>node.remove());
+        let after=false;
+        for(const node of [...draft.children]){if(node===incoming){after=true;continue;}if(after)content.append(node);else content.insertBefore(node,retained);}
+      }else content.innerHTML=html;
+    }else content.innerHTML=html;
     if(editor?.readOnly&&current==="profiles") $("profileEditorFields")?.querySelectorAll("input,select,textarea").forEach(el=>el.disabled=true);
     if(key){const el=$("managementContent").querySelector(`[data-manager-filter="${key}"]`);el?.focus({preventScroll:true});if(caret!==null&&el?.setSelectionRange)try{el.setSelectionRange(caret,caret);}catch{}}
   }
@@ -364,6 +385,7 @@
       if(opened!==false&&id){if($("catalogPrimaryAbility"))$("catalogPrimaryAbility").value=id;if($("catalogAbility"))$("catalogAbility").value=id;}
       return opened;
     }
+    if(name==="derived-toggle"){if(!(T.derivedDefinitions?.()||[]).some(d=>d.id===id))throw Error("派生指标不存在");const catalog=clone(lib().catalog);catalog.derivedEnabled||={};catalog.derivedEnabled[id]=catalog.derivedEnabled[id]===false;await saveCatalog(catalog);return render();}
     if(name==="new-metric")return App.openCatalogItem("new-metric",id||filter().test||"");
     if(name==="catalog-edit")return App.openCatalogItem("edit-project",id);
     if(name==="catalog-resolve"){const [i,j]=id.split(":").map(Number);await App.resolveCatalogConflict(i,j);return render();}
@@ -411,7 +433,7 @@
       const t=event.target;
       if(t.id==="teamMemberSearch"){const q=t.value.trim().toLocaleLowerCase();$("managementFields").querySelectorAll("[data-team-candidate]").forEach(el=>el.hidden=!!q&&!el.dataset.teamCandidate.includes(q));}
       if(t.id==="testPlanName"&&planDraft)planDraft.name=t.value;
-      if(t.dataset.managerFilter){filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();clearTimeout(filterTimer);filterTimer=setTimeout(render,100);}
+      if(t.dataset.managerFilter&&t.tagName!=="SELECT"){filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();clearTimeout(filterTimer);const tab=current;filterTimer=setTimeout(()=>{if(current===tab&&App.getUIState().mode==="management")render({preserveFilters:true});},100);}
       if(t.id==="profileName"&&editor)editor.profile.name=t.value;
       if(editor&&!editor.readOnly){
         if(t.dataset.profilePath) { editor.invalid ||= new Set(); if(t.validity.badInput)editor.invalid.add(t.dataset.profilePath);else editor.invalid.delete(t.dataset.profilePath); }
@@ -422,7 +444,7 @@
     });
     document.addEventListener("change",event=>{
       const t=event.target;
-      if(t.dataset.managerFilter){clearTimeout(filterTimer);filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();render();}
+      if(t.dataset.managerFilter&&t.tagName==="SELECT"){clearTimeout(filterTimer);filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();render({preserveFilters:true});}
       if(t.dataset.managerSelect){if(t.checked)selected.add(t.dataset.managerSelect);else selected.delete(t.dataset.managerSelect);render();}
       if(t.id==="selectManagementPage"){const f=filter();allRows().slice((f.page-1)*30,f.page*30).forEach(r=>t.checked?selected.add(r.id):selected.delete(r.id));render();}
       if(t.id==="profileMetricSelect"){editor.metricId=t.value;render();}
@@ -457,5 +479,5 @@
     showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}${imtp}<h3>汇总与筛查阈值</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});
     $("managementForm").querySelector('[type="submit"]').textContent="关闭";
   }
-  root.RingsideManagement={init,open,render,navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective};
+  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective};
 })(window);

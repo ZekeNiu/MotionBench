@@ -17,6 +17,8 @@ test('body markers preserve region accessibility without white specular dots', (
   assert.ok(html.includes('data-region="shoulder_l"'));
   assert.ok(html.includes('role="button" tabindex="0"'));
   assert.ok(!html.includes('opacity=".35"'));
+  assert.ok(!html.includes('<title'));
+  assert.ok(html.includes('aria-label="身体区域筛查"'));
   assert.ok(!/<svg[^>]*style="[^"]*(?:height|width)/.test(html), 'body display dimensions belong to the report container');
 });
 test('radar uses a compact canvas with readable axis labels and retains full long labels', () => {
@@ -25,7 +27,8 @@ test('radar uses a compact canvas with readable axis labels and retains full lon
   assert.ok(html.includes('viewBox="0 0 520 390"'));
   assert.equal((html.match(/class="radar-label"/g) || []).length, 6);
   assert.ok(html.includes('font-size="18" font-weight="600"'));
-  assert.ok(html.includes('<title>较长的自定义能力分类标签</title>'));
+  assert.ok(html.includes('<desc>较长的自定义能力分类标签</desc>'));
+  assert.ok(!html.includes('<title'));
   assert.ok(!html.includes('100 = 评价目标'));
   finite(html);
 });
@@ -100,7 +103,8 @@ test('nearby left and right landmine estimates keep both points and stagger thei
   assert.ok(Math.abs(labelYs[0] - labelYs[1]) >= 20);
   assert.ok(html.includes('地雷杠 R · 预估1RM 90 kg · MVT 0.2 m/s'));
   assert.ok(html.includes('地雷杠 L · 预估1RM 89 kg · MVT 0.21 m/s'));
-  assert.equal((html.match(/<title>预估1RM /g) || []).length, 2);
+  assert.equal((html.match(/<desc>预估1RM /g) || []).length, 2);
+  assert.ok(html.includes('aria-label="地雷杠 R · 预估1RM 90 kg · MVT 0.2 m/s"'));
   finite(html);
 });
 test('force-time does not invent baseline or timed peak points', () => {
@@ -155,5 +159,17 @@ test('short and zero reserves use readable above-bar labels and inconsistent pai
   const negative = V.speed({ mas: 8, mss: 7, ift: 9 });
   assert.equal((negative.match(/data-speed-metric=/g) || []).length, 3);
   assert.doesNotMatch(negative, /data-speed-asr/);
+});
+test('jump chart uses height bars and RSI dots with separate units and no connecting line', () => {
+  const html=V.jumpBars([{id:'cmj',label:'CMJ',value:40},{id:'sj',label:'SJ',value:35},{id:'dj',label:'DJ',value:30,rsi:2},{id:'hop',label:'Hop',value:20,rsi:3},{id:'cmrj',label:'CMRJ',value:28,rsi:2.5}]);
+  assert.equal((html.match(/data-jump-series="height"/g)||[]).length,5);
+  assert.equal((html.match(/data-jump-series="rsi"/g)||[]).length,3);
+  assert.match(html,/跳高 · cm/);assert.match(html,/RSI · m\/s/);assert.match(html,/fill="#7895ad"/);assert.match(html,/fill="#176b68"/);
+  assert.doesNotMatch(html,/<path|<polyline|<title/);assert.match(html,/aria-label="DJ · RSI 2 m\/s"/);finite(html);
+});
+test('jump chart omits missing tests and preserves a measured RSI without a reported height',()=>{
+  const html=V.jumpBars([{id:'cmj',label:'CMJ',value:null},{id:'hop',label:'Hop',rsi:2.3}]);
+  assert.equal((html.match(/data-jump-series="height"/g)||[]).length,0);assert.equal((html.match(/data-jump-series="rsi"/g)||[]).length,1);
+  assert.doesNotMatch(html,/>CMJ</);finite(html);
 });
 console.log(`${passed} visualization checks passed`);

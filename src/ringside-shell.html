@@ -39,8 +39,8 @@
           <button data-workspace-nav="entry" onclick="App.startDataEntry()">数据录入</button>
           <button data-workspace-nav="records" onclick="App.openManagement('records')">测试记录</button>
           <span class="nav-label">人员管理</span>
-          <button data-workspace-nav="athletes" onclick="App.openManagement('athletes')">运动员管理</button>
           <button data-workspace-nav="teams" onclick="App.openManagement('teams')">队伍管理</button>
+          <button data-workspace-nav="athletes" onclick="App.openManagement('athletes')">运动员管理</button>
           <span class="nav-label">测试配置</span>
           <button data-workspace-nav="plans" onclick="App.openManagement('plans')">测试方案</button>
           <button data-workspace-nav="metrics" onclick="App.openManagement('metrics')">指标库</button>
@@ -48,7 +48,8 @@
         </nav>
       </div>
       <div class="sidebar-bottom">
-        <button class="sidebar-action" data-settings-open="app" onclick="App.openSettings('ai')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h14"/><path d="M9 4v4M15 10v4M11 16v4"/></svg></span> 应用设置</button>
+        <button class="sidebar-action" data-settings-open="ai" onclick="App.openSettings('ai')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h14"/><path d="M9 4v4M15 10v4M11 16v4"/></svg></span> AI 服务</button>
+        <button class="sidebar-action" data-settings-open="references" onclick="App.openSettings('references')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4h7l1 2 1-2h7v16h-7l-1 1-1-1H4zM12 6v15"/></svg></span> 参考资料与方法</button>
         <button class="sidebar-action" data-workspace-nav="backup" onclick="App.saveMenu()">
           <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 14v6h16v-6"/></svg></span> 备份与恢复
         </button>
@@ -113,7 +114,7 @@
       <main id="reportView" class="wrap report-view">
         <div class="hero">
           <div>
-            <h1 id="reportTitle">运动表现与损伤风险筛查</h1>
+            <h1 id="reportTitle">运动表现与损伤风险筛查报告</h1>
             <div id="athleteMeta" class="hero-sub"></div>
             <p id="migrationReviewNotice" class="notice" hidden></p>
           </div>

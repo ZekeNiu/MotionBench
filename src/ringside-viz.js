@@ -105,7 +105,12 @@
     `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" ${extra}><title>${esc(tooltip)}</title>${marker(x, y, r, fill, shape, 'stroke="white" stroke-width="2"')}</g>`;
   function svg(w, h, title, markup, description = "", pixelLayout = false) {
     const id = `ringside-viz-${++serial}`;
-    return `<svg id="${id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="${id}-title ${id}-desc" style="display:block;width:100%;height:auto"><title id="${id}-title">${esc(title)}</title><desc id="${id}-desc">${esc(description || title)}</desc><style>.viz-point,.viz-region,.lvp-hit{outline:none}.viz-point:focus>circle,.viz-point:focus>polygon,.viz-point:focus>rect,.viz-region:focus .viz-hotspot{stroke:#365b7a;stroke-width:3}.viz-region{cursor:pointer}.lvp-hit{cursor:crosshair}.lvp-hit:focus{stroke:#365b7a;stroke-opacity:.15}${pixelLayout ? "" : `@media screen and (max-width:600px){#${id} text{font-size:18px}#${id} text[font-size="9"],#${id} text[font-size="10"]{font-size:15px}}`}</style>${markup}</svg>`;
+    // SVG titles invoke a second, delayed browser tooltip. Keep accessible text
+    // without competing with the application's pointer and keyboard popovers.
+    markup = markup.replace(/<title(?:\s[^>]*)?>([\s\S]*?)<\/title>/g, "<desc>$1</desc>")
+      .replace(/<([a-z][\w:-]*)(\s[^<>]*data-tooltip="([^"]*)"[^<>]*)>/gi, (match, tag, attrs, label) =>
+        /\baria-label=/.test(attrs) ? match : `<${tag}${attrs} aria-label="${label}">`);
+    return `<svg id="${id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(title)}" aria-describedby="${id}-desc" style="display:block;width:100%;height:auto"><desc id="${id}-desc">${esc(description || title)}</desc><style>.viz-point,.viz-region,.lvp-hit{outline:none}.viz-point:focus>circle,.viz-point:focus>polygon,.viz-point:focus>rect,.viz-region:focus .viz-hotspot{stroke:#365b7a;stroke-width:3}.viz-region{cursor:pointer}.lvp-hit{cursor:crosshair}.lvp-hit:focus{stroke:#365b7a;stroke-opacity:.15}${pixelLayout ? "" : `@media screen and (max-width:600px){#${id} text{font-size:18px}#${id} text[font-size="9"],#${id} text[font-size="10"]{font-size:15px}}`}</style>${markup}</svg>`;
   }
   function layoutSVG(w, h, title, markup, description, layout = {}) {
     const scale = layout.print ? 0.86 : 1;
@@ -281,7 +286,7 @@
       out += `<g class="viz-region" data-region="${key}" data-body-detail="${esc(JSON.stringify(r))}" data-tooltip="${esc(tooltip)}" role="button" tabindex="0" aria-label="${esc(tooltip)}">${circle(x, y, 32, c, 'opacity=".16"')}${circle(x, y, 24, c, 'class="viz-hotspot" stroke="white" stroke-width="3"')}</g>`;
     });
     const id = `ringside-body-${++serial}`;
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="250 90 530 1260" role="img" aria-labelledby="${id}" style="display:block"><title id="${id}">身体区域筛查；图左为运动员右侧，图右为运动员左侧</title><style>.viz-region{cursor:pointer;outline:none}.viz-region:focus .viz-hotspot,.viz-region:hover .viz-hotspot{stroke:#dbe6ff;stroke-width:5}</style>${out}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="250 90 530 1260" role="img" aria-label="身体区域筛查" aria-describedby="${id}" style="display:block"><desc id="${id}">图左为运动员右侧，图右为运动员左侧</desc><style>.viz-region{cursor:pointer;outline:none}.viz-region:focus .viz-hotspot,.viz-region:hover .viz-hotspot{stroke:#dbe6ff;stroke-width:5}</style>${out}</svg>`;
   }
 
   function radar(items) {
@@ -617,36 +622,27 @@
       layout,
     );
   }
-  function jumpBars(items) {
-    const max = Math.max(10, ...items.map((x) => num(x.value) || 0)) * 1.2;
-    const grid = axisGrid({
-      left: 65,
-      right: 475,
-      top: 30,
-      bottom: 265,
-      xMax: items.length,
-      yMax: max,
-      xLabel: "",
-      yLabel: "跳高 / cm",
-      solidGrid: true,
-      xTicks: false,
+  function jumpBars(items, layout = {}) {
+    items = items.filter(item => num(item.height ?? item.value) !== null || num(item.rsi) !== null);
+    if (!items.length) return empty("跳跃表现", "录入跳高或 RSI 后显示结果");
+    const w=Math.max(320,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?42:72,right=w-(small?43:74),top=58,bottom=h-98,barColor="#7895ad",dotColor="#176b68";
+    const heightMax=Math.max(10,...items.map(item=>num(item.height??item.value)||0))*1.22;
+    const hasRSI=items.some(item=>num(item.rsi)!==null),rsiMax=Math.max(1,...items.map(item=>num(item.rsi)||0))*1.22;
+    const heightY=value=>bottom-value/heightMax*(bottom-top),rsiY=value=>bottom-value/rsiMax*(bottom-top);
+    let out=text(left,28,"跳高 · cm",`font-size="13" fill="${C.ink}"`);
+    ticks(0,heightMax).forEach(value=>{out+=line(left,heightY(value),right,heightY(value))+text(left-12,heightY(value)+4,fmt(value,1),'text-anchor="end" font-size="12"');});
+    if(hasRSI){out+=text(right,28,"RSI · m/s",`text-anchor="end" font-size="13" fill="${dotColor}"`);ticks(0,rsiMax).forEach(value=>{out+=text(right+12,rsiY(value)+4,fmt(value,2),`font-size="12" fill="${dotColor}"`);});}
+    out+=line(left,bottom,right,bottom,`stroke="${C.gray}"`);
+    items.forEach((item,i)=>{
+      const x=left+(i+.5)*(right-left)/items.length,height=num(item.height??item.value),rsi=num(item.rsi),width=Math.min(72,(right-left)/items.length*.48);
+      if(height!==null){const tip=`${item.label} · 跳高 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,heightY(height)-11,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
+      if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x+13,rsiY(rsi)+5,fmt(rsi,2),`font-size="13" font-weight="600" fill="${dotColor}"`)}</g>`;}
+      const label=small?({cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"}[item.id]||item.label):item.label;
+      out+=text(x,bottom+31,label,`text-anchor="middle" font-size="${small?11:14}" font-weight="600" fill="${C.ink}"`);
     });
-    let out = grid.out;
-    items.forEach((item, i) => {
-      const x = 65 + ((i + 0.5) * 410) / items.length,
-        v = num(item.value),
-        c = i ? "#956a43" : C.blue;
-      if (v !== null)
-        out += `<rect x="${fmt(x - 38)}" y="${fmt(grid.y(v))}" width="76" height="${fmt(265 - grid.y(v))}" rx="3" fill="${c}"/><g>${text(x, grid.y(v) - 11, fmt(v, 1), `text-anchor="middle" font-size="16" fill="${c}"`)}</g>`;
-      out += text(
-        x,
-        316,
-        item.label,
-        'text-anchor="middle" font-size="15" fill="' + C.ink + '"',
-      );
-      if (v === null) out += text(x, 245, "未录入跳高", 'text-anchor="middle"');
-    });
-    return svg(540, 345, "CMJ / SJ 跳高对比", out);
+    out+=`<rect x="${left}" y="${h-37}" width="17" height="12" rx="2" fill="${barColor}"/>`+text(left+26,h-26,"跳高（左轴）",'font-size="12"');
+    if(hasRSI)out+=circle(left+(small?138:201),h-31,5,dotColor)+text(left+(small?151:215),h-26,"RSI（右轴）",'font-size="12"');
+    return layoutSVG(w,h,"跳跃表现：跳高与反应力量指数",out,"柱形读取左侧跳高 cm 坐标，圆点读取右侧 RSI m/s 坐标；不同单位分别解读。",layout);
   }
   function asymInline(value, weakSide, rules = {}) {
     value = num(value);

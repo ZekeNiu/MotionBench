@@ -9,7 +9,8 @@
     return v;
   }
   function measurementContext(record, d) {
-    const config = d.testId === "cmj" ? record.cmjConfig : d.testId === "imtp" ? record.imtpConfig : null;
+    const config = d.testId === "cmj" ? { definition: record.cmjConfig?.definition || "gross" } : d.testId === "imtp" ? { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } : null;
+    if (config && /impulse/.test(d.id)) config.impulseDefinition = (d.testId === "cmj" ? record.cmjConfig : record.imtpConfig)?.impulseDefinition || "gross";
     return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", metricProtocol: d.protocol || "", ...(config ? { force: clone(config) } : {}) };
   }
   function isoContext(row, record) {

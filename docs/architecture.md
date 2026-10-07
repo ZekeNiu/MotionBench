@@ -85,7 +85,7 @@ AI 直接返回 Markdown；`validateAI()` 检查有效文字并拒绝旧 JSON �
 
 训练背景纳入数据指纹，新增记录通过实际创建入口沿用最近记录；不修改历史背景。预览可编辑并经过富文本清理，应用保留上一版正文；数据变化、切换记录或人工正文版本变化触发原有保护。
 
-服务调用仍为原生浏览器 HTTPS，AI 生成等待300秒，模型连接检查保持60秒。离线 HTML 无法自行改变供应商 CORS 策略。验收工具的 HTTP 转发和真实响应回放仅在测试进程存在，不进入构建；模拟、回放、真实服务响应和实际浏览器直连分别记录。
+直接打开离线 HTML 使用原生浏览器 HTTPS，AI 生成等待300秒，模型连接检查保持60秒。离线 HTML 无法自行改变供应商 CORS 策略。2.11.0 的本机启动入口改为下文所述的加密凭据中转；模拟、回放、真实服务响应和实际浏览器直连分别记录。
 
 剂量来源分开记录：一般训练原则对应 [ACSM 2026](https://acsm.org/resistance-training-guidelines-update-2026/)，VIFT 方法对应 [作者托管资料](https://3015ift.wordpress.com/wp-content/uploads/2013/07/buchheit-30-15ift-hottopic-nsca.pdf)，模板中的具体起始范围标注 `practice-start-v1`，不冒充原文剂量。
 
@@ -121,7 +121,7 @@ PDF preflight runs on the print clone before SVG rasterization. It measures the 
 
 单文件从正式源码构建为 MotionBench.html，并同步保留 Ringside_Boxing_Assessment.html 兼容入口。数据结构及历史存储键不改名。API 配置保留在页面闭包内，不序列化到记录；导出 HTML 删除运行时本机令牌。
 
-直接打开文件时调用支持 CORS 的 HTTPS 服务；scripts/serve.py 则提供固定 loopback 入口和经过 Origin/Host/随机令牌校验的模型/聊天转发，不保存凭据、不向重定向地址发送授权。
+直接打开文件时调用支持 CORS 的 HTTPS 服务；scripts/serve.py 提供固定 loopback 入口和经过 Origin/Host/随机令牌校验的模型/聊天转发，不向重定向地址发送授权。2.7.0–2.10.0 的凭据仅用于单次请求；2.11.0 改用加密保存与配置版本绑定。
 
 AI 请求绑定当前记录、测量指纹、正文版本及连接设置。持续状态覆盖等待、取消、失败、预览待应用和应用成功。超长正文使用与 PDF 相同的分页器在独立副本中试排，超过两页则同模型精简一次；实际 PDF 中解读部分从新页开始。测量副本不会写回记录或改变字号。
 

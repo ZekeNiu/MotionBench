@@ -84,6 +84,16 @@
     .ringside-pdf-document .chart-wrap>img,.ringside-pdf-document .iso-charts>img{display:block!important;margin:0 auto!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
+    .ringside-pdf-document .jump-detail table{table-layout:auto!important;}
+    .ringside-pdf-document .derived-card{width:100%!important;padding:17px!important;border:1px solid #d9e3eb!important;border-radius:9px!important;background:#f8fafc!important;}
+    .ringside-pdf-document .derived-card-heading{display:flex!important;justify-content:space-between!important;gap:18px!important;}
+    .ringside-pdf-document .derived-value{font-size:25px!important;white-space:nowrap!important;}
+    .ringside-pdf-document .derived-components{margin:9px 0!important;}
+    .ringside-pdf-document .derived-components>div{padding-top:5px!important;}
+    .ringside-pdf-document .fdsi-bands{margin:10px 0!important;}
+    .ringside-pdf-document .hop-raw-table th,.ringside-pdf-document .hop-raw-table td{font-size:10px!important;padding:6px 4px!important;}
+    .ringside-pdf-document .hop-raw-table th:first-child{width:6%!important;}
+    .ringside-pdf-document .hop-raw-table th:last-child{width:21%!important;}
     .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail){display:block!important;}
     .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail)>.chart-wrap{margin-bottom:12px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:auto!important;min-width:0!important;}
@@ -712,7 +722,7 @@
       content = element("div", "ringside-pdf-content");
       const footer = element("div", "ringside-pdf-page-foot");
       footer.append(
-        element("span", "", "运动表现与损伤风险筛查"),
+        element("span", "", "运动表现与损伤风险筛查报告"),
         element("span", "ringside-pdf-page-number"),
       );
       page.append(header, content, footer);
