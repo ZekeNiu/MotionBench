@@ -1,0 +1,24 @@
+# Local data, credentials, generated acceptance evidence and caches
+output/
+.playwright-cli/
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+*.pem
+*.key
+*.log
+task_plan.md
+findings.md
+progress.md
+.venv/
+tmp/
+*.zip
+
+# Only the clean application is a generated HTML tracked at the root.
+*.html
+!/MotionBench.html
+!/Ringside_Boxing_Assessment.html
+!src/*.html
+!tests/fixtures/*.html

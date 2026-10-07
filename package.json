@@ -1,0 +1,33 @@
+{
+  "name": "motionbench",
+  "version": "2.7.0",
+  "private": true,
+  "description": "Offline sport performance assessment and contextual coaching reports",
+  "scripts": {
+    "build": "python scripts/build.py",
+    "test": "node tests/run-unit-tests.cjs",
+    "test:browser": "node tests/redesign-browser-tests.cjs",
+    "test:workflow": "node tests/workflow-browser-tests.cjs",
+    "test:pdf": "node tests/pdf-module-tests.cjs",
+    "test:pdf-download": "node tests/pdf-download-tests.cjs",
+    "test:pdf-failure": "node tests/pdf-failure-ui-tests.cjs",
+    "test:visual": "node tests/visual-review.cjs",
+    "test:core": "node tests/core-browser-tests.cjs",
+    "test:radar": "node tests/radar-browser-tests.cjs",
+    "test:display": "node tests/display-browser-tests.cjs",
+    "test:speed": "node tests/speed-reference-browser-tests.cjs",
+    "test:ai-live": "node tests/live-ai-tests.cjs",
+    "verify:delivery": "python scripts/verify_delivery.py",
+    "test:design": "node tests/design-review.cjs",
+    "test:chart-ai": "node tests/chart-ai-browser-tests.cjs",
+    "test:ai-flow": "node tests/ai-narrative-browser-tests.cjs",
+    "test:repeats": "node tests/repeat-browser-tests.cjs",
+    "test:repeat-pdf": "node tests/repeat-pdf-tests.cjs",
+    "test:iso-layout": "node tests/iso-layout-browser-tests.cjs",
+    "start": "python scripts/serve.py",
+    "test:ai-service": "node tests/ai-service-browser-tests.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.57.0"
+  }
+}

@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="MotionBench 跨项目运动表现评估、测试管理与训练建议工作台。"
+    />
+    <title>MotionBench · 运动表现评估</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23365b80'/%3E%3Cpath d='M8 28V13l9 12 7-17 8 20' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <!-- RINGSIDE_STYLES -->
+  </head>
+  <body>
+    <div
+      id="sidebarScrim"
+      class="sidebar-scrim"
+      onclick="App.toggleSidebar(false)"
+      hidden
+    ></div>
+    <aside id="sidebar" class="sidebar no-print" aria-label="测试工作台导航">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" width="36" height="36"><path d="M8 28V13l9 12 7-17 8 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <div>MotionBench<small>PERFORMANCE ASSESSMENT</small></div>
+        <button
+          class="icon-btn sidebar-close"
+          onclick="App.toggleSidebar(false)"
+          aria-label="收起侧栏"
+        >
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 6l-6 6 6 6"/></svg>
+        </button>
+      </div>
+      <div class="sidebar-selection">
+        <div class="sidebar-field">
+          <label for="athleteSelect">运动员</label
+          ><button
+            class="text-btn"
+            onclick="App.openNewAthlete()"
+            aria-label="新建运动员"
+          >
+            ＋ 新建</button
+          ><select
+            id="athleteSelect"
+            onchange="App.selectAthlete(this.value)"
+          ></select>
+        </div>
+        <div class="sidebar-field">
+          <label for="recordSelect">测试记录</label
+          ><button
+            class="text-btn"
+            onclick="App.newTest()"
+            aria-label="新建测试记录"
+          >
+            ＋ 新建</button
+          ><select
+            id="recordSelect"
+            onchange="App.selectRecord(this.value)"
+          ></select>
+        </div>
+        <span id="sampleLabel" class="pill hidden">示例运动员</span>
+        <button id="editButton" class="btn primary sidebar-edit" onclick="App.openEntry()">编辑本次测试</button>
+      </div>
+      <div class="sidebar-directory">
+        <div id="directoryLabel" class="nav-label">报告目录</div>
+        <nav id="reportNav" class="report-nav" aria-label="报告章节"></nav>
+        <nav id="entryNav" class="entry-nav" aria-label="编辑项目" hidden></nav>
+        <nav id="settingsTabs" class="report-nav" aria-label="设置导航" hidden></nav>
+      </div>
+      <div class="sidebar-bottom">
+        <button class="sidebar-action" data-settings-open="catalog" onclick="App.openSettings('catalog')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3h14v18H5z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></span> 测试项目库</button>
+        <button class="sidebar-action" data-settings-open="record" onclick="App.openSettings('definitions')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 3v6M16 9v6M10 15v6"/></svg></span> 本次评价设置</button>
+        <button class="sidebar-action" data-settings-open="app" onclick="App.openSettings('ai')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h14"/><path d="M9 4v4M15 10v4M11 16v4"/></svg></span> 应用设置</button>
+        <button class="sidebar-action" onclick="App.saveMenu()">
+          <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 14v6h16v-6"/></svg></span> 保存与导入
+        </button>
+        <p>数据保留在本机浏览器</p>
+      </div>
+    </aside>
+    <div id="workspace" class="workspace">
+      <header class="topbar no-print">
+        <div class="workspace-context">
+          <button
+            id="sidebarToggle"
+            class="icon-btn"
+            onclick="App.toggleSidebar()"
+            aria-label="展开或收起侧栏"
+            aria-controls="sidebar"
+            aria-expanded="true"
+          >
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button
+          ><span id="workspaceLabel">测试报告</span
+          ><span class="context-divider">/</span
+          ><span id="recordContext" class="record-context"></span>
+        </div>
+        <div class="toolbar">
+          <button id="workspaceBack" class="btn" onclick="App.back()" hidden>
+            返回报告</button>
+        </div>
+      </header>
+      <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
+        <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
+        <div class="row">
+          <button id="aiCancelButton" class="btn small" onclick="App.cancelAI()" hidden>取消生成</button>
+          <button id="aiRetryButton" class="btn small" onclick="App.ai()" hidden>重新生成</button>
+          <button id="aiReviewButton" class="btn small primary" onclick="App.reviewAIDraft()" hidden>查看并应用新建议</button>
+          <button id="aiSettingsButton" class="btn small" onclick="App.openSettings('ai')" hidden>检查 AI 设置</button>
+        </div>
+      </div>
+      <main id="reportView" class="wrap report-view">
+        <div class="hero">
+          <div>
+            <h1>运动表现与损伤风险筛查</h1>
+            <div id="athleteMeta" class="hero-sub"></div>
+            <p id="migrationReviewNotice" class="notice" hidden></p>
+          </div>
+          <div class="hero-status no-print">
+            <span id="saveStatus" class="save-status">数据保留在本机浏览器</span
+            ><span id="pdfProgress" role="status" hidden></span>
+          </div>
+        </div>
+        <section id="summary">
+          <div class="section-heading">
+            <div class="section-title">
+              <span class="section-number">01</span>
+              <div>
+                <h2>快速摘要</h2>
+                <p>先看重点，再看能力结构</p>
+              </div>
+            </div>
+          </div>
+          <div id="microCards" class="micro-cards"></div>
+          <div class="summary-grid">
+            <article class="card">
+              <div class="card-head">
+                <div>
+                  <h3>损伤风险筛查</h3>
+                  <p>动作质量 · 双侧差异 · 关节平衡</p>
+                </div>
+                <span id="screenPill" class="pill">待录入</span>
+              </div>
+              <div class="screen-layout">
+                <div id="bodyChart" class="body-art"></div>
+                <div id="screenItems" class="screen-items"></div>
+              </div>
+              <div class="card-foot">
+                <div class="legend">
+                  <span><i class="dot red"></i>重点关注</span
+                  ><span><i class="dot amber"></i>关注</span
+                  ><span><i class="dot green"></i>已测未触发</span
+                  ><span><i class="dot gray"></i>未测</span>
+                </div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="card-head">
+                <div>
+                  <h3>运动表现概览</h3>
+                  <p>能力目标达成度 · 点色表示评价等级</p>
+                </div>
+                <span id="referenceLabel" class="pill">待评价</span>
+              </div>
+              <div class="performance-layout">
+                <div id="radarChart" class="radar"></div>
+                <div id="directionMetrics" class="aux-metrics"></div>
+              </div>
+              <div class="card-foot">
+                <span>缺项保持空白</span><span id="radarLegend"></span>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section id="data">
+          <div class="section-heading">
+            <div class="section-title">
+              <span class="section-number">02</span>
+              <div>
+                <h2>具体数据</h2>
+                <p id="dataCount"></p>
+              </div>
+            </div>
+            <label class="aggregation no-print"
+              >代表成绩
+              <select id="aggMode" onchange="App.changeMode(this.value)">
+                <option value="best">最佳试次</option>
+                <option value="mean">试次均值</option>
+              </select></label
+            >
+          </div>
+          <div id="detailContent"></div>
+        </section>
+        <section id="interpretation">
+          <div class="section-heading">
+            <div class="section-title">
+              <span class="section-number">03</span>
+              <div>
+                <h2>解读与干预建议</h2>
+                <p>表现意义 · 训练优先级 · 执行方式</p>
+              </div>
+            </div>
+            <span id="interpState" class="pill no-print">尚未填写</span>
+          </div>
+          <article class="card narrative-card">
+            <div id="narrativeView" class="narrative"></div>
+          </article>
+        </section>
+      </main>
+      <section
+        id="entryView"
+        class="wrap workspace-view"
+        aria-label="编辑本次测试"
+        hidden
+      >
+        <div class="workspace-heading">
+          <h1>编辑本次测试</h1>
+          <p>按本次所选项目依次录入，有效修改自动保留。</p>
+          <div id="entryIdentity" class="entry-identity"></div>
+          <h2 id="entryProjectTitle" class="entry-project-title"></h2>
+        </div>
+        <div
+          id="entryProblemSummary"
+          class="entry-problem-summary"
+          role="status"
+          aria-live="polite"
+          hidden
+        ></div>
+        <article class="form-card">
+          <div id="entryContent" class="entry-content" role="region" aria-labelledby="entryProjectTitle"></div>
+          <div id="narrativeEditorPanel" class="entry-content" hidden>
+            <div class="editor-heading">
+              <div>
+                <p class="intro">写下主要发现、训练优先级与具体执行方式。</p>
+              </div>
+            </div>
+            <div class="draft-options">
+              <div><button class="btn small" data-local-draft onclick="App.localDraft()">生成离线摘要</button><p>无需联网。按已有规则整理测试发现与基础建议，适合作为手写解读的起点。</p></div>
+              <div><button class="btn small primary" data-ai-generate onclick="App.ai()">生成 AI 综合建议</button><p>联网综合测试、专项和训练背景，提出训练重点、具体剂量与周安排。需要配置 AI 服务。</p></div>
+            </div>
+            <p class="note">两种方式都会先打开可编辑预览；点击“应用草稿”后才替换下方正文。背景越完整，AI 建议越有针对性。</p>
+            <div class="editor-toolbar">
+              <button
+                class="btn small"
+                onmousedown="event.preventDefault()"
+                onclick="App.format('bold')"
+                aria-label="加粗"
+              >
+                <b>B</b></button
+              ><button
+                class="btn small"
+                onmousedown="event.preventDefault()"
+                onclick="App.format('italic')"
+                aria-label="斜体"
+              >
+                <i>I</i></button
+              ><button
+                class="btn small"
+                onmousedown="event.preventDefault()"
+                onclick="App.format('formatBlock', 'h3')"
+              >
+                小标题</button
+              ><button
+                class="btn small"
+                onmousedown="event.preventDefault()"
+                onclick="App.format('formatBlock', 'p')"
+              >
+                正文</button
+              ><button
+                class="btn small"
+                onmousedown="event.preventDefault()"
+                onclick="App.format('insertUnorderedList')"
+              >
+                列表</button
+              ><button
+                class="btn small"
+                onmousedown="event.preventDefault()"
+                onclick="App.format('insertOrderedList')"
+              >
+                编号</button
+              ><button
+                class="btn small"
+                onmousedown="event.preventDefault()"
+                onclick="App.format('removeFormat')"
+              >
+                清除格式
+              </button>
+            </div>
+            <div
+              id="interpEditor"
+              class="editor"
+              contenteditable="true"
+              role="textbox"
+              aria-label="编辑解读与干预建议"
+              aria-multiline="true"
+              data-placeholder="连接测试结果与训练决策，写清要先处理什么、怎么练、如何保证执行质量。"
+            ></div>
+            <div class="editor-meta">
+              <span id="editorState"></span><span id="interpUpdated"></span>
+            </div>
+          </div>
+          <footer class="entry-footer">
+            <div class="entry-save-feedback">
+              <span id="entrySave" role="status" aria-live="polite">修改自动保留</span>
+              <button
+                id="undoDeleteButton"
+                class="text-btn"
+                onclick="App.undoDelete()"
+                hidden
+              >撤销删除</button>
+            </div>
+            <div class="entry-step-actions">
+              <button id="entryPrevious" class="btn" onclick="App.previousEntry()">上一项</button>
+              <button id="entryNext" class="btn" onclick="App.nextEntry()">下一项</button>
+              <button class="btn primary" onclick="App.showReport()">查看报告</button>
+            </div>
+          </footer>
+        </article>
+      </section>
+      <section
+        id="settingsView"
+        class="wrap workspace-view"
+        aria-label="测试与应用设置"
+        hidden
+      >
+        <div class="workspace-heading">
+          <h1 id="settingsTitle">本次评价设置</h1>
+          <p id="settingsIntro">仅影响当前选定的测试记录。</p>
+        </div>
+        <article
+          id="settingsContent"
+          class="form-card settings-content"
+        ></article>
+      </section>
+    </div>
+    <div
+      class="modal-backdrop"
+      id="newAthleteModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="newAthleteTitle"
+    >
+      <div class="modal creation-modal">
+        <header class="modal-head">
+          <h2 id="newAthleteTitle">新建运动员</h2>
+          <button
+            class="close"
+            aria-label="取消创建"
+            onclick="App.close('newAthleteModal')"
+          >
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <form id="creationForm" class="modal-form" onsubmit="event.preventDefault();App.submitCreation()">
+          <div class="settings-content creation-content">
+            <div id="creationProfileStep">
+              <p class="creation-step-label">1 / 2 · 运动员资料</p>
+              <div class="form-grid creation-profile-grid">
+                <label class="field wide" for="newAthleteName"><span>姓名 / 编号 <span class="required-mark">必填</span></span>
+                  <input id="newAthleteName" autocomplete="off" maxlength="100" aria-required="true" placeholder="填写姓名或运动员编号" />
+                </label>
+                <label class="field" for="newAthleteSex"><span>性别</span>
+                  <select id="newAthleteSex"><option value="未注明">未注明</option><option value="男">男</option><option value="女">女</option></select>
+                </label>
+                <label class="field" for="newAthleteSport"><span>专项</span>
+                  <input id="newAthleteSport" list="sportOptions" autocomplete="off" maxlength="100" placeholder="选择或填写运动项目" />
+                </label>
+                <label class="field" for="newAthleteHand"><span>惯用手</span>
+                  <select id="newAthleteHand"><option value="未注明">未注明</option><option value="右手">右手</option><option value="左手">左手</option><option value="双手">双手</option></select>
+                </label>
+                <label class="field" for="newAthleteLevel"><span>级别</span>
+                  <input id="newAthleteLevel" autocomplete="off" maxlength="100" placeholder="如体重级别" />
+                </label>
+              </div>
+            </div>
+            <div id="creationTestStep" hidden>
+              <p class="creation-step-label">2 / 2 · 本次测试</p>
+              <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" /></label>
+              <p id="creationSource" class="notice"></p>
+              <div class="creation-project-heading"><h3>选择本次测试项目</h3><span id="creationCount" class="plan-count" aria-live="polite"></span></div>
+              <div id="creationProjects"></div>
+            </div>
+            <p id="creationError" class="field-error" role="alert" hidden></p>
+          </div>
+          <footer class="modal-foot creation-foot">
+            <button type="button" class="btn" onclick="App.close('newAthleteModal')">取消</button>
+            <div class="row">
+              <button id="creationBack" type="button" class="btn" onclick="App.creationBack()" hidden>返回资料</button>
+              <button id="creationNext" type="button" class="btn primary" onclick="App.creationNext()">下一步：选择测试</button>
+              <button id="creationSubmit" type="submit" class="btn primary" hidden>创建并开始录入</button>
+            </div>
+          </footer>
+        </form>
+      </div>
+    </div>
+    <datalist id="sportOptions"><option value="田径"></option><option value="篮球"></option><option value="足球"></option><option value="排球"></option><option value="游泳"></option><option value="网球"></option><option value="羽毛球"></option><option value="举重"></option><option value="拳击"></option><option value="散打"></option><option value="跆拳道"></option></datalist>
+    <div class="modal-backdrop" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
+      <div class="modal">
+        <header class="modal-head"><h2 id="catalogTitle">新建测试项目</h2><button class="close" type="button" aria-label="关闭项目设置" onclick="App.close('catalogModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <form id="catalogForm" class="modal-form" onsubmit="event.preventDefault();App.submitCatalogItem()">
+          <div class="settings-content"><div id="catalogFields"></div><p id="catalogError" class="field-error" role="alert" hidden></p></div>
+          <footer class="modal-foot"><button type="button" class="btn" onclick="App.close('catalogModal')">取消</button><button type="submit" class="btn primary">保存到项目目录</button></footer>
+        </form>
+      </div>
+    </div>
+    <div class="modal-backdrop" id="unitModal" role="dialog" aria-modal="true" aria-labelledby="unitChangeTitle">
+      <div class="modal compact">
+        <header class="modal-head"><h2 id="unitChangeTitle">更改测量单位</h2><button class="close" type="button" aria-label="取消更改单位" onclick="App.close('unitModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <div class="settings-content"><p id="unitChangeMessage"></p></div>
+        <footer class="modal-foot unit-change-actions"><button class="btn" type="button" onclick="App.close('unitModal')">取消</button><button id="unitClearButton" class="btn" type="button" onclick="App.confirmUnitChange('clear')">清空后重新录入</button><button id="unitConvertButton" class="btn primary" type="button" onclick="App.confirmUnitChange('convert')">换算已有数据</button></footer>
+      </div>
+    </div>
+    <div class="modal-backdrop" id="recoveryModal" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
+      <div class="modal">
+        <header class="modal-head"><h2 id="recoveryTitle">核对导入数据</h2><button class="close" type="button" aria-label="关闭数据核对" onclick="App.close('recoveryModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
+        <form id="recoveryForm" class="modal-form" onsubmit="event.preventDefault();App.recoverData()">
+          <div class="settings-content"><div id="recoveryFields"></div><p id="recoveryError" class="field-error" role="alert" hidden></p></div>
+          <footer class="modal-foot recovery-actions"><button type="button" class="btn" onclick="App.downloadRecovery()">下载原始数据</button><div class="row"><button type="button" class="btn" onclick="App.close('recoveryModal')">取消</button><button type="submit" class="btn primary">修正并导入</button></div></footer>
+        </form>
+      </div>
+    </div>
+    <div
+      class="modal-backdrop"
+      id="saveModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="saveTitle"
+    >
+      <div class="modal compact">
+        <header class="modal-head">
+          <h2 id="saveTitle">保存与导入</h2>
+          <button
+            class="close"
+            aria-label="关闭保存"
+            onclick="App.close('saveModal')"
+          >
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <div class="settings-content">
+          <div class="save-options">
+            <button class="btn primary" onclick="App.downloadHTML()">
+              保存当前可编辑 HTML 报告</button
+            ><button class="btn" onclick="App.downloadJSON()">
+              导出当前报告 JSON</button
+            ><button class="btn" onclick="App.downloadLibrary()">
+              备份整个运动员库 JSON</button
+            ><button
+              class="btn"
+              onclick="document.getElementById('importFile').click()"
+            >
+              导入报告 / 运动员库</button
+            ><button id="pdfButton" class="btn" data-pdf-action onclick="App.downloadPDF()">
+              导出当前报告 PDF
+            </button>
+          </div>
+          <p class="note">
+            HTML、PDF 和当前报告 JSON
+            包含选定测试；运动员库备份包含全部档案与历史。
+          </p>
+        </div>
+      </div>
+    </div>
+    <div
+      class="modal-backdrop"
+      id="previewModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="previewTitle"
+    >
+      <div class="modal">
+        <header class="modal-head">
+          <h2 id="previewTitle">草稿预览</h2>
+          <button
+            class="close"
+            aria-label="关闭草稿"
+            onclick="App.close('previewModal')"
+          >
+            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <div class="settings-content">
+          <div id="aiPreview" class="ai-preview"></div>
+          <p id="aiPreviewNote" class="note"></p>
+        </div>
+        <footer class="modal-foot">
+          <span>应用后可继续编辑</span
+          ><button
+            id="applyDraftButton"
+            class="btn primary"
+            onclick="App.applyAI()"
+          >
+            应用草稿
+          </button>
+        </footer>
+      </div>
+    </div>
+    <input
+      type="file"
+      id="importFile"
+      accept="application/json,text/html,.json,.html,.htm"
+      hidden
+    />
+    <div id="toast" role="status"></div>
+    <div id="tooltip" role="tooltip"></div>
+    <script id="embedded-data" type="application/json">
+      null
+    </script>
+    <!-- RINGSIDE_SCRIPTS -->
+  </body>
+</html>

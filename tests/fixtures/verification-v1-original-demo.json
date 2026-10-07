@@ -1,0 +1,1681 @@
+{
+  "schema": 1,
+  "recordId": "6bc3a3b2-9a77-4e4f-8364-9f547586ce6b",
+  "updated": "2026-10-03T16:44:28.615Z",
+  "demo": true,
+  "athlete": {
+    "name": "示例运动员",
+    "age": 18,
+    "sex": "男",
+    "mass": 68.5,
+    "height": 176,
+    "stance": "右后手",
+    "date": "2026-10-04",
+    "sportLevel": "青年竞技拳击 · 示例",
+    "injury": "",
+    "cycle": "一般准备期 · 示例",
+    "notes": ""
+  },
+  "enabled": {
+    "fms": true,
+    "iso": true,
+    "cmj": true,
+    "sj": true,
+    "landmine": true,
+    "squat": true,
+    "bench": true,
+    "deadlift": true,
+    "pushup": true,
+    "mb": true,
+    "lactate": true,
+    "ift": true,
+    "mas": true,
+    "mss": true
+  },
+  "mode": "best",
+  "data": {
+    "fms": [
+      {
+        "name": "深蹲",
+        "bilateral": false,
+        "score": 2,
+        "pain": false,
+        "location": "",
+        "notes": ""
+      },
+      {
+        "name": "跨栏步",
+        "bilateral": true,
+        "left": 2,
+        "right": 2,
+        "pain": false,
+        "location": "",
+        "notes": ""
+      },
+      {
+        "name": "直线弓步",
+        "bilateral": true,
+        "left": 2,
+        "right": 3,
+        "pain": false,
+        "location": "",
+        "notes": ""
+      },
+      {
+        "name": "肩部灵活性",
+        "bilateral": true,
+        "left": 1,
+        "right": 2,
+        "pain": false,
+        "location": "",
+        "notes": "左侧活动受限；无疼痛"
+      },
+      {
+        "name": "主动直腿抬高",
+        "bilateral": true,
+        "left": 2,
+        "right": 2,
+        "pain": false,
+        "location": "",
+        "notes": ""
+      },
+      {
+        "name": "躯干稳定俯卧撑",
+        "bilateral": false,
+        "score": 3,
+        "pain": false,
+        "location": "",
+        "notes": ""
+      },
+      {
+        "name": "旋转稳定性",
+        "bilateral": true,
+        "left": 2,
+        "right": 2,
+        "pain": false,
+        "location": "",
+        "notes": ""
+      }
+    ],
+    "iso": [
+      {
+        "id": "faeb4922-3cf8-4c03-8cb2-52779dd60685",
+        "region": "neck",
+        "direction": "屈曲（中线）",
+        "paired": false,
+        "left": "",
+        "right": "",
+        "center": 192,
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "e8605e98-c017-4542-8b2a-c8165fcc4aec",
+        "region": "neck",
+        "direction": "伸展（中线）",
+        "paired": false,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "c2376e40-873d-43e5-bbb0-28d309052608",
+        "region": "neck",
+        "direction": "侧屈（左 / 右）",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "270e6461-9d4d-4f2d-9bf2-1a4abb63241b",
+        "region": "neck",
+        "direction": "旋转（左 / 右）",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "b309b82a-ca92-4029-8b34-7857e5c66230",
+        "region": "shoulder",
+        "direction": "屈曲",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "42a9dd08-0a22-4cea-a078-3d192e9e2fa3",
+        "region": "shoulder",
+        "direction": "伸展",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "e0cdc3da-43af-4f30-ad17-8813aa21d425",
+        "region": "shoulder",
+        "direction": "外展",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "c7e07248-c100-4fa2-b835-f13b3e844cab",
+        "region": "shoulder",
+        "direction": "内收",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "b362079f-be28-4193-b74b-0e50fc37d22c",
+        "region": "shoulder",
+        "direction": "内旋",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "e653f224-4b77-4517-a321-70f80d9bab2d",
+        "region": "shoulder",
+        "direction": "外旋",
+        "paired": true,
+        "left": 178,
+        "right": 217,
+        "center": "",
+        "unit": "N",
+        "target": 200,
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": "坐位、肩中立、固定带 · 示例"
+      },
+      {
+        "id": "e5208b78-aeba-4c87-a1a7-3d190602db74",
+        "region": "hip",
+        "direction": "屈曲",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "8b6bb796-4a6c-4a2c-af36-397b41c965a4",
+        "region": "hip",
+        "direction": "伸展",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "dd907d6f-fe23-41a7-9d31-8809e08062f4",
+        "region": "hip",
+        "direction": "外展",
+        "paired": true,
+        "left": 310,
+        "right": 322,
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": "侧卧固定 · 示例"
+      },
+      {
+        "id": "d9c628a4-43a9-4388-9809-c4df8b9227f9",
+        "region": "hip",
+        "direction": "内收",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "d9a634f8-1769-4ef3-964b-b4306741e64c",
+        "region": "hip",
+        "direction": "内旋",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "b64e70e3-441b-482c-8558-938b8bb1b013",
+        "region": "hip",
+        "direction": "外旋",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "56a10429-1b02-455a-af5d-4cfd060d389a",
+        "region": "knee",
+        "direction": "伸展",
+        "paired": true,
+        "left": 545,
+        "right": 568,
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": "膝屈90° · 示例"
+      },
+      {
+        "id": "239925ba-8419-4c8d-8fb4-1c8a99912718",
+        "region": "knee",
+        "direction": "屈曲",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "90f15f22-d844-452c-a249-52c932bdfb71",
+        "region": "ankle",
+        "direction": "背屈",
+        "paired": true,
+        "left": 190,
+        "right": 214,
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": "固定姿势 · 示例"
+      },
+      {
+        "id": "f33d7371-1189-44b6-85a1-575137d02a3d",
+        "region": "ankle",
+        "direction": "跖屈",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "c9f6b295-b581-4660-85f6-7afe0e9d74ce",
+        "region": "ankle",
+        "direction": "内翻",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      },
+      {
+        "id": "72ed7aef-bae4-407b-ac8f-aafdb68c3c54",
+        "region": "ankle",
+        "direction": "外翻",
+        "paired": true,
+        "left": "",
+        "right": "",
+        "center": "",
+        "unit": "N",
+        "target": "",
+        "painLeft": false,
+        "painRight": false,
+        "painCenter": false,
+        "notes": ""
+      }
+    ],
+    "cmj": [
+      {
+        "id": "8baf8c8d-c8ae-4dc6-97aa-8e32a92ec78b",
+        "height": 42.1,
+        "force": 1680
+      },
+      {
+        "id": "8565e22a-461d-437b-936a-3c8eb73372d7",
+        "height": 44.2,
+        "force": 1745
+      },
+      {
+        "id": "3c024b79-7e62-4ced-9b3e-d94dc08678f5",
+        "height": 43.7,
+        "force": 1800
+      }
+    ],
+    "sj": [
+      {
+        "id": "29af1c03-f4a3-4714-aa14-6efd6cbb94d0",
+        "height": 38.9
+      },
+      {
+        "id": "32171526-0737-4d4b-905a-7fa09374d6b0",
+        "height": 40.8
+      },
+      {
+        "id": "adcf1179-5223-4f98-a5bc-59e6e3948b6b",
+        "height": 40.2
+      }
+    ],
+    "landmine": [
+      {
+        "id": "087bec64-0dc1-4e83-8655-f712893b44e4",
+        "load": 20,
+        "side": "R",
+        "velocity": 3.98
+      },
+      {
+        "id": "b245ed34-d825-4597-a673-b475779492b8",
+        "load": 20,
+        "side": "L",
+        "velocity": 3.72
+      },
+      {
+        "id": "c90b9c34-d435-4727-bd01-28866494221c",
+        "load": 25,
+        "side": "R",
+        "velocity": 3.68
+      },
+      {
+        "id": "0cb96a7f-e78f-4fca-b562-30eb256c585c",
+        "load": 25,
+        "side": "L",
+        "velocity": 3.42
+      },
+      {
+        "id": "0e99ef68-412c-4622-adcb-c38abcc3d131",
+        "load": 30,
+        "side": "R",
+        "velocity": 3.29
+      },
+      {
+        "id": "332f123e-1642-466c-9ee2-e37a1624b3c5",
+        "load": 30,
+        "side": "L",
+        "velocity": 3.03
+      },
+      {
+        "id": "b4aab668-b51c-4127-a101-76d715dc66e7",
+        "load": 35,
+        "side": "R",
+        "velocity": 2.93
+      },
+      {
+        "id": "c214078d-4c4f-4009-9de0-9002df76edd2",
+        "load": 35,
+        "side": "L",
+        "velocity": 2.75
+      },
+      {
+        "id": "be131fa4-6f54-472a-b19c-c2a7716bd60f",
+        "load": 40,
+        "side": "R",
+        "velocity": 2.64
+      },
+      {
+        "id": "19a9660e-333b-4b96-b279-c47548f45f4a",
+        "load": 40,
+        "side": "L",
+        "velocity": 2.42
+      }
+    ],
+    "squat": [
+      {
+        "id": "fc20a9a2-50d3-46eb-8da0-c276c9283eae",
+        "load": 40,
+        "velocity": 1.02
+      },
+      {
+        "id": "c1060656-cae9-4f65-8a0a-063d09f922cd",
+        "load": 60,
+        "velocity": 0.83
+      },
+      {
+        "id": "63afb698-2a02-4e76-ac0f-87ff37f31422",
+        "load": 80,
+        "velocity": 0.66
+      },
+      {
+        "id": "71091841-498e-45af-9e5b-3360ecf071e4",
+        "load": 100,
+        "velocity": 0.43
+      }
+    ],
+    "bench": [
+      {
+        "id": "8172c129-f9f6-4f15-a947-dc9a65a5df71",
+        "load": 20,
+        "velocity": 1.1
+      },
+      {
+        "id": "dc3cc900-f989-444e-bca6-d7177618da38",
+        "load": 35,
+        "velocity": 0.92
+      },
+      {
+        "id": "144c44c5-7938-4a36-bf94-75c0ced7785e",
+        "load": 50,
+        "velocity": 0.66
+      },
+      {
+        "id": "2c0ecf1a-ae20-44bd-a41a-46ee76ffecd0",
+        "load": 65,
+        "velocity": 0.48
+      }
+    ],
+    "deadlift": [
+      {
+        "id": "86c98147-cec1-47b0-9869-e70d39cae80c",
+        "load": 50,
+        "velocity": 0.89
+      },
+      {
+        "id": "d1306946-29a3-485f-b25d-127c97e1a62e",
+        "load": 75,
+        "velocity": 0.72
+      },
+      {
+        "id": "7344e718-3359-4884-9caa-7362b5fe4025",
+        "load": 100,
+        "velocity": 0.54
+      },
+      {
+        "id": "f608d5f7-6872-4cc0-a147-973c1ee66d12",
+        "load": 125,
+        "velocity": 0.39
+      }
+    ],
+    "pushup": {
+      "reps": 66,
+      "notes": "规范动作计数"
+    },
+    "mb": [
+      {
+        "id": "2bd6d3bc-e981-4a6e-81b4-1194675dfc72",
+        "side": "D",
+        "distance": 11.8
+      },
+      {
+        "id": "f6ebf1ff-062d-4874-ad41-fbfa2b6849c8",
+        "side": "ND",
+        "distance": 10.3
+      }
+    ],
+    "lactate": [
+      {
+        "id": "64303540-60de-4692-8f98-d6891987461b",
+        "speed": 12,
+        "lactate": 1.1,
+        "hr": 136
+      },
+      {
+        "id": "c85c6eba-cd76-43c4-8b84-a8def2e034c6",
+        "speed": 13,
+        "lactate": 1.2,
+        "hr": 142
+      },
+      {
+        "id": "39104ab5-c43b-46d8-a182-37219ab1eb9d",
+        "speed": 14,
+        "lactate": 1.5,
+        "hr": 148
+      },
+      {
+        "id": "252b2fe9-f1d6-4d5c-b1ac-f80e35b99d50",
+        "speed": 15,
+        "lactate": 2.1,
+        "hr": 157
+      },
+      {
+        "id": "070d6ba2-f52d-4441-8a10-9556625c191a",
+        "speed": 16,
+        "lactate": 3.2,
+        "hr": 167
+      },
+      {
+        "id": "12c293a8-ec73-4c26-82f6-93cd8cc17d5c",
+        "speed": 17,
+        "lactate": 4.8,
+        "hr": 178
+      },
+      {
+        "id": "f3f50ca3-c55e-4deb-8a41-dbe7f08cabb8",
+        "speed": 18,
+        "lactate": 7.1,
+        "hr": 188
+      }
+    ],
+    "ift": {
+      "speed": 22,
+      "protocol": "treadmill",
+      "partial": 12
+    },
+    "mas": {
+      "speed": 17.4,
+      "unit": "km/h",
+      "method": "连续递增测试 · 示例"
+    },
+    "mss": {
+      "speed": 8.1,
+      "unit": "m/s",
+      "method": "飞行20 m计时 · 示例"
+    }
+  },
+  "protocol": {
+    "cmj": "双手叉腰；飞行时间法 / 设备待记录",
+    "sj": "双手叉腰；静止起跳；飞行时间法 / 设备待记录",
+    "landmine": "20 kg 杠铃；峰值速度；设备与固定方式待记录",
+    "mb": "3 kg 单手后手出拳式投掷；距离至第一落点",
+    "squat": "自由杠深蹲 / 深度与设备待记录",
+    "bench": "卧推 / 停顿、握距与设备待记录",
+    "deadlift": "传统硬拉 / 起始方式与设备待记录",
+    "lactate": "跑台；每级3 min；采样恢复1 min"
+  },
+  "lvp": {
+    "squat": {
+      "metric": "MV",
+      "mvt": 0.3,
+      "zones": [
+        {
+          "min": 0.3,
+          "max": 0.5,
+          "label": "自定义 · 重力量区间",
+          "color": "#e6eafa"
+        },
+        {
+          "min": 0.5,
+          "max": 0.75,
+          "label": "自定义 · 中等负荷区间",
+          "color": "#e7f3ed"
+        },
+        {
+          "min": 0.75,
+          "max": 1.1,
+          "label": "自定义 · 快速发力区间",
+          "color": "#fff0d7"
+        }
+      ]
+    },
+    "bench": {
+      "metric": "MV",
+      "mvt": 0.17,
+      "zones": []
+    },
+    "deadlift": {
+      "metric": "MV",
+      "mvt": 0.3,
+      "zones": []
+    }
+  },
+  "thresholds": {
+    "lt1": 14,
+    "lt2": 17,
+    "method": "曲线转折点人工确认 · 示例"
+  },
+  "dsi": {
+    "force": 2800,
+    "protocol": "IMTP",
+    "definition": "gross",
+    "confirmed": true
+  },
+  "definitions": [
+    {
+      "id": "cmj_height",
+      "testId": "cmj",
+      "name": "CMJ 跳高",
+      "unit": "cm",
+      "ability": "下肢爆发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 50,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "统一手臂使用、起始姿势与跳高测量方法；原章节使用光电飞行时间。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 35,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 40,
+          "max": 44,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 45,
+          "max": 49,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 50,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "sj_height",
+      "testId": "sj",
+      "name": "SJ 跳高",
+      "unit": "cm",
+      "ability": "下肢爆发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 50,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "静止半蹲起跳，避免预先反向运动；与 CMJ 采用一致测量方法。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 30,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 35,
+          "max": 39,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 40,
+          "max": 44,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 50,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "pushup_reps",
+      "testId": "pushup",
+      "name": "60 秒俯卧撑",
+      "unit": "次",
+      "ability": "力量耐力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 80,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "60 秒；下放至胸部与大腿触地，再完全伸肘计 1 次；记录动作规范。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 60,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 60,
+          "max": 70,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 70,
+          "max": 80,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 80,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "mb_dom",
+      "testId": "mb",
+      "name": "3 kg 药球后手投掷·优势侧",
+      "unit": "m",
+      "ability": "旋转投掷能力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 13,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "3 kg 药球；拳击分腿站姿，从后脚侧肩部单臂模拟后手出拳；起点至首次落地距离。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 9,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 9,
+          "max": 11,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 11,
+          "max": 13,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 13,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "mb_non",
+      "testId": "mb",
+      "name": "3 kg 药球后手投掷·非优势侧",
+      "unit": "m",
+      "ability": "旋转投掷能力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 12,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "3 kg 药球；与优势侧相同动作与测距。不是双手旋转掷球或头上向后投掷。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 8,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 8,
+          "max": 10,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 10,
+          "max": 12,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 12,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "ift_treadmill",
+      "testId": "ift",
+      "name": "30–15 IFT·跑台改良版终末速度",
+      "unit": "km/h",
+      "ability": "间歇耐力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 23.5,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "跑台改良版：8 km/h 起，每级 +0.5 km/h，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 19.5,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 20,
+          "max": 21.5,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 22,
+          "max": 23,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 23.5,
+          "max": null,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "lt1",
+      "testId": "lactate",
+      "name": "乳酸第一转折点 LTP1",
+      "unit": "km/h",
+      "ability": "有氧代谢能力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 15,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "递增跑台乳酸曲线第一转折点，由评估者确认方法；原章 3 分钟 / 级、1 分钟采样恢复。固定 2 mmol/L 不等同于 LTP1。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 10,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 12,
+          "max": 12,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 14,
+          "max": 14,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 15,
+          "max": null,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "lt2",
+      "testId": "lactate",
+      "name": "乳酸第二转折点 LTP2",
+      "unit": "km/h",
+      "ability": "有氧代谢能力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 18,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "递增跑台乳酸曲线第二转折点，由评估者确认方法；固定 4 mmol/L 不等同于 LTP2。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 13,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 15,
+          "max": 15,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 17,
+          "max": 17,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 18,
+          "max": null,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_r20",
+      "testId": "landmine",
+      "name": "地雷杠出拳·右侧 20 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 4.28,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 20 kg（杠铃+杠铃片）；右手，固定脚位拳击分腿姿势；线性位移传感器峰值速度。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 3.56,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 3.57,
+          "max": 3.97,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 3.98,
+          "max": 4.26,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 4.28,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_l20",
+      "testId": "landmine",
+      "name": "地雷杠出拳·左侧 20 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 3.98,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 20 kg；左手；与右侧保持一致的器材、杠角与传感器安装。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 3.54,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 3.55,
+          "max": 3.76,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 3.77,
+          "max": 3.96,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 3.98,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_r25",
+      "testId": "landmine",
+      "name": "地雷杠出拳·右侧 25 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 3.69,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 25 kg；解剖学右侧；记录峰值速度。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 3.11,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 3.11,
+          "max": 3.51,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 3.52,
+          "max": 3.65,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 3.69,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_l25",
+      "testId": "landmine",
+      "name": "地雷杠出拳·左侧 25 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 3.5,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 25 kg；解剖学左侧；记录峰值速度。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 3,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 3.01,
+          "max": 3.3,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 3.31,
+          "max": 3.48,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 3.5,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_r30",
+      "testId": "landmine",
+      "name": "地雷杠出拳·右侧 30 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 3.3,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 30 kg；解剖学右侧；记录峰值速度。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 2.75,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 2.76,
+          "max": 2.99,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 3,
+          "max": 3.28,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 3.3,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_l30",
+      "testId": "landmine",
+      "name": "地雷杠出拳·左侧 30 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 3.09,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 30 kg；解剖学左侧；记录峰值速度。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 2.67,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 2.68,
+          "max": 2.94,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 2.95,
+          "max": 3.08,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 3.09,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_r35",
+      "testId": "landmine",
+      "name": "地雷杠出拳·右侧 35 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 2.68,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 35 kg；保留原表数值，此负荷参考值与 40 kg 不呈预期单调关系。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 1.92,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 1.93,
+          "max": 2.4,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 2.41,
+          "max": 2.67,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 2.68,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_l35",
+      "testId": "landmine",
+      "name": "地雷杠出拳·左侧 35 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 2.56,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 35 kg；保留原表数值，此负荷参考值与 40 kg 不呈预期单调关系。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 1.8,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 1.81,
+          "max": 2.32,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 2.33,
+          "max": 2.56,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 2.56,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_r40",
+      "testId": "landmine",
+      "name": "地雷杠出拳·右侧 40 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 2.65,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 40 kg；解剖学右侧；记录峰值速度。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 2.17,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 2.18,
+          "max": 2.32,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 2.33,
+          "max": 2.61,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 2.65,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "landmine_l40",
+      "testId": "landmine",
+      "name": "地雷杠出拳·左侧 40 kg 峰值速度",
+      "unit": "m/s",
+      "ability": "专项快速发力",
+      "category": "performance",
+      "direction": "higher",
+      "target": 2.42,
+      "referenceEnabled": true,
+      "source": "Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。",
+      "protocol": "总标称负荷 40 kg；解剖学左侧；记录峰值速度。",
+      "ranges": [
+        {
+          "min": null,
+          "max": 2.02,
+          "includeMin": true,
+          "includeMax": false,
+          "label": "待提升",
+          "status": "red"
+        },
+        {
+          "min": 2.03,
+          "max": 2.09,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "达标",
+          "status": "amber"
+        },
+        {
+          "min": 2.1,
+          "max": 2.34,
+          "includeMin": true,
+          "includeMax": true,
+          "label": "良好",
+          "status": "green"
+        },
+        {
+          "min": 2.42,
+          "max": null,
+          "includeMin": false,
+          "includeMax": true,
+          "label": "优秀",
+          "status": "green"
+        }
+      ]
+    },
+    {
+      "id": "squat_1rm",
+      "testId": "squat",
+      "name": "深蹲模型估计 1RM / 体重",
+      "unit": "kg/kg",
+      "ability": "最大力量",
+      "category": "performance",
+      "direction": "higher",
+      "target": null,
+      "referenceEnabled": true,
+      "ranges": [],
+      "source": "自定义目标；第22章无此项目的匹配等级标准",
+      "protocol": "请记录实际测试协议"
+    },
+    {
+      "id": "bench_1rm",
+      "testId": "bench",
+      "name": "卧推模型估计 1RM / 体重",
+      "unit": "kg/kg",
+      "ability": "最大力量",
+      "category": "performance",
+      "direction": "higher",
+      "target": null,
+      "referenceEnabled": true,
+      "ranges": [],
+      "source": "自定义目标；第22章无此项目的匹配等级标准",
+      "protocol": "请记录实际测试协议"
+    },
+    {
+      "id": "deadlift_1rm",
+      "testId": "deadlift",
+      "name": "硬拉模型估计 1RM / 体重",
+      "unit": "kg/kg",
+      "ability": "最大力量",
+      "category": "performance",
+      "direction": "higher",
+      "target": null,
+      "referenceEnabled": true,
+      "ranges": [],
+      "source": "自定义目标；第22章无此项目的匹配等级标准",
+      "protocol": "请记录实际测试协议"
+    },
+    {
+      "id": "mas_speed",
+      "testId": "mas",
+      "name": "MAS",
+      "unit": "km/h",
+      "ability": "有氧代谢能力",
+      "category": "performance",
+      "direction": "higher",
+      "target": null,
+      "referenceEnabled": true,
+      "ranges": [],
+      "source": "自定义目标；第22章无此项目的匹配等级标准",
+      "protocol": "请记录实际测试协议"
+    },
+    {
+      "id": "mss_speed",
+      "testId": "mss",
+      "name": "MSS",
+      "unit": "km/h",
+      "ability": "冲刺速度",
+      "category": "performance",
+      "direction": "higher",
+      "target": null,
+      "referenceEnabled": true,
+      "ranges": [],
+      "source": "自定义目标；第22章无此项目的匹配等级标准",
+      "protocol": "请记录实际测试协议"
+    },
+    {
+      "id": "ift_shuttle",
+      "testId": "ift",
+      "name": "30–15 折返 VIFT",
+      "unit": "km/h",
+      "ability": "间歇耐力",
+      "category": "performance",
+      "direction": "higher",
+      "target": null,
+      "referenceEnabled": true,
+      "ranges": [],
+      "source": "自定义目标；第22章无此项目的匹配等级标准",
+      "protocol": "请记录实际测试协议"
+    }
+  ],
+  "customTests": [],
+  "customValues": {},
+  "axes": {},
+  "rules": {
+    "asymAmber": 10,
+    "asymRed": 15,
+    "absoluteAmber": 80,
+    "scoreAmber": 80,
+    "scoreGreen": 100,
+    "fmsAmber": 1
+  },
+  "narratives": {
+    "interpretation": {
+      "text": "【测试概况】\n本次有 14 项测试形成有效记录，尝试采用最佳完整尝试汇总。\n\n【筛查信号】\n• 肩 · 外旋：左低于自设目标 200 N；不对称 18% · 左侧较低\n• 踝 · 背屈：不对称 11.2% · 左侧较低\n• 动作模式需复核：肩部灵活性 1/3。低分不自动定位为某关节损伤。\n\n【能力结构】\n• 下肢爆发力：目标达成 88.4%，采用代表指标；指标为 CMJ 跳高。\n• 力量耐力：目标达成 82.5%，采用代表指标；指标为 60 秒俯卧撑。\n• 旋转投掷能力：目标达成 90.8%，采用代表指标；指标为 3 kg 药球后手投掷·优势侧。\n• 间歇耐力：目标达成 93.6%，采用代表指标；指标为 30–15 IFT·跑台改良版终末速度。\n• 有氧代谢能力：目标达成 93.3%，采用代表指标；指标为 乳酸第一转折点 LTP1。\n• 专项快速发力：目标达成 93%，采用代表指标；指标为 地雷杠出拳·右侧 20 kg 峰值速度。\n\n【训练方向辅助】\nEUR 1.08（CMJ 44.2 cm，SJ 40.8 cm），预拉伸增益 8.3%。应结合两次绝对跳高和起跳技术复核。\nDSI 0.62；仅提示动态发力与全身等长峰值力的比例，训练方向仍需结合两项绝对表现。\nASR 11.8 km/h；用于区分最大有氧速度和冲刺速度储备。",
+      "updated": "2026-10-03T16:44:28.614Z",
+      "basis": "{\"athlete\":{\"name\":\"示例运动员\",\"age\":18,\"sex\":\"男\",\"mass\":68.5,\"height\":176,\"stance\":\"右后手\",\"date\":\"2026-10-04\",\"sportLevel\":\"青年竞技拳击 · 示例\",\"injury\":\"\",\"cycle\":\"一般准备期 · 示例\",\"notes\":\"\"},\"enabled\":{\"fms\":true,\"iso\":true,\"cmj\":true,\"sj\":true,\"landmine\":true,\"squat\":true,\"bench\":true,\"deadlift\":true,\"pushup\":true,\"mb\":true,\"lactate\":true,\"ift\":true,\"mas\":true,\"mss\":true},\"mode\":\"best\",\"data\":{\"fms\":[{\"name\":\"深蹲\",\"bilateral\":false,\"score\":2,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"跨栏步\",\"bilateral\":true,\"left\":2,\"right\":2,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"直线弓步\",\"bilateral\":true,\"left\":2,\"right\":3,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"肩部灵活性\",\"bilateral\":true,\"left\":1,\"right\":2,\"pain\":false,\"location\":\"\",\"notes\":\"左侧活动受限；无疼痛\"},{\"name\":\"主动直腿抬高\",\"bilateral\":true,\"left\":2,\"right\":2,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"躯干稳定俯卧撑\",\"bilateral\":false,\"score\":3,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"旋转稳定性\",\"bilateral\":true,\"left\":2,\"right\":2,\"pain\":false,\"location\":\"\",\"notes\":\"\"}],\"iso\":[{\"id\":\"faeb4922-3cf8-4c03-8cb2-52779dd60685\",\"region\":\"neck\",\"direction\":\"屈曲（中线）\",\"paired\":false,\"left\":\"\",\"right\":\"\",\"center\":192,\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"e8605e98-c017-4542-8b2a-c8165fcc4aec\",\"region\":\"neck\",\"direction\":\"伸展（中线）\",\"paired\":false,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"c2376e40-873d-43e5-bbb0-28d309052608\",\"region\":\"neck\",\"direction\":\"侧屈（左 / 右）\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"270e6461-9d4d-4f2d-9bf2-1a4abb63241b\",\"region\":\"neck\",\"direction\":\"旋转（左 / 右）\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"b309b82a-ca92-4029-8b34-7857e5c66230\",\"region\":\"shoulder\",\"direction\":\"屈曲\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"42a9dd08-0a22-4cea-a078-3d192e9e2fa3\",\"region\":\"shoulder\",\"direction\":\"伸展\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"e0cdc3da-43af-4f30-ad17-8813aa21d425\",\"region\":\"shoulder\",\"direction\":\"外展\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"c7e07248-c100-4fa2-b835-f13b3e844cab\",\"region\":\"shoulder\",\"direction\":\"内收\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"b362079f-be28-4193-b74b-0e50fc37d22c\",\"region\":\"shoulder\",\"direction\":\"内旋\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"e653f224-4b77-4517-a321-70f80d9bab2d\",\"region\":\"shoulder\",\"direction\":\"外旋\",\"paired\":true,\"left\":178,\"right\":217,\"center\":\"\",\"unit\":\"N\",\"target\":200,\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"坐位、肩中立、固定带 · 示例\"},{\"id\":\"e5208b78-aeba-4c87-a1a7-3d190602db74\",\"region\":\"hip\",\"direction\":\"屈曲\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"8b6bb796-4a6c-4a2c-af36-397b41c965a4\",\"region\":\"hip\",\"direction\":\"伸展\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"dd907d6f-fe23-41a7-9d31-8809e08062f4\",\"region\":\"hip\",\"direction\":\"外展\",\"paired\":true,\"left\":310,\"right\":322,\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"侧卧固定 · 示例\"},{\"id\":\"d9c628a4-43a9-4388-9809-c4df8b9227f9\",\"region\":\"hip\",\"direction\":\"内收\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"d9a634f8-1769-4ef3-964b-b4306741e64c\",\"region\":\"hip\",\"direction\":\"内旋\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"b64e70e3-441b-482c-8558-938b8bb1b013\",\"region\":\"hip\",\"direction\":\"外旋\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"56a10429-1b02-455a-af5d-4cfd060d389a\",\"region\":\"knee\",\"direction\":\"伸展\",\"paired\":true,\"left\":545,\"right\":568,\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"膝屈90° · 示例\"},{\"id\":\"239925ba-8419-4c8d-8fb4-1c8a99912718\",\"region\":\"knee\",\"direction\":\"屈曲\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"90f15f22-d844-452c-a249-52c932bdfb71\",\"region\":\"ankle\",\"direction\":\"背屈\",\"paired\":true,\"left\":190,\"right\":214,\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"固定姿势 · 示例\"},{\"id\":\"f33d7371-1189-44b6-85a1-575137d02a3d\",\"region\":\"ankle\",\"direction\":\"跖屈\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"c9f6b295-b581-4660-85f6-7afe0e9d74ce\",\"region\":\"ankle\",\"direction\":\"内翻\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"72ed7aef-bae4-407b-ac8f-aafdb68c3c54\",\"region\":\"ankle\",\"direction\":\"外翻\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"}],\"cmj\":[{\"id\":\"8baf8c8d-c8ae-4dc6-97aa-8e32a92ec78b\",\"height\":42.1,\"force\":1680},{\"id\":\"8565e22a-461d-437b-936a-3c8eb73372d7\",\"height\":44.2,\"force\":1745},{\"id\":\"3c024b79-7e62-4ced-9b3e-d94dc08678f5\",\"height\":43.7,\"force\":1800}],\"sj\":[{\"id\":\"29af1c03-f4a3-4714-aa14-6efd6cbb94d0\",\"height\":38.9},{\"id\":\"32171526-0737-4d4b-905a-7fa09374d6b0\",\"height\":40.8},{\"id\":\"adcf1179-5223-4f98-a5bc-59e6e3948b6b\",\"height\":40.2}],\"landmine\":[{\"id\":\"087bec64-0dc1-4e83-8655-f712893b44e4\",\"load\":20,\"side\":\"R\",\"velocity\":3.98},{\"id\":\"b245ed34-d825-4597-a673-b475779492b8\",\"load\":20,\"side\":\"L\",\"velocity\":3.72},{\"id\":\"c90b9c34-d435-4727-bd01-28866494221c\",\"load\":25,\"side\":\"R\",\"velocity\":3.68},{\"id\":\"0cb96a7f-e78f-4fca-b562-30eb256c585c\",\"load\":25,\"side\":\"L\",\"velocity\":3.42},{\"id\":\"0e99ef68-412c-4622-adcb-c38abcc3d131\",\"load\":30,\"side\":\"R\",\"velocity\":3.29},{\"id\":\"332f123e-1642-466c-9ee2-e37a1624b3c5\",\"load\":30,\"side\":\"L\",\"velocity\":3.03},{\"id\":\"b4aab668-b51c-4127-a101-76d715dc66e7\",\"load\":35,\"side\":\"R\",\"velocity\":2.93},{\"id\":\"c214078d-4c4f-4009-9de0-9002df76edd2\",\"load\":35,\"side\":\"L\",\"velocity\":2.75},{\"id\":\"be131fa4-6f54-472a-b19c-c2a7716bd60f\",\"load\":40,\"side\":\"R\",\"velocity\":2.64},{\"id\":\"19a9660e-333b-4b96-b279-c47548f45f4a\",\"load\":40,\"side\":\"L\",\"velocity\":2.42}],\"squat\":[{\"id\":\"fc20a9a2-50d3-46eb-8da0-c276c9283eae\",\"load\":40,\"velocity\":1.02},{\"id\":\"c1060656-cae9-4f65-8a0a-063d09f922cd\",\"load\":60,\"velocity\":0.83},{\"id\":\"63afb698-2a02-4e76-ac0f-87ff37f31422\",\"load\":80,\"velocity\":0.66},{\"id\":\"71091841-498e-45af-9e5b-3360ecf071e4\",\"load\":100,\"velocity\":0.43}],\"bench\":[{\"id\":\"8172c129-f9f6-4f15-a947-dc9a65a5df71\",\"load\":20,\"velocity\":1.1},{\"id\":\"dc3cc900-f989-444e-bca6-d7177618da38\",\"load\":35,\"velocity\":0.92},{\"id\":\"144c44c5-7938-4a36-bf94-75c0ced7785e\",\"load\":50,\"velocity\":0.66},{\"id\":\"2c0ecf1a-ae20-44bd-a41a-46ee76ffecd0\",\"load\":65,\"velocity\":0.48}],\"deadlift\":[{\"id\":\"86c98147-cec1-47b0-9869-e70d39cae80c\",\"load\":50,\"velocity\":0.89},{\"id\":\"d1306946-29a3-485f-b25d-127c97e1a62e\",\"load\":75,\"velocity\":0.72},{\"id\":\"7344e718-3359-4884-9caa-7362b5fe4025\",\"load\":100,\"velocity\":0.54},{\"id\":\"f608d5f7-6872-4cc0-a147-973c1ee66d12\",\"load\":125,\"velocity\":0.39}],\"pushup\":{\"reps\":66,\"notes\":\"规范动作计数\"},\"mb\":[{\"id\":\"2bd6d3bc-e981-4a6e-81b4-1194675dfc72\",\"side\":\"D\",\"distance\":11.8},{\"id\":\"f6ebf1ff-062d-4874-ad41-fbfa2b6849c8\",\"side\":\"ND\",\"distance\":10.3}],\"lactate\":[{\"id\":\"64303540-60de-4692-8f98-d6891987461b\",\"speed\":12,\"lactate\":1.1,\"hr\":136},{\"id\":\"c85c6eba-cd76-43c4-8b84-a8def2e034c6\",\"speed\":13,\"lactate\":1.2,\"hr\":142},{\"id\":\"39104ab5-c43b-46d8-a182-37219ab1eb9d\",\"speed\":14,\"lactate\":1.5,\"hr\":148},{\"id\":\"252b2fe9-f1d6-4d5c-b1ac-f80e35b99d50\",\"speed\":15,\"lactate\":2.1,\"hr\":157},{\"id\":\"070d6ba2-f52d-4441-8a10-9556625c191a\",\"speed\":16,\"lactate\":3.2,\"hr\":167},{\"id\":\"12c293a8-ec73-4c26-82f6-93cd8cc17d5c\",\"speed\":17,\"lactate\":4.8,\"hr\":178},{\"id\":\"f3f50ca3-c55e-4deb-8a41-dbe7f08cabb8\",\"speed\":18,\"lactate\":7.1,\"hr\":188}],\"ift\":{\"speed\":22,\"protocol\":\"treadmill\",\"partial\":12},\"mas\":{\"speed\":17.4,\"unit\":\"km/h\",\"method\":\"连续递增测试 · 示例\"},\"mss\":{\"speed\":8.1,\"unit\":\"m/s\",\"method\":\"飞行20 m计时 · 示例\"}},\"definitions\":[{\"id\":\"cmj_height\",\"testId\":\"cmj\",\"name\":\"CMJ 跳高\",\"unit\":\"cm\",\"ability\":\"下肢爆发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":50,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"统一手臂使用、起始姿势与跳高测量方法；原章节使用光电飞行时间。\",\"ranges\":[{\"min\":null,\"max\":35,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":40,\"max\":44,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":45,\"max\":49,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":50,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"sj_height\",\"testId\":\"sj\",\"name\":\"SJ 跳高\",\"unit\":\"cm\",\"ability\":\"下肢爆发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":50,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"静止半蹲起跳，避免预先反向运动；与 CMJ 采用一致测量方法。\",\"ranges\":[{\"min\":null,\"max\":30,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":35,\"max\":39,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":40,\"max\":44,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":50,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"pushup_reps\",\"testId\":\"pushup\",\"name\":\"60 秒俯卧撑\",\"unit\":\"次\",\"ability\":\"力量耐力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":80,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"60 秒；下放至胸部与大腿触地，再完全伸肘计 1 次；记录动作规范。\",\"ranges\":[{\"min\":null,\"max\":60,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":60,\"max\":70,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":70,\"max\":80,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":80,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"mb_dom\",\"testId\":\"mb\",\"name\":\"3 kg 药球后手投掷·优势侧\",\"unit\":\"m\",\"ability\":\"旋转投掷能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":13,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"3 kg 药球；拳击分腿站姿，从后脚侧肩部单臂模拟后手出拳；起点至首次落地距离。\",\"ranges\":[{\"min\":null,\"max\":9,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":9,\"max\":11,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":11,\"max\":13,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":13,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"mb_non\",\"testId\":\"mb\",\"name\":\"3 kg 药球后手投掷·非优势侧\",\"unit\":\"m\",\"ability\":\"旋转投掷能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":12,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"3 kg 药球；与优势侧相同动作与测距。不是双手旋转掷球或头上向后投掷。\",\"ranges\":[{\"min\":null,\"max\":8,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":8,\"max\":10,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":10,\"max\":12,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":12,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"ift_treadmill\",\"testId\":\"ift\",\"name\":\"30–15 IFT·跑台改良版终末速度\",\"unit\":\"km/h\",\"ability\":\"间歇耐力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":23.5,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"跑台改良版：8 km/h 起，每级 +0.5 km/h，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。\",\"ranges\":[{\"min\":null,\"max\":19.5,\"includeMin\":true,\"includeMax\":true,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":20,\"max\":21.5,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":22,\"max\":23,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":23.5,\"max\":null,\"includeMin\":true,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"lt1\",\"testId\":\"lactate\",\"name\":\"乳酸第一转折点 LTP1\",\"unit\":\"km/h\",\"ability\":\"有氧代谢能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":15,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"递增跑台乳酸曲线第一转折点，由评估者确认方法；原章 3 分钟 / 级、1 分钟采样恢复。固定 2 mmol/L 不等同于 LTP1。\",\"ranges\":[{\"min\":null,\"max\":10,\"includeMin\":true,\"includeMax\":true,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":12,\"max\":12,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":14,\"max\":14,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":15,\"max\":null,\"includeMin\":true,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"lt2\",\"testId\":\"lactate\",\"name\":\"乳酸第二转折点 LTP2\",\"unit\":\"km/h\",\"ability\":\"有氧代谢能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":18,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"递增跑台乳酸曲线第二转折点，由评估者确认方法；固定 4 mmol/L 不等同于 LTP2。\",\"ranges\":[{\"min\":null,\"max\":13,\"includeMin\":true,\"includeMax\":true,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":15,\"max\":15,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":17,\"max\":17,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":18,\"max\":null,\"includeMin\":true,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r20\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 20 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":4.28,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 20 kg（杠铃+杠铃片）；右手，固定脚位拳击分腿姿势；线性位移传感器峰值速度。\",\"ranges\":[{\"min\":null,\"max\":3.56,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":3.57,\"max\":3.97,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3.98,\"max\":4.26,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":4.28,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l20\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 20 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.98,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 20 kg；左手；与右侧保持一致的器材、杠角与传感器安装。\",\"ranges\":[{\"min\":null,\"max\":3.54,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":3.55,\"max\":3.76,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3.77,\"max\":3.96,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.98,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r25\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 25 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.69,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 25 kg；解剖学右侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":3.11,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":3.11,\"max\":3.51,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3.52,\"max\":3.65,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.69,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l25\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 25 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.5,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 25 kg；解剖学左侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":3,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":3.01,\"max\":3.3,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3.31,\"max\":3.48,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.5,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r30\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 30 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.3,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 30 kg；解剖学右侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":2.75,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":2.76,\"max\":2.99,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3,\"max\":3.28,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.3,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l30\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 30 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.09,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 30 kg；解剖学左侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":2.67,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":2.68,\"max\":2.94,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.95,\"max\":3.08,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.09,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r35\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 35 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":2.68,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 35 kg；保留原表数值，此负荷参考值与 40 kg 不呈预期单调关系。\",\"ranges\":[{\"min\":null,\"max\":1.92,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":1.93,\"max\":2.4,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.41,\"max\":2.67,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":2.68,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l35\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 35 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":2.56,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 35 kg；保留原表数值，此负荷参考值与 40 kg 不呈预期单调关系。\",\"ranges\":[{\"min\":null,\"max\":1.8,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":1.81,\"max\":2.32,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.33,\"max\":2.56,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":2.56,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r40\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 40 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":2.65,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 40 kg；解剖学右侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":2.17,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":2.18,\"max\":2.32,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.33,\"max\":2.61,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":2.65,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l40\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 40 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":2.42,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 40 kg；解剖学左侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":2.02,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":2.03,\"max\":2.09,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.1,\"max\":2.34,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":2.42,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"squat_1rm\",\"testId\":\"squat\",\"name\":\"深蹲模型估计 1RM / 体重\",\"unit\":\"kg/kg\",\"ability\":\"最大力量\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"bench_1rm\",\"testId\":\"bench\",\"name\":\"卧推模型估计 1RM / 体重\",\"unit\":\"kg/kg\",\"ability\":\"最大力量\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"deadlift_1rm\",\"testId\":\"deadlift\",\"name\":\"硬拉模型估计 1RM / 体重\",\"unit\":\"kg/kg\",\"ability\":\"最大力量\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"mas_speed\",\"testId\":\"mas\",\"name\":\"MAS\",\"unit\":\"km/h\",\"ability\":\"有氧代谢能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"mss_speed\",\"testId\":\"mss\",\"name\":\"MSS\",\"unit\":\"km/h\",\"ability\":\"冲刺速度\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"ift_shuttle\",\"testId\":\"ift\",\"name\":\"30–15 折返 VIFT\",\"unit\":\"km/h\",\"ability\":\"间歇耐力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"}],\"custom\":{},\"rules\":{\"asymAmber\":10,\"asymRed\":15,\"absoluteAmber\":80,\"scoreAmber\":80,\"scoreGreen\":100,\"fmsAmber\":1},\"lvp\":{\"squat\":{\"metric\":\"MV\",\"mvt\":0.3,\"zones\":[{\"min\":0.3,\"max\":0.5,\"label\":\"自定义 · 重力量区间\",\"color\":\"#e6eafa\"},{\"min\":0.5,\"max\":0.75,\"label\":\"自定义 · 中等负荷区间\",\"color\":\"#e7f3ed\"},{\"min\":0.75,\"max\":1.1,\"label\":\"自定义 · 快速发力区间\",\"color\":\"#fff0d7\"}]},\"bench\":{\"metric\":\"MV\",\"mvt\":0.17,\"zones\":[]},\"deadlift\":{\"metric\":\"MV\",\"mvt\":0.3,\"zones\":[]}},\"thresholds\":{\"lt1\":14,\"lt2\":17,\"method\":\"曲线转折点人工确认 · 示例\"},\"dsi\":{\"force\":2800,\"protocol\":\"IMTP\",\"definition\":\"gross\",\"confirmed\":true},\"axes\":{},\"protocol\":{\"cmj\":\"双手叉腰；飞行时间法 / 设备待记录\",\"sj\":\"双手叉腰；静止起跳；飞行时间法 / 设备待记录\",\"landmine\":\"20 kg 杠铃；峰值速度；设备与固定方式待记录\",\"mb\":\"3 kg 单手后手出拳式投掷；距离至第一落点\",\"squat\":\"自由杠深蹲 / 深度与设备待记录\",\"bench\":\"卧推 / 停顿、握距与设备待记录\",\"deadlift\":\"传统硬拉 / 起始方式与设备待记录\",\"lactate\":\"跑台；每级3 min；采样恢复1 min\"}}",
+      "origin": "本地"
+    },
+    "recommendations": {
+      "text": "【优先级 1 · 先确认筛查信号】\n• 肩 · 外旋：左低于自设目标 200 N；不对称 18% · 左侧较低。按相同固定方式与测试协议复核，结合当前症状和病史确认训练安排。\n• 踝 · 背屈：不对称 11.2% · 左侧较低。按相同固定方式与测试协议复核，结合当前症状和病史确认训练安排。\n• 动作模式需复核：肩部灵活性 1/3。低分不自动定位为某关节损伤。。按相同固定方式与测试协议复核，结合当前症状和病史确认训练安排。\n\n【优先级 2 · 能力训练方向】\n• 力量耐力（达成 82.5%）：在动作质量稳定的前提下逐步增加规范推撑与相关推力训练容量。\n• 下肢爆发力（达成 88.4%）：结合绝对力量与起跳技术，选择低疲劳高质量跳跃练习和髋伸发力练习。\n• 旋转投掷能力（达成 90.8%）：优先复核发力时序和投掷技术，加入低负荷高速度的旋转与单手投掷练习。\n• 专项快速发力（达成 93%）：结合地雷杠不同负荷的速度变化，训练下肢—躯干—上肢的协同发力。\n• 有氧代谢能力（达成 93.3%）：依据人工确认的个人阈值安排有氧基础与阈值训练，结合拳击专项与比赛周期调整。\n• 间歇耐力（达成 93.6%）：根据实际 VIFT 协议配置间歇跑的速度和恢复，逐步调整容量。\n\n【优先级 3 · 复测与执行】\n固定设备、动作、热身与恢复条件，记录训练反应；用相同协议复测，比较原始指标及方向是否一致。具体频率、组次和强度由你结合比赛时间、训练史与专项负荷补充。",
+      "updated": "2026-10-03T16:44:28.615Z",
+      "basis": "{\"athlete\":{\"name\":\"示例运动员\",\"age\":18,\"sex\":\"男\",\"mass\":68.5,\"height\":176,\"stance\":\"右后手\",\"date\":\"2026-10-04\",\"sportLevel\":\"青年竞技拳击 · 示例\",\"injury\":\"\",\"cycle\":\"一般准备期 · 示例\",\"notes\":\"\"},\"enabled\":{\"fms\":true,\"iso\":true,\"cmj\":true,\"sj\":true,\"landmine\":true,\"squat\":true,\"bench\":true,\"deadlift\":true,\"pushup\":true,\"mb\":true,\"lactate\":true,\"ift\":true,\"mas\":true,\"mss\":true},\"mode\":\"best\",\"data\":{\"fms\":[{\"name\":\"深蹲\",\"bilateral\":false,\"score\":2,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"跨栏步\",\"bilateral\":true,\"left\":2,\"right\":2,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"直线弓步\",\"bilateral\":true,\"left\":2,\"right\":3,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"肩部灵活性\",\"bilateral\":true,\"left\":1,\"right\":2,\"pain\":false,\"location\":\"\",\"notes\":\"左侧活动受限；无疼痛\"},{\"name\":\"主动直腿抬高\",\"bilateral\":true,\"left\":2,\"right\":2,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"躯干稳定俯卧撑\",\"bilateral\":false,\"score\":3,\"pain\":false,\"location\":\"\",\"notes\":\"\"},{\"name\":\"旋转稳定性\",\"bilateral\":true,\"left\":2,\"right\":2,\"pain\":false,\"location\":\"\",\"notes\":\"\"}],\"iso\":[{\"id\":\"faeb4922-3cf8-4c03-8cb2-52779dd60685\",\"region\":\"neck\",\"direction\":\"屈曲（中线）\",\"paired\":false,\"left\":\"\",\"right\":\"\",\"center\":192,\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"e8605e98-c017-4542-8b2a-c8165fcc4aec\",\"region\":\"neck\",\"direction\":\"伸展（中线）\",\"paired\":false,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"c2376e40-873d-43e5-bbb0-28d309052608\",\"region\":\"neck\",\"direction\":\"侧屈（左 / 右）\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"270e6461-9d4d-4f2d-9bf2-1a4abb63241b\",\"region\":\"neck\",\"direction\":\"旋转（左 / 右）\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"b309b82a-ca92-4029-8b34-7857e5c66230\",\"region\":\"shoulder\",\"direction\":\"屈曲\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"42a9dd08-0a22-4cea-a078-3d192e9e2fa3\",\"region\":\"shoulder\",\"direction\":\"伸展\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"e0cdc3da-43af-4f30-ad17-8813aa21d425\",\"region\":\"shoulder\",\"direction\":\"外展\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"c7e07248-c100-4fa2-b835-f13b3e844cab\",\"region\":\"shoulder\",\"direction\":\"内收\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"b362079f-be28-4193-b74b-0e50fc37d22c\",\"region\":\"shoulder\",\"direction\":\"内旋\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"e653f224-4b77-4517-a321-70f80d9bab2d\",\"region\":\"shoulder\",\"direction\":\"外旋\",\"paired\":true,\"left\":178,\"right\":217,\"center\":\"\",\"unit\":\"N\",\"target\":200,\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"坐位、肩中立、固定带 · 示例\"},{\"id\":\"e5208b78-aeba-4c87-a1a7-3d190602db74\",\"region\":\"hip\",\"direction\":\"屈曲\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"8b6bb796-4a6c-4a2c-af36-397b41c965a4\",\"region\":\"hip\",\"direction\":\"伸展\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"dd907d6f-fe23-41a7-9d31-8809e08062f4\",\"region\":\"hip\",\"direction\":\"外展\",\"paired\":true,\"left\":310,\"right\":322,\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"侧卧固定 · 示例\"},{\"id\":\"d9c628a4-43a9-4388-9809-c4df8b9227f9\",\"region\":\"hip\",\"direction\":\"内收\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"d9a634f8-1769-4ef3-964b-b4306741e64c\",\"region\":\"hip\",\"direction\":\"内旋\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"b64e70e3-441b-482c-8558-938b8bb1b013\",\"region\":\"hip\",\"direction\":\"外旋\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"56a10429-1b02-455a-af5d-4cfd060d389a\",\"region\":\"knee\",\"direction\":\"伸展\",\"paired\":true,\"left\":545,\"right\":568,\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"膝屈90° · 示例\"},{\"id\":\"239925ba-8419-4c8d-8fb4-1c8a99912718\",\"region\":\"knee\",\"direction\":\"屈曲\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"90f15f22-d844-452c-a249-52c932bdfb71\",\"region\":\"ankle\",\"direction\":\"背屈\",\"paired\":true,\"left\":190,\"right\":214,\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"固定姿势 · 示例\"},{\"id\":\"f33d7371-1189-44b6-85a1-575137d02a3d\",\"region\":\"ankle\",\"direction\":\"跖屈\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"c9f6b295-b581-4660-85f6-7afe0e9d74ce\",\"region\":\"ankle\",\"direction\":\"内翻\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"},{\"id\":\"72ed7aef-bae4-407b-ac8f-aafdb68c3c54\",\"region\":\"ankle\",\"direction\":\"外翻\",\"paired\":true,\"left\":\"\",\"right\":\"\",\"center\":\"\",\"unit\":\"N\",\"target\":\"\",\"painLeft\":false,\"painRight\":false,\"painCenter\":false,\"notes\":\"\"}],\"cmj\":[{\"id\":\"8baf8c8d-c8ae-4dc6-97aa-8e32a92ec78b\",\"height\":42.1,\"force\":1680},{\"id\":\"8565e22a-461d-437b-936a-3c8eb73372d7\",\"height\":44.2,\"force\":1745},{\"id\":\"3c024b79-7e62-4ced-9b3e-d94dc08678f5\",\"height\":43.7,\"force\":1800}],\"sj\":[{\"id\":\"29af1c03-f4a3-4714-aa14-6efd6cbb94d0\",\"height\":38.9},{\"id\":\"32171526-0737-4d4b-905a-7fa09374d6b0\",\"height\":40.8},{\"id\":\"adcf1179-5223-4f98-a5bc-59e6e3948b6b\",\"height\":40.2}],\"landmine\":[{\"id\":\"087bec64-0dc1-4e83-8655-f712893b44e4\",\"load\":20,\"side\":\"R\",\"velocity\":3.98},{\"id\":\"b245ed34-d825-4597-a673-b475779492b8\",\"load\":20,\"side\":\"L\",\"velocity\":3.72},{\"id\":\"c90b9c34-d435-4727-bd01-28866494221c\",\"load\":25,\"side\":\"R\",\"velocity\":3.68},{\"id\":\"0cb96a7f-e78f-4fca-b562-30eb256c585c\",\"load\":25,\"side\":\"L\",\"velocity\":3.42},{\"id\":\"0e99ef68-412c-4622-adcb-c38abcc3d131\",\"load\":30,\"side\":\"R\",\"velocity\":3.29},{\"id\":\"332f123e-1642-466c-9ee2-e37a1624b3c5\",\"load\":30,\"side\":\"L\",\"velocity\":3.03},{\"id\":\"b4aab668-b51c-4127-a101-76d715dc66e7\",\"load\":35,\"side\":\"R\",\"velocity\":2.93},{\"id\":\"c214078d-4c4f-4009-9de0-9002df76edd2\",\"load\":35,\"side\":\"L\",\"velocity\":2.75},{\"id\":\"be131fa4-6f54-472a-b19c-c2a7716bd60f\",\"load\":40,\"side\":\"R\",\"velocity\":2.64},{\"id\":\"19a9660e-333b-4b96-b279-c47548f45f4a\",\"load\":40,\"side\":\"L\",\"velocity\":2.42}],\"squat\":[{\"id\":\"fc20a9a2-50d3-46eb-8da0-c276c9283eae\",\"load\":40,\"velocity\":1.02},{\"id\":\"c1060656-cae9-4f65-8a0a-063d09f922cd\",\"load\":60,\"velocity\":0.83},{\"id\":\"63afb698-2a02-4e76-ac0f-87ff37f31422\",\"load\":80,\"velocity\":0.66},{\"id\":\"71091841-498e-45af-9e5b-3360ecf071e4\",\"load\":100,\"velocity\":0.43}],\"bench\":[{\"id\":\"8172c129-f9f6-4f15-a947-dc9a65a5df71\",\"load\":20,\"velocity\":1.1},{\"id\":\"dc3cc900-f989-444e-bca6-d7177618da38\",\"load\":35,\"velocity\":0.92},{\"id\":\"144c44c5-7938-4a36-bf94-75c0ced7785e\",\"load\":50,\"velocity\":0.66},{\"id\":\"2c0ecf1a-ae20-44bd-a41a-46ee76ffecd0\",\"load\":65,\"velocity\":0.48}],\"deadlift\":[{\"id\":\"86c98147-cec1-47b0-9869-e70d39cae80c\",\"load\":50,\"velocity\":0.89},{\"id\":\"d1306946-29a3-485f-b25d-127c97e1a62e\",\"load\":75,\"velocity\":0.72},{\"id\":\"7344e718-3359-4884-9caa-7362b5fe4025\",\"load\":100,\"velocity\":0.54},{\"id\":\"f608d5f7-6872-4cc0-a147-973c1ee66d12\",\"load\":125,\"velocity\":0.39}],\"pushup\":{\"reps\":66,\"notes\":\"规范动作计数\"},\"mb\":[{\"id\":\"2bd6d3bc-e981-4a6e-81b4-1194675dfc72\",\"side\":\"D\",\"distance\":11.8},{\"id\":\"f6ebf1ff-062d-4874-ad41-fbfa2b6849c8\",\"side\":\"ND\",\"distance\":10.3}],\"lactate\":[{\"id\":\"64303540-60de-4692-8f98-d6891987461b\",\"speed\":12,\"lactate\":1.1,\"hr\":136},{\"id\":\"c85c6eba-cd76-43c4-8b84-a8def2e034c6\",\"speed\":13,\"lactate\":1.2,\"hr\":142},{\"id\":\"39104ab5-c43b-46d8-a182-37219ab1eb9d\",\"speed\":14,\"lactate\":1.5,\"hr\":148},{\"id\":\"252b2fe9-f1d6-4d5c-b1ac-f80e35b99d50\",\"speed\":15,\"lactate\":2.1,\"hr\":157},{\"id\":\"070d6ba2-f52d-4441-8a10-9556625c191a\",\"speed\":16,\"lactate\":3.2,\"hr\":167},{\"id\":\"12c293a8-ec73-4c26-82f6-93cd8cc17d5c\",\"speed\":17,\"lactate\":4.8,\"hr\":178},{\"id\":\"f3f50ca3-c55e-4deb-8a41-dbe7f08cabb8\",\"speed\":18,\"lactate\":7.1,\"hr\":188}],\"ift\":{\"speed\":22,\"protocol\":\"treadmill\",\"partial\":12},\"mas\":{\"speed\":17.4,\"unit\":\"km/h\",\"method\":\"连续递增测试 · 示例\"},\"mss\":{\"speed\":8.1,\"unit\":\"m/s\",\"method\":\"飞行20 m计时 · 示例\"}},\"definitions\":[{\"id\":\"cmj_height\",\"testId\":\"cmj\",\"name\":\"CMJ 跳高\",\"unit\":\"cm\",\"ability\":\"下肢爆发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":50,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"统一手臂使用、起始姿势与跳高测量方法；原章节使用光电飞行时间。\",\"ranges\":[{\"min\":null,\"max\":35,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":40,\"max\":44,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":45,\"max\":49,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":50,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"sj_height\",\"testId\":\"sj\",\"name\":\"SJ 跳高\",\"unit\":\"cm\",\"ability\":\"下肢爆发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":50,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"静止半蹲起跳，避免预先反向运动；与 CMJ 采用一致测量方法。\",\"ranges\":[{\"min\":null,\"max\":30,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":35,\"max\":39,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":40,\"max\":44,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":50,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"pushup_reps\",\"testId\":\"pushup\",\"name\":\"60 秒俯卧撑\",\"unit\":\"次\",\"ability\":\"力量耐力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":80,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"60 秒；下放至胸部与大腿触地，再完全伸肘计 1 次；记录动作规范。\",\"ranges\":[{\"min\":null,\"max\":60,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":60,\"max\":70,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":70,\"max\":80,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":80,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"mb_dom\",\"testId\":\"mb\",\"name\":\"3 kg 药球后手投掷·优势侧\",\"unit\":\"m\",\"ability\":\"旋转投掷能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":13,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"3 kg 药球；拳击分腿站姿，从后脚侧肩部单臂模拟后手出拳；起点至首次落地距离。\",\"ranges\":[{\"min\":null,\"max\":9,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":9,\"max\":11,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":11,\"max\":13,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":13,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"mb_non\",\"testId\":\"mb\",\"name\":\"3 kg 药球后手投掷·非优势侧\",\"unit\":\"m\",\"ability\":\"旋转投掷能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":12,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"3 kg 药球；与优势侧相同动作与测距。不是双手旋转掷球或头上向后投掷。\",\"ranges\":[{\"min\":null,\"max\":8,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":8,\"max\":10,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":10,\"max\":12,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":12,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"ift_treadmill\",\"testId\":\"ift\",\"name\":\"30–15 IFT·跑台改良版终末速度\",\"unit\":\"km/h\",\"ability\":\"间歇耐力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":23.5,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"跑台改良版：8 km/h 起，每级 +0.5 km/h，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。\",\"ranges\":[{\"min\":null,\"max\":19.5,\"includeMin\":true,\"includeMax\":true,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":20,\"max\":21.5,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":22,\"max\":23,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":23.5,\"max\":null,\"includeMin\":true,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"lt1\",\"testId\":\"lactate\",\"name\":\"乳酸第一转折点 LTP1\",\"unit\":\"km/h\",\"ability\":\"有氧代谢能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":15,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"递增跑台乳酸曲线第一转折点，由评估者确认方法；原章 3 分钟 / 级、1 分钟采样恢复。固定 2 mmol/L 不等同于 LTP1。\",\"ranges\":[{\"min\":null,\"max\":10,\"includeMin\":true,\"includeMax\":true,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":12,\"max\":12,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":14,\"max\":14,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":15,\"max\":null,\"includeMin\":true,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"lt2\",\"testId\":\"lactate\",\"name\":\"乳酸第二转折点 LTP2\",\"unit\":\"km/h\",\"ability\":\"有氧代谢能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":18,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"递增跑台乳酸曲线第二转折点，由评估者确认方法；固定 4 mmol/L 不等同于 LTP2。\",\"ranges\":[{\"min\":null,\"max\":13,\"includeMin\":true,\"includeMax\":true,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":15,\"max\":15,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":17,\"max\":17,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":18,\"max\":null,\"includeMin\":true,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r20\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 20 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":4.28,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 20 kg（杠铃+杠铃片）；右手，固定脚位拳击分腿姿势；线性位移传感器峰值速度。\",\"ranges\":[{\"min\":null,\"max\":3.56,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":3.57,\"max\":3.97,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3.98,\"max\":4.26,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":4.28,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l20\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 20 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.98,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 20 kg；左手；与右侧保持一致的器材、杠角与传感器安装。\",\"ranges\":[{\"min\":null,\"max\":3.54,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":3.55,\"max\":3.76,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3.77,\"max\":3.96,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.98,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r25\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 25 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.69,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 25 kg；解剖学右侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":3.11,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":3.11,\"max\":3.51,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3.52,\"max\":3.65,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.69,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l25\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 25 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.5,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 25 kg；解剖学左侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":3,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":3.01,\"max\":3.3,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3.31,\"max\":3.48,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.5,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r30\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 30 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.3,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 30 kg；解剖学右侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":2.75,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":2.76,\"max\":2.99,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":3,\"max\":3.28,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.3,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l30\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 30 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":3.09,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 30 kg；解剖学左侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":2.67,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":2.68,\"max\":2.94,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.95,\"max\":3.08,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":3.09,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r35\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 35 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":2.68,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 35 kg；保留原表数值，此负荷参考值与 40 kg 不呈预期单调关系。\",\"ranges\":[{\"min\":null,\"max\":1.92,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":1.93,\"max\":2.4,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.41,\"max\":2.67,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":2.68,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l35\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 35 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":2.56,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 35 kg；保留原表数值，此负荷参考值与 40 kg 不呈预期单调关系。\",\"ranges\":[{\"min\":null,\"max\":1.8,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":1.81,\"max\":2.32,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.33,\"max\":2.56,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":2.56,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_r40\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·右侧 40 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":2.65,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 40 kg；解剖学右侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":2.17,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":2.18,\"max\":2.32,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.33,\"max\":2.61,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":2.65,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"landmine_l40\",\"testId\":\"landmine\",\"name\":\"地雷杠出拳·左侧 40 kg 峰值速度\",\"unit\":\"m/s\",\"ability\":\"专项快速发力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":2.42,\"referenceEnabled\":true,\"source\":\"Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。\",\"protocol\":\"总标称负荷 40 kg；解剖学左侧；记录峰值速度。\",\"ranges\":[{\"min\":null,\"max\":2.02,\"includeMin\":true,\"includeMax\":false,\"label\":\"待提升\",\"status\":\"red\"},{\"min\":2.03,\"max\":2.09,\"includeMin\":true,\"includeMax\":true,\"label\":\"达标\",\"status\":\"amber\"},{\"min\":2.1,\"max\":2.34,\"includeMin\":true,\"includeMax\":true,\"label\":\"良好\",\"status\":\"green\"},{\"min\":2.42,\"max\":null,\"includeMin\":false,\"includeMax\":true,\"label\":\"优秀\",\"status\":\"green\"}]},{\"id\":\"squat_1rm\",\"testId\":\"squat\",\"name\":\"深蹲模型估计 1RM / 体重\",\"unit\":\"kg/kg\",\"ability\":\"最大力量\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"bench_1rm\",\"testId\":\"bench\",\"name\":\"卧推模型估计 1RM / 体重\",\"unit\":\"kg/kg\",\"ability\":\"最大力量\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"deadlift_1rm\",\"testId\":\"deadlift\",\"name\":\"硬拉模型估计 1RM / 体重\",\"unit\":\"kg/kg\",\"ability\":\"最大力量\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"mas_speed\",\"testId\":\"mas\",\"name\":\"MAS\",\"unit\":\"km/h\",\"ability\":\"有氧代谢能力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"mss_speed\",\"testId\":\"mss\",\"name\":\"MSS\",\"unit\":\"km/h\",\"ability\":\"冲刺速度\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"},{\"id\":\"ift_shuttle\",\"testId\":\"ift\",\"name\":\"30–15 折返 VIFT\",\"unit\":\"km/h\",\"ability\":\"间歇耐力\",\"category\":\"performance\",\"direction\":\"higher\",\"target\":null,\"referenceEnabled\":true,\"ranges\":[],\"source\":\"自定义目标；第22章无此项目的匹配等级标准\",\"protocol\":\"请记录实际测试协议\"}],\"custom\":{},\"rules\":{\"asymAmber\":10,\"asymRed\":15,\"absoluteAmber\":80,\"scoreAmber\":80,\"scoreGreen\":100,\"fmsAmber\":1},\"lvp\":{\"squat\":{\"metric\":\"MV\",\"mvt\":0.3,\"zones\":[{\"min\":0.3,\"max\":0.5,\"label\":\"自定义 · 重力量区间\",\"color\":\"#e6eafa\"},{\"min\":0.5,\"max\":0.75,\"label\":\"自定义 · 中等负荷区间\",\"color\":\"#e7f3ed\"},{\"min\":0.75,\"max\":1.1,\"label\":\"自定义 · 快速发力区间\",\"color\":\"#fff0d7\"}]},\"bench\":{\"metric\":\"MV\",\"mvt\":0.17,\"zones\":[]},\"deadlift\":{\"metric\":\"MV\",\"mvt\":0.3,\"zones\":[]}},\"thresholds\":{\"lt1\":14,\"lt2\":17,\"method\":\"曲线转折点人工确认 · 示例\"},\"dsi\":{\"force\":2800,\"protocol\":\"IMTP\",\"definition\":\"gross\",\"confirmed\":true},\"axes\":{},\"protocol\":{\"cmj\":\"双手叉腰；飞行时间法 / 设备待记录\",\"sj\":\"双手叉腰；静止起跳；飞行时间法 / 设备待记录\",\"landmine\":\"20 kg 杠铃；峰值速度；设备与固定方式待记录\",\"mb\":\"3 kg 单手后手出拳式投掷；距离至第一落点\",\"squat\":\"自由杠深蹲 / 深度与设备待记录\",\"bench\":\"卧推 / 停顿、握距与设备待记录\",\"deadlift\":\"传统硬拉 / 起始方式与设备待记录\",\"lactate\":\"跑台；每级3 min；采样恢复1 min\"}}",
+      "origin": "本地"
+    }
+  }
+}

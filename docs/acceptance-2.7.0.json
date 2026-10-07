@@ -1,0 +1,26 @@
+{
+  "pass": true,
+  "version": "2.7.0",
+  "html": "MotionBench.html",
+  "sha256": "7f4fd9d2ba3d9ffd79dcbd7f8201390a104e376f91dbf3712521d3d60dc1f896",
+  "bytes": 4158311,
+  "reproducibleBuild": true,
+  "localServerSHA256": "33ac0fcefb7118d8c1e279edeaf8681f0d637dd504edc58cec02ed1ca56d3bf6",
+  "modelChecks": 148,
+  "aiUIWorkflows": 9,
+  "privacyDeliveryWorkflows": 5,
+  "localServerChecks": 9,
+  "isometricLayoutGroups": 4,
+  "widths": 5,
+  "liveAIScenarios": 5,
+  "liveAIModel": "gpt-6.1-sol",
+  "liveAITransport": "shipped-local-launcher",
+  "pdfPagesReviewed": 4,
+  "deliveryConfidence": "high",
+  "modelQualityConfidence": "medium",
+  "verificationLimits": [
+    "Limited synthetic real-model sample; generated advice requires coach review.",
+    "Relay file browser preflight remains blocked; shipped local launcher tested successfully.",
+    "Physical mobile devices, paper printing and other providers were not tested."
+  ]
+}
