@@ -37,6 +37,12 @@ def images(items):
         assert item["sha256"] == digest(ROOT / item["path"]), item["path"]
 
 version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+if version == "2.10.0":
+    subprocess.run([sys.executable, str(ROOT / "scripts/verify_v210.py")], cwd=ROOT, check=True)
+    sys.exit(0)
+if version == "2.9.0":
+    subprocess.run([sys.executable, str(ROOT / "scripts/verify_refinement.py")], cwd=ROOT, check=True)
+    sys.exit(0)
 unit = read("unit", "output/tests/unit-results.json")
 assert len(unit["suites"]) == (9 if version == "2.8.0" else 8) and all(s["exitCode"] == 0 for s in unit["suites"])
 checks = sum(s["checksPassed"] for s in unit["suites"])

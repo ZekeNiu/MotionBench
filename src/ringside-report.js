@@ -53,6 +53,7 @@
       { id: "book", label: "Laursen & Buchheit · HIIT（2019）", url: "https://studylib.net/doc/28478875/2019-hiit-science-pro-book.pdf", location: "Figures 1.5, 4.13–4.17; chapter 5 p117" },
       { id: "nsca", label: "Buchheit & Laursen · NSCA（2021）", url: "https://studylib.net/doc/27727279/test-source-nsca-essentials-of-sport-science-2021", location: "Chapter 4: Periodization and Programming for Team Sports" },
       { id: "rst", label: "HIIT Science · RST", url: "https://hiitscience.com/repeated-sprints-football-training/", location: "What’s the Science say? Type4–5" },
+      { id: "ratio-rst-passive", label: "Iaia et al. · Repeated-sprint recovery（2017）", url: "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0171462", location: "6 × 30 m sprints (approximately 5 s), 15 s or 30 s passive recovery" },
       { id: "ratio-long", label: "HIIT Science · Recovery", url: "https://hiitscience.com/hiit-recovery-insights/", location: "6×4 min; 2:1 work:recovery" },
       { id: "ratio-short", label: "Buchheit & Laursen · HIIT Part I", url: "https://martin-buchheit.net/wp-content/uploads/2018/01/buchheit-laursen-hit-solutions-to-the-programming-puzzle-part-i.pdf", location: "Section 3.1.2; 30 s/30 s and short-interval recovery" },
       { id: "ratio-short-2", label: "Almquist & Rønnestad · Short intervals", url: "https://hiitscience.com/optimizing-hiit-short-intervals/", location: "30 s work / 15 s recovery" },
@@ -62,11 +63,11 @@
     ],
     targets: ["① 有氧", "② 有氧＋神经肌肉", "③ 有氧＋无氧糖酵解", "④ 有氧＋无氧糖酵解＋神经肌肉", "⑤ 无氧糖酵解＋神经肌肉，有氧刺激相对有限", "⑥ 神经肌肉为主：速度、力量、爆发力（单独训练）"],
     formats: [
-      { id: "long", name: "长间隔 HIIT", targets: "③④", goals: ["有氧能力", "无氧糖酵解能力", "可含神经肌肉刺激"], work: "95–105% vVO₂max；80–90% VIFT", mas: [.95, 1.05], vift: [.8, .9], duration: "＞1分钟，通常2–5分钟", activeRecovery: true, recovery: "被动；或主动≤60% VIncTest／≤45% VIFT", rest: "被动1–3分钟；主动2–4分钟", ratios: [{ work: 240, rest: 120, sourceId: "ratio-long" }], sourceIds: ["book", "nsca"] },
-      { id: "short", name: "短间隔 HIIT", targets: "①②③④", goals: ["有氧能力", "可含无氧糖酵解或神经肌肉刺激"], work: "100–120% VIncTest；90–105% VIFT", mas: [1, 1.2], vift: [.9, 1.05], duration: "10–60秒", activeRecovery: true, recovery: "被动；或主动≤60% VIncTest／≤45% VIFT", rest: "10–60秒", ratios: [{ work: 30, rest: 30, sourceId: "ratio-short" }, { work: 30, rest: 15, sourceId: "ratio-short-2" }], sourceIds: ["book", "nsca"] },
-      { id: "rst", name: "反复冲刺 RST", targets: "④⑤", goals: ["无氧糖酵解能力", "神经肌肉刺激", "有氧刺激随方案变化"], work: "全力冲刺", sprint: true, duration: "3–10秒", activeRecovery: true, recovery: "被动；或主动≤60% VIncTest／≤45% VIFT", rest: "15–60秒", ratios: [{ work: 5, rest: 20, sourceId: "rst" }], sourceIds: ["nsca", "rst"] },
-      { id: "sit", name: "冲刺间歇 SIT", targets: "⑤", goals: ["无氧糖酵解能力", "神经肌肉刺激"], work: "全力冲刺", sprint: true, duration: "20–30秒", recovery: "被动", rest: "1–4分钟", ratios: [{ work: 30, rest: 240, sourceId: "ratio-sit" }], sourceIds: ["book"] },
-      { id: "game", name: "比赛型 HIIT", targets: "②③④", goals: ["有氧能力", "随规则加入无氧糖酵解或神经肌肉刺激"], work: "随比赛情境自主调节", duration: "2–5分钟", recovery: "被动", rest: "1.5–2分钟", ratios: [{ work: 240, rest: 120, context: "小场对抗", sourceId: "ratio-game" }], sourceIds: ["book", "nsca"] },
+      { id: "long", name: "长间隔 HIIT", targets: "③④", goals: ["有氧能力＋无氧能力", "有氧能力＋无氧能力＋神经肌肉刺激"], work: "95–105% MAS；80–90% VIFT", mas: [.95, 1.05], vift: [.8, .9], duration: "＞1分钟，通常2–5分钟", activeRecovery: true, recovery: "主动≤60% MAS／≤45% VIFT", rest: "主动2–4分钟；被动1–3分钟", ratios: [{ work: 240, rest: 120, sourceId: "ratio-long" }], sourceIds: ["book", "nsca"] },
+      { id: "short", name: "短间隔 HIIT", targets: "①②③④", goals: ["有氧能力", "有氧能力＋神经肌肉刺激", "有氧能力＋无氧能力", "有氧能力＋无氧能力＋神经肌肉刺激"], work: "100–120% MAS；90–105% VIFT", mas: [1, 1.2], vift: [.9, 1.05], duration: "10–60秒", activeRecovery: true, recovery: "主动≤60% MAS／≤45% VIFT；被动恢复", rest: "主动10–60秒；被动10–60秒", ratios: [{ work: 30, rest: 30, sourceId: "ratio-short" }, { work: 30, rest: 15, sourceId: "ratio-short-2" }], sourceIds: ["book", "nsca"] },
+      { id: "rst", name: "反复冲刺训练 RST", targets: "④⑤", goals: ["有氧能力＋无氧能力＋神经肌肉刺激", "无氧能力＋神经肌肉刺激"], work: "全力以赴", sprint: true, duration: "3–10秒", activeRecovery: true, recovery: "主动≤60% MAS／≤45% VIFT；被动恢复", rest: "主动15–60秒；被动15–60秒", ratios: [{ work: 5, rest: 20, sourceId: "rst" }, { work: 5, rest: 15, recovery: "被动恢复", sourceId: "ratio-rst-passive" }, { work: 5, rest: 30, recovery: "被动恢复", sourceId: "ratio-rst-passive" }], sourceIds: ["nsca", "rst", "ratio-rst-passive"] },
+      { id: "sit", name: "冲刺间歇训练 SIT", targets: "⑤", goals: ["无氧能力＋神经肌肉刺激"], work: "全力以赴", sprint: true, duration: "20–30秒", recovery: "被动恢复", rest: "1–4分钟被动恢复", ratios: [{ work: 30, rest: 240, sourceId: "ratio-sit" }], sourceIds: ["book"] },
+      { id: "game", name: "基于比赛 HIIT", targets: "②③④", goals: ["有氧能力＋神经肌肉刺激", "有氧能力＋无氧能力", "有氧能力＋无氧能力＋神经肌肉刺激"], work: "全力以赴", duration: "2–5分钟", recovery: "被动恢复", rest: "1.5–2分钟被动恢复", ratios: [{ work: 240, rest: 120, context: "小场对抗", sourceId: "ratio-game" }], sourceIds: ["book", "nsca"] },
     ],
     recovery: { mas: .6, vift: .45 },
     // Adopted reference grouping; exact cutpoints go to the middle group.
@@ -82,7 +83,7 @@
       mas = metrics.find((metric) => metric.id === "mas_speed"),
       mss = metrics.find((metric) => metric.id === "mss_speed"),
       ift = metrics.find((metric) => metric.id === iftId),
-      bases = { mas: mas?.value ?? null, vift: protocol === "shuttle" ? ift?.value ?? null : null },
+      bases = { mas: mas?.value ?? null, vift: ift?.value ?? null },
       inconsistent = !!(mas && mss && mss.value < mas.value),
       srr = mas && mss && !inconsistent ? mss.value / mas.value : null;
     const speeds = (ratios) => Object.entries(ratios).flatMap(([basis, range]) =>
@@ -130,7 +131,7 @@
       isoRadar: M.isoRadar(stats.isoAnalyses),
       diagnostics: [],
       projects: results,
-      groups: T.groups(results),
+      groups: T.groups(results, snapshot),
       speedReference: buildSpeedReference(snapshot, results),
     };
   }
@@ -147,7 +148,14 @@
     };
     const card = (title, value, note, status = "gray") =>
       `<article class="micro-card"><div class="micro-head"><h3>${title}</h3></div><div class="micro-value ${status}">${value}</div><p>${note}</p></article>`;
-    let html = "";
+    const athlete = record.athlete;
+    const details = [
+      ["专项", athlete.sport || "未填写"],
+      ["年龄", N(athlete.age) !== null ? F(athlete.age, 0) + " 岁" : "未填写"],
+      ["体重", positive(athlete.mass) ? F(athlete.mass, 1) + " kg" : "未填写"],
+      ["性别", athlete.sex || "未注明"],
+    ];
+    let html = `<article class="micro-card athlete-summary"><div class="micro-head"><h3>运动员信息</h3></div><div class="micro-value text">${E(athlete.name || "未命名运动员")}</div><dl>${details.map(([label, value]) => `<div><dt>${E(label)}</dt><dd>${E(value)}</dd></div>`).join("")}</dl></article>`;
     for (const [status, title] of [
       ["red", "重点关注"],
       ["amber", "关注"],
@@ -187,19 +195,10 @@
           : "待评价",
       advantage.items.length
         ? advantage.items
-            .map((x) => E(x.label || x.ability || x.name))
+            .map((x) => E(x.label || (x.ability ? T.abilityLabel(record, x.ability) : x.name)))
             .join("、")
         : E(advantage.reason || "暂无可判断项"),
       advantage.relative || !advantage.items.length ? "text gray" : "green",
-    );
-    html += card(
-      "测试情况概述",
-      s.progress.recorded + "<small> / " + s.progress.planned + " 项</small>",
-      E(record.athlete.date || "未填写日期") +
-        " · " +
-        (s.progress.missing.length
-          ? "计划中 " + s.progress.missing.length + " 项未录入"
-          : "计划项目均已有数据"),
     );
     return html;
   }
@@ -213,6 +212,11 @@
       return metrics;
     };
     const definition = (id) => state.definitions.find((d) => d.id === id);
+    const projectName = (id, defaultLabel) => {
+      const project = projects.find((test) => test.id === id);
+      const builtin = T.builtins.find((test) => test.id === id);
+      return project?.name && project.name !== builtin?.name ? project.name : defaultLabel || project?.name || id;
+    };
     const evaluationPill = (metric) => {
       const result = reportEvaluation(metric.value, metric, state);
       return ["未启用评价标准", "未设等级区间"].includes(result.label) ? "" : pill(result.label, result.status);
@@ -226,7 +230,7 @@
       if (!metric || metric.n < 3) return ["—", "—"];
       const label = prefix ? `<span class="stat-condition">${E(prefix)}</span>` : "";
       return [
-        `<div class="repeat-stat-value" data-repeat-stat="${E(metric.id)}">${label}<span>${F(metric.mean, 2)} ± ${F(metric.sd, 2)}</span><small class="metric-meta">n=${metric.n}</small></div>`,
+        `<div class="repeat-stat-value" data-repeat-stat="${E(metric.id)}">${label}<span>${F(metric.mean, 2)} ± ${F(metric.sd, 2)}</span></div>`,
         `<div class="repeat-stat-cv">${label}<span>${metric.cv === null ? "—" : F(metric.cv, 1) + "%"}</span></div>`,
       ];
     };
@@ -265,7 +269,7 @@
       );
       if (remainder.length) content += metricTable(remainder, true);
       if (includeRepeats) content += tests.map(repeatPanel).join("");
-      const abilities = [...new Set(tests.flatMap((test) => test.abilities))];
+      const abilities = [...new Set(tests.flatMap((test) => test.abilities))].map(key => T.abilityLabel(state, key));
       return `<article class="test-block" id="detail-${E(first.id)}" data-test-ids="${E(tests.map((t) => t.id).join(" "))}">${rest.map((t) => `<span class="test-anchor" id="detail-${E(t.id)}"></span>`).join("")}<div class="test-title"><div><h3>${E(title)}</h3>${meta ? `<p>${E(meta)}</p>` : ""}${abilities.length > 1 ? `<p class="ability-tags">${abilities.map(E).join(" · ")}</p>` : ""}</div></div>${content}</article>`;
     }
     const chart = (html, spec) => `<div class="chart-wrap${spec ? " adaptive-chart" : ""}"${spec ? ` data-chart-kind="${E(spec.kind)}" data-chart-input="${E(JSON.stringify(spec.args))}"` : ""}>${html}</div>`;
@@ -315,19 +319,25 @@
         }),
       );
       if (!fields.length) return "";
+      // One time point per raw row keeps long IMTP trials paginatable while
+      // retaining trial metadata and notes exactly once.
+      const displayRows = rows.flatMap((row, index) => test.id === "imtp" && row.timePoints.length
+        ? row.timePoints.map((point, pointIndex) => ({ row, index, point, pointIndex }))
+        : [{ row, index, point: null, pointIndex: 0 }]);
       return table(
         ["试次", ...fields.map(([, label]) => label)],
-        rows.map((row, index) => [
+        displayRows.map(({ row, index, point, pointIndex }) => [
           index + 1,
           ...fields.map(([key]) => {
+            if (pointIndex > 0 && key !== "timePoints") return "—";
             let value = key.startsWith("metrics.")
               ? row.metrics?.[key.slice(8)]
               : row[key];
             if (key === "timePoints")
-              return (value || [])
+              return (point ? [point] : value || [])
                 .map(
                   (p) =>
-                    `${F(p.timeMs, 0)} ms：力 ${F(p.force, 2)} N；RFD ${F(p.rfd, 2)} N/s`,
+                    `${E(p.timeMs === "" || p.timeMs == null ? "—" : p.timeMs)} ms：力 ${F(p.force, 2)} N；RFD ${F(p.rfd, 2)} N/s`,
                 )
                 .join("<br>");
             if (key === "region") value = M.REG[value] || value;
@@ -427,7 +437,7 @@
           : "";
         return block(
           tests,
-          "FMS 动作表现",
+          projectName("fms", "FMS 动作表现"),
           (r.fms?.complete
             ? "总分 " + r.fms.total + " / 21"
             : r.fms?.completed
@@ -534,7 +544,7 @@
         );
         return block(
           tests,
-          "等长力量",
+          projectName("iso", "等长力量"),
           "各关节的力量水平与双侧对称性；具体测试结果见表。",
           pair(V.isoRadar(radar), data, "iso-detail", { kind: "isoRadar", args: [radar] }) +
             supplemental(tests),
@@ -637,48 +647,47 @@
         ),
       imtp: (tests) => {
         const force = { ...r.forceTime, yAxis: state.views.imtp.yAxis };
-        const timedCell = (point, kind) => {
-          const d = tests[0].metrics.find(
-            (m) =>
-              m.id ===
-              "imtp_" + (kind === "force" ? "f" : "rfd") + point.timeMs,
-          );
-          if (d) consumedMetrics.add(d.id);
-          return (
-            F(point[kind], 2) +
-            (d
-              ? evaluationPill(d) +
-                (positive(d.target)
-                  ? `<small>目标 ${F(d.target, 2)} ${E(d.unit)}</small>`
-                  : "")
-              : "")
-          );
-        };
-        const timeRows = force?.timeRows || [];
-        const pointStat = (point, kind) => repeatedMetric("imtp_" + (kind === "force" ? "f" : "rfd") + point.timeMs);
-        const repeated = hasStatistics(timeRows.flatMap((point) => [pointStat(point, "force"), pointStat(point, "rfd")]));
-        const timed = repeated ? timeRows.flatMap((point) => ["force", "rfd"].map((kind) => [
-          F(point.timeMs, 0), kind === "force" ? "力 · N" : "0–t RFD · N/s", timedCell(point, kind), ...statisticCells(pointStat(point, kind)),
-        ])) : timeRows.map((point) => [F(point.timeMs, 0), timedCell(point, "force"), timedCell(point, "rfd")]);
-        const data =
-          metricTable(
-            tests[0].metrics.filter(
-              (d) => !T.isManualMetric(d) && !consumedMetrics.has(d.id),
-            ),
-            true,
-          ) +
-          (timed.length
-            ? table(
-                repeated ? ["时间 ms", "指标", "结果", "均值 ± SD", "CV"] : ["时间 ms", "力 N", "0–t RFD N/s"],
-                timed, [], repeated ? "imtp-time-results with-repeat-columns" : "imtp-time-results",
-              )
-            : "");
+        const metrics = consume(tests[0].metrics);
+        const resultRows = ["imtp_peak_force", "imtp_relative_force"]
+          .map((id) => metrics.find((metric) => metric.id === id)).filter(Boolean);
+        for (const point of force.timeRows || []) {
+          for (const kind of ["force", "rfd"]) {
+            if (N(point[kind]) === null) continue;
+            const id = "imtp_" + (kind === "force" ? "f" : "rfd") + point.timeMs;
+            const original = metrics.find((metric) => metric.id === id);
+            const standard = point[kind + "Standard"];
+            resultRows.push({
+              id, name: kind === "force" ? point.timeMs + " ms 力" : "0–" + point.timeMs + " ms RFD",
+              value: point[kind], unit: kind === "force" ? "N" : "N/s",
+              forcePercent: kind === "force" ? point.forcePercent : null,
+              evaluation: point[kind + "Evaluation"] || original?.evaluation,
+              target: standard ? (standard.referenceEnabled && standard.matched !== false ? standard.target : null) : original?.target,
+              targetUnit: standard?.unit || original?.unit || (kind === "force" ? "N" : "N/s"),
+              referenceEnabled: standard ? standard.referenceEnabled && standard.matched !== false : original?.referenceEnabled,
+            });
+          }
+        }
+        resultRows.push(...metrics.filter((metric) => T.isManualMetric(metric)));
+        const repeated = hasStatistics(resultRows.map((metric) => repeatedMetric(metric.id)));
+        const data = resultRows.length ? table(
+          ["指标", "结果", "单位", ...(repeated ? ["均值 ± SD", "CV"] : []), "评价", "目标"],
+          resultRows.map((metric) => {
+            const evaluation = metric.evaluation;
+            const classified = evaluation && !["未启用评价标准", "未设等级区间", "未启用标准"].includes(evaluation.label);
+            return [E(metric.name), F(metric.value, 2) + (N(metric.forcePercent) !== null ? `<small class="metric-meta">占峰值力 ${F(metric.forcePercent, 1)}%</small>` : ""), E(metric.unit),
+              ...(repeated ? statisticCells(repeatedMetric(metric.id)) : []),
+              classified ? pill(evaluation.label, evaluation.status) : "—",
+              metric.referenceEnabled && positive(metric.target) ? F(metric.target, 2) + " " + E(metric.targetUnit || metric.unit) : "—"];
+          }), resultRows.map((metric) => metric.id), "imtp-results" + (repeated ? " with-repeat-columns" : ""),
+        ) : "";
+        const notes = metrics.filter((metric) => state.customValues[metric.id]?.notes)
+          .map((metric) => `<p class="metric-note"><b>${E(metric.name)}</b>：${E(state.customValues[metric.id].notes)}</p>`).join("");
         return block(
           tests,
-          "IMTP",
+          projectName("imtp", "IMTP"),
           state.protocol.imtp,
           `<div class="chart-controls no-print"><label>纵轴 <select data-path="views.imtp.yAxis" aria-label="IMTP 纵轴"><option value="percent"${force.yAxis !== "force" ? " selected" : ""}>峰值百分比</option><option value="force"${force.yAxis === "force" ? " selected" : ""}>绝对力 N</option></select></label></div>` +
-          pair(V.forceTime(force), data, "imtp-detail", { kind: "forceTime", args: [force] }) + supplemental(tests),
+          pair(V.forceTime(force), data, "imtp-detail", { kind: "forceTime", args: [force] }) + notes,
         );
       },
       speed: (tests) => {
@@ -687,12 +696,11 @@
           statuses = Object.fromEntries(metrics.map((d) => [d.testId, d.evaluation.status]));
         const repeated = hasStatistics(metrics.map((d) => repeatedMetric(d.id)));
         const rows = metrics.map((d) => {
-          const method = d.testId === "ift"
-            ? (state.data.ift.protocol === "treadmill" ? "跑台改良版" : "折返版") +
-              (N(report.stats.representativeData.ift.partial) !== null ? " · 未完成级 " + N(report.stats.representativeData.ift.partial) + " 秒" : "")
-            : state.data[d.testId].method;
-          const name = d.testId === "ift" ? "30–15IFT · VIFT" : d.testId === "mas" ? "MAS 最大有氧速度" : "MSS 最大冲刺速度";
-          return [E(name) + `<small class="metric-meta">${E(method || "-")}</small>`,
+          const method = [state.data[d.testId].method,
+            d.testId === "ift" && N(report.stats.representativeData.ift.partial) !== null
+              ? "未完成级 " + N(report.stats.representativeData.ift.partial) + " 秒" : ""].filter(Boolean).join(" · ");
+          const name = projectName(d.testId);
+          return [E(name) + (method ? `<small class="metric-meta">${E(method)}</small>` : ""),
             d.referenceEnabled && positive(d.target) ? F(d.target, 2) + " m/s" : "-",
             ...(repeated ? statisticCells(repeatedMetric(d.id)) : []),
             evaluationPill(d)];
@@ -701,12 +709,12 @@
           `<strong data-speed-srr>${F(reference.srr, 2)}</strong>`,
           `<strong data-speed-type>${E(reference.athleteType)}</strong>`,
         ]], ["speed_ratio"], "speed-ratio-table") : "";
-        const speedLines = (items, upper = false) => items.length ? items.map((item) => {
-          const label = item.basis === "mas" ? "最大有氧速度（MAS）" : "折返终末速度（VIFT）",
-            ratio = item.ratios.map((p) => Math.round(p * 100)).join("–") + "%",
-            value = (upper ? "≤" : "") + item.values.map((value) => F(value, 2)).join("–") + " m/s";
-          return `<span class="speed-personal" data-speed-basis="${item.basis}"><span>${label}的${upper ? "≤" : ""}${ratio}</span><strong>${value}</strong></span>`;
-        }).join("") : '<span class="speed-personal">-</span>';
+        const speedLines = (items, ratios, upper = false) => Object.entries(ratios).map(([basis, range]) => {
+          const item = items.find((value) => value.basis === basis);
+          const label = basis === "mas" ? "最大有氧速度（MAS）" : "30-15VIFT",
+            ratio = range.map((p) => Math.round(p * 100)).join("–") + "%";
+          return `<span class="speed-personal" ${item ? `data-speed-basis="${basis}"` : `data-speed-reference="${basis}"`}><span>${label}的${upper ? "≤" : ""}${ratio}</span>${item ? `<strong>${upper ? "≤" : ""}${item.values.map((value) => F(value, 2)).join("–")} m/s</strong>` : ""}</span>`;
+        }).join("");
         const timing = (value) => value.split(/[，；]/).map((part) => `<span class="speed-time">${E(part)}</span>`).join("");
         const durationLabel = (seconds) => seconds >= 60 ? (seconds / 60) + "分钟" : seconds + "秒",
           commonDivisor = (a, b) => b ? commonDivisor(b, a % b) : a,
@@ -714,25 +722,28 @@
             const divisor = commonDivisor(ratio.work, ratio.rest);
             return `<span class="speed-work-rest"><strong>${ratio.work / divisor}:${ratio.rest / divisor}</strong>` +
               `<span>${durationLabel(ratio.work)}／${durationLabel(ratio.rest)}</span>` +
+              (ratio.recovery ? `<span>${E(ratio.recovery)}</span>` : "") +
               (ratio.context ? `<span>${E(ratio.context)}</span>` : "") + "</span>";
           }).join("");
         const trainingRows = reference.rows.map((row) => [
           `<strong>${E(row.name)}</strong>`,
           row.goals.map((goal) => `<span class="speed-goal">${E(goal)}</span>`).join(""),
-          row.mas ? speedLines(row.workSpeeds) : `<span>${E(row.work)}</span>` +
+          row.mas ? speedLines(row.workSpeeds, { mas: row.mas, vift: row.vift }) : `<span>${E(row.work)}</span>` +
             (row.sprint && reference.sprintSpeed !== null ? `<span class="speed-personal" data-speed-basis="mss"><span>实测最大冲刺速度（MSS）</span><strong>${F(reference.sprintSpeed, 2)} m/s</strong></span>` : ""),
           timing(row.duration),
-          (row.activeRecovery ? `<span>被动休息；或主动恢复</span>` + speedLines(row.recoverySpeeds, true) : "被动休息"),
+          (row.activeRecovery ? `<div class="speed-recovery-option"><span>主动恢复</span>` + speedLines(row.recoverySpeeds, { mas: [SPEED_GUIDE.recovery.mas], vift: [SPEED_GUIDE.recovery.vift] }, true) + `</div><div class="speed-recovery-option">被动恢复</div>` : E(row.recovery)),
           timing(row.rest),
           restRatios(row.ratios),
         ]);
         const training = reference.available ? `<section class="speed-training"><h4 class="subheading">训练速度参考</h4>` +
-          table(["形式", "生理目标", "训练速度", "做功时间", "恢复方式与速度", "恢复时间", "做功∶休息参考"], trainingRows,
+          table(["形式", "生理目标", "训练速度", "做功时间", "恢复方式与速度", "恢复时间", "做功∶休息示例"], trainingRows,
             reference.rows.map((row) => ({ id: "hiit-" + row.id })), "speed-reference-table") +
           `</section>` : "";
-        let body = metrics.length ? pair(V.speed({ mas: v.mas_speed, mss: v.mss_speed, ift: v.ift_speed, statuses }),
+        const speedChart = { mas: v.mas_speed, mss: v.mss_speed, ift: v.ift_speed, statuses,
+          labels: Object.fromEntries(tests.map(test => [test.id, projectName(test.id, test.id === "ift" ? "30-15VIFT" : test.id.toUpperCase())])) };
+        let body = metrics.length ? pair(V.speed(speedChart),
           table(["指标／测试方法", "目标", ...(repeated ? ["均值 ± SD · m/s", "CV"] : []), "评价"], rows, metrics.map((d) => d.id), "speed-test-info" + (repeated ? " with-repeat-columns" : "")) + ratioTable,
-          "speed-detail", { kind: "speed", args: [{ mas: v.mas_speed, mss: v.mss_speed, ift: v.ift_speed, statuses }] }) : "";
+          "speed-detail", { kind: "speed", args: [speedChart] }) : "";
         const issues = s.qualityIssues.filter(
           (x) => x.id === "asr_inconsistent",
         );
@@ -743,7 +754,7 @@
             "</p>";
         return block(
           tests,
-          metrics.length ? metrics.map((d) => d.testId === "ift" ? "30–15IFT" : d.testId.toUpperCase()).join(" / ") : tests.map((test) => test.name).join(" / "),
+          metrics.length ? metrics.map((d) => projectName(d.testId, d.testId === "ift" ? "30-15VIFT" : d.testId.toUpperCase())).join(" / ") : tests.map((test) => test.name).join(" / "),
           "",
           body + training + supplemental(tests),
         );
@@ -751,7 +762,7 @@
       lactate: (tests) =>
         block(
           tests,
-          "递增负荷测试：乳酸与心率",
+          projectName("lactate", "递增负荷测试：乳酸与心率"),
           state.protocol.lactate,
           pair(
             V.lactate(r.lactate || [], {
@@ -790,9 +801,9 @@
             ? measured.filter((t) => t.renderer === "jumps")
             : [test];
       peers.forEach((t) => consumed.add(t.id));
-      const label =
-          test.category === "screen" ? "筛查" : test.renderer === "speed" ? "速度与储备" : test.primaryAbility || "未分类",
-        id = test.category === "screen" ? "screen" : T.groupId(label);
+      const key = test.primaryAbility || "未分类",
+        label = test.category === "screen" ? "筛查" : test.renderer === "speed" ? "速度与储备" : T.abilityLabel(state, key),
+        id = test.category === "screen" ? "screen" : T.groupId(test.renderer === "speed" ? "速度与储备" : key);
       if (!grouped.has(id))
         grouped.set(id, { id, label, category: test.category, html: "" });
       try {
@@ -824,7 +835,7 @@
         for (const test of lvpTests) {
           const extras = supplemental([test]);
           performance += extras
-            ? block([test], test.name, test.abilities.join(" · "), extras, false)
+            ? block([test], test.name, test.abilities.map(key => T.abilityLabel(state, key)).join(" · "), extras, false)
             : `<span class="test-anchor" id="detail-${E(test.id)}" data-test-ids="${E(test.id)}"></span>`;
         }
         performance += "</div>";
@@ -851,7 +862,9 @@
         ids = upper
           ? ["bench", "landmineR", "landmineL"]
           : ["squat", "deadlift"],
-        all = s.lvpSeries.filter((x) => ids.includes(x.id)),
+        all = s.lvpSeries.filter((x) => ids.includes(x.id)).map(series => ({ ...series,
+          label: projectName(series.testId, series.label) +
+            (series.testId === "landmine" && projectName(series.testId, series.label) !== series.label ? " " + series.id.slice(-1) : "") })),
         view = state.views[key];
       let selected = all.filter(
         (x) => view.selected.includes(x.id) && x.points.length,

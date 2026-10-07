@@ -45,6 +45,18 @@
     .ringside-pdf-document .micro-value{font-size:26px!important;line-height:1.35!important;}
     .ringside-pdf-document .micro-value.text{font-size:14px!important;}
     .ringside-pdf-document .micro-card p,.ringside-pdf-document .micro-card a{font-size:11px!important;line-height:1.65!important;color:#636b76!important;}
+    .ringside-pdf-document .athlete-summary .micro-value{font-size:16px!important;line-height:1.4!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .athlete-summary dl{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px 7px!important;margin:7px 0 0!important;}
+    .ringside-pdf-document .athlete-summary dt{font-size:9px!important;color:#636b76!important;line-height:1.4!important;}
+    .ringside-pdf-document .athlete-summary dd{font-size:11px!important;line-height:1.45!important;margin:0!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .stat-side,.ringside-pdf-document .stat-load{min-height:32px;}
+    .ringside-pdf-document .with-repeat-columns td{padding-block:6px!important;}
+    .ringside-pdf-document .imtp-results{table-layout:fixed!important;width:100%!important;}
+    .ringside-pdf-document .imtp-results .metric-meta{font-size:9px!important;line-height:1.45!important;}
+    .ringside-pdf-document .speed-reference-table td{font-size:10px!important;line-height:1.5!important;}
+    .ringside-pdf-document .speed-reference-table .speed-goal{margin-bottom:6px!important;}
+    .ringside-pdf-document .speed-reference-table .speed-time{white-space:normal!important;}
+    .ringside-pdf-document .speed-reference-table .speed-personal>span,.ringside-pdf-document .speed-reference-table .speed-work-rest>span{font-size:9px!important;}
     .ringside-pdf-document .summary-grid{display:flex!important;gap:12px!important;align-items:stretch!important;}
     .ringside-pdf-document .summary-grid>.card{width:calc(50% - 6px)!important;flex:1!important;min-width:0!important;}
     .ringside-pdf-document .card-head{display:block!important;padding:12px 12px 6px!important;}
@@ -52,7 +64,7 @@
     .ringside-pdf-document .card-head p{font-size:11px!important;line-height:1.6!important;}
     .ringside-pdf-document .screen-layout{display:flex!important;align-items:center!important;gap:6px!important;min-height:0!important;height:auto!important;padding:5px 9px 8px!important;}
     .ringside-pdf-document .body-art{width:53%!important;flex:0 0 53%!important;min-width:0!important;}
-    .ringside-pdf-document .body-art svg,.ringside-pdf-document .body-art img{width:100%!important;height:285px!important;max-height:none!important;object-fit:contain!important;}
+    .ringside-pdf-document .body-art svg,.ringside-pdf-document .body-art img{width:100%!important;height:315px!important;max-height:none!important;object-fit:contain!important;}
     .ringside-pdf-document .body-art img{width:auto!important;max-width:100%!important;margin:0 auto!important;}
     .ringside-pdf-document .screen-items{width:47%!important;flex:1!important;padding:0!important;gap:7px!important;}
     .ringside-pdf-document .screen-item{padding:0 0 7px!important;}
@@ -72,14 +84,17 @@
     .ringside-pdf-document .chart-wrap>img,.ringside-pdf-document .iso-charts>img{display:block!important;margin:0 auto!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
-    .ringside-pdf-document .iso-detail[data-pdf-iso-layout="stacked"]{display:block!important;}
-    .ringside-pdf-document .iso-detail[data-pdf-iso-layout="stacked"]>.chart-wrap{margin-bottom:12px!important;}
+    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail){display:block!important;}
+    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail)>.chart-wrap{margin-bottom:12px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:auto!important;min-width:0!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th{width:auto!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th:nth-child(4){width:1%!important;min-width:38px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th,.ringside-pdf-document .iso-results.with-repeat-columns td{padding-inline:4px!important;overflow-wrap:normal!important;word-break:normal!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns td:first-child{overflow-wrap:anywhere!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type{white-space:normal!important;}
+    .ringside-pdf-document .imtp-results{table-layout:auto!important;min-width:0!important;}
+    .ringside-pdf-document .imtp-results th{width:auto!important;}
+    .ringside-pdf-document .imtp-results th,.ringside-pdf-document .imtp-results td{padding-inline:3px!important;overflow-wrap:normal!important;word-break:normal!important;}
     .ringside-pdf-document [data-pdf-pair]>*{min-width:0!important;}
     .ringside-pdf-document [data-pdf-pair] .chart-wrap{width:100%!important;padding:0!important;}
     .ringside-pdf-document [data-pdf-pair] svg{max-height:340px!important;}
@@ -150,6 +165,11 @@
         ".no-print,.sidebar,.app-sidebar,.modal-backdrop,.editor-toolbar,.editor-meta,.selector-bar,.section-nav,.hero-actions,.footer,.btn,.lvp-controls,.multi-select,.ai-menu,button,input,select,textarea,script,iframe,object,embed,template,[data-pdf-ignore]",
       )
       .forEach((node) => node.remove());
+    // Empty report sections have no results to paginate. Keep all test blocks
+    // and the separate LVP cards, including partial measurements.
+    clone.querySelectorAll(".details-group").forEach((node) => {
+      if (node.querySelector(".empty") && !node.querySelector(".test-block,.lvp-card")) node.remove();
+    });
     const rawTrials = [...clone.querySelectorAll("[data-raw-trials]")];
     if (rawTrials.length) {
       const appendix = document.createElement("section");
@@ -344,16 +364,16 @@
     );
   }
 
-  // Measure only the isometric title and primary results on a fresh print page.
+  // Decide one layout for each complete primary test on a fresh print page.
   // Raw trials have already moved to the appendix; the live report is untouched.
-  function layoutIsometricPrint(source, stage) {
+  function layoutPrimaryPairs(source, stage) {
     const layouts = [];
     const leading = [];
     let pending = [];
     for (const block of collectBlocks(source)) {
       if (block.keepWithNext) pending.push(block.element);
       else {
-        if (block.element.matches(".iso-detail"))
+        if (block.element.matches(".iso-detail,.imtp-detail"))
           leading.push(pending.filter(node => !node.matches(".test-title")));
         pending = [];
       }
@@ -365,33 +385,28 @@
     try {
       const capacity = body.getBoundingClientRect().height -
         parseFloat(root.getComputedStyle(body).paddingTop) - 2;
-      for (const pair of source.querySelectorAll(".iso-detail[data-pdf-pair]")) {
+      for (const pair of source.querySelectorAll(".iso-detail[data-pdf-pair],.imtp-detail[data-pdf-pair]")) {
         // Section headings that have not yet accompanied any content must fit
         // on this page too, just as makePaginator's pending headings do.
         const headings = leading[layouts.length] || [];
         headings.forEach(node => body.append(node.cloneNode(true)));
         const probe = element("div", "ringside-pdf-test-group");
-        const title = pair.closest(".test-block")?.querySelector(":scope > .test-title");
-        if (title) {
-          const copy = title.cloneNode(true);
-          copy.classList.add("ringside-pdf-block");
-          probe.append(copy);
-        }
-        const copy = pair.cloneNode(true);
-        copy.classList.add("ringside-pdf-block");
-        probe.append(copy);
+        const test = pair.closest(".test-block");
+        collectBlocks(test).forEach(block => probe.append(block.element));
         body.append(probe);
         root.RingsideReport.layoutCharts(probe, { print: true });
         const mainHeight = probe.getBoundingClientRect().height;
         const height = probe.getBoundingClientRect().bottom - body.firstElementChild.getBoundingClientRect().top;
         const mode = height <= capacity ? "side-by-side" : "stacked";
-        pair.dataset.pdfIsoLayout = mode;
-        pair.querySelector(".chart-wrap").dataset.pdfIsoLayout = mode;
-        pair.querySelector(".iso-results").dataset.pdfIsoLayout = mode;
+        const testId = pair.matches(".iso-detail") ? "iso" : "imtp";
+        for (const node of [pair, pair.querySelector(".chart-wrap"), pair.querySelector(".iso-results,.imtp-results")].filter(Boolean)) {
+          node.dataset.pdfPrimaryLayout = mode;
+          node.dataset[testId === "iso" ? "pdfIsoLayout" : "pdfImtpLayout"] = mode;
+        }
         // A long result uses independent chart/table blocks and normal table
         // continuation, rather than the side-by-side pair's split-column path.
         if (mode === "stacked") pair.removeAttribute("data-pdf-pair");
-        layouts.push({ mode, sideBySideHeight: height, mainHeight, leadingHeadings: headings.length, capacity });
+        layouts.push({ testId, mode, sideBySideHeight: height, mainHeight, leadingHeadings: headings.length, capacity });
         body.replaceChildren();
       }
     } finally {
@@ -400,8 +415,8 @@
     return layouts;
   }
 
-  function freezeIsometricColumns(source) {
-    for (const table of source.querySelectorAll(".iso-results.with-repeat-columns")) {
+  function freezePrimaryColumns(source) {
+    for (const table of source.querySelectorAll(".iso-results.with-repeat-columns,.imtp-results")) {
       const widths = [...table.tHead.rows[0].cells].map(cell => cell.getBoundingClientRect().width);
       const columns = element("colgroup");
       widths.forEach(width => {
@@ -1051,7 +1066,7 @@
         return true;
       }
       let measured = measurements();
-      const isometricPair = wrapper.querySelector('.iso-detail[data-pdf-iso-layout="side-by-side"]');
+      const primaryPair = wrapper.querySelector('[data-pdf-pair][data-pdf-primary-layout="side-by-side"]');
       // Only groups that fit a full page are kept together. Long tables and
       // tall multi-panel tests retain the existing per-block pagination.
       if (measured.groupHeight <= capacity) {
@@ -1059,7 +1074,7 @@
         // empty page for a short result. Each chart retains at least 85% of
         // its initial display size; its source pixels and axis text stay intact.
         if (
-          !isometricPair && measured.currentOverflow > 0 &&
+          !primaryPair && measured.currentOverflow > 0 &&
           measured.previousImages.length &&
           reduceCharts(
             [...measured.previousImages, ...measured.images],
@@ -1069,7 +1084,7 @@
           measured = measurements();
         }
         const overflow = measured.combinedHeight - capacity;
-        if (!isometricPair && overflow > 0 && reduceCharts(measured.images, overflow + 4))
+        if (!primaryPair && overflow > 0 && reduceCharts(measured.images, overflow + 4))
           measured = measurements();
         if (measured.combinedHeight <= capacity && moveIfNeeded(wrapper, true))
           return;
@@ -1135,9 +1150,9 @@
       progress(options.onProgress, "prepare", 0, 0, 0);
       await document.fonts.ready;
       await readyImages(source);
-      const isometricLayouts = layoutIsometricPrint(source, stage);
+      const primaryLayouts = layoutPrimaryPairs(source, stage);
       root.RingsideReport.layoutCharts(source, { print: true });
-      freezeIsometricColumns(source);
+      freezePrimaryColumns(source);
       await freezeCharts(source);
       const sourceChartCount = source.querySelectorAll(
         "img[data-pdf-chart-index]",
@@ -1180,7 +1195,8 @@
         sourceChartCount,
         pairTexts,
       );
-      lastDiagnostics.isometricLayouts = isometricLayouts;
+      lastDiagnostics.isometricLayouts = primaryLayouts.filter(layout => layout.testId === "iso");
+      lastDiagnostics.imtpLayouts = primaryLayouts.filter(layout => layout.testId === "imtp");
       lastDiagnostics.narrativePages = pages.flatMap((page, index) => page.querySelector('[data-pdf-narrative]') ? [index + 1] : []);
       if (
         lastDiagnostics.missingRows.length ||

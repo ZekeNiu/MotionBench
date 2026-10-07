@@ -112,7 +112,8 @@ test("raw grouped trials retain missing conditions, zero counts and original ord
 });
 test("IMTP time points count independently, raw RFD-only values survive and modes do not affect SD", () => {
   const r=M.defaults();r.data.imtp=[0,1,2].map(i=>({id:"f"+i,peakForce:2000+i*100,baselineForce:100,timePoints:[{id:"t"+i,timeMs:100,rfd:4000+i*1000},...(i===2?[]:[{id:"u"+i,timeMs:200,force:1000}])]}));
-  const g=stat(r,"imtp");const f=g.statistics.find(x=>x.id==="imtp_f100");near(f.mean,600);near(f.sd,100);assert.equal(f.n,3);
+  const g=stat(r,"imtp");const f=g.statistics.find(x=>x.id==="imtp_f100");assert.equal(f.mean,null);assert.equal(f.sd,null);assert.equal(f.n,0);
+  assert.equal(M.forceTime(r).points.find(x=>x.timeMs===100).force,700);
   assert.equal(g.statistics.find(x=>x.id==="imtp_f200").n,2);
   r.mode="mean"; assert.deepEqual(copy(stat(r,"imtp").statistics),copy(g.statistics));
   r.data.imtp=[{id:"partial",timePoints:[{id:"pt",timeMs:100,rfd:4321}]}];
@@ -147,7 +148,7 @@ test("all demo statistics appear exactly once inside result rows, including isom
   assert.doesNotMatch(html,/repeat-stat-table|repeat-statistics|力来源|有效次数 力\/RFD/);
   const iso=html.match(/<article[^>]+id="detail-iso"[\s\S]*?<\/article>/)[0];
   assert.doesNotMatch(iso,/中线/);assert.match(iso,/iso-results with-repeat-columns/);
-  assert.match(html,/imtp-time-results with-repeat-columns/);
+  assert.match(html,/imtp-results with-repeat-columns/);
   assert.match(html,/lvp-results with-repeat-columns/);
 });
 test("result columns retain all-zero SD and CV unavailable, with missing values counted per metric", () => {

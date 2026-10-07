@@ -24,7 +24,7 @@
     <aside id="sidebar" class="sidebar no-print" aria-label="测试工作台导航">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" width="36" height="36"><path d="M8 28V13l9 12 7-17 8 20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <div>MotionBench<small>PERFORMANCE ASSESSMENT</small></div>
+        <button class="brand-home" onclick="App.showReport()" aria-label="返回报告首页">MotionBench<small>返回报告首页</small></button>
         <button
           class="icon-btn sidebar-close"
           onclick="App.toggleSidebar(false)"
@@ -33,39 +33,23 @@
           <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 6l-6 6 6 6"/></svg>
         </button>
       </div>
-      <div class="workspace-switch">
-        <button id="reportWorkspaceButton" class="sidebar-action" onclick="App.showReport()">报告工作台</button>
-        <button id="managementWorkspaceButton" class="sidebar-action" onclick="App.openManagement()">管理中心</button>
-      </div>
-      <div id="reportControls" class="sidebar-selection">
-        <label class="sr-only" for="reportAthleteSearch">搜索报告运动员</label><input id="reportAthleteSearch" type="search" placeholder="搜索姓名或专项" oninput="App.renderSelectors()">
-        <label class="sr-only" for="reportGroupFilter">按队伍选择报告</label><select id="reportGroupFilter" onchange="App.renderSelectors()"><option value="">全部队伍</option></select>
-        <div class="sidebar-field">
-          <label for="athleteSelect">运动员</label
-          ><select
-            id="athleteSelect"
-            onchange="App.selectAthlete(this.value)"
-          ></select>
-        </div>
-        <div class="sidebar-field">
-          <label for="recordSelect">测试记录</label
-          ><select
-            id="recordSelect"
-            onchange="App.selectRecord(this.value)"
-          ></select>
-        </div>
-        <span id="sampleLabel" class="pill hidden">示例运动员</span>
-        <button id="editButton" class="btn primary sidebar-edit" onclick="App.openEntry()">编辑本次测试</button>
-      </div>
       <div class="sidebar-directory">
-        <div id="directoryLabel" class="nav-label">报告目录</div>
-        <nav id="reportNav" class="report-nav" aria-label="报告章节"></nav>
-        <nav id="entryNav" class="entry-nav" aria-label="编辑项目" hidden></nav>
-        <nav id="settingsTabs" class="report-nav" aria-label="设置导航" hidden></nav>
+        <nav id="globalNav" class="global-nav" aria-label="功能导航">
+          <span class="nav-label">日常使用</span>
+          <button data-workspace-nav="entry" onclick="App.startDataEntry()">数据录入</button>
+          <button data-workspace-nav="records" onclick="App.openManagement('records')">测试记录</button>
+          <span class="nav-label">人员管理</span>
+          <button data-workspace-nav="athletes" onclick="App.openManagement('athletes')">运动员管理</button>
+          <button data-workspace-nav="teams" onclick="App.openManagement('teams')">队伍管理</button>
+          <span class="nav-label">测试配置</span>
+          <button data-workspace-nav="plans" onclick="App.openManagement('plans')">测试方案</button>
+          <button data-workspace-nav="metrics" onclick="App.openManagement('metrics')">指标库</button>
+          <button data-workspace-nav="profiles" onclick="App.openManagement('profiles')">评价方案</button>
+        </nav>
       </div>
       <div class="sidebar-bottom">
         <button class="sidebar-action" data-settings-open="app" onclick="App.openSettings('ai')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h14"/><path d="M9 4v4M15 10v4M11 16v4"/></svg></span> 应用设置</button>
-        <button class="sidebar-action" onclick="App.saveMenu()">
+        <button class="sidebar-action" data-workspace-nav="backup" onclick="App.saveMenu()">
           <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 14v6h16v-6"/></svg></span> 备份与恢复
         </button>
         <p>数据保留在本机浏览器</p>
@@ -87,14 +71,36 @@
           ><span class="context-divider">/</span
           ><span id="recordContext" class="record-context"></span>
         </div>
-        <div id="reportActions" class="report-actions" hidden><button class="btn small" onclick="App.downloadHTML()">可编辑 HTML</button><button class="btn small" onclick="App.downloadJSON()">测试 JSON</button><button class="btn small primary" data-pdf-action onclick="App.downloadPDF()">导出当前报告 PDF</button></div>
         <div class="toolbar">
           <button id="workspaceBack" class="btn" onclick="App.back()" hidden>
             返回报告</button>
         </div>
       </header>
+      <section id="reportToolbar" class="report-toolbar no-print" aria-label="选择与导出本次测试">
+      <div id="reportControls" class="report-selection">
+        <label class="sr-only" for="reportAthleteSearch">搜索报告运动员</label><input id="reportAthleteSearch" type="search" placeholder="搜索姓名或专项" oninput="App.renderSelectors()">
+        <label class="sr-only" for="reportGroupFilter">按队伍选择报告</label><select id="reportGroupFilter" onchange="App.renderSelectors()"><option value="">全部队伍</option></select>
+        <div class="sidebar-field">
+          <label for="athleteSelect">运动员</label
+          ><select
+            id="athleteSelect"
+            onchange="App.selectAthlete(this.value)"
+          ></select>
+        </div>
+        <div class="sidebar-field">
+          <label for="recordSelect">测试记录</label
+          ><select
+            id="recordSelect"
+            onchange="App.selectRecord(this.value)"
+          ></select>
+        </div>
+        <span id="sampleLabel" class="pill hidden">示例运动员</span>
+        <button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button>
+      </div>
+        <div id="reportActions" class="report-actions" hidden><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">本次测试 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">本次测试数据 JSON</button></div></details></div>
+      </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
-      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>报告工作台</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.openManagement('athletes')">管理运动员与测试</button><button class="btn" onclick="App.loadDemo()">载入示例</button></div></section>
+      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button><button class="btn" onclick="App.loadDemo()">载入示例</button></div></section>
       <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
         <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
         <div class="row">
@@ -107,8 +113,8 @@
       <main id="reportView" class="wrap report-view">
         <div class="hero">
           <div>
-            <h1>运动表现与损伤风险筛查</h1>
-            <div id="athleteMeta" class="hero-sub"></div><p id="reportEvaluationLabel" class="note"></p>
+            <h1 id="reportTitle">运动表现与损伤风险筛查</h1>
+            <div id="athleteMeta" class="hero-sub"></div>
             <p id="migrationReviewNotice" class="notice" hidden></p>
           </div>
           <div class="hero-status no-print">
@@ -144,7 +150,7 @@
                 <div class="legend">
                   <span><i class="dot red"></i>重点关注</span
                   ><span><i class="dot amber"></i>关注</span
-                  ><span><i class="dot green"></i>已测未触发</span
+                  ><span><i class="dot green"></i>优秀</span
                   ><span><i class="dot gray"></i>未测</span>
                 </div>
               </div>
@@ -209,11 +215,13 @@
         hidden
       >
         <div class="workspace-heading">
-          <h1>编辑本次测试</h1>
+          <h1>本次数据录入</h1>
+          <div id="entrySteps" class="workflow-steps" aria-label="录入步骤"></div>
           <p>按本次所选项目依次录入，有效修改自动保留。</p>
           <div id="entryIdentity" class="entry-identity"></div>
           <h2 id="entryProjectTitle" class="entry-project-title"></h2>
         </div>
+        <nav id="entryNav" class="entry-nav entry-project-nav" aria-label="本次项目"></nav>
         <div
           id="entryProblemSummary"
           class="entry-problem-summary"
@@ -307,7 +315,7 @@
             <div class="entry-step-actions">
               <button id="entryPrevious" class="btn" onclick="App.previousEntry()">上一项</button>
               <button id="entryNext" class="btn" onclick="App.nextEntry()">下一项</button>
-              <button class="btn primary" onclick="App.showReport()">查看报告</button>
+              <button id="entryFinish" class="btn primary" onclick="App.finishEntry()">核对并查看报告</button>
             </div>
           </footer>
         </article>
@@ -322,24 +330,17 @@
           <h1 id="settingsTitle">应用设置</h1>
           <p id="settingsIntro">分析服务与参考资料。</p>
         </div>
+        <nav id="settingsTabs" class="profile-tabs" aria-label="设置导航"></nav>
         <article
           id="settingsContent"
           class="form-card settings-content"
         ></article>
       </section>
       <section id="managementView" class="wrap workspace-view management-view" hidden aria-label="管理中心"><div id="managementContent"></div></section>
-    </div>
-    <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
-    <div
-      class="modal-backdrop"
-      id="newAthleteModal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="newAthleteTitle"
-    >
-      <div class="modal creation-modal">
+    <section id="creationView" class="wrap workspace-view" hidden aria-labelledby="newAthleteTitle"><div id="newAthleteModal">
+      <div class="form-card creation-page">
         <header class="modal-head">
-          <h2 id="newAthleteTitle">新建运动员</h2>
+          <h1 id="newAthleteTitle">数据录入</h1>
           <button
             class="close"
             aria-label="取消创建"
@@ -350,8 +351,13 @@
         </header>
         <form id="creationForm" class="modal-form" onsubmit="event.preventDefault();App.submitCreation()">
           <div class="settings-content creation-content">
+            <div id="creationSteps" class="workflow-steps" aria-label="录入步骤"></div>
+            <div id="creationSelectStep">
+              <div class="creation-choice"><label><input type="radio" name="creationAthleteMode" value="existing" checked onchange="App.creationAthleteMode(this.value)">选择已有运动员</label><label><input type="radio" name="creationAthleteMode" value="new" onchange="App.creationAthleteMode(this.value)">新建运动员档案</label></div>
+              <div id="creationExistingFields" class="form-grid"><label class="field"><span>搜索运动员</span><input id="creationAthleteSearch" type="search" placeholder="姓名、专项或编号" oninput="App.renderCreationAthletes()"></label><label class="field"><span>运动员</span><select id="creationAthleteSelect" onchange="App.creationChooseAthlete(this.value)"></select></label></div>
+            </div>
             <div id="creationProfileStep">
-              <p class="creation-step-label">1 / 2 · 运动员资料</p>
+              <p class="creation-step-label">新建档案，开始录入时一并保存</p>
               <div class="form-grid creation-profile-grid">
                 <label class="field wide" for="newAthleteName"><span>姓名 / 编号 <span class="required-mark">必填</span></span>
                   <input id="newAthleteName" autocomplete="off" maxlength="100" aria-required="true" placeholder="填写姓名或运动员编号" />
@@ -370,9 +376,12 @@
                 </label>
               </div>
             </div>
-            <div id="creationTestStep" hidden><label class="field"><span>评价方案</span><select id="creationEvaluationProfile"></select></label>
-              <p class="creation-step-label">2 / 2 · 本次测试</p>
+            <div id="creationTestStep" hidden>
+              <label class="field"><span>测试方案</span><select id="creationTestPlan" onchange="App.selectCreationPlan(this.value)"></select></label>
+              <label class="field"><span>评价方案</span><select id="creationEvaluationProfile"></select></label>
+              <p class="creation-step-label">本次测试</p>
               <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" /></label>
+              <div class="form-grid"><label class="field"><span>本次年龄</span><input id="creationAge" type="number" min="0" max="100" step="any"></label><label class="field"><span>本次体重 kg</span><input id="creationMass" type="number" min="0" step="any"></label><label class="field"><span>本次身高 cm</span><input id="creationHeight" type="number" min="0" step="any"></label></div>
               <p id="creationSource" class="notice"></p>
               <div class="creation-project-heading"><h3>选择本次测试项目</h3><span id="creationCount" class="plan-count" aria-live="polite"></span></div>
               <div id="creationProjects"></div>
@@ -382,14 +391,16 @@
           <footer class="modal-foot creation-foot">
             <button type="button" class="btn" onclick="App.close('newAthleteModal')">取消</button>
             <div class="row">
-              <button id="creationBack" type="button" class="btn" onclick="App.creationBack()" hidden>返回资料</button>
+              <button id="creationBack" type="button" class="btn" onclick="App.creationBack()" hidden>上一步：选择运动员</button>
               <button id="creationNext" type="button" class="btn primary" onclick="App.creationNext()">下一步：选择测试</button>
               <button id="creationSubmit" type="submit" class="btn primary" hidden>创建并开始录入</button>
             </div>
           </footer>
         </form>
       </div>
+    </div></section>
     </div>
+    <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
     <datalist id="sportOptions"><option value="田径"></option><option value="篮球"></option><option value="足球"></option><option value="排球"></option><option value="游泳"></option><option value="网球"></option><option value="羽毛球"></option><option value="举重"></option><option value="拳击"></option><option value="散打"></option><option value="跆拳道"></option></datalist>
     <div class="modal-backdrop" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
       <div class="modal">
@@ -500,6 +511,7 @@
     />
     <div id="toast" role="status"></div>
     <div id="tooltip" role="tooltip"></div>
+    <div id="bodyRegionTooltip" class="body-region-tooltip no-print" role="tooltip" hidden tabindex="-1"></div>
     <script id="embedded-data" type="application/json">
       null
     </script>

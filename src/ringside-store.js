@@ -12,8 +12,25 @@
   }
   function athleteMetadata(a) { const {records, ...metadata}=a; return clone(metadata); }
   function mergeCatalog(local, incoming) {
+    const groups = root.RingsideTests.abilityGroups(local).map(clone);
+    const conflicts = local.abilityGroupConflicts || [];
+    const addGroup = group => {
+      const current = groups.find(item => item.key === group.key);
+      if (!current) groups.push(clone(group));
+      else if (current.name !== group.name && !conflicts.some(item => item.key === group.key && item.incomingName === group.name))
+        conflicts.push({key:group.key,localName:current.name,incomingName:group.name});
+    };
+    root.RingsideTests.abilityGroups(incoming).forEach(addGroup);
+    for (const conflict of incoming.abilityGroupConflicts || []) addGroup({key:conflict.key,name:conflict.incomingName});
+    local.abilityGroups = groups;
+    local.abilityGroupConflicts = conflicts;
     const variant=(catalog,id,source)=>({test:clone(catalog.tests.find(t=>t.id===id)),definitions:clone(catalog.definitions.filter(d=>d.testId===id)).sort((a,b)=>a.id.localeCompare(b.id)),protocol:catalog.protocol[id]||"",source});
-    const same=(a,b)=>E.canonical({...a,source:""})===E.canonical({...b,source:""});
+    const comparable = value => ({...value,source:"",
+      test:{...value.test,name:value.test.id==="ift"&&value.test.name==="30–15 IFT"?"30-15VIFT":value.test.name,
+        ...(["fms","iso"].includes(value.test.id)&&(value.test.primaryAbility===""||value.test.primaryAbility===undefined)
+          ? {primaryAbility:value.test.id==="fms"?"动作筛查":"等长力量"} : {})},
+      definitions:value.definitions.map(d=>({...d,name:root.RingsideTests.metricName(d),protocol:root.Def.viftProtocol(d.id,d.protocol)}))});
+    const same=(a,b)=>E.canonical(comparable(a))===E.canonical(comparable(b));
     for(const t of incoming.tests){
       if(!local.tests.some(x=>x.id===t.id)){local.tests.push(clone(t));local.definitions.push(...clone(incoming.definitions.filter(d=>d.testId===t.id)));local.protocol[t.id]=incoming.protocol[t.id]||"";continue;}
       const candidate=variant(incoming,t.id,"导入项目库"),current=variant(local,t.id,"本机项目库");
@@ -29,9 +46,22 @@
     }
     M.validateCatalog(local);
   }
+  function validateTestPlans(plans, catalog) {
+    if (plans === undefined) return;
+    if (!Array.isArray(plans) || plans.length > 2000) throw Error("测试方案格式无效");
+    const ids = new Set(), tests = new Set(catalog.tests.map(t=>t.id));
+    for (const plan of plans) {
+      if (!plan || typeof plan.id !== "string" || !plan.id || plan.id.length > 249 || ["__proto__","constructor","prototype"].includes(plan.id) || ids.has(plan.id)) throw Error("测试方案编号无效或重复");
+      ids.add(plan.id);
+      if (typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 || !Array.isArray(plan.testIds) || !plan.testIds.length || plan.testIds.length > 1000 || new Set(plan.testIds).size !== plan.testIds.length || plan.testIds.some(id=>!tests.has(id))) throw Error("测试方案名称或项目无效");
+      if (typeof plan.defaultEvaluationProfileId !== "string" || !plan.defaultEvaluationProfileId) throw Error("测试方案缺少推荐评价方案");
+      if (plan.disabled !== undefined && typeof plan.disabled !== "boolean") throw Error("测试方案状态无效");
+    }
+  }
   function configuration(lib) {
-    return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
-      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.8.0"};
+    validateTestPlans(lib.testPlans, lib.catalog);
+    return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.10.0"};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
@@ -40,7 +70,7 @@
     else if (type === "athlete") {
       if (!safe(value.id) || typeof value.name !== "string" || !value.profile || typeof value.profile !== "object" || Array.isArray(value.profile)) throw Error("运动员资料无效");
     } else if (type === "group") { if (!safe(value.id) || typeof value.name !== "string" || !value.name.trim()) throw Error("队伍信息无效"); }
-    else if (type === "config") { M.validateCatalog(value.catalog); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
+    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
     else throw Error("备份包含未知资料类型");
     if (type !== "record" && type !== "config" && !safe(value.id)) throw Error("资料 ID 无效");
   }
@@ -67,7 +97,7 @@
       if(!config) throw Error("资料库配置缺失");
       const owners=new Map(athletes.map(a=>[a.id,{...a,records:[]} ]));
       for(const r of index) owners.get(r.athleteId)?.records.push(r);
-      const lib={...config,athletes:[...owners.values()],groups,evaluationProfiles:profiles};
+      const lib={...config,testPlans:config.testPlans||[],athletes:[...owners.values()],groups,evaluationProfiles:profiles};
       this.metadataHashes.clear();
       for(const [table,items] of [["athletes",athletes],["groups",groups],["profiles",profiles],["config",[{...config,id:"library"}]]])
         for(const item of items) this.metadataHashes.set(table+":"+item.id,JSON.stringify(item));
@@ -135,6 +165,19 @@
       const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
       let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
+      let incomingPlans=[],plansMerged=false;const planMap=new Map();
+      const mergePlans=()=>{
+        if(plansMerged)return;plansMerged=true;
+        const merged=seeded?clone(config.testPlans||[]):[];
+        for(const item of incomingPlans){
+          const plan=clone(item);plan.defaultEvaluationProfileId=profileMap.get(plan.defaultEvaluationProfileId)||plan.defaultEvaluationProfileId;
+          const existing=merged.find(p=>p.id===plan.id);
+          if(existing&&E.canonical(existing)===E.canonical(plan))continue;
+          if(existing){const id="plan_"+uid();planMap.set(plan.id,id);plan.id=id;plan.name=plan.name.slice(0,116)+"（导入）";}
+          merged.push(plan);
+        }
+        config.testPlans=merged;
+      };
       const counts={athlete:0,record:0,group:0,profile:0,config:0};
       const flush=async()=>{
         if(!pending.length)return;const rows=pending;pending=[];
@@ -170,6 +213,7 @@
           seen.get(row.type).add(incomingId);counts[row.type]++;
           if(counts.athlete>2000||counts.record>10000)throw Error("备份超过 2000 名运动员或 10000 条记录");
           if(row.type==="config") {
+            incomingPlans=clone(v.testPlans||[]);
             v.defaultEvaluationProfileId=profileMap.get(v.defaultEvaluationProfileId)||v.defaultEvaluationProfileId;
             if(seeded){mergeCatalog(config.catalog,v.catalog);continue;}
             config=v;
@@ -184,11 +228,14 @@
             groups.set(v.id,v);
           }
           if(row.type==="athlete"){
+            mergePlans();
             v.groupId=groupMap.get(v.groupId)||v.groupId||"";
             if(owners.has(v.id)&&seeded)continue;
             delete v.records;owners.set(v.id,v);
           }
           if(row.type==="record"){
+            mergePlans();
+            if(v.testPlanSnapshot&&planMap.has(v.testPlanSnapshot.id))v.testPlanSnapshot.id=planMap.get(v.testPlanSnapshot.id);
             v.evaluationProfileId=profileMap.get(v.evaluationProfileId)||v.evaluationProfileId;
             references.push([v.athleteId,v.evaluationProfileId]);
             if(seeded){const old=await this.get("records",v.recordId,generation);if(old){if(old.athleteId!==v.athleteId)throw Error("测试 ID 已属于另一运动员");if(E.canonical(old)===E.canonical(v))continue;v.recordId=uid();recordMap[incomingId]=v.recordId;v.title=(v.title||v.athlete.date||"测试")+"（导入副本）";}}
@@ -197,6 +244,8 @@
           pending.push(row);if(pending.length>=40)await flush();
         }
         if(!header||!ended||counts.config!==1)throw Error("备份不完整，原资料库保持不变");
+        mergePlans(); validateTestPlans(config.testPlans,config.catalog);
+        for(const plan of config.testPlans)if(!profiles.has(plan.defaultEvaluationProfileId))throw Error("测试方案的推荐评价方案不存在");
         for(const [athleteId,profileId] of references)if(!owners.has(athleteId)||!profiles.has(profileId))throw Error("测试的运动员或评价方案不存在");
         for(const a of owners.values())if(a.groupId&&!groups.has(a.groupId))throw Error("运动员所属队伍不存在");
         if(!seeded)config.defaultEvaluationProfileId=profileMap.get(config.defaultEvaluationProfileId)||config.defaultEvaluationProfileId;
@@ -244,5 +293,5 @@
       if(buffer.length>16*1024*1024)throw Error("单条备份记录过大");if(done)break;
     }if(buffer.trim()){line++;yield JSON.parse(buffer);}}finally{reader.releaseLock();}
   }
-  root.RingsideStore={Repository,summary,athleteMetadata,configuration,validateEntity,libraryRows,fileRows};
+  root.RingsideStore={Repository,summary,athleteMetadata,configuration,validateEntity,validateTestPlans,libraryRows,fileRows};
 })(typeof window!=="undefined"?window:globalThis);

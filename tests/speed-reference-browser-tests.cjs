@@ -26,21 +26,22 @@ const result = { sourceHash: createHash('sha256').update(fs.readFileSync(file)).
   });
   try {
     await page.goto(pathToFileURL(file).href); await page.waitForFunction(() => window.App?.getState);
+    await page.evaluate(() => App.ready); await page.evaluate(() => App.loadDemo());
     await sample();
     await check('approved-values-Chinese-goals-measured-MSS-and-work-rest-ratios', async () => {
       assert.equal(await page.locator('.speed-reference-table tbody tr').count(), 5);
-      assert.deepEqual(await page.locator('.speed-reference-table th').allTextContents(), ['形式','生理目标','训练速度','做功时间','恢复方式与速度','恢复时间','做功∶休息参考']);
+      assert.deepEqual(await page.locator('.speed-reference-table th').allTextContents(), ['形式','生理目标','训练速度','做功时间','恢复方式与速度','恢复时间','做功∶休息示例']);
       const long = page.locator('[data-row-id="hiit-long"]'), short = page.locator('[data-row-id="hiit-short"]');
       for (const text of ['3.80–4.20 m/s','4.00–4.50 m/s','≤2.40 m/s','≤2.25 m/s','最大有氧速度（MAS）的95–105%']) assert.ok((await long.innerText()).includes(text));
-      for (const text of ['4.00–4.80 m/s','4.50–5.25 m/s','折返终末速度（VIFT）的90–105%']) assert.ok((await short.innerText()).includes(text));
+      for (const text of ['4.00–4.80 m/s','4.50–5.25 m/s','30-15VIFT的90–105%']) assert.ok((await short.innerText()).includes(text));
       for (const id of ['rst','sit']) {
         const row=page.locator(`[data-row-id="hiit-${id}"]`);
-        assert.match(await row.innerText(), /全力冲刺/);
+        assert.match(await row.innerText(), /全力以赴/);
         assert.match(await row.locator('[data-speed-basis="mss"]').innerText(), /实测最大冲刺速度（MSS）\s+8\.00 m\/s/);
       }
-      assert.match(await page.locator('[data-row-id="hiit-rst"] [data-label="生理目标"]').innerText(), /无氧糖酵解能力[\s\S]*神经肌肉刺激[\s\S]*有氧刺激随方案变化/);
-      assert.match(await page.locator('[data-row-id="hiit-game"]').innerText(), /随比赛情境自主调节/);
-      assert.deepEqual(await page.locator('.speed-work-rest strong').allTextContents(), ['2:1','1:1','2:1','1:4','1:8','2:1']);
+      assert.deepEqual(await page.locator('[data-row-id="hiit-rst"] .speed-goal').allTextContents(), ['有氧能力＋无氧能力＋神经肌肉刺激', '无氧能力＋神经肌肉刺激']);
+      assert.match(await page.locator('[data-row-id="hiit-game"]').innerText(), /全力以赴/);
+      assert.deepEqual(await page.locator('.speed-work-rest strong').allTextContents(), ['2:1','1:1','2:1','1:4','1:3','1:6','1:8','2:1']);
       assert.equal(await page.locator('[data-speed-srr]').innerText(), '2.00');
       assert.equal(await page.locator('[data-speed-type]').innerText(), '速度型');
       assert.equal(await page.locator('.speed-training').evaluate(e=>!!e.lastElementChild.querySelector('.speed-reference-table')),true);
@@ -76,11 +77,11 @@ const result = { sourceHash: createHash('sha256').update(fs.readFileSync(file)).
         subsets.push(mask);
       }
       await page.evaluate(()=>{App.getState().data.ift.protocol='treadmill';App.renderReport();});
-      assert.equal(await page.locator('.speed-training [data-speed-basis="vift"]').count(),0);
+      assert.equal(await page.locator('.speed-training [data-speed-basis="vift"]').count(),5);
       assert.equal(await page.locator('[data-speed-metric]').count(),3);
       assert.match(await page.locator('.speed-detail').innerText(),/未完成级 12\.5 秒/);
       assert.ok(await page.locator('.speed-training [data-speed-basis="mas"]').count()>0);
-      return {subsets,treadmillExcluded:true};
+      return {subsets,allRecordedViftIncluded:true};
     });
     await check('literature-types-and-target-independent-SRR',async()=>{
       await sample();
@@ -132,6 +133,7 @@ const result = { sourceHash: createHash('sha256').update(fs.readFileSync(file)).
     });
   } finally {
     await browser.close();result.passed=result.tests.filter(x=>x.pass).length;result.failed=result.tests.length-result.passed;
+    result.imageHashes=result.images.map(relative=>({path:relative,sha256:createHash('sha256').update(fs.readFileSync(path.join(root,relative))).digest('hex')}));
     result.pass=!result.failed&&!result.errors.length&&!result.network.length;
     fs.writeFileSync(path.join(out,'speed-reference-results.json'),JSON.stringify(result,null,2));
     if(!result.pass)process.exitCode=1;

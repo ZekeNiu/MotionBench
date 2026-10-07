@@ -5,7 +5,6 @@
   var anomalies = [
     '原表存在空白区间与共享边界：保留原文，不自动补齐；未命中区间显示“未分级”。共享单点默认归入数值较高的区间，可在调用分级时改为 lower 或 unclassified。',
     '地雷杠 35 kg 的部分参考值低于 40 kg，这是原表内容；不自动修订。其左右侧为解剖学 R/L，药球则为优势/非优势侧。',
-    '30–15 IFT 的跑台改良版参考值不可用于折返版；原表折返版未给出表现分级。',
     '乳酸 LTP1/LTP2 的“达标”“良好”在原表中是单点值；不扩展为连续区间。',
     '目标达成度是数值 / 用户设定目标 × 100 的可配置展示值，不是百分位、验证过的能力总分或损伤概率。',
     '第 22 章未给出 FMS、区域等长绝对力量或不对称性的损伤预测阈值，亦未给出深蹲、卧推或硬拉 LVP 的统一速度素质区间。'
@@ -93,7 +92,7 @@
     make('pushup_reps', 'pushup', '60 秒俯卧撑', '次', '力量耐力', 80, '60 秒；下放至胸部与大腿触地，再完全伸肘计 1 次；记录动作规范。', four('<60', '60..70', '70..80', '>80')),
     make('mb_dom', 'mb', '3 kg 药球后手投掷·优势侧', 'm', '旋转投掷能力', 13, '3 kg 药球；拳击分腿站姿，从后脚侧肩部单臂模拟后手出拳；起点至首次落地距离。', four('<9', '9..11', '11..13', '>13')),
     make('mb_non', 'mb', '3 kg 药球后手投掷·非优势侧', 'm', '旋转投掷能力', 12, '3 kg 药球；与优势侧相同动作与测距。不是双手旋转掷球或头上向后投掷。', four('<8', '8..10', '10..12', '>12')),
-    make('ift_treadmill', 'ift', '30–15 IFT·跑台改良版终末速度', 'km/h', '间歇耐力', 23.5, '跑台改良版：8 km/h 起，每级 +0.5 km/h，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。', four('<=19.5', '20..21.5', '22..23', '>=23.5')),
+    make('ift_treadmill', 'ift', '30-15VIFT', 'km/h', '间歇耐力', 23.5, '30-15VIFT', four('<=19.5', '20..21.5', '22..23', '>=23.5')),
     make('lt1', 'lactate', '乳酸第一转折点 LTP1', 'km/h', '有氧代谢能力', 15, '递增跑台乳酸曲线第一转折点，由评估者确认方法；原章 3 分钟 / 级、1 分钟采样恢复。固定 2 mmol/L 不等同于 LTP1。', four('<=10', '=12', '=14', '>=15')),
     make('lt2', 'lactate', '乳酸第二转折点 LTP2', 'km/h', '有氧代谢能力', 18, '递增跑台乳酸曲线第二转折点，由评估者确认方法；固定 4 mmol/L 不等同于 LTP2。', four('<=13', '=15', '=17', '>=18')),
     make('landmine_r20', 'landmine', '地雷杠出拳·右侧 20 kg 峰值速度', 'm/s', '专项快速发力', 4.28, '总标称负荷 20 kg（杠铃+杠铃片）；右手，固定脚位拳击分腿姿势；线性位移传感器峰值速度。', four('<3.56', '3.57..3.97', '3.98..4.26', '>4.28')),
@@ -129,7 +128,14 @@
     return root.Calc.classify(value, ranges, options);
   }
 
-  root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies,
+  // Only the shipped description has an alias. User-authored measurement
+  // conditions, units and the two legacy metric IDs remain distinct.
+  function viftProtocol(id, text) {
+    var legacy = '跑台改良版：8 km/h 起，每级 +0.5 km/h，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。';
+    var converted = '跑台改良版：2.222222 m/s 起，每级 +0.138889 m/s，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。';
+    return id === 'ift_treadmill' && [legacy, converted, '30-15VIFT'].indexOf(text) !== -1 ? '30-15VIFT' : text;
+  }
+  root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies, viftProtocol: viftProtocol,
     defaultDefinitions: function () { return JSON.parse(JSON.stringify(builtins)); },
     parseRanges: parseRanges, rangeText: rangeText, grade: grade };
 })(typeof window !== 'undefined' ? window : globalThis);

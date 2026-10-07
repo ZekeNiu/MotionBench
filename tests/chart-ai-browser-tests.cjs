@@ -58,7 +58,7 @@ async function shot(page, version, selector, name) {
         assert.equal(await page.evaluate(()=>App.getState().views.imtp.yAxis),"force");
         await page.getByRole("combobox",{name:"IMTP 纵轴"}).selectOption("percent");
         await page.locator("#aggMode").selectOption("mean");await page.waitForTimeout(350);
-        const mean=await page.locator('[data-force-time="100"]').getAttribute("data-force-percent");assert.ok(Math.abs(Number(mean)-750/2600*100)<1e-8);
+        const mean=await page.locator('[data-force-time="100"]').getAttribute("data-force-percent");assert.ok(Math.abs(Number(mean)-(800/2800+700/2400)/2*100)<1e-8);
         result.checks.push("axis-save-reload-fingerprint-mean");
         await page.evaluate(()=>{const r=App.getState();r.athlete.name="很长的运动员姓名与编号用于完整换行检查".repeat(3);r.data.fms[0].notes="备注保留完整内容。".repeat(30);r.data.iso=Array.from({length:30},(_,i)=>({...r.data.iso[i%r.data.iso.length],id:"long"+i}));App.renderReport();});
         await page.waitForTimeout(200);await geometry(page,1440,"long");

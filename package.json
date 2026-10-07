@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.8.0",
+  "version": "2.10.0",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -28,7 +28,11 @@
     "test:ai-service": "node tests/ai-service-browser-tests.cjs",
     "test:management": "node tests/management-browser-tests.cjs && node tests/management-browser-tests.cjs --edge && node tests/management-admin-tests.cjs && node tests/management-resilience-tests.cjs && node tests/management-visual-tests.cjs",
     "test:capacity": "node tests/management-capacity-tests.cjs && node tests/management-capacity-tests.cjs --edge && python tests/management-backup-integrity.py && node tests/management-restart-tests.cjs",
-    "test:management-pdf": "node tests/management-delivery-tests.cjs"
+    "test:management-pdf": "node tests/management-delivery-tests.cjs",
+    "test:catalog": "node tests/unified-catalog-browser-tests.cjs && node tests/unified-catalog-browser-tests.cjs --edge",
+    "test:report-v210": "node tests/report-v210-browser-tests.cjs && node tests/report-v210-browser-tests.cjs --edge --ui-only",
+    "test:imtp-layout-v210": "node tests/imtp-layout-v210-browser-tests.cjs && node tests/imtp-layout-v210-browser-tests.cjs --edge --ui-only",
+    "test:refinement": "node tests/refinement-workflow-browser-tests.cjs && node tests/refinement-workflow-browser-tests.cjs --edge && node tests/refinement-race-browser-tests.cjs && node tests/refinement-race-browser-tests.cjs --edge && node tests/management-refinement-browser-tests.cjs && node tests/management-refinement-browser-tests.cjs --edge && node tests/refinement-report-browser-tests.cjs"
   },
   "devDependencies": {
     "playwright": "1.57.0"

@@ -288,6 +288,7 @@
       },
       cmjConfig: { definition: "gross" },
       imtpConfig: { unit: "N", definition: "gross" },
+      imtpTimeStandards: [],
       lvp: {
         squat: { metric: "MV", mvt: "", zones: [] },
         bench: { metric: "MV", mvt: "", zones: [] },
@@ -601,9 +602,11 @@
     const s = clone(input),
       d = defaults(),
       legacy = s.schema !== 2;
+    validateAbilityGroups(s.abilityGroupSnapshot);
     if (s.schema === 1 && !safeId(s.recordId))
       throw new Error("旧版报告缺少有效的测试记录 ID");
     const out = { ...d, ...s, schema: 2, kind: "assessment-record" };
+    out.imtpTimeStandards = s.imtpTimeStandards === undefined ? [] : clone(s.imtpTimeStandards);
     if (s.schema === 1 && !s.athleteId) out.athleteId = "legacy_" + s.recordId;
     out.athlete = { ...d.athlete, ...s.athlete };
     out.trainingContext = { ...d.trainingContext, ...s.trainingContext };
@@ -896,6 +899,33 @@
     });
     return row;
   }
+  function imtpTimeContext(record) {
+    return { protocol: record.protocol?.imtp || "", force: clone(record.imtpConfig || { unit: "N", definition: "gross" }) };
+  }
+  function imtpTimeStandard(record, timeMs, kind) {
+    const rule = (record.imtpTimeStandards || []).find(r => r.timeMs === timeMs && r.kind === kind);
+    if (rule) {
+      const current = imtpTimeContext(record), context = rule.context;
+      const matched = rule.matched !== false && context?.protocol === current.protocol &&
+        context.force?.unit === current.force.unit && context.force?.definition === current.force.definition;
+      return { ...clone(rule), unit: kind === "force_pct_peak" ? "%PF" : "N/s", matched,
+        referenceEnabled: matched && rule.referenceEnabled, target: matched ? rule.target : null,
+        ranges: matched ? clone(rule.ranges) : [] };
+    }
+    const definition = record.definitions.find(d => d.id === "imtp_" + (kind === "force_pct_peak" ? "f" : "rfd") + timeMs);
+    return definition ? { ...clone(definition), kind: kind === "force_pct_peak" ? "force_absolute" : "rfd", matched: true } : null;
+  }
+  function imtpTimeEvaluation(value, standard, record, valid = true) {
+    if (!valid) return { status: "gray", label: "时点力超过峰值，待核对", range: null };
+    if (standard && !standard.matched) return { status: "gray", label: "评价方案与测量条件不匹配", range: null };
+    if (!standard?.referenceEnabled) return { status: "gray", label: "未启用评价标准", range: null };
+    return evaluation(value, standard, record);
+  }
+  function withoutReplacedIMTPStandards(record) {
+    if (!record.imtpTimeStandards?.length) return record.definitions;
+    const replaced = new Set(record.imtpTimeStandards.map(rule => "imtp_" + (rule.kind === "force_pct_peak" ? "f" : "rfd") + rule.timeMs));
+    return record.definitions.map(d => replaced.has(d.id) ? { ...d, referenceEnabled: false, target: null, ranges: [] } : d);
+  }
   function forceTime(record) {
     const mode = record.mode === "mean" ? "mean" : "best";
     const out = {
@@ -907,6 +937,7 @@
       peakForce: null,
       peakTimeMs: null,
       baselineForce: null,
+      baselinePercent: null,
       issues: [],
     };
     if (!record.enabled?.imtp) return out;
@@ -995,11 +1026,16 @@
       0,
     );
     const baselines = chosen.map((x) => nonnegative(x.row.baselineForce));
-    if (baselines.every((x) => x !== null))
+    if (baselines.every((x) => x !== null)) {
       out.baselineForce = baselines.reduce(
         (a, b) => a + b / baselines.length,
         0,
       );
+      out.baselinePercent = Calc.descriptive(chosen.map((x, i) => {
+        const value = baselines[i] / N(x.row.peakForce) * 100;
+        return Number.isFinite(value) ? value : null;
+      }), false).mean;
+    }
     const grouped = new Map();
     chosen.forEach(({ row, index }) => {
       const baseline = nonnegative(row.baselineForce),
@@ -1111,7 +1147,8 @@
             t,
           );
         if (!grouped.has(t)) grouped.set(t, []);
-        grouped.get(t).push({ force, derived: measured === null });
+        const percent = force / N(row.peakForce) * 100;
+        grouped.get(t).push({ force, percent: Number.isFinite(percent) ? percent : null, derived: measured === null });
       });
     });
     out.points = [...grouped]
@@ -1119,6 +1156,7 @@
       .map(([timeMs, ps]) => ({
         timeMs,
         force: ps.reduce((sum, p) => sum + p.force / ps.length, 0),
+        percent: Calc.descriptive(ps.map(p => p.percent), false).mean,
         derived: ps.some((p) => p.derived),
         n: ps.length,
         measuredN: ps.filter((p) => !p.derived).length,
@@ -1132,29 +1170,36 @@
         if (time === null || seen.has(time)) continue;
         seen.add(time);
         if (!timeGroups.has(time)) timeGroups.set(time, []);
-        timeGroups.get(time).push(nonnegative(point.rfd));
+        const measured = nonnegative(point.force), peak = N(row.peakForce);
+        const percent = measured === null ? null : measured / peak * 100;
+        timeGroups.get(time).push({ force: measured, rfd: nonnegative(point.rfd),
+          percent: Number.isFinite(percent) ? percent : null,
+          percentValid: measured === null || measured <= peak || !differs(measured, peak) });
       }
     }
     out.timeRows = [...timeGroups]
       .sort((a, b) => a[0] - b[0])
       .map(([timeMs, values]) => {
-        const rfds = values.filter((v) => v !== null),
-          point = out.points.find((p) => p.timeMs === timeMs);
+        const rfds = values.map(v => v.rfd).filter(v => v !== null),
+          forces = values.map(v => v.force).filter(v => v !== null),
+          percentages = values.map(v => v.percent).filter(v => v !== null),
+          average = items => items.length ? items.reduce((sum, value) => sum + value / items.length, 0) : null,
+          force = average(forces), rfd = average(rfds), forcePercent = average(percentages),
+          forcePercentValid = values.every(v => v.percentValid),
+          forceStandard = imtpTimeStandard(record, timeMs, "force_pct_peak"),
+          rfdStandard = imtpTimeStandard(record, timeMs, "rfd");
         return {
           timeMs,
-          force: point?.force ?? null,
-          forceN: point?.n || 0,
-          rfd: rfds.length
-            ? rfds.reduce((sum, v) => sum + v / rfds.length, 0)
-            : null,
+          force,
+          forceN: forces.length,
+          forcePercent, forcePercentN: percentages.length, forcePercentValid,
+          rfd,
           rfdN: rfds.length,
-          source: point
-            ? point.derived
-              ? point.measuredN
-                ? "实测与换算均值"
-                : "RFD换算"
-              : "实测"
-            : "力未录入",
+          source: force === null ? "力未录入" : "实测",
+          forceStandard, rfdStandard,
+          forceEvaluation: imtpTimeEvaluation(forceStandard?.kind === "force_pct_peak" ? forcePercent : force,
+            forceStandard, record, forceStandard?.kind !== "force_pct_peak" || forcePercentValid),
+          rfdEvaluation: imtpTimeEvaluation(rfd, rfdStandard, record),
         };
       })
       .filter((p) => p.force !== null || p.rfd !== null);
@@ -1690,14 +1735,12 @@
         add(id, id, test.name, fields, rows, id + "_height");
       } else if (test.renderer === "imtp") {
         const normalized = rows.map((row) => syncIMTPLegacy(normalizeIMTP(row)));
-        const perTrial = new Map(normalized.map((row) => [row, forceTime({ ...record, mode: "best", data: { ...record.data, imtp: [row] } })]));
         const fields = [field("imtp_peak_force", "peakForce", "峰值力", "N", { positive: true })];
         if (positive(record.athlete.mass) !== null && record.imtpConfig.unit === "N") fields.push(field("imtp_relative_force", "relative", "相对峰值力", "N/kg", { positive: true, read: (row) => positive(row.peakForce) === null ? null : N(row.peakForce) / N(record.athlete.mass) }));
         const times = [...new Set(normalized.flatMap((row) => row.timePoints.map((p) => positive(p.timeMs)).filter((t) => t !== null)))].sort((a,b) => a-b);
         times.forEach((time) => ["force", "rfd"].forEach((kind) => fields.push(field("imtp_" + (kind === "force" ? "f" : "rfd") + time, kind + time,
           kind === "force" ? time + " ms 力" : "0–" + time + " ms RFD", kind === "force" ? "N" : "N/s", {
             read: (row) => row.timePoints.find((p) => N(p.timeMs) === time)?.[kind],
-            observe: (row) => perTrial.get(row).timeRows?.find((p) => p.timeMs === time)?.[kind],
           }))));
         add(id, id, test.name, fields.concat(extras), normalized, "imtp_peak_force");
       } else if (test.renderer === "iso") {
@@ -1784,6 +1827,7 @@
     }
     const repetitions = repeatAnalysis(state);
     state = repeatProjection(state, repetitions);
+    if (state.imtpTimeStandards?.length) state = { ...state, definitions: withoutReplacedIMTPStandards(state) };
     const use = (id) => !!state.enabled[id],
       values = {},
       raw = {},
@@ -1838,6 +1882,23 @@
         validTests.add("imtp");
       }
     }
+    const imtpTimeResults = (raw.forceTime?.timeRows || []).flatMap(point => ["force", "rfd"].flatMap(kind => {
+      if (point[kind] === null) return [];
+      const standard = point[kind + "Standard"], id = "imtp_" + (kind === "force" ? "f" : "rfd") + point.timeMs;
+      const percentage = standard?.kind === "force_pct_peak";
+      const evaluationValue = percentage ? point.forcePercent : point[kind];
+      const evaluationValid = N(evaluationValue) !== null && (!percentage || point.forcePercentValid) && standard?.matched !== false;
+      return [{ id, testId: "imtp", timeMs: point.timeMs, kind,
+        name: "IMTP " + (kind === "force" ? fmt(point.timeMs) + " ms 力" : "0–" + fmt(point.timeMs) + " ms RFD"),
+        value: point[kind], unit: kind === "force" ? "N" : "N/s", forcePercent: kind === "force" ? point.forcePercent : null,
+        ability: state.definitions.find(d => d.id === id)?.ability || "早期发力",
+        evaluationValue, evaluationValid,
+        evaluationUnit: standard?.unit || (kind === "force" ? "N" : "N/s"),
+        referenceEnabled: !!standard?.referenceEnabled && evaluationValid, target: standard?.target ?? null,
+        ranges: clone(standard?.ranges || []), source: standard?.source || "", standard,
+        evaluation: point[kind + "Evaluation"] }];
+    }));
+    const imtpTimeIds = new Set(imtpTimeResults.map(result => result.id));
     if (
       use("pushup") &&
       nonnegative(state.data.pushup.reps) !== null &&
@@ -2059,14 +2120,26 @@
     (raw.forceTime?.issues || [])
       .filter((x) => !x.id.startsWith("imtp_baseline_missing_"))
       .forEach((x) => qualityIssues.push({ ...x, testId: "imtp" }));
-    const groups = new Map();
-    state.definitions
+    const groups = new Map(), axisValues = { ...values };
+    const timeResultsById = new Map(imtpTimeResults.map(result => [result.id, result]));
+    const replacedTimeIds = new Set((state.imtpTimeStandards || []).map(rule => "imtp_" + (rule.kind === "force_pct_peak" ? "f" : "rfd") + rule.timeMs));
+    // Existing time metrics keep their configured axis role. Newly discovered
+    // times do not create or become an ability's representative metric.
+    const axisDefinitions = state.definitions.map(definition => {
+      if (!replacedTimeIds.has(definition.id)) return definition;
+      const result = timeResultsById.get(definition.id), standard = result?.standard;
+      axisValues[definition.id] = result?.evaluationValid ? result.evaluationValue : null;
+      return { ...definition, unit: result?.evaluationUnit || definition.unit,
+        referenceEnabled: !!result?.referenceEnabled, target: result?.referenceEnabled ? standard.target : null,
+        ranges: result?.referenceEnabled ? standard.ranges : [], direction: standard?.direction || definition.direction };
+    });
+    axisDefinitions
       .filter(
         (d) =>
           d.category === "performance" &&
           use(d.testId) &&
           T.abilityName(d.ability) &&
-          attainment(values[d.id], d) !== null,
+          attainment(axisValues[d.id], d) !== null,
       )
       .forEach((d) => {
         const label = T.abilityName(d.ability);
@@ -2080,31 +2153,37 @@
         },
         chosen =
           cfg.method === "primary"
-            ? [defs.find((d) => d.id === cfg.primary) || defs[0]]
+            ? [defs.find((d) => d.id === cfg.primary) || (replacedTimeIds.has(cfg.primary) ? null : defs[0])].filter(Boolean)
             : defs;
-      const scores = chosen.map((d) => attainment(values[d.id], d)),
+      if (!chosen.length) return null;
+      const scores = chosen.map((d) => attainment(axisValues[d.id], d)),
         value =
           cfg.method === "min"
             ? Math.min(...scores)
             : scores.reduce((a, b) => a + b, 0) / scores.length;
       const knownStatuses = chosen
-        .map((d) => targetStatus(values[d.id], d, state))
+        .map((d) => targetStatus(axisValues[d.id], d, state))
         .filter((s) => s !== "gray");
       const status = knownStatuses.length
         ? knownStatuses.reduce((a, s) => (rank[s] > rank[a] ? s : a), "green")
         : "gray";
       return {
-        label,
+        key: label,
+        label: T.abilityLabel(state, label),
         value,
         defs: chosen,
         method: cfg.method,
         scores,
         status,
         tooltip: chosen
-          .map((d) => d.name + " " + fmt(values[d.id]) + " " + d.unit)
+          .map((d) => T.metricName(d) + " " + fmt(axisValues[d.id]) + " " + d.unit)
           .join("；"),
       };
-    });
+    }).filter(Boolean);
+    if (state.abilityGroupSnapshot) {
+      const order = T.abilityGroups(state).map(group => group.key);
+      axes.sort((a, b) => order.indexOf(a.key) - order.indexOf(b.key));
+    }
     const findingsMap = new Map(),
       regions = {};
     function mark(key, status, label, detail) {
@@ -2207,11 +2286,11 @@
       );
     });
     state.definitions
-      .filter((d) => use(d.testId) && N(values[d.id]) !== null)
+      .filter((d) => use(d.testId) && N(values[d.id]) !== null && !imtpTimeIds.has(d.id))
       .forEach((d) => {
         const g = evaluation(values[d.id], d, state),
           detail =
-            d.name + " " + fmt(values[d.id]) + " " + d.unit + " · " + g.label;
+            T.metricName(d) + " " + fmt(values[d.id]) + " " + d.unit + " · " + g.label;
         if (d.category === "screen") {
           if (d.region) mark(d.region, g.status, d.name, detail);
           finding(
@@ -2227,11 +2306,14 @@
             "performance:" + (d.ability || d.id),
             "performance",
             g.status,
-            d.ability || d.name,
+            T.abilityLabel(state, d.ability) || T.metricName(d),
             detail,
             { ability: d.ability || "", sourceId: d.id },
           );
       });
+    imtpTimeResults.forEach(result => finding("performance:" + result.ability, "performance", result.evaluation.status,
+      T.abilityLabel(state, result.ability), result.name + " " + fmt(result.evaluationValue) + " " + result.evaluationUnit + " · " + result.evaluation.label,
+      { ability: result.ability, sourceId: result.id }));
     const findings = [...findingsMap.values()].sort(
       (a, b) => rank[b.status] - rank[a.status],
     );
@@ -2241,7 +2323,7 @@
         (d) =>
           d.category === "performance" &&
           use(d.testId) &&
-          N(values[d.id]) !== null,
+          N(values[d.id]) !== null && !imtpTimeIds.has(d.id),
       )
       .forEach((d) => {
         const g = grade(values[d.id], d);
@@ -2249,12 +2331,12 @@
         const key = d.ability || d.id;
         const item = {
           id: d.id,
-          label: key,
+          label: T.abilityLabel(state, key),
           ability: key,
           value: values[d.id],
           unit: d.unit,
           detail:
-            d.name + " " + fmt(values[d.id]) + " " + d.unit + " · " + g.label,
+            T.metricName(d) + " " + fmt(values[d.id]) + " " + d.unit + " · " + g.label,
           status: "green",
           relative: false,
         };
@@ -2265,6 +2347,14 @@
             score: attainment(values[d.id], d),
           });
       });
+    imtpTimeResults.filter(result => result.evaluation.range?.advantage === true).forEach(result => {
+      const key = result.ability, score = attainment(result.evaluationValue, result.standard);
+      const old = advantageMap.get(key);
+      if (!old || score > old.score) advantageMap.set(key, { id: result.id, label: T.abilityLabel(state, key), ability: key,
+        value: result.evaluationValue, unit: result.evaluationUnit, score,
+        detail: result.name + " " + fmt(result.evaluationValue) + " " + result.evaluationUnit + " · " + result.evaluation.label,
+        status: "green", relative: false });
+    });
     let advantages = {
       items: [...advantageMap.values()],
       relative: false,
@@ -2281,9 +2371,9 @@
             .sort((a, b) => b.value - a.value)
             .slice(0, 2)
             .map((a) => ({
-              id: a.label,
+              id: a.key,
               label: a.label,
-              ability: a.label,
+              ability: a.key,
               score: a.value,
               value: a.value,
               unit: "%",
@@ -2295,6 +2385,47 @@
           reason: "依据本次有效能力评分比较",
         };
     }
+    // Body details are a read model of the same representative results. They
+    // never add findings or change the existing body grading rules.
+    const projectNames = new Map(T.describe(state).map(test => [test.id, test.name]));
+    const detailSide = key => /_l$/.test(key) ? "L" : /_r$/.test(key) ? "R" : "C";
+    const addBodyTest = (key, test) => {
+      if (!key || ["__proto__", "constructor", "prototype"].includes(key)) return;
+      regions[key] ||= { status: "gray", label: "未测", detail: "", reasons: [] };
+      regions[key].tests ||= [];
+      regions[key].tests.push({ ...test, testName: projectNames.get(test.testId) || test.testId });
+    };
+    for (const row of isoAnalyses) for (const side of row.sides) {
+      const value = side.value, sideKey = side.side === "L" ? "left" : side.side === "R" ? "right" : "center";
+      const selected = repetitions.find(group => group.testId === "iso" && group.directionId === row.id && group.side === sideKey)?.selectedIds || [];
+      const notes = [row.notes, ...(row.trials || []).filter(trial => selected.includes(trial.id)).map(trial => trial.notes)].filter(Boolean);
+      addBodyTest(side.region, { id: row.id + "_" + (side.side || "C"), testId: "iso", name: row.direction,
+        side: side.side || "C", value, unit: row.unit, target: row.target, status: side.status,
+        label: side.reasons.join("；") || (value === null ? "未测" : "已测"), pain: side.pain,
+        missing: value === null, asym: row.asym, notes: [...new Set(notes)].join("；") });
+    }
+    for (const balance of balanceResults) for (const side of balance.results) {
+      addBodyTest(side.region, { id: "balance_" + balance.id + "_" + (side.side || "C"), testId: "iso", name: balance.label,
+        side: side.side || "C", value: side.value, unit: balance.unit, target: null, label: side.label,
+        status: side.status, pain: false, missing: side.value === null, notes: side.reason || "" });
+    }
+    for (const [index, row] of (raw.fms?.items || []).entries()) if (row.location) {
+      const notes = [row.bilateral ? "左侧 " + (N(row.left) === null ? "未测" : fmt(row.left)) + " / 右侧 " + (N(row.right) === null ? "未测" : fmt(row.right)) : "", row.notes].filter(Boolean);
+      addBodyTest(row.location, { id: row.id || "fms_" + index, testId: "fms", name: row.name,
+        side: detailSide(row.location), value: row.value, unit: "分", target: null,
+        label: row.value === null ? "未测" : row.value === 0 ? "疼痛" : row.value === 1 ? "动作未完成" : row.value === 2 ? "代偿完成" : "完成",
+        status: row.status, pain: row.pain === true || row.value === 0, missing: row.value === null, notes: notes.join("；") });
+    }
+    for (const d of state.definitions.filter(d => use(d.testId) && d.category === "screen" && d.region)) {
+      const value = N(values[d.id]), result = evaluation(value, d, state);
+      const group = repetitions.find(group => group.testId === d.testId && Object.hasOwn(group.representatives, d.id));
+      const sourceRows = Array.isArray(state.data[d.testId]) ? state.data[d.testId] : state.data[d.testId]?.trials || [];
+      const notes = T.isAttemptMetric(d) ? sourceRows.filter(row => group?.selectedIds.includes(row.id)).map(row => row.notes).filter(Boolean).join("；") : state.customValues[d.id]?.notes || "";
+      addBodyTest(d.region, { id: d.id, testId: d.testId, name: T.metricName(d), side: detailSide(d.region), value,
+        unit: d.unit, target: d.referenceEnabled ? positive(d.target) : null, label: value === null ? "未测" : result.label,
+        status: result.status, pain: false, missing: value === null, notes });
+    }
+    Object.values(regions).forEach(region => { region.tests ||= []; });
     const allTests = T.describe(state).map((t) => [t.id, t.name, t.category]),
       plannedTests = allTests.filter((t) => use(t[0]));
     const partial = [];
@@ -2337,6 +2468,7 @@
     };
     return {
       values,
+      imtpTimeResults,
       repetitions,
       representativeData: state.data,
       raw,
@@ -2518,7 +2650,7 @@
       enabled: record.enabled,
       mode: record.mode,
       data: record.data,
-      definitions: record.definitions,
+      definitions: withoutReplacedIMTPStandards(record),
       custom: record.customValues,
       projects: record.projectSnapshots,
       rules: record.rules,
@@ -2527,6 +2659,7 @@
       dsi: record.dsi,
       cmjConfig: record.cmjConfig,
       imtpConfig: record.imtpConfig,
+      ...(record.imtpTimeStandards?.length ? { imtpTimeStandards: record.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
       balancePairs: record.balancePairs,
       axes: record.axes,
       protocol: record.protocol,
@@ -2575,6 +2708,8 @@
       revision: 1,
       tests: T.snapshots(record),
       definitions: record.definitions,
+      abilityGroups: T.abilityGroups(record),
+      abilityGroupConflicts: [],
       protocol: record.protocol,
       conflicts: [],
     };
@@ -2602,6 +2737,10 @@
     });
     const disabledTests = new Set(catalog.tests.filter(t => t.disabled).map(t => t.id));
     catalog.tests = T.snapshots(catalog);
+    validateAbilityGroups(catalog.abilityGroups);
+    validateAbilityGroupConflicts(catalog.abilityGroupConflicts);
+    catalog.abilityGroups = T.abilityGroups(catalog);
+    catalog.abilityGroupConflicts = clone(catalog.abilityGroupConflicts || []);
     catalog.tests.forEach(t => { if (disabledTests.has(t.id)) t.disabled = true; });
     catalog.protocol = { ...base.protocol, ...catalog.protocol };
     Object.keys(catalog.protocol).forEach((id) => {
@@ -2715,6 +2854,13 @@
           addConflict(candidate.test, candidate);
         }
       });
+    for (const group of T.abilityGroups(normalized)) {
+      const existing = catalog.abilityGroups.find(value => value.key === group.key);
+      if (!existing) catalog.abilityGroups.push(clone(group));
+      else if (existing.name !== group.name && !catalog.abilityGroupConflicts.some(conflict => conflict.key === group.key && conflict.incomingName === group.name))
+        catalog.abilityGroupConflicts.push({ key: group.key, localName: existing.name, incomingName: group.name });
+    }
+    catalog.abilityGroups = T.abilityGroups(catalog);
     return catalog;
   }
   function recordFromCatalog(input, profile, enabled = {}, testDate = date()) {
@@ -2734,6 +2880,11 @@
       date: testDate,
     };
     record.projectSnapshots = T.snapshots(catalog);
+    record.abilityGroupSnapshot = clone(T.abilityGroups(catalog));
+    // This legacy value selects an existing metric ID, not a test method.
+    // Normalize still uses the historical shuttle fallback for old records.
+    record.data.ift.protocol = "treadmill";
+    record.data.ift.method = "";
     record.customTests = clone(
       catalog.tests.filter(
         (t) => !TESTS.some((b) => b[0] === t.id) && selected.has(t.id),
@@ -3143,6 +3294,8 @@
       catalog.conflicts.length > 300
     )
       throw new Error("共用项目目录结构无效");
+    validateAbilityGroups(catalog.abilityGroups);
+    validateAbilityGroupConflicts(catalog.abilityGroupConflicts);
     const testIds = new Set(),
       definitionIds = new Set();
     catalog.tests.forEach((test) => {
@@ -3151,6 +3304,7 @@
         !safeId(test.id) ||
         testIds.has(test.id) ||
         typeof test.name !== "string" ||
+        (test.primaryAbility !== undefined && typeof test.primaryAbility !== "string") ||
         !["screen", "performance"].includes(test.category)
       )
         throw new Error("目录项目 ID 或类型无效");
@@ -3217,6 +3371,49 @@
     });
     return true;
   }
+  function validateAbilityGroups(groups) {
+    if (groups === undefined) return;
+    if (!Array.isArray(groups) || groups.length > 300) throw new Error("能力分类结构无效");
+    const keys = new Set();
+    for (const group of groups) {
+      if (!plainObject(group) || !validAbilityText(group.key) || !validAbilityText(group.name) || keys.has(group.key))
+        throw new Error("能力分类名称或标识无效");
+      keys.add(group.key);
+    }
+  }
+  const validAbilityText = value => typeof value === "string" && !!value.trim() && value === value.trim() && value.length <= 120;
+  function validateAbilityGroupConflicts(conflicts) {
+    if (conflicts === undefined) return;
+    if (!Array.isArray(conflicts) || conflicts.length > 300 || conflicts.some(conflict => !plainObject(conflict) ||
+      !validAbilityText(conflict.key) || !validAbilityText(conflict.localName) || !validAbilityText(conflict.incomingName)))
+      throw new Error("能力分类冲突结构无效");
+  }
+  function validateIMTPTimeStandards(standards) {
+    if (standards === undefined) return;
+    if (!Array.isArray(standards) || standards.length > 2000) throw new Error("IMTP 时点标准结构无效");
+    const keys = new Set();
+    standards.forEach(rule => {
+      if (!plainObject(rule) || typeof rule.timeMs !== "number" || !Number.isFinite(rule.timeMs) || rule.timeMs <= 0 ||
+          !["force_pct_peak", "rfd"].includes(rule.kind) || !["higher", "lower"].includes(rule.direction) ||
+          typeof rule.referenceEnabled !== "boolean" || typeof rule.source !== "string" || !Array.isArray(rule.ranges) ||
+          !plainObject(rule.context) || typeof rule.context.protocol !== "string" || !plainObject(rule.context.force) ||
+          rule.context.force.unit !== "N" || !["gross", "net"].includes(rule.context.force.definition) ||
+          (rule.matched !== undefined && typeof rule.matched !== "boolean")) throw new Error("IMTP 时点标准字段无效");
+      const key = rule.timeMs + ":" + rule.kind;
+      if (keys.has(key)) throw new Error("IMTP 同一时点的同类标准不能重复");
+      keys.add(key);
+      if (rule.target !== null && rule.target !== "" &&
+          (typeof rule.target !== "number" || !Number.isFinite(rule.target) || rule.target <= 0 ||
+           (rule.kind === "force_pct_peak" && rule.target > 100))) throw new Error("IMTP 目标须为正数或留空，峰值百分比不得超过 100");
+      Def.parseRanges(Def.rangeText(rule.ranges));
+      rule.ranges.forEach(range => {
+        for (const key of ["min", "max"]) if (range[key] !== null && range[key] !== undefined &&
+          (typeof range[key] !== "number" || !Number.isFinite(range[key]) || range[key] < 0 ||
+           (rule.kind === "force_pct_peak" && range[key] > 100))) throw new Error("IMTP 等级端点须为有效非负值，峰值百分比不得超过 100");
+        if (range.advantage !== undefined && typeof range.advantage !== "boolean") throw new Error("IMTP 优势等级标记无效");
+      });
+    });
+  }
   function validateRecord(input, options = {}) {
     if (
       !plainObject(input) ||
@@ -3228,6 +3425,8 @@
     )
       throw new Error("不是有效的 Ringside 报告数据");
     validateDataTree(input);
+    validateAbilityGroups(input.abilityGroupSnapshot);
+    if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
     if (
       !safeId(input.recordId) ||
       (input.schema === 2 && !safeId(input.athleteId)) ||
@@ -3274,6 +3473,13 @@
     });
     if (input.mode !== undefined && !["best", "mean"].includes(input.mode))
       throw new Error("汇总模式无效");
+    validateIMTPTimeStandards(input.imtpTimeStandards);
+    if (input.testPlanSnapshot !== undefined) {
+      const plan = input.testPlanSnapshot;
+      if (!plainObject(plan) || !safeId(plan.id) || typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 ||
+          !Array.isArray(plan.testIds) || plan.testIds.length > 75 || plan.testIds.some(id => !safeId(id)) ||
+          new Set(plan.testIds).size !== plan.testIds.length) throw new Error("测试方案快照结构无效");
+    }
     if (
       input.projectSnapshots !== undefined &&
       (!Array.isArray(input.projectSnapshots) ||
@@ -3734,6 +3940,7 @@
     normalizeRecord,
     normalizeIMTP,
     syncIMTPLegacy,
+    imtpTimeContext,
     forceTime,
     stats,
     grade,
@@ -3758,6 +3965,7 @@
     normalizeLibrary,
     recordEnvelope,
     validateRecord,
+    validateIMTPTimeStandards,
     validateLibrary,
     validateCatalog,
     validateField,

@@ -135,7 +135,7 @@ async function browserChecks() {
   await check("mixed-side-counts-and-long-pain-missing-large-value-results", async () => {
     const mixed = fixture("mixed", 4); mixed.data.iso[2].trials[2].right = ""; mixed.data.iso[2].trials[3].right = "";
     await importRecord(mixed); const row = page.locator('[data-row-id="iso_neck_lateralFlexion"]');
-    assert.equal(await row.locator("[data-repeat-stat]").count(), 1); assert.match(await row.innerText(), /n=4/);
+    assert.equal(await row.locator("[data-repeat-stat]").count(), 1); assert.doesNotMatch(await row.innerText(), /\bn=\d/);
     await importRecord(stressFixture());
     assert.ok((await page.locator("#detail-iso").innerText()).includes("疼痛"));
     assert.equal(await page.locator('#detail-iso [data-row-id="iso_shoulder_internalRotation"] [data-balance-id]').count(), 3);

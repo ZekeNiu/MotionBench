@@ -389,7 +389,7 @@ test("speed report supports all missing subsets in fixed MAS MSS VIFT order with
       assert.equal((html.match(/class="detail-pair speed-detail"/g) || []).length, 1);
     }
     if (mask & 4) {
-      assert.match(html, /折返版/);
+      assert.doesNotMatch(html, /折返版|跑台改良版/);
       assert.match(html, /未完成级 12 秒/);
       assert.doesNotMatch(html, /data-metric-id="ift_treadmill"/);
     }
@@ -401,7 +401,7 @@ test("custom IFT results survive missing native speed without an empty chart or 
   r.definitions.push({ id: 'ift_custom', testId: 'ift', name: 'IFT附加指标', unit: '次', ability: '间歇耐力', category: 'performance', target: 20, ranges: [], referenceEnabled: false });
   r.customValues.ift_custom = { value: 12 };
   const html = R.render(R.build(r));
-  assert.match(html, /30–15 IFT/);
+  assert.match(html, /30-15VIFT/);
   assert.equal((html.match(/data-metric-id="ift_custom"/g) || []).length, 1);
   assert.doesNotMatch(html, /data-speed-metric|速度表现等待录入/);
 });
@@ -414,7 +414,7 @@ test("speed units and IFT protocols remain independent; invalid or zero ASR neve
   near(report.stats.values.mas_speed, 5);
   near(report.stats.values.ift_treadmill, 6);
   assert.match(html, /ASR 0\.00 m\/s/);
-  assert.match(html, /跑台改良版/);
+  assert.doesNotMatch(html, /跑台改良版|折返版/);
   assert.match(html, /未完成级 12\.5 秒/);
   assert.doesNotMatch(html, /data-metric-id="ift_shuttle"/);
   r.data.mss.speed = 4;
@@ -478,13 +478,14 @@ test('five training formats preserve source targets and display Chinese goals, s
   assert.equal(ref.rows.find(x => x.id === 'rst').workSpeeds.length, 0);
   assert.equal(ref.rows.find(x => x.id === 'sit').recoverySpeeds.length, 0);
   assert.equal(ref.rows.find(x => x.id === 'game').workSpeeds.length, 0);
-  assert.match(ref.rows[0].work, /95–105% vVO₂max/); assert.match(ref.rows[1].work, /100–120% VIncTest/);
-  assert.deepEqual(Array.from(ref.rows, x => Array.from(x.ratios, p => [p.work, p.rest])), [[[240,120]],[[30,30],[30,15]],[[5,20]],[[30,240]],[[240,120]]]);
+  assert.match(ref.rows[0].work, /95–105% MAS/); assert.match(ref.rows[1].work, /100–120% MAS/);
+  assert.deepEqual(Array.from(ref.rows, x => Array.from(x.ratios, p => [p.work, p.rest])), [[[240,120]],[[30,30],[30,15]],[[5,20],[5,15],[5,30]],[[30,240]],[[240,120]]]);
   for (const row of ref.rows) for (const ratio of row.ratios) assert.ok(ref.sources.some(source => source.id === ratio.sourceId));
-  assert.match(html, /最大有氧速度（MAS）的95–105%/); assert.match(html, /折返终末速度（VIFT）的80–90%/);
-  assert.match(html, /随比赛情境自主调节/); assert.match(html, /有氧能力/); assert.match(html, /无氧糖酵解能力/);
+  assert.match(html, /最大有氧速度（MAS）的95–105%/); assert.match(html, /30-15VIFT的80–90%/);
+  assert.match(html, /全力以赴/); assert.match(html, /有氧能力/); assert.match(html, /无氧能力/);
+  assert.doesNotMatch(html, /可含|随规则加入|有氧刺激随方案变化/);
   assert.equal((html.match(/实测最大冲刺速度（MSS）/g) || []).length, 2);
-  assert.match(html, /做功∶休息参考/); assert.match(html, />1:8<.*?30秒／4分钟/);
+  assert.match(html, /做功∶休息示例/); assert.match(html, />1:8<.*?30秒／4分钟/);
   assert.doesNotMatch(html, /data-metric-id="asr"|相对现有目标|data-speed-profile|speed-target-legend|speed-reference-note|data-speed-mas80|录入MAS换算|≥MSS|生理目标 [①②③④⑤⑥]/);
 });
 test('speed reference bases and athlete type disappear independently for all missing combinations', () => {
@@ -504,16 +505,17 @@ test('speed reference bases and athlete type disappear independently for all mis
     if (mask === 2) assert.match(html, /实测最大冲刺速度（MSS）/);
   }
 });
-test('treadmill VIFT remains measured but never supplies shuttle reference speeds or inferred MAS', () => {
+test('all recorded VIFT supplies reference speeds without inferring MAS or a test method', () => {
   const r = speedSample(); r.data.ift.protocol = 'treadmill';
   let report = R.build(r), ref = report.speedReference;
   assert.equal(ref.metrics.length, 3);
-  assert.ok(ref.rows.every(x => ![...x.workSpeeds, ...x.recoverySpeeds].some(x => x.basis === 'vift')));
+  assert.ok(ref.rows.filter(x => x.mas).every(x => x.workSpeeds.some(x => x.basis === 'vift')));
   assert.match(R.render(report), /未完成级 12\.5 秒/);
   r.data.mas.speed = ''; r.data.mss.speed = '';
   ref = R.build(r).speedReference;
   assert.equal(ref.asr, null); assert.equal(ref.srr, null); assert.equal(ref.athleteType, null);
-  assert.ok(ref.rows.every(x => x.workSpeeds.length === 0 && x.recoverySpeeds.length === 0));
+  assert.ok(ref.rows.every(x => ![...x.workSpeeds, ...x.recoverySpeeds].some(x => x.basis === 'mas')));
+  assert.deepEqual(Array.from(ref.rows[0].workSpeeds[0].values), [4, 4.5]);
 });
 test('literature athlete type uses unrounded SRR with inclusive middle cutpoints and ignores target settings', () => {
   const r = speedSample(), a = r.definitions.find(x => x.id === 'mas_speed'), s = r.definitions.find(x => x.id === 'mss_speed');

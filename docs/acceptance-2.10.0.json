@@ -1,0 +1,251 @@
+{
+  "pass": true,
+  "implementationComplete": true,
+  "approvedAcceptancePass": true,
+  "version": "2.10.0",
+  "approvedRevision": "MB-20261007-CATALOG-BODY-VIFT-IMTP",
+  "html": "MotionBench.html",
+  "sha256": "8b17fa95b8a037754b3ffde5bc73791073894cf8b3ae29e6297c38309b14ebbd",
+  "bytes": 4335160,
+  "reproducibleBuild": true,
+  "sourceModules": {
+    "ringside-app.js": "cfdb4e6719da6bbc510902420e680634ee216fb36548c2f895ad4cff2242874b",
+    "ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "ringside-definitions.js": "10123be75c1c40bf2b6bc7ba3ccf1c9bfb88edde063db7495cc288cc447f09e2",
+    "ringside-evaluation.js": "f5aed35c818af643b9af9cfd554fa9ff76fc3f7317bef22a83394c68570ec569",
+    "ringside-interventions.js": "c160e2d9c15b91acf19164986319ff434a71f3acbbb6ac61947589fc5d27863f",
+    "ringside-management-refinement.css": "0dc9d097994f6adbf239ef6c1977448b8cd279e3631c7929fb7086308729e0bd",
+    "ringside-management.js": "94747081b85fd8144b23b593999b8abc8ad228fcc79589bdba3ddb8b01f4c2f1",
+    "ringside-model.js": "8e8cd326b23c157e5aa9e3dfd2ffb6e8250a8ab3f4e52881d386d731d6be37f3",
+    "ringside-pdf.js": "49043eca83868d8039072397bad18c53cdac8aa837eff868df6a6bd67f021ae4",
+    "ringside-report-refinement.css": "234c9f4aba4706923f40b3441e43cb57ca9aee0aec9a20267ab9b387c0744dc1",
+    "ringside-report.js": "fc682d98744db6e8cdf3eb6b0e2bb452475eb8ef3786c69cfca37504b17e54a6",
+    "ringside-settings.js": "80bb19d62e5b48e765d3a1d55b2a01c79b26052a59354d0f6b0f4d40c52d0eb7",
+    "ringside-shell.html": "ac2685001d320276aef5079950cef503b2d01d996dd06b49202e10ca5c3f106e",
+    "ringside-store.js": "c11a8e16889eadba5acaa621f5ccabe71271986ccfaa14443ee1dfc84ad7def9",
+    "ringside-tests.js": "75341ccb8fbac4fdcc9711f9caf97d86fa59fd80f3a2e493edefd3b86d6d630f",
+    "ringside-viz.js": "d7bc029fdfbbcb67d7357ba49abcf5ad4954d4d0a3d6127d78efb36b3b5ab2e4",
+    "ringside-workflow.css": "55c19355858b9dc82f4662995d9617f0f0c54df2453f0d7ce01c913578c83f64",
+    "ringside.css": "7fa91754f760a9f73388ed58ecf840ec8ccbd161942609118665081c5f3a7b8c"
+  },
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "559a6a255ee1160ad8cace5063cef62c9323742abcafb357bac2fe91afdaeb8f"
+    },
+    "legacy29Compatibility": {
+      "path": "output/tests/catalog-2.9-compatibility.json",
+      "sha256": "17692f19057063b4834c902e649499ad45bf220e118a47e01d8aa1e21c6cd314"
+    },
+    "chromeWorkflow": {
+      "path": "output/playwright/refinement/chrome-workflow.json",
+      "sha256": "2889c7a3ffb4d9c20a2694fc0b1b3fa97d695766e5d76789e5ade70588ab0f61"
+    },
+    "chromeRaces": {
+      "path": "output/playwright/refinement-races/chrome-races.json",
+      "sha256": "bf68b5941cd01c1f38f9f1cc2ac96b82141c1c107f6254a8a995ab1945e48637"
+    },
+    "chromeManagement": {
+      "path": "output/playwright/management/chrome-workflow.json",
+      "sha256": "e006be9ba4a8994a0d9f6f27a815b0ec811c39d47350c801c9f0ecd2d5628fc2"
+    },
+    "chromeManagementRefinement": {
+      "path": "output/playwright/management-refinement/chrome-browser.json",
+      "sha256": "2427ce261c7234ef03b1bb83e0dce1882b420f36544608882c06a19907278cca"
+    },
+    "chromeUnifiedCatalog": {
+      "path": "output/playwright/unified-catalog/chrome-browser.json",
+      "sha256": "e70c0d0b7e5cd5e3f570d8049937f50db300800c4f2a6841a538ce53cf86913d"
+    },
+    "chromeCapacity": {
+      "path": "output/playwright/management/chrome-capacity.json",
+      "sha256": "fc446148669fa5abf83689e7b30370ad3b7deab5297376a2d2dd6401885619f7"
+    },
+    "msedgeWorkflow": {
+      "path": "output/playwright/refinement/msedge-workflow.json",
+      "sha256": "30e460a3d62cb7013ded205e3f2be5e1011fd92a2cf18bab41a937dc59ea59dd"
+    },
+    "msedgeRaces": {
+      "path": "output/playwright/refinement-races/msedge-races.json",
+      "sha256": "5311bbf257be9cf63257aef16ad7f453857ae32bec47fac7b21f87abee44f81b"
+    },
+    "msedgeManagement": {
+      "path": "output/playwright/management/msedge-workflow.json",
+      "sha256": "bb00e67572d5196004247a524a2a87d5921e54595b9598df5a25ce2232ee9854"
+    },
+    "msedgeManagementRefinement": {
+      "path": "output/playwright/management-refinement/msedge-browser.json",
+      "sha256": "14f97c4d151718ee0ceddb5851e240ee7d52b664f6c3437114909ff727429419"
+    },
+    "msedgeUnifiedCatalog": {
+      "path": "output/playwright/unified-catalog/msedge-browser.json",
+      "sha256": "cfbcf2c928009b885325f986fe314f253963d1b920f9436bd08e3cc73cacc51c"
+    },
+    "msedgeCapacity": {
+      "path": "output/playwright/management/msedge-capacity.json",
+      "sha256": "160d5cfbac8b0bf74fb59654745252c925dd6c9301151ce7d17115128f3c6b3e"
+    },
+    "admin": {
+      "path": "output/playwright/management/admin.json",
+      "sha256": "3a56fcf985d7a124922447226cc7c24a9f83a87509956fd77471fea620561651"
+    },
+    "resilience": {
+      "path": "output/playwright/management/resilience.json",
+      "sha256": "7002f471e32c0f56a85caf44082f481e181c15389d4eb175a790ea4aeea4776f"
+    },
+    "managementLayouts": {
+      "path": "output/playwright/management/visual-layouts.json",
+      "sha256": "f63427f00df3b33f0a25dcd841fb6737130885f83b53e8e6358182cd46bfd98c"
+    },
+    "trainingSpeed": {
+      "path": "output/playwright/speed-reference-results.json",
+      "sha256": "6e0415ed8b3c5c4ffdd1db6fb35bde24b4797c306b80014522f070cfbcec1932"
+    },
+    "restart": {
+      "path": "output/playwright/management/restart.json",
+      "sha256": "252c0b968e8a944ba886599ed03a621d2039969ec6053555b9fa95bac59ce64a"
+    },
+    "pdfDownloads": {
+      "path": "output/pdf/management-download-verification.json",
+      "sha256": "2230a377236c0dafcc191a4550266d49dee2469b6f6de81ef534aac80dc865fd"
+    },
+    "pdfRender": {
+      "path": "output/pdf/management-render-verification.json",
+      "sha256": "047ffae893accd17c86cafcce0714ffd6599c07433219e22edd8ed82ebf71f85"
+    },
+    "reportRefinement": {
+      "path": "output/report-refinement/verification.json",
+      "sha256": "e294546fd27ce4f3a11d3dca3114f07205b8050823d0683dd1d0073989e7dd6e"
+    },
+    "reportVisual": {
+      "path": "output/report-refinement/visual-review.json",
+      "sha256": "47e75493854b7367a6299a70304e63c09fc208801a6c0f177434e79ced9d3a01"
+    },
+    "reportV210": {
+      "path": "output/report-v210/verification.json",
+      "sha256": "e4d85c748bf3980f75983b88e28111dfadeb6b467edcca1567560ac748eae389"
+    },
+    "reportV210Edge": {
+      "path": "output/report-v210-edge/verification.json",
+      "sha256": "3c2b5b75c1ac695805dce363a4dbf5a7be91fcd781463376c651bc586c5d386c"
+    },
+    "reportV210Visual": {
+      "path": "output/report-v210/visual-review.json",
+      "sha256": "9011de1356c96f45c6862e821f6647130d735a5029defc01203a937e2bcf1be7"
+    },
+    "imtpLayout": {
+      "path": "output/imtp-layout-v210/verification.json",
+      "sha256": "8a0823e6192d450e48e4d12d036f20ffd634a20332cfbb02fc31ad28682f21d8"
+    },
+    "imtpLayoutEdge": {
+      "path": "output/imtp-layout-v210-edge/verification.json",
+      "sha256": "ec1bc14dcf85cecd2963f6548bb391867f272a64a09284c53268571a7ca62e90"
+    },
+    "imtpLayoutVisual": {
+      "path": "output/imtp-layout-v210/visual-review.json",
+      "sha256": "31dfb3d9048b6bd9c5727c0f812bf72bfc0d0640e6a2fc6157817e8bec5589aa"
+    },
+    "visualReview": {
+      "path": "output/playwright/refinement/visual-review.json",
+      "sha256": "a92ac0721efa899982914ded7eba22d5a7a08131fcb7f01d1de03a382ff18c36"
+    }
+  },
+  "modelChecks": 216,
+  "browserWorkflowChecks": 114,
+  "trainingSpeedBrowserChecks": 6,
+  "managementResponsiveLayouts": 21,
+  "reportV210Checks": 11,
+  "imtpLayoutChecks": 5,
+  "capacity": {
+    "chrome": {
+      "athletes": 300,
+      "records": 3000,
+      "timings": {
+        "seedMs": 3468.300000011921,
+        "startupMs": [
+          254,
+          219,
+          194
+        ],
+        "searchMs": [
+          141,
+          124,
+          127
+        ],
+        "openMs": 49.80000001192093,
+        "saveMs": 8.400000005960464,
+        "backupMs": 2962,
+        "restoreMs": 3166
+      },
+      "backupBytes": 261796124,
+      "allEntitiesRoundtrip": {
+        "sha256": "4cb55dbfb0fcc0d30f14ddcfff0292a9d159f93c6c41e42c942589c53e958d46",
+        "counts": {
+          "config": 1,
+          "group": 10,
+          "profile": 1,
+          "athlete": 300,
+          "record": 3000
+        }
+      }
+    },
+    "msedge": {
+      "athletes": 300,
+      "records": 3000,
+      "timings": {
+        "seedMs": 2945.600000023842,
+        "startupMs": [
+          234,
+          189,
+          195
+        ],
+        "searchMs": [
+          134,
+          124,
+          118
+        ],
+        "openMs": 40.900000005960464,
+        "saveMs": 6.199999988079071,
+        "backupMs": 2945,
+        "restoreMs": 3177
+      },
+      "backupBytes": 261796124,
+      "allEntitiesRoundtrip": {
+        "sha256": "e247f681d99cdf484a34d586361f321eed32675d6cb8c2a3892bbe64ade20809",
+        "counts": {
+          "config": 1,
+          "group": 10,
+          "profile": 1,
+          "athlete": 300,
+          "record": 3000
+        }
+      }
+    }
+  },
+  "browserRestart": [
+    {
+      "channel": "chrome",
+      "pass": true,
+      "errors": [],
+      "processRestartMs": 754,
+      "listReadyMs": 351,
+      "abilityExtensionRestart": true
+    },
+    {
+      "channel": "msedge",
+      "pass": true,
+      "errors": [],
+      "processRestartMs": 659,
+      "listReadyMs": 340,
+      "abilityExtensionRestart": true
+    }
+  ],
+  "pdfPagesChecked": 119,
+  "uniquePDFPagesVisuallyReviewed": 85,
+  "verificationLimits": [
+    "Synthetic data in isolated Windows Chrome and Edge; no personal browser profiles used.",
+    "Mobile layout was checked with browser sizes; no physical mobile or printer acceptance.",
+    "AI fact consistency and stale-result protection were checked locally; no new live-provider content-quality claim.",
+    "Local delivery only; no GitHub publishing performed."
+  ]
+}

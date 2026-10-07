@@ -269,7 +269,7 @@ async function run() {
       0,
     );
     assert.ok(
-      (await p.locator(".micro-cards").innerText()).includes("测试情况概述"),
+      (await p.locator(".micro-cards > article").first().innerText()).includes("运动员信息"),
     );
     for (const [tab, title, n] of [
       ["catalog", "测试项目库", 1],

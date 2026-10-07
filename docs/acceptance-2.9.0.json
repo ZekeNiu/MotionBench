@@ -1,0 +1,211 @@
+{
+  "pass": true,
+  "implementationComplete": true,
+  "approvedAcceptancePass": true,
+  "version": "2.9.0",
+  "approvedRevision": "MB-20261007-WORKFLOW-REPORT",
+  "html": "MotionBench.html",
+  "sha256": "10eca52dbcf4e0edcae4a3b1a1a55e0266e9e9652ba53bb3a553ea0943a9dd58",
+  "bytes": 4306955,
+  "reproducibleBuild": true,
+  "sourceModules": {
+    "ringside-app.js": "8bf402f1d3a0e1f68fedb12376383574b235bb19a7ee0364e9424ab7d086349b",
+    "ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "ringside-definitions.js": "c8ac3ee5047b647fb813451ed2fc165d05c9a7dff82f4d136a4a253c918a9d9f",
+    "ringside-evaluation.js": "6f391667cf38891f187443fd238203b66d61ed2a673fb01a2c946206a4d3310e",
+    "ringside-interventions.js": "c160e2d9c15b91acf19164986319ff434a71f3acbbb6ac61947589fc5d27863f",
+    "ringside-management-refinement.css": "3a7d7c36f633fc8e8af93630c00d3aa05c98ff038d1a7225bd98ab06d5c84642",
+    "ringside-management.js": "e68bcab506157bdf5f60900d8a189d3231707baabe7d0f5a4f93f49c81ffa10f",
+    "ringside-model.js": "0e2297ecd2831c9141c787126c8c23806b21c6fba07ff02f5fd625def0cf54cc",
+    "ringside-pdf.js": "8d0a3af8b46fc676a4d368fb8c5b8f2e15c9c6016fa091c2bbde09c4a0da5801",
+    "ringside-report-refinement.css": "56a95de560d681880c0de2c2c170756ae11b3fbf44108a33a56bca6f5a86d0f9",
+    "ringside-report.js": "ba18b8500460c527e15fb23fdf353f42267ce5e35869ae079362badbf05b533f",
+    "ringside-settings.js": "c02453b62ee9a09d1aff2a5e06217a15a4a64a1919fe297dfe8950b70435f357",
+    "ringside-shell.html": "fb15171ddf022efe95927c9c3a8c5955b27bccd69aee4880a32bf255c180c2b7",
+    "ringside-store.js": "b66917a0229aabe6bb96d234edeaa9bc3a0671bc1cefa7e20ac0c3d135975b34",
+    "ringside-tests.js": "5523cf28e582f4a9cfa4fc83dd60797024d14a7b557f415cc34de92ac503d45b",
+    "ringside-viz.js": "6ef4b0631499cd8f7ea11282193ea40e8edcc6eb2faca0dbaeaf40cc14335349",
+    "ringside-workflow.css": "ec5514e82fc909a6a883ab1a8eaf1eefcdfb37757f50b94ab9aa438ee58c0e31",
+    "ringside.css": "f016e735d17b628c87960b10c6c0409b985e16b53a1d77e96e9dad1a2f14c541"
+  },
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "ebe70a853cbbe10d929235641058f28d14a540b8b7dfe66de0050985b87a68ed"
+    },
+    "chromeWorkflow": {
+      "path": "output/playwright/refinement/chrome-workflow.json",
+      "sha256": "f23ab90393a320ed0a66d4d054f5a3bcfe35c79a77f96307efd5d13da02839f2"
+    },
+    "chromeRaces": {
+      "path": "output/playwright/refinement-races/chrome-races.json",
+      "sha256": "26b58b766478b2104ecebd2549077eba24eee58c0cba40012e2a289019d1e53e"
+    },
+    "chromeManagement": {
+      "path": "output/playwright/management/chrome-workflow.json",
+      "sha256": "7e5a92c5e2296900f9a3531a30880072c52b5268a0205b6547d41a1714ec904e"
+    },
+    "chromeManagementRefinement": {
+      "path": "output/playwright/management-refinement/chrome-browser.json",
+      "sha256": "316feb81d577858a0224f01ffb4d92ef4d6c4246a1956f4737f579fd502a1aff"
+    },
+    "chromeCapacity": {
+      "path": "output/playwright/management/chrome-capacity.json",
+      "sha256": "f532afabc760a67cec6add0c0aee491d0e0e45164c70ec729ee3c305ddc2d9a1"
+    },
+    "msedgeWorkflow": {
+      "path": "output/playwright/refinement/msedge-workflow.json",
+      "sha256": "cdb771bdada1a05b9f5fad46db6afb332d9fb0c6143f0ce0eea43c3d1c859cf1"
+    },
+    "msedgeRaces": {
+      "path": "output/playwright/refinement-races/msedge-races.json",
+      "sha256": "9504b1ae5b8d67ccf33c4dbd98d5e46954ccd874a3c3f6cc9e81bdee6370c795"
+    },
+    "msedgeManagement": {
+      "path": "output/playwright/management/msedge-workflow.json",
+      "sha256": "169de68b5f4bd81e30b92031b69125782cfee4d8806b2a8152290920f0465269"
+    },
+    "msedgeManagementRefinement": {
+      "path": "output/playwright/management-refinement/msedge-browser.json",
+      "sha256": "55eaec5d44422fc9588ac207fbcc643d5c687ae2d0a69c23a271fe285410f1a2"
+    },
+    "msedgeCapacity": {
+      "path": "output/playwright/management/msedge-capacity.json",
+      "sha256": "3f952e58e5b40ff76fc0e9ba811ea3c1d86517a688867634efce5845e093dde7"
+    },
+    "admin": {
+      "path": "output/playwright/management/admin.json",
+      "sha256": "717f8fa11ceebc208e454ef03dd2c5bd394c42f5fd93bddbb77476edb9143dcc"
+    },
+    "resilience": {
+      "path": "output/playwright/management/resilience.json",
+      "sha256": "1173d096cb61081fcdb83a51fd36d2adbdae0ba364f9bdfcd85d43239a898662"
+    },
+    "managementLayouts": {
+      "path": "output/playwright/management/visual-layouts.json",
+      "sha256": "9ac48f21dfa957c8de0bccc85a73b4d861d3d88f22eb26b7c36b344ecf23737b"
+    },
+    "trainingSpeed": {
+      "path": "output/playwright/speed-reference-results.json",
+      "sha256": "583a40a65ae29ca0f29e23b7b83ae470ac1df6639ac210967b4004ebed2a9441"
+    },
+    "restart": {
+      "path": "output/playwright/management/restart.json",
+      "sha256": "19fc09ab5259a280895004d31bc321ba0e155e4ccb5b22a59ee823e9f88227ab"
+    },
+    "pdfDownloads": {
+      "path": "output/pdf/management-download-verification.json",
+      "sha256": "43afd4937dfe57c375f19e3a41370db2952e8e30b899b182c95998d5ab2a7e34"
+    },
+    "pdfRender": {
+      "path": "output/pdf/management-render-verification.json",
+      "sha256": "41fcac03cd51ef6699edb8e99264113b681f5687a47f5037a45a80609f555bb4"
+    },
+    "reportRefinement": {
+      "path": "output/report-refinement/verification.json",
+      "sha256": "a919e0ba7ae1ec9e7fe70abff58e3ab3f278cfd94bf23df8ec3ea721974d5c42"
+    },
+    "reportVisual": {
+      "path": "output/report-refinement/visual-review.json",
+      "sha256": "c9397272dbe0b2a0564a0ed1da22caf97450347487597da09e579345f594c315"
+    },
+    "visualReview": {
+      "path": "output/playwright/refinement/visual-review.json",
+      "sha256": "d8017fdbfd9ff79df92bcaea31ef75f56dee3a6ef399baa0bc9e7d7ee9ce6cc1"
+    }
+  },
+  "modelChecks": 185,
+  "browserWorkflowChecks": 90,
+  "trainingSpeedBrowserChecks": 6,
+  "managementResponsiveLayouts": 21,
+  "capacity": {
+    "chrome": {
+      "athletes": 300,
+      "records": 3000,
+      "timings": {
+        "seedMs": 2855.2000000178814,
+        "startupMs": [
+          226,
+          173,
+          171
+        ],
+        "searchMs": [
+          131,
+          124,
+          123
+        ],
+        "openMs": 39.400000005960464,
+        "saveMs": 12.799999982118607,
+        "backupMs": 2661,
+        "restoreMs": 3112
+      },
+      "backupBytes": 260853978,
+      "allEntitiesRoundtrip": {
+        "sha256": "abbc3e89de8243bea538ac4dbb0111c3479de74a0a74a2e43fdfdcb930febbf3",
+        "counts": {
+          "config": 1,
+          "group": 10,
+          "profile": 1,
+          "athlete": 300,
+          "record": 3000
+        }
+      }
+    },
+    "msedge": {
+      "athletes": 300,
+      "records": 3000,
+      "timings": {
+        "seedMs": 2879.2999999821186,
+        "startupMs": [
+          227,
+          183,
+          177
+        ],
+        "searchMs": [
+          132,
+          116,
+          125
+        ],
+        "openMs": 39.099999994039536,
+        "saveMs": 11.599999994039536,
+        "backupMs": 2850,
+        "restoreMs": 3152
+      },
+      "backupBytes": 260853978,
+      "allEntitiesRoundtrip": {
+        "sha256": "2f6459b42989638af9c66d5aabd9a5d5f0725f0ede51704d7df2c4a5f47049ee",
+        "counts": {
+          "config": 1,
+          "group": 10,
+          "profile": 1,
+          "athlete": 300,
+          "record": 3000
+        }
+      }
+    }
+  },
+  "browserRestart": [
+    {
+      "channel": "chrome",
+      "pass": true,
+      "errors": [],
+      "processRestartMs": 698,
+      "listReadyMs": 339
+    },
+    {
+      "channel": "msedge",
+      "pass": true,
+      "errors": [],
+      "processRestartMs": 634,
+      "listReadyMs": 335
+    }
+  ],
+  "pdfPagesChecked": 85,
+  "uniquePDFPagesVisuallyReviewed": 52,
+  "verificationLimits": [
+    "Synthetic data in isolated Windows Chrome and Edge; no personal browser profiles used.",
+    "Mobile layout was checked with browser sizes; no physical mobile or printer acceptance.",
+    "AI fact consistency and stale-result protection were checked locally; no new live-provider content-quality claim.",
+    "Local delivery only; no GitHub publishing performed."
+  ]
+}

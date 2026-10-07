@@ -19,10 +19,10 @@ const cases=[{id:"management-chrome-sample",channel:"chrome",width:1440},{id:"ma
    let downloads=0;page.on("download",()=>downloads++);
    const button=page.locator('#reportActions [data-pdf-action]');
    if(config.retry){
-    await page.evaluate(()=>{window.__renderer=html2canvas;window.html2canvas=async()=>{throw Error("验收模拟绘制失败");};});await button.click();await page.waitForFunction(()=>RingsidePDF.lastDiagnostics?.status==="failed"&&!document.querySelector('#reportActions [data-pdf-action]').disabled);
+    await page.evaluate(()=>{window.__renderer=html2canvas;window.html2canvas=async()=>{throw Error("验收模拟绘制失败");};});await page.locator("#reportExportMenu summary").click();await button.click();await page.waitForFunction(()=>RingsidePDF.lastDiagnostics?.status==="failed"&&!document.querySelector('#reportActions [data-pdf-action]').disabled);
     assert.equal(downloads,0);assert.equal(await page.locator('.ringside-pdf-stage').count(),0);assert.equal(await page.locator('#pdfProgress').isVisible(),false);await page.evaluate(()=>{window.html2canvas=__renderer;});check.failureRecovered=true;
    }
-   const started=Date.now(),pending=page.waitForEvent("download",{timeout:120000});await button.click();const download=await pending;await download.saveAs(path.join(out,config.id+".pdf"));await page.waitForFunction(()=>!document.querySelector('#reportActions [data-pdf-action]').disabled);
+   const started=Date.now(),pending=page.waitForEvent("download",{timeout:120000});await page.locator("#reportExportMenu summary").click();await button.click();const download=await pending;await download.saveAs(path.join(out,config.id+".pdf"));await page.waitForFunction(()=>!document.querySelector('#reportActions [data-pdf-action]').disabled);
    check.elapsedMs=Date.now()-started;check.diagnostics=await page.evaluate(()=>RingsidePDF.lastDiagnostics);check.figures=await page.evaluate(()=>__printFigures);check.pdfTarget=await page.evaluate(()=>__pdfTarget);
    assert.equal(check.pdfTarget,80);assert.equal(downloads,1);assert.ok(check.diagnostics.pageCount>=2);assert.equal(await page.locator('.ringside-pdf-stage').count(),0);assert.ok(check.figures.every(f=>!f.outside.length),JSON.stringify(check.figures));assert.deepEqual(check.errors,[]);assert.deepEqual(check.network,[]);check.pass=true;console.log("PASS",config.id,check.diagnostics.pageCount,"pages",check.elapsedMs,"ms");
   }catch(error){check.failure=error.stack;console.error(error.stack);process.exitCode=1;}

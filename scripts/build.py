@@ -31,7 +31,8 @@ for name in ["ringside-tests.js", "ringside-model.js", "ringside-evaluation.js",
     pieces.append(path.read_text(encoding="utf-8"))
 shell = (SRC / "ringside-shell.html").read_text(encoding="utf-8")
 assert shell.count("<!-- RINGSIDE_STYLES -->") == 1
-shell = shell.replace("<!-- RINGSIDE_STYLES -->", "<style>\n" + (SRC / "ringside.css").read_text(encoding="utf-8") + "\n</style>")
+styles = ["ringside.css", "ringside-workflow.css", "ringside-management-refinement.css", "ringside-report-refinement.css"]
+shell = shell.replace("<!-- RINGSIDE_STYLES -->", "<style>\n" + "\n".join((SRC / name).read_text(encoding="utf-8") for name in styles) + "\n</style>")
 assert shell.count("<!-- RINGSIDE_SCRIPTS -->") == 1
 script_tags = "\n".join("<script>\n" + code.replace("</script", "<\\/script") + "\n</script>" for code in pieces)
 result = shell.replace("<!-- RINGSIDE_SCRIPTS -->", script_tags)

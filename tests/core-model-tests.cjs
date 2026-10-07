@@ -227,8 +227,9 @@ test("summary ignores old filters and contains all four cards without controls o
     overview: "missing",
   };
   const html = R.summary(R.build(record));
-  assert.equal((html.match(/class="micro-card"/g) || []).length, 4);
-  assert.ok(html.includes("测试情况概述"));
+  assert.equal((html.match(/class="micro-card(?:\s[^"]*)?"/g) || []).length, 4);
+  assert.match(html, /^<article class="micro-card athlete-summary">/);
+  assert.ok(html.includes("运动员信息"));
   assert.ok(!/<select|<a\b|<button/.test(html));
 });
 test("FMS radar retains seven axes, missing results and pain without fabricating points", () => {

@@ -1,0 +1,69 @@
+.metric-ability-group { margin:28px 0 36px; }
+.metric-ability-group h2 { margin:0 0 12px; font-size:19px; letter-spacing:.02em; }
+.metric-ability-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin:0 0 12px; padding-bottom:12px; border-bottom:2px solid #d4dee7; }
+.metric-ability-heading h2 { margin:0; }
+.metric-ability-heading > .row { gap:6px; }
+.metric-ability-heading .btn { background:transparent; }
+.metric-ability-empty { padding:20px; background:#f7f9fb; border:1px dashed #cdd7e0; border-radius:10px; }
+.metric-ability-empty p { margin:0 0 14px; color:var(--muted); }
+.metric-library-table { table-layout:fixed; }
+.metric-library-table th:first-child,.metric-library-table td:first-child { width:13%; }
+.metric-library-table th:nth-child(2) { width:20%; }
+.metric-library-table th:nth-child(3) { width:7%; }
+.metric-library-table th:nth-child(4) { width:12%; }
+.metric-library-table th:nth-child(5) { width:28%; }
+.metric-library-table th:nth-child(6) { width:20%; }
+.metric-library-table td { vertical-align:top; overflow-wrap:anywhere; }
+.metric-library-table small { white-space:pre-line; }
+.metric-library-table .metric-project-heading th { padding:14px 16px; background:#e8edf2; color:#33475a; text-align:left; }
+.metric-library-table .metric-project-heading th:first-child { width:auto; }
+.metric-project-heading th > span { font-size:14px; }
+.metric-project-heading small { display:inline; margin-left:12px; font-weight:400; color:var(--muted); }
+.metric-project-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+.metric-project-header > div:first-child { flex:1; min-width:180px; }
+.metric-project-header h3 { margin:0; font-size:15px; font-weight:650; }
+.metric-project-header h3 .pill { margin-left:8px; font-size:11px; vertical-align:middle; }
+.metric-project-header .note { margin:5px 0 0; font-size:12px; font-weight:400; }
+.metric-project-header > .row { gap:7px; }
+.metric-project-heading .btn { margin:0; font-weight:500; }
+.metric-project-protocol { margin:10px 0 0; color:#52667a; font-size:12px; line-height:1.6; font-weight:400; white-space:pre-line; overflow-wrap:anywhere; }
+.standard-mismatch { color:#946422!important; }
+.management-team-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin:0 0 20px; }
+.management-team-heading h2 { margin:0; }
+.team-members-table th:first-child,.team-members-table td:first-child { width:28%; }
+.team-member-picker { max-height:50vh; overflow-y:auto; display:grid; gap:6px; }
+.team-member-picker .check-line { padding:12px; border:1px solid var(--line); border-radius:8px; align-items:flex-start; }
+.team-member-picker .check-line[hidden] { display:none; }
+.team-member-picker small { display:block; margin-top:4px; color:var(--muted); }
+.test-plan-editor { padding:24px; background:#fff; border:1px solid var(--line); border-radius:14px; }
+.test-plan-editor h2 { font-size:18px; margin-top:28px; }
+.test-plan-order { margin:16px 0; padding:0; list-style:none; counter-reset:plan; }
+.test-plan-order li { counter-increment:plan; display:flex; align-items:center; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
+.test-plan-order li::before { content:counter(plan); color:var(--muted); width:24px; font-variant-numeric:tabular-nums; }
+.test-plan-order li > span { flex:1; min-width:0; }
+.test-plan-order li small { display:block; color:var(--muted); }
+.test-plan-add { display:flex; gap:12px; align-items:flex-end; margin:20px 0; }
+.test-plan-add > .field { flex:1; margin:0; }
+.test-plan-editor .form-grid > .field { min-width:0; }
+@media (max-width:1100px) and (min-width:701px) {
+  .metric-library-table td .row { flex-direction:column; align-items:stretch; }
+  .metric-library-table td { padding:12px 8px; }
+}
+@media (max-width:700px) {
+  .metric-library-table { table-layout:auto; }
+  .metric-library-table tbody { margin-bottom:20px; }
+  .metric-library-table .metric-project-heading { background:#e8edf2; border-color:#dbe2e9; }
+  .metric-library-table .metric-project-heading th { display:block; padding:0; background:transparent; white-space:normal; }
+  .metric-project-heading small { display:block; margin:6px 0 0; }
+  .metric-project-header { display:block; }
+  .metric-project-header > .row { margin-top:12px; }
+  .metric-project-heading .btn { margin:0; }
+  .metric-ability-heading { gap:10px; }
+  .metric-ability-heading h2 { font-size:18px; }
+  .metric-library-table td:first-child,.team-members-table td:first-child { width:auto; }
+  .metric-library-table td .row { min-width:0; }
+  .test-plan-editor { padding:18px 14px; }
+  .test-plan-order li { flex-wrap:wrap; gap:10px; }
+  .test-plan-order li .row { width:100%; margin-left:34px; }
+  .test-plan-add { flex-direction:column; align-items:stretch; }
+}

@@ -193,15 +193,29 @@
     return { out, x, y };
   }
 
+  const bodyStatusLabels = { red: "重点关注", amber: "关注", green: "优秀", gray: "未测", neutral: "已测" };
+  const bodyStatusLabel = (region) => region.status === "green" ? "优秀" : region.label || bodyStatusLabels[region.status] || "未测";
+  function bodyTestText(test) {
+    const side = { L: "左侧", R: "右侧", C: "中线" }[test.side] || test.side || "",
+      title = [test.testName && test.testName !== test.name ? test.testName : "", test.name || "测试", side].filter(Boolean).join(" · "),
+      value = test.missing ? "未测" : num(test.value) !== null ? fmt(test.value, 2) + (test.unit ? " " + test.unit : "") : test.label || "已测",
+      facts = [value];
+    if (num(test.target) !== null) facts.push("目标 " + fmt(test.target, 2) + (test.unit ? " " + test.unit : ""));
+    if (!test.missing && test.label && test.label !== value) facts.push(test.label);
+    if (num(test.asym) !== null) facts.push("双侧差异 " + fmt(test.asym, 1) + "%");
+    if (test.pain) facts.push("疼痛");
+    if (test.notes) facts.push(String(test.notes));
+    return { title, detail: facts.join(" · ") };
+  }
+  function bodyTooltip(region = {}) {
+    const status = Object.hasOwn(bodyStatusLabels, region.status) ? region.status : "gray",
+      tests = Array.isArray(region.tests) ? region.tests : [];
+    return `<div class="body-detail"><h3>${esc(region.name || "身体区域")}<span class="pill ${status}">${esc(bodyStatusLabel(region))}</span></h3>` +
+      (tests.length ? `<ul>${tests.map(test => { const item = bodyTestText(test); return `<li><strong>${esc(item.title)}</strong><p>${esc(item.detail)}</p></li>`; }).join("")}</ul>` : `<p>${esc(region.detail || region.tooltip || "暂无关联测试数据")}</p>`) + `</div>`;
+  }
+
   function body(regions, imageURL) {
     regions = regions || {};
-    const labels = {
-      red: "重点关注",
-      amber: "关注",
-      green: "已测",
-      gray: "未测",
-      neutral: "已测",
-    };
     const find = (key) => {
       const [name, side] = key.split("_"),
         full = side === "r" ? "right" : "left";
@@ -260,10 +274,11 @@
         `text-anchor="middle" fill="${C.neutral}" font-size="22" font-weight="600"`,
       );
     specs.forEach(([key, name, x, y]) => {
-      const r = find(key),
-        c = color(r.status),
-        tooltip = `${name}：${r.label || labels[r.status]}${r.tooltip || r.detail ? " · " + (r.tooltip || r.detail) : ""}`;
-      out += `<g class="viz-region" data-region="${key}" data-tooltip="${esc(tooltip)}" role="button" tabindex="0" aria-label="${esc(tooltip)}"><title>${esc(tooltip)}</title>${circle(x, y, 32, c, 'opacity=".16"')}${circle(x, y, key === "neck" ? 18 : 24, c, 'class="viz-hotspot" stroke="white" stroke-width="3"')}</g>`;
+      const r = { ...find(key), key, name }, c = color(r.status),
+        tests = Array.isArray(r.tests) ? r.tests : [],
+        details = tests.length ? tests.map(test => { const item = bodyTestText(test); return item.title + "：" + item.detail; }).join("；") : r.tooltip || r.detail || "",
+        tooltip = `${name}：${bodyStatusLabel(r)}${details ? " · " + details : ""}`;
+      out += `<g class="viz-region" data-region="${key}" data-body-detail="${esc(JSON.stringify(r))}" data-tooltip="${esc(tooltip)}" role="button" tabindex="0" aria-label="${esc(tooltip)}">${circle(x, y, 32, c, 'opacity=".16"')}${circle(x, y, 24, c, 'class="viz-hotspot" stroke="white" stroke-width="3"')}</g>`;
     });
     const id = `ringside-body-${++serial}`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="250 90 530 1260" role="img" aria-labelledby="${id}" style="display:block"><title id="${id}">身体区域筛查；图左为运动员右侧，图右为运动员左侧</title><style>.viz-region{cursor:pointer;outline:none}.viz-region:focus .viz-hotspot,.viz-region:hover .viz-hotspot{stroke:#dbe6ff;stroke-width:5}</style>${out}</svg>`;
@@ -1137,18 +1152,20 @@
     values = values || {};
     const statuses = values.statuses || {},
       rows = [
-        { id: "mas", label: "MAS", value: num(values.mas) },
-        { id: "mss", label: "MSS", value: num(values.mss) },
-        { id: "ift", label: "VIFT", value: num(values.ift) },
+        { id: "mas", label: values.labels?.mas || "MAS", value: num(values.mas) },
+        { id: "mss", label: values.labels?.mss || "MSS", value: num(values.mss) },
+        { id: "ift", label: values.labels?.ift || "30-15VIFT", value: num(values.ift) },
       ].filter((row) => row.value !== null && row.value > 0),
       mas = rows.find((row) => row.id === "mas")?.value,
       mss = rows.find((row) => row.id === "mss")?.value,
       asr = mas !== undefined && mss !== undefined && mss >= mas ? mss - mas : null;
     if (!rows.length)
-      return empty("速度表现等待录入", "录入 MAS、MSS 或 30–15IFT 后显示");
+      return empty("速度表现等待录入", "录入 MAS、MSS 或 30-15VIFT 后显示");
     const w = layout.width || 470,
       h = layout.height || 300,
-      left = 58,
+      labelWidth = label => Array.from(label).reduce((sum, c) => sum + (c.charCodeAt(0) > 255 ? 13 : 7), 0),
+      left = Math.max(rows.some(row => row.id === "ift") ? 98 : 58,
+        Math.min(160, w * .4, Math.max(...rows.map(row => labelWidth(row.label))) + 28)),
       right = w - 64,
       max = Math.max(...rows.map((row) => row.value), 1) * 1.08,
       x = (value) => left + value / max * (right - left),
@@ -1164,8 +1181,15 @@
       const y = firstY + i * step,
         fill = color(statuses[row.id]),
         tooltip = `${row.label} ${fmt(row.value, 2)} m/s`;
+      const labelLines = [""];
+      for (const character of Array.from(row.label)) {
+        if (labelWidth(labelLines[labelLines.length - 1] + character) > left - 28) labelLines.push("");
+        labelLines[labelLines.length - 1] += character;
+      }
+      const visibleLines = labelLines.slice(0, 3);
+      if (labelLines.length > 3) visibleLines[2] = visibleLines[2].slice(0, -1) + "…";
       out += `<g data-speed-metric="${row.id}" class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0"><title>${esc(tooltip)}</title>` +
-        text(14, y + 5, row.label, `font-size="13" font-weight="600" fill="${C.ink}"`) +
+        visibleLines.map((label, index) => text(14, y + 5 + (index - (visibleLines.length - 1) / 2) * 15, label, `font-size="13" font-weight="600" fill="${C.ink}"`)).join("") +
         `<rect x="${left}" y="${y - 13}" width="${fmt(x(row.value) - left)}" height="26" rx="4" fill="${fill}" fill-opacity=".8"/>` +
         text(w - 8, y + 5, row.value.toFixed(2), `text-anchor="end" font-size="14" font-weight="600" fill="${C.ink}"`) + '</g>';
     });
@@ -1186,7 +1210,7 @@
         `data-asr-label data-asr-placement="${inside ? "inside" : "above"}" text-anchor="middle" font-size="12" fill="${C.ink}"`) + '</g>';
     }
     return layoutSVG(w, h, "速度与储备", out,
-      "MAS、MSS 与 VIFT 使用同一速度轴；只展示已测项目。MAS柱尾的虚线延伸段为ASR＝MSS−MAS。", layout);
+      "MAS、MSS 与 30-15VIFT 使用同一速度轴；只展示已测项目。MAS柱尾的虚线延伸段为ASR＝MSS−MAS。", layout);
   }
 
   function calculateFit(points) {
@@ -1740,7 +1764,8 @@
       baseline = num(data.baselineForce), percent = data.yAxis !== "force",
       validPeak = peak !== null && peak > 0, w = layout.width || 470,
       h = layout.height || 368, title = "IMTP 力时曲线",
-      value = (force) => percent ? force / peak * 100 : force,
+      percentage = (row) => num(row.percent) !== null ? num(row.percent) : validPeak ? row.force / peak * 100 : null,
+      value = (row) => percent ? percentage(row) : row.force,
       peakLabel = validPeak ? `峰值 ${percent ? "100% · " : ""}${fmt(peak, 0)} N` : "",
       complete = rows.length || (validPeak && peakTime !== null && peakTime > 0);
     let out = "";
@@ -1759,39 +1784,40 @@
     }
     const known = [...rows];
     if (baseline !== null && baseline >= 0)
-      known.unshift({ timeMs: 0, force: baseline, baseline: true, n: data.n });
+      known.unshift({ timeMs: 0, force: baseline, percent: data.baselinePercent, baseline: true, n: data.n });
     if (validPeak && peakTime !== null && peakTime > 0 && !known.some((row) => row.timeMs === peakTime))
-      known.push({ timeMs: peakTime, force: peak, peak: true, n: data.n });
+      known.push({ timeMs: peakTime, force: peak, percent: 100, peak: true, n: data.n });
     known.sort((a, b) => a.timeMs - b.timeMs);
     const left = 54, right = w - 20, top = 60, bottom = h - 88,
       xMax = Math.max(...known.map((row) => row.timeMs)) * 1.1,
-      yMax = Math.max(percent ? 100 : 1, validPeak ? value(peak) : 0, ...known.map((row) => value(row.force))) * 1.18;
+      yMax = Math.max(percent ? 100 : 1, validPeak ? (percent ? 100 : peak) : 0, ...known.map(value)) * 1.18;
     const { out: grid, x, y } = axisGrid({ left, right, top, bottom, xMax, yMax,
       xLabel: "时间 / ms", yLabel: percent ? "占峰值力 / %" : "力 / N" });
     out += grid;
-    if (validPeak) out += line(left, y(value(peak)), right, y(value(peak)),
+    if (validPeak) out += line(left, y(percent ? 100 : peak), right, y(percent ? 100 : peak),
       `stroke="${C.neutral}" stroke-dasharray="6 5" stroke-width="1.3"`) +
-      text(right, y(value(peak)) - 9, peakLabel, `text-anchor="end" font-size="12" fill="${C.ink}"`);
+      text(right, y(percent ? 100 : peak) - 9, peakLabel, `text-anchor="end" font-size="12" fill="${C.ink}"`);
     known.forEach((row, i) => {
       const previous = known[i - 1];
-      if (previous) out += line(x(previous.timeMs), y(value(previous.force)), x(row.timeMs), y(value(row.force)),
+      if (previous) out += line(x(previous.timeMs), y(value(previous)), x(row.timeMs), y(value(row)),
         `stroke="${C.blue}" stroke-width="2"${previous.derived || row.derived ? ' stroke-dasharray="5 4"' : ""}`);
       const source = row.baseline ? "起始基线" : row.peak ? "峰值时间点" : row.derived ? "含 RFD 推算" : "实测",
         counts = num(row.n) !== null ? ` · 有效 ${row.n} 次${num(row.derivedN) > 0 ? "（" + (num(row.measuredN) || 0) + " 实测 / " + row.derivedN + " 推算）" : ""}` : "",
-        ratio = validPeak ? ` · ${fmt(row.force / peak * 100, 1)}% 峰值` : "";
-      out += point(x(row.timeMs), y(value(row.force)), 4.5, C.blue,
-        `${fmt(row.timeMs, 0)} ms${ratio} · ${fmt(row.force, 1)} N · ${source}${counts}`,
-        `data-force-time="${fmt(row.timeMs)}" data-force-n="${row.force}" data-force-percent="${validPeak ? row.force / peak * 100 : ""}" data-derived="${!!row.derived}"`,
+        ratio = validPeak ? ` · ${fmt(percentage(row), 1)}% 峰值` : "";
+      out += point(x(row.timeMs), y(value(row)), 4.5, C.blue,
+        `${row.timeMs} ms${ratio} · ${fmt(row.force, 1)} N · ${source}${counts}`,
+        `data-force-time="${esc(row.timeMs)}" data-force-n="${row.force}" data-force-percent="${validPeak ? percentage(row) : ""}" data-derived="${!!row.derived}"`,
         row.derived ? "diamond" : "circle");
     });
     out += circle(left, h - 16, 4, C.blue) + text(left + 12, h - 12, "实测", 'font-size="12"') +
       marker(left + 77, h - 16, 4, C.blue, "diamond") + text(left + 89, h - 12, "RFD 推算", 'font-size="12"');
     return layoutSVG(w, h, title, out,
-      "圆点为实测力，菱形为按已录入起始基线和区间 RFD 推算的力。只连接已知离散时间点，不平滑或补造零点；未知峰值时间仅显示峰值参考线。百分比使用当前汇总力除以当前汇总峰值，不改变原始 N 与 N/s。", layout);
+      "圆点为实测力，菱形为按已录入起始基线和区间 RFD 推算的力。只连接已知离散时间点，不平滑或补造零点；未知峰值时间仅显示峰值参考线。每次试次先以时点力除以同次峰值力计算百分比，均值模式再平均这些百分比；不改变原始 N 与 N/s。", layout);
   }
 
   global.RingsideViz = {
     body,
+    bodyTooltip,
     radar,
     fms,
     isoRadar,

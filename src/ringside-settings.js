@@ -265,7 +265,7 @@
             method: "primary",
             primary: ds[0].id,
           };
-        h += `<div class="reference-row"><b>${E(ability)}</b><select data-axis="${E(ability)}" data-axis-key="method">${[
+        h += `<div class="reference-row"><b>${E(T.abilityLabel(state,ability))}</b><select data-axis="${E(ability)}" data-axis-key="method">${[
           ["primary", "代表指标"],
           ["mean", "平均达成"],
           ["min", "最低达成"],

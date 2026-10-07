@@ -1,0 +1,27 @@
+/* Report content follows the selected test snapshot. */
+.athlete-summary .micro-value { overflow-wrap: anywhere; line-height: 1.35; }
+.athlete-summary dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; margin: 10px 0 0; }
+.athlete-summary dl > div { min-width: 0; }
+.athlete-summary dt { color: var(--muted); font-size: 11px; line-height: 1.45; }
+.athlete-summary dd { margin: 1px 0 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.stat-side, .stat-load { min-height: 40px; }
+.with-repeat-columns td { padding-block: 9px; }
+.imtp-results, .imtp-results.with-repeat-columns { table-layout: auto; }
+.imtp-results th, .imtp-results.with-repeat-columns th { width: auto; }
+.imtp-results th, .imtp-results td { overflow-wrap: normal; word-break: normal; padding-inline: 6px; }
+.imtp-results .repeat-stat-cv > span:last-child { white-space: nowrap; }
+.speed-reference-table th:nth-child(1) { width: 11%; }
+.speed-reference-table th:nth-child(2) { width: 22%; }
+.speed-reference-table th:nth-child(3) { width: 19%; }
+.speed-reference-table th:nth-child(4) { width: 10%; }
+.speed-reference-table th:nth-child(5) { width: 18%; }
+.speed-reference-table th:nth-child(6) { width: 11%; }
+.speed-reference-table th:nth-child(7) { width: 9%; }
+.speed-reference-table .speed-goal { margin-bottom: 7px; line-height: 1.5; }
+.speed-reference-table .speed-goal:last-child { margin-bottom: 0; }
+.speed-reference-table .speed-time { white-space: normal; }
+.speed-recovery-option + .speed-recovery-option { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line); }
+@media (max-width: 600px) {
+  #reportView .stat-side, #reportView .stat-load { min-height: 0; }
+  .athlete-summary dl { gap: 6px 12px; }
+}

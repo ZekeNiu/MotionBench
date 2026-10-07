@@ -17,14 +17,14 @@ test("IMTP view defaults/imports/persistence keep measurements and draft fingerp
   r.views.imtp.yAxis = "unrecognized";
   assert.equal(M.normalizeRecord(r).views.imtp.yAxis, "percent");
 });
-test("IMTP mean uses aggregated force over aggregated peak with unequal valid counts", () => {
+test("IMTP mean averages within-trial force percentages with unequal valid counts", () => {
   const r = M.defaults(); r.mode = "mean";
   r.data.imtp = [
     { id:"a", peakForce:2000, baselineForce:100, timePoints:[{id:"a1",timeMs:100,force:1000},{id:"a2",timeMs:200,rfd:7000}] },
     { id:"b", peakForce:3000, timePoints:[{id:"b1",timeMs:100,force:1800}] },
   ];
   const f = M.forceTime(r), html = V.forceTime(f);
-  near(f.peakForce, 2500); near(ratio(html, 100), 56); near(ratio(html, 200), 60);
+  near(f.peakForce, 2500); near(ratio(html, 100), 55); near(ratio(html, 200), 75);
   assert.ok(html.includes("有效 1 次（0 实测 / 1 推算）"));
   assert.ok(html.includes("1,500") || html.includes("1500 N"));
   r.mode = "best"; near(ratio(V.forceTime(M.forceTime(r)), 100), 60);

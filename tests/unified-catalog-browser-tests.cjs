@@ -1,0 +1,105 @@
+"use strict";
+const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict"),{pathToFileURL}=require("node:url"),{createHash}=require("node:crypto"),{chromium}=require("./helpers/playwright.cjs");
+const root=path.resolve(__dirname,".."),file=path.join(root,"MotionBench.html"),out=path.join(root,"output/playwright/unified-catalog"),channel=process.argv.includes("--edge")?"msedge":process.env.BROWSER_CHANNEL||"chrome";
+const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).digest("hex"),channel,checks:[],errors:[],pass:false};
+(async()=>{
+ const browser=await chromium.launch({channel,headless:true}),context=await browser.newContext({offline:true,viewport:{width:1440,height:1000}}),page=await context.newPage();page.setDefaultTimeout(12000);page.on("pageerror",e=>result.errors.push(e.message));page.on("dialog",d=>d.accept());
+ const check=async(name,fn)=>{await fn();result.checks.push(name);console.log("PASS",name);},click=(name,id)=>page.locator(`[data-manager-action="${name}"]${id!==undefined?`[data-id="${id}"]`:""}`).first().click(),manage=tab=>page.evaluate(t=>App.openManagement(t),tab);
+ const saveForm=async()=>{await page.locator('#managementForm [type="submit"]').click();await page.locator('#managementModal').waitFor({state:"hidden"});},saveProject=async()=>{await page.locator('#catalogForm [type="submit"]').click();await page.locator('#catalogModal').waitFor({state:"hidden"});};
+ let owner,oldRecordId,oldRecord,oldProfile,key,oldName,emptyKey,customTest,customMetric,newRecordId;
+ try{
+  fs.mkdirSync(out,{recursive:true});await page.goto(pathToFileURL(file).href);await page.evaluate(()=>App.ready);
+  ({owner,oldRecordId,oldRecord,oldProfile,key,oldName}=await page.evaluate(async()=>{
+   const r=RingsideModel.sampleRecord();delete r.abilityGroupSnapshot;await App.importPayload(RingsideModel.recordEnvelope(r));
+   const state=App.getState(),lib=App.getLibrary(),stored=await App.getRepository().loadRecord(state.recordId),key=RingsideTests.describe(lib.catalog).find(t=>t.id==="cmj").primaryAbility;
+   return {owner:state.athleteId,oldRecordId:state.recordId,oldRecord:RingsideEvaluation.canonical(stored),oldProfile:RingsideEvaluation.canonical(lib.evaluationProfiles),key,oldName:RingsideTests.abilityLabel(state,key)};
+  }));
+  await check("one indicator-library destination retains old catalog routes and all editing levels",async()=>{
+   await manage("catalog");assert.equal(await page.evaluate(()=>RingsideManagement.tab()),"metrics");assert.equal(await page.locator('.management-heading h1').innerText(),"指标库");
+   assert.equal(await page.locator('#globalNav [data-nav="catalog"]').count(),0);assert.doesNotMatch(await page.locator('#globalNav').innerText(),/测试项目库/);
+   for(const action of ["ability-new","new-test","new-metric"])assert.equal(await page.locator(`.management-heading [data-manager-action="${action}"]`).count(),1);
+   const cmj=page.locator('[data-metric-project="cmj"]');for(const action of ["catalog-edit","new-metric","catalog-toggle","metric-edit","standard-edit"])assert.ok(await cmj.locator(`[data-manager-action="${action}"]`).count());
+   assert.equal(await page.locator('[data-metric-project="cmj"]').count(),1);assert.equal(await page.locator('[data-metric-project="imtp"]').count(),1);
+   const stripe=await page.locator('#globalNav button.active').evaluate(el=>getComputedStyle(el).boxShadow);assert.equal(stripe,"none");
+  });
+  await check("empty ability categories support create rename ordering validation and reload",async()=>{
+   await click("ability-new");await page.locator('#managementForm [name="name"]').fill("新增空能力");await saveForm();emptyKey=await page.evaluate(()=>App.getLibrary().catalog.abilityGroups.find(g=>g.name==="新增空能力").key);
+   assert.match(await page.locator(`[data-metric-ability="${emptyKey}"]`).innerText(),/暂无项目/);assert.equal(await page.locator(`[data-metric-ability="${emptyKey}"] [data-metric-project]`).count(),0);
+   await click("ability-edit",emptyKey);await page.locator('#managementForm [name="name"]').fill(oldName);await page.locator('#managementForm [type="submit"]').click();assert.match(await page.locator('#managementError').innerText(),/已存在/);
+   await page.locator('#managementForm [name="name"]').fill("自定义能力");await saveForm();assert.equal(await page.evaluate(id=>App.getLibrary().catalog.abilityGroups.find(g=>g.key===id).name,emptyKey),"自定义能力");
+   const before=await page.evaluate(id=>App.getLibrary().catalog.abilityGroups.findIndex(g=>g.key===id),emptyKey);await click("ability-up",emptyKey);await page.waitForFunction(({id,index})=>App.getLibrary().catalog.abilityGroups.findIndex(g=>g.key===id)===index,{id:emptyKey,index:before-1});
+   await page.reload();await page.evaluate(()=>App.ready);await manage("metrics");assert.equal(await page.evaluate(id=>App.getLibrary().catalog.abilityGroups.findIndex(g=>g.key===id),emptyKey),before-1);await click("ability-down",emptyKey);await page.waitForFunction(({id,index})=>App.getLibrary().catalog.abilityGroups.findIndex(g=>g.key===id)===index,{id:emptyKey,index:before});
+  });
+  await check("renaming an existing ability preserves old records shared axes and stable metric keys",async()=>{
+   await click("ability-edit",key);await page.locator('#managementForm [name="name"]').fill("后续测试能力名称");await saveForm();
+   const state=await page.evaluate(async({id,key})=>({stored:RingsideEvaluation.canonical(await App.getRepository().loadRecord(id)),profiles:RingsideEvaluation.canonical(App.getLibrary().evaluationProfiles),oldLabel:RingsideTests.abilityLabel(App.getState(),key),newLabel:RingsideTests.abilityLabel(App.getLibrary().catalog,key),metricKey:App.getLibrary().catalog.definitions.find(d=>d.id==="cmj_height").ability}),{id:oldRecordId,key});
+   assert.equal(state.stored,oldRecord);assert.equal(state.profiles,oldProfile);assert.equal(state.oldLabel,oldName);assert.equal(state.newLabel,"后续测试能力名称");assert.equal(state.metricKey,key);
+  });
+  await check("project identity and metric capability survive independent name group and disabled edits",async()=>{
+   await click("catalog-edit","cmj");assert.equal(await page.locator('#catalogTestName').getAttribute("readonly"),null);await page.locator('#catalogTestName').fill("我的CMJ展示名称");await page.locator('#catalogPrimaryAbility').selectOption(emptyKey);await saveProject();
+   const group=page.locator(`[data-metric-ability="${emptyKey}"]`);assert.equal(await group.locator('[data-metric-project="cmj"]').count(),1);assert.match(await group.locator('[data-metric-project="cmj"] h3').innerText(),/我的CMJ展示名称/);
+   assert.equal(await page.evaluate(()=>App.getLibrary().catalog.definitions.find(d=>d.id==="cmj_height").ability),key);assert.equal(await page.evaluate(async id=>RingsideEvaluation.canonical(await App.getRepository().loadRecord(id)),oldRecordId),oldRecord);
+   await click("catalog-toggle","cmj");await page.locator('[data-metric-project="cmj"] .pill').waitFor();assert.match(await page.locator('[data-metric-project="cmj"]').innerText(),/已停用/);
+   await page.evaluate(id=>App.startDataEntry(id),owner);await page.locator('#creationTestStep').waitFor({state:"visible"});assert.equal(await page.locator('[data-creation-project="cmj"]').count(),0);await page.evaluate(()=>App.cancelCreation());await page.waitForFunction(()=>App.getUIState().mode==="management");
+   await click("catalog-toggle","cmj");await page.waitForFunction(()=>!App.getLibrary().catalog.tests.find(t=>t.id==="cmj").disabled);
+  });
+  await check("projects metrics and selected-profile standards are maintained in the same library",async()=>{
+   await click("new-test","");await page.locator('#catalogTestName').fill("统一库自定义测试");await page.locator('#catalogMetricName').fill("自定义测量距离");await page.locator('#catalogUnit').fill("cm");await page.locator('#catalogAbility').selectOption(emptyKey);await page.locator('#catalogPrimaryAbility').selectOption(emptyKey);await page.locator('#catalogProtocol').fill("统一库验收协议");await saveProject();
+   ({test:customTest,metric:customMetric}=await page.evaluate(()=>{const l=App.getLibrary(),t=l.catalog.tests.find(t=>t.name==="统一库自定义测试");return{test:t.id,metric:l.catalog.definitions.find(d=>d.testId===t.id).id};}));
+   await click("new-metric",customTest);assert.equal(await page.locator('#catalogTestId').inputValue(),customTest);await page.locator('#catalogMetricName').fill("独立能力指标");await page.locator('#catalogUnit').fill("s");await page.locator('#catalogAbility').selectOption(key);await saveProject();
+   await click("metric-edit",customMetric);await page.locator('#catalogMetricName').fill("自定义距离修订");assert.equal(await page.locator('#catalogTarget').isVisible(),false);await saveProject();
+   const profileId=await page.evaluate(()=>App.getState().evaluationProfileId);await click("standard-edit",customMetric);assert.equal(await page.locator('#profileMetricSelect').inputValue(),customMetric);assert.equal(await page.locator('[data-profile-path$=".target"]').inputValue(),"");await page.locator('[data-profile-path$=".target"]').fill("200");await click("profile-review");await saveForm();
+   assert.equal(await page.evaluate(()=>App.getState().evaluationProfileId),profileId);assert.match(await page.locator(`[data-library-metric="${customMetric}"]`).innerText(),/目标 200/);assert.equal(await page.locator(`[data-metric-project="${customTest}"]`).count(),1);
+  });
+  await check("new tests snapshot current ability names and project names without rewriting older records",async()=>{
+   await page.evaluate(id=>App.startDataEntry(id),owner);await page.locator('#creationTestStep').waitFor({state:"visible"});
+   while(await page.locator('[data-creation-project]:checked').count())await page.locator('[data-creation-project]:checked').first().uncheck();for(const id of ["cmj",customTest])await page.locator(`[data-creation-project="${id}"]`).check();await page.locator('#creationSubmit').click();await page.waitForFunction(()=>App.getUIState().mode==="entry");newRecordId=await page.evaluate(()=>App.getState().recordId);
+   const r=await page.evaluate(({key,customTest})=>({snapshot:App.getState().abilityGroupSnapshot,label:RingsideTests.abilityLabel(App.getState(),key),test:App.getState().projectSnapshots.find(t=>t.id==="cmj"),custom:App.getState().definitions.find(d=>d.testId===customTest),metric:App.getState().definitions.find(d=>d.id==="cmj_height")}),{key,customTest});
+   assert.ok(r.snapshot?.length);assert.equal(r.label,"后续测试能力名称");assert.equal(r.test.name,"我的CMJ展示名称");assert.equal(r.test.primaryAbility,emptyKey);assert.equal(r.metric.ability,key);assert.ok(r.custom);assert.equal(await page.evaluate(async id=>RingsideEvaluation.canonical(await App.getRepository().loadRecord(id)),oldRecordId),oldRecord);
+   await page.evaluate(()=>App.showReport());await manage("metrics");
+  });
+  await check("failed ability saves retain the previous catalog and the editable form for retry",async()=>{
+   await page.evaluate(()=>{const repository=App.getRepository();window.unifiedOriginalSave=repository.save;repository.save=async()=>{throw Error("模拟能力分类保存失败");};});
+   await click("ability-edit",emptyKey);await page.locator('#managementForm [name="name"]').fill("失败后重试能力");await page.locator('#managementForm [type="submit"]').click();assert.match(await page.locator('#managementError').innerText(),/模拟能力分类保存失败/);assert.equal(await page.evaluate(id=>App.getLibrary().catalog.abilityGroups.find(g=>g.key===id).name,emptyKey),"自定义能力");assert.equal(await page.evaluate(async id=>(await App.getRepository().directory()).catalog.abilityGroups.find(g=>g.key===id).name,emptyKey),"自定义能力");
+   await page.evaluate(()=>{App.getRepository().save=window.unifiedOriginalSave;delete window.unifiedOriginalSave;});await saveForm();assert.equal(await page.evaluate(id=>App.getLibrary().catalog.abilityGroups.find(g=>g.key===id).name,emptyKey),"失败后重试能力");
+  });
+  await check("failed built-in project edits retain input while memory and database stay unchanged",async()=>{
+   await click("catalog-edit","cmj");await page.locator('#catalogTestName').fill("保存重试后的CMJ名称");
+   const before=await page.evaluate(()=>{const repo=App.getRepository();window.unifiedOriginalSave=repo.save;repo.save=async()=>{throw Error("模拟项目目录保存失败");};return RingsideEvaluation.canonical(App.getLibrary().catalog);});
+   await page.locator('#catalogForm [type="submit"]').click();await page.locator('#catalogError').waitFor({state:"visible"});assert.equal(await page.locator('#catalogTestName').inputValue(),"保存重试后的CMJ名称");assert.equal(await page.locator('#catalogModal').isVisible(),true);
+   assert.equal(await page.evaluate(()=>RingsideEvaluation.canonical(App.getLibrary().catalog)),before);assert.equal(await page.evaluate(async()=>RingsideEvaluation.canonical((await App.getRepository().directory()).catalog)),before);
+   await page.evaluate(()=>{App.getRepository().save=window.unifiedOriginalSave;delete window.unifiedOriginalSave;});await saveProject();assert.match(await page.locator('[data-metric-project="cmj"] h3').innerText(),/保存重试后的CMJ名称/);
+  });
+  await check("imported project and ability conflicts stay reviewable and distinct keys never merge by name",async()=>{
+   await page.evaluate(async({key,emptyKey})=>{const rows=(await (await App.getRepository().backupBlob()).text()).trim().split("\n").map(JSON.parse),catalog=rows.find(r=>r.type==="config").value.catalog;catalog.abilityGroups.find(g=>g.key===key).name="导入能力名称";catalog.abilityGroups.push({key:"ability_import_distinct",name:catalog.abilityGroups.find(g=>g.key===emptyKey).name});catalog.protocol.cmj+="；导入协议";await App.importBackup(new File([rows.map(r=>JSON.stringify(r)).join("\n")],"catalog-conflicts.motionbench.jsonl"),true);App.openManagement("metrics");},{key,emptyKey});
+   assert.match(await page.locator(`[data-ability-conflict="${key}"]`).innerText(),/后续测试能力名称.*导入能力名称/s);assert.equal(await page.evaluate(key=>RingsideTests.abilityLabel(App.getLibrary().catalog,key),key),"后续测试能力名称");assert.equal(await page.locator('[data-catalog-conflict="cmj"]').count(),1);assert.equal(await page.locator('[data-manager-action="catalog-edit"][data-id="cmj"]').isDisabled(),true);
+   await page.locator('[data-catalog-conflict="cmj"] [data-manager-action="catalog-resolve"]').first().click();await page.locator('[data-catalog-conflict="cmj"]').waitFor({state:"hidden"});await page.locator(`[data-ability-conflict="${key}"] [data-manager-action="ability-conflict-local"]`).click();await page.locator(`[data-ability-conflict="${key}"]`).waitFor({state:"hidden"});
+   await page.evaluate(async key=>{const rows=(await (await App.getRepository().backupBlob()).text()).trim().split("\n").map(JSON.parse);rows.find(r=>r.type==="config").value.catalog.abilityGroups.find(g=>g.key===key).name="导入能力名称二";await App.importBackup(new File([rows.map(r=>JSON.stringify(r)).join("\n")],"catalog-name.motionbench.jsonl"),true);App.openManagement("metrics");},key);await page.locator(`[data-ability-conflict="${key}"] [data-manager-action="ability-conflict-incoming"]`).click();await page.locator(`[data-ability-conflict="${key}"]`).waitFor({state:"hidden"});
+   assert.equal(await page.evaluate(key=>RingsideTests.abilityLabel(App.getLibrary().catalog,key),key),"导入能力名称二");assert.equal(await page.evaluate(()=>App.getLibrary().catalog.abilityGroups.filter(g=>g.name==="失败后重试能力").length),2);
+   assert.equal(await page.evaluate(async({id,key})=>RingsideTests.abilityLabel(await App.getRepository().loadRecord(id),key),{id:newRecordId,key}),"后续测试能力名称");assert.equal(await page.evaluate(async({id,key})=>RingsideTests.abilityLabel(await App.getRepository().loadRecord(id),key),{id:oldRecordId,key}),oldName);
+  });
+  await check("catalog categories ordering and record snapshots survive full backup restore",async()=>{
+   const before=await page.evaluate(()=>RingsideEvaluation.canonical(App.getLibrary().catalog.abilityGroups));await page.evaluate(async()=>{const backup=await App.getRepository().backupBlob();await App.importBackup(new File([backup],"catalog-roundtrip.motionbench.jsonl"),false);});await page.reload();await page.evaluate(()=>App.ready);await manage("metrics");assert.equal(await page.evaluate(()=>RingsideEvaluation.canonical(App.getLibrary().catalog.abilityGroups)),before);
+   assert.equal(await page.evaluate(async({id,key})=>RingsideTests.abilityLabel(await App.getRepository().loadRecord(id),key),{id:newRecordId,key}),"后续测试能力名称");
+  });
+  await check("legacy downloads preserve visible names and distinct axes without mutating internal keys",async()=>{
+   const fixture=await page.evaluate(async({id,customTest,emptyKey})=>{
+    const record=await App.getRepository().loadRecord(id),groups=RingsideTests.abilityGroups(App.getLibrary().catalog),keys=[emptyKey,"ability_import_distinct"],metrics=record.definitions.filter(d=>d.testId===customTest);
+    record.recordId="legacy_ability_fixture";record.title="同名能力导出验收";record.abilityGroupSnapshot=groups.map(g=>({...g,name:keys.includes(g.key)?"同名导出能力":g.name}));record.data.ift.method="保留的 VIFT 测试方法";
+    keys.forEach((key,i)=>{metrics[i].ability=key;record.axes[RingsideTests.axisKey(key)]={method:"primary",primary:metrics[i].id};});
+    const profile=RingsideEvaluation.create(record,"同名能力导出验收标准");record.evaluationProfileId=profile.id;App.getLibrary().evaluationProfiles.push(profile);await App.saveLibraryChanges([record]);
+    return{recordId:record.recordId,metricIds:metrics.map(d=>d.id),keys,before:RingsideEvaluation.canonical([App.getLibrary().catalog,await App.getRepository().loadRecord(record.recordId),App.getLibrary().evaluationProfiles])};
+   },{id:newRecordId,customTest,emptyKey});
+   const pending=page.waitForEvent("download");await page.evaluate(()=>App.downloadLegacyLibrary());const download=await pending,target=path.join(out,channel+"-legacy.json");await download.saveAs(target);const legacy=JSON.parse(fs.readFileSync(target,"utf8")),record=legacy.athletes.flatMap(a=>a.records).find(r=>r.recordId===fixture.recordId),metrics=fixture.metricIds.map(id=>record.definitions.find(d=>d.id===id));
+   assert.equal(legacy.schema,2);assert.equal(legacy.catalog.abilityGroups,undefined);assert.equal(record.abilityGroupSnapshot,undefined);assert.equal(record.data.ift.method,"保留的 VIFT 测试方法");assert.notEqual(metrics[0].ability,metrics[1].ability);
+   metrics.forEach((d,i)=>{assert.match(d.ability,/^同名导出能力/);assert.notEqual(d.ability,fixture.keys[i]);assert.equal(record.axes["ability:"+d.ability].primary,d.id);assert.equal(record.axes["ability:"+fixture.keys[i]],undefined);});
+   assert.equal(await page.evaluate(async id=>RingsideEvaluation.canonical([App.getLibrary().catalog,await App.getRepository().loadRecord(id),App.getLibrary().evaluationProfiles]),fixture.recordId),fixture.before);
+   const vm=require("node:vm"),old=vm.createContext({Intl,console,crypto:require("node:crypto").webcrypto});old.window=old;for(const name of ["calc","definitions","tests","model","interventions"])vm.runInContext(require("node:child_process").execFileSync("git",["show","v2.7.2:src/ringside-"+name+".js"],{cwd:root,encoding:"utf8"}),old);old.RingsideModel.validateLibrary(legacy);
+  });
+  await check("unified catalog and ability editing fit desktop low windows and phones",async()=>{
+   for(const [width,height]of [[1440,960],[1024,640],[390,844]]){await page.setViewportSize({width,height});await manage("metrics");await page.evaluate(()=>scrollTo({top:0,behavior:"instant"}));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`library ${width}`);await page.screenshot({animations:"disabled",path:path.join(out,`${channel}-library-${width}.png`)});if(width===1024){await page.evaluate(()=>App.toggleSidebar(true));await page.waitForFunction(()=>document.body.classList.contains("sidebar-open")&&document.getElementById("sidebar").getBoundingClientRect().left>=-1);assert.equal(await page.locator("#globalNav button.active").evaluate(el=>getComputedStyle(el).boxShadow),"none");await page.screenshot({animations:"disabled",path:path.join(out,`${channel}-sidebar-${width}.png`)});await page.evaluate(()=>App.toggleSidebar(false));}await page.locator('[data-manager-filter="ability"]').selectOption(emptyKey);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`category ${width}`);await page.screenshot({animations:"disabled",path:path.join(out,`${channel}-category-${width}.png`),fullPage:true});await click("ability-edit",emptyKey);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`editor ${width}`);await saveForm();await page.locator('[data-manager-filter="ability"]').selectOption("");}
+  });
+  assert.deepEqual(result.errors,[]);result.pass=true;
+ }catch(error){result.error=error.stack;process.exitCode=1;console.error(error);await page.screenshot({animations:"disabled",path:path.join(out,channel+"-failure.png"),fullPage:true}).catch(()=>{});}
+ finally{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,channel+"-browser.json"),JSON.stringify(result,null,2));await browser.close();}
+})();

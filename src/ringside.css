@@ -662,8 +662,8 @@ section {
   min-width: 0;
 }
 .body-art svg {
-  height: 354px;
-  max-height: 354px;
+  height: 390px;
+  max-height: 390px;
   width: 100%;
 }
 .screen-items {
@@ -1938,6 +1938,16 @@ body.sidebar-collapsed .workspace {
   :root {
     --sidebar: 220px;
   }
+  .workspace {
+    margin-left: 0;
+  }
+  .sidebar {
+    width: 260px;
+    transform: translateX(-100%);
+  }
+  body.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
   .detail-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1952,8 +1962,8 @@ body.sidebar-collapsed .workspace {
     min-height: 350px;
   }
   .body-art svg {
-    height: 330px;
-    max-height: 330px;
+    height: 390px;
+    max-height: 390px;
   }
   .screen-items {
     padding: 0 18px;
@@ -2613,7 +2623,7 @@ body.sidebar-collapsed .workspace {
 .micro-value small {
   font-size: 13px;
   font-weight: 400;
-  color: var(--muted);
+  color: inherit;
 }
 .test-anchor {
   display: block;

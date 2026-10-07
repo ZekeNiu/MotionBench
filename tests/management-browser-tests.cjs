@@ -19,14 +19,14 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
   });
   const athleteId=await page.evaluate(()=>App.getLibrary().athletes[0].id);
   await check("team creation and bulk movement are persisted",async()=>{
-   await click("groups");await page.locator('#managementForm [name="name"]').fill("青年一队");await saveForm();
+   await manage("teams");await click("group-new");await page.locator('#managementForm [name="name"]').fill("青年一队");await saveForm();await manage("athletes");
    await page.locator(`[data-manager-select="${athleteId}"]`).check();await click("batch-group");await page.locator('#managementForm [name="value"]').selectOption({label:"青年一队"});await saveForm();
    assert.ok(await page.evaluate(()=>App.getLibrary().athletes[0].groupId));
   });
   await check("new test uses explicit profile and enters selected project",async()=>{
-   await click("new-record",athleteId);await page.locator("#newAthleteModal").waitFor({state:"visible"});assert.equal(await page.locator("#creationEvaluationProfile option").count(),1);await page.locator('[data-creation-project="cmj"]').check();
+   await click("new-record",athleteId);await page.locator("#creationTestStep").waitFor({state:"visible"});assert.equal(await page.locator("#creationEvaluationProfile option").count(),1);await page.locator('[data-creation-project="cmj"]').check();
    await page.locator("#creationSubmit").click();await page.waitForFunction(()=>App.getUIState().mode==="entry");assert.equal(await page.locator("#entryProjectTitle").textContent(),"CMJ");
-   await page.locator('[data-path="data.cmj.0.height"]').fill("42");await page.evaluate(()=>App.saveNow());await page.locator('.entry-footer button[onclick="App.showReport()"] ').click();
+   await page.locator('[data-path="data.cmj.0.height"]').fill("42");await page.evaluate(()=>App.saveNow());await page.locator('#entryNext').click();await page.locator('#entryFinish').waitFor({state:"visible"});await page.locator('#entryFinish').click();await page.waitForFunction(()=>App.getUIState().mode==="report");
    assert.equal(await page.evaluate(()=>App.stats().values.cmj_height),42);
   });
   const recordId=await page.evaluate(()=>App.getState().recordId);
@@ -88,7 +88,7 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
   await check("all management views fit desktop, low window, tablet and mobile",async()=>{
    for(const [width,height]of [[1440,960],[1366,768],[900,800],[390,844],[844,390]]){
     await page.setViewportSize({width,height});
-    for(const tab of ["athletes","records","catalog","metrics","profiles","backup"]){await manage(tab);await page.waitForTimeout(30);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width} ${tab}`);}
+    for(const tab of ["athletes","teams","records","plans","catalog","metrics","profiles","backup"]){await manage(tab);await page.waitForTimeout(30);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width} ${tab}`);}
     await manage("athletes");await page.screenshot({path:path.join(out,`${channel}-athletes-${width}.png`)});
    }
   });

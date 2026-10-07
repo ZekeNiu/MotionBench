@@ -15,7 +15,7 @@
     ["pushup", "60 秒俯卧撑", "performance", "scalar"],
     ["mb", "药球反手投掷", "performance", "ball"],
     ["lactate", "递增负荷测试：乳酸与心率", "performance", "lactate"],
-    ["ift", "30–15 IFT", "performance", "speed"],
+    ["ift", "30-15VIFT", "performance", "speed"],
     ["mas", "MAS 最大有氧速度", "performance", "speed"],
     ["mss", "MSS 最大冲刺速度", "performance", "speed"],
   ].map(([id, name, category, renderer]) =>
@@ -55,7 +55,7 @@
     ["deadlift_1rm", "deadlift", "硬拉预估1RM / 体重", "kg/kg", "最大力量"],
     ["mas_speed", "mas", "MAS", "m/s", "有氧代谢能力"],
     ["mss_speed", "mss", "MSS", "m/s", "冲刺速度"],
-    ["ift_shuttle", "ift", "30–15 折返 VIFT", "m/s", "间歇耐力"],
+    ["ift_shuttle", "ift", "30-15VIFT", "m/s", "间歇耐力"],
     ["imtp_peak_force", "imtp", "IMTP 峰值力", "N", "最大力量"],
     ["imtp_relative_force", "imtp", "IMTP 相对峰值力", "N/kg", "最大力量"],
     ["imtp_f100", "imtp", "IMTP 100 ms 力", "N", "早期发力"],
@@ -161,7 +161,7 @@
     ],
     ift: [
       ["speed", "VIFT m/s"],
-      ["protocol", "协议"],
+      ["method", "方法"],
     ],
     mas: [
       ["speed", "速度 m/s"],
@@ -204,6 +204,26 @@
   }
   const abilityName = (value) =>
     typeof value === "string" ? value.trim() : "";
+  const metricName = (definition) => {
+    const legacy = { ift_treadmill: "30–15 IFT·跑台改良版终末速度", ift_shuttle: "30–15 折返 VIFT" };
+    return legacy[definition.id] === definition.name ? "30-15VIFT" : definition.name;
+  };
+  const metricProtocol = (definition) => [...new Set([definition.context?.protocol || "",
+    global.Def.viftProtocol(definition.id, definition.context?.metricProtocol ?? definition.protocol ?? "")].filter(Boolean))].join("；");
+  function primaryAbility(test, definitions) {
+    return abilityName(test.primaryAbility) || (test.id === "fms" ? "动作筛查" : test.id === "iso" ? "等长力量" :
+      abilityName(definitions.find(d => d.testId === test.id && abilityName(d.ability))?.ability)) || "未分类";
+  }
+  function abilityGroups(source = {}) {
+    const configured = source.abilityGroupSnapshot || source.abilityGroups || [], result = [], seen = new Set();
+    const add = (key, name = key) => { key = abilityName(key); if (key && !seen.has(key)) { seen.add(key); result.push({ key, name: abilityName(name) || key }); } };
+    configured.forEach(group => add(group.key, group.name));
+    const definitions = source.definitions || [], tests = source.tests || source.projectSnapshots || builtins;
+    [...tests, ...(source.customTests || [])].forEach(test => add(primaryAbility(test, definitions)));
+    definitions.forEach(d => add(d.ability));
+    return result;
+  }
+  const abilityLabel = (source, key) => abilityGroups(source).find(group => group.key === key)?.name || abilityName(key);
   const groupId = (label) =>
     "ability-" +
     Array.from(label)
@@ -221,6 +241,7 @@
   }
   function describe(source) {
     const definitions = source.definitions || [];
+    const groups = abilityGroups(source);
     const supplied = source.tests || source.projectSnapshots || builtins;
     const projects = new Map();
     for (const test of [
@@ -235,15 +256,15 @@
       const abilities = [
         ...new Set(metrics.map((d) => abilityName(d.ability)).filter(Boolean)),
       ];
-      const preferred = abilityName(test.primaryAbility);
+      const preferred = primaryAbility(test, definitions);
       return {
         id: test.id,
-        name: test.name,
+        name: test.id === "ift" && test.name === "30–15 IFT" ? "30-15VIFT" : test.name,
         category: test.category || "performance",
-        primaryAbility:
-          abilities.includes(preferred) || !metrics.length
-            ? preferred
-            : abilities[0] || "",
+        primaryAbility: preferred,
+        primaryAbilityLabel: groups.find(group => group.key === preferred)?.name || preferred,
+        abilityOrder: groups.findIndex(group => group.key === preferred),
+        disabled: test.disabled === true,
         abilities,
         definitions: metrics,
         renderer: registry.get(test.id)?.renderer || "scalar",
@@ -255,26 +276,29 @@
     });
   }
   function snapshots(source) {
-    return describe(source).map(({ id, name, category, primaryAbility, primaryMetricId }) => ({
-      id,
-      name,
-      category,
-      primaryAbility,
-      ...(primaryMetricId ? { primaryMetricId } : {}),
-    }));
+    return describe(source).map(({ id, name, category, primaryAbility, primaryMetricId }) => {
+      const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
+      return { id, name: prior?.name ?? name, category,
+        primaryAbility: prior?.primaryAbility ?? primaryAbility,
+        ...(primaryMetricId ? { primaryMetricId } : {}) };
+    });
   }
-  function groups(projects) {
+  function groups(projects, source) {
     const grouped = new Map();
     for (const project of projects) {
-      const label =
+      const key =
         project.category === "screen"
           ? "筛查"
           : project.primaryAbility || "未分类";
-      const id = project.category === "screen" ? "screen" : groupId(label);
+      const label = project.category === "screen" ? "筛查" : source ? abilityLabel(source, key) : project.primaryAbilityLabel || key;
+      const order = project.category === "screen" ? -1 : source ? abilityGroups(source).findIndex(group => group.key === key) : project.abilityOrder ?? projects.length;
+      const id = project.category === "screen" ? "screen" : groupId(key);
       if (!grouped.has(id))
         grouped.set(id, {
           id,
+          key,
           label,
+          order,
           category: project.category,
           projects: [],
         });
@@ -282,7 +306,7 @@
     }
     return [...grouped.values()].sort(
       (a, b) =>
-        (a.category === "screen" ? 0 : 1) - (b.category === "screen" ? 0 : 1),
+        (a.category === "screen" ? 0 : 1) - (b.category === "screen" ? 0 : 1) || a.order - b.order,
     );
   }
   const fmsAbilities = [
@@ -306,6 +330,10 @@
     extraDefinitions,
     isManualMetric,
     abilityName,
+    abilityGroups,
+    abilityLabel,
+    metricName,
+    metricProtocol,
     groupId,
     axisKey,
     axisConfig,
