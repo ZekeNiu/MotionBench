@@ -3497,7 +3497,6 @@
           !safeId(athlete.id) ||
           typeof athlete.name !== "string" ||
           !Array.isArray(athlete.records) ||
-          athlete.records.length === 0 ||
           athlete.records.length > 1000
         )
           throw new Error("运动员档案结构无效");
