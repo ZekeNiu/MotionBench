@@ -2795,3 +2795,85 @@ body.sidebar-collapsed .workspace {
   #reportView .iso-results.with-repeat-columns{min-width:0;}
   #reportView .iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type{white-space:normal;overflow-wrap:normal;}
 }
+/* Management and reporting share the existing silver palette. */
+.workspace-switch { padding: 8px 12px 14px; border-bottom: 1px solid var(--line); }
+.workspace-switch .sidebar-action[aria-current="page"] { background: var(--soft, #e8edf1); color: var(--primary, #365b80); font-weight: 700; }
+#reportControls > input, #reportControls > select { width: 100%; margin-bottom: 10px; }
+.startup-status { margin: 16px 32px; }
+.startup-status[hidden] { display: none; }
+.empty-workspace { min-height: 60vh; padding-top: 70px; }
+.empty-workspace p { color: var(--muted); margin: 16px 0 28px; }
+.report-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+.management-mode .record-context, .management-mode .context-divider { display: none; }
+.management-view { max-width: 1560px; }
+.management-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:12px 0 28px; }
+.management-heading h1 { margin:0; font-size:28px; }
+.eyebrow { margin:0 0 6px; color:var(--muted); font-size:12px; letter-spacing:.08em; }
+.management-filters { display:grid; grid-template-columns:minmax(180px,2fr) repeat(4,minmax(110px,1fr)); gap:12px; margin-bottom:20px; }
+.management-filters .field { margin:0; min-width:0; }
+.management-filters input,.management-filters select { width:100%; min-width:0; }
+.management-batch,.management-pagination { display:flex; align-items:center; flex-wrap:wrap; gap:14px; margin:16px 0; }
+.management-batch > .row,.management-pagination > .row { margin-left:auto; }
+.management-table-wrap { width:100%; overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:#fff; }
+.management-table { width:100%; margin:0; }
+.management-table th { background:#edf0f3; font-size:12px; white-space:nowrap; }
+.management-table td { background:#fff; vertical-align:middle; padding:14px 12px; }
+.management-table th:first-child,.management-table td:first-child { width:50px; }
+.management-table small { display:block; margin-top:5px; max-width:340px; color:var(--muted); overflow-wrap:anywhere; line-height:1.5; }
+.management-table .row { gap:6px; }
+.management-table button { white-space:nowrap; }
+.management-catalog-item { background:#fff; border:1px solid var(--line); border-radius:12px; padding:22px; margin:16px 0; display:flex; justify-content:space-between; gap:20px; align-items:center; }
+.management-catalog-item h3 { margin:0 0 8px; }
+.management-catalog-item p { margin:6px 0; overflow-wrap:anywhere; }
+.management-catalog-item > .row { flex-shrink:0; flex-wrap:wrap; max-width:52%; }
+.profile-editor-header { display:flex; gap:20px; align-items:end; justify-content:space-between; }
+.profile-editor-header > .field { min-width:220px; flex:1; max-width:520px; }
+.profile-tabs { display:flex; gap:8px; flex-wrap:wrap; padding:18px 0; border-bottom:1px solid var(--line); margin-bottom:24px; }
+.profile-tabs .btn[aria-current="page"], .profile-tabs .btn[aria-current="page"]:hover { background:var(--blue); border-color:var(--blue); color:white; }
+#profileEditorFields { background:white; padding:24px; border:1px solid var(--line); border-radius:12px; }
+.profile-rule-row { display:grid; grid-template-columns:minmax(160px,1fr) minmax(130px,1fr) minmax(150px,2fr); align-items:center; gap:16px; padding:16px 0; border-bottom:1px solid var(--line); }
+.profile-rule-block { padding:12px 0 24px; border-bottom:1px solid var(--line); margin-bottom:16px; }
+.profile-rule-block textarea { width:100%; }
+.profile-diff { width:100%; table-layout:fixed; }
+.profile-diff td { white-space:pre-wrap; overflow-wrap:anywhere; vertical-align:top; font-size:12px; }
+.profile-diff th:first-child { width:22%; }
+.record-evaluation { display:flex; gap:16px; align-items:end; margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+.record-evaluation .field { flex:1; }
+.backup-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.backup-grid article { margin:0; padding:24px; }
+.backup-grid article:last-child { grid-column:1 / -1; }
+#managementFields { overflow-wrap:anywhere; }
+#managementFields .field { margin-bottom:14px; }
+.effective-standard { padding:12px 0 18px; border-bottom:1px solid var(--line); }
+.effective-standard h3,.effective-standard h4 { margin:8px 0; }
+.effective-standard p { margin:7px 0; }
+.standard-ranges { padding-left:22px; margin:10px 0; }
+.standard-ranges li { margin:4px 0; }
+#managementError { padding:0 24px; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+@media (max-width:1200px) {
+  .management-filters { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .management-catalog-item { align-items:flex-start; flex-direction:column; }
+  .management-catalog-item > .row { max-width:100%; }
+  .report-actions { max-width:380px; }
+}
+@media (max-width:600px) {
+  .topbar { flex-wrap:wrap; gap:8px; }
+  .report-actions { order:3; width:100%; max-width:none; }
+  .management-heading { align-items:flex-start; flex-direction:column; }
+  .management-heading h1 { font-size:25px; }
+  .management-filters { grid-template-columns:1fr 1fr; }
+  .management-filters .field:first-child { grid-column:1 / -1; }
+  .management-table-wrap { border:0; background:transparent; }
+  .management-table,.management-table tbody { display:block; }
+  .management-table thead { display:none; }
+  .management-table tr { display:block; background:white; border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin-bottom:12px; }
+  .management-table td,.management-table td:first-child { display:grid; grid-template-columns:82px minmax(0,1fr); width:auto; padding:9px 0; text-align:left; gap:10px; border:0; }
+  .management-table td:before { content:attr(data-label); color:var(--muted); font-size:12px; }
+  .management-table td small { grid-column:2; }
+  .management-batch > .row { margin-left:0; }
+  .profile-editor-header,.record-evaluation { align-items:stretch; flex-direction:column; }
+  .profile-rule-row { grid-template-columns:1fr; gap:6px; }
+  #profileEditorFields { padding:16px; }
+  .backup-grid { grid-template-columns:1fr; }
+}

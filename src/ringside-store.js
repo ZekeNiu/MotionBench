@@ -77,22 +77,25 @@
     enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
     flush() { return this.queue; }
     save(lib,records=[],removals={}) {
-      const generation=this.generation, writes=[], nextHashes=new Map(this.metadataHashes);
-      for(const [table,items] of [["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles],["config",[{...configuration(lib),id:"library"}]]]) {
-        const known=new Set();
-        for(const item of items) { const key=table+":"+item.id, encoded=JSON.stringify(item); known.add(key); if(nextHashes.get(key)!==encoded){writes.push([table,item.id,clone(item)]);nextHashes.set(key,encoded);} }
-        for(const key of [...nextHashes.keys()]) if(key.startsWith(table+":")&&!known.has(key)){ (removals[table] ||= []).push(key.slice(table.length+1));nextHashes.delete(key); }
-      }
-      for(const r of records){validateEntity("record",r);writes.push(["records",r.recordId,clone(r)],["recordIndex",r.recordId,summary(r)]);}
-      for(const id of removals.records||[]) (removals.recordIndex ||= []).push(id);
-      // Hashes are installed only after commit; failure leaves the unsaved payload available to retry.
+      const generation=this.generation;
+      const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles],["config",[{...configuration(lib),id:"library"}]]].map(([table,items])=>[table,clone(items)]);
+      const snapshots=records.map(r=>{validateEntity("record",r);return clone(r);}),deletions=clone(removals);
+      // Capture caller values now, but compare metadata only after preceding writes commit.
       return this.enqueue(async()=>{
         if((await this.meta("active"))?.value!==generation) throw Error("资料库已在另一个页面切换，请先备份未保存内容再重新打开");
-        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(removals)))];
-        if(!names.length) return;
+        const writes=[],nextHashes=new Map(this.metadataHashes);
+        for(const [table,items] of metadata){
+          const known=new Set();
+          for(const item of items){const key=table+":"+item.id,encoded=JSON.stringify(item);known.add(key);if(nextHashes.get(key)!==encoded){writes.push([table,item.id,item]);nextHashes.set(key,encoded);}}
+          for(const key of [...nextHashes.keys()])if(key.startsWith(table+":")&&!known.has(key)){(deletions[table] ||= []).push(key.slice(table.length+1));nextHashes.delete(key);}
+        }
+        for(const r of snapshots)writes.push(["records",r.recordId,r],["recordIndex",r.recordId,summary(r)]);
+        for(const id of deletions.records||[])(deletions.recordIndex ||= []).push(id);
+        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions)))];
+        if(!names.length)return;
         const tx=this.db.transaction(names,"readwrite"),done=completed(tx);
-        for(const [table,id,value] of writes) tx.objectStore(table).put({generation,id,value});
-        for(const [table,ids] of Object.entries(removals)) for(const id of ids) tx.objectStore(table).delete([generation,id]);
+        for(const [table,id,value] of writes)tx.objectStore(table).put({generation,id,value});
+        for(const [table,ids] of Object.entries(deletions))for(const id of ids)tx.objectStore(table).delete([generation,id]);
         await done;this.metadataHashes=nextHashes;
       });
     }

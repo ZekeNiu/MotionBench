@@ -33,15 +33,15 @@
           <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 6l-6 6 6 6"/></svg>
         </button>
       </div>
-      <div class="sidebar-selection">
+      <div class="workspace-switch">
+        <button id="reportWorkspaceButton" class="sidebar-action" onclick="App.showReport()">报告工作台</button>
+        <button id="managementWorkspaceButton" class="sidebar-action" onclick="App.openManagement()">管理中心</button>
+      </div>
+      <div id="reportControls" class="sidebar-selection">
+        <label class="sr-only" for="reportAthleteSearch">搜索报告运动员</label><input id="reportAthleteSearch" type="search" placeholder="搜索姓名或专项" oninput="App.renderSelectors()">
+        <label class="sr-only" for="reportGroupFilter">按队伍选择报告</label><select id="reportGroupFilter" onchange="App.renderSelectors()"><option value="">全部队伍</option></select>
         <div class="sidebar-field">
           <label for="athleteSelect">运动员</label
-          ><button
-            class="text-btn"
-            onclick="App.openNewAthlete()"
-            aria-label="新建运动员"
-          >
-            ＋ 新建</button
           ><select
             id="athleteSelect"
             onchange="App.selectAthlete(this.value)"
@@ -49,12 +49,6 @@
         </div>
         <div class="sidebar-field">
           <label for="recordSelect">测试记录</label
-          ><button
-            class="text-btn"
-            onclick="App.newTest()"
-            aria-label="新建测试记录"
-          >
-            ＋ 新建</button
           ><select
             id="recordSelect"
             onchange="App.selectRecord(this.value)"
@@ -70,11 +64,9 @@
         <nav id="settingsTabs" class="report-nav" aria-label="设置导航" hidden></nav>
       </div>
       <div class="sidebar-bottom">
-        <button class="sidebar-action" data-settings-open="catalog" onclick="App.openSettings('catalog')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3h14v18H5z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></span> 测试项目库</button>
-        <button class="sidebar-action" data-settings-open="record" onclick="App.openSettings('definitions')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 3v6M16 9v6M10 15v6"/></svg></span> 本次评价设置</button>
         <button class="sidebar-action" data-settings-open="app" onclick="App.openSettings('ai')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h14"/><path d="M9 4v4M15 10v4M11 16v4"/></svg></span> 应用设置</button>
         <button class="sidebar-action" onclick="App.saveMenu()">
-          <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 14v6h16v-6"/></svg></span> 保存与导入
+          <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 14v6h16v-6"/></svg></span> 备份与恢复
         </button>
         <p>数据保留在本机浏览器</p>
       </div>
@@ -95,11 +87,14 @@
           ><span class="context-divider">/</span
           ><span id="recordContext" class="record-context"></span>
         </div>
+        <div id="reportActions" class="report-actions" hidden><button class="btn small" onclick="App.downloadHTML()">可编辑 HTML</button><button class="btn small" onclick="App.downloadJSON()">测试 JSON</button><button class="btn small primary" data-pdf-action onclick="App.downloadPDF()">导出当前报告 PDF</button></div>
         <div class="toolbar">
           <button id="workspaceBack" class="btn" onclick="App.back()" hidden>
             返回报告</button>
         </div>
       </header>
+      <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
+      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>报告工作台</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.openManagement('athletes')">管理运动员与测试</button><button class="btn" onclick="App.loadDemo()">载入示例</button></div></section>
       <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
         <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
         <div class="row">
@@ -113,7 +108,7 @@
         <div class="hero">
           <div>
             <h1>运动表现与损伤风险筛查</h1>
-            <div id="athleteMeta" class="hero-sub"></div>
+            <div id="athleteMeta" class="hero-sub"></div><p id="reportEvaluationLabel" class="note"></p>
             <p id="migrationReviewNotice" class="notice" hidden></p>
           </div>
           <div class="hero-status no-print">
@@ -324,15 +319,17 @@
         hidden
       >
         <div class="workspace-heading">
-          <h1 id="settingsTitle">本次评价设置</h1>
-          <p id="settingsIntro">仅影响当前选定的测试记录。</p>
+          <h1 id="settingsTitle">应用设置</h1>
+          <p id="settingsIntro">分析服务与参考资料。</p>
         </div>
         <article
           id="settingsContent"
           class="form-card settings-content"
         ></article>
       </section>
+      <section id="managementView" class="wrap workspace-view management-view" hidden aria-label="管理中心"><div id="managementContent"></div></section>
     </div>
+    <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
     <div
       class="modal-backdrop"
       id="newAthleteModal"
@@ -373,7 +370,7 @@
                 </label>
               </div>
             </div>
-            <div id="creationTestStep" hidden>
+            <div id="creationTestStep" hidden><label class="field"><span>评价方案</span><select id="creationEvaluationProfile"></select></label>
               <p class="creation-step-label">2 / 2 · 本次测试</p>
               <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" /></label>
               <p id="creationSource" class="notice"></p>
@@ -498,7 +495,7 @@
     <input
       type="file"
       id="importFile"
-      accept="application/json,text/html,.json,.html,.htm"
+      accept="application/json,text/html,.json,.html,.htm,.jsonl"
       hidden
     />
     <div id="toast" role="status"></div>

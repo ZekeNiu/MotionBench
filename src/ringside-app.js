@@ -41,6 +41,12 @@
     legacyKey = "ringside-local-v1:" + location.pathname;
   let library,
     state,
+    repository,
+    saveSequence = 0,
+    pendingSaves = 0,
+    libraryTransferActive = false,
+    selectionSequence = 0,
+    entryReturn = null,
     entryTab = "athlete",
     settingsTab = "definitions",
     selectedDef = "cmj_height",
@@ -74,7 +80,7 @@
     recovery = null,
     storageFailed = false,
     lastRestorePayload = null;
-  const recordBaselines = new Map(),
+  const recordBaselines = new Map(), queuedRecords = new Map(),
     undoDeletes = new Map();
   const rawNumbers = new WeakMap();
   try {
@@ -99,15 +105,50 @@
   const snapshot = () => ({
     athleteId: state.athleteId,
     recordId: state.recordId,
-    basis: M.fingerprint(state),
+    basis: recordBasis(),
     revision: state.narrative?.revision || 0,
   });
+  function effectiveRecord(record = state) {
+    if (!record) return null;
+    return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
+  }
+  function recordBasis() { return state ? M.fingerprint(effectiveRecord()) : ""; }
+  async function loadDirectory(preserve = true) {
+    const current = preserve ? state?.recordId : null;
+    library = await repository.directory();
+    const id = current || library.activeRecordId;
+    state = id ? await repository.loadRecord(id) : null;
+    const owner = state && library.athletes.find(a => a.id === state.athleteId);
+    if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
+    if (state) {
+      library.activeAthleteId = state.athleteId; library.activeRecordId = state.recordId;
+      recordBaselines.set(state.recordId, recordContent(state));
+    } else { library.activeRecordId = ""; }
+    reportDirty = true;
+  }
+  async function saveLibraryChanges(records = [], removals = {}) {
+    await repository.flush();
+    library.updated = now();
+    await repository.save(library, records, removals);
+    await loadDirectory(true);
+    if (job && (!currentMatches(job) || job.basis !== recordBasis())) cancelJob();
+    renderReport(); renderWorkspace();
+  }
+  function openManagement(tab = "athletes") {
+    if (!library) return;
+    if (ui.mode === "report") captureReportUI();
+    saveEditor(); persist();
+    if (ui.mode !== "management") ui.returnMode = ui.mode;
+    ui.mode = "management";
+    window.RingsideManagement.open(tab);
+    renderWorkspace(); closeMobileSidebar();
+  }
   function activeAthlete() {
-    return library.athletes.find((a) => a.id === library.activeAthleteId);
+    return library?.athletes.find((a) => a.id === (state?.athleteId || library.activeAthleteId));
   }
   function currentMatches(s) {
     return (
-      !!s && state.athleteId === s.athleteId && state.recordId === s.recordId
+      !!s && !!state && state.athleteId === s.athleteId && state.recordId === s.recordId
     );
   }
   function sampleRecord() {
@@ -117,17 +158,6 @@
     const content = copy(record);
     delete content.updated;
     return JSON.stringify(content);
-  }
-  function initializeLibrary() {
-    library = M.normalizeLibrary(library);
-    state = activeAthlete().records.find(
-      (r) => r.recordId === library.activeRecordId,
-    );
-    library.athletes.forEach((a) =>
-      a.records.forEach((r) =>
-        recordBaselines.set(r.recordId, recordContent(r)),
-      ),
-    );
   }
   function draftRecordKey(record = state) {
     return record.athleteId + ":" + record.recordId;
@@ -303,7 +333,7 @@
     ];
   }
   function renderEntryNavigation() {
-    const computed = M.stats(state);
+    const computed = M.stats(effectiveRecord());
     const button = ([id, name], project) => {
       const issues = Object.values(draftsFor()).filter(
         (d) => d.mode === "entry" && d.tab === id,
@@ -344,6 +374,7 @@
     revealActiveNavigation();
   }
   function refreshEntryChrome() {
+    if (!state) return;
     if (!state || !$("entryIdentity")) return;
     const a = activeAthlete(),
       number = a.records.findIndex((r) => r.recordId === state.recordId) + 1;
@@ -436,99 +467,22 @@
     }
     records.forEach((r) => M.validateRecord(r));
   }
-  function restore() {
-    let embedded = null,
-      local = null,
-      old = null,
-      decodeError = null;
-    try {
-      embedded = JSON.parse($("embedded-data").textContent);
-    } catch {}
-    try {
-      const localText = localStorage.getItem(storageKey),
-        oldText = localStorage.getItem(legacyKey);
-      if (localText)
-        try {
-          local = JSON.parse(localText);
-        } catch {
-          lastRestorePayload = { rawText: localText };
-          decodeError = Error("本地运动员库不是有效JSON，已保留原始内容");
-        }
-      if (!localText && oldText)
-        try {
-          old = JSON.parse(oldText);
-        } catch {
-          lastRestorePayload = { rawText: oldText };
-          decodeError = Error("旧本地数据不是有效JSON，已保留原始内容");
-        }
-    } catch {}
-    if (decodeError) throw decodeError;
-    if (embedded) {
-      lastRestorePayload = embedded;
-      const seed = M.normalizeLibrary(embedded);
-      const embRecord = seed.athletes
-        .flatMap((a) => a.records)
-        .find((r) => r.recordId === seed.activeRecordId);
-      const localRecord = local?.athletes
-        ?.flatMap((a) => a.records || [])
-        .find((r) => r.recordId === embRecord?.recordId);
-      if (localRecord && localRecord.updated > embRecord.updated) {
-        lastRestorePayload = local;
-        library = M.normalizeLibrary(local);
-      } else library = seed;
-    } else if (local) {
-      lastRestorePayload = local;
-      library = M.normalizeLibrary(local);
-    } else if (old) {
-      lastRestorePayload = old;
-      library = M.normalizeLibrary(old);
-    } else {
-      const sample = sampleRecord();
-      library = {
-        schema: 2,
-        kind: "athlete-library",
-        athletes: [
-          {
-            id: sample.athleteId,
-            name: sample.athlete.name || "示例运动员",
-            sample: true,
-            records: [sample],
-          },
-        ],
-        activeAthleteId: sample.athleteId,
-        activeRecordId: sample.recordId,
-        updated: now(),
-      };
+  async function restore() {
+    repository = await window.RingsideStore.Repository.open();
+    if (!repository.generation) {
+      let input = null;
+      const embeddedText = $("embedded-data").textContent.trim();
+      if (embeddedText && embeddedText !== "null" && embeddedText !== "{}") input = JSON.parse(embeddedText);
+      if (!input) {
+        const old = localStorage.getItem(storageKey) || localStorage.getItem(legacyKey);
+        if (old) { lastRestorePayload = {rawText:old}; input = JSON.parse(old); }
+      }
+      lastRestorePayload = input || lastRestorePayload;
+      const migrated = window.RingsideEvaluation.migrate(input || M.libraryDefaults());
+      await repository.importLibrary(migrated);
     }
-    if (!embedded && !library.athletes.some((a) => a.sample)) {
-      const sample = sampleRecord();
-      library.athletes.push({
-        id: sample.athleteId,
-        name: "示例运动员",
-        sample: true,
-        records: [sample],
-      });
-    }
-    let a =
-      library.athletes.find((a) => a.id === library.activeAthleteId) ||
-      library.athletes[0];
-    if (!a) {
-      const r = M.defaults();
-      a = {
-        id: r.athleteId,
-        name: "未命名运动员",
-        sample: false,
-        records: [r],
-      };
-      library.athletes.push(a);
-    }
-    state =
-      a.records.find((r) => r.recordId === library.activeRecordId) ||
-      a.records.at(-1);
-    library.activeAthleteId = a.id;
-    library.activeRecordId = state.recordId;
+    await loadDirectory(false);
   }
-
   function rememberUI() {
     if (!state) return;
     try {
@@ -543,11 +497,13 @@
           reportScroll: ui.reportScroll,
           detailOpen: ui.detailOpen,
           sidebarCollapsed: ui.sidebarCollapsed,
+          lastViewed: ui.lastViewed || {},
         }),
       );
     } catch {}
   }
   function captureReportUI() {
+    if (!state) return;
     if (ui.mode !== "report") return;
     ui.reportScroll = window.scrollY;
     document
@@ -559,7 +515,15 @@
     };
   }
   function renderWorkspace() {
-    $("reportView").hidden = ui.mode !== "report";
+    const management = ui.mode === "management";
+    $("managementView").hidden = !management;
+    $("emptyReport").hidden = ui.mode !== "report" || !!state;
+    document.body.classList.toggle("management-mode", management);
+    $("reportControls").hidden = management || ui.mode === "settings";
+    $("reportActions").hidden = ui.mode !== "report" || !state;
+    $("reportWorkspaceButton").setAttribute("aria-current", ui.mode === "report" ? "page" : "false");
+    $("managementWorkspaceButton").setAttribute("aria-current", management ? "page" : "false");
+    $("reportView").hidden = ui.mode !== "report" || !state;
     $("entryView").hidden = ui.mode !== "entry";
     $("settingsView").hidden = ui.mode !== "settings";
     $("entryNav").hidden = ui.mode !== "entry";
@@ -580,7 +544,8 @@
               window.RingsideSettings.scopeFor(settingsTab)
             ].title
           : "测试报告";
-    $("editButton").hidden = ui.mode === "entry";
+    $("editButton").hidden = ui.mode !== "report" || !state;
+    if (management) { $("workspaceLabel").textContent="管理中心"; $("recordContext").textContent=""; $("directoryLabel").textContent="资料管理"; }
 
     $("workspaceBack").hidden = ui.mode === "report";
     $("workspaceBack").textContent =
@@ -592,6 +557,7 @@
     rememberUI();
   }
   function renderNavigation() {
+    if (ui.mode === "management") { $("entryNav").hidden=true; $("settingsTabs").hidden=true; $("reportNav").hidden=false; $("reportNav").innerHTML=window.RingsideManagement.navigation(); return; }
     const activeScope = ui.mode === "settings"
       ? window.RingsideSettings.scopeFor(settingsTab) : null;
     document.querySelectorAll("[data-settings-open]").forEach(button => {
@@ -617,6 +583,7 @@
       $("reportNav").innerHTML = "";
       return;
     }
+    if (!state) { $("reportNav").innerHTML=""; return; }
     const sections = [
       ["summary", "快速摘要", "01"],
       ["data", "具体数据", "02"],
@@ -720,6 +687,7 @@
     if (matchMedia("(max-width:900px)").matches) toggleSidebar(false);
   }
   function showReport(restoreScroll = true) {
+    entryReturn = null;
     saveEditor();
     persist();
     ui.mode = "report";
@@ -733,7 +701,14 @@
       );
     return ui.mode;
   }
-  function back() {
+  async function back() {
+    if (ui.mode === "entry" && entryReturn?.mode === "management") {
+      const backTo = entryReturn; entryReturn = null; saveEditor(); if (!await persist()) return;
+      if (backTo.recordId) { const a = library.athletes.find(a=>a.id===backTo.athleteId); const r = a?.records.find(r=>r.recordId===backTo.recordId); if (r) await switchRecord(a,r); }
+      else { state=null;library.activeAthleteId=backTo.athleteId||"";library.activeRecordId="";await persist(); }
+      openManagement(backTo.tab);ui.returnMode="report";renderWorkspace();return;
+    }
+    if (ui.mode === "management") { if (ui.returnMode === "entry" && state) { ui.mode="entry"; renderEntry();renderWorkspace();return; } return showReport(); }
     if (ui.mode === "settings" && ui.returnMode === "entry") {
       ui.mode = "entry";
       renderEntry();
@@ -852,38 +827,33 @@
     );
   }
   function persist() {
-    if (!state || !library) return false;
-    clearTimeout(saveTimer);
-    saveTimer = null;
-    const content = recordContent(state);
-    const modified = recordBaselines.get(state.recordId) !== content;
-    if (modified) state.updated = now();
-    const a = activeAthlete();
-    a.name = a.profile?.name || a.name || "未命名运动员";
-    const index = a.records.findIndex((r) => r.recordId === state.recordId);
-    if (index < 0) a.records.push(state);
-    else a.records[index] = state;
-    library.activeAthleteId = a.id;
-    library.activeRecordId = state.recordId;
-    if (modified) library.updated = now();
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(library));
-      recordBaselines.set(state.recordId, content);
-      storageFailed = false;
-      $("saveStatus").textContent =
-        "已自动保留 · " +
-        new Date().toLocaleTimeString("zh-CN", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      refreshEntryChrome();
-      return true;
-    } catch {
-      storageFailed = true;
-      $("saveStatus").textContent = "浏览器存储不可用，请备份运动员库";
-      refreshEntryChrome();
-      return false;
+    if (!library || !repository) return Promise.resolve(false);
+    clearTimeout(saveTimer); saveTimer = null;
+    const record = state, content = record ? recordContent(record) : "";
+    const modified = record && (queuedRecords.get(record.recordId)?.content ?? recordBaselines.get(record.recordId)) !== content;
+    if (modified) record.updated = now();
+    if (record) {
+      const a = library.athletes.find(a => a.id === record.athleteId);
+      if (!a) return Promise.resolve(false);
+      a.name = a.profile?.name || a.name;
+      const index = a.records.findIndex(r => r.recordId === record.recordId), item = window.RingsideStore.summary(record);
+      if (index < 0) a.records.push(item); else a.records[index] = item;
     }
+    if (modified) library.updated = now();
+    const sequence = ++saveSequence;
+    if (modified) queuedRecords.set(record.recordId,{sequence,content});
+    $("saveStatus").textContent = "正在保存…";
+    pendingSaves++;
+    let saving;
+    try { saving=repository.save(library, modified ? [record] : []); } catch(error) { saving=Promise.reject(error); }
+    return saving.then(() => {
+      if (record) recordBaselines.set(record.recordId, content);
+      if (sequence === saveSequence) { storageFailed = false; $("saveStatus").textContent = "已保存到本机"; if (state) refreshEntryChrome(); }
+      return true;
+    }).catch(error => {
+      storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message;
+      if (state) refreshEntryChrome(); return false;
+    }).finally(() => { pendingSaves--; if(record&&queuedRecords.get(record.recordId)?.sequence===sequence)queuedRecords.delete(record.recordId); });
   }
   function changed(render = true) {
     clearTimeout(saveTimer);
@@ -963,42 +933,43 @@
     $("tooltip").style.display = "none";
     renderNarrativeStatus();
   }
-  function switchRecord(a, r) {
-    captureReportUI();
-    saveEditor();
-    persist();
+  async function switchRecord(a, r, options = {}) {
+    const sequence = ++selectionSequence;
+    if (state) { captureReportUI(); saveEditor(); }
+    if (!await persist()) return;
+    const loaded = r ? await repository.loadRecord(r.recordId) : null;
+    if (sequence !== selectionSequence) return;
     cancelJob();
-    library.activeAthleteId = a.id;
-    library.activeRecordId = r.recordId;
-    state = r;
-    entryTab = "athlete";
-    isoFilter = "all";
-    reportDirty = true;
-    const saved = ui.records[r.recordId];
-    ui.reportScroll = saved?.reportScroll || 0;
-    ui.detailOpen = { ...(saved?.detailOpen || {}) };
-    persist();
-    renderReport(false);
+    state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
+    if (loaded) { recordBaselines.set(loaded.recordId, recordContent(loaded)); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
+    entryTab = "athlete"; isoFilter = "all"; reportDirty = true;
+    const saved = loaded && ui.records[loaded.recordId];
+    ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
+    ui.mode = options.edit && loaded ? "entry" : "report";
+    await persist(); renderReport(false);
     if (ui.mode === "entry") renderEntry();
-    if (ui.mode === "settings") renderSettings();
-    renderWorkspace();
-    closeMobileSidebar();
-    window.scrollTo({
-      top: ui.mode === "report" ? ui.reportScroll : 0,
-      behavior: "instant",
-    });
+    renderWorkspace(); closeMobileSidebar(); window.scrollTo({top:ui.mode === "report" ? ui.reportScroll:0,behavior:"instant"});
   }
-  function selectAthlete(id) {
-    const a = library.athletes.find((a) => a.id === id);
-    if (a) switchRecord(a, M.latestRecord(a));
+  async function selectAthlete(id) {
+    const a = library.athletes.find(a => a.id === id && !a.deletedAt);
+    if (!a) return;
+    const records = a.records.filter(r => !r.deletedAt && !r.archived);
+    const r = records.find(r => r.recordId === ui.lastViewed?.[id]) || M.latestRecord({records});
+    return switchRecord(a,r);
   }
-  function selectRecord(id) {
-    const a = activeAthlete(),
-      r = a.records.find((r) => r.recordId === id);
-    if (r) switchRecord(a, r);
+  async function selectRecord(id) {
+    const a = activeAthlete(), r = a?.records.find(r => r.recordId === id && !r.deletedAt);
+    if (r) return switchRecord(a,r);
+  }
+  async function openManagedRecord(athleteId, recordId, edit = false) {
+    const a = library.athletes.find(a => a.id === athleteId), r = a?.records.find(r => r.recordId === recordId);
+    if (!a || !r) return;
+    close("managementModal");
+    if (edit) entryReturn = { mode:"management", tab:window.RingsideManagement.tab(), athleteId:library.activeAthleteId, recordId:library.activeRecordId };
+    return switchRecord(a,r,{edit});
   }
   function openNewAthlete() {
-    openCreation("athlete");
+    openManagement("athletes"); window.RingsideManagement.editAthlete();
   }
   function inheritConfiguration(r, source) {
     for (const k of [
@@ -1035,30 +1006,16 @@
     );
     return r;
   }
-  function createAthlete(name) {
-    name = String(name ?? "").trim();
-    if (!name) return toast("请填写姓名或编号");
-    saveEditor();
-    persist();
-    const profile = {
-      name,
-      sex: "未注明",
-      sport: "",
-      dominantHand: "未注明",
-      sportLevel: "",
-    };
-    const r = M.recordFromCatalog(library.catalog, profile, {}, today());
-    r.athleteId = uid();
-    r.recordId = uid();
-    r.athlete = { ...r.athlete, name, age: "", mass: "", date: today() };
-    const a = { id: r.athleteId, name, profile, sample: false, records: [r] };
-    library.athletes.push(a);
-    switchRecord(a, r);
-    toast("已新建运动员");
-    return a.id;
+  async function createAthlete(name) {
+    if (!String(name||"").trim()) return;
+    const id=uid(), profile={name:String(name).trim(),sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
+    library.athletes.push({id,name:profile.name,profile,records:[],groupId:"",archived:false,deletedAt:null,sample:false});
+    await saveLibraryChanges();return id;
   }
-  function newTest() {
-    return openCreation("record");
+  async function newTest(athleteId) {
+    const owner=library.athletes.find(a=>a.id===athleteId)||activeAthlete();
+    if(!owner)return openNewAthlete();
+    return openCreation("record",owner);
   }
   function pathLabel(path) {
     const p = path.split("."),
@@ -1147,7 +1104,7 @@
     return suffix;
   }
   function projectPicker(enabled, forCreation = false) {
-    const projects = forCreation ? T.describe(library.catalog) : allProjects();
+    const projects = (forCreation ? T.describe(library.catalog) : allProjects()).filter(t=>!library.catalog.tests.find(x=>x.id===t.id)?.disabled || (!forCreation && state.enabled[t.id]));
     let html =
       '<div class="plan-tools"><button type="button" class="btn small" onclick="App.selectProjects(\'all\',true,' +
       forCreation +
@@ -1158,7 +1115,7 @@
       ">" +
       projects.filter((t) => enabled[t.id]).length +
       " 项已选</span></div>";
-    const computed = forCreation ? null : M.stats(state);
+    const computed = forCreation ? null : M.stats(effectiveRecord());
     for (const group of T.groups(projects)) {
       html += `<section class="plan-group" data-plan-group="${E(group.id)}"><div class="plan-group-heading"><h4>${E(group.label)}</h4><button type="button" class="text-btn" onclick="App.selectProjects('${E(group.id)}',true,${forCreation})">选择本组</button><button type="button" class="text-btn" onclick="App.selectProjects('${E(group.id)}',false,${forCreation})">清空本组</button></div><div class="check-grid">`;
       html +=
@@ -1210,22 +1167,28 @@
       .forEach((el) => (el.textContent = count + " 项已选"));
     $("creationSubmit").disabled = creation.submitting || count === 0;
   }
-  function openCreation(kind) {
+  async function openCreation(kind, owner = activeAthlete()) {
     saveEditor();
     persist();
-    const latest = kind === "record" ? M.latestRecord(activeAthlete()) : null;
+    const latestSummary = kind === "record" ? M.latestRecord({records:owner.records.filter(r => !r.deletedAt)}) : null;
+    const latest = latestSummary ? await repository.loadRecord(latestSummary.recordId) : null;
     creation = {
       kind,
+      ownerId: owner?.id,
+      evaluationProfileId: library.evaluationProfiles.find(p=>p.id===latest?.evaluationProfileId&&!p.disabled)?.id || library.defaultEvaluationProfileId,
+      returnMode: ui.mode,
+      returnAthleteId: library.activeAthleteId,
+      returnRecordId: library.activeRecordId,
       step: kind === "athlete" ? "profile" : "test",
       enabled: Object.fromEntries(
         library.catalog.tests.map((t) => [
           t.id,
-          !!latest?.enabled[t.id] && !projectBlocked(t.id),
+          !!latest?.enabled[t.id] && !projectBlocked(t.id) && !t.disabled,
         ]),
       ),
       profile:
         kind === "record"
-          ? copy(activeAthlete().profile)
+          ? copy(owner.profile)
           : {
               name: "",
               sex: "未注明",
@@ -1243,8 +1206,9 @@
     $("newAthleteHand").value = creation.profile.dominantHand;
     $("newAthleteLevel").value = creation.profile.sportLevel;
     $("creationDate").value = today();
+    $("creationEvaluationProfile").innerHTML = library.evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("");
     $("creationSource").textContent = latest
-      ? `${activeAthlete().name} · 沿用 ${latest.athlete.date || "未填日期"} 第${activeAthlete().records.indexOf(latest) + 1}次所选项目，结果重新录入。`
+      ? `${owner.name} · 沿用 ${latest.athlete.date || "未填日期"} 所选项目，结果重新录入。`
       : "首次测试，请选择本次要进行的项目。";
     $("creationProjects").innerHTML = projectPicker(creation.enabled, true);
     $("creationError").hidden = true;
@@ -1298,7 +1262,7 @@
       $("newAthleteName").focus();
     }
   }
-  function submitCreation() {
+  async function submitCreation() {
     if (!creation || creation.submitting) return;
     if (creation.step === "profile") return creationNext();
     if (!$("creationDate").value || !$("creationDate").validity.valid)
@@ -1310,7 +1274,7 @@
     try {
       captureReportUI();
       saveEditor();
-      persist();
+      if (!await persist()) throw Error("当前修改尚未保存");
       const next = copy(library),
         draft = M.recordFromCatalog(
           next.catalog,
@@ -1331,24 +1295,25 @@
         };
         next.athletes.push(athlete);
       } else {
-        athlete = next.athletes.find((a) => a.id === library.activeAthleteId);
+        athlete = next.athletes.find((a) => a.id === creation.ownerId);
         draft.athleteId = athlete.id;
         draft.recordId = uid();
-        draft.trainingContext = copy(
-          M.latestRecord(athlete)?.trainingContext || draft.trainingContext,
-        );
+        const priorSummary = M.latestRecord({records:athlete.records.filter(r=>!r.deletedAt)});
+        const prior = priorSummary && await repository.loadRecord(priorSummary.recordId);
+        draft.trainingContext = copy(prior?.trainingContext || draft.trainingContext);
       }
-      athlete.records.push(draft);
+      draft.evaluationProfileId = $("creationEvaluationProfile")?.value || creation.evaluationProfileId;
+      athlete.records.push(window.RingsideStore.summary(draft));
       next.activeAthleteId = athlete.id;
       next.activeRecordId = draft.recordId;
       next.updated = now();
-      M.validateLibrary(next);
-      localStorage.setItem(storageKey, JSON.stringify(next));
+      await repository.save(next, [draft]);
       library = next;
       state = draft;
       storageFailed = false;
       recordBaselines.set(state.recordId, recordContent(state));
       cancelJob();
+      if (creation.returnMode === "management") entryReturn = {mode:"management",tab:window.RingsideManagement.tab(),athleteId:creation.returnAthleteId,recordId:creation.returnRecordId};
       creation = null;
       close("newAthleteModal");
       ui.mode = "entry";
@@ -1436,8 +1401,6 @@
       if (custom) custom.category = value;
     }
     if (/^athlete\.(name|sex|sport|dominantHand|sportLevel)$/.test(path)) {
-      activeAthlete().profile[ps[1]] = value;
-      if (ps[1] === "name") activeAthlete().name = value || "未命名运动员";
       renderSelectors();
     }
     if (/^data\.imtp\.\d+\.timePoints\./.test(path))
@@ -1469,29 +1432,25 @@
     );
   }
   function renderSelectors() {
-    const a = activeAthlete();
-    $("athleteSelect").innerHTML = library.athletes
-      .map(
-        (x) =>
-          `<option value="${E(x.id)}" ${x.id === a.id ? "selected" : ""}>${E(x.name)}${x.sample ? " · 示例" : ""}${library.athletes.filter((y) => y.name === x.name).length > 1 ? " · " + E(athleteTag(x)) : ""}</option>`,
-      )
-      .join("");
-    $("recordSelect").innerHTML = [...a.records]
-      .reverse()
-      .map(
-        (r, i) =>
-          `<option value="${E(r.recordId)}" ${r.recordId === state.recordId ? "selected" : ""}>${E(r.athlete.date || "未填日期")} · 第${a.records.length - i}次${r.demo ? " · 示例" : ""}</option>`,
-      )
-      .join("");
-    $("sampleLabel").classList.toggle("hidden", !state.demo);
+    if (!library) return;
+    const a = activeAthlete(), q = ($("reportAthleteSearch")?.value || "").trim().toLocaleLowerCase(), group = $("reportGroupFilter")?.value || "";
+    const groups = $("reportGroupFilter");
+    if (groups) groups.innerHTML = '<option value="">全部队伍</option>' + library.groups.map(g=>`<option value="${E(g.id)}" ${g.id===group?"selected":""}>${E(g.name)}</option>`).join("");
+    const athletes = library.athletes.filter(x=>!x.deletedAt&&!x.archived&&(!group||x.groupId===group)&&(!q||[x.name,x.profile?.sport].join(" ").toLocaleLowerCase().includes(q)));
+    $("athleteSelect").innerHTML = '<option value="">选择运动员</option>' + athletes.map(x=>`<option value="${E(x.id)}" ${x.id===a?.id?"selected":""}>${E(x.name)} · ${E(library.groups.find(g=>g.id===x.groupId)?.name||x.profile?.sport||"未分组")} · ${E(x.id.slice(-6))}</option>`).join("");
+    $("recordSelect").innerHTML = '<option value="">选择测试记录</option>' + [...(a?.records||[])].filter(r=>!r.deletedAt&&!r.archived).sort((x,y)=>(y.athlete.date||"").localeCompare(x.athlete.date||"")||y.recordId.localeCompare(x.recordId)).map(r=>`<option value="${E(r.recordId)}" ${r.recordId===state?.recordId?"selected":""}>${E(r.athlete.date||"未填日期")} · ${E(r.title||Object.values(r.enabled).filter(Boolean).length+"个项目 · "+r.recordId.slice(-4))}</option>`).join("");
+    $("sampleLabel").classList.toggle("hidden", !state?.demo);
+    $("recordContext").textContent = state ? `${a?.name || state.athlete.name} · ${state.athlete.date}` : a ? a.name + " · 暂无测试" : "选择一条测试记录";
+    if ($("reportEvaluationLabel")) { const profile=library.evaluationProfiles.find(p=>p.id===state?.evaluationProfileId); $("reportEvaluationLabel").textContent=state ? "评价方案："+(profile?.name||"未关联")+(profile?" · v"+profile.revision:"") : ""; }
   }
   function renderReport(preserveUI = true) {
+    if (!state) { renderSelectors(); $("reportNav").innerHTML = ""; renderWorkspace(); return; }
     const visible =
       preserveUI && ui.mode === "report" && !$("reportView").hidden;
     const previousScroll = visible ? window.scrollY : null;
     if (visible) captureReportUI();
     renderSelectors();
-    const report = window.RingsideReport.build(state),
+    const report = window.RingsideReport.build(effectiveRecord()),
       s = report.stats,
       a = state.athlete;
     $("athleteMeta").innerHTML = [
@@ -1615,9 +1574,10 @@
     }
   }
   function renderNarrativeStatus() {
+    if (!state) return;
     renderAIStatus();
     const n = state.narrative,
-      stale = n.text && n.basis !== M.fingerprint(state);
+      stale = n.text && n.basis !== recordBasis();
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
@@ -1655,7 +1615,7 @@
       html,
       text: ed.innerText,
       updated: now(),
-      basis: M.fingerprint(state),
+      basis: recordBasis(),
       origin: "manual",
       revision: (state.narrative.revision || 0) + 1,
     };
@@ -1722,6 +1682,7 @@
     return '<p class="note">速度统一使用 m/s。</p>';
   }
   function openEntry(tab = "athlete") {
+    if (!state) return openManagement("records");
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
@@ -1735,6 +1696,7 @@
     focusContentTitle();
   }
   function renderEntry() {
+    if (!state) return showReport();
     const all = entryTabs();
     if (!all.some((t) => t[0] === entryTab)) entryTab = "plan";
     renderAIStatus();
@@ -1748,8 +1710,9 @@
       return;
     }
     let h = "";
+    if (entryTab === "athlete" || entryTab === "plan") h += `<div class="record-evaluation"><label class="field"><span>共用评价方案</span><select id="recordEvaluationSelect" onchange="App.assignRecordProfile(this.value)">${library.evaluationProfiles.filter(p=>!p.disabled||p.id===state.evaluationProfileId).map(p=>`<option value="${E(p.id)}" ${p.id===state.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("")}</select></label><button class="btn small" onclick="App.viewEvaluation()">查看生效标准</button></div>`;
     if (entryTab === "athlete") {
-      const a = { ...state.athlete, ...activeAthlete().profile };
+      const a = state.athlete;
       h +=
         '<div class="form-grid">' +
         field("姓名 / 编号", input("athlete.name", a.name, { type: "text" })) +
@@ -1870,7 +1833,7 @@
           )
           .join("");
     } else if (entryTab === "iso") {
-      const isoValues = M.stats(state).isoAnalyses;
+      const isoValues = M.stats(effectiveRecord()).isoAnalyses;
       h +=
         '<div class="row"><select id="isoFilter" aria-label="等长力量区域筛选" onchange="App.isoFilter(this.value)"><option value="all">全部区域</option>' +
         Object.entries(M.REG)
@@ -1893,7 +1856,7 @@
               ),
               x.paired ? Array.isArray(x.trials) ? F(isoValues[i]?.right) : input("data.iso." + i + ".right", x.right) : "—",
               select("data.iso." + i + ".unit", x.unit, ["N", "kgf", "Nm"]),
-              input("data.iso." + i + ".target", x.target),
+              `<span class="note">${E(effectiveRecord().data.iso[i].target || "未设目标")} ${E(x.unit)}</span>`,
               Array.isArray(x.trials) ? isoValues[i]?.sides.map((s) => (s.side || "") + (s.pain ? " 疼痛" : " —")).join(" / ") : `<div class="row">${check("data.iso." + i + "." + (x.paired ? "painLeft" : "painCenter"), x.paired ? x.painLeft : x.painCenter, "")}${x.paired ? check("data.iso." + i + ".painRight", x.painRight, "") : ""}</div>`,
             ]),
         ) +
@@ -2101,6 +2064,16 @@
             ),
           )
           .join("");
+    if (["cmj","imtp"].includes(entryTab)) {
+      const key=entryTab==="cmj"?"cmjConfig":"imtpConfig";
+      h='<div class="form-grid">'+field("设备输出力定义",select(key+".definition",state[key].definition,[["gross","总力"],["net","净力"]]))+'</div>'+h;
+      if(entryTab==="cmj")h+=check("dsi.confirmed",state.dsi.confirmed,"确认 CMJ 与等长测试的力定义、单位及协议可比较")+(state.dsi.source==="manual"?field("其他等长力定义",select("dsi.definition",state.dsi.definition,[["gross","总力"],["net","净力"]])):"");
+    }
+    if (["landmine","squat","bench","deadlift"].includes(entryTab)) {
+      const keys=entryTab==="landmine"?["landmineL","landmineR"]:[entryTab];
+      h='<div class="form-grid">'+keys.map(id=>field((id==="landmineL"?"左侧 ":id==="landmineR"?"右侧 ":"")+"设备速度口径",select("lvp."+id+".metric",state.lvp[id].metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))).join("")+'</div>'+h;
+    }
+    if(entryTab==="iso")h+='<details class="supplement"><summary>关节配对测量确认</summary>'+state.balancePairs.map((p,i)=>check("balancePairs."+i+".confirmed",p.confirmed,E(p.label)+" · 测量口径、单位与协议可比较")).join("")+'</details>';
     $("entryContent").innerHTML = h;
     $("entryContent")
       .querySelectorAll("table")
@@ -2508,7 +2481,9 @@
     renderEntry();
     renderReport();
   }
-  function openSettings(tab = "definitions") {
+  function openSettings(tab = "ai") {
+    if (tab === "catalog") return openManagement("catalog");
+    if (!["ai", "references"].includes(tab)) return openManagement("profiles");
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
@@ -2522,8 +2497,9 @@
     focusContentTitle();
   }
   function renderSettings() {
+    if (ui.mode === "management") { window.RingsideManagement.render(); return; }
     const component = window.RingsideSettings.render({
-      state,
+      state: state || M.defaults(),
       library,
       settingsTab,
       selectedDef,
@@ -2654,6 +2630,8 @@
   }
   // Insert inside the App closure; expose the five public handlers on App.
   function openCatalogItem(mode = "new-test", testId = "", definitionId = "") {
+    const projectOnlyRequested = mode === "edit-project", metricOnly = mode === "edit" && !!definitionId;
+    if (projectOnlyRequested) mode = "edit";
     mode =
       mode === "test" ? "new-test" : mode === "metric" ? "new-metric" : mode;
     if (!["new-test", "new-metric", "edit"].includes(mode)) return false;
@@ -2668,7 +2646,7 @@
     const test = catalog.tests.find((item) => item.id === testId);
     if (mode === "edit" && !test) return false;
     const definition =
-      mode === "edit"
+      mode === "edit" && !projectOnlyRequested
         ? catalog.definitions.find((d) =>
             definitionId
               ? d.id === definitionId && d.testId === testId
@@ -2793,6 +2771,7 @@
     fields +=
       '</div><p class="note">速度统一使用 m/s。保存后可在本次测试计划中选择该项目。</p>';
     $("catalogFields").innerHTML = fields;
+    for (const id of ["catalogTarget","catalogRanges","catalogDirection", ...(metricOnly ? ["catalogTestName","catalogCategory","catalogProtocol","catalogPrimaryAbility","catalogPrimaryMetric"] : [])]) { const el=$(id);if(el) el.closest(".field").hidden=true; }
     $("catalogTitle").textContent =
       mode === "new-test"
         ? "新建测试项目"
@@ -2840,7 +2819,7 @@
     return true;
   }
 
-  function submitCatalogItem() {
+  async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
     if (
       catalogEdit.unit &&
@@ -2959,16 +2938,17 @@
       M.validateCatalog(canonical);
       edit.submitting = true;
       form.querySelector('[type="submit"]').disabled = true;
+      canonical.tests.forEach(t=>{ const prior=catalog.tests.find(p=>p.id===t.id); if(prior?.disabled)t.disabled=true; });
       canonical.revision = (Number(catalog.revision) || 1) + 1;
       library.catalog = canonical;
       library.updated = new Date().toISOString();
-      persist();
+      if (!await persist()) throw Error("目录保存失败，请重试");
       close("catalogModal");
       renderSettings();
       const message = $("catalogMessage");
       if (message)
         message.textContent =
-          "项目目录已保存。可在本次测试计划中选择，或单独更新本次定义。";
+          "项目目录已保存，后续测试可选择。评价标准在共用方案中维护。";
       return true;
     } catch (error) {
       edit.submitting = false;
@@ -3091,7 +3071,7 @@
     return true;
   }
 
-  function resolveCatalogConflict(index, variantIndex) {
+  async function resolveCatalogConflict(index, variantIndex) {
     const catalog = copy(library.catalog),
       conflict = catalog.conflicts[index];
     if (!conflict || conflict.resolved || !conflict.variants[variantIndex])
@@ -3125,7 +3105,7 @@
       catalog.revision = (Number(catalog.revision) || 1) + 1;
       library.catalog = catalog;
       library.updated = new Date().toISOString();
-      persist();
+      if (!await persist()) throw Error("保存失败，请重试");
       renderSettings();
       const feedback = $("catalogMessage");
       if (feedback)
@@ -3144,7 +3124,7 @@
   function facts() {
     // Suppress inactive custom targets in AI-derived scores/findings as well as
     // metric rows, without changing the saved record or local report formulas.
-    const analysisRecord = copy(state);
+    const analysisRecord = effectiveRecord();
     analysisRecord.definitions.forEach((d) => { if (!d.referenceEnabled) { d.target = ""; d.ranges = []; } });
     const report = window.RingsideReport.build(analysisRecord),
       s = report.stats;
@@ -3212,7 +3192,7 @@
         })),
       protocols: state.protocol,
       rawRecordsNote: "原始记录供口径、备注与试次背景核对；含未完成或无效字段，判断以有效 results、汇总值及 qualityIssues 为准。",
-      rawRecords: Object.fromEntries(Object.entries(state.data)
+      rawRecords: Object.fromEntries(Object.entries(analysisRecord.data)
         .filter(([id]) => state.enabled[id]).map(([id, value]) => [id, copy(value)])),
       customMeasurements: report.projects.flatMap((test) => test.metrics)
         .filter((d) => window.RingsideTests.isManualMetric(d))
@@ -3238,14 +3218,14 @@
   }
   function localDraft() {
     if (job) return;
-    if (!M.stats(state).validTests.size) return toast("先录入至少一项数据", "ai");
-    preview(M.localText(state), "本地", snapshot());
+    if (!M.stats(effectiveRecord()).validTests.size) return toast("先录入至少一项数据", "ai");
+    preview(M.localText(effectiveRecord()), "本地", snapshot());
     setAIStatus("ready", "离线摘要已生成，等待应用", "已在预览中打开，可编辑后应用到正文。这份摘要由本地规则生成。");
   }
   function applyAI() {
     const p = pendingAI;
     if (!p || !currentMatches(p)) return toast("草稿所属测试已切换", "ai");
-    if (p.basis !== M.fingerprint(state))
+    if (p.basis !== recordBasis())
       return toast("测试数据已更新，请重新生成", "ai");
     if (
       p.revision !== state.narrative.revision &&
@@ -3324,7 +3304,7 @@
   }
   function reviewAIDraft() {
     if (!isAIView() || !pendingAI || !currentMatches(pendingAI)) return;
-    if (pendingAI.basis !== M.fingerprint(state)) {
+    if (pendingAI.basis !== recordBasis()) {
       pendingAI = null;
       return setAIStatus("error", "测试数据已更新", "请基于最新数据重新生成建议。");
     }
@@ -3400,7 +3380,7 @@
   }
   async function ai() {
     if (job) return toast("当前分析正在生成", "ai");
-    if (!M.stats(state).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
+    if (!M.stats(effectiveRecord()).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
     if (!key.trim() || !model.trim()) {
       openSettings("ai");
       return setAIStatus("error", "AI 服务尚未配置完整", "填写密钥并读取或填写模型名称，然后重新生成。");
@@ -3428,7 +3408,7 @@
       for (let attempt = 0; attempt < 2; attempt++) {
         const json = await request("/chat/completions", { model: selectedModel, messages, stream: false }, task.controller, 300000, connection);
         if (job !== task || !currentMatches(task)) return;
-        if (binding.basis !== M.fingerprint(state)) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
+        if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
         const result = json.choices?.[0]?.message?.content,
           text =
           typeof result === "string"
@@ -3449,7 +3429,7 @@
         }
       }
       if (pages > 2) throw Error("模型精简后仍超过两页，请重新生成或更换模型。");
-      if (binding.basis !== M.fingerprint(state)) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
+      if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
       preview(validated, "AI", binding, task.autoPreview && isNarrativeView()
         && !document.querySelector(".modal-backdrop.show"));
       setAIStatus("ready", "AI 新建议已生成，等待应用", "当前正文约 " + pages + " 页 A4。核对或编辑后点击“应用草稿”，下方正文才会更新。");
@@ -3483,18 +3463,17 @@
   function reportPayload() {
     ensureExportable();
     persist();
+    const profile=library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId);
     return {
       schema: 2,
       kind: "report",
-      record: copy(state),
+      record: { ...effectiveRecord(), evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
       profile: copy(activeAthlete().profile),
     };
   }
-  function libraryPayload() {
-    ensureExportable(library.athletes.flatMap((a) => a.records));
-    persist();
-    M.validateLibrary(library);
-    return copy(library);
+  async function libraryPayload() {
+    if (!await persist()) throw Error("请先完成保存");
+    return repository.exportLibrary();
   }
   function exportHTMLString() {
     const payload = reportPayload(),
@@ -3506,6 +3485,7 @@
       "entryNav",
       "entryContent",
       "settingsContent",
+      "managementContent", "managementFields", "managementError", "reportEvaluationLabel",
       "settingsTabs",
       "aiPreview",
       "aiPreviewNote",
@@ -3547,6 +3527,12 @@
     clone.querySelector("#reportView").hidden = false;
     clone.querySelector("#entryView").hidden = true;
     clone.querySelector("#settingsView").hidden = true;
+    clone.querySelector("#managementView").hidden = true;
+    clone.querySelector("#emptyReport").hidden = true;
+    clone.querySelector("#startupStatus").textContent = "正在打开本机资料库…";
+    clone.querySelector("#reportAthleteSearch").value = "";
+    clone.querySelector("#reportGroupFilter").replaceChildren();
+    clone.querySelector("body").classList.remove("management-mode");
     clone.querySelector("#sidebarScrim").hidden = true;
     clone.querySelector("#workspace").removeAttribute("inert");
     clone.querySelector("#sidebar").removeAttribute("inert");
@@ -3614,228 +3600,48 @@
       toast(e.message);
     }
   }
-  function downloadLibrary() {
+  async function downloadLibrary() {
     try {
-      download(
-        JSON.stringify(libraryPayload(), null, 2),
-        "MotionBench_运动员库_" + today() + ".json",
-        "application/json;charset=utf-8",
-      );
-    } catch (e) {
-      toast(e.message);
-    }
+      if (!await persist()) throw Error("保存失败，请先重试");
+      const blob = await repository.backupBlob(count => toast("正在备份 " + count + " 条测试"));
+      download(blob, "MotionBench_完整备份_" + today() + ".motionbench.jsonl", "application/x-ndjson");
+      toast("完整备份已导出");
+    } catch (error) { toast(error.message); }
   }
-  function importPayload(parsed, conflictChoice = "prompt") {
-    M.validateLibrary(parsed);
-    const incoming = M.normalizeLibrary(parsed);
-    for (const a of incoming.athletes)
-      for (const r of a.records) {
-        const owner = library.athletes.find(
-          (x) =>
-            x.id !== a.id && x.records.some((v) => v.recordId === r.recordId),
-        );
-        if (owner) throw Error("测试ID已属于其他运动员，不能合并");
-      }
-    saveEditor();
-    persist();
-    const merged = copy(library);
-    let added = 0,
-      skipped = 0;
-    for (const a of incoming.athletes) {
-      let target = merged.athletes.find((x) => x.id === a.id);
-      if (!target) {
-        target = {
-          id: a.id,
-          name: a.name,
-          profile: copy(a.profile),
-          sample: !!a.sample,
-          records: [],
-        };
-        merged.athletes.push(target);
-      } else if (
-        (parsed.profile ||
-          parsed.athletes?.find((x) => x.id === a.id)?.profile) &&
-        JSON.stringify(target.profile) !== JSON.stringify(a.profile)
-      ) {
-        if (
-          conflictChoice === "replace" ||
-          (conflictChoice === "prompt" &&
-            confirm(
-              "导入档案与现有资料不同：" +
-                target.name +
-                "。是否采用导入的档案资料？\n取消则保留当前档案；历史测试快照分别保留。",
-            ))
-        ) {
-          target.profile = copy(a.profile);
-          target.name = a.profile.name || a.name;
-        }
-      }
-      for (const r of a.records) {
-        const i = target.records.findIndex((x) => x.recordId === r.recordId);
-        if (i < 0) {
-          target.records.push(r);
-          added++;
-        } else if (JSON.stringify(target.records[i]) !== JSON.stringify(r)) {
-          const replace =
-            conflictChoice === "replace" ||
-            (conflictChoice === "prompt" &&
-              confirm(
-                "已有相同测试ID的记录：" +
-                  target.name +
-                  " · " +
-                  (r.athlete.date || "未填日期") +
-                  "。是否替换？\n取消则保留现有记录。",
-              ));
-          if (replace) {
-            target.records[i] = r;
-            added++;
-          } else skipped++;
-        }
-      }
-    }
-    // Explicit shared directories include builtin configurations; legacy
-    // snapshots only contribute custom definitions, via model normalization.
-    const explicitCatalog = !!parsed.catalog;
-    if (explicitCatalog && library.athletes.every((a) => a.sample))
-      merged.catalog = copy(incoming.catalog);
-    else
-      for (const t of incoming.catalog.tests) {
-        const custom = !M.TESTS.some((x) => x[0] === t.id);
-        if (explicitCatalog) {
-          const variant = {
-            test: copy(t),
-            definitions: copy(
-              incoming.catalog.definitions.filter((d) => d.testId === t.id),
-            ),
-            protocol: incoming.catalog.protocol[t.id] || "",
-            source: "导入目录",
-          };
-          const existing = merged.catalog.tests.find((x) => x.id === t.id);
-          if (!existing) {
-            merged.catalog.tests.push(copy(t));
-            merged.catalog.definitions.push(...copy(variant.definitions));
-            merged.catalog.protocol[t.id] = variant.protocol;
-          } else {
-            const current = {
-              test: copy(existing),
-              definitions: copy(
-                merged.catalog.definitions.filter((d) => d.testId === t.id),
-              ),
-              protocol: merged.catalog.protocol[t.id] || "",
-              source: "现有目录",
-            };
-            const ordered = (value) =>
-              Array.isArray(value)
-                ? value.map(ordered)
-                : value && typeof value === "object"
-                  ? Object.fromEntries(
-                      Object.keys(value)
-                        .sort()
-                        .map((k) => [k, ordered(value[k])]),
-                    )
-                  : value;
-            const signature = (v) =>
-              JSON.stringify(
-                ordered({
-                  test: v.test,
-                  definitions: [...v.definitions].sort((a, b) =>
-                    a.id.localeCompare(b.id),
-                  ),
-                  protocol: v.protocol,
-                }),
-              );
-            if (signature(current) !== signature(variant)) {
-              let conflict = merged.catalog.conflicts.find(
-                (c) => c.testId === t.id && !c.resolved,
-              );
-              if (!conflict) {
-                conflict = {
-                  id: t.id,
-                  testId: t.id,
-                  name: t.name,
-                  resolved: false,
-                  variants: [current],
-                };
-                merged.catalog.conflicts.push(conflict);
-              }
-              if (
-                !conflict.variants.some(
-                  (v) => signature(v) === signature(variant),
-                )
-              )
-                conflict.variants.push(variant);
-            }
-          }
-        } else if (
-          custom ||
-          incoming.catalog.definitions.some(
-            (d) => d.testId === t.id && T.isManualMetric(d),
-          )
-        ) {
-          const seed = M.defaults();
-          seed.customTests = custom ? [copy(t)] : [];
-          seed.definitions = incoming.catalog.definitions.filter(
-            (d) => d.testId === t.id,
-          );
-          seed.protocol = { [t.id]: incoming.catalog.protocol[t.id] || "" };
-          merged.catalog = M.mergeCatalog(merged.catalog, seed, "导入目录");
-        }
-      }
-    incoming.catalog.conflicts.forEach((c) => {
-      const existing = merged.catalog.conflicts.find(
-        (x) => x.testId === c.testId && !x.resolved,
-      );
-      if (!existing) {
-        if (
-          !merged.catalog.conflicts.some(
-            (x) => JSON.stringify(x) === JSON.stringify(c),
-          )
-        )
-          merged.catalog.conflicts.push(copy(c));
-      } else
-        c.variants.forEach((v) => {
-          if (
-            !existing.variants.some(
-              (x) =>
-                JSON.stringify({ ...x, source: "" }) ===
-                JSON.stringify({ ...v, source: "" }),
-            )
-          )
-            existing.variants.push(copy(v));
-        });
+  async function downloadLegacyLibrary() {
+    try {
+      const all = await libraryPayload(), profiles = new Map(all.evaluationProfiles.map(p=>[p.id,p]));
+      all.athletes = all.athletes.filter(a=>!a.deletedAt).map(a=>({...a,records:a.records.filter(r=>!r.deletedAt).map(r=>{const out=window.RingsideEvaluation.resolve(r,profiles.get(r.evaluationProfileId));delete out.evaluationProfileId;return out;})})).filter(a=>a.records.length);
+      all.schema=2;delete all.evaluationProfiles;delete all.groups;delete all.defaultEvaluationProfileId;
+      for(const a of all.athletes){delete a.groupId;delete a.archived;delete a.deletedAt;for(const r of a.records){delete r.archived;delete r.deletedAt;delete r.deletedWithAthlete;delete r.evaluationIssues;}}
+      if (!all.athletes.some(a=>a.id===all.activeAthleteId&&a.records.some(r=>r.recordId===all.activeRecordId))) {all.activeAthleteId=all.athletes[0]?.id||"";all.activeRecordId=all.athletes[0]?.records[0]?.recordId||"";}
+      M.validateLibrary(all); download(JSON.stringify(all),"MotionBench_旧版兼容_"+today()+".json","application/json");
+    } catch(error) {toast(error.message);}
+  }
+  async function runLibraryTransfer(operation) {
+    if(libraryTransferActive)throw Error("资料库正在导入或恢复，请等待完成");
+    libraryTransferActive=true;cancelJob();
+    const controls=[$("workspace"),$("sidebar"),...document.querySelectorAll(".modal-backdrop.show")].map(node=>[node,node.inert]);
+    controls.forEach(([node])=>node.inert=true);document.body.setAttribute("aria-busy","true");toast("正在校验并写入资料库…");
+    try{return await operation();}finally{controls.forEach(([node,inert])=>node.inert=inert);document.body.removeAttribute("aria-busy");libraryTransferActive=false;}
+  }
+  async function importPayload(parsed, conflictChoice = "merge") {
+    return runLibraryTransfer(async()=>{
+    const incoming=window.RingsideEvaluation.migrate(parsed);
+    if (!await persist()) throw Error("当前修改尚未保存");
+    const result=await repository.importLibrary(incoming,{merge:conflictChoice!=="replace-library"});
+    cancelJob(); await loadDirectory(false);
+    const importedRecord=incoming.activeRecordId && await repository.loadRecord(result.recordMap[incoming.activeRecordId]||incoming.activeRecordId);
+    if (importedRecord && !importedRecord.deletedAt) { state=importedRecord;library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;recordBaselines.set(state.recordId,recordContent(state));await persist(); }
+    ui.mode="report"; renderReport(false);renderWorkspace();return result;
     });
-    cancelJob();
-    const a =
-        merged.athletes.find((a) => a.id === incoming.activeAthleteId) ||
-        merged.athletes.find((a) => a.id === merged.activeAthleteId),
-      r =
-        a.records.find((r) => r.recordId === incoming.activeRecordId) ||
-        a.records.at(-1);
-    merged.activeAthleteId = a.id;
-    merged.activeRecordId = r.recordId;
-    M.validateLibrary(merged);
-    localStorage.setItem(storageKey, JSON.stringify(merged));
-    library = merged;
-    library.athletes.forEach((a) =>
-      a.records.forEach((r) =>
-        recordBaselines.set(r.recordId, recordContent(r)),
-      ),
-    );
-    state = r;
-    ui.mode = "report";
-    ui.returnMode = "report";
-    ui.reportScroll = 0;
-    ui.detailOpen = {};
-    persist();
-    renderWorkspace();
-    renderReport(false);
-    toast(
-      "已导入 " +
-        added +
-        " 条测试" +
-        (skipped ? "，保留 " + skipped + " 条现有记录" : ""),
-    );
-    return { added, skipped };
+  }
+  async function importBackup(file, merge = false) {
+    return runLibraryTransfer(async()=>{
+    if (!await persist()) throw Error("当前修改尚未保存");
+    const result=await repository.importRows(window.RingsideStore.fileRows(file),{merge,onProgress:n=>toast("正在校验与导入 "+n+" 条测试")});
+    cancelJob();await loadDirectory(false);ui.mode="management";window.RingsideManagement.open("athletes");renderReport(false);renderWorkspace();return result;
+    });
   }
   function parseImportText(value) {
     const text = String(value).trim();
@@ -3913,7 +3719,7 @@
         "application/json;charset=utf-8",
       );
   }
-  function recoverData() {
+  async function recoverData() {
     if (!recovery) return;
     try {
       const changes = {};
@@ -3926,12 +3732,12 @@
       const repaired = M.repairRules(recovery.raw, changes),
         mode = recovery.mode;
       if (mode === "startup") {
-        const next = M.normalizeLibrary(repaired);
-        localStorage.setItem(storageKey, JSON.stringify(next));
+        const next = window.RingsideEvaluation.migrate(repaired);
+        await repository.importLibrary(next);
         recovery = null;
         location.reload();
       } else {
-        importPayload(repaired);
+        await importPayload(repaired);
         recovery = null;
         close("recoveryModal");
         toast("异常阈值已修正，原始测量已恢复");
@@ -3941,26 +3747,21 @@
       $("recoveryError").hidden = false;
     }
   }
-  function importFile(file) {
+  async function importFile(file) {
     if (!file) return;
-    if (file.size > 50 * 1024 * 1024) return toast("备份超过50 MB，请分批导入");
-    const reader = new FileReader();
-    reader.onload = () => {
-      let parsed;
-      try {
-        parsed = parseImportText(reader.result);
-        importPayload(parsed);
-        $("saveModal").classList.remove("show");
-        document.body.style.overflow = "";
-        $("workspace").inert = false;
-        $("sidebar").inert =
-          matchMedia("(max-width:900px)").matches || ui.sidebarCollapsed;
-      } catch (e) {
-        if (!parsed || !stageRecovery(parsed, e, "import"))
-          toast("导入失败：" + e.message);
+    try {
+      const merge = $("backupImportMode")?.value !== "replace";
+      if (!merge && !confirm("恢复备份将切换当前资料库；现有资料库保留，可通过恢复上次资料库撤回。继续？")) return;
+      if (/\.jsonl$/i.test(file.name)) {
+        await importBackup(file,merge);
+      } else {
+        if (file.size > 50 * 1024 * 1024) throw Error("旧格式超过 50 MB，请使用完整 JSONL 备份");
+        const parsed=parseImportText(await file.text());
+        await importPayload(parsed,merge?"merge":"replace-library");
       }
-    };
-    reader.readAsText(file);
+      close("saveModal");toast("导入完成");
+    } catch(error) { toast("导入失败："+error.message); }
+    finally { $("importFile").value=""; }
   }
 
   function setPDFStatus(busy, label = "导出当前报告 PDF") {
@@ -3978,7 +3779,7 @@
     }
     persist();
     renderReport();
-    const record = copy(state),
+    const record = effectiveRecord(),
       name = filename("pdf"),
       report = $("reportView").cloneNode(true);
     pdfJob = true;
@@ -4028,6 +3829,16 @@
   }
   window.App = {
     openEntry,
+    openManagement, openManagedRecord, effectiveRecord, recordBasis,
+    saveLibraryChanges, loadDirectory, renderSelectors, downloadLegacyLibrary, importBackup,
+    getRepository: () => repository,
+    async assignRecordProfile(id) { if (!state || !library.evaluationProfiles.some(p=>p.id===id)) return; state.evaluationProfileId=id;cancelJob();await persist();renderReport();renderEntry(); },
+    viewEvaluation() { if(state) window.RingsideManagement.showEffective(effectiveRecord(),library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)); },
+    async restorePreviousLibrary() { await repository.restorePrevious();cancelJob();await loadDirectory(false);openManagement("athletes");renderReport();renderWorkspace(); },
+    downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
+    refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
+    saveNow: persist,
+    async loadDemo() { return importPayload(M.recordEnvelope(M.sampleRecord())); },
     creationNext,
     creationBack,
     submitCreation,
@@ -4067,7 +3878,7 @@
     getUIState() {
       return copy({ ...ui, entryTab, settingsTab });
     },
-    close,
+    close, modal,
     openSettings,
     settings(t) {
       settingsTab = t;
@@ -4114,16 +3925,14 @@
     ai,
     models,
     copyAIFacts,
-    saveMenu() {
-      modal("saveModal");
-    },
+    saveMenu() { openManagement("backup"); },
     downloadHTML,
     downloadJSON,
     downloadLibrary,
     downloadPDF,
     print,
     stats() {
-      return M.stats(state);
+      return M.stats(effectiveRecord());
     },
     getState() {
       return state;
@@ -4271,7 +4080,7 @@
           t.dataset.lvpLimb === "upper"
             ? ["bench", "landmineR", "landmineL"]
             : ["squat", "deadlift"];
-        const available = M.stats(state).lvpSeries.filter(
+        const available = M.stats(effectiveRecord()).lvpSeries.filter(
             (x) => ids.includes(x.id) && x.points.length,
           ),
           selected = available.filter((x) => view.selected.includes(x.id));
@@ -4430,10 +4239,12 @@
     $("tooltip").style.top =
       Math.max(6, Math.min(e.clientY + 12, innerHeight - 100)) + "px";
   });
-  window.addEventListener("beforeunload", () => {
+  window.addEventListener("beforeunload", (event) => {
     saveEditor();
-    persist();
+    const unsaved=libraryTransferActive||storageFailed||saveTimer||pendingSaves||(state&&recordBaselines.get(state.recordId)!==recordContent(state));
+    if (unsaved) persist();
     if (job) job.controller.abort();
+    if (unsaved) { event.preventDefault(); event.returnValue=""; }
   });
 
   window.addEventListener(
@@ -4476,45 +4287,29 @@
       $("sidebarToggle").setAttribute("aria-expanded", "false");
     } else toggleSidebar(!ui.sidebarCollapsed);
   });
-  try {
-    restore();
-    initializeLibrary();
-  } catch (error) {
-    if (!stageRecovery(lastRestorePayload, error, "startup")) {
-      $("recoveryFields").textContent = "无法读取数据：" + error.message;
-      $("recoveryError").textContent =
-        "请保留原始文件。此问题不属于可在此表单修复的评价阈值。";
-      recovery = { raw: lastRestorePayload, mode: "startup" };
-      $("recoveryForm").querySelector('[type="submit"]').disabled = true;
-      modal("recoveryModal");
+  async function initializeApplication() {
+    $("startupStatus").hidden = false;
+    try {
+      await restore();
+      window.RingsideManagement.init();
+      try {
+        const saved=JSON.parse(sessionStorage.getItem(uiKey)||"null");
+        if(saved){ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};}
+      } catch {}
+      document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);
+      renderReport(false);renderWorkspace();
+      $("sidebar").inert=matchMedia("(max-width:900px)").matches||ui.sidebarCollapsed;
+      $("sidebarToggle").setAttribute("aria-expanded",String(!$("sidebar").inert));
+      $("startupStatus").hidden=true;
+      return true;
+    } catch(error) {
+      $("startupStatus").textContent="无法打开资料库："+error.message+"。原始资料未删除，请导出旧资料或重新打开后重试。";
+      $("startupStatus").classList.add("notice");
+      const recoverButton=document.createElement("button");recoverButton.className="btn small";recoverButton.textContent="导出迁移前原始资料";recoverButton.onclick=App.downloadPreMigration;$("startupStatus").append(recoverButton);
+      if(lastRestorePayload&&!lastRestorePayload.rawText)stageRecovery(lastRestorePayload,error,"startup");
+      console.error(error);
+      return false;
     }
-    return;
   }
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(uiKey) || "null");
-    if (saved?.recordId === state.recordId) {
-      ui.mode = ["report", "entry", "settings"].includes(saved.mode)
-        ? saved.mode
-        : "report";
-      ui.returnMode = saved.returnMode === "entry" ? "entry" : "report";
-      ui.reportScroll = Number(saved.reportScroll) || 0;
-      ui.detailOpen = saved.detailOpen || {};
-      ui.sidebarCollapsed = !!saved.sidebarCollapsed;
-      entryTab = saved.entryTab || "athlete";
-      settingsTab = saved.settingsTab || "definitions";
-    }
-  } catch {}
-  document.body.classList.toggle("sidebar-collapsed", ui.sidebarCollapsed);
-  renderReport(false);
-  if (ui.mode === "entry") renderEntry();
-  if (ui.mode === "settings") renderSettings();
-  renderWorkspace();
-  persist();
-  $("sidebar").inert =
-    matchMedia("(max-width:900px)").matches || ui.sidebarCollapsed;
-  $("sidebarToggle").setAttribute("aria-expanded", String(!$("sidebar").inert));
-  if (ui.mode === "report")
-    requestAnimationFrame(() =>
-      window.scrollTo({ top: ui.reportScroll, behavior: "instant" }),
-    );
+  window.App.ready=initializeApplication();
 })();

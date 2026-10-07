@@ -16,6 +16,7 @@ for (const name of [
   "report-v2-model-tests.cjs",
   "chart-ai-model-tests.cjs",
   "repeat-model-tests.cjs",
+  "management-model-tests.cjs",
 ]) {
   const result = spawnSync(process.execPath, [path.join(__dirname, name)], {
     encoding: "utf8",

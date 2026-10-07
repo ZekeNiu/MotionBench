@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.7.2",
+  "version": "2.8.0",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -25,7 +25,10 @@
     "test:repeat-pdf": "node tests/repeat-pdf-tests.cjs",
     "test:iso-layout": "node tests/iso-layout-browser-tests.cjs",
     "start": "python scripts/serve.py",
-    "test:ai-service": "node tests/ai-service-browser-tests.cjs"
+    "test:ai-service": "node tests/ai-service-browser-tests.cjs",
+    "test:management": "node tests/management-browser-tests.cjs && node tests/management-browser-tests.cjs --edge && node tests/management-admin-tests.cjs && node tests/management-resilience-tests.cjs && node tests/management-visual-tests.cjs",
+    "test:capacity": "node tests/management-capacity-tests.cjs && node tests/management-capacity-tests.cjs --edge && python tests/management-backup-integrity.py && node tests/management-restart-tests.cjs",
+    "test:management-pdf": "node tests/management-delivery-tests.cjs"
   },
   "devDependencies": {
     "playwright": "1.57.0"

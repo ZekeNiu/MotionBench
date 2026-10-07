@@ -2810,6 +2810,88 @@ body.sidebar-collapsed .workspace {
   #reportView .iso-results.with-repeat-columns{min-width:0;}
   #reportView .iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type{white-space:normal;overflow-wrap:normal;}
 }
+/* Management and reporting share the existing silver palette. */
+.workspace-switch { padding: 8px 12px 14px; border-bottom: 1px solid var(--line); }
+.workspace-switch .sidebar-action[aria-current="page"] { background: var(--soft, #e8edf1); color: var(--primary, #365b80); font-weight: 700; }
+#reportControls > input, #reportControls > select { width: 100%; margin-bottom: 10px; }
+.startup-status { margin: 16px 32px; }
+.startup-status[hidden] { display: none; }
+.empty-workspace { min-height: 60vh; padding-top: 70px; }
+.empty-workspace p { color: var(--muted); margin: 16px 0 28px; }
+.report-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+.management-mode .record-context, .management-mode .context-divider { display: none; }
+.management-view { max-width: 1560px; }
+.management-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:12px 0 28px; }
+.management-heading h1 { margin:0; font-size:28px; }
+.eyebrow { margin:0 0 6px; color:var(--muted); font-size:12px; letter-spacing:.08em; }
+.management-filters { display:grid; grid-template-columns:minmax(180px,2fr) repeat(4,minmax(110px,1fr)); gap:12px; margin-bottom:20px; }
+.management-filters .field { margin:0; min-width:0; }
+.management-filters input,.management-filters select { width:100%; min-width:0; }
+.management-batch,.management-pagination { display:flex; align-items:center; flex-wrap:wrap; gap:14px; margin:16px 0; }
+.management-batch > .row,.management-pagination > .row { margin-left:auto; }
+.management-table-wrap { width:100%; overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:#fff; }
+.management-table { width:100%; margin:0; }
+.management-table th { background:#edf0f3; font-size:12px; white-space:nowrap; }
+.management-table td { background:#fff; vertical-align:middle; padding:14px 12px; }
+.management-table th:first-child,.management-table td:first-child { width:50px; }
+.management-table small { display:block; margin-top:5px; max-width:340px; color:var(--muted); overflow-wrap:anywhere; line-height:1.5; }
+.management-table .row { gap:6px; }
+.management-table button { white-space:nowrap; }
+.management-catalog-item { background:#fff; border:1px solid var(--line); border-radius:12px; padding:22px; margin:16px 0; display:flex; justify-content:space-between; gap:20px; align-items:center; }
+.management-catalog-item h3 { margin:0 0 8px; }
+.management-catalog-item p { margin:6px 0; overflow-wrap:anywhere; }
+.management-catalog-item > .row { flex-shrink:0; flex-wrap:wrap; max-width:52%; }
+.profile-editor-header { display:flex; gap:20px; align-items:end; justify-content:space-between; }
+.profile-editor-header > .field { min-width:220px; flex:1; max-width:520px; }
+.profile-tabs { display:flex; gap:8px; flex-wrap:wrap; padding:18px 0; border-bottom:1px solid var(--line); margin-bottom:24px; }
+.profile-tabs .btn[aria-current="page"], .profile-tabs .btn[aria-current="page"]:hover { background:var(--blue); border-color:var(--blue); color:white; }
+#profileEditorFields { background:white; padding:24px; border:1px solid var(--line); border-radius:12px; }
+.profile-rule-row { display:grid; grid-template-columns:minmax(160px,1fr) minmax(130px,1fr) minmax(150px,2fr); align-items:center; gap:16px; padding:16px 0; border-bottom:1px solid var(--line); }
+.profile-rule-block { padding:12px 0 24px; border-bottom:1px solid var(--line); margin-bottom:16px; }
+.profile-rule-block textarea { width:100%; }
+.profile-diff { width:100%; table-layout:fixed; }
+.profile-diff td { white-space:pre-wrap; overflow-wrap:anywhere; vertical-align:top; font-size:12px; }
+.profile-diff th:first-child { width:22%; }
+.record-evaluation { display:flex; gap:16px; align-items:end; margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--line); }
+.record-evaluation .field { flex:1; }
+.backup-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.backup-grid article { margin:0; padding:24px; }
+.backup-grid article:last-child { grid-column:1 / -1; }
+#managementFields { overflow-wrap:anywhere; }
+#managementFields .field { margin-bottom:14px; }
+.effective-standard { padding:12px 0 18px; border-bottom:1px solid var(--line); }
+.effective-standard h3,.effective-standard h4 { margin:8px 0; }
+.effective-standard p { margin:7px 0; }
+.standard-ranges { padding-left:22px; margin:10px 0; }
+.standard-ranges li { margin:4px 0; }
+#managementError { padding:0 24px; }
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0; }
+@media (max-width:1200px) {
+  .management-filters { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .management-catalog-item { align-items:flex-start; flex-direction:column; }
+  .management-catalog-item > .row { max-width:100%; }
+  .report-actions { max-width:380px; }
+}
+@media (max-width:600px) {
+  .topbar { flex-wrap:wrap; gap:8px; }
+  .report-actions { order:3; width:100%; max-width:none; }
+  .management-heading { align-items:flex-start; flex-direction:column; }
+  .management-heading h1 { font-size:25px; }
+  .management-filters { grid-template-columns:1fr 1fr; }
+  .management-filters .field:first-child { grid-column:1 / -1; }
+  .management-table-wrap { border:0; background:transparent; }
+  .management-table,.management-table tbody { display:block; }
+  .management-table thead { display:none; }
+  .management-table tr { display:block; background:white; border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin-bottom:12px; }
+  .management-table td,.management-table td:first-child { display:grid; grid-template-columns:82px minmax(0,1fr); width:auto; padding:9px 0; text-align:left; gap:10px; border:0; }
+  .management-table td:before { content:attr(data-label); color:var(--muted); font-size:12px; }
+  .management-table td small { grid-column:2; }
+  .management-batch > .row { margin-left:0; }
+  .profile-editor-header,.record-evaluation { align-items:stretch; flex-direction:column; }
+  .profile-rule-row { grid-template-columns:1fr; gap:6px; }
+  #profileEditorFields { padding:16px; }
+  .backup-grid { grid-template-columns:1fr; }
+}
 
 </style>
   </head>
@@ -2832,15 +2914,15 @@ body.sidebar-collapsed .workspace {
           <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 6l-6 6 6 6"/></svg>
         </button>
       </div>
-      <div class="sidebar-selection">
+      <div class="workspace-switch">
+        <button id="reportWorkspaceButton" class="sidebar-action" onclick="App.showReport()">报告工作台</button>
+        <button id="managementWorkspaceButton" class="sidebar-action" onclick="App.openManagement()">管理中心</button>
+      </div>
+      <div id="reportControls" class="sidebar-selection">
+        <label class="sr-only" for="reportAthleteSearch">搜索报告运动员</label><input id="reportAthleteSearch" type="search" placeholder="搜索姓名或专项" oninput="App.renderSelectors()">
+        <label class="sr-only" for="reportGroupFilter">按队伍选择报告</label><select id="reportGroupFilter" onchange="App.renderSelectors()"><option value="">全部队伍</option></select>
         <div class="sidebar-field">
           <label for="athleteSelect">运动员</label
-          ><button
-            class="text-btn"
-            onclick="App.openNewAthlete()"
-            aria-label="新建运动员"
-          >
-            ＋ 新建</button
           ><select
             id="athleteSelect"
             onchange="App.selectAthlete(this.value)"
@@ -2848,12 +2930,6 @@ body.sidebar-collapsed .workspace {
         </div>
         <div class="sidebar-field">
           <label for="recordSelect">测试记录</label
-          ><button
-            class="text-btn"
-            onclick="App.newTest()"
-            aria-label="新建测试记录"
-          >
-            ＋ 新建</button
           ><select
             id="recordSelect"
             onchange="App.selectRecord(this.value)"
@@ -2869,11 +2945,9 @@ body.sidebar-collapsed .workspace {
         <nav id="settingsTabs" class="report-nav" aria-label="设置导航" hidden></nav>
       </div>
       <div class="sidebar-bottom">
-        <button class="sidebar-action" data-settings-open="catalog" onclick="App.openSettings('catalog')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3h14v18H5z"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></span> 测试项目库</button>
-        <button class="sidebar-action" data-settings-open="record" onclick="App.openSettings('definitions')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/><path d="M8 3v6M16 9v6M10 15v6"/></svg></span> 本次评价设置</button>
         <button class="sidebar-action" data-settings-open="app" onclick="App.openSettings('ai')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h14"/><path d="M9 4v4M15 10v4M11 16v4"/></svg></span> 应用设置</button>
         <button class="sidebar-action" onclick="App.saveMenu()">
-          <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 14v6h16v-6"/></svg></span> 保存与导入
+          <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 14v6h16v-6"/></svg></span> 备份与恢复
         </button>
         <p>数据保留在本机浏览器</p>
       </div>
@@ -2894,11 +2968,14 @@ body.sidebar-collapsed .workspace {
           ><span class="context-divider">/</span
           ><span id="recordContext" class="record-context"></span>
         </div>
+        <div id="reportActions" class="report-actions" hidden><button class="btn small" onclick="App.downloadHTML()">可编辑 HTML</button><button class="btn small" onclick="App.downloadJSON()">测试 JSON</button><button class="btn small primary" data-pdf-action onclick="App.downloadPDF()">导出当前报告 PDF</button></div>
         <div class="toolbar">
           <button id="workspaceBack" class="btn" onclick="App.back()" hidden>
             返回报告</button>
         </div>
       </header>
+      <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
+      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>报告工作台</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.openManagement('athletes')">管理运动员与测试</button><button class="btn" onclick="App.loadDemo()">载入示例</button></div></section>
       <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
         <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
         <div class="row">
@@ -2912,7 +2989,7 @@ body.sidebar-collapsed .workspace {
         <div class="hero">
           <div>
             <h1>运动表现与损伤风险筛查</h1>
-            <div id="athleteMeta" class="hero-sub"></div>
+            <div id="athleteMeta" class="hero-sub"></div><p id="reportEvaluationLabel" class="note"></p>
             <p id="migrationReviewNotice" class="notice" hidden></p>
           </div>
           <div class="hero-status no-print">
@@ -3123,15 +3200,17 @@ body.sidebar-collapsed .workspace {
         hidden
       >
         <div class="workspace-heading">
-          <h1 id="settingsTitle">本次评价设置</h1>
-          <p id="settingsIntro">仅影响当前选定的测试记录。</p>
+          <h1 id="settingsTitle">应用设置</h1>
+          <p id="settingsIntro">分析服务与参考资料。</p>
         </div>
         <article
           id="settingsContent"
           class="form-card settings-content"
         ></article>
       </section>
+      <section id="managementView" class="wrap workspace-view management-view" hidden aria-label="管理中心"><div id="managementContent"></div></section>
     </div>
+    <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
     <div
       class="modal-backdrop"
       id="newAthleteModal"
@@ -3172,7 +3251,7 @@ body.sidebar-collapsed .workspace {
                 </label>
               </div>
             </div>
-            <div id="creationTestStep" hidden>
+            <div id="creationTestStep" hidden><label class="field"><span>评价方案</span><select id="creationEvaluationProfile"></select></label>
               <p class="creation-step-label">2 / 2 · 本次测试</p>
               <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" /></label>
               <p id="creationSource" class="notice"></p>
@@ -3297,7 +3376,7 @@ body.sidebar-collapsed .workspace {
     <input
       type="file"
       id="importFile"
-      accept="application/json,text/html,.json,.html,.htm"
+      accept="application/json,text/html,.json,.html,.htm,.jsonl"
       hidden
     />
     <div id="toast" role="status"></div>
@@ -7065,7 +7144,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (!catalog.definitions.some((d) => d.id === definition.id))
         catalog.definitions.push(definition);
     });
+    const disabledTests = new Set(catalog.tests.filter(t => t.disabled).map(t => t.id));
     catalog.tests = T.snapshots(catalog);
+    catalog.tests.forEach(t => { if (disabledTests.has(t.id)) t.disabled = true; });
     catalog.protocol = { ...base.protocol, ...catalog.protocol };
     Object.keys(catalog.protocol).forEach((id) => {
       catalog.protocol[id] = migrateLegacySpeedText(
@@ -7962,7 +8043,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           !safeId(athlete.id) ||
           typeof athlete.name !== "string" ||
           !Array.isArray(athlete.records) ||
-          athlete.records.length === 0 ||
           athlete.records.length > 1000
         )
           throw new Error("运动员档案结构无效");
@@ -8239,6 +8319,384 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     speedMS,
   };
 })(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  const M = root.RingsideModel, clone = (v) => JSON.parse(JSON.stringify(v));
+  const uid = () => root.crypto.randomUUID(), now = () => new Date().toISOString();
+  const canonical = (v) => JSON.stringify(order(v));
+  function order(v) {
+    if (Array.isArray(v)) return v.map(order);
+    if (v && typeof v === "object") return Object.fromEntries(Object.keys(v).sort().map(k => [k, order(v[k])]));
+    return v;
+  }
+  function measurementContext(record, d) {
+    const config = d.testId === "cmj" ? record.cmjConfig : d.testId === "imtp" ? record.imtpConfig : null;
+    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", metricProtocol: d.protocol || "", ...(config ? { force: clone(config) } : {}) };
+  }
+  function isoContext(row, record) {
+    return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit, protocol: row.protocol || record.protocol?.iso || "" };
+  }
+  function capture(record) {
+    return {
+      definitions: record.definitions.map(d => ({ ...clone(d), context: measurementContext(record, d) })).sort((a,b) => a.id.localeCompare(b.id)),
+      rules: clone(record.rules), axes: clone(record.axes),
+      iso: record.data.iso.map(row => ({ id: row.id, direction: row.direction, ...isoContext(row, record), target: row.target ?? "" })).sort((a,b) => a.id.localeCompare(b.id)),
+      balance: record.balancePairs.map(pair => ({ ...clone(pair), contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; }) })).sort((a,b) => a.id.localeCompare(b.id)),
+      lvp: Object.fromEntries(Object.entries(record.lvp).map(([id, p]) => [id, { ...clone(p), protocol: record.protocol?.[id.startsWith("landmine") ? "landmine" : id] || "" }])),
+    };
+  }
+  function signature(criteria) {
+    // Names and descriptive grouping are retained for editing but cannot merge incompatible measurement conditions.
+    return canonical(criteria);
+  }
+  function create(record, name = "评价方案") {
+    return { id: "evaluation_" + uid(), name, revision: 1, updated: now(), disabled: false, criteria: capture(record) };
+  }
+  function resolve(record, profile) {
+    const out = clone(record);
+    if (!profile) return out;
+    const c = profile.criteria, definitions = new Map(c.definitions.map(d => [d.id, d]));
+    out.evaluationIssues = [];
+    for (const d of out.definitions) {
+      const rule = definitions.get(d.id);
+      if (rule && canonical(rule.context) === canonical(measurementContext(record, d))) {
+        for (const key of ["target", "ranges", "direction", "referenceEnabled", "source"]) if (rule[key] !== undefined) d[key] = clone(rule[key]);
+      } else {
+        d.referenceEnabled = false; d.target = null; d.ranges = [];
+        if (record.enabled[d.testId]) out.evaluationIssues.push({ id: d.id, reason: rule ? "评价方案与测量条件不匹配" : "方案未包含该指标" });
+      }
+    }
+    out.rules = clone(c.rules); out.axes = clone(c.axes);
+    for (const row of out.data.iso) {
+      const rule = c.iso.find(v => v.id === row.id);
+      const matches = rule && canonical(isoContext(row, record)) === canonical({region:rule.region,directionCode:rule.directionCode,paired:rule.paired,unit:rule.unit,protocol:rule.protocol});
+      row.target = matches ? rule.target : "";
+      if (rule && !matches && record.enabled.iso) out.evaluationIssues.push({ id: row.id, reason: "等长目标的单位或协议不匹配" });
+    }
+    for (const pair of out.balancePairs) {
+      const rule = c.balance.find(p => p.id === pair.id);
+      const contexts = [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; });
+      if (rule && canonical(contexts) === canonical(rule.contexts)) {
+        for (const key of ["ranges", "referenceEnabled", "source"]) pair[key] = clone(rule[key]);
+      } else { pair.referenceEnabled = false; pair.ranges = []; }
+    }
+    for (const [id, p] of Object.entries(out.lvp)) {
+      const rule = c.lvp[id];
+      if (rule && rule.metric === p.metric && (rule.protocol || "") === (record.protocol?.[id.startsWith("landmine") ? "landmine" : id] || "")) {
+        p.mvt = rule.mvt; p.zones = clone(rule.zones); if (rule.source !== undefined) p.source = rule.source; else delete p.source;
+      } else { p.mvt = ""; p.zones = []; }
+    }
+    return out;
+  }
+  function template(profile) {
+    const r = M.defaults(), c = profile.criteria;
+    r.definitions = clone(c.definitions);
+    r.rules = clone(c.rules); r.axes = clone(c.axes);
+    r.data.iso = c.iso.map(row => ({ ...clone(row), left: "", right: "", center: "", painLeft: false, painRight: false, painCenter: false, notes: "" }));
+    r.balancePairs = clone(c.balance); r.lvp = clone(c.lvp);
+    for (const d of c.definitions) {
+      r.protocol[d.testId] = d.context.protocol;
+      if (d.context.force) r[d.testId === "cmj" ? "cmjConfig" : "imtpConfig"] = clone(d.context.force);
+    }
+    for (const [id,p] of Object.entries(c.lvp)) r.protocol[id.startsWith("landmine") ? "landmine" : id] = p.protocol;
+    return r;
+  }
+  function fromTemplate(draft, original) {
+    const c = capture(draft);
+    // Definition conditions belong to the source measurement and never change through target editing.
+    c.definitions.forEach(d => { const prior = original.criteria.definitions.find(x => x.id === d.id); if (prior) d.context = clone(prior.context); });
+    return c;
+  }
+  function validateProfile(p) {
+    if (!p || typeof p.id !== "string" || !p.id || typeof p.name !== "string" || !p.name.trim() || !p.criteria) throw Error("评价方案格式无效");
+    if (!Number.isSafeInteger(p.revision) || p.revision < 1) throw Error("评价方案版本无效");
+    const c = p.criteria;
+    for (const key of ["definitions", "iso", "balance"]) if (!Array.isArray(c[key])) throw Error("评价方案缺少 " + key);
+    if (!c.rules || !c.axes || !c.lvp) throw Error("评价方案配置不完整");
+    const r = template(p);
+    const ids = new Set(r.definitions.map(d => d.testId));
+    r.customTests = [...ids].filter(id => !M.TESTS.some(t => t[0] === id)).map(id => ({id, name:id, category:r.definitions.find(d => d.testId === id).category}));
+    M.validateRecord(r);
+    for (const d of c.definitions) if (!d.context || typeof d.context.unit !== "string") throw Error("指标测量条件不完整");
+    for (const row of c.iso) if (row.target !== "" && row.target !== null && (!Number.isFinite(Number(row.target)) || Number(row.target) <= 0)) throw Error("等长目标须为正数或留空");
+    for (const p of Object.values(c.lvp)) {
+      if (p.mvt !== "" && p.mvt !== null && (!Number.isFinite(Number(p.mvt)) || Number(p.mvt) <= 0)) throw Error("MVT 须为正数或留空");
+      for (const z of p.zones) if (!Number.isFinite(z.min) || !Number.isFinite(z.max) || z.min < 0 || z.max <= z.min) throw Error("LVP 素质区间无效");
+    }
+    return true;
+  }
+  function migrate(input) {
+    if (input?.schema === 3 && input.kind === "athlete-library") {
+      const lib = clone(input); lib.evaluationProfiles.forEach(validateProfile); return lib;
+    }
+    const legacy = M.normalizeLibrary(input), profiles = [], seen = new Map(), counts = new Map();
+    for (const a of legacy.athletes) for (const r of a.records) {
+      const c = capture(r), sig = signature(c);
+      let profile = seen.get(sig);
+      if (!profile) { profile = create(r, r.evaluationSnapshot?.name || "原有评价方案 " + (profiles.length + 1)); if(Number.isSafeInteger(r.evaluationSnapshot?.revision)&&r.evaluationSnapshot.revision>0)profile.revision=r.evaluationSnapshot.revision; profiles.push(profile); seen.set(sig, profile); }
+      r.evaluationProfileId = profile.id; counts.set(profile.id, (counts.get(profile.id) || 0) + 1);
+    }
+    if (!profiles.length) profiles.push(create(M.recordFromCatalog(legacy.catalog, {}, Object.fromEntries(legacy.catalog.tests.map(t => [t.id, true]))), "默认评价方案"));
+    const defaultProfile = [...profiles].sort((a,b) => (counts.get(b.id)||0)-(counts.get(a.id)||0) || a.id.localeCompare(b.id))[0];
+    return { ...legacy, schema: 3, groups: [], evaluationProfiles: profiles, defaultEvaluationProfileId: defaultProfile.id,
+      athletes: legacy.athletes.map(a => ({...a, groupId:"", archived:false, deletedAt:null, records:a.records.map(r=>({...r,archived:false,deletedAt:null}))})) };
+  }
+  root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate };
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  const M = root.RingsideModel, E = root.RingsideEvaluation;
+  const clone = v => JSON.parse(JSON.stringify(v)), uid = () => root.crypto.randomUUID();
+  const tables = ["athletes", "records", "recordIndex", "groups", "profiles", "config"];
+  const request = r => new Promise((resolve,reject) => { r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error); });
+  const completed = tx => new Promise((resolve,reject) => { tx.oncomplete=resolve; tx.onabort=()=>reject(tx.error || Error("保存事务已取消")); tx.onerror=()=>{}; });
+  const keyRange = generation => IDBKeyRange.bound([generation, ""], [generation, "\uffff"]);
+  function summary(r) {
+    return { _summary:true, recordId:r.recordId, athleteId:r.athleteId, athlete:Object.fromEntries(["date","name","age","mass","height","cycle","injury"].map(k=>[k,r.athlete[k]??""])), updated:r.updated,
+      title:r.title || "", enabled:clone(r.enabled), demo:!!r.demo, archived:!!r.archived, deletedAt:r.deletedAt || null, evaluationProfileId:r.evaluationProfileId || "" };
+  }
+  function athleteMetadata(a) { const {records, ...metadata}=a; return clone(metadata); }
+  function mergeCatalog(local, incoming) {
+    const variant=(catalog,id,source)=>({test:clone(catalog.tests.find(t=>t.id===id)),definitions:clone(catalog.definitions.filter(d=>d.testId===id)).sort((a,b)=>a.id.localeCompare(b.id)),protocol:catalog.protocol[id]||"",source});
+    const same=(a,b)=>E.canonical({...a,source:""})===E.canonical({...b,source:""});
+    for(const t of incoming.tests){
+      if(!local.tests.some(x=>x.id===t.id)){local.tests.push(clone(t));local.definitions.push(...clone(incoming.definitions.filter(d=>d.testId===t.id)));local.protocol[t.id]=incoming.protocol[t.id]||"";continue;}
+      const candidate=variant(incoming,t.id,"导入项目库"),current=variant(local,t.id,"本机项目库");
+      if(!same(current,candidate)){
+        let conflict=local.conflicts.find(c=>c.testId===t.id&&!c.resolved);
+        if(!conflict){conflict={id:t.id,testId:t.id,name:t.name,resolved:false,variants:[current]};local.conflicts.push(conflict);}
+        if(!conflict.variants.some(v=>same(v,candidate)))conflict.variants.push(candidate);
+      }
+    }
+    for(const c of incoming.conflicts.filter(c=>!c.resolved)){
+      let target=local.conflicts.find(x=>x.testId===c.testId&&!x.resolved);
+      if(!target){target=clone(c);local.conflicts.push(target);}else for(const v of c.variants)if(!target.variants.some(x=>same(x,v)))target.variants.push(clone(v));
+    }
+    M.validateCatalog(local);
+  }
+  function configuration(lib) {
+    return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.8.0"};
+  }
+  function validateEntity(type, value) {
+    const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
+    if (type === "record") { M.validateRecord(value); if (!safe(value.evaluationProfileId)) throw Error("测试缺少评价方案关联"); }
+    else if (type === "profile") E.validateProfile(value);
+    else if (type === "athlete") {
+      if (!safe(value.id) || typeof value.name !== "string" || !value.profile || typeof value.profile !== "object" || Array.isArray(value.profile)) throw Error("运动员资料无效");
+    } else if (type === "group") { if (!safe(value.id) || typeof value.name !== "string" || !value.name.trim()) throw Error("队伍信息无效"); }
+    else if (type === "config") { M.validateCatalog(value.catalog); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
+    else throw Error("备份包含未知资料类型");
+    if (type !== "record" && type !== "config" && !safe(value.id)) throw Error("资料 ID 无效");
+  }
+  class Repository {
+    constructor(db) { this.db=db; this.generation=""; this.queue=Promise.resolve(); this.metadataHashes=new Map(); }
+    static async open(pathname=root.location.pathname) {
+      const r=indexedDB.open("motionbench-v3:"+pathname,1);
+      r.onupgradeneeded=()=>{
+        r.result.createObjectStore("meta",{keyPath:"id"});
+        for(const name of tables) r.result.createObjectStore(name,{keyPath:["generation","id"]});
+      };
+      const db=await new Promise((resolve,reject)=>{
+        r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
+        r.onblocked=()=>reject(Error("数据库被其他页面占用，请关闭其他 MotionBench 页面后重试"));
+      });
+      const repo=new Repository(db); repo.generation=(await repo.meta("active"))?.value || "";
+      db.onversionchange=()=>db.close(); return repo;
+    }
+    async meta(id) { return request(this.db.transaction("meta").objectStore("meta").get(id)); }
+    async get(table,id,generation=this.generation) { return (await request(this.db.transaction(table).objectStore(table).get([generation,id])))?.value; }
+    async values(table,generation=this.generation) { return (await request(this.db.transaction(table).objectStore(table).getAll(keyRange(generation)))).map(row=>row.value); }
+    async directory() {
+      const [config,athletes,index,groups,profiles]=await Promise.all([this.get("config","library"),this.values("athletes"),this.values("recordIndex"),this.values("groups"),this.values("profiles")]);
+      if(!config) throw Error("资料库配置缺失");
+      const owners=new Map(athletes.map(a=>[a.id,{...a,records:[]} ]));
+      for(const r of index) owners.get(r.athleteId)?.records.push(r);
+      const lib={...config,athletes:[...owners.values()],groups,evaluationProfiles:profiles};
+      this.metadataHashes.clear();
+      for(const [table,items] of [["athletes",athletes],["groups",groups],["profiles",profiles],["config",[{...config,id:"library"}]]])
+        for(const item of items) this.metadataHashes.set(table+":"+item.id,JSON.stringify(item));
+      return lib;
+    }
+    loadRecord(id) { return this.get("records",id); }
+    enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
+    flush() { return this.queue; }
+    save(lib,records=[],removals={}) {
+      const generation=this.generation;
+      const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles],["config",[{...configuration(lib),id:"library"}]]].map(([table,items])=>[table,clone(items)]);
+      const snapshots=records.map(r=>{validateEntity("record",r);return clone(r);}),deletions=clone(removals);
+      // Capture caller values now, but compare metadata only after preceding writes commit.
+      return this.enqueue(async()=>{
+        if((await this.meta("active"))?.value!==generation) throw Error("资料库已在另一个页面切换，请先备份未保存内容再重新打开");
+        const writes=[],nextHashes=new Map(this.metadataHashes);
+        for(const [table,items] of metadata){
+          const known=new Set();
+          for(const item of items){const key=table+":"+item.id,encoded=JSON.stringify(item);known.add(key);if(nextHashes.get(key)!==encoded){writes.push([table,item.id,item]);nextHashes.set(key,encoded);}}
+          for(const key of [...nextHashes.keys()])if(key.startsWith(table+":")&&!known.has(key)){(deletions[table] ||= []).push(key.slice(table.length+1));nextHashes.delete(key);}
+        }
+        for(const r of snapshots)writes.push(["records",r.recordId,r],["recordIndex",r.recordId,summary(r)]);
+        for(const id of deletions.records||[])(deletions.recordIndex ||= []).push(id);
+        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions)))];
+        if(!names.length)return;
+        const tx=this.db.transaction(names,"readwrite"),done=completed(tx);
+        for(const [table,id,value] of writes)tx.objectStore(table).put({generation,id,value});
+        for(const [table,ids] of Object.entries(deletions))for(const id of ids)tx.objectStore(table).delete([generation,id]);
+        await done;this.metadataHashes=nextHashes;
+      });
+    }
+    async *batches(table,generation=this.generation,size=40) {
+      let last=null;
+      while(true){
+        const range=last===null?keyRange(generation):IDBKeyRange.bound([generation,last],[generation,"\uffff"],true,false);
+        const rows=await request(this.db.transaction(table).objectStore(table).getAll(range,size));
+        if(!rows.length)return;
+        yield rows.map(row=>row.value);last=rows.at(-1).id;
+      }
+    }
+    async *rows(generation=this.generation) {
+      yield {type:"header",format:"motionbench-backup",schema:3,created:new Date().toISOString()};
+      const counts={athlete:0,record:0,group:0,profile:0,config:0};
+      for(const [table,type] of [["config","config"],["groups","group"],["profiles","profile"],["athletes","athlete"],["records","record"]]) {
+        for await(const batch of this.batches(table,generation)) for(const value of batch){counts[type]++;yield {type,value};}
+      }
+      yield {type:"end",counts};
+    }
+    backupBlob(onProgress=()=>{}) { return this.enqueue(() => this.createBackupBlob(onProgress)); }
+    async createBackupBlob(onProgress) {
+      const chunks=[];let records=0;
+      for await(const row of this.rows()) {chunks.push(new Blob([JSON.stringify(row)+"\n"],{type:"application/x-ndjson"}));if(row.type==="record"&&++records%100===0)onProgress(records);}
+      return new Blob(chunks,{type:"application/x-ndjson"});
+    }
+    exportLibrary() { return this.enqueue(() => this.createLibrary()); }
+    async createLibrary() {
+      const lib=await this.directory(), owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
+      for await(const batch of this.batches("records"))for(const r of batch)owners.get(r.athleteId).records.push(r);
+      return lib;
+    }
+    async importLibrary(lib,options={}) {return this.importRows(libraryRows(lib),options);}
+    importRows(iterable,options={}) { return this.enqueue(() => this.stageImport(iterable,options)); }
+    async stageImport(iterable,{merge=false,onProgress=()=>{}}={}) {
+      const generation="generation_"+uid(),oldGeneration=this.generation,obsoleteGeneration=(await this.meta("previous"))?.value;
+      const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
+      const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
+      let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
+      const counts={athlete:0,record:0,group:0,profile:0,config:0};
+      const flush=async()=>{
+        if(!pending.length)return;const rows=pending;pending=[];
+        const tx=this.db.transaction(tables,"readwrite"),done=completed(tx);
+        for(const row of rows){const table=mapTable[row.type],id=row.type==="record"?row.value.recordId:row.type==="config"?"library":row.value.id;
+          tx.objectStore(table).put({generation,id,value:row.value});
+          if(row.type==="record")tx.objectStore("recordIndex").put({generation,id,value:summary(row.value)});
+        }await done;
+      };
+      try{
+        if(merge&&oldGeneration){
+          for await(const row of this.rows(oldGeneration))if(mapTable[row.type]){
+            pending.push(row);
+            if(row.type==="athlete")owners.set(row.value.id,row.value);
+            if(row.type==="profile")profiles.set(row.value.id,row.value);
+            if(row.type==="group")groups.set(row.value.id,row.value);
+            if(row.type==="config")config=row.value;
+            if(pending.length>=40)await flush();
+          }await flush();seeded=true;
+        }
+        for await(const raw of iterable){
+          if(ended)throw Error("备份结束标记后仍有内容");
+          if(!header){if(raw.type!=="header"||raw.format!=="motionbench-backup"||raw.schema!==3)throw Error("不是 MotionBench 3 版备份");header=true;continue;}
+          if(raw.type==="end"){
+            if(E.canonical(raw.counts)!==E.canonical(counts))throw Error("备份条数校验失败");ended=true;continue;
+          }
+          if(!mapTable[raw.type])throw Error("备份包含未知类型");
+          const order=["config","group","profile","athlete","record"].indexOf(raw.type);
+          if(order<lastType)throw Error("备份资料顺序无效");lastType=order;
+          const row={type:raw.type,value:clone(raw.value)},v=row.value;validateEntity(row.type,v);
+          const incomingId=row.type==="record"?v.recordId:row.type==="config"?"library":v.id;
+          if(seen.get(row.type).has(incomingId))throw Error("备份包含重复 ID："+incomingId);
+          seen.get(row.type).add(incomingId);counts[row.type]++;
+          if(counts.athlete>2000||counts.record>10000)throw Error("备份超过 2000 名运动员或 10000 条记录");
+          if(row.type==="config") {
+            v.defaultEvaluationProfileId=profileMap.get(v.defaultEvaluationProfileId)||v.defaultEvaluationProfileId;
+            if(seeded){mergeCatalog(config.catalog,v.catalog);continue;}
+            config=v;
+          }
+          if(row.type==="profile"){
+            const old=profiles.get(v.id);if(old&&E.signature(old.criteria)!==E.signature(v.criteria)){const next="evaluation_"+uid();profileMap.set(v.id,next);v.id=next;v.name+="（导入）";}
+            else if(old)continue;
+            profiles.set(v.id,v);
+          }
+          if(row.type==="group"){
+            if(groups.has(v.id)&&groups.get(v.id).name!==v.name){const next="group_"+uid();groupMap.set(v.id,next);v.id=next;}
+            groups.set(v.id,v);
+          }
+          if(row.type==="athlete"){
+            v.groupId=groupMap.get(v.groupId)||v.groupId||"";
+            if(owners.has(v.id)&&seeded)continue;
+            delete v.records;owners.set(v.id,v);
+          }
+          if(row.type==="record"){
+            v.evaluationProfileId=profileMap.get(v.evaluationProfileId)||v.evaluationProfileId;
+            references.push([v.athleteId,v.evaluationProfileId]);
+            if(seeded){const old=await this.get("records",v.recordId,generation);if(old){if(old.athleteId!==v.athleteId)throw Error("测试 ID 已属于另一运动员");if(E.canonical(old)===E.canonical(v))continue;v.recordId=uid();recordMap[incomingId]=v.recordId;v.title=(v.title||v.athlete.date||"测试")+"（导入副本）";}}
+            imported++;if(imported%100===0)onProgress(imported);
+          }
+          pending.push(row);if(pending.length>=40)await flush();
+        }
+        if(!header||!ended||counts.config!==1)throw Error("备份不完整，原资料库保持不变");
+        for(const [athleteId,profileId] of references)if(!owners.has(athleteId)||!profiles.has(profileId))throw Error("测试的运动员或评价方案不存在");
+        for(const a of owners.values())if(a.groupId&&!groups.has(a.groupId))throw Error("运动员所属队伍不存在");
+        if(!seeded)config.defaultEvaluationProfileId=profileMap.get(config.defaultEvaluationProfileId)||config.defaultEvaluationProfileId;
+        if(!profiles.has(config.defaultEvaluationProfileId))throw Error("默认评价方案不存在");
+        config.activeAthleteId=owners.has(config.activeAthleteId)?config.activeAthleteId:"";
+        if(config.activeRecordId){await flush();const active=await this.get("records",config.activeRecordId,generation);if(!active||active.athleteId!==config.activeAthleteId)config.activeRecordId="";}
+        pending.push({type:"config",value:config});await flush();
+        const actual=[await this.values("athletes",generation),await this.values("recordIndex",generation)];
+        if(actual[0].length>2000||actual[1].length>10000)throw Error("合并后资料超过容量边界");
+        const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
+        tx.objectStore("meta").put({id:"active",value:generation});
+        tx.objectStore("meta").put({id:"previous",value:oldGeneration});await done;
+        this.generation=generation;this.metadataHashes.clear();
+        if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
+        return{added:imported,skipped:counts.record-imported,recordMap};
+      }catch(error){await this.discardGeneration(generation);throw error;}
+    }
+    async discardGeneration(generation) {
+      if(!generation||generation===this.generation)return;
+      const tx=this.db.transaction(tables,"readwrite"),done=completed(tx);
+      for(const table of tables)tx.objectStore(table).delete(keyRange(generation));await done;
+    }
+    async restorePrevious() {
+      await this.flush();const previous=(await this.meta("previous"))?.value;
+      if(!previous||!await this.get("config","library",previous))throw Error("没有可恢复的迁移前资料库");
+      const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
+      tx.objectStore("meta").put({id:"active",value:previous});tx.objectStore("meta").put({id:"previous",value:this.generation});await done;this.generation=previous;this.metadataHashes.clear();
+    }
+    close(){this.db.close();}
+  }
+  async function *libraryRows(lib){
+    yield{type:"header",format:"motionbench-backup",schema:3};
+    const counts={athlete:0,record:0,group:0,profile:0,config:1};
+    yield{type:"config",value:configuration(lib)};
+    for(const value of lib.groups||[]){counts.group++;yield{type:"group",value};}
+    for(const value of lib.evaluationProfiles){counts.profile++;yield{type:"profile",value};}
+    for(const a of lib.athletes){counts.athlete++;yield{type:"athlete",value:athleteMetadata(a)};}
+    for(const a of lib.athletes)for(const value of a.records){counts.record++;yield{type:"record",value};}
+    yield{type:"end",counts};
+  }
+  async function *fileRows(file){
+    const reader=file.stream().getReader(),decoder=new TextDecoder("utf-8",{fatal:true});let buffer="",line=0;
+    try{while(true){const{done,value}=await reader.read();buffer+=decoder.decode(value,{stream:!done});let p;
+      while((p=buffer.indexOf("\n"))>=0){const text=buffer.slice(0,p).trim();buffer=buffer.slice(p+1);line++;if(text){try{yield JSON.parse(text);}catch{throw Error("备份第 "+line+" 行不是有效 JSON");}}}
+      if(buffer.length>16*1024*1024)throw Error("单条备份记录过大");if(done)break;
+    }if(buffer.trim()){line++;yield JSON.parse(buffer);}}finally{reader.releaseLock();}
+  }
+  root.RingsideStore={Repository,summary,athleteMetadata,configuration,validateEntity,libraryRows,fileRows};
+})(typeof window!=="undefined"?window:globalThis);
 
 </script>
 <script>
@@ -13361,6 +13819,303 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
 
 </script>
 <script>
+(function (root) {
+  "use strict";
+  const M=root.RingsideModel, Eval=root.RingsideEvaluation, T=root.RingsideTests;
+  const $=id=>document.getElementById(id), clone=v=>JSON.parse(JSON.stringify(v));
+  const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const uid=()=>crypto.randomUUID(), now=()=>new Date().toISOString(), lib=()=>App.getLibrary();
+  const sections=[["athletes","运动员"],["records","测试记录"],["catalog","测试项目库"],["metrics","指标库"],["profiles","评价方案"],["backup","备份与恢复"]];
+  let current="athletes", selected=new Set(), filters={}, editor=null, formAction=null, pendingReview=null, busy=false, filterTimer;
+  const filter=()=>filters[current] ||= {q:"",group:"",sport:"",status:"active",from:"",to:"",test:"",page:1,sort:"recent"};
+  function button(label,action,id="",extra="") { return `<button type="button" class="btn small" data-manager-action="${action}" data-id="${esc(id)}" ${extra}>${label}</button>`; }
+  const option=(value,label,selected)=>`<option value="${esc(value)}" ${value===selected?"selected":""}>${esc(label)}</option>`;
+  const field=(label,html)=>`<label class="field"><span>${label}</span>${html}</label>`;
+  function groupOptions(selected="") {return option("","未分组",selected)+lib().groups.map(g=>option(g.id,g.name,selected)).join("");}
+  function profileOptions(selected="") {return lib().evaluationProfiles.filter(p=>!p.disabled||p.id===selected).map(p=>option(p.id,p.name,selected)).join("");}
+  const profileName=id=>lib().evaluationProfiles.find(p=>p.id===id)?.name||"未关联";
+  function navigation(){return sections.map(([id,label])=>`<button data-manager-action="section" data-id="${id}" class="${current===id?"active":""}" ${current===id?'aria-current="page"':""}>${label}</button>`).join("");}
+  function open(tab="athletes"){current=sections.some(s=>s[0]===tab)?tab:"athletes";selected.clear();render();requestAnimationFrame(()=>window.scrollTo({top:filter().scroll||0,behavior:"instant"}));}
+  function visibleStatus(item,owner) {return item.deletedAt||owner?.deletedAt?"trash":item.archived||owner?.archived?"archived":"active";}
+  function allRows() {
+    const f=filter();let rows;
+    if(current==="athletes") rows=lib().athletes.map(a=>({id:a.id,athlete:a,item:a}));
+    else rows=lib().athletes.flatMap(a=>a.records.map(r=>({id:r.recordId,athlete:a,item:r})));
+    const q=f.q.trim().toLocaleLowerCase();
+    rows=rows.filter(({athlete:a,item:r})=>(f.status==="all"?visibleStatus(r,a)!=="trash":visibleStatus(r,a)===f.status)&&(!f.group||a.groupId===f.group)&&(!f.sport||a.profile.sport===f.sport)&&(!q||[a.name,a.profile.sport,r.title,r.athlete?.date,a.id].join(" ").toLocaleLowerCase().includes(q))&&(!f.from||(r.athlete?.date||"")>=f.from)&&(!f.to||(r.athlete?.date||"")<=f.to)&&(!f.test||r.enabled?.[f.test]));
+    rows.sort((a,b)=>f.sort==="name"?a.athlete.name.localeCompare(b.athlete.name,"zh-CN")||a.id.localeCompare(b.id):(b.item.athlete?.date||b.item.updated||"").localeCompare(a.item.athlete?.date||a.item.updated||"")||a.id.localeCompare(b.id));
+    return rows;
+  }
+  function toolbar() {
+    const f=filter(),sports=[...new Set(lib().athletes.map(a=>a.profile.sport).filter(Boolean))].sort();
+    return `<div class="management-filters">${field("搜索",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="姓名、编号${current==="records"?"或测试名称":"或专项"}">`)}${field("队伍",`<select data-manager-filter="group">${option("","全部队伍",f.group)}${lib().groups.map(g=>option(g.id,g.name,f.group)).join("")}</select>`)}${field("专项",`<select data-manager-filter="sport">${option("","全部专项",f.sport)}${sports.map(s=>option(s,s,f.sport)).join("")}</select>`)}${field("状态",`<select data-manager-filter="status">${[["active","在用"],["archived","已归档"],["trash","回收站"],["all","全部未删除"]].map(([v,n])=>option(v,n,f.status)).join("")}</select>`)}${field("排序",`<select data-manager-filter="sort">${option("recent","最近优先",f.sort)}${option("name","姓名顺序",f.sort)}</select>`)}${current==="records"?field("起始日期",`<input type="date" data-manager-filter="from" value="${esc(f.from)}">`)+field("结束日期",`<input type="date" data-manager-filter="to" value="${esc(f.to)}">`)+field("测试项目",`<select data-manager-filter="test">${option("","全部项目",f.test)}${lib().catalog.tests.map(t=>option(t.id,t.name,f.test)).join("")}</select>`):""}</div>`;
+  }
+  function lists() {
+    const rows=allRows(),f=filter(),pages=Math.max(1,Math.ceil(rows.length/30));f.page=Math.min(pages,Math.max(1,f.page));
+    const page=rows.slice((f.page-1)*30,f.page*30),athletes=current==="athletes";
+    const actions=f.status==="trash"?button("恢复","restore")+button("永久删除","purge"):button("归档","archive")+button("恢复在用","unarchive")+button("移入回收站","trash")+(athletes?button("调整队伍","batch-group"):button("更换评价方案","batch-profile"));
+    return toolbar()+`<div class="management-batch"><label><input type="checkbox" id="selectManagementPage" ${page.length&&page.every(r=>selected.has(r.id))?"checked":""}>选择本页</label><span>已选 ${selected.size} 项</span><div class="row">${actions}</div></div><div class="management-table-wrap"><table class="management-table"><thead><tr><th>选择</th><th>运动员</th><th>队伍 / 专项</th><th>${athletes?"历次测试":"日期 / 项目"}</th><th>${athletes?"状态":"评价方案"}</th><th>操作</th></tr></thead><tbody>${page.map(({id,athlete:a,item:r})=>{
+      const state=visibleStatus(r,a),count=a.records.filter(x=>!x.deletedAt).length;
+      const rowActions=state==="trash"?button("恢复","restore",id)+button("永久删除","purge",id):athletes?button("资料","edit-athlete",id)+button("新建测试","new-record",id)+button("测试记录","athlete-records",id):button("查看报告","report",id)+button("录入 / 编辑","entry",id)+button("名称 / 日期","edit-record",id);
+      return `<tr data-managed-id="${esc(id)}"><td data-label="选择"><input type="checkbox" data-manager-select="${esc(id)}" aria-label="选择 ${esc(a.name)} ${esc(r.athlete?.date||"")}" ${selected.has(id)?"checked":""}></td><td data-label="运动员"><b>${esc(a.name)}</b><small>${esc(a.id.slice(-8))}</small></td><td data-label="队伍 / 专项">${esc(lib().groups.find(g=>g.id===a.groupId)?.name||"未分组")}<small>${esc(a.profile.sport||"未填写专项")}</small></td><td data-label="${athletes?"历次测试":"日期 / 项目"}">${athletes?count+" 条":esc(r.athlete.date||"未填日期")+`<small>${esc(r.title||Object.entries(r.enabled).filter(([,v])=>v).map(([k])=>lib().catalog.tests.find(t=>t.id===k)?.name||k).join("、"))}</small>`}</td><td data-label="${athletes?"状态":"评价方案"}">${athletes?({active:"在用",archived:"已归档",trash:"回收站"}[state]):esc(profileName(r.evaluationProfileId))}</td><td data-label="操作"><div class="row">${rowActions}</div></td></tr>`;
+    }).join("")||'<tr><td colspan="6" class="empty">没有符合条件的资料。</td></tr>'}</tbody></table></div><div class="management-pagination"><span>${rows.length} 项 · 每页 30 项</span><div class="row">${button("上一页","page",String(f.page-1),f.page<=1?"disabled":"")}<span>${f.page} / ${pages}</span>${button("下一页","page",String(f.page+1),f.page>=pages?"disabled":"")}</div></div>`;
+  }
+  function catalog() {
+    const q=filter().q.trim().toLocaleLowerCase();
+    const tests=lib().catalog.tests.filter(t=>!q||t.name.toLocaleLowerCase().includes(q));
+    const conflicts=lib().catalog.conflicts.map((c,i)=>c.resolved?"":`<section class="notice"><h3>${esc(c.name)} · 待确认目录版本</h3><p>已有记录保留测量定义。请选择供后续新测试使用的版本。</p>${c.variants.map((v,j)=>`<div class="reference-row"><span>${esc(v.source||"导入版本")} · ${esc(v.test.name)}<small>${esc(v.protocol)} · ${esc(v.definitions.map(d=>d.name+" ("+d.unit+")").join("、"))}</small></span>${button("采用此版本","catalog-resolve",i+":"+j)}</div>`).join("")}</section>`).join("");
+    return conflicts+field("搜索项目",`<input type="search" data-manager-filter="q" value="${esc(filter().q)}" placeholder="测试项目名称">`)+tests.map(t=>{
+      const defs=lib().catalog.definitions.filter(d=>d.testId===t.id),fixed=["fms","iso"].includes(t.id);
+      return `<article class="management-catalog-item"><div><h3>${esc(t.name)} ${t.disabled?'<span class="pill">已停用</span>':""}</h3><p class="note">${t.category==="screen"?"筛查":"运动表现"} · ${fixed?"专用测量表 · ":""}${defs.length} 个扩展或数值指标</p><p>${esc(lib().catalog.protocol[t.id]||"")}</p></div><div class="row">${button("编辑项目","catalog-edit",t.id)}${button("所属指标","project-metrics",t.id)}${button(t.disabled?"启用":"停用","catalog-toggle",t.id)}</div></article>`;
+    }).join("");
+  }
+  function metrics() {
+    const f=filter(),q=f.q.trim().toLocaleLowerCase();
+    const items=lib().catalog.definitions.filter(d=>(!f.test||d.testId===f.test)&&(!q||[d.name,d.unit,d.ability].join(" ").toLocaleLowerCase().includes(q)));
+    const defaults=M.defaults();
+    const fixed=[...defaults.data.fms.map(r=>({id:"fms",name:r.name,unit:"分",mode:r.bilateral?"双侧录入 · 固定评分":"录入 · 固定评分",ability:"动作筛查"})),...defaults.data.iso.map(r=>({id:"iso",name:M.REG[r.region]+" · "+r.direction,unit:r.unit,mode:r.mode==="center"?"单值测量":"双侧测量",ability:"等长力量"}))].filter(d=>(!f.test||d.id===f.test)&&(!q||[d.name,d.unit,d.ability].join(" ").toLocaleLowerCase().includes(q)));
+    const fixedRows=fixed.map(d=>`<tr><td data-label="指标">${esc(d.name)}</td><td data-label="所属项目">${esc(lib().catalog.tests.find(t=>t.id===d.id)?.name)}</td><td data-label="单位">${esc(d.unit)}</td><td data-label="数据方式">${esc(d.mode)}</td><td data-label="能力分类">${esc(d.ability)}</td><td data-label="操作"><span class="note">专用测量表</span></td></tr>`).join("");
+    return `<div class="management-filters">${field("搜索指标",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="名称、单位或能力">`)}${field("所属项目",`<select data-manager-filter="test">${option("","全部项目",f.test)}${lib().catalog.tests.map(t=>option(t.id,t.name,f.test)).join("")}</select>`)}</div><div class="management-table-wrap"><table class="management-table"><thead><tr><th>指标</th><th>所属项目</th><th>单位</th><th>数据方式</th><th>能力分类</th><th>操作</th></tr></thead><tbody>${items.map(d=>`<tr><td data-label="指标">${esc(d.name)}</td><td data-label="所属项目">${esc(lib().catalog.tests.find(t=>t.id===d.testId)?.name)}</td><td data-label="单位">${esc(d.unit)}</td><td data-label="数据方式">${T.isManualMetric(d)?d.entryScope==="attempt"?"逐试次录入":"单次记录录入":"固定计算"}</td><td data-label="能力分类">${esc(d.ability)}</td><td data-label="操作">${button("编辑","metric-edit",d.id)}</td></tr>`).join("")+fixedRows||'<tr><td colspan="6" class="empty">没有符合条件的指标。</td></tr>'}</tbody></table></div>`;
+  }
+  function profiles() {
+    if(editor)return profileEditor();
+    return lib().evaluationProfiles.map(p=>{
+      const count=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===p.id).length,0);
+      return `<article class="management-catalog-item"><div><h3>${esc(p.name)} ${p.id===lib().defaultEvaluationProfileId?'<span class="pill">默认</span>':""}${p.disabled?'<span class="pill">已停用</span>':""}</h3><p class="note">版本 ${p.revision} · 关联 ${count} 条记录</p></div><div class="row">${button("编辑","profile-edit",p.id)}${button("复制","profile-copy",p.id)}${button("设为默认","profile-default",p.id,p.disabled?"disabled":"")}${button("关联记录","profile-records",p.id)}${button(p.disabled?"启用":"停用","profile-toggle",p.id,p.id===lib().defaultEvaluationProfileId?"disabled":"")}${p.previous?button("恢复上一版","profile-revert",p.id):""}</div></article>`;
+    }).join("");
+  }
+  const ruleLabels={asymAmber:"不对称关注阈值 %",asymRed:"不对称重点关注阈值 %",absoluteAmber:"绝对力重点关注比例 %",scoreAmber:"目标达成关注下界 %",scoreGreen:"目标达成达标下界 %"};
+  const input=(path,value,type="number")=>`<input data-profile-path="${esc(path)}" type="${type}" ${type==="number"?'step="any"':""} value="${esc(value)}">`;
+  const check=(path,value,label)=>`<label class="check-line"><input type="checkbox" data-profile-path="${esc(path)}" ${value?"checked":""}>${label}</label>`;
+  const select=(path,value,options)=>`<select data-profile-path="${esc(path)}">${options.map(([v,n])=>option(v,n,value)).join("")}</select>`;
+  function ranges(path,value,label="评价区间：范围 | 名称 | red / amber / green") {return field(label,`<textarea rows="4" data-profile-ranges="${esc(path)}">${esc(editor.rangeDrafts[path]??Def.rangeText(value))}</textarea>`);}
+  function profileEditor() {
+    const r=editor.record,tab=editor.tab, tabs=[["definitions","指标标准"],["rules","筛查阈值"],["axes","能力汇总"],["iso","等长目标"],["balance","关节平衡"],["lvp","LVP 参数"]];
+    let h=`<div class="profile-editor-header">${field("方案名称",`<input id="profileName" value="${esc(editor.profile.name)}" maxlength="120" ${editor.readOnly?"readonly":""}>`)}<div class="row">${button("返回方案列表","profile-close")}${editor.readOnly?button("复制为新方案","profile-copy",editor.profile.id):button("补充新增指标","profile-extend")+button("查看变更并保存","profile-review","",'class="btn primary"')}</div></div><div class="profile-tabs">${tabs.map(([id,label])=>button(label,"profile-tab",id,tab===id?'aria-current="page"':"")).join("")}</div><div id="profileEditorFields">`;
+    if(tab==="definitions"){
+      const i=Math.max(0,r.definitions.findIndex(d=>d.id===editor.metricId)),d=r.definitions[i];
+      h+=field("指标",`<select id="profileMetricSelect">${r.definitions.map(d=>option(d.id,d.name+" · "+d.unit,editor.metricId)).join("")}</select>`);
+      if(d)h+=`<p class="note">${esc(d.context?.protocol||"未记录协议")} · ${esc(d.unit)} · ${esc(d.ability)}</p><div class="form-grid">${field("评价目标",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用评价标准")}${ranges("definitions."+i+".ranges",d.ranges)}<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`;
+    } else if(tab==="rules")h+='<div class="form-grid">'+Object.entries(ruleLabels).map(([id,label])=>field(label,input("rules."+id,r.rules[id]))).join("")+'</div><p class="note">FMS 保留固定 0–3 分及疼痛判定。</p>';
+    else if(tab==="iso")h+=r.data.iso.map((row,i)=>`<div class="profile-rule-row"><b>${esc(M.REG[row.region])} · ${esc(row.direction)}</b>${field("目标 · "+esc(row.unit),input("data.iso."+i+".target",row.target))}<span class="note">${esc(row.protocol||"未记录协议")}</span></div>`).join("");
+    else if(tab==="balance")h+=r.balancePairs.map((p,i)=>`<div class="profile-rule-block"><h3>${esc(p.label)}</h3><p class="note">${esc(r.data.iso.find(x=>x.id===p.numeratorId)?.direction||"未匹配方向")} / ${esc(r.data.iso.find(x=>x.id===p.denominatorId)?.direction||"未匹配方向")}</p>${check("balancePairs."+i+".referenceEnabled",p.referenceEnabled,"启用评价区间")}${field("依据",input("balancePairs."+i+".source",p.source,"text"))}${ranges("balancePairs."+i+".ranges",p.ranges)}</div>`).join("");
+    else if(tab==="axes")h+=[...new Set(r.definitions.filter(d=>d.category==="performance"&&d.ability).map(d=>d.ability))].map(ability=>{
+      const id=T.axisKey(ability),defs=r.definitions.filter(d=>d.ability===ability),cfg=T.axisConfig(r,ability)||{method:"primary",primary:defs[0].id};r.axes[id]=cfg;
+      return `<div class="profile-rule-row"><b>${esc(ability)}</b>${field("汇总方式",`<select data-profile-axis="${esc(id)}" data-axis-field="method">${[["primary","代表指标"],["mean","平均达成"],["min","最低达成"]].map(([v,n])=>option(v,n,cfg.method)).join("")}</select>`)}${field("代表指标",`<select data-profile-axis="${esc(id)}" data-axis-field="primary">${defs.map(d=>option(d.id,d.name,cfg.primary)).join("")}</select>`)}</div>`;
+    }).join("");
+    else if(tab==="lvp")h+=Object.entries(r.lvp).map(([id,p])=>`<div class="profile-rule-block"><h3>${esc({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠 L",landmineR:"地雷杠 R"}[id])}</h3><div class="form-grid">${field("适用速度口径",select("lvp."+id+".metric",p.metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))}${field("MVT m/s",input("lvp."+id+".mvt",p.mvt))}${field("依据 / 设备",input("lvp."+id+".source",p.source||"","text"))}</div>${field("素质区间：下限..上限 | 名称",`<textarea rows="4" data-profile-zones="${id}">${esc(editor.zoneDrafts[id]??p.zones.map(z=>z.min+".."+z.max+" | "+z.label).join("\n"))}</textarea>`)}</div>`).join("");
+    h+='</div><p id="profileEditorError" class="field-error" role="alert"></p>';
+    return h;
+  }
+  function backup() {return `<div class="backup-grid"><article class="form-card"><h2>完整备份</h2><p>包含运动员、历次测试、队伍、回收站、项目库和评价方案。</p><button class="btn primary" onclick="App.downloadLibrary()">导出完整备份</button></article><article class="form-card"><h2>导入与恢复</h2>${field("导入方式",'<select id="backupImportMode"><option value="merge">合并到当前资料库</option><option value="replace">恢复为完整资料库</option></select>')}<button class="btn primary" onclick="document.getElementById('importFile').click()">选择备份文件</button><p class="note">支持完整 JSONL 备份、旧 JSON 和已保存的 HTML。</p>${button("恢复上次资料库","restore-library")}</article><article class="form-card"><h2>旧版兼容与迁移前资料</h2><p>旧版兼容导出包含未删除的测试记录及当前生效评价标准，不包含队伍和无测试档案。</p><div class="row"><button class="btn" onclick="App.downloadLegacyLibrary()">导出旧版兼容 JSON</button><button class="btn" onclick="App.downloadPreMigration()">下载迁移前资料</button></div></article></div>`;}
+  function render() {
+    if(!lib())return;
+    const focused=document.activeElement, key=focused?.dataset.managerFilter, caret=focused?.selectionStart;
+    const title=sections.find(([id])=>id===current)[1];
+    const action=current==="athletes"?button("＋ 新建运动员","new-athlete")+button("管理队伍","groups"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="catalog"?button("＋ 新建项目","new-test"):current==="metrics"?button("＋ 新增指标","new-metric"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
+    $("managementContent").innerHTML=`<div class="management-heading"><div><p class="eyebrow">管理中心</p><h1>${title}</h1></div><div class="row">${action}</div></div>`+(current==="athletes"||current==="records"?lists():current==="catalog"?catalog():current==="metrics"?metrics():current==="profiles"?profiles():backup());
+    if(editor?.readOnly&&current==="profiles") $("profileEditorFields")?.querySelectorAll("input,select,textarea").forEach(el=>el.disabled=true);
+    if(key){const el=$("managementContent").querySelector(`[data-manager-filter="${key}"]`);el?.focus({preventScroll:true});if(caret!==null&&el?.setSelectionRange)try{el.setSelectionRange(caret,caret);}catch{}}
+  }
+  function showForm(title,html,action) {
+    formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
+  }
+  function editAthlete(id="") {
+    const a=lib().athletes.find(a=>a.id===id),p=a?.profile||{};
+    showForm(a?"编辑运动员资料":"新建运动员",`<div class="form-grid">${field("姓名 / 编号",`<input name="name" required maxlength="100" value="${esc(p.name||a?.name||"")}">`)}${field("队伍 / 训练组",`<select name="groupId">${groupOptions(a?.groupId)}</select>`)}${field("专项",`<input name="sport" maxlength="100" value="${esc(p.sport)}" list="sportOptions">`)}${field("性别",`<select name="sex">${["未注明","男","女"].map(v=>option(v,v,p.sex||"未注明")).join("")}</select>`)}${field("惯用手",`<select name="dominantHand">${["未注明","右手","左手","双手"].map(v=>option(v,v,p.dominantHand||"未注明")).join("")}</select>`)}${field("级别",`<input name="sportLevel" maxlength="100" value="${esc(p.sportLevel)}">`)}</div>`,async form=>{
+      const data=Object.fromEntries(new FormData(form));if(!data.name.trim())throw Error("请填写姓名或编号");
+      const profile={...p,name:data.name.trim(),sport:data.sport.trim(),sex:data.sex,dominantHand:data.dominantHand,sportLevel:data.sportLevel.trim()};
+      if(a){a.profile=profile;a.name=profile.name;a.groupId=data.groupId;a.updated=now();}
+      else lib().athletes.push({id:uid(),name:profile.name,profile,groupId:data.groupId,archived:false,deletedAt:null,sample:false,updated:now(),records:[]});
+      await App.saveLibraryChanges();
+    });
+  }
+  function groups() {
+    showForm("队伍与训练组",`<div class="group-list">${lib().groups.map(g=>`<div class="reference-row"><span>${esc(g.name)} · ${lib().athletes.filter(a=>a.groupId===g.id).length} 人</span><div class="row">${button("改名","group-edit",g.id)}${button("删除分组","group-delete",g.id)}</div></div>`).join("")}</div>${field("新队伍 / 训练组",'<input name="name" required maxlength="100" placeholder="填写分组名称">')}`,async form=>{
+      const name=new FormData(form).get("name").trim();if(!name)throw Error("请填写队伍名称");if(lib().groups.some(g=>g.name===name))throw Error("队伍名称已存在");
+      lib().groups.push({id:"group_"+uid(),name});await App.saveLibraryChanges();
+    });
+  }
+  async function cleanup(action,id) {
+    const ids=id?[id]:[...selected];if(!ids.length)throw Error("请先选择资料");
+    const athletes=current==="athletes",selectedAthletes=athletes?lib().athletes.filter(a=>ids.includes(a.id)):[];
+    const records=athletes?selectedAthletes.flatMap(a=>a.records):lib().athletes.flatMap(a=>a.records).filter(r=>ids.includes(r.recordId));
+    if(action==="purge"&&!confirm(`永久删除 ${athletes?selectedAthletes.length+" 名运动员及其 ":""}${records.length} 条测试记录？此操作无法从回收站恢复。`))return;
+    if(action==="trash"&&!confirm(`将 ${athletes?selectedAthletes.length+" 名运动员及其 ":""}${records.length} 条记录移入回收站？`))return;
+    const changes=[],removals={};
+    if(athletes){for(const a of selectedAthletes){if(action==="archive")a.archived=true;if(action==="unarchive")a.archived=false;if(action==="trash")a.deletedAt=now();if(action==="restore")a.deletedAt=null;}}
+    if(!athletes||["trash","restore","purge"].includes(action))for(const summary of records){
+      if(action==="purge"){(removals.records||=[]).push(summary.recordId);continue;}
+      const r=await App.getRepository().loadRecord(summary.recordId);
+      if(action==="archive")r.archived=true;if(action==="unarchive")r.archived=false;
+      if(action==="trash"&&!r.deletedAt){r.deletedAt=now();if(athletes)r.deletedWithAthlete=r.athleteId;}
+      if(action==="restore"&&(!athletes||r.deletedWithAthlete===r.athleteId)){r.deletedAt=null;delete r.deletedWithAthlete;}
+      changes.push(r);
+    }
+    if(action==="purge"&&athletes)lib().athletes=lib().athletes.filter(a=>!ids.includes(a.id));
+    if(action==="restore"&&!athletes)for(const r of changes){const a=lib().athletes.find(a=>a.id===r.athleteId);if(a?.deletedAt)throw Error("请先恢复该记录所属的运动员");}
+    await App.saveLibraryChanges(changes,removals);selected.clear();render();
+  }
+  function viewProfile(id,readOnly=false) {
+    const profile=lib().evaluationProfiles.find(p=>p.id===id);if(!profile)return;
+    editor={profile:clone(profile),record:Eval.template(profile),tab:"definitions",metricId:profile.criteria.definitions[0]?.id,rangeDrafts:{},zoneDrafts:{},readOnly};pendingReview=null;render();
+  }
+  function parseProfile() {
+    if (editor.invalid?.size) throw Error("请修正未完成的数值输入");
+    for(const [path,text] of Object.entries(editor.rangeDrafts)){
+      const old=getPath(editor.record,path),ranges=Def.parseRanges(text);
+      setPath(editor.record,path,ranges.map(r=>({...r,advantage:old.find(x=>x.label===r.label)?.advantage||false})));
+    }
+    for(const[id,text]of Object.entries(editor.zoneDrafts)) editor.record.lvp[id].zones=text.split(/\r?\n/).filter(s=>s.trim()).map(line=>{
+      const [range,label]=line.split("|").map(s=>s.trim()),m=range.match(/^(\d*\.?\d+)\s*\.\.\s*(\d*\.?\d+)$/);
+      if(!m||!label||Number(m[2])<=Number(m[1]))throw Error("LVP 区间请填写：下限..上限 | 名称");return {min:Number(m[1]),max:Number(m[2]),label};
+    });
+    const updated={...clone(editor.profile),criteria:Eval.fromTemplate(editor.record,editor.profile)};Eval.validateProfile(updated);return updated;
+  }
+  function changesBetween(old,next) {
+    const rows=[],add=(name,a,b)=>{if(Eval.canonical(a)!==Eval.canonical(b))rows.push([name,a,b]);};
+    const metric=d=>d?`${d.referenceEnabled?"启用":"未启用"} · 目标 ${d.target??"—"} ${d.unit} · ${d.direction==="higher"?"越高越好":"越低越好"}\n${Def.rangeText(d.ranges)}\n${d.source||""}`:"未包含";
+    for(const d of next.definitions)add(d.name,metric(old.definitions.find(x=>x.id===d.id)),metric(d));
+    for(const[k,label]of Object.entries(ruleLabels))add(label,old.rules[k],next.rules[k]);
+    for(const row of next.iso)add(M.REG[row.region]+" · "+row.direction,old.iso.find(x=>x.id===row.id)?.target??"—",row.target);
+    const balance=p=>p?`${p.referenceEnabled?"启用":"未启用"} · ${Def.rangeText(p.ranges)} · ${p.source||"未注明依据"}`:"未包含";
+    for(const p of next.balance)add("关节平衡 "+p.label,balance(old.balance.find(x=>x.id===p.id)),balance(p));
+    const lvp=p=>p?`${p.metric} · MVT ${p.mvt??"—"} m/s\n${(p.zones||[]).map(z=>z.min+"–"+z.max+" m/s："+z.label).join("\n")}\n${p.source||"未注明依据"}`:"未包含";
+    for(const[id,p]of Object.entries(next.lvp))add("LVP "+({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠左侧",landmineR:"地雷杠右侧"}[id]||id),lvp(old.lvp[id]),lvp(p));
+    const axis=(a,c)=>a?({primary:"代表指标",mean:"平均达成",min:"最低达成"}[a.method]||a.method)+" · "+(c.definitions.find(d=>d.id===a.primary)?.name||"未选代表指标"):"未设置";
+    for(const id of new Set([...Object.keys(old.axes),...Object.keys(next.axes)])){const ability=next.definitions.find(d=>T.axisKey(d.ability)===id)?.ability||"能力汇总";add(ability,axis(old.axes[id],old),axis(next.axes[id],next));}return rows;
+  }
+  function reviewProfile() {
+    const next=parseProfile(),original=lib().evaluationProfiles.find(p=>p.id===next.id),diff=changesBetween(original?.criteria||next.criteria,next.criteria);
+    const affected=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===next.id).length,0);
+    pendingReview=next;
+    showForm("保存评价方案",`<p><b>${esc(next.name)}</b> · ${affected} 条关联记录将使用此版本。</p>${diff.length?`<div class="management-table-wrap"><table class="profile-diff"><thead><tr><th>项目</th><th>原配置</th><th>新配置</th></tr></thead><tbody>${diff.map(([n,a,b])=>`<tr><td>${esc(n)}</td><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join("")}</tbody></table></div>`:'<p>评价数值未改变；将保存方案名称或新增方案。</p>'}`,async()=>{
+      const index=lib().evaluationProfiles.findIndex(p=>p.id===next.id),prior=lib().evaluationProfiles[index];
+      const saved={...next,revision:prior?prior.revision+1:1,updated:now()};
+      if(prior)saved.previous={name:prior.name,criteria:clone(prior.criteria),revision:prior.revision,updated:prior.updated};
+      if(index<0)lib().evaluationProfiles.push(saved);else lib().evaluationProfiles[index]=saved;
+      await App.saveLibraryChanges();editor=null;pendingReview=null;
+    });
+  }
+  function getPath(obj,path){return path.split(".").reduce((v,k)=>v?.[k],obj);}
+  function setPath(obj,path,value){const keys=path.split(".");if(keys.some(k=>["__proto__","constructor","prototype"].includes(k)))throw Error("无效字段");let current=obj;for(const k of keys.slice(0,-1))current=current[k];current[keys.at(-1)]=value;}
+  async function action(name,id) {
+    if(name==="section")return App.openManagement(id);
+    if(name==="page"){filter().page=Number(id);return render();}
+    if(["archive","unarchive","trash","restore","purge"].includes(name))return cleanup(name,id);
+    if(name==="new-athlete"||name==="edit-athlete")return editAthlete(id);
+    if(name==="new-record")return App.newTest(id);
+    if(name==="choose-new-record")return showForm("选择新测试的运动员",field("运动员",`<select name="athleteId" required>${lib().athletes.filter(a=>!a.deletedAt&&!a.archived).map(a=>option(a.id,a.name+" · "+(lib().groups.find(g=>g.id===a.groupId)?.name||"未分组"))).join("")}</select>`),async form=>{const id=new FormData(form).get("athleteId");if(!id)throw Error("请先新建运动员");setTimeout(()=>App.newTest(id),0);});
+    if(name==="athlete-records"){const a=lib().athletes.find(a=>a.id===id);filters.records={...filter(),q:a.id,page:1,status:"all",from:"",to:"",test:""};return App.openManagement("records");}
+    if(name==="report"||name==="entry"){const a=lib().athletes.find(a=>a.records.some(r=>r.recordId===id));return App.openManagedRecord(a.id,id,name==="entry");}
+    if(name==="edit-record"){
+      const r=await App.getRepository().loadRecord(id);return showForm("测试名称与日期",field("名称",`<input name="title" maxlength="100" value="${esc(r.title)}">`)+field("测试日期",`<input type="date" name="date" value="${esc(r.athlete.date)}" required>`),async form=>{const data=new FormData(form);r.title=data.get("title").trim();r.athlete.date=data.get("date");r.updated=now();await App.saveLibraryChanges([r]);});
+    }
+    if(name==="groups")return groups();
+    if(name==="group-edit"){
+      const g=lib().groups.find(g=>g.id===id);return showForm("队伍名称",field("名称",`<input name="name" required maxlength="100" value="${esc(g.name)}">`),async form=>{const name=new FormData(form).get("name").trim();if(!name||lib().groups.some(x=>x.id!==id&&x.name===name))throw Error("名称为空或已存在");g.name=name;await App.saveLibraryChanges();});
+    }
+    if(name==="group-delete"){
+      if(!confirm("删除分组后，其运动员归为未分组，资料和测试继续保留。继续？"))return;
+      lib().groups=lib().groups.filter(g=>g.id!==id);lib().athletes.filter(a=>a.groupId===id).forEach(a=>a.groupId="");await App.saveLibraryChanges();return groups();
+    }
+    if(name==="batch-group"||name==="batch-profile"){
+      if(!selected.size)throw Error("请先选择资料");
+      const isGroup=name==="batch-group",ids=[...selected];
+      return showForm(isGroup?"批量调整队伍":"批量更换评价方案",`<p>已选择 ${ids.length} 项。</p>`+field(isGroup?"队伍":"评价方案",`<select name="value">${isGroup?groupOptions():profileOptions(lib().defaultEvaluationProfileId)}</select>`),async form=>{
+        const value=new FormData(form).get("value"),records=[];
+        if(isGroup)lib().athletes.filter(a=>ids.includes(a.id)).forEach(a=>a.groupId=value);
+        else for(const id of ids){const r=await App.getRepository().loadRecord(id);r.evaluationProfileId=value;r.updated=now();records.push(r);}
+        await App.saveLibraryChanges(records);selected.clear();
+      });
+    }
+    if(name==="new-test")return App.openCatalogItem("new-test");
+    if(name==="new-metric")return App.openCatalogItem("new-metric",filter().test||"");
+    if(name==="catalog-edit")return App.openCatalogItem("edit-project",id);
+    if(name==="catalog-resolve"){const [i,j]=id.split(":").map(Number);await App.resolveCatalogConflict(i,j);return render();}
+    if(name==="metric-edit"){const d=lib().catalog.definitions.find(d=>d.id===id);return App.openCatalogItem("edit",d.testId,d.id);}
+    if(name==="project-metrics"){filters.metrics={q:"",test:id};return App.openManagement("metrics");}
+    if(name==="catalog-toggle"){const test=lib().catalog.tests.find(t=>t.id===id);test.disabled=!test.disabled;await App.saveLibraryChanges();return render();}
+    if(name==="profile-edit")return viewProfile(id);
+    if(name==="profile-new"||name==="profile-copy"){
+      const source=lib().evaluationProfiles.find(p=>p.id===(id||lib().defaultEvaluationProfileId)),profile={...clone(source),id:"evaluation_"+uid(),name:name==="profile-copy"?source.name+" 副本":"新评价方案",revision:1,disabled:false};delete profile.previous;
+      editor={profile,record:Eval.template(profile),tab:"definitions",metricId:profile.criteria.definitions[0]?.id,rangeDrafts:{},zoneDrafts:{},readOnly:false};return render();
+    }
+    if(name==="profile-tab"){editor.tab=id;return render();}
+    if(name==="profile-close"){editor=null;return render();}
+    if(name==="profile-review")return reviewProfile();
+    if(name==="profile-default"){lib().defaultEvaluationProfileId=id;await App.saveLibraryChanges();return render();}
+    if(name==="profile-toggle"){const p=lib().evaluationProfiles.find(p=>p.id===id);if(id===lib().defaultEvaluationProfileId)throw Error("请先指定其他默认方案");p.disabled=!p.disabled;await App.saveLibraryChanges();return render();}
+    if(name==="profile-records"){
+      const p=lib().evaluationProfiles.find(p=>p.id===id),rows=lib().athletes.flatMap(a=>a.records.filter(r=>r.evaluationProfileId===id).map(r=>({a,r})));
+      return showForm(p.name+" · 关联记录",rows.map(({a,r})=>`<div class="reference-row"><span>${esc(a.name)} · ${esc(r.athlete.date)}</span>${button("查看报告","report",r.recordId)}</div>`).join("")||"暂无关联记录",async()=>{});
+    }
+    if(name==="profile-revert"){
+      const p=lib().evaluationProfiles.find(p=>p.id===id);if(!confirm("恢复上一版标准，并重新评价所有关联记录？"))return;
+      const previous={name:p.name,criteria:clone(p.criteria),revision:p.revision,updated:p.updated};Object.assign(p,p.previous,{revision:p.revision+1,updated:now(),previous});await App.saveLibraryChanges();return render();
+    }
+    if(name==="profile-extend"){
+      const candidates=[M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true])))];if(App.getState())candidates.push(App.getState());
+      for(const r of candidates){const c=Eval.capture(r);for(const d of c.definitions)if(!editor.record.definitions.some(x=>x.id===d.id)){editor.record.definitions.push(d);editor.profile.criteria.definitions.push(clone(d));}for(const row of c.iso)if(!editor.record.data.iso.some(x=>x.id===row.id))editor.record.data.iso.push({...row,left:"",right:"",center:"",notes:""});}
+      return render();
+    }
+    if(name==="restore-library"){if(confirm("切换回上次导入或迁移前保留的资料库？当前资料库仍会保留。"))await App.restorePreviousLibrary();return;}
+  }
+  function init() {
+    document.addEventListener("click",async event=>{
+      const target=event.target.closest("[data-manager-action]");if(!target||busy)return;
+      event.preventDefault();busy=true;
+      try{await action(target.dataset.managerAction,target.dataset.id);}catch(error){showError(error);}finally{busy=false;}
+    });
+    document.addEventListener("input",event=>{
+      const t=event.target;
+      if(t.dataset.managerFilter){filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();clearTimeout(filterTimer);filterTimer=setTimeout(render,100);}
+      if(t.id==="profileName"&&editor)editor.profile.name=t.value;
+      if(editor&&!editor.readOnly){
+        if(t.dataset.profilePath) { editor.invalid ||= new Set(); if(t.validity.badInput)editor.invalid.add(t.dataset.profilePath);else editor.invalid.delete(t.dataset.profilePath); }
+        if(t.dataset.profilePath)setPath(editor.record,t.dataset.profilePath,t.type==="checkbox"?t.checked:t.type==="number"&&t.value!==""?Number(t.value):t.value);
+        if(t.dataset.profileRanges)editor.rangeDrafts[t.dataset.profileRanges]=t.value;
+        if(t.dataset.profileZones)editor.zoneDrafts[t.dataset.profileZones]=t.value;
+      }
+    });
+    document.addEventListener("change",event=>{
+      const t=event.target;
+      if(t.dataset.managerFilter){clearTimeout(filterTimer);filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();render();}
+      if(t.dataset.managerSelect){if(t.checked)selected.add(t.dataset.managerSelect);else selected.delete(t.dataset.managerSelect);render();}
+      if(t.id==="selectManagementPage"){const f=filter();allRows().slice((f.page-1)*30,f.page*30).forEach(r=>t.checked?selected.add(r.id):selected.delete(r.id));render();}
+      if(t.id==="profileMetricSelect"){editor.metricId=t.value;render();}
+      if(t.dataset.profileAxis&&editor){editor.record.axes[t.dataset.profileAxis][t.dataset.axisField]=t.value;}
+    });
+    $("managementForm").addEventListener("submit",async event=>{
+      event.preventDefault();const form=event.target,submit=form.querySelector('[type="submit"]');if(submit.disabled)return;
+      if(!form.reportValidity())return;submit.disabled=true;
+      try{await formAction(form);App.close("managementModal");render();App.refreshWorkspace();}
+      catch(error){$("managementError").textContent=error.message;$("managementError").hidden=false;}
+      finally{submit.disabled=false;}
+    });
+    window.addEventListener("scroll",()=>{if(App.getUIState().mode==="management")filter().scroll=scrollY;},{passive:true});
+  }
+  function showError(error) {
+    const target=$("profileEditorError")||$("managementError");target.textContent=error.message;target.hidden=false;
+    if(!target.getClientRects().length){$("saveStatus").textContent=error.message;const node=document.createElement("p");node.className="notice";node.role="alert";node.textContent=error.message;$("managementContent").prepend(node);}
+  }
+  function showEffective(record,profile) {
+    const issues=new Map((record.evaluationIssues||[]).map(x=>[x.id,x.reason]));
+    const number=n=>n===""||n==null?"—":Number(n).toLocaleString("zh-CN",{maximumFractionDigits:6});
+    const interval=r=>r.min==null?(r.includeMax===false?"<":"≤")+number(r.max):r.max==null?(r.includeMin===false?">":"≥")+number(r.min):r.min===r.max?"="+number(r.min):(r.includeMin===false?"(":"[")+number(r.min)+", "+number(r.max)+(r.includeMax===false?")":"]");
+    const ranges=items=>`<ul class="standard-ranges">${items.map(r=>`<li><b>${esc(r.label)}</b>：${esc(interval(r))}</li>`).join("")}</ul>`;
+    const rows=record.definitions.filter(d=>record.enabled[d.testId]).map(d=>`<article class="effective-standard"><h3>${esc(d.name)}</h3><p>目标：<b title="${esc(d.target)}">${number(d.target)}</b> ${esc(d.unit)} · ${d.direction==="lower"?"数值越低越好":"数值越高越好"}</p>${issues.has(d.id)?'<p class="notice">'+esc(issues.get(d.id))+'</p>':d.referenceEnabled?ranges(d.ranges):'<p class="note">未启用评价分级</p>'}${d.source?'<p class="note">依据：'+esc(d.source)+'</p>':""}</article>`).join("");
+    const iso=record.enabled.iso?'<h3>等长目标</h3>'+record.data.iso.map(r=>`<p>${esc(M.REG[r.region])} · ${esc(r.direction)}：<b>${number(r.target)}</b> ${esc(r.target?r.unit:"")}${issues.has(r.id)?' · '+esc(issues.get(r.id)):""}</p>`).join("")+'<h3>关节平衡</h3>'+record.balancePairs.map(p=>`<article class="effective-standard"><h4>${esc(p.label)}</h4>${p.referenceEnabled&&p.confirmed?ranges(p.ranges):'<p class="note">未启用分级或未确认测量条件可比</p>'}${p.source?'<p class="note">依据：'+esc(p.source)+'</p>':""}</article>`).join(""):"";
+    const lvp=Object.entries(record.lvp).filter(([id])=>record.enabled[id.startsWith("landmine")?"landmine":id]).map(([id,p])=>`<article class="effective-standard"><h4>${esc({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠左侧",landmineR:"地雷杠右侧"}[id])}</h4><p>${esc(p.metric)} · MVT ${number(p.mvt)} m/s</p>${p.zones.map(z=>'<p>'+esc(z.label)+'：'+number(z.min)+'–'+number(z.max)+' m/s</p>').join("")}${p.source?'<p class="note">依据：'+esc(p.source)+'</p>':""}</article>`).join("");
+    const axes=Object.entries(record.axes).map(([id,a])=>{const ability=record.definitions.find(d=>T.axisKey(d.ability)===id)?.ability||"能力";return '<p>'+esc(ability)+'：'+esc({primary:"代表指标",mean:"平均达成",min:"最低达成"}[a.method]||a.method)+(a.method==="primary"?' · '+esc(record.definitions.find(d=>d.id===a.primary)?.name||"未选代表指标"):"")+'</p>';}).join("");
+    showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}<h3>汇总与筛查阈值</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});
+    $("managementForm").querySelector('[type="submit"]').textContent="关闭";
+  }
+  root.RingsideManagement={init,open,render,navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective};
+})(window);
+
+</script>
+<script>
 (function () {
   "use strict";
   const M = window.RingsideModel,
@@ -13404,6 +14159,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     legacyKey = "ringside-local-v1:" + location.pathname;
   let library,
     state,
+    repository,
+    saveSequence = 0,
+    pendingSaves = 0,
+    libraryTransferActive = false,
+    selectionSequence = 0,
+    entryReturn = null,
     entryTab = "athlete",
     settingsTab = "definitions",
     selectedDef = "cmj_height",
@@ -13437,7 +14198,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     recovery = null,
     storageFailed = false,
     lastRestorePayload = null;
-  const recordBaselines = new Map(),
+  const recordBaselines = new Map(), queuedRecords = new Map(),
     undoDeletes = new Map();
   const rawNumbers = new WeakMap();
   try {
@@ -13462,15 +14223,50 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   const snapshot = () => ({
     athleteId: state.athleteId,
     recordId: state.recordId,
-    basis: M.fingerprint(state),
+    basis: recordBasis(),
     revision: state.narrative?.revision || 0,
   });
+  function effectiveRecord(record = state) {
+    if (!record) return null;
+    return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
+  }
+  function recordBasis() { return state ? M.fingerprint(effectiveRecord()) : ""; }
+  async function loadDirectory(preserve = true) {
+    const current = preserve ? state?.recordId : null;
+    library = await repository.directory();
+    const id = current || library.activeRecordId;
+    state = id ? await repository.loadRecord(id) : null;
+    const owner = state && library.athletes.find(a => a.id === state.athleteId);
+    if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
+    if (state) {
+      library.activeAthleteId = state.athleteId; library.activeRecordId = state.recordId;
+      recordBaselines.set(state.recordId, recordContent(state));
+    } else { library.activeRecordId = ""; }
+    reportDirty = true;
+  }
+  async function saveLibraryChanges(records = [], removals = {}) {
+    await repository.flush();
+    library.updated = now();
+    await repository.save(library, records, removals);
+    await loadDirectory(true);
+    if (job && (!currentMatches(job) || job.basis !== recordBasis())) cancelJob();
+    renderReport(); renderWorkspace();
+  }
+  function openManagement(tab = "athletes") {
+    if (!library) return;
+    if (ui.mode === "report") captureReportUI();
+    saveEditor(); persist();
+    if (ui.mode !== "management") ui.returnMode = ui.mode;
+    ui.mode = "management";
+    window.RingsideManagement.open(tab);
+    renderWorkspace(); closeMobileSidebar();
+  }
   function activeAthlete() {
-    return library.athletes.find((a) => a.id === library.activeAthleteId);
+    return library?.athletes.find((a) => a.id === (state?.athleteId || library.activeAthleteId));
   }
   function currentMatches(s) {
     return (
-      !!s && state.athleteId === s.athleteId && state.recordId === s.recordId
+      !!s && !!state && state.athleteId === s.athleteId && state.recordId === s.recordId
     );
   }
   function sampleRecord() {
@@ -13480,17 +14276,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const content = copy(record);
     delete content.updated;
     return JSON.stringify(content);
-  }
-  function initializeLibrary() {
-    library = M.normalizeLibrary(library);
-    state = activeAthlete().records.find(
-      (r) => r.recordId === library.activeRecordId,
-    );
-    library.athletes.forEach((a) =>
-      a.records.forEach((r) =>
-        recordBaselines.set(r.recordId, recordContent(r)),
-      ),
-    );
   }
   function draftRecordKey(record = state) {
     return record.athleteId + ":" + record.recordId;
@@ -13666,7 +14451,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ];
   }
   function renderEntryNavigation() {
-    const computed = M.stats(state);
+    const computed = M.stats(effectiveRecord());
     const button = ([id, name], project) => {
       const issues = Object.values(draftsFor()).filter(
         (d) => d.mode === "entry" && d.tab === id,
@@ -13707,6 +14492,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     revealActiveNavigation();
   }
   function refreshEntryChrome() {
+    if (!state) return;
     if (!state || !$("entryIdentity")) return;
     const a = activeAthlete(),
       number = a.records.findIndex((r) => r.recordId === state.recordId) + 1;
@@ -13799,99 +14585,22 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     records.forEach((r) => M.validateRecord(r));
   }
-  function restore() {
-    let embedded = null,
-      local = null,
-      old = null,
-      decodeError = null;
-    try {
-      embedded = JSON.parse($("embedded-data").textContent);
-    } catch {}
-    try {
-      const localText = localStorage.getItem(storageKey),
-        oldText = localStorage.getItem(legacyKey);
-      if (localText)
-        try {
-          local = JSON.parse(localText);
-        } catch {
-          lastRestorePayload = { rawText: localText };
-          decodeError = Error("本地运动员库不是有效JSON，已保留原始内容");
-        }
-      if (!localText && oldText)
-        try {
-          old = JSON.parse(oldText);
-        } catch {
-          lastRestorePayload = { rawText: oldText };
-          decodeError = Error("旧本地数据不是有效JSON，已保留原始内容");
-        }
-    } catch {}
-    if (decodeError) throw decodeError;
-    if (embedded) {
-      lastRestorePayload = embedded;
-      const seed = M.normalizeLibrary(embedded);
-      const embRecord = seed.athletes
-        .flatMap((a) => a.records)
-        .find((r) => r.recordId === seed.activeRecordId);
-      const localRecord = local?.athletes
-        ?.flatMap((a) => a.records || [])
-        .find((r) => r.recordId === embRecord?.recordId);
-      if (localRecord && localRecord.updated > embRecord.updated) {
-        lastRestorePayload = local;
-        library = M.normalizeLibrary(local);
-      } else library = seed;
-    } else if (local) {
-      lastRestorePayload = local;
-      library = M.normalizeLibrary(local);
-    } else if (old) {
-      lastRestorePayload = old;
-      library = M.normalizeLibrary(old);
-    } else {
-      const sample = sampleRecord();
-      library = {
-        schema: 2,
-        kind: "athlete-library",
-        athletes: [
-          {
-            id: sample.athleteId,
-            name: sample.athlete.name || "示例运动员",
-            sample: true,
-            records: [sample],
-          },
-        ],
-        activeAthleteId: sample.athleteId,
-        activeRecordId: sample.recordId,
-        updated: now(),
-      };
+  async function restore() {
+    repository = await window.RingsideStore.Repository.open();
+    if (!repository.generation) {
+      let input = null;
+      const embeddedText = $("embedded-data").textContent.trim();
+      if (embeddedText && embeddedText !== "null" && embeddedText !== "{}") input = JSON.parse(embeddedText);
+      if (!input) {
+        const old = localStorage.getItem(storageKey) || localStorage.getItem(legacyKey);
+        if (old) { lastRestorePayload = {rawText:old}; input = JSON.parse(old); }
+      }
+      lastRestorePayload = input || lastRestorePayload;
+      const migrated = window.RingsideEvaluation.migrate(input || M.libraryDefaults());
+      await repository.importLibrary(migrated);
     }
-    if (!embedded && !library.athletes.some((a) => a.sample)) {
-      const sample = sampleRecord();
-      library.athletes.push({
-        id: sample.athleteId,
-        name: "示例运动员",
-        sample: true,
-        records: [sample],
-      });
-    }
-    let a =
-      library.athletes.find((a) => a.id === library.activeAthleteId) ||
-      library.athletes[0];
-    if (!a) {
-      const r = M.defaults();
-      a = {
-        id: r.athleteId,
-        name: "未命名运动员",
-        sample: false,
-        records: [r],
-      };
-      library.athletes.push(a);
-    }
-    state =
-      a.records.find((r) => r.recordId === library.activeRecordId) ||
-      a.records.at(-1);
-    library.activeAthleteId = a.id;
-    library.activeRecordId = state.recordId;
+    await loadDirectory(false);
   }
-
   function rememberUI() {
     if (!state) return;
     try {
@@ -13906,11 +14615,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           reportScroll: ui.reportScroll,
           detailOpen: ui.detailOpen,
           sidebarCollapsed: ui.sidebarCollapsed,
+          lastViewed: ui.lastViewed || {},
         }),
       );
     } catch {}
   }
   function captureReportUI() {
+    if (!state) return;
     if (ui.mode !== "report") return;
     ui.reportScroll = window.scrollY;
     document
@@ -13922,7 +14633,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     };
   }
   function renderWorkspace() {
-    $("reportView").hidden = ui.mode !== "report";
+    const management = ui.mode === "management";
+    $("managementView").hidden = !management;
+    $("emptyReport").hidden = ui.mode !== "report" || !!state;
+    document.body.classList.toggle("management-mode", management);
+    $("reportControls").hidden = management || ui.mode === "settings";
+    $("reportActions").hidden = ui.mode !== "report" || !state;
+    $("reportWorkspaceButton").setAttribute("aria-current", ui.mode === "report" ? "page" : "false");
+    $("managementWorkspaceButton").setAttribute("aria-current", management ? "page" : "false");
+    $("reportView").hidden = ui.mode !== "report" || !state;
     $("entryView").hidden = ui.mode !== "entry";
     $("settingsView").hidden = ui.mode !== "settings";
     $("entryNav").hidden = ui.mode !== "entry";
@@ -13943,7 +14662,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
               window.RingsideSettings.scopeFor(settingsTab)
             ].title
           : "测试报告";
-    $("editButton").hidden = ui.mode === "entry";
+    $("editButton").hidden = ui.mode !== "report" || !state;
+    if (management) { $("workspaceLabel").textContent="管理中心"; $("recordContext").textContent=""; $("directoryLabel").textContent="资料管理"; }
 
     $("workspaceBack").hidden = ui.mode === "report";
     $("workspaceBack").textContent =
@@ -13955,6 +14675,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     rememberUI();
   }
   function renderNavigation() {
+    if (ui.mode === "management") { $("entryNav").hidden=true; $("settingsTabs").hidden=true; $("reportNav").hidden=false; $("reportNav").innerHTML=window.RingsideManagement.navigation(); return; }
     const activeScope = ui.mode === "settings"
       ? window.RingsideSettings.scopeFor(settingsTab) : null;
     document.querySelectorAll("[data-settings-open]").forEach(button => {
@@ -13980,6 +14701,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       $("reportNav").innerHTML = "";
       return;
     }
+    if (!state) { $("reportNav").innerHTML=""; return; }
     const sections = [
       ["summary", "快速摘要", "01"],
       ["data", "具体数据", "02"],
@@ -14083,6 +14805,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (matchMedia("(max-width:900px)").matches) toggleSidebar(false);
   }
   function showReport(restoreScroll = true) {
+    entryReturn = null;
     saveEditor();
     persist();
     ui.mode = "report";
@@ -14096,7 +14819,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       );
     return ui.mode;
   }
-  function back() {
+  async function back() {
+    if (ui.mode === "entry" && entryReturn?.mode === "management") {
+      const backTo = entryReturn; entryReturn = null; saveEditor(); if (!await persist()) return;
+      if (backTo.recordId) { const a = library.athletes.find(a=>a.id===backTo.athleteId); const r = a?.records.find(r=>r.recordId===backTo.recordId); if (r) await switchRecord(a,r); }
+      else { state=null;library.activeAthleteId=backTo.athleteId||"";library.activeRecordId="";await persist(); }
+      openManagement(backTo.tab);ui.returnMode="report";renderWorkspace();return;
+    }
+    if (ui.mode === "management") { if (ui.returnMode === "entry" && state) { ui.mode="entry"; renderEntry();renderWorkspace();return; } return showReport(); }
     if (ui.mode === "settings" && ui.returnMode === "entry") {
       ui.mode = "entry";
       renderEntry();
@@ -14215,38 +14945,33 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     );
   }
   function persist() {
-    if (!state || !library) return false;
-    clearTimeout(saveTimer);
-    saveTimer = null;
-    const content = recordContent(state);
-    const modified = recordBaselines.get(state.recordId) !== content;
-    if (modified) state.updated = now();
-    const a = activeAthlete();
-    a.name = a.profile?.name || a.name || "未命名运动员";
-    const index = a.records.findIndex((r) => r.recordId === state.recordId);
-    if (index < 0) a.records.push(state);
-    else a.records[index] = state;
-    library.activeAthleteId = a.id;
-    library.activeRecordId = state.recordId;
-    if (modified) library.updated = now();
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(library));
-      recordBaselines.set(state.recordId, content);
-      storageFailed = false;
-      $("saveStatus").textContent =
-        "已自动保留 · " +
-        new Date().toLocaleTimeString("zh-CN", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-      refreshEntryChrome();
-      return true;
-    } catch {
-      storageFailed = true;
-      $("saveStatus").textContent = "浏览器存储不可用，请备份运动员库";
-      refreshEntryChrome();
-      return false;
+    if (!library || !repository) return Promise.resolve(false);
+    clearTimeout(saveTimer); saveTimer = null;
+    const record = state, content = record ? recordContent(record) : "";
+    const modified = record && (queuedRecords.get(record.recordId)?.content ?? recordBaselines.get(record.recordId)) !== content;
+    if (modified) record.updated = now();
+    if (record) {
+      const a = library.athletes.find(a => a.id === record.athleteId);
+      if (!a) return Promise.resolve(false);
+      a.name = a.profile?.name || a.name;
+      const index = a.records.findIndex(r => r.recordId === record.recordId), item = window.RingsideStore.summary(record);
+      if (index < 0) a.records.push(item); else a.records[index] = item;
     }
+    if (modified) library.updated = now();
+    const sequence = ++saveSequence;
+    if (modified) queuedRecords.set(record.recordId,{sequence,content});
+    $("saveStatus").textContent = "正在保存…";
+    pendingSaves++;
+    let saving;
+    try { saving=repository.save(library, modified ? [record] : []); } catch(error) { saving=Promise.reject(error); }
+    return saving.then(() => {
+      if (record) recordBaselines.set(record.recordId, content);
+      if (sequence === saveSequence) { storageFailed = false; $("saveStatus").textContent = "已保存到本机"; if (state) refreshEntryChrome(); }
+      return true;
+    }).catch(error => {
+      storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message;
+      if (state) refreshEntryChrome(); return false;
+    }).finally(() => { pendingSaves--; if(record&&queuedRecords.get(record.recordId)?.sequence===sequence)queuedRecords.delete(record.recordId); });
   }
   function changed(render = true) {
     clearTimeout(saveTimer);
@@ -14326,42 +15051,43 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     $("tooltip").style.display = "none";
     renderNarrativeStatus();
   }
-  function switchRecord(a, r) {
-    captureReportUI();
-    saveEditor();
-    persist();
+  async function switchRecord(a, r, options = {}) {
+    const sequence = ++selectionSequence;
+    if (state) { captureReportUI(); saveEditor(); }
+    if (!await persist()) return;
+    const loaded = r ? await repository.loadRecord(r.recordId) : null;
+    if (sequence !== selectionSequence) return;
     cancelJob();
-    library.activeAthleteId = a.id;
-    library.activeRecordId = r.recordId;
-    state = r;
-    entryTab = "athlete";
-    isoFilter = "all";
-    reportDirty = true;
-    const saved = ui.records[r.recordId];
-    ui.reportScroll = saved?.reportScroll || 0;
-    ui.detailOpen = { ...(saved?.detailOpen || {}) };
-    persist();
-    renderReport(false);
+    state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
+    if (loaded) { recordBaselines.set(loaded.recordId, recordContent(loaded)); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
+    entryTab = "athlete"; isoFilter = "all"; reportDirty = true;
+    const saved = loaded && ui.records[loaded.recordId];
+    ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
+    ui.mode = options.edit && loaded ? "entry" : "report";
+    await persist(); renderReport(false);
     if (ui.mode === "entry") renderEntry();
-    if (ui.mode === "settings") renderSettings();
-    renderWorkspace();
-    closeMobileSidebar();
-    window.scrollTo({
-      top: ui.mode === "report" ? ui.reportScroll : 0,
-      behavior: "instant",
-    });
+    renderWorkspace(); closeMobileSidebar(); window.scrollTo({top:ui.mode === "report" ? ui.reportScroll:0,behavior:"instant"});
   }
-  function selectAthlete(id) {
-    const a = library.athletes.find((a) => a.id === id);
-    if (a) switchRecord(a, M.latestRecord(a));
+  async function selectAthlete(id) {
+    const a = library.athletes.find(a => a.id === id && !a.deletedAt);
+    if (!a) return;
+    const records = a.records.filter(r => !r.deletedAt && !r.archived);
+    const r = records.find(r => r.recordId === ui.lastViewed?.[id]) || M.latestRecord({records});
+    return switchRecord(a,r);
   }
-  function selectRecord(id) {
-    const a = activeAthlete(),
-      r = a.records.find((r) => r.recordId === id);
-    if (r) switchRecord(a, r);
+  async function selectRecord(id) {
+    const a = activeAthlete(), r = a?.records.find(r => r.recordId === id && !r.deletedAt);
+    if (r) return switchRecord(a,r);
+  }
+  async function openManagedRecord(athleteId, recordId, edit = false) {
+    const a = library.athletes.find(a => a.id === athleteId), r = a?.records.find(r => r.recordId === recordId);
+    if (!a || !r) return;
+    close("managementModal");
+    if (edit) entryReturn = { mode:"management", tab:window.RingsideManagement.tab(), athleteId:library.activeAthleteId, recordId:library.activeRecordId };
+    return switchRecord(a,r,{edit});
   }
   function openNewAthlete() {
-    openCreation("athlete");
+    openManagement("athletes"); window.RingsideManagement.editAthlete();
   }
   function inheritConfiguration(r, source) {
     for (const k of [
@@ -14398,30 +15124,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     );
     return r;
   }
-  function createAthlete(name) {
-    name = String(name ?? "").trim();
-    if (!name) return toast("请填写姓名或编号");
-    saveEditor();
-    persist();
-    const profile = {
-      name,
-      sex: "未注明",
-      sport: "",
-      dominantHand: "未注明",
-      sportLevel: "",
-    };
-    const r = M.recordFromCatalog(library.catalog, profile, {}, today());
-    r.athleteId = uid();
-    r.recordId = uid();
-    r.athlete = { ...r.athlete, name, age: "", mass: "", date: today() };
-    const a = { id: r.athleteId, name, profile, sample: false, records: [r] };
-    library.athletes.push(a);
-    switchRecord(a, r);
-    toast("已新建运动员");
-    return a.id;
+  async function createAthlete(name) {
+    if (!String(name||"").trim()) return;
+    const id=uid(), profile={name:String(name).trim(),sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
+    library.athletes.push({id,name:profile.name,profile,records:[],groupId:"",archived:false,deletedAt:null,sample:false});
+    await saveLibraryChanges();return id;
   }
-  function newTest() {
-    return openCreation("record");
+  async function newTest(athleteId) {
+    const owner=library.athletes.find(a=>a.id===athleteId)||activeAthlete();
+    if(!owner)return openNewAthlete();
+    return openCreation("record",owner);
   }
   function pathLabel(path) {
     const p = path.split("."),
@@ -14510,7 +15222,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return suffix;
   }
   function projectPicker(enabled, forCreation = false) {
-    const projects = forCreation ? T.describe(library.catalog) : allProjects();
+    const projects = (forCreation ? T.describe(library.catalog) : allProjects()).filter(t=>!library.catalog.tests.find(x=>x.id===t.id)?.disabled || (!forCreation && state.enabled[t.id]));
     let html =
       '<div class="plan-tools"><button type="button" class="btn small" onclick="App.selectProjects(\'all\',true,' +
       forCreation +
@@ -14521,7 +15233,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       ">" +
       projects.filter((t) => enabled[t.id]).length +
       " 项已选</span></div>";
-    const computed = forCreation ? null : M.stats(state);
+    const computed = forCreation ? null : M.stats(effectiveRecord());
     for (const group of T.groups(projects)) {
       html += `<section class="plan-group" data-plan-group="${E(group.id)}"><div class="plan-group-heading"><h4>${E(group.label)}</h4><button type="button" class="text-btn" onclick="App.selectProjects('${E(group.id)}',true,${forCreation})">选择本组</button><button type="button" class="text-btn" onclick="App.selectProjects('${E(group.id)}',false,${forCreation})">清空本组</button></div><div class="check-grid">`;
       html +=
@@ -14573,22 +15285,28 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       .forEach((el) => (el.textContent = count + " 项已选"));
     $("creationSubmit").disabled = creation.submitting || count === 0;
   }
-  function openCreation(kind) {
+  async function openCreation(kind, owner = activeAthlete()) {
     saveEditor();
     persist();
-    const latest = kind === "record" ? M.latestRecord(activeAthlete()) : null;
+    const latestSummary = kind === "record" ? M.latestRecord({records:owner.records.filter(r => !r.deletedAt)}) : null;
+    const latest = latestSummary ? await repository.loadRecord(latestSummary.recordId) : null;
     creation = {
       kind,
+      ownerId: owner?.id,
+      evaluationProfileId: library.evaluationProfiles.find(p=>p.id===latest?.evaluationProfileId&&!p.disabled)?.id || library.defaultEvaluationProfileId,
+      returnMode: ui.mode,
+      returnAthleteId: library.activeAthleteId,
+      returnRecordId: library.activeRecordId,
       step: kind === "athlete" ? "profile" : "test",
       enabled: Object.fromEntries(
         library.catalog.tests.map((t) => [
           t.id,
-          !!latest?.enabled[t.id] && !projectBlocked(t.id),
+          !!latest?.enabled[t.id] && !projectBlocked(t.id) && !t.disabled,
         ]),
       ),
       profile:
         kind === "record"
-          ? copy(activeAthlete().profile)
+          ? copy(owner.profile)
           : {
               name: "",
               sex: "未注明",
@@ -14606,8 +15324,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     $("newAthleteHand").value = creation.profile.dominantHand;
     $("newAthleteLevel").value = creation.profile.sportLevel;
     $("creationDate").value = today();
+    $("creationEvaluationProfile").innerHTML = library.evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("");
     $("creationSource").textContent = latest
-      ? `${activeAthlete().name} · 沿用 ${latest.athlete.date || "未填日期"} 第${activeAthlete().records.indexOf(latest) + 1}次所选项目，结果重新录入。`
+      ? `${owner.name} · 沿用 ${latest.athlete.date || "未填日期"} 所选项目，结果重新录入。`
       : "首次测试，请选择本次要进行的项目。";
     $("creationProjects").innerHTML = projectPicker(creation.enabled, true);
     $("creationError").hidden = true;
@@ -14661,7 +15380,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       $("newAthleteName").focus();
     }
   }
-  function submitCreation() {
+  async function submitCreation() {
     if (!creation || creation.submitting) return;
     if (creation.step === "profile") return creationNext();
     if (!$("creationDate").value || !$("creationDate").validity.valid)
@@ -14673,7 +15392,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     try {
       captureReportUI();
       saveEditor();
-      persist();
+      if (!await persist()) throw Error("当前修改尚未保存");
       const next = copy(library),
         draft = M.recordFromCatalog(
           next.catalog,
@@ -14694,24 +15413,25 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         };
         next.athletes.push(athlete);
       } else {
-        athlete = next.athletes.find((a) => a.id === library.activeAthleteId);
+        athlete = next.athletes.find((a) => a.id === creation.ownerId);
         draft.athleteId = athlete.id;
         draft.recordId = uid();
-        draft.trainingContext = copy(
-          M.latestRecord(athlete)?.trainingContext || draft.trainingContext,
-        );
+        const priorSummary = M.latestRecord({records:athlete.records.filter(r=>!r.deletedAt)});
+        const prior = priorSummary && await repository.loadRecord(priorSummary.recordId);
+        draft.trainingContext = copy(prior?.trainingContext || draft.trainingContext);
       }
-      athlete.records.push(draft);
+      draft.evaluationProfileId = $("creationEvaluationProfile")?.value || creation.evaluationProfileId;
+      athlete.records.push(window.RingsideStore.summary(draft));
       next.activeAthleteId = athlete.id;
       next.activeRecordId = draft.recordId;
       next.updated = now();
-      M.validateLibrary(next);
-      localStorage.setItem(storageKey, JSON.stringify(next));
+      await repository.save(next, [draft]);
       library = next;
       state = draft;
       storageFailed = false;
       recordBaselines.set(state.recordId, recordContent(state));
       cancelJob();
+      if (creation.returnMode === "management") entryReturn = {mode:"management",tab:window.RingsideManagement.tab(),athleteId:creation.returnAthleteId,recordId:creation.returnRecordId};
       creation = null;
       close("newAthleteModal");
       ui.mode = "entry";
@@ -14799,8 +15519,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (custom) custom.category = value;
     }
     if (/^athlete\.(name|sex|sport|dominantHand|sportLevel)$/.test(path)) {
-      activeAthlete().profile[ps[1]] = value;
-      if (ps[1] === "name") activeAthlete().name = value || "未命名运动员";
       renderSelectors();
     }
     if (/^data\.imtp\.\d+\.timePoints\./.test(path))
@@ -14832,29 +15550,25 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     );
   }
   function renderSelectors() {
-    const a = activeAthlete();
-    $("athleteSelect").innerHTML = library.athletes
-      .map(
-        (x) =>
-          `<option value="${E(x.id)}" ${x.id === a.id ? "selected" : ""}>${E(x.name)}${x.sample ? " · 示例" : ""}${library.athletes.filter((y) => y.name === x.name).length > 1 ? " · " + E(athleteTag(x)) : ""}</option>`,
-      )
-      .join("");
-    $("recordSelect").innerHTML = [...a.records]
-      .reverse()
-      .map(
-        (r, i) =>
-          `<option value="${E(r.recordId)}" ${r.recordId === state.recordId ? "selected" : ""}>${E(r.athlete.date || "未填日期")} · 第${a.records.length - i}次${r.demo ? " · 示例" : ""}</option>`,
-      )
-      .join("");
-    $("sampleLabel").classList.toggle("hidden", !state.demo);
+    if (!library) return;
+    const a = activeAthlete(), q = ($("reportAthleteSearch")?.value || "").trim().toLocaleLowerCase(), group = $("reportGroupFilter")?.value || "";
+    const groups = $("reportGroupFilter");
+    if (groups) groups.innerHTML = '<option value="">全部队伍</option>' + library.groups.map(g=>`<option value="${E(g.id)}" ${g.id===group?"selected":""}>${E(g.name)}</option>`).join("");
+    const athletes = library.athletes.filter(x=>!x.deletedAt&&!x.archived&&(!group||x.groupId===group)&&(!q||[x.name,x.profile?.sport].join(" ").toLocaleLowerCase().includes(q)));
+    $("athleteSelect").innerHTML = '<option value="">选择运动员</option>' + athletes.map(x=>`<option value="${E(x.id)}" ${x.id===a?.id?"selected":""}>${E(x.name)} · ${E(library.groups.find(g=>g.id===x.groupId)?.name||x.profile?.sport||"未分组")} · ${E(x.id.slice(-6))}</option>`).join("");
+    $("recordSelect").innerHTML = '<option value="">选择测试记录</option>' + [...(a?.records||[])].filter(r=>!r.deletedAt&&!r.archived).sort((x,y)=>(y.athlete.date||"").localeCompare(x.athlete.date||"")||y.recordId.localeCompare(x.recordId)).map(r=>`<option value="${E(r.recordId)}" ${r.recordId===state?.recordId?"selected":""}>${E(r.athlete.date||"未填日期")} · ${E(r.title||Object.values(r.enabled).filter(Boolean).length+"个项目 · "+r.recordId.slice(-4))}</option>`).join("");
+    $("sampleLabel").classList.toggle("hidden", !state?.demo);
+    $("recordContext").textContent = state ? `${a?.name || state.athlete.name} · ${state.athlete.date}` : a ? a.name + " · 暂无测试" : "选择一条测试记录";
+    if ($("reportEvaluationLabel")) { const profile=library.evaluationProfiles.find(p=>p.id===state?.evaluationProfileId); $("reportEvaluationLabel").textContent=state ? "评价方案："+(profile?.name||"未关联")+(profile?" · v"+profile.revision:"") : ""; }
   }
   function renderReport(preserveUI = true) {
+    if (!state) { renderSelectors(); $("reportNav").innerHTML = ""; renderWorkspace(); return; }
     const visible =
       preserveUI && ui.mode === "report" && !$("reportView").hidden;
     const previousScroll = visible ? window.scrollY : null;
     if (visible) captureReportUI();
     renderSelectors();
-    const report = window.RingsideReport.build(state),
+    const report = window.RingsideReport.build(effectiveRecord()),
       s = report.stats,
       a = state.athlete;
     $("athleteMeta").innerHTML = [
@@ -14978,9 +15692,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
   }
   function renderNarrativeStatus() {
+    if (!state) return;
     renderAIStatus();
     const n = state.narrative,
-      stale = n.text && n.basis !== M.fingerprint(state);
+      stale = n.text && n.basis !== recordBasis();
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
@@ -15018,7 +15733,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       html,
       text: ed.innerText,
       updated: now(),
-      basis: M.fingerprint(state),
+      basis: recordBasis(),
       origin: "manual",
       revision: (state.narrative.revision || 0) + 1,
     };
@@ -15085,6 +15800,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return '<p class="note">速度统一使用 m/s。</p>';
   }
   function openEntry(tab = "athlete") {
+    if (!state) return openManagement("records");
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
@@ -15098,6 +15814,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     focusContentTitle();
   }
   function renderEntry() {
+    if (!state) return showReport();
     const all = entryTabs();
     if (!all.some((t) => t[0] === entryTab)) entryTab = "plan";
     renderAIStatus();
@@ -15111,8 +15828,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       return;
     }
     let h = "";
+    if (entryTab === "athlete" || entryTab === "plan") h += `<div class="record-evaluation"><label class="field"><span>共用评价方案</span><select id="recordEvaluationSelect" onchange="App.assignRecordProfile(this.value)">${library.evaluationProfiles.filter(p=>!p.disabled||p.id===state.evaluationProfileId).map(p=>`<option value="${E(p.id)}" ${p.id===state.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("")}</select></label><button class="btn small" onclick="App.viewEvaluation()">查看生效标准</button></div>`;
     if (entryTab === "athlete") {
-      const a = { ...state.athlete, ...activeAthlete().profile };
+      const a = state.athlete;
       h +=
         '<div class="form-grid">' +
         field("姓名 / 编号", input("athlete.name", a.name, { type: "text" })) +
@@ -15233,7 +15951,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           )
           .join("");
     } else if (entryTab === "iso") {
-      const isoValues = M.stats(state).isoAnalyses;
+      const isoValues = M.stats(effectiveRecord()).isoAnalyses;
       h +=
         '<div class="row"><select id="isoFilter" aria-label="等长力量区域筛选" onchange="App.isoFilter(this.value)"><option value="all">全部区域</option>' +
         Object.entries(M.REG)
@@ -15256,7 +15974,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
               ),
               x.paired ? Array.isArray(x.trials) ? F(isoValues[i]?.right) : input("data.iso." + i + ".right", x.right) : "—",
               select("data.iso." + i + ".unit", x.unit, ["N", "kgf", "Nm"]),
-              input("data.iso." + i + ".target", x.target),
+              `<span class="note">${E(effectiveRecord().data.iso[i].target || "未设目标")} ${E(x.unit)}</span>`,
               Array.isArray(x.trials) ? isoValues[i]?.sides.map((s) => (s.side || "") + (s.pain ? " 疼痛" : " —")).join(" / ") : `<div class="row">${check("data.iso." + i + "." + (x.paired ? "painLeft" : "painCenter"), x.paired ? x.painLeft : x.painCenter, "")}${x.paired ? check("data.iso." + i + ".painRight", x.painRight, "") : ""}</div>`,
             ]),
         ) +
@@ -15464,6 +16182,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             ),
           )
           .join("");
+    if (["cmj","imtp"].includes(entryTab)) {
+      const key=entryTab==="cmj"?"cmjConfig":"imtpConfig";
+      h='<div class="form-grid">'+field("设备输出力定义",select(key+".definition",state[key].definition,[["gross","总力"],["net","净力"]]))+'</div>'+h;
+      if(entryTab==="cmj")h+=check("dsi.confirmed",state.dsi.confirmed,"确认 CMJ 与等长测试的力定义、单位及协议可比较")+(state.dsi.source==="manual"?field("其他等长力定义",select("dsi.definition",state.dsi.definition,[["gross","总力"],["net","净力"]])):"");
+    }
+    if (["landmine","squat","bench","deadlift"].includes(entryTab)) {
+      const keys=entryTab==="landmine"?["landmineL","landmineR"]:[entryTab];
+      h='<div class="form-grid">'+keys.map(id=>field((id==="landmineL"?"左侧 ":id==="landmineR"?"右侧 ":"")+"设备速度口径",select("lvp."+id+".metric",state.lvp[id].metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))).join("")+'</div>'+h;
+    }
+    if(entryTab==="iso")h+='<details class="supplement"><summary>关节配对测量确认</summary>'+state.balancePairs.map((p,i)=>check("balancePairs."+i+".confirmed",p.confirmed,E(p.label)+" · 测量口径、单位与协议可比较")).join("")+'</details>';
     $("entryContent").innerHTML = h;
     $("entryContent")
       .querySelectorAll("table")
@@ -15871,7 +16599,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     renderEntry();
     renderReport();
   }
-  function openSettings(tab = "definitions") {
+  function openSettings(tab = "ai") {
+    if (tab === "catalog") return openManagement("catalog");
+    if (!["ai", "references"].includes(tab)) return openManagement("profiles");
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
@@ -15885,8 +16615,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     focusContentTitle();
   }
   function renderSettings() {
+    if (ui.mode === "management") { window.RingsideManagement.render(); return; }
     const component = window.RingsideSettings.render({
-      state,
+      state: state || M.defaults(),
       library,
       settingsTab,
       selectedDef,
@@ -16017,6 +16748,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   // Insert inside the App closure; expose the five public handlers on App.
   function openCatalogItem(mode = "new-test", testId = "", definitionId = "") {
+    const projectOnlyRequested = mode === "edit-project", metricOnly = mode === "edit" && !!definitionId;
+    if (projectOnlyRequested) mode = "edit";
     mode =
       mode === "test" ? "new-test" : mode === "metric" ? "new-metric" : mode;
     if (!["new-test", "new-metric", "edit"].includes(mode)) return false;
@@ -16031,7 +16764,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const test = catalog.tests.find((item) => item.id === testId);
     if (mode === "edit" && !test) return false;
     const definition =
-      mode === "edit"
+      mode === "edit" && !projectOnlyRequested
         ? catalog.definitions.find((d) =>
             definitionId
               ? d.id === definitionId && d.testId === testId
@@ -16156,6 +16889,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     fields +=
       '</div><p class="note">速度统一使用 m/s。保存后可在本次测试计划中选择该项目。</p>';
     $("catalogFields").innerHTML = fields;
+    for (const id of ["catalogTarget","catalogRanges","catalogDirection", ...(metricOnly ? ["catalogTestName","catalogCategory","catalogProtocol","catalogPrimaryAbility","catalogPrimaryMetric"] : [])]) { const el=$(id);if(el) el.closest(".field").hidden=true; }
     $("catalogTitle").textContent =
       mode === "new-test"
         ? "新建测试项目"
@@ -16203,7 +16937,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return true;
   }
 
-  function submitCatalogItem() {
+  async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
     if (
       catalogEdit.unit &&
@@ -16322,16 +17056,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       M.validateCatalog(canonical);
       edit.submitting = true;
       form.querySelector('[type="submit"]').disabled = true;
+      canonical.tests.forEach(t=>{ const prior=catalog.tests.find(p=>p.id===t.id); if(prior?.disabled)t.disabled=true; });
       canonical.revision = (Number(catalog.revision) || 1) + 1;
       library.catalog = canonical;
       library.updated = new Date().toISOString();
-      persist();
+      if (!await persist()) throw Error("目录保存失败，请重试");
       close("catalogModal");
       renderSettings();
       const message = $("catalogMessage");
       if (message)
         message.textContent =
-          "项目目录已保存。可在本次测试计划中选择，或单独更新本次定义。";
+          "项目目录已保存，后续测试可选择。评价标准在共用方案中维护。";
       return true;
     } catch (error) {
       edit.submitting = false;
@@ -16454,7 +17189,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return true;
   }
 
-  function resolveCatalogConflict(index, variantIndex) {
+  async function resolveCatalogConflict(index, variantIndex) {
     const catalog = copy(library.catalog),
       conflict = catalog.conflicts[index];
     if (!conflict || conflict.resolved || !conflict.variants[variantIndex])
@@ -16488,7 +17223,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       catalog.revision = (Number(catalog.revision) || 1) + 1;
       library.catalog = catalog;
       library.updated = new Date().toISOString();
-      persist();
+      if (!await persist()) throw Error("保存失败，请重试");
       renderSettings();
       const feedback = $("catalogMessage");
       if (feedback)
@@ -16507,7 +17242,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function facts() {
     // Suppress inactive custom targets in AI-derived scores/findings as well as
     // metric rows, without changing the saved record or local report formulas.
-    const analysisRecord = copy(state);
+    const analysisRecord = effectiveRecord();
     analysisRecord.definitions.forEach((d) => { if (!d.referenceEnabled) { d.target = ""; d.ranges = []; } });
     const report = window.RingsideReport.build(analysisRecord),
       s = report.stats;
@@ -16575,7 +17310,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         })),
       protocols: state.protocol,
       rawRecordsNote: "原始记录供口径、备注与试次背景核对；含未完成或无效字段，判断以有效 results、汇总值及 qualityIssues 为准。",
-      rawRecords: Object.fromEntries(Object.entries(state.data)
+      rawRecords: Object.fromEntries(Object.entries(analysisRecord.data)
         .filter(([id]) => state.enabled[id]).map(([id, value]) => [id, copy(value)])),
       customMeasurements: report.projects.flatMap((test) => test.metrics)
         .filter((d) => window.RingsideTests.isManualMetric(d))
@@ -16601,14 +17336,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function localDraft() {
     if (job) return;
-    if (!M.stats(state).validTests.size) return toast("先录入至少一项数据", "ai");
-    preview(M.localText(state), "本地", snapshot());
+    if (!M.stats(effectiveRecord()).validTests.size) return toast("先录入至少一项数据", "ai");
+    preview(M.localText(effectiveRecord()), "本地", snapshot());
     setAIStatus("ready", "离线摘要已生成，等待应用", "已在预览中打开，可编辑后应用到正文。这份摘要由本地规则生成。");
   }
   function applyAI() {
     const p = pendingAI;
     if (!p || !currentMatches(p)) return toast("草稿所属测试已切换", "ai");
-    if (p.basis !== M.fingerprint(state))
+    if (p.basis !== recordBasis())
       return toast("测试数据已更新，请重新生成", "ai");
     if (
       p.revision !== state.narrative.revision &&
@@ -16687,7 +17422,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function reviewAIDraft() {
     if (!isAIView() || !pendingAI || !currentMatches(pendingAI)) return;
-    if (pendingAI.basis !== M.fingerprint(state)) {
+    if (pendingAI.basis !== recordBasis()) {
       pendingAI = null;
       return setAIStatus("error", "测试数据已更新", "请基于最新数据重新生成建议。");
     }
@@ -16763,7 +17498,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   async function ai() {
     if (job) return toast("当前分析正在生成", "ai");
-    if (!M.stats(state).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
+    if (!M.stats(effectiveRecord()).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
     if (!key.trim() || !model.trim()) {
       openSettings("ai");
       return setAIStatus("error", "AI 服务尚未配置完整", "填写密钥并读取或填写模型名称，然后重新生成。");
@@ -16791,7 +17526,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       for (let attempt = 0; attempt < 2; attempt++) {
         const json = await request("/chat/completions", { model: selectedModel, messages, stream: false }, task.controller, 300000, connection);
         if (job !== task || !currentMatches(task)) return;
-        if (binding.basis !== M.fingerprint(state)) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
+        if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
         const result = json.choices?.[0]?.message?.content,
           text =
           typeof result === "string"
@@ -16812,7 +17547,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         }
       }
       if (pages > 2) throw Error("模型精简后仍超过两页，请重新生成或更换模型。");
-      if (binding.basis !== M.fingerprint(state)) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
+      if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
       preview(validated, "AI", binding, task.autoPreview && isNarrativeView()
         && !document.querySelector(".modal-backdrop.show"));
       setAIStatus("ready", "AI 新建议已生成，等待应用", "当前正文约 " + pages + " 页 A4。核对或编辑后点击“应用草稿”，下方正文才会更新。");
@@ -16846,18 +17581,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function reportPayload() {
     ensureExportable();
     persist();
+    const profile=library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId);
     return {
       schema: 2,
       kind: "report",
-      record: copy(state),
+      record: { ...effectiveRecord(), evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
       profile: copy(activeAthlete().profile),
     };
   }
-  function libraryPayload() {
-    ensureExportable(library.athletes.flatMap((a) => a.records));
-    persist();
-    M.validateLibrary(library);
-    return copy(library);
+  async function libraryPayload() {
+    if (!await persist()) throw Error("请先完成保存");
+    return repository.exportLibrary();
   }
   function exportHTMLString() {
     const payload = reportPayload(),
@@ -16869,6 +17603,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       "entryNav",
       "entryContent",
       "settingsContent",
+      "managementContent", "managementFields", "managementError", "reportEvaluationLabel",
       "settingsTabs",
       "aiPreview",
       "aiPreviewNote",
@@ -16910,6 +17645,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     clone.querySelector("#reportView").hidden = false;
     clone.querySelector("#entryView").hidden = true;
     clone.querySelector("#settingsView").hidden = true;
+    clone.querySelector("#managementView").hidden = true;
+    clone.querySelector("#emptyReport").hidden = true;
+    clone.querySelector("#startupStatus").textContent = "正在打开本机资料库…";
+    clone.querySelector("#reportAthleteSearch").value = "";
+    clone.querySelector("#reportGroupFilter").replaceChildren();
+    clone.querySelector("body").classList.remove("management-mode");
     clone.querySelector("#sidebarScrim").hidden = true;
     clone.querySelector("#workspace").removeAttribute("inert");
     clone.querySelector("#sidebar").removeAttribute("inert");
@@ -16977,228 +17718,48 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       toast(e.message);
     }
   }
-  function downloadLibrary() {
+  async function downloadLibrary() {
     try {
-      download(
-        JSON.stringify(libraryPayload(), null, 2),
-        "MotionBench_运动员库_" + today() + ".json",
-        "application/json;charset=utf-8",
-      );
-    } catch (e) {
-      toast(e.message);
-    }
+      if (!await persist()) throw Error("保存失败，请先重试");
+      const blob = await repository.backupBlob(count => toast("正在备份 " + count + " 条测试"));
+      download(blob, "MotionBench_完整备份_" + today() + ".motionbench.jsonl", "application/x-ndjson");
+      toast("完整备份已导出");
+    } catch (error) { toast(error.message); }
   }
-  function importPayload(parsed, conflictChoice = "prompt") {
-    M.validateLibrary(parsed);
-    const incoming = M.normalizeLibrary(parsed);
-    for (const a of incoming.athletes)
-      for (const r of a.records) {
-        const owner = library.athletes.find(
-          (x) =>
-            x.id !== a.id && x.records.some((v) => v.recordId === r.recordId),
-        );
-        if (owner) throw Error("测试ID已属于其他运动员，不能合并");
-      }
-    saveEditor();
-    persist();
-    const merged = copy(library);
-    let added = 0,
-      skipped = 0;
-    for (const a of incoming.athletes) {
-      let target = merged.athletes.find((x) => x.id === a.id);
-      if (!target) {
-        target = {
-          id: a.id,
-          name: a.name,
-          profile: copy(a.profile),
-          sample: !!a.sample,
-          records: [],
-        };
-        merged.athletes.push(target);
-      } else if (
-        (parsed.profile ||
-          parsed.athletes?.find((x) => x.id === a.id)?.profile) &&
-        JSON.stringify(target.profile) !== JSON.stringify(a.profile)
-      ) {
-        if (
-          conflictChoice === "replace" ||
-          (conflictChoice === "prompt" &&
-            confirm(
-              "导入档案与现有资料不同：" +
-                target.name +
-                "。是否采用导入的档案资料？\n取消则保留当前档案；历史测试快照分别保留。",
-            ))
-        ) {
-          target.profile = copy(a.profile);
-          target.name = a.profile.name || a.name;
-        }
-      }
-      for (const r of a.records) {
-        const i = target.records.findIndex((x) => x.recordId === r.recordId);
-        if (i < 0) {
-          target.records.push(r);
-          added++;
-        } else if (JSON.stringify(target.records[i]) !== JSON.stringify(r)) {
-          const replace =
-            conflictChoice === "replace" ||
-            (conflictChoice === "prompt" &&
-              confirm(
-                "已有相同测试ID的记录：" +
-                  target.name +
-                  " · " +
-                  (r.athlete.date || "未填日期") +
-                  "。是否替换？\n取消则保留现有记录。",
-              ));
-          if (replace) {
-            target.records[i] = r;
-            added++;
-          } else skipped++;
-        }
-      }
-    }
-    // Explicit shared directories include builtin configurations; legacy
-    // snapshots only contribute custom definitions, via model normalization.
-    const explicitCatalog = !!parsed.catalog;
-    if (explicitCatalog && library.athletes.every((a) => a.sample))
-      merged.catalog = copy(incoming.catalog);
-    else
-      for (const t of incoming.catalog.tests) {
-        const custom = !M.TESTS.some((x) => x[0] === t.id);
-        if (explicitCatalog) {
-          const variant = {
-            test: copy(t),
-            definitions: copy(
-              incoming.catalog.definitions.filter((d) => d.testId === t.id),
-            ),
-            protocol: incoming.catalog.protocol[t.id] || "",
-            source: "导入目录",
-          };
-          const existing = merged.catalog.tests.find((x) => x.id === t.id);
-          if (!existing) {
-            merged.catalog.tests.push(copy(t));
-            merged.catalog.definitions.push(...copy(variant.definitions));
-            merged.catalog.protocol[t.id] = variant.protocol;
-          } else {
-            const current = {
-              test: copy(existing),
-              definitions: copy(
-                merged.catalog.definitions.filter((d) => d.testId === t.id),
-              ),
-              protocol: merged.catalog.protocol[t.id] || "",
-              source: "现有目录",
-            };
-            const ordered = (value) =>
-              Array.isArray(value)
-                ? value.map(ordered)
-                : value && typeof value === "object"
-                  ? Object.fromEntries(
-                      Object.keys(value)
-                        .sort()
-                        .map((k) => [k, ordered(value[k])]),
-                    )
-                  : value;
-            const signature = (v) =>
-              JSON.stringify(
-                ordered({
-                  test: v.test,
-                  definitions: [...v.definitions].sort((a, b) =>
-                    a.id.localeCompare(b.id),
-                  ),
-                  protocol: v.protocol,
-                }),
-              );
-            if (signature(current) !== signature(variant)) {
-              let conflict = merged.catalog.conflicts.find(
-                (c) => c.testId === t.id && !c.resolved,
-              );
-              if (!conflict) {
-                conflict = {
-                  id: t.id,
-                  testId: t.id,
-                  name: t.name,
-                  resolved: false,
-                  variants: [current],
-                };
-                merged.catalog.conflicts.push(conflict);
-              }
-              if (
-                !conflict.variants.some(
-                  (v) => signature(v) === signature(variant),
-                )
-              )
-                conflict.variants.push(variant);
-            }
-          }
-        } else if (
-          custom ||
-          incoming.catalog.definitions.some(
-            (d) => d.testId === t.id && T.isManualMetric(d),
-          )
-        ) {
-          const seed = M.defaults();
-          seed.customTests = custom ? [copy(t)] : [];
-          seed.definitions = incoming.catalog.definitions.filter(
-            (d) => d.testId === t.id,
-          );
-          seed.protocol = { [t.id]: incoming.catalog.protocol[t.id] || "" };
-          merged.catalog = M.mergeCatalog(merged.catalog, seed, "导入目录");
-        }
-      }
-    incoming.catalog.conflicts.forEach((c) => {
-      const existing = merged.catalog.conflicts.find(
-        (x) => x.testId === c.testId && !x.resolved,
-      );
-      if (!existing) {
-        if (
-          !merged.catalog.conflicts.some(
-            (x) => JSON.stringify(x) === JSON.stringify(c),
-          )
-        )
-          merged.catalog.conflicts.push(copy(c));
-      } else
-        c.variants.forEach((v) => {
-          if (
-            !existing.variants.some(
-              (x) =>
-                JSON.stringify({ ...x, source: "" }) ===
-                JSON.stringify({ ...v, source: "" }),
-            )
-          )
-            existing.variants.push(copy(v));
-        });
+  async function downloadLegacyLibrary() {
+    try {
+      const all = await libraryPayload(), profiles = new Map(all.evaluationProfiles.map(p=>[p.id,p]));
+      all.athletes = all.athletes.filter(a=>!a.deletedAt).map(a=>({...a,records:a.records.filter(r=>!r.deletedAt).map(r=>{const out=window.RingsideEvaluation.resolve(r,profiles.get(r.evaluationProfileId));delete out.evaluationProfileId;return out;})})).filter(a=>a.records.length);
+      all.schema=2;delete all.evaluationProfiles;delete all.groups;delete all.defaultEvaluationProfileId;
+      for(const a of all.athletes){delete a.groupId;delete a.archived;delete a.deletedAt;for(const r of a.records){delete r.archived;delete r.deletedAt;delete r.deletedWithAthlete;delete r.evaluationIssues;}}
+      if (!all.athletes.some(a=>a.id===all.activeAthleteId&&a.records.some(r=>r.recordId===all.activeRecordId))) {all.activeAthleteId=all.athletes[0]?.id||"";all.activeRecordId=all.athletes[0]?.records[0]?.recordId||"";}
+      M.validateLibrary(all); download(JSON.stringify(all),"MotionBench_旧版兼容_"+today()+".json","application/json");
+    } catch(error) {toast(error.message);}
+  }
+  async function runLibraryTransfer(operation) {
+    if(libraryTransferActive)throw Error("资料库正在导入或恢复，请等待完成");
+    libraryTransferActive=true;cancelJob();
+    const controls=[$("workspace"),$("sidebar"),...document.querySelectorAll(".modal-backdrop.show")].map(node=>[node,node.inert]);
+    controls.forEach(([node])=>node.inert=true);document.body.setAttribute("aria-busy","true");toast("正在校验并写入资料库…");
+    try{return await operation();}finally{controls.forEach(([node,inert])=>node.inert=inert);document.body.removeAttribute("aria-busy");libraryTransferActive=false;}
+  }
+  async function importPayload(parsed, conflictChoice = "merge") {
+    return runLibraryTransfer(async()=>{
+    const incoming=window.RingsideEvaluation.migrate(parsed);
+    if (!await persist()) throw Error("当前修改尚未保存");
+    const result=await repository.importLibrary(incoming,{merge:conflictChoice!=="replace-library"});
+    cancelJob(); await loadDirectory(false);
+    const importedRecord=incoming.activeRecordId && await repository.loadRecord(result.recordMap[incoming.activeRecordId]||incoming.activeRecordId);
+    if (importedRecord && !importedRecord.deletedAt) { state=importedRecord;library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;recordBaselines.set(state.recordId,recordContent(state));await persist(); }
+    ui.mode="report"; renderReport(false);renderWorkspace();return result;
     });
-    cancelJob();
-    const a =
-        merged.athletes.find((a) => a.id === incoming.activeAthleteId) ||
-        merged.athletes.find((a) => a.id === merged.activeAthleteId),
-      r =
-        a.records.find((r) => r.recordId === incoming.activeRecordId) ||
-        a.records.at(-1);
-    merged.activeAthleteId = a.id;
-    merged.activeRecordId = r.recordId;
-    M.validateLibrary(merged);
-    localStorage.setItem(storageKey, JSON.stringify(merged));
-    library = merged;
-    library.athletes.forEach((a) =>
-      a.records.forEach((r) =>
-        recordBaselines.set(r.recordId, recordContent(r)),
-      ),
-    );
-    state = r;
-    ui.mode = "report";
-    ui.returnMode = "report";
-    ui.reportScroll = 0;
-    ui.detailOpen = {};
-    persist();
-    renderWorkspace();
-    renderReport(false);
-    toast(
-      "已导入 " +
-        added +
-        " 条测试" +
-        (skipped ? "，保留 " + skipped + " 条现有记录" : ""),
-    );
-    return { added, skipped };
+  }
+  async function importBackup(file, merge = false) {
+    return runLibraryTransfer(async()=>{
+    if (!await persist()) throw Error("当前修改尚未保存");
+    const result=await repository.importRows(window.RingsideStore.fileRows(file),{merge,onProgress:n=>toast("正在校验与导入 "+n+" 条测试")});
+    cancelJob();await loadDirectory(false);ui.mode="management";window.RingsideManagement.open("athletes");renderReport(false);renderWorkspace();return result;
+    });
   }
   function parseImportText(value) {
     const text = String(value).trim();
@@ -17276,7 +17837,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         "application/json;charset=utf-8",
       );
   }
-  function recoverData() {
+  async function recoverData() {
     if (!recovery) return;
     try {
       const changes = {};
@@ -17289,12 +17850,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const repaired = M.repairRules(recovery.raw, changes),
         mode = recovery.mode;
       if (mode === "startup") {
-        const next = M.normalizeLibrary(repaired);
-        localStorage.setItem(storageKey, JSON.stringify(next));
+        const next = window.RingsideEvaluation.migrate(repaired);
+        await repository.importLibrary(next);
         recovery = null;
         location.reload();
       } else {
-        importPayload(repaired);
+        await importPayload(repaired);
         recovery = null;
         close("recoveryModal");
         toast("异常阈值已修正，原始测量已恢复");
@@ -17304,26 +17865,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       $("recoveryError").hidden = false;
     }
   }
-  function importFile(file) {
+  async function importFile(file) {
     if (!file) return;
-    if (file.size > 50 * 1024 * 1024) return toast("备份超过50 MB，请分批导入");
-    const reader = new FileReader();
-    reader.onload = () => {
-      let parsed;
-      try {
-        parsed = parseImportText(reader.result);
-        importPayload(parsed);
-        $("saveModal").classList.remove("show");
-        document.body.style.overflow = "";
-        $("workspace").inert = false;
-        $("sidebar").inert =
-          matchMedia("(max-width:900px)").matches || ui.sidebarCollapsed;
-      } catch (e) {
-        if (!parsed || !stageRecovery(parsed, e, "import"))
-          toast("导入失败：" + e.message);
+    try {
+      const merge = $("backupImportMode")?.value !== "replace";
+      if (!merge && !confirm("恢复备份将切换当前资料库；现有资料库保留，可通过恢复上次资料库撤回。继续？")) return;
+      if (/\.jsonl$/i.test(file.name)) {
+        await importBackup(file,merge);
+      } else {
+        if (file.size > 50 * 1024 * 1024) throw Error("旧格式超过 50 MB，请使用完整 JSONL 备份");
+        const parsed=parseImportText(await file.text());
+        await importPayload(parsed,merge?"merge":"replace-library");
       }
-    };
-    reader.readAsText(file);
+      close("saveModal");toast("导入完成");
+    } catch(error) { toast("导入失败："+error.message); }
+    finally { $("importFile").value=""; }
   }
 
   function setPDFStatus(busy, label = "导出当前报告 PDF") {
@@ -17341,7 +17897,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     persist();
     renderReport();
-    const record = copy(state),
+    const record = effectiveRecord(),
       name = filename("pdf"),
       report = $("reportView").cloneNode(true);
     pdfJob = true;
@@ -17391,6 +17947,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   window.App = {
     openEntry,
+    openManagement, openManagedRecord, effectiveRecord, recordBasis,
+    saveLibraryChanges, loadDirectory, renderSelectors, downloadLegacyLibrary, importBackup,
+    getRepository: () => repository,
+    async assignRecordProfile(id) { if (!state || !library.evaluationProfiles.some(p=>p.id===id)) return; state.evaluationProfileId=id;cancelJob();await persist();renderReport();renderEntry(); },
+    viewEvaluation() { if(state) window.RingsideManagement.showEffective(effectiveRecord(),library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)); },
+    async restorePreviousLibrary() { await repository.restorePrevious();cancelJob();await loadDirectory(false);openManagement("athletes");renderReport();renderWorkspace(); },
+    downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
+    refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
+    saveNow: persist,
+    async loadDemo() { return importPayload(M.recordEnvelope(M.sampleRecord())); },
     creationNext,
     creationBack,
     submitCreation,
@@ -17430,7 +17996,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     getUIState() {
       return copy({ ...ui, entryTab, settingsTab });
     },
-    close,
+    close, modal,
     openSettings,
     settings(t) {
       settingsTab = t;
@@ -17477,16 +18043,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ai,
     models,
     copyAIFacts,
-    saveMenu() {
-      modal("saveModal");
-    },
+    saveMenu() { openManagement("backup"); },
     downloadHTML,
     downloadJSON,
     downloadLibrary,
     downloadPDF,
     print,
     stats() {
-      return M.stats(state);
+      return M.stats(effectiveRecord());
     },
     getState() {
       return state;
@@ -17634,7 +18198,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           t.dataset.lvpLimb === "upper"
             ? ["bench", "landmineR", "landmineL"]
             : ["squat", "deadlift"];
-        const available = M.stats(state).lvpSeries.filter(
+        const available = M.stats(effectiveRecord()).lvpSeries.filter(
             (x) => ids.includes(x.id) && x.points.length,
           ),
           selected = available.filter((x) => view.selected.includes(x.id));
@@ -17793,10 +18357,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     $("tooltip").style.top =
       Math.max(6, Math.min(e.clientY + 12, innerHeight - 100)) + "px";
   });
-  window.addEventListener("beforeunload", () => {
+  window.addEventListener("beforeunload", (event) => {
     saveEditor();
-    persist();
+    const unsaved=libraryTransferActive||storageFailed||saveTimer||pendingSaves||(state&&recordBaselines.get(state.recordId)!==recordContent(state));
+    if (unsaved) persist();
     if (job) job.controller.abort();
+    if (unsaved) { event.preventDefault(); event.returnValue=""; }
   });
 
   window.addEventListener(
@@ -17839,47 +18405,31 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       $("sidebarToggle").setAttribute("aria-expanded", "false");
     } else toggleSidebar(!ui.sidebarCollapsed);
   });
-  try {
-    restore();
-    initializeLibrary();
-  } catch (error) {
-    if (!stageRecovery(lastRestorePayload, error, "startup")) {
-      $("recoveryFields").textContent = "无法读取数据：" + error.message;
-      $("recoveryError").textContent =
-        "请保留原始文件。此问题不属于可在此表单修复的评价阈值。";
-      recovery = { raw: lastRestorePayload, mode: "startup" };
-      $("recoveryForm").querySelector('[type="submit"]').disabled = true;
-      modal("recoveryModal");
+  async function initializeApplication() {
+    $("startupStatus").hidden = false;
+    try {
+      await restore();
+      window.RingsideManagement.init();
+      try {
+        const saved=JSON.parse(sessionStorage.getItem(uiKey)||"null");
+        if(saved){ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};}
+      } catch {}
+      document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);
+      renderReport(false);renderWorkspace();
+      $("sidebar").inert=matchMedia("(max-width:900px)").matches||ui.sidebarCollapsed;
+      $("sidebarToggle").setAttribute("aria-expanded",String(!$("sidebar").inert));
+      $("startupStatus").hidden=true;
+      return true;
+    } catch(error) {
+      $("startupStatus").textContent="无法打开资料库："+error.message+"。原始资料未删除，请导出旧资料或重新打开后重试。";
+      $("startupStatus").classList.add("notice");
+      const recoverButton=document.createElement("button");recoverButton.className="btn small";recoverButton.textContent="导出迁移前原始资料";recoverButton.onclick=App.downloadPreMigration;$("startupStatus").append(recoverButton);
+      if(lastRestorePayload&&!lastRestorePayload.rawText)stageRecovery(lastRestorePayload,error,"startup");
+      console.error(error);
+      return false;
     }
-    return;
   }
-  try {
-    const saved = JSON.parse(sessionStorage.getItem(uiKey) || "null");
-    if (saved?.recordId === state.recordId) {
-      ui.mode = ["report", "entry", "settings"].includes(saved.mode)
-        ? saved.mode
-        : "report";
-      ui.returnMode = saved.returnMode === "entry" ? "entry" : "report";
-      ui.reportScroll = Number(saved.reportScroll) || 0;
-      ui.detailOpen = saved.detailOpen || {};
-      ui.sidebarCollapsed = !!saved.sidebarCollapsed;
-      entryTab = saved.entryTab || "athlete";
-      settingsTab = saved.settingsTab || "definitions";
-    }
-  } catch {}
-  document.body.classList.toggle("sidebar-collapsed", ui.sidebarCollapsed);
-  renderReport(false);
-  if (ui.mode === "entry") renderEntry();
-  if (ui.mode === "settings") renderSettings();
-  renderWorkspace();
-  persist();
-  $("sidebar").inert =
-    matchMedia("(max-width:900px)").matches || ui.sidebarCollapsed;
-  $("sidebarToggle").setAttribute("aria-expanded", String(!$("sidebar").inert));
-  if (ui.mode === "report")
-    requestAnimationFrame(() =>
-      window.scrollTo({ top: ui.reportScroll, behavior: "instant" }),
-    );
+  window.App.ready=initializeApplication();
 })();
 
 </script>
