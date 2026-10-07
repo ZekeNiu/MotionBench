@@ -7,10 +7,28 @@
   const completed = tx => new Promise((resolve,reject) => { tx.oncomplete=resolve; tx.onabort=()=>reject(tx.error || Error("保存事务已取消")); tx.onerror=()=>{}; });
   const keyRange = generation => IDBKeyRange.bound([generation, ""], [generation, "\uffff"]);
   function summary(r) {
-    return { _summary:true, recordId:r.recordId, athleteId:r.athleteId, athlete:{date:r.athlete.date,name:r.athlete.name}, updated:r.updated,
+    return { _summary:true, recordId:r.recordId, athleteId:r.athleteId, athlete:Object.fromEntries(["date","name","age","mass","height","cycle","injury"].map(k=>[k,r.athlete[k]??""])), updated:r.updated,
       title:r.title || "", enabled:clone(r.enabled), demo:!!r.demo, archived:!!r.archived, deletedAt:r.deletedAt || null, evaluationProfileId:r.evaluationProfileId || "" };
   }
   function athleteMetadata(a) { const {records, ...metadata}=a; return clone(metadata); }
+  function mergeCatalog(local, incoming) {
+    const variant=(catalog,id,source)=>({test:clone(catalog.tests.find(t=>t.id===id)),definitions:clone(catalog.definitions.filter(d=>d.testId===id)).sort((a,b)=>a.id.localeCompare(b.id)),protocol:catalog.protocol[id]||"",source});
+    const same=(a,b)=>E.canonical({...a,source:""})===E.canonical({...b,source:""});
+    for(const t of incoming.tests){
+      if(!local.tests.some(x=>x.id===t.id)){local.tests.push(clone(t));local.definitions.push(...clone(incoming.definitions.filter(d=>d.testId===t.id)));local.protocol[t.id]=incoming.protocol[t.id]||"";continue;}
+      const candidate=variant(incoming,t.id,"导入项目库"),current=variant(local,t.id,"本机项目库");
+      if(!same(current,candidate)){
+        let conflict=local.conflicts.find(c=>c.testId===t.id&&!c.resolved);
+        if(!conflict){conflict={id:t.id,testId:t.id,name:t.name,resolved:false,variants:[current]};local.conflicts.push(conflict);}
+        if(!conflict.variants.some(v=>same(v,candidate)))conflict.variants.push(candidate);
+      }
+    }
+    for(const c of incoming.conflicts.filter(c=>!c.resolved)){
+      let target=local.conflicts.find(x=>x.testId===c.testId&&!x.resolved);
+      if(!target){target=clone(c);local.conflicts.push(target);}else for(const v of c.variants)if(!target.variants.some(x=>same(x,v)))target.variants.push(clone(v));
+    }
+    M.validateCatalog(local);
+  }
   function configuration(lib) {
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
       activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.8.0"};
@@ -101,18 +119,19 @@
       for await(const row of this.rows()) {chunks.push(new Blob([JSON.stringify(row)+"\n"],{type:"application/x-ndjson"}));if(row.type==="record"&&++records%100===0)onProgress(records);}
       return new Blob(chunks,{type:"application/x-ndjson"});
     }
-    async exportLibrary() {
-      await this.flush();const lib=await this.directory(), owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
+    exportLibrary() { return this.enqueue(() => this.createLibrary()); }
+    async createLibrary() {
+      const lib=await this.directory(), owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
       for await(const batch of this.batches("records"))for(const r of batch)owners.get(r.athleteId).records.push(r);
       return lib;
     }
     async importLibrary(lib,options={}) {return this.importRows(libraryRows(lib),options);}
     importRows(iterable,options={}) { return this.enqueue(() => this.stageImport(iterable,options)); }
     async stageImport(iterable,{merge=false,onProgress=()=>{}}={}) {
-      const generation="generation_"+uid(),oldGeneration=this.generation;
+      const generation="generation_"+uid(),oldGeneration=this.generation,obsoleteGeneration=(await this.meta("previous"))?.value;
       const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
-      const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map();
-      let config=null,header=false,ended=false,pending=[], imported=0,seeded=false;
+      const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
+      let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
       const counts={athlete:0,record:0,group:0,profile:0,config:0};
       const flush=async()=>{
         if(!pending.length)return;const rows=pending;pending=[];
@@ -140,6 +159,8 @@
             if(E.canonical(raw.counts)!==E.canonical(counts))throw Error("备份条数校验失败");ended=true;continue;
           }
           if(!mapTable[raw.type])throw Error("备份包含未知类型");
+          const order=["config","group","profile","athlete","record"].indexOf(raw.type);
+          if(order<lastType)throw Error("备份资料顺序无效");lastType=order;
           const row={type:raw.type,value:clone(raw.value)},v=row.value;validateEntity(row.type,v);
           const incomingId=row.type==="record"?v.recordId:row.type==="config"?"library":v.id;
           if(seen.get(row.type).has(incomingId))throw Error("备份包含重复 ID："+incomingId);
@@ -147,7 +168,7 @@
           if(counts.athlete>2000||counts.record>10000)throw Error("备份超过 2000 名运动员或 10000 条记录");
           if(row.type==="config") {
             v.defaultEvaluationProfileId=profileMap.get(v.defaultEvaluationProfileId)||v.defaultEvaluationProfileId;
-            if(seeded){const incoming=v.catalog;for(const t of incoming.tests)if(!config.catalog.tests.some(x=>x.id===t.id)){config.catalog.tests.push(t);config.catalog.definitions.push(...incoming.definitions.filter(d=>d.testId===t.id));config.catalog.protocol[t.id]=incoming.protocol[t.id]||"";}continue;}
+            if(seeded){mergeCatalog(config.catalog,v.catalog);continue;}
             config=v;
           }
           if(row.type==="profile"){
@@ -167,7 +188,7 @@
           if(row.type==="record"){
             v.evaluationProfileId=profileMap.get(v.evaluationProfileId)||v.evaluationProfileId;
             references.push([v.athleteId,v.evaluationProfileId]);
-            if(seeded){const old=await this.get("records",v.recordId,generation);if(old){if(old.athleteId!==v.athleteId)throw Error("测试 ID 已属于另一运动员");if(E.canonical(old)===E.canonical(v))continue;v.recordId=uid();v.title=(v.title||v.athlete.date||"测试")+"（导入副本）";}}
+            if(seeded){const old=await this.get("records",v.recordId,generation);if(old){if(old.athleteId!==v.athleteId)throw Error("测试 ID 已属于另一运动员");if(E.canonical(old)===E.canonical(v))continue;v.recordId=uid();recordMap[incomingId]=v.recordId;v.title=(v.title||v.athlete.date||"测试")+"（导入副本）";}}
             imported++;if(imported%100===0)onProgress(imported);
           }
           pending.push(row);if(pending.length>=40)await flush();
@@ -175,7 +196,7 @@
         if(!header||!ended||counts.config!==1)throw Error("备份不完整，原资料库保持不变");
         for(const [athleteId,profileId] of references)if(!owners.has(athleteId)||!profiles.has(profileId))throw Error("测试的运动员或评价方案不存在");
         for(const a of owners.values())if(a.groupId&&!groups.has(a.groupId))throw Error("运动员所属队伍不存在");
-        config.defaultEvaluationProfileId=profileMap.get(config.defaultEvaluationProfileId)||config.defaultEvaluationProfileId;
+        if(!seeded)config.defaultEvaluationProfileId=profileMap.get(config.defaultEvaluationProfileId)||config.defaultEvaluationProfileId;
         if(!profiles.has(config.defaultEvaluationProfileId))throw Error("默认评价方案不存在");
         config.activeAthleteId=owners.has(config.activeAthleteId)?config.activeAthleteId:"";
         if(config.activeRecordId){await flush();const active=await this.get("records",config.activeRecordId,generation);if(!active||active.athleteId!==config.activeAthleteId)config.activeRecordId="";}
@@ -185,7 +206,9 @@
         const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
         tx.objectStore("meta").put({id:"active",value:generation});
         tx.objectStore("meta").put({id:"previous",value:oldGeneration});await done;
-        this.generation=generation;this.metadataHashes.clear();return{added:imported,skipped:counts.record-imported};
+        this.generation=generation;this.metadataHashes.clear();
+        if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
+        return{added:imported,skipped:counts.record-imported,recordMap};
       }catch(error){await this.discardGeneration(generation);throw error;}
     }
     async discardGeneration(generation) {

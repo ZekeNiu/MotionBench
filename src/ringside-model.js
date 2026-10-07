@@ -2600,7 +2600,9 @@
       if (!catalog.definitions.some((d) => d.id === definition.id))
         catalog.definitions.push(definition);
     });
+    const disabledTests = new Set(catalog.tests.filter(t => t.disabled).map(t => t.id));
     catalog.tests = T.snapshots(catalog);
+    catalog.tests.forEach(t => { if (disabledTests.has(t.id)) t.disabled = true; });
     catalog.protocol = { ...base.protocol, ...catalog.protocol };
     Object.keys(catalog.protocol).forEach((id) => {
       catalog.protocol[id] = migrateLegacySpeedText(

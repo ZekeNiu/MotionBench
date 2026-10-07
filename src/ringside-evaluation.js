@@ -21,7 +21,7 @@
       rules: clone(record.rules), axes: clone(record.axes),
       iso: record.data.iso.map(row => ({ id: row.id, direction: row.direction, ...isoContext(row, record), target: row.target ?? "" })).sort((a,b) => a.id.localeCompare(b.id)),
       balance: record.balancePairs.map(pair => ({ ...clone(pair), contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; }) })).sort((a,b) => a.id.localeCompare(b.id)),
-      lvp: Object.fromEntries(Object.entries(record.lvp).map(([id, p]) => [id, { ...clone(p), protocol: record.protocol?.[id] || "" }])),
+      lvp: Object.fromEntries(Object.entries(record.lvp).map(([id, p]) => [id, { ...clone(p), protocol: record.protocol?.[id.startsWith("landmine") ? "landmine" : id] || "" }])),
     };
   }
   function signature(criteria) {
@@ -61,7 +61,7 @@
     }
     for (const [id, p] of Object.entries(out.lvp)) {
       const rule = c.lvp[id];
-      if (rule && rule.metric === p.metric && (rule.protocol || "") === (record.protocol?.[id] || "")) {
+      if (rule && rule.metric === p.metric && (rule.protocol || "") === (record.protocol?.[id.startsWith("landmine") ? "landmine" : id] || "")) {
         p.mvt = rule.mvt; p.zones = clone(rule.zones); if (rule.source !== undefined) p.source = rule.source; else delete p.source;
       } else { p.mvt = ""; p.zones = []; }
     }
@@ -77,7 +77,7 @@
       r.protocol[d.testId] = d.context.protocol;
       if (d.context.force) r[d.testId === "cmj" ? "cmjConfig" : "imtpConfig"] = clone(d.context.force);
     }
-    for (const [id,p] of Object.entries(c.lvp)) r.protocol[id] = p.protocol;
+    for (const [id,p] of Object.entries(c.lvp)) r.protocol[id.startsWith("landmine") ? "landmine" : id] = p.protocol;
     return r;
   }
   function fromTemplate(draft, original) {
@@ -112,7 +112,7 @@
     for (const a of legacy.athletes) for (const r of a.records) {
       const c = capture(r), sig = signature(c);
       let profile = seen.get(sig);
-      if (!profile) { profile = create(r, "原有评价方案 " + (profiles.length + 1)); profiles.push(profile); seen.set(sig, profile); }
+      if (!profile) { profile = create(r, r.evaluationSnapshot?.name || "原有评价方案 " + (profiles.length + 1)); if(Number.isSafeInteger(r.evaluationSnapshot?.revision)&&r.evaluationSnapshot.revision>0)profile.revision=r.evaluationSnapshot.revision; profiles.push(profile); seen.set(sig, profile); }
       r.evaluationProfileId = profile.id; counts.set(profile.id, (counts.get(profile.id) || 0) + 1);
     }
     if (!profiles.length) profiles.push(create(M.recordFromCatalog(legacy.catalog, {}, Object.fromEntries(legacy.catalog.tests.map(t => [t.id, true]))), "默认评价方案"));
