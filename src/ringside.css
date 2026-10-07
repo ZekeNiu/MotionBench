@@ -1,23 +1,23 @@
 :root {
-  --ink: #1e293b;
-  --muted: #5f6b7a;
-  --blue: #365b80;
-  --blue-hover: #294b6b;
-  --blue-soft: #e7eef5;
-  --line: #dfe5eb;
-  --bg: #f3f5f7;
+  --ink: #262a30;
+  --muted: #636b76;
+  --blue: #365b7a;
+  --blue-hover: #294a66;
+  --blue-soft: #e8eef3;
+  --line: #e1e5e9;
+  --bg: #f5f6f8;
   --surface: #fff;
-  --surface-soft: #f7f9fb;
-  --sidebar-bg: #eef1f4;
+  --surface-soft: #f8f9fb;
+  --sidebar-bg: #f0f2f4;
   --green: #187459;
   --amber: #8a5a12;
   --red: #b23f3d;
-  --gray: #5f6b7a;
+  --gray: #66707b;
   --sidebar: 240px;
   --font-sans: "Segoe UI", "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
   --radius-panel: 12px;
   --radius-control: 8px;
-  --shadow-panel: 0 2px 8px #1e293b04, 0 1px 2px #1e293b03;
+  --shadow-panel: 0 2px 6px #1f2c3c04, 0 1px 2px #1f2c3c03;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -50,16 +50,17 @@ textarea {
 }
 button {
   cursor: pointer;
+  transition: background-color 140ms, border-color 140ms, color 140ms;
 }
 button:disabled {
   opacity: 0.55;
-  cursor: wait;
+  cursor: not-allowed;
 }
 input,
 select,
 textarea {
   padding: 9px 11px;
-  border: 1px solid #cbd4de;
+  border: 1px solid #d4dce5;
   border-radius: 8px;
   color: var(--ink);
   background: #fff;
@@ -81,7 +82,7 @@ a:focus-visible,
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 3px solid #365b8024;
+  outline: 3px solid #365b7a24;
   border-color: var(--blue);
 }
 a {
@@ -96,14 +97,14 @@ p {
 }
 h1 {
   font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.6px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
   line-height: 1.4;
 }
 h2 {
   font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-weight: 600;
+  letter-spacing: -0.35px;
   line-height: 1.4;
 }
 h3 {
@@ -120,6 +121,7 @@ svg {
 }
 svg text {
   font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }
 .muted {
   color: var(--muted);
@@ -152,7 +154,7 @@ svg text {
   gap: 8px;
   min-height: 40px;
   padding: 8px 16px;
-  border: 1px solid #cbd4de;
+  border: 1px solid #d5dde5;
   border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--ink);
@@ -161,7 +163,7 @@ svg text {
   white-space: nowrap;
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: var(--surface-soft);
   border-color: #9bafc2;
 }
@@ -170,7 +172,7 @@ svg text {
   border-color: var(--blue);
   color: #fff;
 }
-.btn.primary:hover {
+.btn.primary:hover:not(:disabled) {
   background: var(--blue-hover);
   border-color: var(--blue-hover);
 }
@@ -221,19 +223,24 @@ svg text {
   transition: transform 0.2s;
 }
 .brand {
-  display: flex;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 26px;
+  min-height: 68px;
+  flex-shrink: 0;
   align-items: center;
-  gap: 12px;
-  padding: 24px 16px;
+  gap: 10px;
+  padding: 14px 16px;
   font-weight: 700;
-  letter-spacing: 1.5px;
-  font-size: 15px;
+  letter-spacing: -0.4px;
+  font-size: 17px;
 }
+.brand > div { min-width: 0; line-height: 1.25; }
+.brand-mark svg { width: 30px; height: 30px; }
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   background: var(--blue);
   color: #fff;
@@ -242,26 +249,32 @@ svg text {
 }
 .brand small {
   display: block;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--muted);
   font-weight: 500;
-  letter-spacing: 1.1px;
-  margin-top: 2px;
+  letter-spacing: 0.4px;
+  margin-top: 3px;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 .sidebar-close {
-  margin-left: auto;
-  width: 24px;
+  margin: 0;
+  width: 26px;
+  min-width: 26px;
+  height: 32px;
+  min-height: 32px;
 }
 .sidebar-selection {
-  padding: 0 16px 24px;
+  padding: 0 16px 14px;
+  flex-shrink: 0;
   border-bottom: 1px solid var(--line);
 }
 .sidebar-field {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 .sidebar-field label {
   font-size: 12px;
@@ -280,16 +293,19 @@ svg text {
   font-size: 12px;
 }
 .sidebar-directory {
-  padding: 24px 12px;
+  padding: 16px 12px;
   flex: 1;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c1cad3 transparent;
 }
 .nav-label {
   font-size: 12px;
   color: var(--muted);
   padding: 0 12px 10px;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 .report-nav,
 .entry-nav {
@@ -297,6 +313,7 @@ svg text {
   flex-direction: column;
   gap: 4px;
 }
+.entry-nav { gap: 7px; }
 .report-nav button,
 .entry-nav button {
   display: flex;
@@ -318,8 +335,8 @@ svg text {
 }
 .report-nav button.active,
 .entry-nav button.active {
-  background: #e7ecf9;
-  color: #2449c7;
+  background: var(--blue-soft);
+  color: var(--blue);
   font-weight: 600;
 }
 .report-nav button.sub {
@@ -335,7 +352,8 @@ svg text {
   color: var(--blue);
 }
 .sidebar-bottom {
-  padding: 14px 12px;
+  padding: 10px 12px;
+  flex-shrink: 0;
   border-top: 1px solid var(--line);
 }
 .sidebar-action {
@@ -345,8 +363,8 @@ svg text {
   border: 0;
   background: transparent;
   width: 100%;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 36px;
+  padding: 7px 12px;
   border-radius: var(--radius-control);
   color: var(--muted);
   font-size: 13px;
@@ -355,6 +373,12 @@ svg text {
 .sidebar-action:hover {
   background: #e9edf5;
 }
+.sidebar-action.sidebar-scope-active {
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 600;
+  box-shadow: inset 2px 0 var(--blue);
+}
 .sidebar-action span {
   font-size: 15px;
   width: 17px;
@@ -362,7 +386,8 @@ svg text {
 .sidebar-bottom p {
   font-size: 12px;
   color: var(--muted);
-  padding: 12px 11px 0;
+  padding: 8px 11px 0;
+  line-height: 1.6;
 }
 .sidebar-scrim {
   position: fixed;
@@ -521,15 +546,15 @@ section {
   white-space: nowrap;
 }
 .pill.red {
-  background: #fcf0ef;
+  background: #fbefee;
   color: var(--red);
 }
 .pill.amber {
-  background: #faf4e8;
+  background: #faf4e9;
   color: var(--amber);
 }
 .pill.green {
-  background: #edf7f2;
+  background: #edf6f1;
   color: var(--green);
 }
 .dot {
@@ -573,8 +598,8 @@ section {
   border-color: #edf0f5;
 }
 .micro-value {
-  font-size: 32px;
-  font-weight: 600;
+  font-size: 36px;
+  font-weight: 550;
   line-height: 1.3;
   letter-spacing: -0.5px;
   font-variant-numeric: tabular-nums;
@@ -618,7 +643,7 @@ section {
   padding: 24px 24px 16px;
 }
 .card-head h3 {
-  font-size: 17px;
+  font-size: 18px;
 }
 .card-head p {
   font-size: 12px;
@@ -1041,18 +1066,23 @@ table {
 th,
 td {
   padding: 10px 9px;
-  border-bottom: 1px solid #edf0f5;
+  border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
 th {
   font-size: 12px;
-  color: var(--muted);
+  color: #56616f;
   font-weight: 600;
-  background: var(--surface-soft);
+  background: #f3f5f7;
   white-space: nowrap;
 }
 td {
   font-variant-numeric: tabular-nums;
+  color: #323a45;
+}
+tbody tr { background: #fff; }
+@media (hover: hover) {
+  tbody tr:hover { background: #f3f6f9; }
 }
 td .pill {
   font-size: 12px;
@@ -1168,7 +1198,7 @@ td .pill {
   margin-top: 15px;
 }
 .selected-result {
-  background: #f2f5fc;
+  background: #fff;
 }
 #detail-fms .detail-grid {
   align-items: stretch;
@@ -1208,8 +1238,8 @@ td .pill {
 .editor,
 .ai-preview {
   font-size: 14px;
-  line-height: 1.95;
-  color: #46556b;
+  line-height: 1.9;
+  color: #353e4b;
   overflow-wrap: anywhere;
 }
 .narrative h3,
@@ -1217,7 +1247,7 @@ td .pill {
 .ai-preview h3 {
   font-size: 17px;
   font-weight: 600;
-  color: #293b56;
+  color: var(--ink);
   margin: 25px 0 10px;
 }
 .narrative h3:first-child,
@@ -1508,9 +1538,9 @@ td .pill {
   align-items: flex-start;
 }
 .plan-group .check-tile:has(input:checked) {
-  border-color: #9cb2e9;
-  background: #f5f8ff;
-  color: #344e92;
+  border-color: #a9bdce;
+  background: var(--blue-soft);
+  color: var(--blue);
 }
 .plan-group .check-tile input {
   width: 18px;
@@ -1528,9 +1558,9 @@ td .pill {
 .entry-status-pill {
   display: inline-flex;
   align-items: center;
-  padding: 3px 7px;
+  padding: 0;
   border-radius: 6px;
-  background: #eff2f6;
+  background: transparent;
   color: var(--muted);
   font-size: 12px;
   font-weight: 500;
@@ -1542,7 +1572,8 @@ td .pill {
 .entry-status-pill.amber,
 .entry-status-pill.red {
   color: var(--amber);
-  background: #faf4e8;
+  background: #faf4e9;
+  padding: 2px 5px;
 }
 .entry-nav button > span:first-child {
   min-width: 0;
@@ -1813,8 +1844,15 @@ body.sidebar-collapsed .sidebar {
 body.sidebar-collapsed .workspace {
   margin-left: 0;
 }
+@media (max-height: 720px) {
+  .sidebar { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #c1cad3 transparent; }
+  .sidebar .brand { position: sticky; top: 0; z-index: 2; background: var(--sidebar-bg); border-bottom: 1px solid var(--line); }
+  .sidebar-selection { padding-top: 12px; }
+  .sidebar-directory { flex: none; overflow: visible; }
+  .sidebar-bottom { margin-top: auto; }
+}
 /* Shared controls and catalog rows. */
-.ui-icon { display: block; width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ui-icon { display: block; width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
 .report-nav button, .entry-nav button { min-height: 40px; padding: 10px 12px; font-size: 13px; border-radius: 8px; }
 .report-nav button.sub { font-size: 12px; padding-left: 40px; }
 .report-nav button.active, .entry-nav button.active { background: var(--blue-soft); color: var(--blue); box-shadow: inset 3px 0 var(--blue); }
@@ -1861,7 +1899,7 @@ body.sidebar-collapsed .workspace {
     padding-inline: 24px;
   }
   .micro-card {
-    padding: 13px;
+    padding: 20px;
   }
   .micro-head {
     flex-wrap: wrap;
@@ -1880,7 +1918,7 @@ body.sidebar-collapsed .workspace {
     padding-inline: 16px;
   }
   .summary-grid .card-head h3 {
-    font-size: 15px;
+    font-size: 17px;
   }
   .summary-grid .card-head .pill {
     font-size: 12px;
@@ -2097,11 +2135,11 @@ body.sidebar-collapsed .workspace {
     font-size: 12px;
   }
   .micro-cards {
-    gap: 9px;
+    gap: 12px;
     margin-bottom: 16px;
   }
   .micro-card {
-    padding: 16px;
+    padding: 20px 16px;
     min-height: 0;
   }
   .micro-head {
@@ -2118,7 +2156,7 @@ body.sidebar-collapsed .workspace {
     max-width: 100px;
   }
   .micro-value {
-    font-size: 25px;
+    font-size: 32px;
   }
   .micro-card p {
     font-size: 12px;
@@ -2367,6 +2405,9 @@ body.sidebar-collapsed .workspace {
   .sidebar-field .text-btn {
     font-size: 14px;
   }
+  .brand { grid-template-columns: 32px minmax(0, 1fr) 44px; min-height: 76px; padding: 12px 16px; }
+  .sidebar-close { width: 44px; height: 44px; }
+  .sidebar-directory { padding-top: 14px; }
   .sidebar-field {
     align-items: center;
     gap: 3px 7px;
@@ -2550,13 +2591,13 @@ body.sidebar-collapsed .workspace {
 /* Project grouping and report components share the same stable test metadata. */
 .sidebar-edit {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 .entry-group-label {
-  padding: 14px 12px 5px;
+  padding: 12px 12px 5px;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .ability-tags {
   display: block;

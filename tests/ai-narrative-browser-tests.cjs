@@ -46,7 +46,7 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
   assert.match(await page.evaluate(()=>App.getState().narrative.text),/教练编辑后的独立正文/);
   assert.equal(await page.evaluate(()=>App.getState().previousNarrative.text),"教练原稿");result.checks.push("editable-apply-view-change-safe-previous-version");
   responseText='{"priorityIds":[],"actions":[]}';await page.locator('[data-ai-generate]').click();
-  await page.waitForFunction(()=>document.querySelector("#toast").textContent.includes("数据对象"));
+  await page.waitForFunction(()=>document.querySelector("#aiProgressDetail").textContent.includes("数据对象"));
   assert.ok(!await page.locator("#previewModal").isVisible());assert.match(await page.evaluate(()=>App.getState().narrative.text),/教练编辑后的独立正文/);result.checks.push("obsolete-json-rejected-without-replacing-text");
   assert.deepEqual(result.errors,[]);result.pass=true;console.log("PASS autonomous Markdown input, preview, edit/apply and stale-body protection");
 }catch(e){result.pass=false;result.failure=e.stack;process.exitCode=1;console.error(e.message);}finally{fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(result,null,2));await browser.close();}})();

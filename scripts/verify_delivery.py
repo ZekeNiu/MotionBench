@@ -40,8 +40,69 @@ unit = read("unit", "output/tests/unit-results.json")
 assert len(unit["suites"]) == 8 and all(s["exitCode"] == 0 for s in unit["suites"])
 checks = sum(s["checksPassed"] for s in unit["suites"])
 version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
-assert checks == (148 if version in {"2.6.2", "2.6.3", "2.7.0"} else 146)
+assert checks == (148 if version in {"2.6.2", "2.6.3", "2.7.0", "2.7.1"} else 146)
 evidence["unit"]["checks"] = checks
+
+if version == "2.7.1":
+    assert digest(ROOT / "MotionBench.html") == source_hash
+    scope = read("aiScope", "output/playwright/silver-ui/ai-scope.json")
+    sidebar = read("sidebar", "output/playwright/silver-ui/sidebar.json")
+    comparison = read("comparison", "output/playwright/silver-ui/comparison/review.json")
+    ai = read("aiUI", "output/ai/motionbench/browser-results.json")
+    narrative = read("narrative", "output/ai/narrative-flow.json")
+    layout = read("isometricLayout", "output/playwright/iso-layout/review.json")
+    workflow = read("workflow", "output/playwright/workflow-verification-results.json")
+    pdf = read("pdfDownloads", "output/pdf/silver-download-verification.json")
+    render = read("pdfRender", "output/pdf/silver-render-verification.json")
+    visual = read("visualReview", "output/playwright/silver-ui/visual-review.json")
+    failure = read("pdfFailure", "output/pdf/failure-ui-verification.json")
+    for item in [scope, sidebar, comparison, ai, narrative, layout, pdf, render, visual, failure]:
+        assert item["pass"]
+        assert not item.get("errors")
+    assert len(scope["checks"]) == 11 and scope["synthetic"] and not scope["liveQualityEvidence"]
+    assert len(sidebar["checks"]) == 9 and not sidebar["network"]
+    assert {(1366, 768), (390, 667), (844, 390)} <= {(x["width"], x["height"]) for x in sidebar["layouts"]}
+    assert all(not x["pageOverflow"] and x["cards"] == 4 for x in sidebar["layouts"])
+    assert workflow["passed"] == 24 and workflow["failed"] == 0 and not workflow["browserErrors"]
+    assert len(ai["checks"]) == 9 and len(layout["checks"]) == 4 and not layout["network"]
+    assert len(comparison["comparisons"]) == 4 and all(x["equal"] for x in comparison["comparisons"])
+    assert len(comparison["images"]) == 20
+    images(comparison["images"])
+    baseline = ROOT / "output/backups/silver-ai-sidebar-20261007"
+    assert digest(baseline / "MotionBench.html") == comparison["baselineHash"]
+    unchanged = {}
+    for name in ["ringside-calc.js", "ringside-definitions.js", "ringside-model.js", "ringside-tests.js", "ringside-interventions.js", "ringside-report.js"]:
+        unchanged[name] = digest(ROOT / "src" / name)
+        assert unchanged[name] == digest(baseline / "src" / name), name
+    for case in pdf["cases"]:
+        assert case["pass"] and case["pdfSha256"] == digest(ROOT / "output/pdf" / (case["id"] + ".pdf"))
+        for field in ["missingRows", "duplicateRows", "changedRows", "missingCharts", "duplicateCharts"]:
+            assert not case["diagnostics"].get(field, [])
+    for case in render["cases"]:
+        assert case["pdfSha256"] == digest(ROOT / "output/pdf" / (case["id"] + ".pdf"))
+        assert all(p["a4"] for p in case["pageChecks"])
+    assert visual["allPagesVisuallyReviewed"] and visual["allComparisonPairsReviewed"]
+    images(visual["images"])
+    assert visual["pages"] == sum(c["pages"] for c in render["cases"])
+    assert {(c["id"], p) for c in render["cases"] for p in range(1, c["pages"] + 1)} == {
+        (c["id"], p) for c in visual["pdfCases"] for p in c["reviewedPages"]}
+    result = {"pass": True, "version": version, "html": "MotionBench.html", "sha256": source_hash,
+        "bytes": (ROOT / "MotionBench.html").stat().st_size, "reproducibleBuild": True,
+        "modules": modules, "unchangedCalculationAndReportModules": unchanged, "evidence": evidence,
+        "modelChecks": checks, "aiScopeWorkflows": 11, "aiServiceWorkflows": 9,
+        "sidebarViewportScenarios": 9, "coreWorkflows": 24, "isometricLayoutGroups": 4,
+        "sameDataComparisons": 4, "visualComparisonPairs": 10,
+        "pdfFilesReviewed": len(render["cases"]), "pdfPagesReviewed": visual["pages"],
+        "confidence": "high", "verificationLimits": [
+            "AI lifecycle checks use intercepted synthetic responses; no new live-model quality claim.",
+            "Mobile checks use browser viewport simulation; physical devices and paper printing were not tested.",
+            "This is a local update; no new remote release was published."]}
+    (ROOT / "output/acceptance-manifest.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    public = {k: v for k, v in result.items() if k not in {"evidence", "modules"}}
+    (ROOT / "docs/acceptance-2.7.1.json").write_text(json.dumps(public, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print("PASS MotionBench 2.7.1: current build, scoped AI, sidebar, unchanged data, workflows and visual PDF review")
+    print(source_hash)
+    raise SystemExit(0)
 
 if version == "2.7.0":
     assert digest(ROOT / "MotionBench.html") == source_hash

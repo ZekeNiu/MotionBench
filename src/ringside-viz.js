@@ -2,19 +2,19 @@
   "use strict";
 
   const C = {
-    ink: "#1e293b",
-    muted: "#5f6b7a",
-    grid: "#e5ebf3",
-    blue: "#365b80",
+    ink: "#262a30",
+    muted: "#636b76",
+    grid: "#e5e8ec",
+    blue: "#365b7a",
     green: "#187459",
     amber: "#8a5a12",
     red: "#b23f3d",
-    gray: "#5f6b7a",
-    paper: "#f7f9fb",
-    neutral: "#365b80",
+    gray: "#636b76",
+    paper: "#f8f9fb",
+    neutral: "#365b7a",
   };
   const FONT = "Segoe UI, 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif";
-  const SERIES = ["#365b80", "#71849f", "#786aa8", "#a37e46"];
+  const SERIES = ["#365b7a", "#71849f", "#786aa8", "#a37e46"];
   let serial = 0;
   const esc = (v) =>
     String(v == null ? "" : v).replace(
@@ -105,7 +105,7 @@
     `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" ${extra}><title>${esc(tooltip)}</title>${marker(x, y, r, fill, shape, 'stroke="white" stroke-width="2"')}</g>`;
   function svg(w, h, title, markup, description = "", pixelLayout = false) {
     const id = `ringside-viz-${++serial}`;
-    return `<svg id="${id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="${id}-title ${id}-desc" style="display:block;width:100%;height:auto"><title id="${id}-title">${esc(title)}</title><desc id="${id}-desc">${esc(description || title)}</desc><style>.viz-point,.viz-region,.lvp-hit{outline:none}.viz-point:focus>circle,.viz-point:focus>polygon,.viz-point:focus>rect,.viz-region:focus .viz-hotspot{stroke:#365b80;stroke-width:3}.viz-region{cursor:pointer}.lvp-hit{cursor:crosshair}.lvp-hit:focus{stroke:#365b80;stroke-opacity:.15}${pixelLayout ? "" : `@media screen and (max-width:600px){#${id} text{font-size:18px}#${id} text[font-size="9"],#${id} text[font-size="10"]{font-size:15px}}`}</style>${markup}</svg>`;
+    return `<svg id="${id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="${id}-title ${id}-desc" style="display:block;width:100%;height:auto"><title id="${id}-title">${esc(title)}</title><desc id="${id}-desc">${esc(description || title)}</desc><style>.viz-point,.viz-region,.lvp-hit{outline:none}.viz-point:focus>circle,.viz-point:focus>polygon,.viz-point:focus>rect,.viz-region:focus .viz-hotspot{stroke:#365b7a;stroke-width:3}.viz-region{cursor:pointer}.lvp-hit{cursor:crosshair}.lvp-hit:focus{stroke:#365b7a;stroke-opacity:.15}${pixelLayout ? "" : `@media screen and (max-width:600px){#${id} text{font-size:18px}#${id} text[font-size="9"],#${id} text[font-size="10"]{font-size:15px}}`}</style>${markup}</svg>`;
   }
   function layoutSVG(w, h, title, markup, description, layout = {}) {
     const scale = layout.print ? 0.86 : 1;
@@ -1288,10 +1288,10 @@
           color:
             item.color ||
             {
-              bench: "#365b80",
+              bench: "#365b7a",
               landmineR: "#956a43",
               landmineL: "#786aa8",
-              squat: "#365b80",
+              squat: "#365b7a",
               deadlift: "#956a43",
             }[item.id] ||
             SERIES[index % SERIES.length],

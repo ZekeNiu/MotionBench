@@ -14,25 +14,25 @@
     />
     <style>
 :root {
-  --ink: #1e293b;
-  --muted: #5f6b7a;
-  --blue: #365b80;
-  --blue-hover: #294b6b;
-  --blue-soft: #e7eef5;
-  --line: #dfe5eb;
-  --bg: #f3f5f7;
+  --ink: #262a30;
+  --muted: #636b76;
+  --blue: #365b7a;
+  --blue-hover: #294a66;
+  --blue-soft: #e8eef3;
+  --line: #e1e5e9;
+  --bg: #f5f6f8;
   --surface: #fff;
-  --surface-soft: #f7f9fb;
-  --sidebar-bg: #eef1f4;
+  --surface-soft: #f8f9fb;
+  --sidebar-bg: #f0f2f4;
   --green: #187459;
   --amber: #8a5a12;
   --red: #b23f3d;
-  --gray: #5f6b7a;
+  --gray: #66707b;
   --sidebar: 240px;
   --font-sans: "Segoe UI", "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
   --radius-panel: 12px;
   --radius-control: 8px;
-  --shadow-panel: 0 2px 8px #1e293b04, 0 1px 2px #1e293b03;
+  --shadow-panel: 0 2px 6px #1f2c3c04, 0 1px 2px #1f2c3c03;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -65,16 +65,17 @@ textarea {
 }
 button {
   cursor: pointer;
+  transition: background-color 140ms, border-color 140ms, color 140ms;
 }
 button:disabled {
   opacity: 0.55;
-  cursor: wait;
+  cursor: not-allowed;
 }
 input,
 select,
 textarea {
   padding: 9px 11px;
-  border: 1px solid #cbd4de;
+  border: 1px solid #d4dce5;
   border-radius: 8px;
   color: var(--ink);
   background: #fff;
@@ -96,7 +97,7 @@ a:focus-visible,
 input:focus,
 select:focus,
 textarea:focus {
-  outline: 3px solid #365b8024;
+  outline: 3px solid #365b7a24;
   border-color: var(--blue);
 }
 a {
@@ -111,14 +112,14 @@ p {
 }
 h1 {
   font-size: 30px;
-  font-weight: 700;
-  letter-spacing: -0.6px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
   line-height: 1.4;
 }
 h2 {
   font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-weight: 600;
+  letter-spacing: -0.35px;
   line-height: 1.4;
 }
 h3 {
@@ -135,6 +136,7 @@ svg {
 }
 svg text {
   font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }
 .muted {
   color: var(--muted);
@@ -167,7 +169,7 @@ svg text {
   gap: 8px;
   min-height: 40px;
   padding: 8px 16px;
-  border: 1px solid #cbd4de;
+  border: 1px solid #d5dde5;
   border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--ink);
@@ -176,7 +178,7 @@ svg text {
   white-space: nowrap;
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
-.btn:hover {
+.btn:hover:not(:disabled) {
   background: var(--surface-soft);
   border-color: #9bafc2;
 }
@@ -185,7 +187,7 @@ svg text {
   border-color: var(--blue);
   color: #fff;
 }
-.btn.primary:hover {
+.btn.primary:hover:not(:disabled) {
   background: var(--blue-hover);
   border-color: var(--blue-hover);
 }
@@ -236,19 +238,24 @@ svg text {
   transition: transform 0.2s;
 }
 .brand {
-  display: flex;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 26px;
+  min-height: 68px;
+  flex-shrink: 0;
   align-items: center;
-  gap: 12px;
-  padding: 24px 16px;
+  gap: 10px;
+  padding: 14px 16px;
   font-weight: 700;
-  letter-spacing: 1.5px;
-  font-size: 15px;
+  letter-spacing: -0.4px;
+  font-size: 17px;
 }
+.brand > div { min-width: 0; line-height: 1.25; }
+.brand-mark svg { width: 30px; height: 30px; }
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   background: var(--blue);
   color: #fff;
@@ -257,26 +264,32 @@ svg text {
 }
 .brand small {
   display: block;
-  font-size: 9px;
+  font-size: 8px;
   color: var(--muted);
   font-weight: 500;
-  letter-spacing: 1.1px;
-  margin-top: 2px;
+  letter-spacing: 0.4px;
+  margin-top: 3px;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 .sidebar-close {
-  margin-left: auto;
-  width: 24px;
+  margin: 0;
+  width: 26px;
+  min-width: 26px;
+  height: 32px;
+  min-height: 32px;
 }
 .sidebar-selection {
-  padding: 0 16px 24px;
+  padding: 0 16px 14px;
+  flex-shrink: 0;
   border-bottom: 1px solid var(--line);
 }
 .sidebar-field {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 5px;
+  margin-bottom: 10px;
 }
 .sidebar-field label {
   font-size: 12px;
@@ -295,16 +308,19 @@ svg text {
   font-size: 12px;
 }
 .sidebar-directory {
-  padding: 24px 12px;
+  padding: 16px 12px;
   flex: 1;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c1cad3 transparent;
 }
 .nav-label {
   font-size: 12px;
   color: var(--muted);
   padding: 0 12px 10px;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 .report-nav,
 .entry-nav {
@@ -312,6 +328,7 @@ svg text {
   flex-direction: column;
   gap: 4px;
 }
+.entry-nav { gap: 7px; }
 .report-nav button,
 .entry-nav button {
   display: flex;
@@ -333,8 +350,8 @@ svg text {
 }
 .report-nav button.active,
 .entry-nav button.active {
-  background: #e7ecf9;
-  color: #2449c7;
+  background: var(--blue-soft);
+  color: var(--blue);
   font-weight: 600;
 }
 .report-nav button.sub {
@@ -350,7 +367,8 @@ svg text {
   color: var(--blue);
 }
 .sidebar-bottom {
-  padding: 14px 12px;
+  padding: 10px 12px;
+  flex-shrink: 0;
   border-top: 1px solid var(--line);
 }
 .sidebar-action {
@@ -360,8 +378,8 @@ svg text {
   border: 0;
   background: transparent;
   width: 100%;
-  min-height: 40px;
-  padding: 8px 12px;
+  min-height: 36px;
+  padding: 7px 12px;
   border-radius: var(--radius-control);
   color: var(--muted);
   font-size: 13px;
@@ -370,6 +388,12 @@ svg text {
 .sidebar-action:hover {
   background: #e9edf5;
 }
+.sidebar-action.sidebar-scope-active {
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 600;
+  box-shadow: inset 2px 0 var(--blue);
+}
 .sidebar-action span {
   font-size: 15px;
   width: 17px;
@@ -377,7 +401,8 @@ svg text {
 .sidebar-bottom p {
   font-size: 12px;
   color: var(--muted);
-  padding: 12px 11px 0;
+  padding: 8px 11px 0;
+  line-height: 1.6;
 }
 .sidebar-scrim {
   position: fixed;
@@ -536,15 +561,15 @@ section {
   white-space: nowrap;
 }
 .pill.red {
-  background: #fcf0ef;
+  background: #fbefee;
   color: var(--red);
 }
 .pill.amber {
-  background: #faf4e8;
+  background: #faf4e9;
   color: var(--amber);
 }
 .pill.green {
-  background: #edf7f2;
+  background: #edf6f1;
   color: var(--green);
 }
 .dot {
@@ -588,8 +613,8 @@ section {
   border-color: #edf0f5;
 }
 .micro-value {
-  font-size: 32px;
-  font-weight: 600;
+  font-size: 36px;
+  font-weight: 550;
   line-height: 1.3;
   letter-spacing: -0.5px;
   font-variant-numeric: tabular-nums;
@@ -633,7 +658,7 @@ section {
   padding: 24px 24px 16px;
 }
 .card-head h3 {
-  font-size: 17px;
+  font-size: 18px;
 }
 .card-head p {
   font-size: 12px;
@@ -1056,18 +1081,23 @@ table {
 th,
 td {
   padding: 10px 9px;
-  border-bottom: 1px solid #edf0f5;
+  border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
 th {
   font-size: 12px;
-  color: var(--muted);
+  color: #56616f;
   font-weight: 600;
-  background: var(--surface-soft);
+  background: #f3f5f7;
   white-space: nowrap;
 }
 td {
   font-variant-numeric: tabular-nums;
+  color: #323a45;
+}
+tbody tr { background: #fff; }
+@media (hover: hover) {
+  tbody tr:hover { background: #f3f6f9; }
 }
 td .pill {
   font-size: 12px;
@@ -1183,7 +1213,7 @@ td .pill {
   margin-top: 15px;
 }
 .selected-result {
-  background: #f2f5fc;
+  background: #fff;
 }
 #detail-fms .detail-grid {
   align-items: stretch;
@@ -1223,8 +1253,8 @@ td .pill {
 .editor,
 .ai-preview {
   font-size: 14px;
-  line-height: 1.95;
-  color: #46556b;
+  line-height: 1.9;
+  color: #353e4b;
   overflow-wrap: anywhere;
 }
 .narrative h3,
@@ -1232,7 +1262,7 @@ td .pill {
 .ai-preview h3 {
   font-size: 17px;
   font-weight: 600;
-  color: #293b56;
+  color: var(--ink);
   margin: 25px 0 10px;
 }
 .narrative h3:first-child,
@@ -1523,9 +1553,9 @@ td .pill {
   align-items: flex-start;
 }
 .plan-group .check-tile:has(input:checked) {
-  border-color: #9cb2e9;
-  background: #f5f8ff;
-  color: #344e92;
+  border-color: #a9bdce;
+  background: var(--blue-soft);
+  color: var(--blue);
 }
 .plan-group .check-tile input {
   width: 18px;
@@ -1543,9 +1573,9 @@ td .pill {
 .entry-status-pill {
   display: inline-flex;
   align-items: center;
-  padding: 3px 7px;
+  padding: 0;
   border-radius: 6px;
-  background: #eff2f6;
+  background: transparent;
   color: var(--muted);
   font-size: 12px;
   font-weight: 500;
@@ -1557,7 +1587,8 @@ td .pill {
 .entry-status-pill.amber,
 .entry-status-pill.red {
   color: var(--amber);
-  background: #faf4e8;
+  background: #faf4e9;
+  padding: 2px 5px;
 }
 .entry-nav button > span:first-child {
   min-width: 0;
@@ -1828,8 +1859,15 @@ body.sidebar-collapsed .sidebar {
 body.sidebar-collapsed .workspace {
   margin-left: 0;
 }
+@media (max-height: 720px) {
+  .sidebar { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #c1cad3 transparent; }
+  .sidebar .brand { position: sticky; top: 0; z-index: 2; background: var(--sidebar-bg); border-bottom: 1px solid var(--line); }
+  .sidebar-selection { padding-top: 12px; }
+  .sidebar-directory { flex: none; overflow: visible; }
+  .sidebar-bottom { margin-top: auto; }
+}
 /* Shared controls and catalog rows. */
-.ui-icon { display: block; width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ui-icon { display: block; width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
 .report-nav button, .entry-nav button { min-height: 40px; padding: 10px 12px; font-size: 13px; border-radius: 8px; }
 .report-nav button.sub { font-size: 12px; padding-left: 40px; }
 .report-nav button.active, .entry-nav button.active { background: var(--blue-soft); color: var(--blue); box-shadow: inset 3px 0 var(--blue); }
@@ -1876,7 +1914,7 @@ body.sidebar-collapsed .workspace {
     padding-inline: 24px;
   }
   .micro-card {
-    padding: 13px;
+    padding: 20px;
   }
   .micro-head {
     flex-wrap: wrap;
@@ -1895,7 +1933,7 @@ body.sidebar-collapsed .workspace {
     padding-inline: 16px;
   }
   .summary-grid .card-head h3 {
-    font-size: 15px;
+    font-size: 17px;
   }
   .summary-grid .card-head .pill {
     font-size: 12px;
@@ -2112,11 +2150,11 @@ body.sidebar-collapsed .workspace {
     font-size: 12px;
   }
   .micro-cards {
-    gap: 9px;
+    gap: 12px;
     margin-bottom: 16px;
   }
   .micro-card {
-    padding: 16px;
+    padding: 20px 16px;
     min-height: 0;
   }
   .micro-head {
@@ -2133,7 +2171,7 @@ body.sidebar-collapsed .workspace {
     max-width: 100px;
   }
   .micro-value {
-    font-size: 25px;
+    font-size: 32px;
   }
   .micro-card p {
     font-size: 12px;
@@ -2382,6 +2420,9 @@ body.sidebar-collapsed .workspace {
   .sidebar-field .text-btn {
     font-size: 14px;
   }
+  .brand { grid-template-columns: 32px minmax(0, 1fr) 44px; min-height: 76px; padding: 12px 16px; }
+  .sidebar-close { width: 44px; height: 44px; }
+  .sidebar-directory { padding-top: 14px; }
   .sidebar-field {
     align-items: center;
     gap: 3px 7px;
@@ -2565,13 +2606,13 @@ body.sidebar-collapsed .workspace {
 /* Project grouping and report components share the same stable test metadata. */
 .sidebar-edit {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 .entry-group-label {
-  padding: 14px 12px 5px;
+  padding: 12px 12px 5px;
   color: var(--muted);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .ability-tags {
   display: block;
@@ -2994,7 +3035,7 @@ body.sidebar-collapsed .workspace {
               <div><button class="btn small" data-local-draft onclick="App.localDraft()">生成离线摘要</button><p>无需联网。按已有规则整理测试发现与基础建议，适合作为手写解读的起点。</p></div>
               <div><button class="btn small primary" data-ai-generate onclick="App.ai()">生成 AI 综合建议</button><p>联网综合测试、专项和训练背景，提出训练重点、具体剂量与周安排。需要配置 AI 服务。</p></div>
             </div>
-            <p class="note">两种方式都会先打开可编辑预览；点击“应用草稿”后才替换下方正文。背景越完整，AI 建议越有针对性。</p>
+            <p class="note">草稿可先预览和编辑；点击“应用草稿”后才替换下方正文。背景越完整，AI 建议越有针对性。</p>
             <div class="editor-toolbar">
               <button
                 class="btn small"
@@ -8887,19 +8928,19 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   "use strict";
 
   const C = {
-    ink: "#1e293b",
-    muted: "#5f6b7a",
-    grid: "#e5ebf3",
-    blue: "#365b80",
+    ink: "#262a30",
+    muted: "#636b76",
+    grid: "#e5e8ec",
+    blue: "#365b7a",
     green: "#187459",
     amber: "#8a5a12",
     red: "#b23f3d",
-    gray: "#5f6b7a",
-    paper: "#f7f9fb",
-    neutral: "#365b80",
+    gray: "#636b76",
+    paper: "#f8f9fb",
+    neutral: "#365b7a",
   };
   const FONT = "Segoe UI, 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif";
-  const SERIES = ["#365b80", "#71849f", "#786aa8", "#a37e46"];
+  const SERIES = ["#365b7a", "#71849f", "#786aa8", "#a37e46"];
   let serial = 0;
   const esc = (v) =>
     String(v == null ? "" : v).replace(
@@ -8990,7 +9031,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" ${extra}><title>${esc(tooltip)}</title>${marker(x, y, r, fill, shape, 'stroke="white" stroke-width="2"')}</g>`;
   function svg(w, h, title, markup, description = "", pixelLayout = false) {
     const id = `ringside-viz-${++serial}`;
-    return `<svg id="${id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="${id}-title ${id}-desc" style="display:block;width:100%;height:auto"><title id="${id}-title">${esc(title)}</title><desc id="${id}-desc">${esc(description || title)}</desc><style>.viz-point,.viz-region,.lvp-hit{outline:none}.viz-point:focus>circle,.viz-point:focus>polygon,.viz-point:focus>rect,.viz-region:focus .viz-hotspot{stroke:#365b80;stroke-width:3}.viz-region{cursor:pointer}.lvp-hit{cursor:crosshair}.lvp-hit:focus{stroke:#365b80;stroke-opacity:.15}${pixelLayout ? "" : `@media screen and (max-width:600px){#${id} text{font-size:18px}#${id} text[font-size="9"],#${id} text[font-size="10"]{font-size:15px}}`}</style>${markup}</svg>`;
+    return `<svg id="${id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-labelledby="${id}-title ${id}-desc" style="display:block;width:100%;height:auto"><title id="${id}-title">${esc(title)}</title><desc id="${id}-desc">${esc(description || title)}</desc><style>.viz-point,.viz-region,.lvp-hit{outline:none}.viz-point:focus>circle,.viz-point:focus>polygon,.viz-point:focus>rect,.viz-region:focus .viz-hotspot{stroke:#365b7a;stroke-width:3}.viz-region{cursor:pointer}.lvp-hit{cursor:crosshair}.lvp-hit:focus{stroke:#365b7a;stroke-opacity:.15}${pixelLayout ? "" : `@media screen and (max-width:600px){#${id} text{font-size:18px}#${id} text[font-size="9"],#${id} text[font-size="10"]{font-size:15px}}`}</style>${markup}</svg>`;
   }
   function layoutSVG(w, h, title, markup, description, layout = {}) {
     const scale = layout.print ? 0.86 : 1;
@@ -10173,10 +10214,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           color:
             item.color ||
             {
-              bench: "#365b80",
+              bench: "#365b7a",
               landmineR: "#956a43",
               landmineL: "#786aa8",
-              squat: "#365b80",
+              squat: "#365b7a",
               deadlift: "#956a43",
             }[item.id] ||
             SERIES[index % SERIES.length],
@@ -12024,35 +12065,35 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   let lastDiagnostics = null;
   const CSS = `
     .ringside-pdf-stage{position:fixed!important;left:-20000px!important;top:0!important;width:210mm!important;z-index:-100!important;pointer-events:none!important;background:#fff!important;}
-    .ringside-pdf-document{--ink:#1e293b;--muted:#5f6b7a;--line:#dfe5eb;font:13.333px/1.65 ${FONT}!important;color:#1e293b!important;background:#fff!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document{--ink:#262a30;--muted:#636b76;--line:#e1e5e9;font:13.333px/1.65 ${FONT}!important;color:#262a30!important;background:#fff!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;}
     .ringside-pdf-document *{box-sizing:border-box;}
     .ringside-pdf-source{width:186mm!important;padding:0!important;margin:0!important;max-width:none!important;display:block!important;}
     .ringside-pdf-source .details-group,.ringside-pdf-source .quality-group,.ringside-pdf-source .test-block,.ringside-pdf-source .lvp-card{padding:0!important;margin:0!important;border:0!important;}
-    .ringside-pdf-document h1{font-size:25px!important;line-height:1.4!important;letter-spacing:-.4px!important;margin:0!important;}
-    .ringside-pdf-document h2{font-size:21px!important;line-height:1.4!important;font-weight:750!important;}
-    .ringside-pdf-document h3{font-size:16px!important;line-height:1.5!important;font-weight:700!important;}
+    .ringside-pdf-document h1{font-size:25px!important;font-weight:650!important;line-height:1.4!important;letter-spacing:-.4px!important;margin:0!important;}
+    .ringside-pdf-document h2{font-size:21px!important;line-height:1.4!important;font-weight:600!important;}
+    .ringside-pdf-document h3{font-size:16px!important;line-height:1.5!important;font-weight:600!important;}
     .ringside-pdf-document h4{font-size:13px!important;line-height:1.5!important;font-weight:650!important;}
     .ringside-pdf-document p{margin:0 0 9px!important;}
     .ringside-pdf-document .hero{display:block!important;margin:0!important;padding:0 0 8px!important;}
     .ringside-pdf-document .hero-sub{display:flex!important;flex-wrap:wrap!important;gap:11px!important;font-size:12px!important;line-height:1.7!important;margin-top:7px!important;}
     .ringside-pdf-document .hero-sub span+span:before{content:'·'!important;margin-right:11px!important;color:#bac2cf!important;}
-    .ringside-pdf-document .section-heading{padding:8px 0!important;margin:0!important;border-bottom:1px solid #dfe5eb!important;display:block!important;background:none!important;}
+    .ringside-pdf-document .section-heading{padding:8px 0!important;margin:0!important;border-bottom:1px solid #e1e5e9!important;display:block!important;background:none!important;}
     .ringside-pdf-document .section-title{display:flex!important;align-items:flex-start!important;gap:10px!important;}
     .ringside-pdf-document .section-title>div{min-width:0!important;}
-    .ringside-pdf-document .section-number{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:12px!important;line-height:1!important;color:#365b80!important;background:#edf2fa!important;border-radius:7px!important;margin-top:2px!important;}
-    .ringside-pdf-document .section-heading p,.ringside-pdf-document .test-title p{font-size:12px!important;line-height:1.65!important;margin:4px 0 0!important;color:#5f6b7a!important;}
-    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border-left:3px solid #365b80!important;background:#f2f5fa!important;font-size:17px!important;font-weight:700!important;}
-    .ringside-pdf-document .quality-heading p,.ringside-pdf-document .pdf-group-heading span{font-size:12px!important;color:#5f6b7a!important;font-weight:400!important;}
+    .ringside-pdf-document .section-number{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:12px!important;line-height:1!important;color:#365b7a!important;background:#e8eef3!important;border-radius:7px!important;margin-top:2px!important;}
+    .ringside-pdf-document .section-heading p,.ringside-pdf-document .test-title p{font-size:12px!important;line-height:1.65!important;margin:4px 0 0!important;color:#636b76!important;}
+    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border-left:3px solid #365b7a!important;background:#f3f5f7!important;font-size:17px!important;font-weight:600!important;}
+    .ringside-pdf-document .quality-heading p,.ringside-pdf-document .pdf-group-heading span{font-size:12px!important;color:#636b76!important;font-weight:400!important;}
     .ringside-pdf-document .pdf-group-heading span{display:block!important;margin-top:4px!important;}
     .ringside-pdf-document .test-title{display:block!important;padding:4px 0!important;margin:0!important;}
-    .ringside-pdf-document .card{background:#fff!important;border:1px solid #e0e6ef!important;box-shadow:none!important;border-radius:8px!important;overflow:visible!important;}
+    .ringside-pdf-document .card{background:#fff!important;border:1px solid #e1e5e9!important;box-shadow:none!important;border-radius:8px!important;overflow:visible!important;}
     .ringside-pdf-document .micro-cards{display:flex!important;gap:9px!important;margin:0!important;}
-    .ringside-pdf-document .micro-card{border:1px solid #dfe5eb!important;flex:1!important;min-width:0!important;min-height:102px!important;padding:11px!important;border-radius:8px!important;background:#f7f9fc!important;box-shadow:none!important;}
+    .ringside-pdf-document .micro-card{border:1px solid #e1e5e9!important;flex:1!important;min-width:0!important;min-height:102px!important;padding:11px!important;border-radius:8px!important;background:#f8f9fb!important;box-shadow:none!important;}
     .ringside-pdf-document .micro-head{display:block!important;margin:0 0 6px!important;}
     .ringside-pdf-document .micro-head h3{font-size:12px!important;}
     .ringside-pdf-document .micro-value{font-size:26px!important;line-height:1.35!important;}
     .ringside-pdf-document .micro-value.text{font-size:14px!important;}
-    .ringside-pdf-document .micro-card p,.ringside-pdf-document .micro-card a{font-size:11px!important;line-height:1.65!important;color:#5f6b7a!important;}
+    .ringside-pdf-document .micro-card p,.ringside-pdf-document .micro-card a{font-size:11px!important;line-height:1.65!important;color:#636b76!important;}
     .ringside-pdf-document .summary-grid{display:flex!important;gap:12px!important;align-items:stretch!important;}
     .ringside-pdf-document .summary-grid>.card{width:calc(50% - 6px)!important;flex:1!important;min-width:0!important;}
     .ringside-pdf-document .card-head{display:block!important;padding:12px 12px 6px!important;}
@@ -12098,7 +12139,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     .ringside-pdf-document .fms-detail table th:nth-child(4){width:24%!important;}
     .ringside-pdf-document .fms-detail table th:nth-child(5){width:18%!important;}
     .ringside-pdf-document .detail-data .subheading{margin:10px 0 5px!important;}
-    .ringside-pdf-document .metric-meta{display:block!important;font-size:11px!important;color:#5f6b7a!important;}
+    .ringside-pdf-document .metric-meta{display:block!important;font-size:11px!important;color:#636b76!important;}
     .ringside-pdf-document .comparison-results{display:block!important;}
     .ringside-pdf-document .comparison-result{padding:8px!important;margin-bottom:8px!important;}
     .ringside-pdf-document .comparison-heading{display:flex!important;justify-content:space-between!important;gap:8px!important;font-size:12px!important;}
@@ -12107,22 +12148,22 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     .ringside-pdf-document .inline-asym img{width:100%!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document .iso-charts>img+img{margin-top:10px!important;}
     .ringside-pdf-document table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:12px!important;text-align:left!important;margin:0!important;}
-    .ringside-pdf-document th,.ringside-pdf-document td{font-size:12px!important;line-height:1.55!important;padding:7px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:top!important;border-bottom:1px solid #dfe5eb!important;}
-    .ringside-pdf-document th{font-weight:600!important;color:#5f6b7a!important;background:#f3f6fa!important;}
+    .ringside-pdf-document th,.ringside-pdf-document td{font-size:12px!important;line-height:1.55!important;padding:7px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:top!important;border-bottom:1px solid #e1e5e9!important;}
+    .ringside-pdf-document th{font-weight:600!important;color:#636b76!important;background:#f3f5f7!important;}
     .ringside-pdf-document .table-wrap{overflow:visible!important;max-width:100%!important;}
-    .ringside-pdf-document .selected-result{background:#edf7f2!important;}
+    .ringside-pdf-document tbody tr,.ringside-pdf-document tbody td,.ringside-pdf-document .selected-result{background:#fff!important;}
     .ringside-pdf-document .stat-row{display:flex!important;gap:8px!important;flex-wrap:wrap!important;margin:0!important;}
-    .ringside-pdf-document .stat-chip{font-size:12px!important;padding:5px 8px!important;background:#f7f9fb!important;}
-    .ringside-pdf-document .note{font-size:11px!important;line-height:1.75!important;color:#5f6b7a!important;margin:0!important;}
+    .ringside-pdf-document .stat-chip{font-size:12px!important;padding:5px 8px!important;background:#f8f9fb!important;}
+    .ringside-pdf-document .note{font-size:11px!important;line-height:1.75!important;color:#636b76!important;margin:0!important;}
     .ringside-pdf-document .empty{font-size:12px!important;padding:16px!important;}
     .ringside-pdf-document .editor,.ringside-pdf-document .narrative-view,.ringside-pdf-document .narrative{font-size:13.333px!important;line-height:1.85!important;border:0!important;padding:0!important;min-height:0!important;background:#fff!important;}
     .ringside-pdf-document ul,.ringside-pdf-document ol{padding-left:22px!important;margin:0!important;}
     .ringside-pdf-document li{margin:0!important;padding:0!important;line-height:1.8!important;}
     .ringside-pdf-page{width:210mm!important;height:297mm!important;padding:13mm 12mm!important;margin:0!important;position:relative!important;overflow:hidden!important;background:#fff!important;}
-    .ringside-pdf-page-head{height:9mm!important;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;font-size:11px!important;color:#5f6b7a!important;line-height:1.5!important;border-bottom:1px solid #e2e7ee!important;padding-bottom:5px!important;}
+    .ringside-pdf-page-head{height:9mm!important;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;font-size:11px!important;color:#636b76!important;line-height:1.5!important;border-bottom:1px solid #e1e5e9!important;padding-bottom:5px!important;}
     .ringside-pdf-page-head>span:last-child{max-width:100mm!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
     .ringside-pdf-content{height:254mm!important;padding-top:8px!important;overflow:hidden!important;display:flow-root!important;}
-    .ringside-pdf-page-foot{position:absolute!important;left:12mm!important;right:12mm!important;bottom:10mm!important;display:flex!important;justify-content:space-between!important;font-size:10px!important;color:#5f6b7a!important;border-top:1px solid #e2e7ee!important;padding-top:5px!important;line-height:1.5!important;}
+    .ringside-pdf-page-foot{position:absolute!important;left:12mm!important;right:12mm!important;bottom:10mm!important;display:flex!important;justify-content:space-between!important;font-size:10px!important;color:#636b76!important;border-top:1px solid #e1e5e9!important;padding-top:5px!important;line-height:1.5!important;}
     .ringside-pdf-content>.ringside-pdf-block{margin:0 0 12px!important;max-width:100%!important;}
     .ringside-pdf-test-group{display:flow-root!important;max-width:100%!important;}
     .ringside-pdf-test-group>.ringside-pdf-block{margin:0 0 10px!important;max-width:100%!important;}
@@ -13377,6 +13418,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   };
   const uiKey = "ringside-ui-v1:" + location.pathname;
   const modalFocus = new Map();
+  let sidebarNavKey = "", sidebarRevealFrame;
   const draftStorageKey = "ringside-input-drafts-v1:" + location.pathname;
   let inputDrafts = {},
     creation = null,
@@ -13625,7 +13667,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const text = issues
         ? "待核对 " + issues
         : progress?.status === "valid"
-          ? "已有有效结果"
+          ? "有结果"
           : progress?.status === "review"
             ? "待核对"
             : "";
@@ -13633,7 +13675,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         project?.abilities.filter(
           (ability) => ability !== project.primaryAbility,
         ) || [];
-      return `<button data-entry-tab="${E(id)}" class="${entryTab === id ? "active" : ""}" ${entryTab === id ? 'aria-current="page"' : ""} onclick="App.entry('${E(id)}')"><span>${E(name)}${other.length ? '<small class="ability-tags">' + other.map(E).join(" · ") + "</small>" : ""}</span>${text ? '<small class="entry-status-pill ' + (issues ? "amber" : "") + '">' + E(text) + "</small>" : ""}</button>`;
+      const statusLabel = text === "有结果" ? "已有有效结果" : text;
+      const accessibleLabel = [name, ...other, statusLabel].filter(Boolean).join(" · ");
+      return `<button data-entry-tab="${E(id)}" aria-label="${E(accessibleLabel)}" class="${entryTab === id ? "active" : ""}" ${entryTab === id ? 'aria-current="page"' : ""} onclick="App.entry('${E(id)}')"><span>${E(name)}${other.length ? '<small class="ability-tags">' + other.map(E).join(" · ") + "</small>" : ""}</span>${text ? '<small class="entry-status-pill ' + (issues ? "amber" : "") + '" title="' + E(statusLabel) + '">' + E(text) + "</small>" : ""}</button>`;
     };
     $("entryNav").innerHTML =
       button(["athlete", "运动员与背景"]) +
@@ -13650,6 +13694,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         )
         .join("") +
       button(["narrative", "解读与干预建议"]);
+    revealActiveNavigation();
   }
   function refreshEntryChrome() {
     if (!state || !$("entryIdentity")) return;
@@ -13896,9 +13941,19 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         ? "返回编辑"
         : "返回报告";
     renderNavigation();
+    renderAIStatus();
     rememberUI();
   }
   function renderNavigation() {
+    const activeScope = ui.mode === "settings"
+      ? window.RingsideSettings.scopeFor(settingsTab) : null;
+    document.querySelectorAll("[data-settings-open]").forEach(button => {
+      const active = button.dataset.settingsOpen === activeScope;
+      button.classList.toggle("sidebar-scope-active", active);
+      if (active) button.setAttribute("aria-current", "true");
+      else button.removeAttribute("aria-current");
+    });
+    revealActiveNavigation();
     if (ui.mode === "entry") {
       $("settingsTabs").hidden = true;
       return;
@@ -13959,6 +14014,35 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (active) button.setAttribute("aria-current", "location");
       else button.removeAttribute("aria-current");
     });
+    revealActiveNavigation();
+  }
+  function revealActiveNavigation(force = false) {
+    const key = [state?.recordId, ui.mode, ui.mode === "entry" ? entryTab
+      : ui.mode === "settings" ? settingsTab : ui.activeSection].join(":");
+    if (!force && key === sidebarNavKey) return;
+    cancelAnimationFrame(sidebarRevealFrame);
+    sidebarRevealFrame = requestAnimationFrame(() => {
+      const sidebar = $("sidebar");
+      if (sidebar.inert) return;
+      const nav = $(ui.mode === "entry" ? "entryNav" : ui.mode === "settings" ? "settingsTabs" : "reportNav");
+      const active = nav.querySelector("button.active");
+      if (!active?.getClientRects().length) return;
+      const wholeSidebar = matchMedia("(max-height:720px)").matches;
+      const scroller = wholeSidebar ? sidebar : sidebar.querySelector(".sidebar-directory");
+      const viewport = scroller.getBoundingClientRect(), item = active.getBoundingClientRect();
+      const top = wholeSidebar ? sidebar.querySelector(".brand").getBoundingClientRect().bottom : viewport.top;
+      const delta = item.top < top + 8 ? item.top - top - 8
+        : item.bottom > viewport.bottom - 8 ? item.bottom - viewport.bottom + 8 : 0;
+      // Never scroll the document or reset a manually scrolled directory on input.
+      if (delta) scroller.scrollBy({ top: delta, behavior: "instant" });
+      sidebarNavKey = key;
+    });
+  }
+  function focusContentTitle() {
+    const heading = ui.mode === "entry" ? $("entryProjectTitle")
+      : $("settingsContent").querySelector("h3") || $("settingsTitle");
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
   }
   function toggleSidebar(force) {
     const mobile = matchMedia("(max-width:900px)").matches;
@@ -13979,9 +14063,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     $("sidebarToggle").setAttribute("aria-expanded", String(open));
     if (mobile) {
       document.body.style.overflow = open ? "hidden" : "";
-      if (open) $("sidebar").querySelector("button")?.focus();
-      else $("sidebarToggle").focus({ preventScroll: true });
+      if (open) $("sidebar").querySelector("button")?.focus({ preventScroll: true });
     }
+    if (open) revealActiveNavigation(true);
+    else $("sidebarToggle").focus({ preventScroll: true });
     rememberUI();
   }
   function closeMobileSidebar() {
@@ -14008,6 +14093,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       renderWorkspace();
       window.scrollTo({ top: 0, behavior: "instant" });
       closeMobileSidebar();
+      focusContentTitle();
     } else showReport();
   }
   function navigate(id) {
@@ -14165,7 +14251,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       refreshEntryChrome();
     }, 180);
   }
-  function toast(t) {
+  function toast(t, scope = "") {
+    if (scope === "ai" && !isAIView()) return;
+    $("toast").dataset.scope = scope;
     $("toast").textContent = t;
     $("toast").style.display = "block";
     clearTimeout(toast.timer);
@@ -14883,9 +14971,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     renderAIStatus();
     const n = state.narrative,
       stale = n.text && n.basis !== M.fingerprint(state);
-    const label = job
-      ? "AI正在生成"
-      : n.migrationReview?.required
+    const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
           ? "尚未填写"
@@ -14896,7 +14982,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
               : "已填写";
     $("interpState").textContent = label;
     $("interpState").className = "pill " + (stale ? "amber" : "gray");
-    $("editorState").textContent = label;
+    $("editorState").textContent = job ? "AI正在生成" : label;
     $("interpUpdated").textContent = n.updated
       ? new Date(n.updated).toLocaleString("zh-CN", { hour12: false })
       : "";
@@ -14999,10 +15085,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     renderWorkspace();
     closeMobileSidebar();
     window.scrollTo({ top: 0, behavior: "instant" });
+    focusContentTitle();
   }
   function renderEntry() {
     const all = entryTabs();
     if (!all.some((t) => t[0] === entryTab)) entryTab = "plan";
+    renderAIStatus();
     renderEntryNavigation();
     $("narrativeEditorPanel").hidden = entryTab !== "narrative";
     $("entryContent").hidden = entryTab === "narrative";
@@ -15784,6 +15872,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     renderWorkspace();
     closeMobileSidebar();
     window.scrollTo({ top: 0, behavior: "instant" });
+    focusContentTitle();
   }
   function renderSettings() {
     const component = window.RingsideSettings.render({
@@ -15821,6 +15910,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     applyInputDrafts($("settingsContent"));
     refreshEntryChrome();
     renderNavigation();
+    renderAIStatus();
     rememberUI();
   }
   function saveRanges() {
@@ -16483,9 +16573,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           notes: state.customValues[d.id]?.notes || "" })),
     };
   }
-  function preview(text, origin, binding) {
+  function preview(text, origin, binding, open = true) {
     pendingAI = { text, html: M.textToHTML(text), origin, ...binding };
-    $("previewTitle").textContent = origin + "草稿预览";
+    if (open) showAIDraft();
+  }
+  function showAIDraft() {
+    $("previewTitle").textContent = pendingAI.origin + "草稿预览";
     $("aiPreview").innerHTML = M.sanitizeHTML(pendingAI.html);
     $("aiPreview").contentEditable = "true";
     $("aiPreview").setAttribute("role", "textbox");
@@ -16498,15 +16591,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function localDraft() {
     if (job) return;
-    if (!M.stats(state).validTests.size) return toast("先录入至少一项数据");
+    if (!M.stats(state).validTests.size) return toast("先录入至少一项数据", "ai");
     preview(M.localText(state), "本地", snapshot());
     setAIStatus("ready", "离线摘要已生成，等待应用", "已在预览中打开，可编辑后应用到正文。这份摘要由本地规则生成。");
   }
   function applyAI() {
     const p = pendingAI;
-    if (!p || !currentMatches(p)) return toast("草稿所属测试已切换");
+    if (!p || !currentMatches(p)) return toast("草稿所属测试已切换", "ai");
     if (p.basis !== M.fingerprint(state))
-      return toast("测试数据已更新，请重新生成");
+      return toast("测试数据已更新，请重新生成", "ai");
     if (
       p.revision !== state.narrative.revision &&
       !confirm("生成后正文已有人工修改。应用草稿将替换当前文字，是否继续？")
@@ -16530,7 +16623,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     persist();
     renderNarrativeStatus();
     setAIStatus("applied", p.origin.startsWith("AI") ? "AI 新建议已应用" : "离线摘要已应用", "正文已更新，上一版保留在当前记录中。");
-    toast("草稿已应用");
+    focusContentTitle();
   }
   function safeAIError(error) {
     let text = typeof error === "string" ? error : error?.message || "分析失败，请重试";
@@ -16547,10 +16640,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     renderAIStatus();
     if (kind === "running") aiTicker = setInterval(renderAIStatus, 1000);
   }
+  function isNarrativeView() {
+    return ui.mode === "entry" && entryTab === "narrative";
+  }
+  function isAIView() {
+    return isNarrativeView() || (ui.mode === "settings" && settingsTab === "ai");
+  }
   function renderAIStatus() {
     const panel = $("aiProgress");
     if (!panel) return;
-    panel.hidden = aiStatus.kind === "idle";
+    if (job && !isNarrativeView()) job.autoPreview = false;
+    panel.hidden = aiStatus.kind === "idle" || !isAIView();
+    if (panel.hidden && $("toast").dataset.scope === "ai") $("toast").style.display = "none";
     panel.dataset.state = aiStatus.kind;
     panel.setAttribute("aria-live", aiStatus.kind === "error" ? "assertive" : "polite");
     $("aiProgressTitle").textContent = aiStatus.title || "";
@@ -16575,12 +16676,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     renderNarrativeStatus();
   }
   function reviewAIDraft() {
-    if (!pendingAI || !currentMatches(pendingAI)) return;
+    if (!isAIView() || !pendingAI || !currentMatches(pendingAI)) return;
     if (pendingAI.basis !== M.fingerprint(state)) {
       pendingAI = null;
       return setAIStatus("error", "测试数据已更新", "请基于最新数据重新生成建议。");
     }
-    modal("previewModal");
+    showAIDraft();
   }
   function baseURL() {
     const raw = apiURL
@@ -16651,7 +16752,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
   }
   async function ai() {
-    if (job) return toast("当前分析正在生成");
+    if (job) return toast("当前分析正在生成", "ai");
     if (!M.stats(state).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
     if (!key.trim() || !model.trim()) {
       openSettings("ai");
@@ -16662,11 +16763,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       task = {
         ...binding,
         token: ++jobSequence,
+        autoPreview: isNarrativeView(),
         controller: new AbortController(),
       };
     job = task;
     pendingAI = null;
-    setAIStatus("running", "AI 正在综合分析并撰写训练建议", "使用 " + model + "，完成后将打开新建议预览。最多等待 300 秒。");
+    setAIStatus("running", "AI 正在综合分析并撰写训练建议", "使用 " + model + "。可继续查看本次测试，完成后草稿会保留在这里。最多等待 300 秒。");
     renderNarrativeStatus();
     try {
       const messages = [
@@ -16701,13 +16803,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       }
       if (pages > 2) throw Error("模型精简后仍超过两页，请重新生成或更换模型。");
       if (binding.basis !== M.fingerprint(state)) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
-      preview(validated, "AI", binding);
+      preview(validated, "AI", binding, task.autoPreview && isNarrativeView()
+        && !document.querySelector(".modal-backdrop.show"));
       setAIStatus("ready", "AI 新建议已生成，等待应用", "当前正文约 " + pages + " 页 A4。核对或编辑后点击“应用草稿”，下方正文才会更新。");
     } catch (e) {
       if (job === task && currentMatches(task)) {
         const message = e.name === "AbortError" ? "请求已取消，可以重新生成。" : safeAIError(e);
         setAIStatus("error", "AI 建议生成失败", message);
-        toast(message);
       }
     } finally {
       if (job === task) {
@@ -17304,8 +17406,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       persist();
       entryTab = t;
       renderEntry();
+      renderWorkspace();
       closeMobileSidebar();
       window.scrollTo({ top: 0, behavior: "instant" });
+      focusContentTitle();
     },
     showReport,
     back,
@@ -17321,8 +17425,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     settings(t) {
       settingsTab = t;
       renderSettings();
+      renderWorkspace();
       closeMobileSidebar();
       window.scrollTo({ top: 0, behavior: "instant" });
+      focusContentTitle();
     },
     selectDef(id) {
       selectedDef = id;

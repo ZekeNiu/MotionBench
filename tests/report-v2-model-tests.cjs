@@ -354,7 +354,7 @@ test("isometric radar has neutral grid lines and retains point provenance withou
   const html = c.RingsideViz.isoRadar(M.isoRadar(M.stats(r).isoAnalyses));
   const grids = [...html.matchAll(/<polygon[^>]*fill="none"[^>]*>/g)].map(x => x[0]);
   assert.ok(grids.length >= 4);
-  assert.ok(grids.every(x => x.includes('stroke="#e5ebf3"') && !x.includes('stroke-width="1.5"')));
+  assert.ok(grids.every(x => x.includes('stroke="#e5e8ec"') && !x.includes('stroke-width="1.5"')));
   assert.doesNotMatch(html, />力量 \d|>对称 \d/);
   assert.match(html, /data-tooltip="肩 · /);
   assert.match(html, /data-radar-series="strength"/);

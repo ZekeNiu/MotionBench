@@ -161,6 +161,7 @@ async function pdfCase(id, record, mode, width = 1440, expanded = false) {
       __isoPages.push({ text: n.innerText, stats: n.querySelectorAll("[data-repeat-stat]").length,
         brokenNumbers, misalignedSides,
         overflow: [...body.children].filter(x => x.getBoundingClientRect().bottom > b.bottom + .5).map(x => x.className),
+        rowColors: [...new Set([...n.querySelectorAll("tbody tr,tbody td")].map(r => getComputedStyle(r).backgroundColor))],
         iso: [...n.querySelectorAll('.iso-results')].map(t => ({ ...rect(t), columns: [...t.tHead.rows[0].cells].map(c => c.getBoundingClientRect().width), headers: t.tHead.innerText, rows: [...t.querySelectorAll('tbody>tr')].map(r => r.dataset.rowId), mode: t.dataset.pdfIsoLayout, font: getComputedStyle(t.querySelector('td')).fontSize })),
         charts: [...n.querySelectorAll('.chart-wrap[data-pdf-iso-layout]')].map(rect),
         tables: [...n.querySelectorAll('table')].map(t => ({ headers: t.tHead?.innerText, rows: t.tBodies[0]?.rows.length })) });
@@ -179,6 +180,7 @@ async function pdfCase(id, record, mode, width = 1440, expanded = false) {
   assert.equal(after.pages.reduce((n, p) => n + p.stats, 0), before.stats);
   assert.deepEqual(after.pages.flatMap(p => p.iso.flatMap(t => t.rows)), before.rows);
   assert.ok(after.pages.every(p => !p.overflow.length));
+  assert.ok(after.pages.every(p => p.rowColors.every(c => c === "rgb(255, 255, 255)")), "Every PDF data row and cell is white");
   assert.ok(after.pages.every(p => !p.brokenNumbers.length)); assert.ok(after.pages.every(p => !p.misalignedSides.length));
   const isoPages = after.pages.filter(p => p.iso.length), chartPages = after.pages.filter(p => p.charts.length);
   assert.equal(chartPages.length, 1); assert.ok(isoPages.every(p => p.iso.every(t => t.font === "12px")));

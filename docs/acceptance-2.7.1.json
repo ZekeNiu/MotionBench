@@ -1,0 +1,32 @@
+{
+  "pass": true,
+  "version": "2.7.1",
+  "html": "MotionBench.html",
+  "sha256": "c4270e62373a80429c1e174c9cc325cd433f0f253bfa32871772af1a083bb4fd",
+  "bytes": 4163447,
+  "reproducibleBuild": true,
+  "unchangedCalculationAndReportModules": {
+    "ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "ringside-definitions.js": "c8ac3ee5047b647fb813451ed2fc165d05c9a7dff82f4d136a4a253c918a9d9f",
+    "ringside-model.js": "0dd0935d6a7d9cb7144e33b0a16baf9e2a1b09360b441b6ac4f066fc63589308",
+    "ringside-tests.js": "5523cf28e582f4a9cfa4fc83dd60797024d14a7b557f415cc34de92ac503d45b",
+    "ringside-interventions.js": "c160e2d9c15b91acf19164986319ff434a71f3acbbb6ac61947589fc5d27863f",
+    "ringside-report.js": "c591aa9b08adf97dbb43e3f9c4a0d944553055c389e5f25729c556bfbe8dd6b6"
+  },
+  "modelChecks": 148,
+  "aiScopeWorkflows": 11,
+  "aiServiceWorkflows": 9,
+  "sidebarViewportScenarios": 9,
+  "coreWorkflows": 24,
+  "isometricLayoutGroups": 4,
+  "sameDataComparisons": 4,
+  "visualComparisonPairs": 10,
+  "pdfFilesReviewed": 8,
+  "pdfPagesReviewed": 57,
+  "confidence": "high",
+  "verificationLimits": [
+    "AI lifecycle checks use intercepted synthetic responses; no new live-model quality claim.",
+    "Mobile checks use browser viewport simulation; physical devices and paper printing were not tested.",
+    "This is a local update; no new remote release was published."
+  ]
+}

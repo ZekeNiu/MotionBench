@@ -805,7 +805,7 @@ async function run() {
           await page
             .locator('#entryNav button[data-entry-tab="mb"]')
             .innerText()
-        ).includes("已有有效结果"),
+        ).includes("有结果"),
       );
       return { isometric: iso, medicineBall: mb };
     },
@@ -1397,7 +1397,7 @@ async function run() {
         });
       });
       await session.context.setOffline(false);
-      await page.getByRole("button", { name: "AI 分析", exact: true }).click();
+      await page.locator("[data-ai-generate]").click();
       await page.waitForFunction(() =>
         document.getElementById("previewModal").classList.contains("show"),
       );

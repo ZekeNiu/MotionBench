@@ -16,35 +16,35 @@
   let lastDiagnostics = null;
   const CSS = `
     .ringside-pdf-stage{position:fixed!important;left:-20000px!important;top:0!important;width:210mm!important;z-index:-100!important;pointer-events:none!important;background:#fff!important;}
-    .ringside-pdf-document{--ink:#1e293b;--muted:#5f6b7a;--line:#dfe5eb;font:13.333px/1.65 ${FONT}!important;color:#1e293b!important;background:#fff!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document{--ink:#262a30;--muted:#636b76;--line:#e1e5e9;font:13.333px/1.65 ${FONT}!important;color:#262a30!important;background:#fff!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;}
     .ringside-pdf-document *{box-sizing:border-box;}
     .ringside-pdf-source{width:186mm!important;padding:0!important;margin:0!important;max-width:none!important;display:block!important;}
     .ringside-pdf-source .details-group,.ringside-pdf-source .quality-group,.ringside-pdf-source .test-block,.ringside-pdf-source .lvp-card{padding:0!important;margin:0!important;border:0!important;}
-    .ringside-pdf-document h1{font-size:25px!important;line-height:1.4!important;letter-spacing:-.4px!important;margin:0!important;}
-    .ringside-pdf-document h2{font-size:21px!important;line-height:1.4!important;font-weight:750!important;}
-    .ringside-pdf-document h3{font-size:16px!important;line-height:1.5!important;font-weight:700!important;}
+    .ringside-pdf-document h1{font-size:25px!important;font-weight:650!important;line-height:1.4!important;letter-spacing:-.4px!important;margin:0!important;}
+    .ringside-pdf-document h2{font-size:21px!important;line-height:1.4!important;font-weight:600!important;}
+    .ringside-pdf-document h3{font-size:16px!important;line-height:1.5!important;font-weight:600!important;}
     .ringside-pdf-document h4{font-size:13px!important;line-height:1.5!important;font-weight:650!important;}
     .ringside-pdf-document p{margin:0 0 9px!important;}
     .ringside-pdf-document .hero{display:block!important;margin:0!important;padding:0 0 8px!important;}
     .ringside-pdf-document .hero-sub{display:flex!important;flex-wrap:wrap!important;gap:11px!important;font-size:12px!important;line-height:1.7!important;margin-top:7px!important;}
     .ringside-pdf-document .hero-sub span+span:before{content:'·'!important;margin-right:11px!important;color:#bac2cf!important;}
-    .ringside-pdf-document .section-heading{padding:8px 0!important;margin:0!important;border-bottom:1px solid #dfe5eb!important;display:block!important;background:none!important;}
+    .ringside-pdf-document .section-heading{padding:8px 0!important;margin:0!important;border-bottom:1px solid #e1e5e9!important;display:block!important;background:none!important;}
     .ringside-pdf-document .section-title{display:flex!important;align-items:flex-start!important;gap:10px!important;}
     .ringside-pdf-document .section-title>div{min-width:0!important;}
-    .ringside-pdf-document .section-number{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:12px!important;line-height:1!important;color:#365b80!important;background:#edf2fa!important;border-radius:7px!important;margin-top:2px!important;}
-    .ringside-pdf-document .section-heading p,.ringside-pdf-document .test-title p{font-size:12px!important;line-height:1.65!important;margin:4px 0 0!important;color:#5f6b7a!important;}
-    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border-left:3px solid #365b80!important;background:#f2f5fa!important;font-size:17px!important;font-weight:700!important;}
-    .ringside-pdf-document .quality-heading p,.ringside-pdf-document .pdf-group-heading span{font-size:12px!important;color:#5f6b7a!important;font-weight:400!important;}
+    .ringside-pdf-document .section-number{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:12px!important;line-height:1!important;color:#365b7a!important;background:#e8eef3!important;border-radius:7px!important;margin-top:2px!important;}
+    .ringside-pdf-document .section-heading p,.ringside-pdf-document .test-title p{font-size:12px!important;line-height:1.65!important;margin:4px 0 0!important;color:#636b76!important;}
+    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border-left:3px solid #365b7a!important;background:#f3f5f7!important;font-size:17px!important;font-weight:600!important;}
+    .ringside-pdf-document .quality-heading p,.ringside-pdf-document .pdf-group-heading span{font-size:12px!important;color:#636b76!important;font-weight:400!important;}
     .ringside-pdf-document .pdf-group-heading span{display:block!important;margin-top:4px!important;}
     .ringside-pdf-document .test-title{display:block!important;padding:4px 0!important;margin:0!important;}
-    .ringside-pdf-document .card{background:#fff!important;border:1px solid #e0e6ef!important;box-shadow:none!important;border-radius:8px!important;overflow:visible!important;}
+    .ringside-pdf-document .card{background:#fff!important;border:1px solid #e1e5e9!important;box-shadow:none!important;border-radius:8px!important;overflow:visible!important;}
     .ringside-pdf-document .micro-cards{display:flex!important;gap:9px!important;margin:0!important;}
-    .ringside-pdf-document .micro-card{border:1px solid #dfe5eb!important;flex:1!important;min-width:0!important;min-height:102px!important;padding:11px!important;border-radius:8px!important;background:#f7f9fc!important;box-shadow:none!important;}
+    .ringside-pdf-document .micro-card{border:1px solid #e1e5e9!important;flex:1!important;min-width:0!important;min-height:102px!important;padding:11px!important;border-radius:8px!important;background:#f8f9fb!important;box-shadow:none!important;}
     .ringside-pdf-document .micro-head{display:block!important;margin:0 0 6px!important;}
     .ringside-pdf-document .micro-head h3{font-size:12px!important;}
     .ringside-pdf-document .micro-value{font-size:26px!important;line-height:1.35!important;}
     .ringside-pdf-document .micro-value.text{font-size:14px!important;}
-    .ringside-pdf-document .micro-card p,.ringside-pdf-document .micro-card a{font-size:11px!important;line-height:1.65!important;color:#5f6b7a!important;}
+    .ringside-pdf-document .micro-card p,.ringside-pdf-document .micro-card a{font-size:11px!important;line-height:1.65!important;color:#636b76!important;}
     .ringside-pdf-document .summary-grid{display:flex!important;gap:12px!important;align-items:stretch!important;}
     .ringside-pdf-document .summary-grid>.card{width:calc(50% - 6px)!important;flex:1!important;min-width:0!important;}
     .ringside-pdf-document .card-head{display:block!important;padding:12px 12px 6px!important;}
@@ -90,7 +90,7 @@
     .ringside-pdf-document .fms-detail table th:nth-child(4){width:24%!important;}
     .ringside-pdf-document .fms-detail table th:nth-child(5){width:18%!important;}
     .ringside-pdf-document .detail-data .subheading{margin:10px 0 5px!important;}
-    .ringside-pdf-document .metric-meta{display:block!important;font-size:11px!important;color:#5f6b7a!important;}
+    .ringside-pdf-document .metric-meta{display:block!important;font-size:11px!important;color:#636b76!important;}
     .ringside-pdf-document .comparison-results{display:block!important;}
     .ringside-pdf-document .comparison-result{padding:8px!important;margin-bottom:8px!important;}
     .ringside-pdf-document .comparison-heading{display:flex!important;justify-content:space-between!important;gap:8px!important;font-size:12px!important;}
@@ -99,22 +99,22 @@
     .ringside-pdf-document .inline-asym img{width:100%!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document .iso-charts>img+img{margin-top:10px!important;}
     .ringside-pdf-document table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:12px!important;text-align:left!important;margin:0!important;}
-    .ringside-pdf-document th,.ringside-pdf-document td{font-size:12px!important;line-height:1.55!important;padding:7px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:top!important;border-bottom:1px solid #dfe5eb!important;}
-    .ringside-pdf-document th{font-weight:600!important;color:#5f6b7a!important;background:#f3f6fa!important;}
+    .ringside-pdf-document th,.ringside-pdf-document td{font-size:12px!important;line-height:1.55!important;padding:7px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:top!important;border-bottom:1px solid #e1e5e9!important;}
+    .ringside-pdf-document th{font-weight:600!important;color:#636b76!important;background:#f3f5f7!important;}
     .ringside-pdf-document .table-wrap{overflow:visible!important;max-width:100%!important;}
-    .ringside-pdf-document .selected-result{background:#edf7f2!important;}
+    .ringside-pdf-document tbody tr,.ringside-pdf-document tbody td,.ringside-pdf-document .selected-result{background:#fff!important;}
     .ringside-pdf-document .stat-row{display:flex!important;gap:8px!important;flex-wrap:wrap!important;margin:0!important;}
-    .ringside-pdf-document .stat-chip{font-size:12px!important;padding:5px 8px!important;background:#f7f9fb!important;}
-    .ringside-pdf-document .note{font-size:11px!important;line-height:1.75!important;color:#5f6b7a!important;margin:0!important;}
+    .ringside-pdf-document .stat-chip{font-size:12px!important;padding:5px 8px!important;background:#f8f9fb!important;}
+    .ringside-pdf-document .note{font-size:11px!important;line-height:1.75!important;color:#636b76!important;margin:0!important;}
     .ringside-pdf-document .empty{font-size:12px!important;padding:16px!important;}
     .ringside-pdf-document .editor,.ringside-pdf-document .narrative-view,.ringside-pdf-document .narrative{font-size:13.333px!important;line-height:1.85!important;border:0!important;padding:0!important;min-height:0!important;background:#fff!important;}
     .ringside-pdf-document ul,.ringside-pdf-document ol{padding-left:22px!important;margin:0!important;}
     .ringside-pdf-document li{margin:0!important;padding:0!important;line-height:1.8!important;}
     .ringside-pdf-page{width:210mm!important;height:297mm!important;padding:13mm 12mm!important;margin:0!important;position:relative!important;overflow:hidden!important;background:#fff!important;}
-    .ringside-pdf-page-head{height:9mm!important;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;font-size:11px!important;color:#5f6b7a!important;line-height:1.5!important;border-bottom:1px solid #e2e7ee!important;padding-bottom:5px!important;}
+    .ringside-pdf-page-head{height:9mm!important;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;font-size:11px!important;color:#636b76!important;line-height:1.5!important;border-bottom:1px solid #e1e5e9!important;padding-bottom:5px!important;}
     .ringside-pdf-page-head>span:last-child{max-width:100mm!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
     .ringside-pdf-content{height:254mm!important;padding-top:8px!important;overflow:hidden!important;display:flow-root!important;}
-    .ringside-pdf-page-foot{position:absolute!important;left:12mm!important;right:12mm!important;bottom:10mm!important;display:flex!important;justify-content:space-between!important;font-size:10px!important;color:#5f6b7a!important;border-top:1px solid #e2e7ee!important;padding-top:5px!important;line-height:1.5!important;}
+    .ringside-pdf-page-foot{position:absolute!important;left:12mm!important;right:12mm!important;bottom:10mm!important;display:flex!important;justify-content:space-between!important;font-size:10px!important;color:#636b76!important;border-top:1px solid #e1e5e9!important;padding-top:5px!important;line-height:1.5!important;}
     .ringside-pdf-content>.ringside-pdf-block{margin:0 0 12px!important;max-width:100%!important;}
     .ringside-pdf-test-group{display:flow-root!important;max-width:100%!important;}
     .ringside-pdf-test-group>.ringside-pdf-block{margin:0 0 10px!important;max-width:100%!important;}

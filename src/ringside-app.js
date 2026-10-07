@@ -65,6 +65,7 @@
   };
   const uiKey = "ringside-ui-v1:" + location.pathname;
   const modalFocus = new Map();
+  let sidebarNavKey = "", sidebarRevealFrame;
   const draftStorageKey = "ringside-input-drafts-v1:" + location.pathname;
   let inputDrafts = {},
     creation = null,
@@ -313,7 +314,7 @@
       const text = issues
         ? "待核对 " + issues
         : progress?.status === "valid"
-          ? "已有有效结果"
+          ? "有结果"
           : progress?.status === "review"
             ? "待核对"
             : "";
@@ -321,7 +322,9 @@
         project?.abilities.filter(
           (ability) => ability !== project.primaryAbility,
         ) || [];
-      return `<button data-entry-tab="${E(id)}" class="${entryTab === id ? "active" : ""}" ${entryTab === id ? 'aria-current="page"' : ""} onclick="App.entry('${E(id)}')"><span>${E(name)}${other.length ? '<small class="ability-tags">' + other.map(E).join(" · ") + "</small>" : ""}</span>${text ? '<small class="entry-status-pill ' + (issues ? "amber" : "") + '">' + E(text) + "</small>" : ""}</button>`;
+      const statusLabel = text === "有结果" ? "已有有效结果" : text;
+      const accessibleLabel = [name, ...other, statusLabel].filter(Boolean).join(" · ");
+      return `<button data-entry-tab="${E(id)}" aria-label="${E(accessibleLabel)}" class="${entryTab === id ? "active" : ""}" ${entryTab === id ? 'aria-current="page"' : ""} onclick="App.entry('${E(id)}')"><span>${E(name)}${other.length ? '<small class="ability-tags">' + other.map(E).join(" · ") + "</small>" : ""}</span>${text ? '<small class="entry-status-pill ' + (issues ? "amber" : "") + '" title="' + E(statusLabel) + '">' + E(text) + "</small>" : ""}</button>`;
     };
     $("entryNav").innerHTML =
       button(["athlete", "运动员与背景"]) +
@@ -338,6 +341,7 @@
         )
         .join("") +
       button(["narrative", "解读与干预建议"]);
+    revealActiveNavigation();
   }
   function refreshEntryChrome() {
     if (!state || !$("entryIdentity")) return;
@@ -584,9 +588,19 @@
         ? "返回编辑"
         : "返回报告";
     renderNavigation();
+    renderAIStatus();
     rememberUI();
   }
   function renderNavigation() {
+    const activeScope = ui.mode === "settings"
+      ? window.RingsideSettings.scopeFor(settingsTab) : null;
+    document.querySelectorAll("[data-settings-open]").forEach(button => {
+      const active = button.dataset.settingsOpen === activeScope;
+      button.classList.toggle("sidebar-scope-active", active);
+      if (active) button.setAttribute("aria-current", "true");
+      else button.removeAttribute("aria-current");
+    });
+    revealActiveNavigation();
     if (ui.mode === "entry") {
       $("settingsTabs").hidden = true;
       return;
@@ -647,6 +661,35 @@
       if (active) button.setAttribute("aria-current", "location");
       else button.removeAttribute("aria-current");
     });
+    revealActiveNavigation();
+  }
+  function revealActiveNavigation(force = false) {
+    const key = [state?.recordId, ui.mode, ui.mode === "entry" ? entryTab
+      : ui.mode === "settings" ? settingsTab : ui.activeSection].join(":");
+    if (!force && key === sidebarNavKey) return;
+    cancelAnimationFrame(sidebarRevealFrame);
+    sidebarRevealFrame = requestAnimationFrame(() => {
+      const sidebar = $("sidebar");
+      if (sidebar.inert) return;
+      const nav = $(ui.mode === "entry" ? "entryNav" : ui.mode === "settings" ? "settingsTabs" : "reportNav");
+      const active = nav.querySelector("button.active");
+      if (!active?.getClientRects().length) return;
+      const wholeSidebar = matchMedia("(max-height:720px)").matches;
+      const scroller = wholeSidebar ? sidebar : sidebar.querySelector(".sidebar-directory");
+      const viewport = scroller.getBoundingClientRect(), item = active.getBoundingClientRect();
+      const top = wholeSidebar ? sidebar.querySelector(".brand").getBoundingClientRect().bottom : viewport.top;
+      const delta = item.top < top + 8 ? item.top - top - 8
+        : item.bottom > viewport.bottom - 8 ? item.bottom - viewport.bottom + 8 : 0;
+      // Never scroll the document or reset a manually scrolled directory on input.
+      if (delta) scroller.scrollBy({ top: delta, behavior: "instant" });
+      sidebarNavKey = key;
+    });
+  }
+  function focusContentTitle() {
+    const heading = ui.mode === "entry" ? $("entryProjectTitle")
+      : $("settingsContent").querySelector("h3") || $("settingsTitle");
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({ preventScroll: true });
   }
   function toggleSidebar(force) {
     const mobile = matchMedia("(max-width:900px)").matches;
@@ -667,9 +710,10 @@
     $("sidebarToggle").setAttribute("aria-expanded", String(open));
     if (mobile) {
       document.body.style.overflow = open ? "hidden" : "";
-      if (open) $("sidebar").querySelector("button")?.focus();
-      else $("sidebarToggle").focus({ preventScroll: true });
+      if (open) $("sidebar").querySelector("button")?.focus({ preventScroll: true });
     }
+    if (open) revealActiveNavigation(true);
+    else $("sidebarToggle").focus({ preventScroll: true });
     rememberUI();
   }
   function closeMobileSidebar() {
@@ -696,6 +740,7 @@
       renderWorkspace();
       window.scrollTo({ top: 0, behavior: "instant" });
       closeMobileSidebar();
+      focusContentTitle();
     } else showReport();
   }
   function navigate(id) {
@@ -853,7 +898,9 @@
       refreshEntryChrome();
     }, 180);
   }
-  function toast(t) {
+  function toast(t, scope = "") {
+    if (scope === "ai" && !isAIView()) return;
+    $("toast").dataset.scope = scope;
     $("toast").textContent = t;
     $("toast").style.display = "block";
     clearTimeout(toast.timer);
@@ -1571,9 +1618,7 @@
     renderAIStatus();
     const n = state.narrative,
       stale = n.text && n.basis !== M.fingerprint(state);
-    const label = job
-      ? "AI正在生成"
-      : n.migrationReview?.required
+    const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
           ? "尚未填写"
@@ -1584,7 +1629,7 @@
               : "已填写";
     $("interpState").textContent = label;
     $("interpState").className = "pill " + (stale ? "amber" : "gray");
-    $("editorState").textContent = label;
+    $("editorState").textContent = job ? "AI正在生成" : label;
     $("interpUpdated").textContent = n.updated
       ? new Date(n.updated).toLocaleString("zh-CN", { hour12: false })
       : "";
@@ -1687,10 +1732,12 @@
     renderWorkspace();
     closeMobileSidebar();
     window.scrollTo({ top: 0, behavior: "instant" });
+    focusContentTitle();
   }
   function renderEntry() {
     const all = entryTabs();
     if (!all.some((t) => t[0] === entryTab)) entryTab = "plan";
+    renderAIStatus();
     renderEntryNavigation();
     $("narrativeEditorPanel").hidden = entryTab !== "narrative";
     $("entryContent").hidden = entryTab === "narrative";
@@ -2472,6 +2519,7 @@
     renderWorkspace();
     closeMobileSidebar();
     window.scrollTo({ top: 0, behavior: "instant" });
+    focusContentTitle();
   }
   function renderSettings() {
     const component = window.RingsideSettings.render({
@@ -2509,6 +2557,7 @@
     applyInputDrafts($("settingsContent"));
     refreshEntryChrome();
     renderNavigation();
+    renderAIStatus();
     rememberUI();
   }
   function saveRanges() {
@@ -3171,9 +3220,12 @@
           notes: state.customValues[d.id]?.notes || "" })),
     };
   }
-  function preview(text, origin, binding) {
+  function preview(text, origin, binding, open = true) {
     pendingAI = { text, html: M.textToHTML(text), origin, ...binding };
-    $("previewTitle").textContent = origin + "草稿预览";
+    if (open) showAIDraft();
+  }
+  function showAIDraft() {
+    $("previewTitle").textContent = pendingAI.origin + "草稿预览";
     $("aiPreview").innerHTML = M.sanitizeHTML(pendingAI.html);
     $("aiPreview").contentEditable = "true";
     $("aiPreview").setAttribute("role", "textbox");
@@ -3186,15 +3238,15 @@
   }
   function localDraft() {
     if (job) return;
-    if (!M.stats(state).validTests.size) return toast("先录入至少一项数据");
+    if (!M.stats(state).validTests.size) return toast("先录入至少一项数据", "ai");
     preview(M.localText(state), "本地", snapshot());
     setAIStatus("ready", "离线摘要已生成，等待应用", "已在预览中打开，可编辑后应用到正文。这份摘要由本地规则生成。");
   }
   function applyAI() {
     const p = pendingAI;
-    if (!p || !currentMatches(p)) return toast("草稿所属测试已切换");
+    if (!p || !currentMatches(p)) return toast("草稿所属测试已切换", "ai");
     if (p.basis !== M.fingerprint(state))
-      return toast("测试数据已更新，请重新生成");
+      return toast("测试数据已更新，请重新生成", "ai");
     if (
       p.revision !== state.narrative.revision &&
       !confirm("生成后正文已有人工修改。应用草稿将替换当前文字，是否继续？")
@@ -3218,7 +3270,7 @@
     persist();
     renderNarrativeStatus();
     setAIStatus("applied", p.origin.startsWith("AI") ? "AI 新建议已应用" : "离线摘要已应用", "正文已更新，上一版保留在当前记录中。");
-    toast("草稿已应用");
+    focusContentTitle();
   }
   function safeAIError(error) {
     let text = typeof error === "string" ? error : error?.message || "分析失败，请重试";
@@ -3235,10 +3287,18 @@
     renderAIStatus();
     if (kind === "running") aiTicker = setInterval(renderAIStatus, 1000);
   }
+  function isNarrativeView() {
+    return ui.mode === "entry" && entryTab === "narrative";
+  }
+  function isAIView() {
+    return isNarrativeView() || (ui.mode === "settings" && settingsTab === "ai");
+  }
   function renderAIStatus() {
     const panel = $("aiProgress");
     if (!panel) return;
-    panel.hidden = aiStatus.kind === "idle";
+    if (job && !isNarrativeView()) job.autoPreview = false;
+    panel.hidden = aiStatus.kind === "idle" || !isAIView();
+    if (panel.hidden && $("toast").dataset.scope === "ai") $("toast").style.display = "none";
     panel.dataset.state = aiStatus.kind;
     panel.setAttribute("aria-live", aiStatus.kind === "error" ? "assertive" : "polite");
     $("aiProgressTitle").textContent = aiStatus.title || "";
@@ -3263,12 +3323,12 @@
     renderNarrativeStatus();
   }
   function reviewAIDraft() {
-    if (!pendingAI || !currentMatches(pendingAI)) return;
+    if (!isAIView() || !pendingAI || !currentMatches(pendingAI)) return;
     if (pendingAI.basis !== M.fingerprint(state)) {
       pendingAI = null;
       return setAIStatus("error", "测试数据已更新", "请基于最新数据重新生成建议。");
     }
-    modal("previewModal");
+    showAIDraft();
   }
   function baseURL() {
     const raw = apiURL
@@ -3339,7 +3399,7 @@
     }
   }
   async function ai() {
-    if (job) return toast("当前分析正在生成");
+    if (job) return toast("当前分析正在生成", "ai");
     if (!M.stats(state).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
     if (!key.trim() || !model.trim()) {
       openSettings("ai");
@@ -3350,11 +3410,12 @@
       task = {
         ...binding,
         token: ++jobSequence,
+        autoPreview: isNarrativeView(),
         controller: new AbortController(),
       };
     job = task;
     pendingAI = null;
-    setAIStatus("running", "AI 正在综合分析并撰写训练建议", "使用 " + model + "，完成后将打开新建议预览。最多等待 300 秒。");
+    setAIStatus("running", "AI 正在综合分析并撰写训练建议", "使用 " + model + "。可继续查看本次测试，完成后草稿会保留在这里。最多等待 300 秒。");
     renderNarrativeStatus();
     try {
       const messages = [
@@ -3389,13 +3450,13 @@
       }
       if (pages > 2) throw Error("模型精简后仍超过两页，请重新生成或更换模型。");
       if (binding.basis !== M.fingerprint(state)) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
-      preview(validated, "AI", binding);
+      preview(validated, "AI", binding, task.autoPreview && isNarrativeView()
+        && !document.querySelector(".modal-backdrop.show"));
       setAIStatus("ready", "AI 新建议已生成，等待应用", "当前正文约 " + pages + " 页 A4。核对或编辑后点击“应用草稿”，下方正文才会更新。");
     } catch (e) {
       if (job === task && currentMatches(task)) {
         const message = e.name === "AbortError" ? "请求已取消，可以重新生成。" : safeAIError(e);
         setAIStatus("error", "AI 建议生成失败", message);
-        toast(message);
       }
     } finally {
       if (job === task) {
@@ -3992,8 +4053,10 @@
       persist();
       entryTab = t;
       renderEntry();
+      renderWorkspace();
       closeMobileSidebar();
       window.scrollTo({ top: 0, behavior: "instant" });
+      focusContentTitle();
     },
     showReport,
     back,
@@ -4009,8 +4072,10 @@
     settings(t) {
       settingsTab = t;
       renderSettings();
+      renderWorkspace();
       closeMobileSidebar();
       window.scrollTo({ top: 0, behavior: "instant" });
+      focusContentTitle();
     },
     selectDef(id) {
       selectedDef = id;
