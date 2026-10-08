@@ -25,7 +25,7 @@ for name in ["html2canvas.min.js", "jspdf.umd.min.js", "exceljs.min.js"]:
     if not path.exists():
         raise SystemExit("Missing pinned offline dependency: " + str(path))
     pieces.append(path.read_text(encoding="utf-8"))
-for name in ["ringside-tests.js", "ringside-model.js", "ringside-evaluation.js", "ringside-store.js", "ringside-interventions.js", "ringside-viz.js", "ringside-report.js", "ringside-ai-settings.js", "ringside-settings.js", "ringside-pdf.js", "ringside-picker.js", "ringside-excel.js", "ringside-management.js", "ringside-excel-flow.js", "ringside-app.js"]:
+for name in ["ringside-tests.js", "ringside-model.js", "ringside-evaluation.js", "ringside-store.js", "ringside-interventions.js", "ringside-viz.js", "ringside-report.js", "ringside-ai-settings.js", "ringside-settings.js", "ringside-pdf.js", "ringside-picker.js", "ringside-excel.js", "ringside-management.js", "ringside-entry-session.js", "ringside-excel-flow.js", "ringside-app.js"]:
     path = SRC / name
     subprocess.run(["node", "--check", str(path)], check=True)
     pieces.append(path.read_text(encoding="utf-8"))

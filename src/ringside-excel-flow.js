@@ -5,71 +5,40 @@
   let session=null,serial=0,busy=false;
   const lib=()=>root.App.getLibrary();
   const personLabel=entry=>{const owner=lib().athletes.find(a=>a.id===entry.athleteId);return [entry.name,owner?.profile?.sport,entry.athleteId.slice(-6)].filter(Boolean).join(" · ");};
-  const date=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Shanghai",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   function error(message){$("excelError").textContent=message;$("excelError").hidden=!message;}
-  function setBusy(value){busy=value;$("excelModal").setAttribute("aria-busy",String(value));$("excelModal").querySelectorAll("button,input,select").forEach(el=>{if(value){el.dataset.excelWasDisabled=String(el.disabled);el.disabled=true;}else if(el.dataset.excelWasDisabled!==undefined){el.disabled=el.dataset.excelWasDisabled==="true";delete el.dataset.excelWasDisabled;}});}
-  function importControl(){return '<label class="btn excel-file">选择填写好的 Excel<input id="excelFile" type="file" accept=".xlsx" onchange="RingsideExcelFlow.readFile(this.files[0]);this.value=\'\'"></label>';}
-  function downloadControl(){return '<button type="button" class="btn primary" onclick="RingsideExcelFlow.downloadTemplate()">下载 Excel 模板</button>';}
-  async function open({mode="batch",records=null}={}){
-    if(busy)return;
-    session={token:++serial,mode,records,stage:"setup",selected:new Set(),selection:{testIds:[],isoDirectionIds:[]},planId:"",profileId:lib().defaultEvaluationProfileId};
-    error("");$("excelTitle").textContent=mode==="edit"?"补录本次测试 · Excel":mode==="creation"?"本次测试 · Excel":"多人 Excel 录入";
-    renderSetup();root.App.modal("excelModal");
+  function setBusy(value){busy=value;$("excelModal").setAttribute("aria-busy",String(value));document.querySelectorAll("#excelModal button,#excelModal input,#excelModal select,[data-entry-excel-action]").forEach(el=>{if(value){el.dataset.excelWasDisabled=String(el.disabled);el.disabled=true;}else if(el.dataset.excelWasDisabled!==undefined){el.disabled=el.dataset.excelWasDisabled==="true";delete el.dataset.excelWasDisabled;}});}
+  function importControl(){return '<label class="btn primary excel-file">选择 Excel 文件<input id="excelFile" type="file" accept=".xlsx" onchange="RingsideExcelFlow.readFile(this.files[0]);this.value=\'\'"></label>';}
+  function openImport({mode="entry",records=[]}={}){
+    if(busy)return false;
+    if(!records.length)throw Error("请先选择本次测试记录");
+    session={token:++serial,mode,records:copy(records),stage:"setup"};
+    error("");$("excelTitle").textContent="导入 Excel 文件";
+    renderImportSetup();root.App.modal("excelModal");return true;
   }
-  function renderSetup(){
-    if(!session)return;session.stage="setup";
-    $("excelFooter").innerHTML='<button class="btn" onclick="App.close(\'excelModal\')">取消</button><div class="row">'+importControl()+downloadControl()+'</div>';
-    if(session.records){
-      const record=session.records[0],projects=T.describe(record).filter(t=>record.enabled[t.id]);
-      $("excelContent").innerHTML=`<p class="intro">${esc(record.athlete.name)} · ${esc(record.athlete.date)}</p><p>${projects.map(t=>esc(t.name)).join("、")}</p><p class="note">${session.mode==="edit"?"模板包含已有测量。导入时先核对变化，有数据的项目默认保留，可逐项选择替换。":"填写模板后回到这里导入。下载模板不会创建空测试记录。"}</p>${record.enabled.iso?`<p>等长力量：${M.selectedIsoRows(record).map(r=>esc((M.REG[r.region]||r.region)+" "+r.direction)).join("、")}</p>`:""}`;
-      return;
-    }
-    $("excelContent").innerHTML=`<p class="intro">选择已建档运动员和本次项目，下载模板集中填写。</p><div class="form-grid"><label class="field"><span>队伍</span><select id="excelGroup" onchange="RingsideExcelFlow.filterPeople()"><option value="">全部队伍</option>${lib().groups.map(g=>`<option value="${esc(g.id)}">${esc(g.name)}</option>`).join("")}</select></label><label class="field"><span>搜索运动员</span><input id="excelPeopleSearch" type="search" placeholder="姓名、专项或编号" oninput="RingsideExcelFlow.filterPeople()"></label></div><div class="row"><button class="btn small" onclick="RingsideExcelFlow.selectPeople(true)">选择筛选结果</button><button class="btn small" onclick="RingsideExcelFlow.selectPeople(false)">清空名单</button><span id="excelPeopleCount" aria-live="polite"></span></div><div id="excelPeople" class="excel-people"></div><div class="form-grid"><label class="field"><span>测试日期</span><input id="excelDate" type="date" value="${date()}"></label><label class="field"><span>测试方案</span><select id="excelPlan" onchange="RingsideExcelFlow.choosePlan(this.value)"><option value="">临时选择项目</option>${lib().testPlans.filter(p=>!p.disabled).map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("")}</select></label><label class="field"><span>评价方案</span><select id="excelProfile">${lib().evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${esc(p.id)}" ${p.id===session.profileId?"selected":""}>${esc(p.name)}</option>`).join("")}</select></label></div><h3>本次测试项目</h3><div id="excelProjects"></div>`;
-    filterPeople();renderPicker();
+  function renderImportSetup(){
+    const records=session.records;session.stage="setup";
+    $("excelContent").innerHTML=`<p class="intro">本次录入 ${records.length} 名运动员</p><div class="excel-import-summary">${records.map(record=>`<section><h3>${esc(personLabel({athleteId:record.athleteId,name:record.athlete.name}))} · ${esc(record.athlete.date)}</h3><p>${T.describe(record).filter(t=>record.enabled[t.id]).map(t=>esc(t.name)).join("、")}</p>${record.enabled.iso?`<p class="note">等长力量：${M.selectedIsoRows(record).map(r=>esc((M.REG[r.region]||r.region)+" "+r.direction)).join("、")}</p>`:""}</section>`).join("")}</div><p class="note">选择填写好的 .xlsx 文件，核对变化后再保存。已有测量默认保留，可逐项选择替换。</p>`;
+    $("excelFooter").innerHTML='<button type="button" class="btn" onclick="App.close(\'excelModal\')">取消</button>'+importControl();
   }
-  function people(){const q=($("excelPeopleSearch")?.value||"").trim().toLowerCase(),group=$("excelGroup")?.value;return lib().athletes.filter(a=>!a.deletedAt&&!a.archived&&(!group||a.groupId===group)&&(!q||[a.name,a.id,a.profile?.sport].join(" ").toLowerCase().includes(q)));}
-  function filterPeople(){if(!session||!$("excelPeople"))return;$("excelPeople").innerHTML=people().map(a=>`<label class="check-line"><input type="checkbox" data-excel-person="${esc(a.id)}" ${session.selected.has(a.id)?"checked":""} onchange="RingsideExcelFlow.choosePerson(this.dataset.excelPerson,this.checked)"><span>${esc(a.name)}<small>${esc(a.profile?.sport||"未填专项")} · ${esc(a.id.slice(-6))}</small></span></label>`).join("")||'<p class="note">没有匹配的运动员，请先在运动员管理中建档。</p>';$("excelPeopleCount").textContent=`已选 ${session.selected.size} 人`;}
-  function choosePerson(id,checked){if(checked)session.selected.add(id);else session.selected.delete(id);$("excelPeopleCount").textContent=`已选 ${session.selected.size} 人`;}
-  function selectPeople(checked){if(checked)people().forEach(a=>session.selected.add(a.id));else session.selected.clear();filterPeople();}
-  function renderPicker(){const options={source:lib().catalog,showOrder:false,context:"excel",selection:session.selection,isoRows:M.isoRows(),blockedIds:lib().catalog.conflicts.filter(c=>!c.resolved).map(c=>c.testId),onChange(next){session.selection=copy(next);}};$("excelProjects").innerHTML=root.RingsidePicker.render(options);root.RingsidePicker.bind($("excelProjects"),options);}
-  function choosePlan(id){session.planId=id;const plan=lib().testPlans.find(p=>p.id===id&&!p.disabled);if(plan){session.selection={testIds:plan.testIds.filter(id=>lib().catalog.tests.some(t=>t.id===id&&!t.disabled)&&!lib().catalog.conflicts.some(c=>c.testId===id&&!c.resolved)),isoDirectionIds:plan.isoDirectionIds?[...plan.isoDirectionIds]:plan.testIds.includes("iso")?M.legacyIsoDirectionIds():[]};if(lib().evaluationProfiles.some(p=>p.id===plan.defaultEvaluationProfileId&&!p.disabled))$("excelProfile").value=plan.defaultEvaluationProfileId;renderPicker();if(session.selection.testIds.length!==plan.testIds.length)error("方案中有项目已停用或定义待确认，已排除这些项目，请核对本次选择。");}}
-  async function templateRecords(){
-    if(session.records)return copy(session.records);
-    if(!session.selected.size)throw Error("请至少选择一名已建档运动员");
-    if(!$("excelDate").value||!$("excelDate").validity.valid)throw Error("请填写有效测试日期");
-    if(!session.selection.testIds.length)throw Error("请至少选择一个测试项目");
-    if(session.selection.testIds.some(id=>!lib().catalog.tests.some(t=>t.id===id&&!t.disabled)||lib().catalog.conflicts.some(c=>c.testId===id&&!c.resolved)))throw Error("所选项目已停用或定义待确认，请重新选择");
-    if(session.selection.testIds.includes("iso")&&!session.selection.isoDirectionIds.length)throw Error("请至少勾选一个等长力量方向");
-    const profile=$("excelProfile").value;if(!lib().evaluationProfiles.some(p=>p.id===profile&&!p.disabled))throw Error("请选择在用评价方案");
-    const enabled=Object.fromEntries(lib().catalog.tests.map(t=>[t.id,session.selection.testIds.includes(t.id)])),plan=lib().testPlans.find(p=>p.id===session.planId),records=[];
-    for(const id of session.selected){
-      const owner=lib().athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived);if(!owner)throw Error("名单中的运动员已不可用，请重新选择");
-      const record=M.recordFromCatalog(lib().catalog,owner.profile,enabled,$("excelDate").value);record.athleteId=id;record.recordId=crypto.randomUUID();record.evaluationProfileId=profile;
-      const latest=M.latestRecord({records:owner.records.filter(r=>!r.deletedAt&&!r.archived)}),previous=latest?await root.App.getRepository().loadRecord(latest.recordId):null;
-      if(previous)record.trainingContext=copy(previous.trainingContext);
-      M.setIsoDirectionSelection(record,session.selection.isoDirectionIds);
-      if(plan)record.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>enabled[id]),...session.selection.testIds.filter(id=>!plan.testIds.includes(id))],isoDirectionIds:[...record.isoDirectionIds]};
-      records.push(record);
-    }
-    return records;
-  }
-  async function downloadTemplate(){
-    if(busy||!session)return;const token=session.token;error("");
+  async function downloadTemplate({records=[],prefill=true}={}){
+    if(busy)return false;
+    if(!records.length)throw Error("请先选择本次测试记录");
     try{
-      setBusy(true);const records=await templateRecords();
-      const result=await root.RingsideExcel.createTemplate({records,prefill:session.mode==="edit"});if(!session||session.token!==token)return;
-      const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})),link=document.createElement("a");link.href=url;link.download=result.fileName;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
-    }catch(e){error(e.message);}finally{setBusy(false);}
+      setBusy(true);const result=await root.RingsideExcel.createTemplate({records:copy(records),prefill});
+      const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})),link=document.createElement("a");link.href=url;link.download=result.fileName;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);return result;
+    }finally{setBusy(false);}
   }
   async function readFile(file){
     if(!file||busy||!session)return;const token=session.token;error("");
+    delete session.preview;delete session.checks;delete session.directory;delete session.fileName;session.decisions={};renderImportSetup();
     try{
       setBusy(true);const parsed=await root.RingsideExcel.readTemplate(await file.arrayBuffer());if(!session||session.token!==token)return;
-      if(session.mode==="edit"&&parsed.targets.some(t=>t.recordId!==session.records[0].recordId))throw Error("此模板不属于当前测试记录。请从多人 Excel 录入入口导入其他记录。");
-      if(session.mode==="creation"&&parsed.targets.some(t=>t.athleteId!==session.records[0].athleteId))throw Error("此模板包含其他运动员，请从多人 Excel 录入入口导入。");
+      if(session.mode==="edit"&&parsed.targets.some(t=>t.recordId!==session.records[0].recordId))throw Error("此模板不属于当前测试记录。请进入对应记录的按项目录入页面导入。");
+      const athleteIds=new Set(session.records.map(record=>record.athleteId));
+      if(session.mode==="entry"&&parsed.targets.some(t=>!athleteIds.has(t.athleteId)))throw Error("此文件包含本次名单之外的运动员，请返回选择运动员步骤后重新选择。");
       const repo=root.App.getRepository();await repo.flush();
       const targets=parsed.targets||[],stored=await Promise.all(targets.map(t=>repo.loadRecord(t.recordId))),config=await repo.get("config","library"),athletes=await Promise.all([...new Set(targets.map(t=>t.athleteId))].map(async id=>[id,await repo.get("athletes",id)]));
-      const directory=await repo.directory();
+      const directory=await repo.directory();if(!session||session.token!==token)return;
       const preview=root.RingsideExcel.preview(parsed,{athletes:directory.athletes,catalog:directory.catalog,records:stored.filter(Boolean)});
       session.preview=preview;session.directory=directory;session.decisions={};session.checks={expectedConfig:JSON.stringify(config??null),expectedRecords:Object.fromEntries(targets.map((t,i)=>[t.recordId,JSON.stringify(stored[i]??null)])),expectedAthletes:Object.fromEntries(athletes.map(([id,a])=>[id,JSON.stringify(a??null)]))};
       session.fileName=file.name;renderPreview();
@@ -96,6 +65,6 @@
       if(entries.length===1&&result.records.length===1){const record=result.records[0];setBusy(false);await root.App.showExcelRecord(record.athleteId,record.recordId);}
     }catch(e){error(e.message);}finally{setBusy(false);}
   }
-  function cancel(){if(busy)return false;const done=session?.stage==="done";serial++;session=null;$("excelContent").replaceChildren();$("excelFooter").replaceChildren();if(done)root.App.showReport();return true;}
-  root.RingsideExcelFlow={open,cancel,isBusy:()=>busy,downloadTemplate,readFile,filterPeople,choosePerson,selectPeople,choosePlan,decideProject,decideMetadata,decideSettings,confirm};
+  function cancel(){if(busy)return false;serial++;session=null;$("excelContent").replaceChildren();$("excelFooter").replaceChildren();error("");return true;}
+  root.RingsideExcelFlow={open:openImport,openImport,cancel,isBusy:()=>busy,downloadTemplate,readFile,decideProject,decideMetadata,decideSettings,confirm};
 })(window);

@@ -1,8 +1,22 @@
 .excel-modal{width:min(1080px,calc(100vw - 32px));max-width:none}
-.excel-entry-choice{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 20px;padding:14px 0;border-bottom:1px solid var(--line);color:var(--muted)}
-.excel-people{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;max-height:240px;overflow:auto;margin:12px 0 24px;padding:2px}
-.excel-people .check-line{margin:0;padding:10px;border:1px solid var(--line);border-radius:8px}
-.excel-people small,.excel-result small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.creation-people-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:13px}
+.creation-athletes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;max-height:320px;overflow:auto;margin:12px 0 20px;padding:2px}
+.creation-athletes .check-line{display:flex;align-items:flex-start;gap:10px;margin:0;padding:12px;border:1px solid var(--line);border-radius:8px;min-width:0;cursor:pointer}
+.creation-athletes .check-line:has(input:checked){border-color:var(--primary);background:var(--primary-soft,#f2f6fa)}
+.creation-athletes .check-line input{flex:none;margin-top:3px}
+.creation-athletes .check-line span{min-width:0;overflow-wrap:anywhere}
+.creation-athletes small,.excel-result small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.creation-people-summary{color:var(--muted);font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+.entry-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:18px 0}
+#entryAthleteControls{flex:1;min-width:220px;max-width:440px}
+#entryAthleteControls:empty{display:none}
+#entryAthleteControls .field{margin:0}
+.entry-excel-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto}
+.entry-excel-actions .btn{min-height:40px}
+.excel-import-summary{display:grid;gap:12px;max-height:380px;overflow:auto;margin:16px 0}
+.excel-import-summary section{padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.excel-import-summary h3{margin:0 0 8px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.excel-import-summary p{margin:6px 0;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
 .excel-file{position:relative;overflow:hidden;cursor:pointer}
 .excel-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .excel-file:focus-within{outline:2px solid var(--primary);outline-offset:3px}
@@ -20,6 +34,14 @@
 @media(max-width:700px){.excel-modal{width:calc(100vw - 16px)}.excel-modal .settings-content{padding:18px 14px}.excel-preview-record{padding:12px 8px}.excel-preview-record table{font-size:11px}.excel-preview-record th,.excel-preview-record td{padding:8px 5px}.excel-preview-record th:first-child{width:28%}.excel-preview-record select{font-size:11px;padding:7px 3px}.excel-modal .modal-foot{flex-wrap:wrap;gap:12px;padding:14px}.excel-modal .modal-foot>.row{flex:1;justify-content:flex-end}.excel-result{align-items:flex-start}}
 
 @media(max-width:600px){
+ .creation-athletes{grid-template-columns:1fr;max-height:300px}
+ .creation-people-actions{align-items:flex-start}
+ .creation-people-actions .row{flex-wrap:wrap}
+ .entry-toolbar{gap:14px;margin:16px 0}
+ #entryAthleteControls{width:100%;max-width:none;min-width:0;flex-basis:100%}
+ .entry-excel-actions{width:100%;margin-left:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .entry-excel-actions .btn{padding:9px 8px;font-size:12px}
+ .excel-import-summary section{padding:12px}
  .excel-preview-record table,.excel-preview-record tbody{display:block;width:100%}
  .excel-preview-record thead{display:none}
  .excel-preview-record tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;padding:14px 0;border-bottom:1px solid var(--line)}

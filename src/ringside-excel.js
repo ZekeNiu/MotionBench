@@ -144,7 +144,8 @@
     if (!record.enabled[spec.id]) return result;
     if (spec.kind === "fms") raw.forEach((row,i) => push({...fill(row),action:i+1,actionName:row.name}));
     else if (spec.kind === "iso") for (const direction of isoRows(record)) {
-      const trials = prefill ? M.repeatRows(record,"iso",record.data.iso.findIndex(r => r.id === direction.id)) : Array.from({length:3},()=>({}));
+      const existing = prefill ? M.repeatRows(record,"iso",record.data.iso.findIndex(r => r.id === direction.id)) : [];
+      const trials = existing.some(row=>meaningful(row,rawKeys(spec))) ? existing : Array.from({length:Math.max(3,existing.length)},()=>({}));
       trials.forEach((row,i) => push({...clone(row),directionId:direction.id,directionName:(M.REG[direction.region] || direction.region)+" · "+direction.direction,attempt:i+1,unit:direction.unit,directionProtocol:direction.protocol || ""}));
     } else if (spec.kind === "hop" || spec.kind === "hopJumps") {
       const sets = prefill ? M.repeatRows(record,"hop") : Array.from({length:3},()=>M.newHopSet());
@@ -207,7 +208,7 @@
       ws.getColumn(1).hidden = true; ws.getColumn(2).hidden = true;
       for (const key of ["directionId","metricId","testId","fieldId"]) {const i=spec.fields.findIndex(f=>f.key===key);if(i>=0)ws.getColumn(i+1).hidden=true;}
       ws.views = [{state:"frozen",xSplit:3,ySplit:2}];
-      for (const record of records) for (const data of dataRows(spec,record,prefill)) {
+      for (const record of records) for (const data of dataRows(spec,record,prefill&&(!spec.id||countProject(record,spec.id)>0))) {
         const effectiveFields=spec.fields.map(f=>spec.kind==="settings"&&f.key==="value"?{...settings(record,data.testId).find(setting=>setting.key===data.fieldId),key:"value",optionKey:data.fieldId}:f);
         const forValue=f=>f.optionKey?{...f,key:f.optionKey}:f;
         const row = ws.addRow(effectiveFields.map(f => writeValue(get(data,f.key),forValue(f))));

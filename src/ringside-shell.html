@@ -214,6 +214,13 @@
           <h1>本次数据录入</h1>
           <div id="entrySteps" class="workflow-steps" aria-label="录入步骤"></div>
           <p>按本次所选项目依次录入，有效修改自动保留。</p>
+          <div class="entry-toolbar">
+            <div id="entryAthleteControls"></div>
+            <div id="entryExcelActions" class="entry-excel-actions" aria-label="Excel 文件操作">
+              <button type="button" class="btn" data-entry-excel-action="download" onclick="App.downloadExcelTemplate()">下载 Excel 模板</button>
+              <button type="button" class="btn" data-entry-excel-action="import" onclick="App.importExcelFile()">导入 Excel 文件</button>
+            </div>
+          </div>
           <div id="entryIdentity" class="entry-identity"></div>
           <h2 id="entryProjectTitle" class="entry-project-title"></h2>
         </div>
@@ -349,12 +356,19 @@
           <div class="settings-content creation-content">
             <div id="creationSteps" class="workflow-steps" aria-label="录入步骤"></div>
             <div id="creationSelectStep">
-              <div class="excel-entry-choice"><strong>单人录入</strong><button type="button" class="btn" onclick="App.openExcel('batch')">多人 Excel 录入</button></div>
               <div class="creation-choice"><label><input type="radio" name="creationAthleteMode" value="existing" checked onchange="App.creationAthleteMode(this.value)">选择已有运动员</label><label><input type="radio" name="creationAthleteMode" value="new" onchange="App.creationAthleteMode(this.value)">新建运动员档案</label></div>
-              <div id="creationExistingFields" class="form-grid"><label class="field"><span>搜索运动员</span><input id="creationAthleteSearch" type="search" placeholder="姓名、专项或编号" oninput="App.renderCreationAthletes()"></label><label class="field"><span>运动员</span><select id="creationAthleteSelect" onchange="App.creationChooseAthlete(this.value)"></select></label></div>
+              <div id="creationExistingFields">
+                <div class="form-grid">
+                  <label class="field"><span>队伍</span><select id="creationGroupFilter" onchange="App.renderCreationAthletes()"><option value="">全部队伍</option></select></label>
+                  <label class="field"><span>搜索运动员</span><input id="creationAthleteSearch" type="search" placeholder="姓名、专项或编号" oninput="App.renderCreationAthletes()"></label>
+                </div>
+                <div class="creation-people-actions"><div class="row"><button type="button" class="btn small" onclick="App.selectCreationAthletes(true)">选择筛选结果</button><button type="button" class="btn small" onclick="App.selectCreationAthletes(false)">清空名单</button></div><span id="creationAthleteCount" aria-live="polite">已选 0 人</span></div>
+                <div id="creationAthletes" class="creation-athletes" role="group" aria-label="选择本次运动员"></div>
+                <select id="creationAthleteSelect" class="sr-only" aria-label="运动员" aria-hidden="true" tabindex="-1" onchange="App.creationChooseAthlete(this.value)"></select>
+              </div>
             </div>
             <div id="creationProfileStep">
-              <p class="creation-step-label">新建档案，开始录入时一并保存</p>
+              <p class="creation-step-label">填写档案，录入测量后保存</p>
               <div class="form-grid creation-profile-grid">
                 <label class="field wide" for="newAthleteName"><span>姓名 / 编号 <span class="required-mark">必填</span></span>
                   <input id="newAthleteName" autocomplete="off" maxlength="100" aria-required="true" placeholder="填写姓名或运动员编号" />
@@ -378,11 +392,11 @@
               <label class="field"><span>评价方案</span><select id="creationEvaluationProfile"></select></label>
               <p class="creation-step-label">本次测试</p>
               <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" /></label>
-              <div class="form-grid"><label class="field"><span>本次年龄</span><input id="creationAge" type="number" min="0" max="100" step="any"></label><label class="field"><span>本次体重 kg</span><input id="creationMass" type="number" min="0" step="any"></label><label class="field"><span>本次身高 cm</span><input id="creationHeight" type="number" min="0" step="any"></label></div>
+              <p id="creationPeopleSummary" class="creation-people-summary"></p>
+              <div id="creationBodyFields" class="form-grid"><label class="field"><span>本次年龄</span><input id="creationAge" type="number" min="0" max="100" step="any"></label><label class="field"><span>本次体重 kg</span><input id="creationMass" type="number" min="0" step="any"></label><label class="field"><span>本次身高 cm</span><input id="creationHeight" type="number" min="0" step="any"></label></div>
               <p id="creationSource" class="notice"></p>
               <div class="creation-project-heading"><h3>选择本次测试项目</h3><span id="creationCount" class="plan-count" aria-live="polite"></span></div>
               <div id="creationProjects"></div>
-              <div class="excel-entry-choice" id="creationExcelActions"><span>也可以下载所选项目模板，填写后导入。</span><button type="button" class="btn" onclick="App.openExcel('creation')">Excel 模板与导入</button></div>
             </div>
             <p id="creationError" class="field-error" role="alert" hidden></p>
           </div>
@@ -390,8 +404,8 @@
             <button type="button" class="btn" onclick="App.close('newAthleteModal')">取消</button>
             <div class="row">
               <button id="creationBack" type="button" class="btn" onclick="App.creationBack()" hidden>上一步：选择运动员</button>
-              <button id="creationNext" type="button" class="btn primary" onclick="App.creationNext()">下一步：选择测试</button>
-              <button id="creationSubmit" type="submit" class="btn primary" hidden>创建并开始录入</button>
+              <button id="creationNext" type="button" class="btn primary" onclick="App.creationNext()">下一步：设置本次测试</button>
+              <button id="creationSubmit" type="submit" class="btn primary" hidden>开始按项目录入</button>
             </div>
           </footer>
         </form>
@@ -399,7 +413,7 @@
     </div></section>
     </div>
     <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
-    <div id="excelModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">Excel 模板与导入</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
+    <div id="excelModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">导入 Excel 文件</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
     <datalist id="sportOptions"><option value="田径"></option><option value="篮球"></option><option value="足球"></option><option value="排球"></option><option value="游泳"></option><option value="网球"></option><option value="羽毛球"></option><option value="举重"></option><option value="拳击"></option><option value="散打"></option><option value="跆拳道"></option></datalist>
     <div class="modal-backdrop" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
       <div class="modal">

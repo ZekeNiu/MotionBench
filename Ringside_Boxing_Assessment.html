@@ -3160,10 +3160,24 @@ body.sidebar-collapsed .workspace {
 }
 
 .excel-modal{width:min(1080px,calc(100vw - 32px));max-width:none}
-.excel-entry-choice{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 20px;padding:14px 0;border-bottom:1px solid var(--line);color:var(--muted)}
-.excel-people{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;max-height:240px;overflow:auto;margin:12px 0 24px;padding:2px}
-.excel-people .check-line{margin:0;padding:10px;border:1px solid var(--line);border-radius:8px}
-.excel-people small,.excel-result small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.creation-people-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:13px}
+.creation-athletes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;max-height:320px;overflow:auto;margin:12px 0 20px;padding:2px}
+.creation-athletes .check-line{display:flex;align-items:flex-start;gap:10px;margin:0;padding:12px;border:1px solid var(--line);border-radius:8px;min-width:0;cursor:pointer}
+.creation-athletes .check-line:has(input:checked){border-color:var(--primary);background:var(--primary-soft,#f2f6fa)}
+.creation-athletes .check-line input{flex:none;margin-top:3px}
+.creation-athletes .check-line span{min-width:0;overflow-wrap:anywhere}
+.creation-athletes small,.excel-result small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.creation-people-summary{color:var(--muted);font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+.entry-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:18px 0}
+#entryAthleteControls{flex:1;min-width:220px;max-width:440px}
+#entryAthleteControls:empty{display:none}
+#entryAthleteControls .field{margin:0}
+.entry-excel-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto}
+.entry-excel-actions .btn{min-height:40px}
+.excel-import-summary{display:grid;gap:12px;max-height:380px;overflow:auto;margin:16px 0}
+.excel-import-summary section{padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.excel-import-summary h3{margin:0 0 8px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+.excel-import-summary p{margin:6px 0;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
 .excel-file{position:relative;overflow:hidden;cursor:pointer}
 .excel-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .excel-file:focus-within{outline:2px solid var(--primary);outline-offset:3px}
@@ -3181,6 +3195,14 @@ body.sidebar-collapsed .workspace {
 @media(max-width:700px){.excel-modal{width:calc(100vw - 16px)}.excel-modal .settings-content{padding:18px 14px}.excel-preview-record{padding:12px 8px}.excel-preview-record table{font-size:11px}.excel-preview-record th,.excel-preview-record td{padding:8px 5px}.excel-preview-record th:first-child{width:28%}.excel-preview-record select{font-size:11px;padding:7px 3px}.excel-modal .modal-foot{flex-wrap:wrap;gap:12px;padding:14px}.excel-modal .modal-foot>.row{flex:1;justify-content:flex-end}.excel-result{align-items:flex-start}}
 
 @media(max-width:600px){
+ .creation-athletes{grid-template-columns:1fr;max-height:300px}
+ .creation-people-actions{align-items:flex-start}
+ .creation-people-actions .row{flex-wrap:wrap}
+ .entry-toolbar{gap:14px;margin:16px 0}
+ #entryAthleteControls{width:100%;max-width:none;min-width:0;flex-basis:100%}
+ .entry-excel-actions{width:100%;margin-left:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+ .entry-excel-actions .btn{padding:9px 8px;font-size:12px}
+ .excel-import-summary section{padding:12px}
  .excel-preview-record table,.excel-preview-record tbody{display:block;width:100%}
  .excel-preview-record thead{display:none}
  .excel-preview-record tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;padding:14px 0;border-bottom:1px solid var(--line)}
@@ -3395,6 +3417,13 @@ body.sidebar-collapsed .workspace {
           <h1>本次数据录入</h1>
           <div id="entrySteps" class="workflow-steps" aria-label="录入步骤"></div>
           <p>按本次所选项目依次录入，有效修改自动保留。</p>
+          <div class="entry-toolbar">
+            <div id="entryAthleteControls"></div>
+            <div id="entryExcelActions" class="entry-excel-actions" aria-label="Excel 文件操作">
+              <button type="button" class="btn" data-entry-excel-action="download" onclick="App.downloadExcelTemplate()">下载 Excel 模板</button>
+              <button type="button" class="btn" data-entry-excel-action="import" onclick="App.importExcelFile()">导入 Excel 文件</button>
+            </div>
+          </div>
           <div id="entryIdentity" class="entry-identity"></div>
           <h2 id="entryProjectTitle" class="entry-project-title"></h2>
         </div>
@@ -3530,12 +3559,19 @@ body.sidebar-collapsed .workspace {
           <div class="settings-content creation-content">
             <div id="creationSteps" class="workflow-steps" aria-label="录入步骤"></div>
             <div id="creationSelectStep">
-              <div class="excel-entry-choice"><strong>单人录入</strong><button type="button" class="btn" onclick="App.openExcel('batch')">多人 Excel 录入</button></div>
               <div class="creation-choice"><label><input type="radio" name="creationAthleteMode" value="existing" checked onchange="App.creationAthleteMode(this.value)">选择已有运动员</label><label><input type="radio" name="creationAthleteMode" value="new" onchange="App.creationAthleteMode(this.value)">新建运动员档案</label></div>
-              <div id="creationExistingFields" class="form-grid"><label class="field"><span>搜索运动员</span><input id="creationAthleteSearch" type="search" placeholder="姓名、专项或编号" oninput="App.renderCreationAthletes()"></label><label class="field"><span>运动员</span><select id="creationAthleteSelect" onchange="App.creationChooseAthlete(this.value)"></select></label></div>
+              <div id="creationExistingFields">
+                <div class="form-grid">
+                  <label class="field"><span>队伍</span><select id="creationGroupFilter" onchange="App.renderCreationAthletes()"><option value="">全部队伍</option></select></label>
+                  <label class="field"><span>搜索运动员</span><input id="creationAthleteSearch" type="search" placeholder="姓名、专项或编号" oninput="App.renderCreationAthletes()"></label>
+                </div>
+                <div class="creation-people-actions"><div class="row"><button type="button" class="btn small" onclick="App.selectCreationAthletes(true)">选择筛选结果</button><button type="button" class="btn small" onclick="App.selectCreationAthletes(false)">清空名单</button></div><span id="creationAthleteCount" aria-live="polite">已选 0 人</span></div>
+                <div id="creationAthletes" class="creation-athletes" role="group" aria-label="选择本次运动员"></div>
+                <select id="creationAthleteSelect" class="sr-only" aria-label="运动员" aria-hidden="true" tabindex="-1" onchange="App.creationChooseAthlete(this.value)"></select>
+              </div>
             </div>
             <div id="creationProfileStep">
-              <p class="creation-step-label">新建档案，开始录入时一并保存</p>
+              <p class="creation-step-label">填写档案，录入测量后保存</p>
               <div class="form-grid creation-profile-grid">
                 <label class="field wide" for="newAthleteName"><span>姓名 / 编号 <span class="required-mark">必填</span></span>
                   <input id="newAthleteName" autocomplete="off" maxlength="100" aria-required="true" placeholder="填写姓名或运动员编号" />
@@ -3559,11 +3595,11 @@ body.sidebar-collapsed .workspace {
               <label class="field"><span>评价方案</span><select id="creationEvaluationProfile"></select></label>
               <p class="creation-step-label">本次测试</p>
               <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" /></label>
-              <div class="form-grid"><label class="field"><span>本次年龄</span><input id="creationAge" type="number" min="0" max="100" step="any"></label><label class="field"><span>本次体重 kg</span><input id="creationMass" type="number" min="0" step="any"></label><label class="field"><span>本次身高 cm</span><input id="creationHeight" type="number" min="0" step="any"></label></div>
+              <p id="creationPeopleSummary" class="creation-people-summary"></p>
+              <div id="creationBodyFields" class="form-grid"><label class="field"><span>本次年龄</span><input id="creationAge" type="number" min="0" max="100" step="any"></label><label class="field"><span>本次体重 kg</span><input id="creationMass" type="number" min="0" step="any"></label><label class="field"><span>本次身高 cm</span><input id="creationHeight" type="number" min="0" step="any"></label></div>
               <p id="creationSource" class="notice"></p>
               <div class="creation-project-heading"><h3>选择本次测试项目</h3><span id="creationCount" class="plan-count" aria-live="polite"></span></div>
               <div id="creationProjects"></div>
-              <div class="excel-entry-choice" id="creationExcelActions"><span>也可以下载所选项目模板，填写后导入。</span><button type="button" class="btn" onclick="App.openExcel('creation')">Excel 模板与导入</button></div>
             </div>
             <p id="creationError" class="field-error" role="alert" hidden></p>
           </div>
@@ -3571,8 +3607,8 @@ body.sidebar-collapsed .workspace {
             <button type="button" class="btn" onclick="App.close('newAthleteModal')">取消</button>
             <div class="row">
               <button id="creationBack" type="button" class="btn" onclick="App.creationBack()" hidden>上一步：选择运动员</button>
-              <button id="creationNext" type="button" class="btn primary" onclick="App.creationNext()">下一步：选择测试</button>
-              <button id="creationSubmit" type="submit" class="btn primary" hidden>创建并开始录入</button>
+              <button id="creationNext" type="button" class="btn primary" onclick="App.creationNext()">下一步：设置本次测试</button>
+              <button id="creationSubmit" type="submit" class="btn primary" hidden>开始按项目录入</button>
             </div>
           </footer>
         </form>
@@ -3580,7 +3616,7 @@ body.sidebar-collapsed .workspace {
     </div></section>
     </div>
     <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
-    <div id="excelModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">Excel 模板与导入</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
+    <div id="excelModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">导入 Excel 文件</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
     <datalist id="sportOptions"><option value="田径"></option><option value="篮球"></option><option value="足球"></option><option value="排球"></option><option value="游泳"></option><option value="网球"></option><option value="羽毛球"></option><option value="举重"></option><option value="拳击"></option><option value="散打"></option><option value="跆拳道"></option></datalist>
     <div class="modal-backdrop" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
       <div class="modal">
@@ -16057,7 +16093,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (!record.enabled[spec.id]) return result;
     if (spec.kind === "fms") raw.forEach((row,i) => push({...fill(row),action:i+1,actionName:row.name}));
     else if (spec.kind === "iso") for (const direction of isoRows(record)) {
-      const trials = prefill ? M.repeatRows(record,"iso",record.data.iso.findIndex(r => r.id === direction.id)) : Array.from({length:3},()=>({}));
+      const existing = prefill ? M.repeatRows(record,"iso",record.data.iso.findIndex(r => r.id === direction.id)) : [];
+      const trials = existing.some(row=>meaningful(row,rawKeys(spec))) ? existing : Array.from({length:Math.max(3,existing.length)},()=>({}));
       trials.forEach((row,i) => push({...clone(row),directionId:direction.id,directionName:(M.REG[direction.region] || direction.region)+" · "+direction.direction,attempt:i+1,unit:direction.unit,directionProtocol:direction.protocol || ""}));
     } else if (spec.kind === "hop" || spec.kind === "hopJumps") {
       const sets = prefill ? M.repeatRows(record,"hop") : Array.from({length:3},()=>M.newHopSet());
@@ -16120,7 +16157,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       ws.getColumn(1).hidden = true; ws.getColumn(2).hidden = true;
       for (const key of ["directionId","metricId","testId","fieldId"]) {const i=spec.fields.findIndex(f=>f.key===key);if(i>=0)ws.getColumn(i+1).hidden=true;}
       ws.views = [{state:"frozen",xSplit:3,ySplit:2}];
-      for (const record of records) for (const data of dataRows(spec,record,prefill)) {
+      for (const record of records) for (const data of dataRows(spec,record,prefill&&(!spec.id||countProject(record,spec.id)>0))) {
         const effectiveFields=spec.fields.map(f=>spec.kind==="settings"&&f.key==="value"?{...settings(record,data.testId).find(setting=>setting.key===data.fieldId),key:"value",optionKey:data.fieldId}:f);
         const forValue=f=>f.optionKey?{...f,key:f.optionKey}:f;
         const row = ws.addRow(effectiveFields.map(f => writeValue(get(data,f.key),forValue(f))));
@@ -16932,6 +16969,156 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
 </script>
 <script>
+(function (root) {
+  "use strict";
+  const clone = value => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+  const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
+  const object = value => value !== null && typeof value === "object" && !Array.isArray(value);
+  const configurationKeys = new Set([
+    "id", "name", "protocol", "unit", "method", "label", "inputmode", "selectionbasis",
+    "vo2unit", "oxygenlabel", "side", "region", "direction", "directioncode", "code", "target",
+    "paired", "bilateral", "measurementversion", "forcedefinition", "impulsedefinition",
+    "modality", "timems", "location", "position", "posture", "angle", "fixation", "measurementlocation",
+    "confirmed", "referenceenabled", "source", "ranges", "enabled", "selected", "excluded",
+  ]);
+  // Empty rows and protocol choices do not turn a template into a measured record.
+  // Metric IDs remain keys, including a user metric named after a configuration field.
+  function project(value, dictionary = false) {
+    if (Array.isArray(value)) {
+      const items = value.map(item => project(item)).filter(item => item !== undefined);
+      return items.length ? items : undefined;
+    }
+    if (object(value)) {
+      const result = {};
+      for (const key of Object.keys(value).sort()) {
+        if (!dictionary && configurationKeys.has(key.toLowerCase())) continue;
+        const item = project(value[key], key === "metrics");
+        if (item !== undefined) Object.defineProperty(result, key, { value:item, enumerable:true, configurable:true, writable:true });
+      }
+      return Object.keys(result).length ? result : undefined;
+    }
+    if (value === undefined || value === null || value === false || value === "") return undefined;
+    if (typeof value === "string" && !value.trim()) return undefined;
+    return value;
+  }
+  function signature(record) {
+    return JSON.stringify({
+      data: project(record?.data, true),
+      customValues: project(record?.customValues, true),
+      narrative: record?.narrative?.text?.trim() || undefined,
+    });
+  }
+  function create(records, { origin = null, pendingAthletes = [] } = {}) {
+    if (!Array.isArray(records)) throw Error("本次录入名单无效");
+    const ids = records.map(record => record.recordId);
+    if (ids.some(id => typeof id !== "string" || !id) || new Set(ids).size !== ids.length) throw Error("本次测试记录编号无效");
+    return {
+      records, base: records.length ? clone(records[0]) : null,
+      origin: clone(origin), pendingAthletes: clone(pendingAthletes), savedIds: new Set(),
+      initialMeasurements: new Map(records.map(record => [record.recordId, signature(record)])),
+      selectedRecordId: records[0]?.recordId || "", missingRecordIds: [], conflictRecordIds: [],
+    };
+  }
+  function hasManualData(session, record) {
+    return signature(record) !== (session.initialMeasurements.get(record.recordId) ?? signature(session.base));
+  }
+  function markSaved(session, id) { session.savedIds.add(id); }
+  function isPending(session, id) { return !session.savedIds.has(id); }
+  const metadataKeys = new Set(["athleteId", "recordId", "athlete", "trainingContext"]);
+  function contents(record) {
+    return Object.fromEntries(Object.entries(record).filter(([key]) => !metadataKeys.has(key)));
+  }
+  function differences(before, after, path = [], result = []) {
+    if (JSON.stringify(before) === JSON.stringify(after)) return result;
+    if (object(before) && object(after)) {
+      for (const key of Object.keys(before)) if (!own(after, key)) result.push({ path:path.concat(key), remove:true });
+      for (const key of Object.keys(after)) {
+        if (!own(before, key)) result.push({ path:path.concat(key), value:clone(after[key]) });
+        else differences(before[key], after[key], path.concat(key), result);
+      }
+    } else result.push({ path, value:clone(after) });
+    return result;
+  }
+  function recordContent(record) {
+    const value = clone(record); delete value.updated; return JSON.stringify(value);
+  }
+  function encode(session, stateId = session.selectedRecordId, { dirtyRecords = [] } = {}) {
+    const baseline = session.base ? contents(session.base) : {};
+    return {
+      version:1, base:clone(session.base), origin:clone(session.origin), pendingAthletes:clone(session.pendingAthletes),
+      savedIds:[...session.savedIds], selectedRecordId:stateId || session.records[0]?.recordId || "",
+      dirtyRecords:dirtyRecords.filter(item => session.savedIds.has(item.record.recordId)).map(item => ({
+        record:clone(item.record), baselineContent:typeof item.baselineContent === "string" ? item.baselineContent : null,
+      })),
+      entries:session.records.map(record => ({
+        athleteId:record.athleteId, recordId:record.recordId, athlete:clone(record.athlete), trainingContext:clone(record.trainingContext),
+        ...(isPending(session, record.recordId) ? { patch:differences(baseline, contents(record)) } : {}),
+      })),
+    };
+  }
+  function applyPatch(record, patch) {
+    if (!Array.isArray(patch)) throw Error("临时录入内容无效");
+    for (const operation of patch) {
+      const path = operation.path;
+      if (!Array.isArray(path) || !path.length || path.some(key => typeof key !== "string" || ["__proto__", "constructor", "prototype"].includes(key))) throw Error("临时录入字段无效");
+      let destination = record;
+      for (const key of path.slice(0, -1)) {
+        if (!own(destination, key) || !object(destination[key])) destination[key] = {};
+        destination = destination[key];
+      }
+      const key = path[path.length - 1];
+      if (operation.remove) delete destination[key];
+      else Object.defineProperty(destination, key, { value:clone(operation.value), enumerable:true, configurable:true, writable:true });
+    }
+    return record;
+  }
+  async function decode(payload, loadRecord) {
+    if (!payload || payload.version !== 1 || !Array.isArray(payload.entries) || !Array.isArray(payload.savedIds)
+      || (payload.entries.length && !object(payload.base))) throw Error("临时录入数据格式无效");
+    const ids = payload.entries.map(entry => entry.recordId);
+    if (ids.some(id => typeof id !== "string" || !id) || new Set(ids).size !== ids.length) throw Error("临时测试记录编号无效");
+    if (payload.dirtyRecords !== undefined && !Array.isArray(payload.dirtyRecords)) throw Error("临时未保存内容无效");
+    const dirty = new Map();
+    for (const item of payload.dirtyRecords || []) {
+      if (!object(item?.record) || typeof item.record.recordId !== "string" || dirty.has(item.record.recordId)) throw Error("临时未保存记录无效");
+      dirty.set(item.record.recordId, item);
+    }
+    const saved = new Set(payload.savedIds), records = [], missingRecordIds = [], conflictRecordIds = [];
+    for (const entry of payload.entries) {
+      if (saved.has(entry.recordId)) {
+        const record = await loadRecord(entry.recordId);
+        if (!record) { missingRecordIds.push(entry.recordId); continue; }
+        if (record.recordId !== entry.recordId || record.athleteId !== entry.athleteId) throw Error("临时测试记录与运动员编号不匹配");
+        const pending = dirty.get(entry.recordId);
+        if (pending) {
+          if (pending.record.athleteId !== entry.athleteId) throw Error("临时未保存记录与运动员编号不匹配");
+          const current = recordContent(record);
+          // A failed/in-flight local save can be restored only while its original
+          // stored baseline remains current, or when that exact save has committed.
+          if (current === pending.baselineContent || current === recordContent(pending.record)) records.push(clone(pending.record));
+          else { conflictRecordIds.push(entry.recordId); records.push(record); }
+        } else records.push(record);
+      } else {
+        const record = applyPatch(clone(payload.base), entry.patch || []);
+        for (const key of metadataKeys) if (own(entry, key)) record[key] = clone(entry[key]);
+        records.push(record);
+      }
+    }
+    const session = create(records, { origin:payload.origin, pendingAthletes:payload.pendingAthletes || [] });
+    session.base = clone(payload.base);
+    const initial = signature(session.base);
+    session.initialMeasurements = new Map(records.map(record => [record.recordId, initial]));
+    session.savedIds = new Set(records.filter(record => saved.has(record.recordId)).map(record => record.recordId));
+    session.selectedRecordId = records.some(record => record.recordId === payload.selectedRecordId) ? payload.selectedRecordId : records[0]?.recordId || "";
+    session.missingRecordIds = missingRecordIds;
+    session.conflictRecordIds = conflictRecordIds;
+    return session;
+  }
+  root.RingsideEntrySession = { create, hasManualData, markSaved, isPending, encode, decode };
+})(window);
+
+</script>
+<script>
 (function(root){
   "use strict";
   const M=root.RingsideModel,T=root.RingsideTests,$=id=>document.getElementById(id),copy=v=>JSON.parse(JSON.stringify(v));
@@ -16939,71 +17126,40 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   let session=null,serial=0,busy=false;
   const lib=()=>root.App.getLibrary();
   const personLabel=entry=>{const owner=lib().athletes.find(a=>a.id===entry.athleteId);return [entry.name,owner?.profile?.sport,entry.athleteId.slice(-6)].filter(Boolean).join(" · ");};
-  const date=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Shanghai",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
   function error(message){$("excelError").textContent=message;$("excelError").hidden=!message;}
-  function setBusy(value){busy=value;$("excelModal").setAttribute("aria-busy",String(value));$("excelModal").querySelectorAll("button,input,select").forEach(el=>{if(value){el.dataset.excelWasDisabled=String(el.disabled);el.disabled=true;}else if(el.dataset.excelWasDisabled!==undefined){el.disabled=el.dataset.excelWasDisabled==="true";delete el.dataset.excelWasDisabled;}});}
-  function importControl(){return '<label class="btn excel-file">选择填写好的 Excel<input id="excelFile" type="file" accept=".xlsx" onchange="RingsideExcelFlow.readFile(this.files[0]);this.value=\'\'"></label>';}
-  function downloadControl(){return '<button type="button" class="btn primary" onclick="RingsideExcelFlow.downloadTemplate()">下载 Excel 模板</button>';}
-  async function open({mode="batch",records=null}={}){
-    if(busy)return;
-    session={token:++serial,mode,records,stage:"setup",selected:new Set(),selection:{testIds:[],isoDirectionIds:[]},planId:"",profileId:lib().defaultEvaluationProfileId};
-    error("");$("excelTitle").textContent=mode==="edit"?"补录本次测试 · Excel":mode==="creation"?"本次测试 · Excel":"多人 Excel 录入";
-    renderSetup();root.App.modal("excelModal");
+  function setBusy(value){busy=value;$("excelModal").setAttribute("aria-busy",String(value));document.querySelectorAll("#excelModal button,#excelModal input,#excelModal select,[data-entry-excel-action]").forEach(el=>{if(value){el.dataset.excelWasDisabled=String(el.disabled);el.disabled=true;}else if(el.dataset.excelWasDisabled!==undefined){el.disabled=el.dataset.excelWasDisabled==="true";delete el.dataset.excelWasDisabled;}});}
+  function importControl(){return '<label class="btn primary excel-file">选择 Excel 文件<input id="excelFile" type="file" accept=".xlsx" onchange="RingsideExcelFlow.readFile(this.files[0]);this.value=\'\'"></label>';}
+  function openImport({mode="entry",records=[]}={}){
+    if(busy)return false;
+    if(!records.length)throw Error("请先选择本次测试记录");
+    session={token:++serial,mode,records:copy(records),stage:"setup"};
+    error("");$("excelTitle").textContent="导入 Excel 文件";
+    renderImportSetup();root.App.modal("excelModal");return true;
   }
-  function renderSetup(){
-    if(!session)return;session.stage="setup";
-    $("excelFooter").innerHTML='<button class="btn" onclick="App.close(\'excelModal\')">取消</button><div class="row">'+importControl()+downloadControl()+'</div>';
-    if(session.records){
-      const record=session.records[0],projects=T.describe(record).filter(t=>record.enabled[t.id]);
-      $("excelContent").innerHTML=`<p class="intro">${esc(record.athlete.name)} · ${esc(record.athlete.date)}</p><p>${projects.map(t=>esc(t.name)).join("、")}</p><p class="note">${session.mode==="edit"?"模板包含已有测量。导入时先核对变化，有数据的项目默认保留，可逐项选择替换。":"填写模板后回到这里导入。下载模板不会创建空测试记录。"}</p>${record.enabled.iso?`<p>等长力量：${M.selectedIsoRows(record).map(r=>esc((M.REG[r.region]||r.region)+" "+r.direction)).join("、")}</p>`:""}`;
-      return;
-    }
-    $("excelContent").innerHTML=`<p class="intro">选择已建档运动员和本次项目，下载模板集中填写。</p><div class="form-grid"><label class="field"><span>队伍</span><select id="excelGroup" onchange="RingsideExcelFlow.filterPeople()"><option value="">全部队伍</option>${lib().groups.map(g=>`<option value="${esc(g.id)}">${esc(g.name)}</option>`).join("")}</select></label><label class="field"><span>搜索运动员</span><input id="excelPeopleSearch" type="search" placeholder="姓名、专项或编号" oninput="RingsideExcelFlow.filterPeople()"></label></div><div class="row"><button class="btn small" onclick="RingsideExcelFlow.selectPeople(true)">选择筛选结果</button><button class="btn small" onclick="RingsideExcelFlow.selectPeople(false)">清空名单</button><span id="excelPeopleCount" aria-live="polite"></span></div><div id="excelPeople" class="excel-people"></div><div class="form-grid"><label class="field"><span>测试日期</span><input id="excelDate" type="date" value="${date()}"></label><label class="field"><span>测试方案</span><select id="excelPlan" onchange="RingsideExcelFlow.choosePlan(this.value)"><option value="">临时选择项目</option>${lib().testPlans.filter(p=>!p.disabled).map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("")}</select></label><label class="field"><span>评价方案</span><select id="excelProfile">${lib().evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${esc(p.id)}" ${p.id===session.profileId?"selected":""}>${esc(p.name)}</option>`).join("")}</select></label></div><h3>本次测试项目</h3><div id="excelProjects"></div>`;
-    filterPeople();renderPicker();
+  function renderImportSetup(){
+    const records=session.records;session.stage="setup";
+    $("excelContent").innerHTML=`<p class="intro">本次录入 ${records.length} 名运动员</p><div class="excel-import-summary">${records.map(record=>`<section><h3>${esc(personLabel({athleteId:record.athleteId,name:record.athlete.name}))} · ${esc(record.athlete.date)}</h3><p>${T.describe(record).filter(t=>record.enabled[t.id]).map(t=>esc(t.name)).join("、")}</p>${record.enabled.iso?`<p class="note">等长力量：${M.selectedIsoRows(record).map(r=>esc((M.REG[r.region]||r.region)+" "+r.direction)).join("、")}</p>`:""}</section>`).join("")}</div><p class="note">选择填写好的 .xlsx 文件，核对变化后再保存。已有测量默认保留，可逐项选择替换。</p>`;
+    $("excelFooter").innerHTML='<button type="button" class="btn" onclick="App.close(\'excelModal\')">取消</button>'+importControl();
   }
-  function people(){const q=($("excelPeopleSearch")?.value||"").trim().toLowerCase(),group=$("excelGroup")?.value;return lib().athletes.filter(a=>!a.deletedAt&&!a.archived&&(!group||a.groupId===group)&&(!q||[a.name,a.id,a.profile?.sport].join(" ").toLowerCase().includes(q)));}
-  function filterPeople(){if(!session||!$("excelPeople"))return;$("excelPeople").innerHTML=people().map(a=>`<label class="check-line"><input type="checkbox" data-excel-person="${esc(a.id)}" ${session.selected.has(a.id)?"checked":""} onchange="RingsideExcelFlow.choosePerson(this.dataset.excelPerson,this.checked)"><span>${esc(a.name)}<small>${esc(a.profile?.sport||"未填专项")} · ${esc(a.id.slice(-6))}</small></span></label>`).join("")||'<p class="note">没有匹配的运动员，请先在运动员管理中建档。</p>';$("excelPeopleCount").textContent=`已选 ${session.selected.size} 人`;}
-  function choosePerson(id,checked){if(checked)session.selected.add(id);else session.selected.delete(id);$("excelPeopleCount").textContent=`已选 ${session.selected.size} 人`;}
-  function selectPeople(checked){if(checked)people().forEach(a=>session.selected.add(a.id));else session.selected.clear();filterPeople();}
-  function renderPicker(){const options={source:lib().catalog,showOrder:false,context:"excel",selection:session.selection,isoRows:M.isoRows(),blockedIds:lib().catalog.conflicts.filter(c=>!c.resolved).map(c=>c.testId),onChange(next){session.selection=copy(next);}};$("excelProjects").innerHTML=root.RingsidePicker.render(options);root.RingsidePicker.bind($("excelProjects"),options);}
-  function choosePlan(id){session.planId=id;const plan=lib().testPlans.find(p=>p.id===id&&!p.disabled);if(plan){session.selection={testIds:plan.testIds.filter(id=>lib().catalog.tests.some(t=>t.id===id&&!t.disabled)&&!lib().catalog.conflicts.some(c=>c.testId===id&&!c.resolved)),isoDirectionIds:plan.isoDirectionIds?[...plan.isoDirectionIds]:plan.testIds.includes("iso")?M.legacyIsoDirectionIds():[]};if(lib().evaluationProfiles.some(p=>p.id===plan.defaultEvaluationProfileId&&!p.disabled))$("excelProfile").value=plan.defaultEvaluationProfileId;renderPicker();if(session.selection.testIds.length!==plan.testIds.length)error("方案中有项目已停用或定义待确认，已排除这些项目，请核对本次选择。");}}
-  async function templateRecords(){
-    if(session.records)return copy(session.records);
-    if(!session.selected.size)throw Error("请至少选择一名已建档运动员");
-    if(!$("excelDate").value||!$("excelDate").validity.valid)throw Error("请填写有效测试日期");
-    if(!session.selection.testIds.length)throw Error("请至少选择一个测试项目");
-    if(session.selection.testIds.some(id=>!lib().catalog.tests.some(t=>t.id===id&&!t.disabled)||lib().catalog.conflicts.some(c=>c.testId===id&&!c.resolved)))throw Error("所选项目已停用或定义待确认，请重新选择");
-    if(session.selection.testIds.includes("iso")&&!session.selection.isoDirectionIds.length)throw Error("请至少勾选一个等长力量方向");
-    const profile=$("excelProfile").value;if(!lib().evaluationProfiles.some(p=>p.id===profile&&!p.disabled))throw Error("请选择在用评价方案");
-    const enabled=Object.fromEntries(lib().catalog.tests.map(t=>[t.id,session.selection.testIds.includes(t.id)])),plan=lib().testPlans.find(p=>p.id===session.planId),records=[];
-    for(const id of session.selected){
-      const owner=lib().athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived);if(!owner)throw Error("名单中的运动员已不可用，请重新选择");
-      const record=M.recordFromCatalog(lib().catalog,owner.profile,enabled,$("excelDate").value);record.athleteId=id;record.recordId=crypto.randomUUID();record.evaluationProfileId=profile;
-      const latest=M.latestRecord({records:owner.records.filter(r=>!r.deletedAt&&!r.archived)}),previous=latest?await root.App.getRepository().loadRecord(latest.recordId):null;
-      if(previous)record.trainingContext=copy(previous.trainingContext);
-      M.setIsoDirectionSelection(record,session.selection.isoDirectionIds);
-      if(plan)record.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>enabled[id]),...session.selection.testIds.filter(id=>!plan.testIds.includes(id))],isoDirectionIds:[...record.isoDirectionIds]};
-      records.push(record);
-    }
-    return records;
-  }
-  async function downloadTemplate(){
-    if(busy||!session)return;const token=session.token;error("");
+  async function downloadTemplate({records=[],prefill=true}={}){
+    if(busy)return false;
+    if(!records.length)throw Error("请先选择本次测试记录");
     try{
-      setBusy(true);const records=await templateRecords();
-      const result=await root.RingsideExcel.createTemplate({records,prefill:session.mode==="edit"});if(!session||session.token!==token)return;
-      const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})),link=document.createElement("a");link.href=url;link.download=result.fileName;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
-    }catch(e){error(e.message);}finally{setBusy(false);}
+      setBusy(true);const result=await root.RingsideExcel.createTemplate({records:copy(records),prefill});
+      const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})),link=document.createElement("a");link.href=url;link.download=result.fileName;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);return result;
+    }finally{setBusy(false);}
   }
   async function readFile(file){
     if(!file||busy||!session)return;const token=session.token;error("");
+    delete session.preview;delete session.checks;delete session.directory;delete session.fileName;session.decisions={};renderImportSetup();
     try{
       setBusy(true);const parsed=await root.RingsideExcel.readTemplate(await file.arrayBuffer());if(!session||session.token!==token)return;
-      if(session.mode==="edit"&&parsed.targets.some(t=>t.recordId!==session.records[0].recordId))throw Error("此模板不属于当前测试记录。请从多人 Excel 录入入口导入其他记录。");
-      if(session.mode==="creation"&&parsed.targets.some(t=>t.athleteId!==session.records[0].athleteId))throw Error("此模板包含其他运动员，请从多人 Excel 录入入口导入。");
+      if(session.mode==="edit"&&parsed.targets.some(t=>t.recordId!==session.records[0].recordId))throw Error("此模板不属于当前测试记录。请进入对应记录的按项目录入页面导入。");
+      const athleteIds=new Set(session.records.map(record=>record.athleteId));
+      if(session.mode==="entry"&&parsed.targets.some(t=>!athleteIds.has(t.athleteId)))throw Error("此文件包含本次名单之外的运动员，请返回选择运动员步骤后重新选择。");
       const repo=root.App.getRepository();await repo.flush();
       const targets=parsed.targets||[],stored=await Promise.all(targets.map(t=>repo.loadRecord(t.recordId))),config=await repo.get("config","library"),athletes=await Promise.all([...new Set(targets.map(t=>t.athleteId))].map(async id=>[id,await repo.get("athletes",id)]));
-      const directory=await repo.directory();
+      const directory=await repo.directory();if(!session||session.token!==token)return;
       const preview=root.RingsideExcel.preview(parsed,{athletes:directory.athletes,catalog:directory.catalog,records:stored.filter(Boolean)});
       session.preview=preview;session.directory=directory;session.decisions={};session.checks={expectedConfig:JSON.stringify(config??null),expectedRecords:Object.fromEntries(targets.map((t,i)=>[t.recordId,JSON.stringify(stored[i]??null)])),expectedAthletes:Object.fromEntries(athletes.map(([id,a])=>[id,JSON.stringify(a??null)]))};
       session.fileName=file.name;renderPreview();
@@ -17030,8 +17186,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if(entries.length===1&&result.records.length===1){const record=result.records[0];setBusy(false);await root.App.showExcelRecord(record.athleteId,record.recordId);}
     }catch(e){error(e.message);}finally{setBusy(false);}
   }
-  function cancel(){if(busy)return false;const done=session?.stage==="done";serial++;session=null;$("excelContent").replaceChildren();$("excelFooter").replaceChildren();if(done)root.App.showReport();return true;}
-  root.RingsideExcelFlow={open,cancel,isBusy:()=>busy,downloadTemplate,readFile,filterPeople,choosePerson,selectPeople,choosePlan,decideProject,decideMetadata,decideSettings,confirm};
+  function cancel(){if(busy)return false;serial++;session=null;$("excelContent").replaceChildren();$("excelFooter").replaceChildren();error("");return true;}
+  root.RingsideExcelFlow={open:openImport,openImport,cancel,isBusy:()=>busy,downloadTemplate,readFile,decideProject,decideMetadata,decideSettings,confirm};
 })(window);
 
 </script>
@@ -17085,6 +17241,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     libraryTransferActive = false,
     selectionSequence = 0,
     entryReturn = null,
+    entrySession = null,
     entryTab = "athlete",
     settingsTab = "definitions",
     selectedDef = "cmj_height",
@@ -17109,6 +17266,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     records: {},
   };
   const uiKey = "ringside-ui-v1:" + location.pathname;
+  const entrySessionKey = "ringside-entry-session-v1:" + location.pathname;
+  let entrySessionStorageFailed = false, entryPersistQueue = Promise.resolve();
   const modalFocus = new Map();
   let sidebarNavKey = "", sidebarRevealFrame;
   const draftStorageKey = "ringside-input-drafts-v1:" + location.pathname;
@@ -17232,6 +17391,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return upgraded;
   }
   async function loadDirectory(preserve = true) {
+    const pending = preserve && entrySession?.records.find(r => r.recordId === state?.recordId);
     const current = preserve ? state?.recordId : null;
     library = await repository.directory();
     const catalogBefore = JSON.stringify(library.catalog);
@@ -17239,9 +17399,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const catalogChanged = JSON.stringify(library.catalog) !== catalogBefore;
     const profilesChanged = window.RingsideEvaluation.upgradeLibraryProfiles(library);
     const id = current || library.activeRecordId;
-    state = id ? await repository.loadRecord(id) : null;
+    state = pending || (id ? await repository.loadRecord(id) : null);
     const upgrade = state ? upgradeDemo(state) : {changed:false};
     if(state)state=M.normalizeRecord(upgrade.record || state);
+    if (pending && state) entrySession.records[entrySession.records.findIndex(r => r.recordId === pending.recordId)] = state;
     if (catalogChanged || profilesChanged || upgrade.changed) {
       await repository.save(library, upgrade.changed ? [state] : []);
       if (upgrade.changed) {
@@ -17252,9 +17413,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     const owner = state && library.athletes.find(a => a.id === state.athleteId);
     if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
-    if (state) {
+    if (state && (!entrySession || entrySession.savedIds.has(state.recordId))) {
       library.activeAthleteId = state.athleteId; library.activeRecordId = state.recordId;
-      recordBaselines.set(state.recordId, recordContent(state));
+      if (!pending) recordBaselines.set(state.recordId, recordContent(state));
     } else { library.activeRecordId = ""; }
     reportDirty = true;
   }
@@ -17278,7 +17439,55 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     renderWorkspace(); closeMobileSidebar();
   }
   function activeAthlete() {
-    return library?.athletes.find((a) => a.id === (state?.athleteId || library.activeAthleteId));
+    return library?.athletes.find((a) => a.id === (state?.athleteId || library.activeAthleteId)) || entrySession?.pendingAthletes.find(a => a.id === state?.athleteId);
+  }
+  function entryRecords() { return entrySession?.records || (state ? [state] : []); }
+  function saveEntrySession() {
+    if (!entrySession) return;
+    try {
+      const dirtyRecords = entrySession.records.filter(r => entrySession.savedIds.has(r.recordId) && recordBaselines.get(r.recordId) !== recordContent(r)).map(record => ({record, baselineContent:recordBaselines.get(record.recordId)}));
+      sessionStorage.setItem(entrySessionKey, JSON.stringify(window.RingsideEntrySession.encode(entrySession, state?.recordId, {dirtyRecords})));
+      entrySessionStorageFailed = false;
+    } catch { entrySessionStorageFailed = true; }
+  }
+  async function restoreEntrySession() {
+    const raw = sessionStorage.getItem(entrySessionKey);
+    if (!raw) return;
+    try {
+      const session = await window.RingsideEntrySession.decode(JSON.parse(raw), id => repository.loadRecord(id));
+      session.records = session.records.filter(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived) || session.pendingAthletes.some(a => a.id === r.athleteId));
+      if (!session.records.length) { sessionStorage.removeItem(entrySessionKey); return; }
+      entrySession = session;
+      for (const r of session.records) if (session.savedIds.has(r.recordId)) recordBaselines.set(r.recordId, recordContent(await repository.loadRecord(r.recordId)));
+      state = session.records.find(r => r.recordId === session.selectedRecordId) || session.records[0];
+      ui.mode = "entry";
+      if (session.conflictRecordIds?.length) toast("部分记录已在其他页面修改，已载入资料库中的最新内容，请核对");
+    } catch (error) { toast("无法恢复本次临时录入：" + error.message); }
+  }
+  async function leaveEntrySession() {
+    if (!entrySession) return;
+    const session = entrySession;
+    const target = session.savedIds.has(state?.recordId) ? state.recordId : session.records.find(r => session.savedIds.has(r.recordId))?.recordId || session.origin?.recordId;
+    for (const r of session.records) if (!session.savedIds.has(r.recordId)) delete inputDrafts[draftRecordKey(r)];
+    saveDrafts(); entrySession = null; sessionStorage.removeItem(entrySessionKey); entrySessionStorageFailed = false;
+    state = target ? await repository.loadRecord(target) : null;
+    library.activeAthleteId = state?.athleteId || session.origin?.athleteId || "";
+    library.activeRecordId = state?.recordId || "";
+    if (state) recordBaselines.set(state.recordId, recordContent(state));
+    reportDirty = true;
+  }
+  async function selectEntryAthlete(recordId) {
+    if (!entrySession || recordId === state?.recordId) return;
+    const token = ++selectionSequence;
+    saveEditor();
+    if (Object.keys(draftsFor()).some(key => resolveDraftPath(key))) { toast("请先核对当前运动员的标红输入"); refreshEntryChrome(); return false; }
+    if (!await persist() || token !== selectionSequence) { refreshEntryChrome(); return false; }
+    const record = entrySession?.records.find(r => r.recordId === recordId);
+    if (!record) return false;
+    cancelJob(); state = record; reportDirty = true;
+    if (entrySession.savedIds.has(recordId)) { library.activeAthleteId = record.athleteId; library.activeRecordId = recordId; }
+    if (!entryTabs().some(([id]) => id === entryTab)) entryTab = orderedEntryProjects()[0]?.id || "plan";
+    renderEntry(); renderWorkspace(); focusContentTitle(); return true;
   }
   function currentMatches(s) {
     return (
@@ -17498,8 +17707,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (!state) return;
     if (!state || !$("entryIdentity")) return;
     const a = activeAthlete(),
-      number = a.records.findIndex((r) => r.recordId === state.recordId) + 1;
-    const context = `${a.profile.name || a.name || "未命名运动员"} · ${state.athlete.date || "未填日期"} · 第${number}次`;
+      number = a?.records.findIndex((r) => r.recordId === state.recordId) + 1;
+    const context = `${a?.profile.name || state.athlete.name || "未命名运动员"} · ${state.athlete.date || "未填日期"} · ${number ? "第"+number+"次" : "本次新测试"}`;
+    const people = entryRecords(), controls = $("entryAthleteControls");
+    if (people.length > 1) {
+      if (!$("entryAthleteSelect") || [...$("entryAthleteSelect").options].map(o=>o.value).join() !== people.map(r=>r.recordId).join()) controls.innerHTML = `<label class="field"><span>本次运动员</span><select id="entryAthleteSelect" onchange="App.selectEntryAthlete(this.value)">${people.map(r=>`<option value="${E(r.recordId)}">${E(r.athlete.name)} · ${E(r.athleteId.slice(-6))}</option>`).join("")}</select></label>`;
+      $("entryAthleteSelect").value = state.recordId;
+    } else controls.replaceChildren();
+    const canUseExcel = people.every(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived));
+    if (!window.RingsideExcelFlow.isBusy()) document.querySelectorAll("[data-entry-excel-action]").forEach(el => { el.disabled = !canUseExcel; el.title = canUseExcel ? "" : "录入并保存后，运动员建档完成即可使用 Excel"; });
     $("recordContext").textContent = context;
     $("entryIdentity").textContent = context;
     const tabs = entryTabs(),
@@ -17530,12 +17746,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           )
           .join("")
       : "";
-    if (storageFailed)
+    if (storageFailed || entrySessionStorageFailed)
       $("entrySave").textContent = "仅在当前页面保留，浏览器保存失败，请备份";
     else
       $("entrySave").textContent = drafts.length
         ? "部分输入未保存，请核对标红字段"
-        : "已保留当前修改";
+        : entrySession && !entrySession.savedIds.has(state.recordId) ? "尚未录入测量，未创建测试记录" : "已保留当前修改";
     $("undoDeleteButton").hidden = !undoDeletes.has(state.recordId);
     $("undoDeleteButton").textContent =
       undoDeletes.get(state.recordId)?.type === "unit"
@@ -17610,6 +17826,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     await loadDirectory(false);
   }
   function rememberUI() {
+    saveEntrySession();
     if (!state) return;
     try {
       sessionStorage.setItem(
@@ -17738,6 +17955,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (creation?.submitting) return false;
     saveEditor();
     if (!await persist()) return false;
+    await leaveEntrySession();
     creation = null;
     entryReturn = null;
     ui.mode = "report";
@@ -17755,6 +17973,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (ui.mode === "creation") return cancelCreation();
     if (ui.mode === "entry" && entryReturn?.mode === "management") {
       const backTo = entryReturn; saveEditor(); if (!await persist()) return;
+      await leaveEntrySession();
       if (backTo.recordId) { const a = library.athletes.find(a=>a.id===backTo.athleteId); const r = a?.records.find(r=>r.recordId===backTo.recordId); if (r) await switchRecord(a,r); }
       else { state=null;library.activeAthleteId=backTo.athleteId||"";library.activeRecordId="";await persist(); }
       entryReturn = null;openManagement(backTo.tab);ui.returnMode="report";renderWorkspace();return;
@@ -17885,6 +18104,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   function persist() {
     if (!library || !repository) return Promise.resolve(false);
     clearTimeout(saveTimer); saveTimer = null;
+    if (entrySession?.records.some(r => r.recordId === state?.recordId)) {
+      const index = entrySession.records.findIndex(r => r.recordId === state.recordId);
+      entrySession.records[index] = state;
+      return persistSessionRecord(state);
+    }
     const record = state, content = record ? recordContent(record) : "";
     const modified = record && (queuedRecords.get(record.recordId)?.content ?? recordBaselines.get(record.recordId)) !== content;
     if (modified) record.updated = now();
@@ -17911,7 +18135,39 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (state) refreshEntryChrome(); return false;
     }).finally(() => { pendingSaves--; if(record&&queuedRecords.get(record.recordId)?.sequence===sequence)queuedRecords.delete(record.recordId); });
   }
+  function persistSessionRecord(record) {
+    saveEntrySession();
+    const session = entrySession;
+    const task = entryPersistQueue.then(async () => {
+      if (!session || session !== entrySession) return false;
+      const pending = !session.savedIds.has(record.recordId);
+      if (pending && !window.RingsideEntrySession.hasManualData(session, record)) { saveEntrySession(); refreshEntryChrome(); return true; }
+      const content = recordContent(record);
+      if (!pending && recordBaselines.get(record.recordId) === content) return true;
+      const snapshot = copy(record), next = copy(library);
+      snapshot.updated = now();
+      let owner = next.athletes.find(a => a.id === record.athleteId && !a.deletedAt && !a.archived);
+      if (!owner && pending) {
+        const profile = session.pendingAthletes.find(a => a.id === record.athleteId);
+        if (profile) { owner = copy(profile); next.athletes.push(owner); }
+      }
+      if (!owner) throw Error("运动员已不存在或已归档");
+      M.validateRecord(snapshot);
+      const index = owner.records.findIndex(r => r.recordId === record.recordId), summary = window.RingsideStore.summary(snapshot);
+      if (index < 0) owner.records.push(summary); else owner.records[index] = summary;
+      next.activeAthleteId = snapshot.athleteId; next.activeRecordId = snapshot.recordId; next.updated = now();
+      pendingSaves++; $("saveStatus").textContent = "正在保存…";
+      try {
+        await repository.save(next, [snapshot]);
+        library = next; record.updated = snapshot.updated;
+        session.savedIds.add(record.recordId); recordBaselines.set(record.recordId, content);
+        storageFailed = false; $("saveStatus").textContent = "已保存到本机"; saveEntrySession(); refreshEntryChrome(); return true;
+      } finally { pendingSaves--; }
+    }).catch(error => { storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message; saveEntrySession(); refreshEntryChrome(); return false; });
+    entryPersistQueue = task; return task;
+  }
   function changed(render = true) {
+    saveEntrySession();
     clearTimeout(saveTimer);
     reportDirty = true;
     const id = state.recordId;
@@ -17977,7 +18233,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     persist();
   }
-  function cancelJob() {
+  function cancelJob({ preserveModalId = "" } = {}) {
     if (job) job.controller.abort();
     job = null;
     jobSequence++;
@@ -17985,11 +18241,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     setAIStatus("idle");
     document
       .querySelectorAll(".modal-backdrop")
-      .forEach((el) => el.classList.remove("show"));
-    document.body.style.overflow = "";
-    $("workspace").inert = false;
+      .forEach((el) => { if (el.id !== preserveModalId) el.classList.remove("show"); });
+    const modalOpen = !!document.querySelector(".modal-backdrop.show");
+    document.body.style.overflow = modalOpen ? "hidden" : "";
+    $("workspace").inert = modalOpen;
     $("sidebar").inert =
-      matchMedia("(max-width:1100px)").matches || ui.sidebarCollapsed;
+      modalOpen || matchMedia("(max-width:1100px)").matches || ui.sidebarCollapsed;
     $("tooltip").style.display = "none";
     renderNarrativeStatus();
   }
@@ -17997,6 +18254,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const sequence = ++selectionSequence;
     if (state) { captureReportUI(); saveEditor(); }
     if (!await persist()) return;
+    if (sequence !== selectionSequence) return;
+    await leaveEntrySession();
     const stored = r ? await repository.loadRecord(r.recordId) : null;
     if (sequence !== selectionSequence) return;
     const upgrade = stored ? upgradeDemo(stored) : {changed:false};
@@ -18239,36 +18498,53 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       .querySelectorAll("[data-creation-count]")
       .forEach((el) => (el.textContent = count + " 项已选"));
     $("creationSubmit").disabled = creation.submitting || count === 0 || (creation.enabled.iso && !creation.isoDirectionIds?.length);
-    $("creationExcelActions").hidden=creation.kind!=="record";
   }
   async function startDataEntry(athleteId = "", newAthlete = false) {
     if (creation?.submitting) return;
     if (!library) return;
+    if (entrySession) { ui.mode="entry";renderEntry();renderWorkspace();return; }
     if (creation) { ui.mode="creation";renderWorkspace();return; }
     captureReportUI();saveEditor();if(!await persist())return;
     const owner=library.athletes.find(a=>a.id===athleteId&&!a.deletedAt&&!a.archived);
-    creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",isoDirectionIds:[],isoCatalog:M.isoRows(),enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
+    creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",ownerIds:owner?[owner.id]:[],returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",isoDirectionIds:[],isoCatalog:M.isoRows(),enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
     for(const id of ["newAthleteName","newAthleteSport","newAthleteLevel","creationAge","creationMass","creationHeight","creationAthleteSearch"])$(id).value="";
     $("newAthleteSex").value="未注明";$("newAthleteHand").value="未注明";$("creationDate").value=today();$("creationError").hidden=true;
+    $("creationGroupFilter").innerHTML='<option value="">全部队伍</option>'+(library.groups||[]).filter(g=>!g.deletedAt).map(g=>`<option value="${E(g.id)}">${E(g.name)}</option>`).join("");
     ui.mode="creation";renderCreationAthletes();renderCreationStep();renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
     const draft=creation;
-    if(owner){if(!await creationChooseAthlete(owner.id)||creation!==draft)return;creation.step="test";renderCreationStep();}
+    if(owner){if(!await creationChooseAthlete(owner.id)||creation!==draft)return;renderCreationStep();}
     if(creation!==draft)return;
-    $(owner?"creationTestPlan":newAthlete?"newAthleteName":"creationAthleteSelect").focus();
+    $(newAthlete?"newAthleteName":"creationAthleteSearch").focus();
     return copy(creation);
   }
   function openCreation(kind, owner = activeAthlete()) { return startDataEntry(kind==="record"?owner?.id:"",kind==="athlete"); }
   function renderCreationAthletes() {
     if(!creation)return;
     const q=$("creationAthleteSearch").value.trim().toLocaleLowerCase();
-    const athletes=library.athletes.filter(a=>!a.archived&&!a.deletedAt&&(!q||[a.name,a.profile?.sport,a.id].join(" ").toLocaleLowerCase().includes(q)||a.id===creation.ownerId));
-    $("creationAthleteSelect").innerHTML='<option value="">选择运动员</option>'+athletes.map(a=>`<option value="${E(a.id)}" ${a.id===creation.ownerId?"selected":""}>${E(a.name)} · ${E(a.profile?.sport||"未填专项")} · ${E(a.id.slice(-6))}</option>`).join("");
+    const group=$("creationGroupFilter").value,all=library.athletes.filter(a=>!a.archived&&!a.deletedAt);
+    const athletes=all.filter(a=>(!group||a.groupId===group)&&(!q||[a.name,a.profile?.sport,a.id].join(" ").toLocaleLowerCase().includes(q)));
+    $("creationAthletes").innerHTML=athletes.length?athletes.map(a=>`<label class="creation-person check-line"><input type="checkbox" data-creation-athlete="${E(a.id)}" ${creation.ownerIds.includes(a.id)?"checked":""} onchange="App.toggleCreationAthlete(this.dataset.creationAthlete,this.checked)"><span><strong>${E(a.name)}</strong><small>${E(a.profile?.sport||"未填专项")} · ${E(a.id.slice(-6))}</small></span></label>`).join(""):'<p class="note">没有匹配的运动员</p>';
+    $("creationAthleteCount").textContent=`已选 ${creation.ownerIds.length} 人`;
+    $("creationAthleteSelect").innerHTML='<option value="">选择运动员</option>'+all.map(a=>`<option value="${E(a.id)}" ${a.id===creation.ownerId?"selected":""}>${E(a.name)}</option>`).join("");
+  }
+  function toggleCreationAthlete(id,checked) {
+    if(!creation||creation.submitting)return;
+    if(checked&&!creation.ownerIds.includes(id)){if(creation.ownerIds.length>=300){toast("一次最多选择 300 名运动员");renderCreationAthletes();return;}creation.ownerIds.push(id);}
+    else if(!checked)creation.ownerIds=creation.ownerIds.filter(x=>x!==id);
+    creation.ownerId=creation.ownerIds.length===1?creation.ownerIds[0]:"";
+    creation.selectionToken=(creation.selectionToken||0)+1;renderCreationAthletes();
+  }
+  function selectCreationAthletes(checked) {
+    if(!creation||creation.submitting)return;
+    if(!checked){creation.ownerIds=[];creation.ownerId="";creation.selectionToken=(creation.selectionToken||0)+1;renderCreationAthletes();return;}
+    const ids=[...$("creationAthletes").querySelectorAll("[data-creation-athlete]")].map(el=>el.dataset.creationAthlete);
+    creation.ownerIds=[...new Set([...creation.ownerIds,...ids])].slice(0,300);creation.ownerId=creation.ownerIds.length===1?creation.ownerIds[0]:"";creation.selectionToken=(creation.selectionToken||0)+1;renderCreationAthletes();
   }
   function creationAthleteMode(mode) {
     if(!creation||creation.submitting)return;
     const kind=mode==="new"?"athlete":"record";
     if(creation.kind!==kind){
-      creation.kind=kind;creation.ownerId="";creation.loadedOwnerId="";
+      creation.kind=kind;creation.ownerId="";creation.ownerIds=[];creation.loadedOwnerId="";
       creation.selectionToken=(creation.selectionToken||0)+1;
       creation.profile={name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
       creation.testPlanId="";creation.evaluationProfileId=library.defaultEvaluationProfileId;
@@ -18280,7 +18556,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   async function creationChooseAthlete(id) {
     if(!creation||creation.submitting||creation.kind!=="record")return false;
     const owner=library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived);
-    const draft=creation;draft.ownerId=owner?.id||"";
+    const draft=creation;draft.ownerId=owner?.id||"";draft.ownerIds=owner?[owner.id]:[];renderCreationAthletes();
     const token=draft.selectionToken=(draft.selectionToken||0)+1;
     if(!owner)return false;
     if(draft.loadedOwnerId===id)return true;
@@ -18328,6 +18604,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     $("creationProfileStep").hidden=!select||creation.kind!=="athlete";$("creationTestStep").hidden=select;
     document.querySelectorAll('[name="creationAthleteMode"]').forEach(x=>x.checked=x.value===(creation.kind==="athlete"?"new":"existing"));
     $("creationBack").hidden=select;$("creationNext").hidden=!select;$("creationSubmit").hidden=select;$("creationSubmit").textContent="开始录入";
+    $("creationBodyFields").hidden=creation.kind==="record"&&creation.ownerIds.length>1;
+    $("creationPeopleSummary").textContent=creation.kind==="record"?`本次 ${creation.ownerIds.length} 名运动员：`+creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id)?.name||id).join("、"):creation.profile.name;
     if(!select)renderCreationSetup();refreshCreationCount();
   }
   function creationError(message) { $("creationError").textContent=message;$("creationError").hidden=false; }
@@ -18335,14 +18613,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if(!creation||creation.submitting)return;
     const draft=creation;
     if(creation.kind==="record"){
-      if(!$("creationAthleteSelect").value)return creationError("请选择运动员，或新建运动员档案");
-      if(!await creationChooseAthlete($("creationAthleteSelect").value)||creation!==draft)return;
+      if(!creation.ownerIds.length)return creationError("请选择一名或多名运动员，或新建运动员档案");
+      if(creation.ownerIds.some(id=>!library.athletes.some(a=>a.id===id&&!a.deletedAt&&!a.archived)))return creationError("名单中有已删除或归档的运动员，请重新选择");
+      if(creation.ownerIds.length===1){if(!creation.setupPrepared){if(!await creationChooseAthlete(creation.ownerIds[0])||creation!==draft)return;}else creation.profile=copy(library.athletes.find(a=>a.id===creation.ownerIds[0]).profile);}
+      else $("creationSource").textContent="设置本次共同测试项目；身体资料和测试背景按各自档案保存。";
     }else{
       const name=$("newAthleteName").value.trim();if(!name){creationError("请填写姓名或编号");$("newAthleteName").focus();return;}
       creation.profile={name,sex:$("newAthleteSex").value,sport:$("newAthleteSport").value.trim(),dominantHand:$("newAthleteHand").value,sportLevel:$("newAthleteLevel").value.trim()};
       $("creationSource").textContent=name+" · 首次测试，请选择方案或项目。";
     }
-    creation.step="test";$("creationError").hidden=true;renderCreationStep();$("creationTestPlan").focus();
+    creation.setupPrepared=true;creation.step="test";$("creationError").hidden=true;renderCreationStep();$("creationTestPlan").focus();
   }
   function creationBack() {
     if(!creation||creation.submitting)return;creation.evaluationProfileId=$("creationEvaluationProfile").value;creation.step="select";renderCreationStep();
@@ -18363,127 +18643,68 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       document.querySelectorAll("[data-creation-locked]").forEach(el=>{el.disabled=false;delete el.dataset.creationLocked;});
       $("sidebar").inert=creation?.sidebarInert??(matchMedia("(max-width:1100px)").matches||ui.sidebarCollapsed);
     }
-    $("creationSubmit").textContent=locked?"正在创建并保存…":"开始录入";
+    $("creationSubmit").textContent=locked?"正在准备本次录入…":"开始录入";
   }
   async function submitCreation() {
     if (!creation || creation.submitting) return;
     if (creation.step !== "test") return creationNext();
-    if (!$("creationDate").value || !$("creationDate").validity.valid)
-      return creationError("请填写有效的测试日期");
-    if (!Object.values(creation.enabled).some(Boolean))
-      return creationError("至少选择一个本次测试项目");
-    if(creation.enabled.iso&&!creation.isoDirectionIds?.length)return creationError("请至少勾选一个等长力量方向");
-    for (const [id,label] of [["creationAge","年龄"],["creationMass","体重"],["creationHeight","身高"]]) if (!$(id).validity.valid) return creationError("请核对本次"+label);
+    if (!$("creationDate").value || !$("creationDate").validity.valid) return creationError("请填写有效的测试日期");
+    if (!Object.values(creation.enabled).some(Boolean)) return creationError("至少选择一个本次测试项目");
+    if (creation.enabled.iso && !creation.isoDirectionIds?.length) return creationError("请至少勾选一个等长力量方向");
+    const single = creation.kind === "athlete" || creation.ownerIds.length === 1;
+    if(single) for(const [id,label] of [["creationAge","年龄"],["creationMass","体重"],["creationHeight","身高"]]) if(!$(id).validity.valid)return creationError("请核对本次"+label);
     if(!library.evaluationProfiles.some(p=>p.id===$("creationEvaluationProfile").value&&!p.disabled))return creationError("请选择在用评价方案");
-    creation.submitting = true;
-    refreshCreationCount();
-    lockCreation(true);
+    creation.submitting=true;refreshCreationCount();lockCreation(true);
     try {
-      captureReportUI();
-      saveEditor();
-      if (!await persist()) throw Error("当前修改尚未保存");
-      const next = copy(library),
-        draft = M.recordFromCatalog(
-          next.catalog,
-          creation.profile,
-          creation.enabled,
-          $("creationDate").value,
-        );
-      let athlete;
-      if (creation.kind === "athlete") {
-        draft.athleteId = uid();
-        draft.recordId = uid();
-        athlete = {
-          id: draft.athleteId,
-          name: creation.profile.name,
-          profile: copy(creation.profile),
-          sample: false, groupId: "", archived: false, deletedAt: null,
-          records: [],
-        };
-        next.athletes.push(athlete);
-      } else {
-        athlete = next.athletes.find((a) => a.id === creation.ownerId);
-        draft.athleteId = athlete.id;
-        draft.recordId = uid();
-        const priorSummary = M.latestRecord({records:athlete.records.filter(r=>!r.deletedAt)});
-        const prior = priorSummary && await repository.loadRecord(priorSummary.recordId);
-        draft.trainingContext = copy(prior?.trainingContext || draft.trainingContext);
+      captureReportUI();saveEditor();if(!await persist())throw Error("当前修改尚未保存");
+      const pendingAthletes=[], owners=creation.kind==="athlete"?[{id:uid(),name:creation.profile.name,profile:copy(creation.profile),sample:false,groupId:"",archived:false,deletedAt:null,records:[]}]:creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived));
+      if(!owners.length||owners.some(a=>!a))throw Error("请选择有效运动员");
+      if(creation.kind==="athlete")pendingAthletes.push(owners[0]);
+      const base=M.recordFromCatalog(library.catalog,owners[0].profile,creation.enabled,$("creationDate").value);
+      base.evaluationProfileId=$("creationEvaluationProfile").value;
+      installIsoSelection(base,creation.isoDirectionIds||[],creation.isoCatalog);
+      const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
+      if(plan)base.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...base.isoDirectionIds]};
+      const records=[];
+      for(const owner of owners){
+        const draft=copy(base);draft.athleteId=owner.id;draft.recordId=uid();
+        draft.athlete={...draft.athlete,...copy(owner.profile),date:$("creationDate").value};
+        const priorSummary=M.latestRecord({records:owner.records.filter(r=>!r.deletedAt)}),prior=priorSummary&&await repository.loadRecord(priorSummary.recordId);
+        draft.trainingContext=copy(prior?.trainingContext||draft.trainingContext);
+        for(const [id,key]of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]])draft.athlete[key]=single?($(id).value===""?"":Number($(id).value)):(prior?.athlete[key]??"");
+        records.push(draft);
       }
-      draft.evaluationProfileId = $("creationEvaluationProfile")?.value || creation.evaluationProfileId;
-      for (const [id,key] of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]]) draft.athlete[key]=$(id).value===""?"":Number($(id).value);
-      const plan=(library.testPlans||[]).find(p=>p.id===creation.testPlanId);
-      installIsoSelection(draft,creation.isoDirectionIds||[],creation.isoCatalog);
-      if(plan)draft.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...draft.isoDirectionIds]};
-      athlete.records.push(window.RingsideStore.summary(draft));
-      next.activeAthleteId = athlete.id;
-      next.activeRecordId = draft.recordId;
-      next.updated = now();
-      await repository.save(next, [draft]);
-      library = next;
-      state = draft;
-      storageFailed = false;
-      recordBaselines.set(state.recordId, recordContent(state));
-      cancelJob();
-      if (creation.returnMode === "management") entryReturn = {mode:"management",tab:creation.returnTab,athleteId:creation.returnAthleteId,recordId:creation.returnRecordId};
-      lockCreation(false);
-      creation = null;
-      $("creationView").hidden = true;
-      ui.mode = "entry";
-      ui.returnMode = "report";
-      ui.reportScroll = 0;
-      ui.detailOpen = {};
-      entryTab = entryTabs().find(([id]) => state.enabled[id])?.[0] || "plan";
-      renderReport(false);
-      renderEntry();
-      renderWorkspace();
-      closeMobileSidebar();
-      window.scrollTo({ top: 0, behavior: "instant" });
-      toast("已创建本次测试，请逐项录入");
-      $("entryContent")
-        .querySelector("input,select,textarea")
-        ?.focus({ preventScroll: true });
-      return state.recordId;
-    } catch (error) {
-      if (creation) {
-        lockCreation(false);
-        creation.submitting = false;
-        refreshCreationCount();
-      }
-      creationError(
-        error.name === "QuotaExceededError" || error.name === "SecurityError"
-          ? "浏览器保存失败，尚未创建记录。请释放存储空间后重试。"
-          : error.message,
-      );
+      entrySession=window.RingsideEntrySession.create(records,{origin:{mode:creation.returnMode,tab:creation.returnTab,athleteId:creation.returnAthleteId,recordId:creation.returnRecordId},pendingAthletes});
+      state=records[0];storageFailed=false;cancelJob();
+      if(creation.returnMode==="management")entryReturn={mode:"management",tab:creation.returnTab,athleteId:creation.returnAthleteId,recordId:creation.returnRecordId};
+      lockCreation(false);creation=null;ui.mode="entry";ui.returnMode="report";ui.reportScroll=0;ui.detailOpen={};reportDirty=true;
+      entryTab=orderedEntryProjects()[0]?.id||"plan";
+      renderEntry();renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
+      toast("已准备本次测试，请逐项录入");$("entryContent").querySelector("input,select,textarea")?.focus({preventScroll:true});return state.recordId;
+    } catch(error){
+      if(creation){lockCreation(false);creation.submitting=false;refreshCreationCount();}
+      creationError(error.message);
     }
   }
-  function creationExcelRecords() {
-    if(!creation||creation.kind!=="record"||creation.step!=="test")throw Error("请先选择已有运动员和本次测试项目");
-    if(!$("creationDate").value||!$("creationDate").validity.valid)throw Error("请填写有效的测试日期");
-    if(!Object.values(creation.enabled).some(Boolean))throw Error("请至少选择一个测试项目");
-    if(creation.enabled.iso&&!creation.isoDirectionIds?.length)throw Error("请至少选择一个等长力量方向");
-    for(const id of ["creationAge","creationMass","creationHeight"])if(!$(id).validity.valid)throw Error("请核对本次年龄、体重和身高");
-    const owner=library.athletes.find(a=>a.id===creation.ownerId&&!a.deletedAt&&!a.archived);
-    if(!owner)throw Error("运动员不可用，请重新选择");
-    const draft=M.recordFromCatalog(library.catalog,owner.profile,creation.enabled,$("creationDate").value);
-    draft.athleteId=owner.id;draft.recordId=uid();draft.evaluationProfileId=$("creationEvaluationProfile").value;
-    for(const [id,key]of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]])draft.athlete[key]=$(id).value===""?"":Number($(id).value);
-    installIsoSelection(draft,creation.isoDirectionIds||[],creation.isoCatalog);
-    const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
-    if(plan)draft.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...draft.isoDirectionIds]};
-    return [draft];
+  async function prepareExcelRecords() {
+    if(libraryTransferActive||creation?.submitting||window.RingsideExcelFlow.isBusy())return null;
+    saveEditor();
+    const records=entryRecords();
+    if(!records.length)throw Error("请先选择本次测试记录");
+    if(records.some(r=>!library.athletes.some(a=>a.id===r.athleteId&&!a.deletedAt&&!a.archived)))throw Error("请先录入并保存测量，完成运动员建档");
+    if(Object.keys(draftsFor()).some(key=>resolveDraftPath(key)))throw Error("请先核对当前运动员的标红输入");
+    if(!await persist())throw Error("当前修改尚未保存，请先处理保存错误");
+    return records;
   }
-  async function openExcel(mode="batch") {
-    if(libraryTransferActive||creation?.submitting)return;
-    try{
-      saveEditor();if(!await persist())throw Error("当前修改尚未保存，请先处理保存错误");
-      const records=mode==="creation"?creationExcelRecords():mode==="edit"&&state?[copy(state)]:null;
-      if(mode==="edit"&&!records)throw Error("请先选择测试记录");
-      await window.RingsideExcelFlow.open({mode,records});
-    }catch(error){toast(error.message);}
+  async function downloadExcelTemplate() {
+    try{const records=await prepareExcelRecords();if(records)await window.RingsideExcelFlow.downloadTemplate({records,prefill:true});}catch(error){toast(error.message);}
+  }
+  async function importExcelFile() {
+    try{const records=await prepareExcelRecords();if(records)window.RingsideExcelFlow.openImport({mode:entrySession?"entry":"edit",records});}catch(error){toast(error.message);}
   }
   async function commitExcel(result,checks,sourceLibrary) {
     if(libraryTransferActive)throw Error("导入正在保存，请勿重复提交");
-    if(state&&recordBaselines.get(state.recordId)!==recordContent(state))throw Error("当前记录已更改，请重新预览 Excel");
+    if(state&&(!entrySession||entrySession.savedIds.has(state.recordId))&&recordBaselines.get(state.recordId)!==recordContent(state))throw Error("当前记录已更改，请重新预览 Excel");
     libraryTransferActive=true;
     try{
       await repository.flush();
@@ -18501,12 +18722,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       await repository.save(next,result.records,{},checks);
       library=await repository.directory();storageFailed=false;
       const current=result.records.find(r=>r.recordId===state?.recordId);
-      if(current){cancelJob();state=copy(current);recordBaselines.set(state.recordId,recordContent(state));}
+      if(current){cancelJob({preserveModalId:"excelModal"});state=copy(current);recordBaselines.set(state.recordId,recordContent(state));}
+      if(entrySession){
+        for(const record of result.records){
+          let index=entrySession.records.findIndex(r=>r.recordId===record.recordId);
+          if(index<0)index=entrySession.records.findIndex(r=>r.athleteId===record.athleteId&&!entrySession.savedIds.has(r.recordId));
+          if(index>=0){const wasActive=entrySession.records[index].recordId===state?.recordId;entrySession.records[index]=copy(record);if(wasActive)state=entrySession.records[index];}
+          else entrySession.records.push(copy(record));
+          entrySession.savedIds.add(record.recordId);recordBaselines.set(record.recordId,recordContent(record));
+        }
+        saveEntrySession();if(ui.mode==="entry"){renderEntry();renderWorkspace();}
+      }
       creation=null;reportDirty=true;renderSelectors();$("saveStatus").textContent="已保存到本机";
     }finally{libraryTransferActive=false;}
   }
   async function showExcelRecord(athleteId,recordId){
-    close("excelModal");creation=null;
+    close("excelModal");creation=null;await leaveEntrySession();
     const owner=library.athletes.find(a=>a.id===athleteId),summary=owner?.records.find(r=>r.recordId===recordId);
     if(owner&&summary)await switchRecord(owner,summary);
   }
@@ -18519,6 +18750,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if(!["review","narrative"].includes(entryTab)){App.entry("review");return;}
     if(Object.keys(draftsFor()).some(key=>resolveDraftPath(key))){toast("仍有输入待核对，请先修正标红字段");refreshEntryChrome();return false;}
     saveEditor();if(!await persist()){refreshEntryChrome();return false;}
+    if(entrySession&&!entrySession.savedIds.size){toast("请先录入至少一项测量或导入 Excel 文件");return false;}
     return showReport(false);
   }
   function input(path, value, opts = {}) {
@@ -19389,7 +19621,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       h='<div class="form-grid">'+keys.map(id=>field((id==="landmineL"?"左侧 ":id==="landmineR"?"右侧 ":"")+"设备速度口径",select("lvp."+id+".metric",state.lvp[id].metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))).join("")+'</div>'+h;
     }
     if(entryTab==="iso")h+='<details class="supplement"><summary>关节配对测量确认</summary>'+state.balancePairs.map((p,i)=>check("balancePairs."+i+".confirmed",p.confirmed,E(p.label)+" · 测量口径、单位与协议可比较")).join("")+'</details>';
-    $("entryContent").innerHTML = '<div class="excel-entry-choice"><span>本次数据</span><button type="button" class="btn small" onclick="App.openExcel(\'edit\')">下载补录模板 / 导入 Excel</button></div>'+h;
+    $("entryContent").innerHTML = h;
     if(entryTab==="plan")bindProjectPicker($("entryContent"));
     $("entryContent")
       .querySelectorAll("table")
@@ -20902,6 +21134,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       "editorState",
       "interpUpdated",
       "entryIdentity",
+      "entryAthleteControls", "creationAthletes", "creationPeopleSummary", "creationAthleteCount", "creationGroupFilter",
       "entryProjectTitle",
       "entryProblemSummary",
       "creationProjects",
@@ -21277,7 +21510,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     saveNow: persist,
     async loadDemo() { return importPayload(M.recordEnvelope(M.sampleRecord())); },
     creationNext,
-    openExcel, commitExcel, showExcelRecord,
+    downloadExcelTemplate, importExcelFile, commitExcel, showExcelRecord, selectEntryAthlete,
     creationBack,
     submitCreation,
     selectProjects,
@@ -21331,7 +21564,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       selectedDef = id;
       renderSettings();
     },
-    startDataEntry, renderCreationAthletes, creationAthleteMode, creationChooseAthlete, selectCreationPlan, cancelCreation, finishEntry,
+    startDataEntry, renderCreationAthletes, creationAthleteMode, creationChooseAthlete, toggleCreationAthlete, selectCreationAthletes, selectCreationPlan, cancelCreation, finishEntry,
     openNewAthlete,
     createAthlete,
     newTest,
@@ -21731,8 +21964,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     showTooltip(hover?hit:el,text,e.clientX+12,e.clientY+12);
   });
   window.addEventListener("beforeunload", (event) => {
-    saveEditor();
-    const unsaved=creation?.submitting||libraryTransferActive||storageFailed||saveTimer||pendingSaves||(state&&recordBaselines.get(state.recordId)!==recordContent(state));
+    saveEditor();saveEntrySession();
+    const pendingEmpty=entrySession&&state&&!entrySession.savedIds.has(state.recordId)&&!window.RingsideEntrySession.hasManualData(entrySession,state);
+    const unsaved=creation?.submitting||libraryTransferActive||storageFailed||entrySessionStorageFailed||saveTimer||pendingSaves||(!pendingEmpty&&state&&recordBaselines.get(state.recordId)!==recordContent(state));
     if (unsaved) persist();
     if (job) job.controller.abort();
     if (unsaved) { event.preventDefault(); event.returnValue=""; }
@@ -21783,6 +22017,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     try {
       await restore();
       window.RingsideManagement.init();
+      await restoreEntrySession();
       try {
         const saved=JSON.parse(sessionStorage.getItem(uiKey)||"null");
         if(saved){ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}}

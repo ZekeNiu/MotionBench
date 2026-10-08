@@ -9,6 +9,7 @@ fs.mkdirSync(resultDir, { recursive: true });
 const summary = { sourceHash: createHash('sha256').update(fs.readFileSync(path.join(root, 'Ringside_Boxing_Assessment.html'))).digest('hex'), suites: [] };
 for (const name of [
   "model-tests.cjs",
+  "entry-session-model-tests.cjs",
   "isometric-selection-model-tests.cjs",
   "picker-model-tests.cjs",
   "excel-model-tests.cjs",

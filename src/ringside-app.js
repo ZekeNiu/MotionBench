@@ -47,6 +47,7 @@
     libraryTransferActive = false,
     selectionSequence = 0,
     entryReturn = null,
+    entrySession = null,
     entryTab = "athlete",
     settingsTab = "definitions",
     selectedDef = "cmj_height",
@@ -71,6 +72,8 @@
     records: {},
   };
   const uiKey = "ringside-ui-v1:" + location.pathname;
+  const entrySessionKey = "ringside-entry-session-v1:" + location.pathname;
+  let entrySessionStorageFailed = false, entryPersistQueue = Promise.resolve();
   const modalFocus = new Map();
   let sidebarNavKey = "", sidebarRevealFrame;
   const draftStorageKey = "ringside-input-drafts-v1:" + location.pathname;
@@ -194,6 +197,7 @@
     return upgraded;
   }
   async function loadDirectory(preserve = true) {
+    const pending = preserve && entrySession?.records.find(r => r.recordId === state?.recordId);
     const current = preserve ? state?.recordId : null;
     library = await repository.directory();
     const catalogBefore = JSON.stringify(library.catalog);
@@ -201,9 +205,10 @@
     const catalogChanged = JSON.stringify(library.catalog) !== catalogBefore;
     const profilesChanged = window.RingsideEvaluation.upgradeLibraryProfiles(library);
     const id = current || library.activeRecordId;
-    state = id ? await repository.loadRecord(id) : null;
+    state = pending || (id ? await repository.loadRecord(id) : null);
     const upgrade = state ? upgradeDemo(state) : {changed:false};
     if(state)state=M.normalizeRecord(upgrade.record || state);
+    if (pending && state) entrySession.records[entrySession.records.findIndex(r => r.recordId === pending.recordId)] = state;
     if (catalogChanged || profilesChanged || upgrade.changed) {
       await repository.save(library, upgrade.changed ? [state] : []);
       if (upgrade.changed) {
@@ -214,9 +219,9 @@
     }
     const owner = state && library.athletes.find(a => a.id === state.athleteId);
     if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
-    if (state) {
+    if (state && (!entrySession || entrySession.savedIds.has(state.recordId))) {
       library.activeAthleteId = state.athleteId; library.activeRecordId = state.recordId;
-      recordBaselines.set(state.recordId, recordContent(state));
+      if (!pending) recordBaselines.set(state.recordId, recordContent(state));
     } else { library.activeRecordId = ""; }
     reportDirty = true;
   }
@@ -240,7 +245,55 @@
     renderWorkspace(); closeMobileSidebar();
   }
   function activeAthlete() {
-    return library?.athletes.find((a) => a.id === (state?.athleteId || library.activeAthleteId));
+    return library?.athletes.find((a) => a.id === (state?.athleteId || library.activeAthleteId)) || entrySession?.pendingAthletes.find(a => a.id === state?.athleteId);
+  }
+  function entryRecords() { return entrySession?.records || (state ? [state] : []); }
+  function saveEntrySession() {
+    if (!entrySession) return;
+    try {
+      const dirtyRecords = entrySession.records.filter(r => entrySession.savedIds.has(r.recordId) && recordBaselines.get(r.recordId) !== recordContent(r)).map(record => ({record, baselineContent:recordBaselines.get(record.recordId)}));
+      sessionStorage.setItem(entrySessionKey, JSON.stringify(window.RingsideEntrySession.encode(entrySession, state?.recordId, {dirtyRecords})));
+      entrySessionStorageFailed = false;
+    } catch { entrySessionStorageFailed = true; }
+  }
+  async function restoreEntrySession() {
+    const raw = sessionStorage.getItem(entrySessionKey);
+    if (!raw) return;
+    try {
+      const session = await window.RingsideEntrySession.decode(JSON.parse(raw), id => repository.loadRecord(id));
+      session.records = session.records.filter(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived) || session.pendingAthletes.some(a => a.id === r.athleteId));
+      if (!session.records.length) { sessionStorage.removeItem(entrySessionKey); return; }
+      entrySession = session;
+      for (const r of session.records) if (session.savedIds.has(r.recordId)) recordBaselines.set(r.recordId, recordContent(await repository.loadRecord(r.recordId)));
+      state = session.records.find(r => r.recordId === session.selectedRecordId) || session.records[0];
+      ui.mode = "entry";
+      if (session.conflictRecordIds?.length) toast("部分记录已在其他页面修改，已载入资料库中的最新内容，请核对");
+    } catch (error) { toast("无法恢复本次临时录入：" + error.message); }
+  }
+  async function leaveEntrySession() {
+    if (!entrySession) return;
+    const session = entrySession;
+    const target = session.savedIds.has(state?.recordId) ? state.recordId : session.records.find(r => session.savedIds.has(r.recordId))?.recordId || session.origin?.recordId;
+    for (const r of session.records) if (!session.savedIds.has(r.recordId)) delete inputDrafts[draftRecordKey(r)];
+    saveDrafts(); entrySession = null; sessionStorage.removeItem(entrySessionKey); entrySessionStorageFailed = false;
+    state = target ? await repository.loadRecord(target) : null;
+    library.activeAthleteId = state?.athleteId || session.origin?.athleteId || "";
+    library.activeRecordId = state?.recordId || "";
+    if (state) recordBaselines.set(state.recordId, recordContent(state));
+    reportDirty = true;
+  }
+  async function selectEntryAthlete(recordId) {
+    if (!entrySession || recordId === state?.recordId) return;
+    const token = ++selectionSequence;
+    saveEditor();
+    if (Object.keys(draftsFor()).some(key => resolveDraftPath(key))) { toast("请先核对当前运动员的标红输入"); refreshEntryChrome(); return false; }
+    if (!await persist() || token !== selectionSequence) { refreshEntryChrome(); return false; }
+    const record = entrySession?.records.find(r => r.recordId === recordId);
+    if (!record) return false;
+    cancelJob(); state = record; reportDirty = true;
+    if (entrySession.savedIds.has(recordId)) { library.activeAthleteId = record.athleteId; library.activeRecordId = recordId; }
+    if (!entryTabs().some(([id]) => id === entryTab)) entryTab = orderedEntryProjects()[0]?.id || "plan";
+    renderEntry(); renderWorkspace(); focusContentTitle(); return true;
   }
   function currentMatches(s) {
     return (
@@ -460,8 +513,15 @@
     if (!state) return;
     if (!state || !$("entryIdentity")) return;
     const a = activeAthlete(),
-      number = a.records.findIndex((r) => r.recordId === state.recordId) + 1;
-    const context = `${a.profile.name || a.name || "未命名运动员"} · ${state.athlete.date || "未填日期"} · 第${number}次`;
+      number = a?.records.findIndex((r) => r.recordId === state.recordId) + 1;
+    const context = `${a?.profile.name || state.athlete.name || "未命名运动员"} · ${state.athlete.date || "未填日期"} · ${number ? "第"+number+"次" : "本次新测试"}`;
+    const people = entryRecords(), controls = $("entryAthleteControls");
+    if (people.length > 1) {
+      if (!$("entryAthleteSelect") || [...$("entryAthleteSelect").options].map(o=>o.value).join() !== people.map(r=>r.recordId).join()) controls.innerHTML = `<label class="field"><span>本次运动员</span><select id="entryAthleteSelect" onchange="App.selectEntryAthlete(this.value)">${people.map(r=>`<option value="${E(r.recordId)}">${E(r.athlete.name)} · ${E(r.athleteId.slice(-6))}</option>`).join("")}</select></label>`;
+      $("entryAthleteSelect").value = state.recordId;
+    } else controls.replaceChildren();
+    const canUseExcel = people.every(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived));
+    if (!window.RingsideExcelFlow.isBusy()) document.querySelectorAll("[data-entry-excel-action]").forEach(el => { el.disabled = !canUseExcel; el.title = canUseExcel ? "" : "录入并保存后，运动员建档完成即可使用 Excel"; });
     $("recordContext").textContent = context;
     $("entryIdentity").textContent = context;
     const tabs = entryTabs(),
@@ -492,12 +552,12 @@
           )
           .join("")
       : "";
-    if (storageFailed)
+    if (storageFailed || entrySessionStorageFailed)
       $("entrySave").textContent = "仅在当前页面保留，浏览器保存失败，请备份";
     else
       $("entrySave").textContent = drafts.length
         ? "部分输入未保存，请核对标红字段"
-        : "已保留当前修改";
+        : entrySession && !entrySession.savedIds.has(state.recordId) ? "尚未录入测量，未创建测试记录" : "已保留当前修改";
     $("undoDeleteButton").hidden = !undoDeletes.has(state.recordId);
     $("undoDeleteButton").textContent =
       undoDeletes.get(state.recordId)?.type === "unit"
@@ -572,6 +632,7 @@
     await loadDirectory(false);
   }
   function rememberUI() {
+    saveEntrySession();
     if (!state) return;
     try {
       sessionStorage.setItem(
@@ -700,6 +761,7 @@
     if (creation?.submitting) return false;
     saveEditor();
     if (!await persist()) return false;
+    await leaveEntrySession();
     creation = null;
     entryReturn = null;
     ui.mode = "report";
@@ -717,6 +779,7 @@
     if (ui.mode === "creation") return cancelCreation();
     if (ui.mode === "entry" && entryReturn?.mode === "management") {
       const backTo = entryReturn; saveEditor(); if (!await persist()) return;
+      await leaveEntrySession();
       if (backTo.recordId) { const a = library.athletes.find(a=>a.id===backTo.athleteId); const r = a?.records.find(r=>r.recordId===backTo.recordId); if (r) await switchRecord(a,r); }
       else { state=null;library.activeAthleteId=backTo.athleteId||"";library.activeRecordId="";await persist(); }
       entryReturn = null;openManagement(backTo.tab);ui.returnMode="report";renderWorkspace();return;
@@ -847,6 +910,11 @@
   function persist() {
     if (!library || !repository) return Promise.resolve(false);
     clearTimeout(saveTimer); saveTimer = null;
+    if (entrySession?.records.some(r => r.recordId === state?.recordId)) {
+      const index = entrySession.records.findIndex(r => r.recordId === state.recordId);
+      entrySession.records[index] = state;
+      return persistSessionRecord(state);
+    }
     const record = state, content = record ? recordContent(record) : "";
     const modified = record && (queuedRecords.get(record.recordId)?.content ?? recordBaselines.get(record.recordId)) !== content;
     if (modified) record.updated = now();
@@ -873,7 +941,39 @@
       if (state) refreshEntryChrome(); return false;
     }).finally(() => { pendingSaves--; if(record&&queuedRecords.get(record.recordId)?.sequence===sequence)queuedRecords.delete(record.recordId); });
   }
+  function persistSessionRecord(record) {
+    saveEntrySession();
+    const session = entrySession;
+    const task = entryPersistQueue.then(async () => {
+      if (!session || session !== entrySession) return false;
+      const pending = !session.savedIds.has(record.recordId);
+      if (pending && !window.RingsideEntrySession.hasManualData(session, record)) { saveEntrySession(); refreshEntryChrome(); return true; }
+      const content = recordContent(record);
+      if (!pending && recordBaselines.get(record.recordId) === content) return true;
+      const snapshot = copy(record), next = copy(library);
+      snapshot.updated = now();
+      let owner = next.athletes.find(a => a.id === record.athleteId && !a.deletedAt && !a.archived);
+      if (!owner && pending) {
+        const profile = session.pendingAthletes.find(a => a.id === record.athleteId);
+        if (profile) { owner = copy(profile); next.athletes.push(owner); }
+      }
+      if (!owner) throw Error("运动员已不存在或已归档");
+      M.validateRecord(snapshot);
+      const index = owner.records.findIndex(r => r.recordId === record.recordId), summary = window.RingsideStore.summary(snapshot);
+      if (index < 0) owner.records.push(summary); else owner.records[index] = summary;
+      next.activeAthleteId = snapshot.athleteId; next.activeRecordId = snapshot.recordId; next.updated = now();
+      pendingSaves++; $("saveStatus").textContent = "正在保存…";
+      try {
+        await repository.save(next, [snapshot]);
+        library = next; record.updated = snapshot.updated;
+        session.savedIds.add(record.recordId); recordBaselines.set(record.recordId, content);
+        storageFailed = false; $("saveStatus").textContent = "已保存到本机"; saveEntrySession(); refreshEntryChrome(); return true;
+      } finally { pendingSaves--; }
+    }).catch(error => { storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message; saveEntrySession(); refreshEntryChrome(); return false; });
+    entryPersistQueue = task; return task;
+  }
   function changed(render = true) {
+    saveEntrySession();
     clearTimeout(saveTimer);
     reportDirty = true;
     const id = state.recordId;
@@ -939,7 +1039,7 @@
     }
     persist();
   }
-  function cancelJob() {
+  function cancelJob({ preserveModalId = "" } = {}) {
     if (job) job.controller.abort();
     job = null;
     jobSequence++;
@@ -947,11 +1047,12 @@
     setAIStatus("idle");
     document
       .querySelectorAll(".modal-backdrop")
-      .forEach((el) => el.classList.remove("show"));
-    document.body.style.overflow = "";
-    $("workspace").inert = false;
+      .forEach((el) => { if (el.id !== preserveModalId) el.classList.remove("show"); });
+    const modalOpen = !!document.querySelector(".modal-backdrop.show");
+    document.body.style.overflow = modalOpen ? "hidden" : "";
+    $("workspace").inert = modalOpen;
     $("sidebar").inert =
-      matchMedia("(max-width:1100px)").matches || ui.sidebarCollapsed;
+      modalOpen || matchMedia("(max-width:1100px)").matches || ui.sidebarCollapsed;
     $("tooltip").style.display = "none";
     renderNarrativeStatus();
   }
@@ -959,6 +1060,8 @@
     const sequence = ++selectionSequence;
     if (state) { captureReportUI(); saveEditor(); }
     if (!await persist()) return;
+    if (sequence !== selectionSequence) return;
+    await leaveEntrySession();
     const stored = r ? await repository.loadRecord(r.recordId) : null;
     if (sequence !== selectionSequence) return;
     const upgrade = stored ? upgradeDemo(stored) : {changed:false};
@@ -1201,36 +1304,53 @@
       .querySelectorAll("[data-creation-count]")
       .forEach((el) => (el.textContent = count + " 项已选"));
     $("creationSubmit").disabled = creation.submitting || count === 0 || (creation.enabled.iso && !creation.isoDirectionIds?.length);
-    $("creationExcelActions").hidden=creation.kind!=="record";
   }
   async function startDataEntry(athleteId = "", newAthlete = false) {
     if (creation?.submitting) return;
     if (!library) return;
+    if (entrySession) { ui.mode="entry";renderEntry();renderWorkspace();return; }
     if (creation) { ui.mode="creation";renderWorkspace();return; }
     captureReportUI();saveEditor();if(!await persist())return;
     const owner=library.athletes.find(a=>a.id===athleteId&&!a.deletedAt&&!a.archived);
-    creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",isoDirectionIds:[],isoCatalog:M.isoRows(),enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
+    creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",ownerIds:owner?[owner.id]:[],returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",isoDirectionIds:[],isoCatalog:M.isoRows(),enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
     for(const id of ["newAthleteName","newAthleteSport","newAthleteLevel","creationAge","creationMass","creationHeight","creationAthleteSearch"])$(id).value="";
     $("newAthleteSex").value="未注明";$("newAthleteHand").value="未注明";$("creationDate").value=today();$("creationError").hidden=true;
+    $("creationGroupFilter").innerHTML='<option value="">全部队伍</option>'+(library.groups||[]).filter(g=>!g.deletedAt).map(g=>`<option value="${E(g.id)}">${E(g.name)}</option>`).join("");
     ui.mode="creation";renderCreationAthletes();renderCreationStep();renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
     const draft=creation;
-    if(owner){if(!await creationChooseAthlete(owner.id)||creation!==draft)return;creation.step="test";renderCreationStep();}
+    if(owner){if(!await creationChooseAthlete(owner.id)||creation!==draft)return;renderCreationStep();}
     if(creation!==draft)return;
-    $(owner?"creationTestPlan":newAthlete?"newAthleteName":"creationAthleteSelect").focus();
+    $(newAthlete?"newAthleteName":"creationAthleteSearch").focus();
     return copy(creation);
   }
   function openCreation(kind, owner = activeAthlete()) { return startDataEntry(kind==="record"?owner?.id:"",kind==="athlete"); }
   function renderCreationAthletes() {
     if(!creation)return;
     const q=$("creationAthleteSearch").value.trim().toLocaleLowerCase();
-    const athletes=library.athletes.filter(a=>!a.archived&&!a.deletedAt&&(!q||[a.name,a.profile?.sport,a.id].join(" ").toLocaleLowerCase().includes(q)||a.id===creation.ownerId));
-    $("creationAthleteSelect").innerHTML='<option value="">选择运动员</option>'+athletes.map(a=>`<option value="${E(a.id)}" ${a.id===creation.ownerId?"selected":""}>${E(a.name)} · ${E(a.profile?.sport||"未填专项")} · ${E(a.id.slice(-6))}</option>`).join("");
+    const group=$("creationGroupFilter").value,all=library.athletes.filter(a=>!a.archived&&!a.deletedAt);
+    const athletes=all.filter(a=>(!group||a.groupId===group)&&(!q||[a.name,a.profile?.sport,a.id].join(" ").toLocaleLowerCase().includes(q)));
+    $("creationAthletes").innerHTML=athletes.length?athletes.map(a=>`<label class="creation-person check-line"><input type="checkbox" data-creation-athlete="${E(a.id)}" ${creation.ownerIds.includes(a.id)?"checked":""} onchange="App.toggleCreationAthlete(this.dataset.creationAthlete,this.checked)"><span><strong>${E(a.name)}</strong><small>${E(a.profile?.sport||"未填专项")} · ${E(a.id.slice(-6))}</small></span></label>`).join(""):'<p class="note">没有匹配的运动员</p>';
+    $("creationAthleteCount").textContent=`已选 ${creation.ownerIds.length} 人`;
+    $("creationAthleteSelect").innerHTML='<option value="">选择运动员</option>'+all.map(a=>`<option value="${E(a.id)}" ${a.id===creation.ownerId?"selected":""}>${E(a.name)}</option>`).join("");
+  }
+  function toggleCreationAthlete(id,checked) {
+    if(!creation||creation.submitting)return;
+    if(checked&&!creation.ownerIds.includes(id)){if(creation.ownerIds.length>=300){toast("一次最多选择 300 名运动员");renderCreationAthletes();return;}creation.ownerIds.push(id);}
+    else if(!checked)creation.ownerIds=creation.ownerIds.filter(x=>x!==id);
+    creation.ownerId=creation.ownerIds.length===1?creation.ownerIds[0]:"";
+    creation.selectionToken=(creation.selectionToken||0)+1;renderCreationAthletes();
+  }
+  function selectCreationAthletes(checked) {
+    if(!creation||creation.submitting)return;
+    if(!checked){creation.ownerIds=[];creation.ownerId="";creation.selectionToken=(creation.selectionToken||0)+1;renderCreationAthletes();return;}
+    const ids=[...$("creationAthletes").querySelectorAll("[data-creation-athlete]")].map(el=>el.dataset.creationAthlete);
+    creation.ownerIds=[...new Set([...creation.ownerIds,...ids])].slice(0,300);creation.ownerId=creation.ownerIds.length===1?creation.ownerIds[0]:"";creation.selectionToken=(creation.selectionToken||0)+1;renderCreationAthletes();
   }
   function creationAthleteMode(mode) {
     if(!creation||creation.submitting)return;
     const kind=mode==="new"?"athlete":"record";
     if(creation.kind!==kind){
-      creation.kind=kind;creation.ownerId="";creation.loadedOwnerId="";
+      creation.kind=kind;creation.ownerId="";creation.ownerIds=[];creation.loadedOwnerId="";
       creation.selectionToken=(creation.selectionToken||0)+1;
       creation.profile={name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
       creation.testPlanId="";creation.evaluationProfileId=library.defaultEvaluationProfileId;
@@ -1242,7 +1362,7 @@
   async function creationChooseAthlete(id) {
     if(!creation||creation.submitting||creation.kind!=="record")return false;
     const owner=library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived);
-    const draft=creation;draft.ownerId=owner?.id||"";
+    const draft=creation;draft.ownerId=owner?.id||"";draft.ownerIds=owner?[owner.id]:[];renderCreationAthletes();
     const token=draft.selectionToken=(draft.selectionToken||0)+1;
     if(!owner)return false;
     if(draft.loadedOwnerId===id)return true;
@@ -1290,6 +1410,8 @@
     $("creationProfileStep").hidden=!select||creation.kind!=="athlete";$("creationTestStep").hidden=select;
     document.querySelectorAll('[name="creationAthleteMode"]').forEach(x=>x.checked=x.value===(creation.kind==="athlete"?"new":"existing"));
     $("creationBack").hidden=select;$("creationNext").hidden=!select;$("creationSubmit").hidden=select;$("creationSubmit").textContent="开始录入";
+    $("creationBodyFields").hidden=creation.kind==="record"&&creation.ownerIds.length>1;
+    $("creationPeopleSummary").textContent=creation.kind==="record"?`本次 ${creation.ownerIds.length} 名运动员：`+creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id)?.name||id).join("、"):creation.profile.name;
     if(!select)renderCreationSetup();refreshCreationCount();
   }
   function creationError(message) { $("creationError").textContent=message;$("creationError").hidden=false; }
@@ -1297,14 +1419,16 @@
     if(!creation||creation.submitting)return;
     const draft=creation;
     if(creation.kind==="record"){
-      if(!$("creationAthleteSelect").value)return creationError("请选择运动员，或新建运动员档案");
-      if(!await creationChooseAthlete($("creationAthleteSelect").value)||creation!==draft)return;
+      if(!creation.ownerIds.length)return creationError("请选择一名或多名运动员，或新建运动员档案");
+      if(creation.ownerIds.some(id=>!library.athletes.some(a=>a.id===id&&!a.deletedAt&&!a.archived)))return creationError("名单中有已删除或归档的运动员，请重新选择");
+      if(creation.ownerIds.length===1){if(!creation.setupPrepared){if(!await creationChooseAthlete(creation.ownerIds[0])||creation!==draft)return;}else creation.profile=copy(library.athletes.find(a=>a.id===creation.ownerIds[0]).profile);}
+      else $("creationSource").textContent="设置本次共同测试项目；身体资料和测试背景按各自档案保存。";
     }else{
       const name=$("newAthleteName").value.trim();if(!name){creationError("请填写姓名或编号");$("newAthleteName").focus();return;}
       creation.profile={name,sex:$("newAthleteSex").value,sport:$("newAthleteSport").value.trim(),dominantHand:$("newAthleteHand").value,sportLevel:$("newAthleteLevel").value.trim()};
       $("creationSource").textContent=name+" · 首次测试，请选择方案或项目。";
     }
-    creation.step="test";$("creationError").hidden=true;renderCreationStep();$("creationTestPlan").focus();
+    creation.setupPrepared=true;creation.step="test";$("creationError").hidden=true;renderCreationStep();$("creationTestPlan").focus();
   }
   function creationBack() {
     if(!creation||creation.submitting)return;creation.evaluationProfileId=$("creationEvaluationProfile").value;creation.step="select";renderCreationStep();
@@ -1325,127 +1449,68 @@
       document.querySelectorAll("[data-creation-locked]").forEach(el=>{el.disabled=false;delete el.dataset.creationLocked;});
       $("sidebar").inert=creation?.sidebarInert??(matchMedia("(max-width:1100px)").matches||ui.sidebarCollapsed);
     }
-    $("creationSubmit").textContent=locked?"正在创建并保存…":"开始录入";
+    $("creationSubmit").textContent=locked?"正在准备本次录入…":"开始录入";
   }
   async function submitCreation() {
     if (!creation || creation.submitting) return;
     if (creation.step !== "test") return creationNext();
-    if (!$("creationDate").value || !$("creationDate").validity.valid)
-      return creationError("请填写有效的测试日期");
-    if (!Object.values(creation.enabled).some(Boolean))
-      return creationError("至少选择一个本次测试项目");
-    if(creation.enabled.iso&&!creation.isoDirectionIds?.length)return creationError("请至少勾选一个等长力量方向");
-    for (const [id,label] of [["creationAge","年龄"],["creationMass","体重"],["creationHeight","身高"]]) if (!$(id).validity.valid) return creationError("请核对本次"+label);
+    if (!$("creationDate").value || !$("creationDate").validity.valid) return creationError("请填写有效的测试日期");
+    if (!Object.values(creation.enabled).some(Boolean)) return creationError("至少选择一个本次测试项目");
+    if (creation.enabled.iso && !creation.isoDirectionIds?.length) return creationError("请至少勾选一个等长力量方向");
+    const single = creation.kind === "athlete" || creation.ownerIds.length === 1;
+    if(single) for(const [id,label] of [["creationAge","年龄"],["creationMass","体重"],["creationHeight","身高"]]) if(!$(id).validity.valid)return creationError("请核对本次"+label);
     if(!library.evaluationProfiles.some(p=>p.id===$("creationEvaluationProfile").value&&!p.disabled))return creationError("请选择在用评价方案");
-    creation.submitting = true;
-    refreshCreationCount();
-    lockCreation(true);
+    creation.submitting=true;refreshCreationCount();lockCreation(true);
     try {
-      captureReportUI();
-      saveEditor();
-      if (!await persist()) throw Error("当前修改尚未保存");
-      const next = copy(library),
-        draft = M.recordFromCatalog(
-          next.catalog,
-          creation.profile,
-          creation.enabled,
-          $("creationDate").value,
-        );
-      let athlete;
-      if (creation.kind === "athlete") {
-        draft.athleteId = uid();
-        draft.recordId = uid();
-        athlete = {
-          id: draft.athleteId,
-          name: creation.profile.name,
-          profile: copy(creation.profile),
-          sample: false, groupId: "", archived: false, deletedAt: null,
-          records: [],
-        };
-        next.athletes.push(athlete);
-      } else {
-        athlete = next.athletes.find((a) => a.id === creation.ownerId);
-        draft.athleteId = athlete.id;
-        draft.recordId = uid();
-        const priorSummary = M.latestRecord({records:athlete.records.filter(r=>!r.deletedAt)});
-        const prior = priorSummary && await repository.loadRecord(priorSummary.recordId);
-        draft.trainingContext = copy(prior?.trainingContext || draft.trainingContext);
+      captureReportUI();saveEditor();if(!await persist())throw Error("当前修改尚未保存");
+      const pendingAthletes=[], owners=creation.kind==="athlete"?[{id:uid(),name:creation.profile.name,profile:copy(creation.profile),sample:false,groupId:"",archived:false,deletedAt:null,records:[]}]:creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived));
+      if(!owners.length||owners.some(a=>!a))throw Error("请选择有效运动员");
+      if(creation.kind==="athlete")pendingAthletes.push(owners[0]);
+      const base=M.recordFromCatalog(library.catalog,owners[0].profile,creation.enabled,$("creationDate").value);
+      base.evaluationProfileId=$("creationEvaluationProfile").value;
+      installIsoSelection(base,creation.isoDirectionIds||[],creation.isoCatalog);
+      const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
+      if(plan)base.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...base.isoDirectionIds]};
+      const records=[];
+      for(const owner of owners){
+        const draft=copy(base);draft.athleteId=owner.id;draft.recordId=uid();
+        draft.athlete={...draft.athlete,...copy(owner.profile),date:$("creationDate").value};
+        const priorSummary=M.latestRecord({records:owner.records.filter(r=>!r.deletedAt)}),prior=priorSummary&&await repository.loadRecord(priorSummary.recordId);
+        draft.trainingContext=copy(prior?.trainingContext||draft.trainingContext);
+        for(const [id,key]of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]])draft.athlete[key]=single?($(id).value===""?"":Number($(id).value)):(prior?.athlete[key]??"");
+        records.push(draft);
       }
-      draft.evaluationProfileId = $("creationEvaluationProfile")?.value || creation.evaluationProfileId;
-      for (const [id,key] of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]]) draft.athlete[key]=$(id).value===""?"":Number($(id).value);
-      const plan=(library.testPlans||[]).find(p=>p.id===creation.testPlanId);
-      installIsoSelection(draft,creation.isoDirectionIds||[],creation.isoCatalog);
-      if(plan)draft.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...draft.isoDirectionIds]};
-      athlete.records.push(window.RingsideStore.summary(draft));
-      next.activeAthleteId = athlete.id;
-      next.activeRecordId = draft.recordId;
-      next.updated = now();
-      await repository.save(next, [draft]);
-      library = next;
-      state = draft;
-      storageFailed = false;
-      recordBaselines.set(state.recordId, recordContent(state));
-      cancelJob();
-      if (creation.returnMode === "management") entryReturn = {mode:"management",tab:creation.returnTab,athleteId:creation.returnAthleteId,recordId:creation.returnRecordId};
-      lockCreation(false);
-      creation = null;
-      $("creationView").hidden = true;
-      ui.mode = "entry";
-      ui.returnMode = "report";
-      ui.reportScroll = 0;
-      ui.detailOpen = {};
-      entryTab = entryTabs().find(([id]) => state.enabled[id])?.[0] || "plan";
-      renderReport(false);
-      renderEntry();
-      renderWorkspace();
-      closeMobileSidebar();
-      window.scrollTo({ top: 0, behavior: "instant" });
-      toast("已创建本次测试，请逐项录入");
-      $("entryContent")
-        .querySelector("input,select,textarea")
-        ?.focus({ preventScroll: true });
-      return state.recordId;
-    } catch (error) {
-      if (creation) {
-        lockCreation(false);
-        creation.submitting = false;
-        refreshCreationCount();
-      }
-      creationError(
-        error.name === "QuotaExceededError" || error.name === "SecurityError"
-          ? "浏览器保存失败，尚未创建记录。请释放存储空间后重试。"
-          : error.message,
-      );
+      entrySession=window.RingsideEntrySession.create(records,{origin:{mode:creation.returnMode,tab:creation.returnTab,athleteId:creation.returnAthleteId,recordId:creation.returnRecordId},pendingAthletes});
+      state=records[0];storageFailed=false;cancelJob();
+      if(creation.returnMode==="management")entryReturn={mode:"management",tab:creation.returnTab,athleteId:creation.returnAthleteId,recordId:creation.returnRecordId};
+      lockCreation(false);creation=null;ui.mode="entry";ui.returnMode="report";ui.reportScroll=0;ui.detailOpen={};reportDirty=true;
+      entryTab=orderedEntryProjects()[0]?.id||"plan";
+      renderEntry();renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
+      toast("已准备本次测试，请逐项录入");$("entryContent").querySelector("input,select,textarea")?.focus({preventScroll:true});return state.recordId;
+    } catch(error){
+      if(creation){lockCreation(false);creation.submitting=false;refreshCreationCount();}
+      creationError(error.message);
     }
   }
-  function creationExcelRecords() {
-    if(!creation||creation.kind!=="record"||creation.step!=="test")throw Error("请先选择已有运动员和本次测试项目");
-    if(!$("creationDate").value||!$("creationDate").validity.valid)throw Error("请填写有效的测试日期");
-    if(!Object.values(creation.enabled).some(Boolean))throw Error("请至少选择一个测试项目");
-    if(creation.enabled.iso&&!creation.isoDirectionIds?.length)throw Error("请至少选择一个等长力量方向");
-    for(const id of ["creationAge","creationMass","creationHeight"])if(!$(id).validity.valid)throw Error("请核对本次年龄、体重和身高");
-    const owner=library.athletes.find(a=>a.id===creation.ownerId&&!a.deletedAt&&!a.archived);
-    if(!owner)throw Error("运动员不可用，请重新选择");
-    const draft=M.recordFromCatalog(library.catalog,owner.profile,creation.enabled,$("creationDate").value);
-    draft.athleteId=owner.id;draft.recordId=uid();draft.evaluationProfileId=$("creationEvaluationProfile").value;
-    for(const [id,key]of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]])draft.athlete[key]=$(id).value===""?"":Number($(id).value);
-    installIsoSelection(draft,creation.isoDirectionIds||[],creation.isoCatalog);
-    const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
-    if(plan)draft.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...draft.isoDirectionIds]};
-    return [draft];
+  async function prepareExcelRecords() {
+    if(libraryTransferActive||creation?.submitting||window.RingsideExcelFlow.isBusy())return null;
+    saveEditor();
+    const records=entryRecords();
+    if(!records.length)throw Error("请先选择本次测试记录");
+    if(records.some(r=>!library.athletes.some(a=>a.id===r.athleteId&&!a.deletedAt&&!a.archived)))throw Error("请先录入并保存测量，完成运动员建档");
+    if(Object.keys(draftsFor()).some(key=>resolveDraftPath(key)))throw Error("请先核对当前运动员的标红输入");
+    if(!await persist())throw Error("当前修改尚未保存，请先处理保存错误");
+    return records;
   }
-  async function openExcel(mode="batch") {
-    if(libraryTransferActive||creation?.submitting)return;
-    try{
-      saveEditor();if(!await persist())throw Error("当前修改尚未保存，请先处理保存错误");
-      const records=mode==="creation"?creationExcelRecords():mode==="edit"&&state?[copy(state)]:null;
-      if(mode==="edit"&&!records)throw Error("请先选择测试记录");
-      await window.RingsideExcelFlow.open({mode,records});
-    }catch(error){toast(error.message);}
+  async function downloadExcelTemplate() {
+    try{const records=await prepareExcelRecords();if(records)await window.RingsideExcelFlow.downloadTemplate({records,prefill:true});}catch(error){toast(error.message);}
+  }
+  async function importExcelFile() {
+    try{const records=await prepareExcelRecords();if(records)window.RingsideExcelFlow.openImport({mode:entrySession?"entry":"edit",records});}catch(error){toast(error.message);}
   }
   async function commitExcel(result,checks,sourceLibrary) {
     if(libraryTransferActive)throw Error("导入正在保存，请勿重复提交");
-    if(state&&recordBaselines.get(state.recordId)!==recordContent(state))throw Error("当前记录已更改，请重新预览 Excel");
+    if(state&&(!entrySession||entrySession.savedIds.has(state.recordId))&&recordBaselines.get(state.recordId)!==recordContent(state))throw Error("当前记录已更改，请重新预览 Excel");
     libraryTransferActive=true;
     try{
       await repository.flush();
@@ -1463,12 +1528,22 @@
       await repository.save(next,result.records,{},checks);
       library=await repository.directory();storageFailed=false;
       const current=result.records.find(r=>r.recordId===state?.recordId);
-      if(current){cancelJob();state=copy(current);recordBaselines.set(state.recordId,recordContent(state));}
+      if(current){cancelJob({preserveModalId:"excelModal"});state=copy(current);recordBaselines.set(state.recordId,recordContent(state));}
+      if(entrySession){
+        for(const record of result.records){
+          let index=entrySession.records.findIndex(r=>r.recordId===record.recordId);
+          if(index<0)index=entrySession.records.findIndex(r=>r.athleteId===record.athleteId&&!entrySession.savedIds.has(r.recordId));
+          if(index>=0){const wasActive=entrySession.records[index].recordId===state?.recordId;entrySession.records[index]=copy(record);if(wasActive)state=entrySession.records[index];}
+          else entrySession.records.push(copy(record));
+          entrySession.savedIds.add(record.recordId);recordBaselines.set(record.recordId,recordContent(record));
+        }
+        saveEntrySession();if(ui.mode==="entry"){renderEntry();renderWorkspace();}
+      }
       creation=null;reportDirty=true;renderSelectors();$("saveStatus").textContent="已保存到本机";
     }finally{libraryTransferActive=false;}
   }
   async function showExcelRecord(athleteId,recordId){
-    close("excelModal");creation=null;
+    close("excelModal");creation=null;await leaveEntrySession();
     const owner=library.athletes.find(a=>a.id===athleteId),summary=owner?.records.find(r=>r.recordId===recordId);
     if(owner&&summary)await switchRecord(owner,summary);
   }
@@ -1481,6 +1556,7 @@
     if(!["review","narrative"].includes(entryTab)){App.entry("review");return;}
     if(Object.keys(draftsFor()).some(key=>resolveDraftPath(key))){toast("仍有输入待核对，请先修正标红字段");refreshEntryChrome();return false;}
     saveEditor();if(!await persist()){refreshEntryChrome();return false;}
+    if(entrySession&&!entrySession.savedIds.size){toast("请先录入至少一项测量或导入 Excel 文件");return false;}
     return showReport(false);
   }
   function input(path, value, opts = {}) {
@@ -2351,7 +2427,7 @@
       h='<div class="form-grid">'+keys.map(id=>field((id==="landmineL"?"左侧 ":id==="landmineR"?"右侧 ":"")+"设备速度口径",select("lvp."+id+".metric",state.lvp[id].metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))).join("")+'</div>'+h;
     }
     if(entryTab==="iso")h+='<details class="supplement"><summary>关节配对测量确认</summary>'+state.balancePairs.map((p,i)=>check("balancePairs."+i+".confirmed",p.confirmed,E(p.label)+" · 测量口径、单位与协议可比较")).join("")+'</details>';
-    $("entryContent").innerHTML = '<div class="excel-entry-choice"><span>本次数据</span><button type="button" class="btn small" onclick="App.openExcel(\'edit\')">下载补录模板 / 导入 Excel</button></div>'+h;
+    $("entryContent").innerHTML = h;
     if(entryTab==="plan")bindProjectPicker($("entryContent"));
     $("entryContent")
       .querySelectorAll("table")
@@ -3864,6 +3940,7 @@
       "editorState",
       "interpUpdated",
       "entryIdentity",
+      "entryAthleteControls", "creationAthletes", "creationPeopleSummary", "creationAthleteCount", "creationGroupFilter",
       "entryProjectTitle",
       "entryProblemSummary",
       "creationProjects",
@@ -4239,7 +4316,7 @@
     saveNow: persist,
     async loadDemo() { return importPayload(M.recordEnvelope(M.sampleRecord())); },
     creationNext,
-    openExcel, commitExcel, showExcelRecord,
+    downloadExcelTemplate, importExcelFile, commitExcel, showExcelRecord, selectEntryAthlete,
     creationBack,
     submitCreation,
     selectProjects,
@@ -4293,7 +4370,7 @@
       selectedDef = id;
       renderSettings();
     },
-    startDataEntry, renderCreationAthletes, creationAthleteMode, creationChooseAthlete, selectCreationPlan, cancelCreation, finishEntry,
+    startDataEntry, renderCreationAthletes, creationAthleteMode, creationChooseAthlete, toggleCreationAthlete, selectCreationAthletes, selectCreationPlan, cancelCreation, finishEntry,
     openNewAthlete,
     createAthlete,
     newTest,
@@ -4693,8 +4770,9 @@
     showTooltip(hover?hit:el,text,e.clientX+12,e.clientY+12);
   });
   window.addEventListener("beforeunload", (event) => {
-    saveEditor();
-    const unsaved=creation?.submitting||libraryTransferActive||storageFailed||saveTimer||pendingSaves||(state&&recordBaselines.get(state.recordId)!==recordContent(state));
+    saveEditor();saveEntrySession();
+    const pendingEmpty=entrySession&&state&&!entrySession.savedIds.has(state.recordId)&&!window.RingsideEntrySession.hasManualData(entrySession,state);
+    const unsaved=creation?.submitting||libraryTransferActive||storageFailed||entrySessionStorageFailed||saveTimer||pendingSaves||(!pendingEmpty&&state&&recordBaselines.get(state.recordId)!==recordContent(state));
     if (unsaved) persist();
     if (job) job.controller.abort();
     if (unsaved) { event.preventDefault(); event.returnValue=""; }
@@ -4745,6 +4823,7 @@
     try {
       await restore();
       window.RingsideManagement.init();
+      await restoreEntrySession();
       try {
         const saved=JSON.parse(sessionStorage.getItem(uiKey)||"null");
         if(saved){ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}}

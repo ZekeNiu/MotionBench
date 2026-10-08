@@ -40,7 +40,7 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
    const group=page.locator(`[data-metric-ability="${emptyKey}"]`);assert.equal(await group.locator('[data-metric-project="cmj"]').count(),1);assert.match(await group.locator('[data-metric-project="cmj"] h3').innerText(),/我的CMJ展示名称/);
    assert.equal(await page.evaluate(()=>App.getLibrary().catalog.definitions.find(d=>d.id==="cmj_height").ability),key);assert.equal(await page.evaluate(async id=>RingsideEvaluation.canonical(await App.getRepository().loadRecord(id)),oldRecordId),oldRecord);
    await click("catalog-toggle","cmj");await page.locator('[data-metric-project="cmj"] .pill').waitFor();assert.match(await page.locator('[data-metric-project="cmj"]').innerText(),/已停用/);
-   await page.evaluate(id=>App.startDataEntry(id),owner);await page.locator('#creationTestStep').waitFor({state:"visible"});assert.equal(await page.locator('[data-creation-project="cmj"]').count(),0);await page.evaluate(()=>App.cancelCreation());await page.waitForFunction(()=>App.getUIState().mode==="management");
+   await page.evaluate(id=>App.startDataEntry(id),owner);await page.locator("#creationSelectStep").waitFor({state:"visible"});assert.equal(await page.locator(`[data-creation-athlete="${owner}"]`).isChecked(),true);await page.locator("#creationNext").click();await page.locator('#creationTestStep').waitFor({state:"visible"});assert.equal(await page.locator('[data-creation-project="cmj"]').count(),0);await page.evaluate(()=>App.cancelCreation());await page.waitForFunction(()=>App.getUIState().mode==="management");
    await click("catalog-toggle","cmj");await page.waitForFunction(()=>!App.getLibrary().catalog.tests.find(t=>t.id==="cmj").disabled);
   });
   await check("projects metrics and selected-profile standards are maintained in the same library",async()=>{
@@ -52,10 +52,12 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
    assert.equal(await page.evaluate(()=>App.getState().evaluationProfileId),profileId);assert.match(await page.locator(`[data-library-metric="${customMetric}"]`).innerText(),/目标 200/);assert.equal(await page.locator(`[data-metric-project="${customTest}"]`).count(),1);
   });
   await check("new tests snapshot current ability names and project names without rewriting older records",async()=>{
-   await page.evaluate(id=>App.startDataEntry(id),owner);await page.locator('#creationTestStep').waitFor({state:"visible"});
+   await page.evaluate(id=>App.startDataEntry(id),owner);await page.locator("#creationSelectStep").waitFor({state:"visible"});assert.equal(await page.locator(`[data-creation-athlete="${owner}"]`).isChecked(),true);await page.locator("#creationNext").click();await page.locator('#creationTestStep').waitFor({state:"visible"});
    while(await page.locator('[data-creation-project]:checked').count())await page.locator('[data-creation-project]:checked').first().uncheck();for(const id of ["cmj",customTest])await page.locator(`[data-creation-project="${id}"]`).check();await page.locator('#creationSubmit').click();await page.waitForFunction(()=>App.getUIState().mode==="entry");newRecordId=await page.evaluate(()=>App.getState().recordId);
    const r=await page.evaluate(({key,customTest})=>({snapshot:App.getState().abilityGroupSnapshot,label:RingsideTests.abilityLabel(App.getState(),key),test:App.getState().projectSnapshots.find(t=>t.id==="cmj"),custom:App.getState().definitions.find(d=>d.testId===customTest),metric:App.getState().definitions.find(d=>d.id==="cmj_height")}),{key,customTest});
    assert.ok(r.snapshot?.length);assert.equal(r.label,"后续测试能力名称");assert.equal(r.test.name,"我的CMJ展示名称");assert.equal(r.test.primaryAbility,emptyKey);assert.equal(r.metric.ability,key);assert.ok(r.custom);assert.equal(await page.evaluate(async id=>RingsideEvaluation.canonical(await App.getRepository().loadRecord(id)),oldRecordId),oldRecord);
+   await page.evaluate(()=>App.entry("cmj"));await page.locator('[data-path="data.cmj.0.height"]').fill("41");assert.equal(await page.evaluate(()=>App.saveNow()),true);
+   assert.equal(await page.evaluate(async id=>(await App.getRepository().loadRecord(id)).data.cmj[0].height,newRecordId),"41");
    await page.evaluate(()=>App.showReport());await manage("metrics");
   });
   await check("failed ability saves retain the previous catalog and the editable form for retry",async()=>{

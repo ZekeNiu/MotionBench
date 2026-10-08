@@ -9,7 +9,8 @@ const { chromium } = require("./helpers/playwright.cjs");
 
 const root = path.resolve(__dirname, "..");
 const out = path.join(root, "output/release");
-const packagedFile = path.join(out, "verify-2.13.0/MotionBench/MotionBench.html");
+const version = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
+const packagedFile = path.join(out, `verify-${version}/MotionBench/MotionBench.html`);
 const sourceFile = path.join(root, "MotionBench.html");
 const resultsFile = path.join(out, "package-browser-results.json");
 const sha256 = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
@@ -82,9 +83,13 @@ async function verifyChannel(channel) {
     });
     await check("actual batch selection and CMJ template download create no empty records", async () => {
       await page.evaluate(() => App.startDataEntry());
-      await page.getByRole("button", { name: "多人 Excel 录入", exact: true }).click();
-      for (const id of people) await page.locator(`[data-excel-person="${id}"]`).check();
-      await page.locator('#excelProjects [data-picker-project="cmj"]').check();
+      assert.equal(await page.locator("#creationView").getByRole("button", { name: /Excel/ }).count(), 0);
+      for (const id of people) await page.locator(`[data-creation-athlete="${id}"]`).check();
+      await page.locator("#creationNext").click(); await page.locator("#creationTestStep").waitFor({ state: "visible" });
+      assert.equal(await page.locator("#creationView").getByRole("button", { name: /Excel/ }).count(), 0);
+      await page.locator('#creationProjects [data-picker-project="cmj"]').check();
+      await page.locator("#creationSubmit").click(); await page.waitForFunction(() => App.getUIState().mode === "entry");
+      assert.equal(await page.getByRole("button", { name: "导入 Excel 文件", exact: true }).count(), 1);
       const downloadEvent = page.waitForEvent("download");
       await page.getByRole("button", { name: "下载 Excel 模板", exact: true }).click();
       const download = await downloadEvent;
@@ -97,6 +102,7 @@ async function verifyChannel(channel) {
       evidence.template = { file: path.basename(destination), bytes: downloaded.length, sha256: sha256(destination) };
       await page.waitForFunction(() => !RingsideExcelFlow.isBusy());
       assert.deepEqual(await counts(), { athletes: 2, records: 0 });
+      assert.equal(await page.locator("#excelModal").isVisible(), false);
       assert.equal(await page.locator("#excelError").isVisible(), false);
     });
     await check("the packaged product parser reads its downloaded two-person CMJ workbook without errors", async () => {
@@ -132,6 +138,8 @@ async function verifyChannel(channel) {
       assert.deepEqual(await counts(), { athletes: 2, records: 0 });
       assert.deepEqual(await page.evaluate(() => App.getLibrary().athletes.map(person => person.id).sort()), [...people].sort());
       assert.deepEqual(await page.evaluate(() => App.getLibrary().athletes.map(person => person.name).sort()), ["交付包验收运动员乙", "交付包验收运动员甲"].sort());
+      assert.equal(await page.evaluate(() => App.getUIState().mode), "entry");
+      assert.deepEqual(await page.locator("#entryAthleteSelect option").evaluateAll(options => options.map(option => option.value).sort()), [...evidence.parsed.targets.map(target => target.recordId)].sort());
     });
     await check("the complete packaged workflow has no page errors or network requests", async () => {
       assert.deepEqual(evidence.errors, []);

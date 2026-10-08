@@ -36,6 +36,35 @@ function setCondition(book,key,value){const ws=book.getWorksheet("测试条件")
   const a=seed(["cmj","imtp","hop","fms","iso","cpet"]),{book}=await workbook([a]);const parsed=await parse(book);assert.deepEqual(parsed.errors,[]);
   assert.equal(X.apply(review(parsed,[a])).records.length,0);
  });
+ await test("prefilled unmeasured projects reserve three attempts and aligned IMTP and Hop detail groups",async()=>{
+  const r=seed(["cmj","sj","imtp","hop","iso","mb","landmine"]);M.setIsoDirectionSelection(r,["iso_shoulder_externalRotation","iso_wrist_flexion"]);r.dsi.force=2100;
+  const original=JSON.stringify(r),{book}=await workbook([r],true);assert.equal(JSON.stringify(r),original);
+  for(const name of ["CMJ","SJ","IMTP"])assert.equal(sheet(book,name).rowCount-2,3);
+  assert.equal(sheet(book,"药球反手投掷").rowCount-2,6);assert.equal(sheet(book,"地雷杠出拳投掷").rowCount-2,6);
+  assert.equal(sheet(book,"各方位等长力量").rowCount-2,6);
+  const imtp=book.worksheets.find(s=>s.name.endsWith("_时间点")),hop=book.worksheets.find(s=>/Hop/.test(s.name)&&!s.name.endsWith("_逐跳")),jumps=book.worksheets.find(s=>s.name.endsWith("_逐跳"));
+  assert.equal(hop.rowCount-2,3);assert.equal(imtp.rowCount-2,6);assert.equal(jumps.rowCount-2,30);
+  for(const ws of [imtp,jumps])assert.deepEqual([...new Set(Array.from({length:ws.rowCount-2},(_,i)=>ws.getCell(i+3,col(ws,"attempt")).value))],[1,2,3]);
+  const conditions=book.getWorksheet("测试条件");assert.ok(Array.from({length:conditions.rowCount-2},(_,i)=>i+3).some(row=>conditions.getCell(row,col(conditions,"fieldId")).value==="dsi.force"&&conditions.getCell(row,col(conditions,"value")).value===2100));
+  const parsed=await parse(book);assert.deepEqual(parsed.errors,[]);assert.ok(parsed.entries[0].record.data.cmj.every(row=>row.height===""));
+ });
+ await test("prefilled mixed isometric directions keep measured attempts and reserve three blank attempts per unmeasured direction",async()=>{
+  const r=seed(["iso"]);M.setIsoDirectionSelection(r,["iso_shoulder_externalRotation","iso_wrist_flexion"]);
+  const measured=r.data.iso.find(row=>row.id==="iso_shoulder_externalRotation");measured.trials=[{id:"left1",left:0,right:110,painLeft:true},{id:"left2",left:101,right:112}];
+  const blank=r.data.iso.find(row=>row.id==="iso_wrist_flexion");blank.protocol="腕中立位";
+  const {book}=await workbook([r],true),ws=sheet(book,"各方位等长力量"),rows=Array.from({length:ws.rowCount-2},(_,i)=>i+3);
+  assert.equal(rows.filter(row=>ws.getCell(row,col(ws,"directionId")).value===measured.id).length,2);
+  const blankRows=rows.filter(row=>ws.getCell(row,col(ws,"directionId")).value===blank.id);assert.equal(blankRows.length,3);
+  assert.ok(blankRows.every(row=>ws.getCell(row,col(ws,"left")).value===null&&ws.getCell(row,col(ws,"right")).value===null&&ws.getCell(row,col(ws,"directionProtocol")).value==="腕中立位"));
+  const parsed=await parse(book);assert.deepEqual(parsed.errors,[]);const restored=parsed.entries[0].record.data.iso.find(row=>row.id===measured.id);assert.equal(restored.trials.length,2);assert.equal(restored.trials[0].left,0);assert.equal(restored.trials[0].painLeft,true);
+ });
+ await test("prefilled measured repeated projects preserve original group counts and associated detail rows",async()=>{
+  const r=seed(["cmj","imtp","hop"]);r.data.cmj=[{id:"cmj1",height:31},{id:"cmj2",height:32}];r.data.imtp=[{id:"imtp1",peakForce:2200,timePoints:[{timeMs:125,force:1100}]}];
+  r.data.hop.inputMode="jumps";r.data.hop.jumps=[{id:"hop1",height:20,contactTimeMs:150},{id:"hop2",height:21,contactTimeMs:160}];
+  const {book}=await workbook([r],true);assert.equal(sheet(book,"CMJ").rowCount-2,2);assert.equal(sheet(book,"IMTP").rowCount-2,1);
+  assert.equal(book.worksheets.find(s=>s.name.endsWith("_时间点")).rowCount-2,1);assert.equal(book.worksheets.find(s=>/Hop/.test(s.name)&&!s.name.endsWith("_逐跳")).rowCount-2,1);assert.equal(book.worksheets.find(s=>s.name.endsWith("_逐跳")).rowCount-2,2);
+  const parsed=await parse(book);assert.deepEqual(parsed.errors,[]);assert.equal(parsed.entries[0].record.data.cmj.length,2);assert.equal(parsed.entries[0].record.data.imtp[0].timePoints[0].force,1100);assert.equal(parsed.entries[0].record.data.hop.trials[0].jumps.length,2);
+ });
  await test("zero FMS, zero force baseline and signed RFD remain explicit",async()=>{
   const r=seed(["fms","imtp"]),{book}=await workbook([r]);set(sheet(book,"FMS 动作筛查"),3,"score",0);set(sheet(book,"IMTP"),3,"baselineForce",0);
   const points=book.worksheets.find(s=>s.name.endsWith("_时间点"));set(points,3,"force",0);set(points,3,"rfd",-2);

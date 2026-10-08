@@ -24,7 +24,7 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
    assert.ok(await page.evaluate(()=>App.getLibrary().athletes[0].groupId));
   });
   await check("new test uses explicit profile and enters selected project",async()=>{
-   await click("new-record",athleteId);await page.locator("#creationTestStep").waitFor({state:"visible"});assert.equal(await page.locator("#creationEvaluationProfile option").count(),1);await page.locator('[data-creation-project="cmj"]').check();
+   await click("new-record",athleteId);await page.locator("#creationSelectStep").waitFor({state:"visible"});assert.equal(await page.locator(`[data-creation-athlete="${athleteId}"]`).isChecked(),true);await page.locator("#creationNext").click();await page.locator("#creationTestStep").waitFor({state:"visible"});assert.equal(await page.locator("#creationEvaluationProfile option").count(),1);await page.locator('[data-creation-project="cmj"]').check();
    await page.locator("#creationSubmit").click();await page.waitForFunction(()=>App.getUIState().mode==="entry");assert.equal(await page.locator("#entryProjectTitle").textContent(),"CMJ");
    await page.locator('[data-path="data.cmj.0.height"]').fill("42");await page.evaluate(()=>App.saveNow());await page.locator('#entryNext').click();await page.locator('#entryFinish').waitFor({state:"visible"});await page.locator('#entryFinish').click();await page.waitForFunction(()=>App.getUIState().mode==="report");
    assert.equal(await page.evaluate(()=>App.stats().values.cmj_height),42);
