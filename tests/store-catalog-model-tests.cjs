@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), vm = require("node:vm"), assert = require("node:assert/strict");
 const ctx = vm.createContext({console, Intl, crypto: require("node:crypto").webcrypto}); ctx.window = ctx;
-for (const name of ["calc", "cpet-reference", "definitions", "tests", "model", "evaluation"])
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation"])
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"), ctx);
 // Exercise the real synchronous merge without opening IndexedDB or adding a
 // production API solely for the tests.

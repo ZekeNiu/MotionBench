@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict"),path=require("node:path");
 const ctx=vm.createContext({console,Intl,crypto:require("node:crypto").webcrypto});ctx.window=ctx;
-for(const name of ["calc","cpet-reference","definitions","tests","model","evaluation","interventions","report"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),ctx);
+for(const name of ["calc", "fvp","cpet-reference","definitions","tests","model","evaluation","interventions","report"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),ctx);
 const M=ctx.RingsideModel,E=ctx.RingsideEvaluation,json=x=>JSON.parse(JSON.stringify(x));let passed=0;
 function test(name,fn){try{fn();passed++;console.log("PASS "+name);}catch(e){console.error("FAIL "+name+"\n"+String(e.stack).slice(0,2200));process.exit(1);}}
 test("migrated sample resolves byte-identical calculation and analysis basis",()=>{

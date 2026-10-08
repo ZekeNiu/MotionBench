@@ -14,7 +14,7 @@ for dependency in manifest["dependencies"]:
         if hashlib.sha256(path.read_bytes()).hexdigest() != dependency[hash_key]:
             raise SystemExit("Pinned dependency checksum mismatch: " + str(path))
 pieces = []
-for name in ["ringside-calc.js", "ringside-sources.js", "ringside-cpet-reference.js", "ringside-definitions.js"]:
+for name in ["ringside-calc.js", "ringside-fvp.js", "ringside-sources.js", "ringside-cpet-reference.js", "ringside-definitions.js"]:
     path = SRC / name
     subprocess.run(["node", "--check", str(path)], check=True)
     pieces.append(path.read_text(encoding="utf-8"))
@@ -25,13 +25,13 @@ for name in ["html2canvas.min.js", "jspdf.umd.min.js", "exceljs.min.js"]:
     if not path.exists():
         raise SystemExit("Missing pinned offline dependency: " + str(path))
     pieces.append(path.read_text(encoding="utf-8"))
-for name in ["ringside-tests.js", "ringside-model.js", "ringside-evaluation.js", "ringside-store.js", "ringside-interventions.js", "ringside-viz.js", "ringside-report.js", "ringside-ai-settings.js", "ringside-settings.js", "ringside-pdf.js", "ringside-picker.js", "ringside-excel.js", "ringside-management.js", "ringside-entry-session.js", "ringside-excel-flow.js", "ringside-app.js"]:
+for name in ["ringside-tests.js", "ringside-model.js", "ringside-evaluation.js", "ringside-store.js", "ringside-interventions.js", "ringside-viz.js", "ringside-report.js", "ringside-ai-settings.js", "ringside-settings.js", "ringside-pdf.js", "ringside-picker.js", "ringside-excel.js", "ringside-management.js", "ringside-entry-session.js", "ringside-fvp-entry.js", "ringside-excel-flow.js", "ringside-app.js"]:
     path = SRC / name
     subprocess.run(["node", "--check", str(path)], check=True)
     pieces.append(path.read_text(encoding="utf-8"))
 shell = (SRC / "ringside-shell.html").read_text(encoding="utf-8")
 assert shell.count("<!-- RINGSIDE_STYLES -->") == 1
-styles = ["ringside.css", "ringside-workflow.css", "ringside-management-refinement.css", "ringside-report-refinement.css", "ringside-excel.css"]
+styles = ["ringside.css", "ringside-workflow.css", "ringside-management-refinement.css", "ringside-report-refinement.css", "ringside-excel.css", "ringside-fvp.css"]
 shell = shell.replace("<!-- RINGSIDE_STYLES -->", "<style>\n" + "\n".join((SRC / name).read_text(encoding="utf-8") for name in styles) + "\n</style>")
 assert shell.count("<!-- RINGSIDE_SCRIPTS -->") == 1
 script_tags = "\n".join("<script>\n" + code.replace("</script", "<\\/script") + "\n</script>" for code in pieces)

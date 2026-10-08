@@ -1,7 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 global.window=global;global.ExcelJS=require("../vendor/exceljs.min.js");
-for(const name of ["calc","cpet-reference","definitions","tests","model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
+for(const name of ["calc", "fvp","cpet-reference","definitions","tests","model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
 const M=global.RingsideModel,X=global.RingsideExcel,copy=x=>JSON.parse(JSON.stringify(x));let passed=0;
 async function test(name,run){await run();passed++;console.log("PASS "+name);}
 const cat=()=>M.normalizeCatalog();

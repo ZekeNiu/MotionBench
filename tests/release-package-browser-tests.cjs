@@ -69,6 +69,20 @@ async function verifyChannel(channel) {
       evidence.modules = modules;
     });
 
+    await check("packaged FVP and elasticity share the solver and keep new projects disabled", async () => {
+      const values = await page.evaluate(() => {
+        const record = RingsideModel.defaults();
+        const disabled = [record.enabled.fvp_sj, record.enabled.fvp_cmj];
+        record.athlete.mass = 72; record.fvpConfig.fvp_sj.distanceCm = 33;
+        record.data.fvp_sj = [0,20,40,60,80].map((load, i) => ({id: "package-fvp-" + i, load, height: [33,27,22,14,10][i]}));
+        const result = RingsideFVP.solve(record, "fvp_sj");
+        return {disabled, valid: result.valid, Pmax: result.fit.Pmax, Fe: result.elasticity.Fe, direction: result.imbalance.direction, scenarioDelta: result.scenario.deltaPct};
+      });
+      assert.deepEqual(values.disabled, [false,false]); assert.equal(values.valid, true);
+      assert.ok(Math.abs(values.Pmax - 27.54667991616) < 1e-9); assert.ok(values.Fe > 0);
+      assert.equal(values.direction, "force"); assert.equal(values.scenarioDelta, 0);
+    });
+
     let people, downloaded;
     await check("two simulated existing athletes are saved without test records", async () => {
       people = await page.evaluate(async () => {

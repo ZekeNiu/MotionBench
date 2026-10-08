@@ -4,6 +4,7 @@
   const clone = value => JSON.parse(JSON.stringify(value));
   const uid = () => "xlsx_" + root.crypto.randomUUID().replace(/-/g, "");
   const empty = value => value === "" || value === null || value === undefined;
+  const isFVP = id => ["fvp_sj", "fvp_cmj"].includes(id);
   const safe = value => typeof value === "string" && /^[A-Za-z0-9_-]{1,249}$/.test(value) && !["__proto__", "prototype", "constructor"].includes(value);
   const get = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
   function put(object, path, value) {
@@ -32,6 +33,7 @@
     if(key==="side")return {L:"左侧",R:"右侧",D:"优势侧",ND:"非优势侧"};
     if(key==="vo2Unit")return {"ml/kg/min":"mL·kg⁻¹·min⁻¹","l/min":"L/min"};
     if(key==="label")return {VO2peak:"VO₂peak",VO2max:"VO₂max"};
+    if(key==="range")return {full:"完整剖面",measured:"实测范围"};
     return {};
   }
   const displayChoice=(f,value)=>choiceLabels(f)[value]??value;
@@ -50,6 +52,7 @@
     let fields;
     if (!T.isNative(record, id)) fields = extra;
     else if (["cmj", "sj", "dj", "cmrj"].includes(id)) fields = T.attemptFields(record, id).filter(f => !f.computed && f.key !== "activeStiffness").map(f => field(f.key || "metrics." + f.id, f.label + " " + f.unit)).concat(["dj", "cmrj"].includes(id) ? stiffness() : []);
+    else if (isFVP(id)) fields = [field("load", "附加负荷 kg"), field("height", "垂直跳跃高度 cm"), field("distanceCm", "本次蹬伸距离 cm（留空沿用统一值）"), bool("excluded", "排除本次"), text("exclusionReason", "排除原因"), ...extra];
     else if (id === "imtp") fields = [field("peakForce", "峰值力 N"), field("baselineForce", "起点力 N"), field("peakTimeMs", "峰值时间 ms"), field("impulse250", "0–250 ms 冲量 N·s"), field("matchedImpulse", "匹配时窗冲量 N·s"), field("matchedDurationMs", "匹配时窗 ms"), ...extra];
     else if (["landmine", "squat", "bench", "deadlift"].includes(id)) fields = [...(id === "landmine" ? [text("side", "侧别", ["L", "R"])] : []), field("load", "负荷 kg"), field("velocity", "速度 m/s"), ...extra];
     else if (id === "mb") fields = [text("side", "侧别", ["D", "ND"]), field("distance", "距离 m"), ...extra];
@@ -70,6 +73,13 @@
     if (["landmine", "squat", "bench", "deadlift"].includes(id)) for (const key of id === "landmine" ? ["landmineL", "landmineR"] : [id]) rows.push(text("lvp." + key + ".metric", (key === "landmineL" ? "左侧 " : key === "landmineR" ? "右侧 " : "") + "设备速度口径", ["MV", "MPV", "PV"]));
     if (id === "lactate") rows.push(field("thresholds.lt1", "第一乳酸阈值速度 m/s"), field("thresholds.lt2", "第二乳酸阈值速度 m/s"), text("thresholds.method", "阈值识别方法"));
     if (id === "cpet" && T.isNative(record, id)) rows.push(text("data.cpet.modality", "CPET 测试方式", ["treadmill", "cycle"]), text("data.cpet.protocol", "CPET 协议 / 设备"));
+    if (isFVP(id) && T.isNative(record, id)) {
+      const config = "fvpConfig." + id, analysis = "fvpAnalysis." + id, view = "fvpView." + id;
+      rows.push(text(config + ".device", "测量设备"), text(config + ".method", "跳跃高度测量方法"), text(config + ".posture", "动作姿势 / 下蹲深度"), field(config + ".distanceCm", "统一蹬伸距离 cm"), text(config + ".distanceSource", "蹬伸距离来源"));
+      rows.push(field(analysis + ".angle", "最优剖面角度 °", "number", [90, 30]), field(analysis + ".deltaForcePct", "力量端变化 %"), field(analysis + ".deltaVelocityPct", "速度端变化 %"));
+      for (const [key, label] of [["fv", "显示 F–V 曲线"], ["pv", "显示 P–V 曲线"], ["points", "显示实测点"], ["optimum", "显示最优剖面"], ["comparison", "显示另一角度最优剖面"], ["confidence", "显示置信区间"]]) rows.push(bool(view + "." + key, label));
+      rows.push(text(view + ".range", "图表范围", ["full", "measured"]), {...field(view + ".pinnedLoad", "固定查看负荷 kg（可留空）"), nullable:true});
+    }
     return rows;
   }
   const isSharedSetting = f => f.key.startsWith("dsi.");
@@ -113,7 +123,7 @@
       const sources = records.filter(r => r.enabled[id]), source = sources[0], descriptor = T.describe(source).find(t => t.id === id);
       if (sources.some(record => canonical(contract(record,id)) !== canonical(contract(source,id)))) throw Error(descriptor.name + " 的字段或单位不一致，请分别下载模板");
       const label = ((index + 1).toString().padStart(2, "0") + "_" + descriptor.name).replace(/[\\/*?:\[\]]/g, "_").slice(0, 26);
-      const add = (kind, suffix, fields) => specs.push({id, name:label + suffix, kind, fields:prefix.concat(fields)});
+      const add = (kind, suffix, fields) => specs.push({id, name:label + suffix, kind, renderer:descriptor.renderer, fields:prefix.concat(fields)});
       if (id === "fms") add("fms", "", [field("action", "动作序号"), text("actionName", "动作"), field("left", "左分 0–3"), field("right", "右分 0–3"), field("score", "单项分 0–3"), bool("pain", "疼痛"), text("location", "疼痛位置"), notes]);
       else if (id === "iso") add("iso", "", [text("directionId", "方向编号"), text("directionName", "关节 / 运动方向"), field("attempt", "试次"), field("left", "左侧 / 左向"), field("right", "右侧 / 右向"), field("center", "中线"), text("unit", "力单位", ["N", "kgf", "Nm"]), bool("painLeft", "左侧 / 左向疼痛"), bool("painRight", "右侧 / 右向疼痛"), bool("painCenter", "中线疼痛"), text("directionProtocol", "方向测试条件"), notes]);
       else if (id === "hop" && T.isNative(source,id)) {
@@ -163,7 +173,7 @@
       const attempts = prefill ? raw : Array.from({length:3},()=>({timePoints:[{timeMs:100},{timeMs:200}]}));
       attempts.forEach((row,i) => (row.timePoints || []).forEach(point => push({...clone(point),attempt:i+1})));
     } else {
-      let rows = prefill ? M.repeatRows(record,spec.id) : Array.from({length:spec.id === "lactate" ? 1 : 3},()=>({}));
+      let rows = prefill ? M.repeatRows(record,spec.id) : Array.from({length:isFVP(spec.id) && spec.renderer === "fvp" ? 15 : spec.id === "lactate" ? 1 : 3},()=>({}));
       if (!prefill && ["landmine","mb"].includes(spec.id)) rows = (spec.id === "landmine" ? ["L","R"] : ["D","ND"]).flatMap(side => Array.from({length:3},()=>({side})));
       rows.forEach((row,i) => {
         row = clone(row); if (row.activeStiffnessInputUnit === "N/m" && !empty(row.activeStiffness)) row.activeStiffness *= 1000;
@@ -195,6 +205,7 @@
       ["测试条件", "协议、单位及输入口径在对应项目页或测试条件页填写；评价标准由软件统一管理。"],
       ["等长力量", "只填写所选方向；双侧方向填写左 / 右，中线方向填写中线，保留疼痛。"],
       ["Hop", "先在组表选择设备汇总或逐跳。设备平均 RSI 按报告原值填写；逐跳数据在对应明细表填写。"],
+      ["跳跃 FVP", "SJ 与 CMJ 分别填写。至少测试 3 个不同负荷，建议 4–5 个；每个负荷可重复测试。附加负荷 0 kg 表示自重跳跃。统一蹬伸距离在测试条件页填写，单次距离可覆盖统一值；排除试次须填写原因。"],
       ["选项与单位", "录入方式、测试方式、力口径及侧别使用下拉菜单选择；数值单位见列标题或单位列。"],
       ["公式", "填写数值或文字，不使用公式；如从计算表复制，请粘贴为值。"],
       ["工作表结构", "请保留工作表、表头和隐藏信息。整份文件通过校验后才会保存。"],
@@ -253,12 +264,14 @@
     if(f.type === "number") {
       const normalized=typeof value==="string"?value.trim():value;
       if(typeof normalized==="boolean"||!((typeof normalized==="number"&&Number.isFinite(normalized))||(typeof normalized==="string"&&/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(normalized)&&Number.isFinite(Number(normalized))))) {issue(errors,cell.worksheet,cell.row,cell.col,"请填写有限数值；未测请留空");return "";}
-      return Number(normalized);
+      const number = Number(normalized);
+      if(f.choices && !f.choices.includes(number))issue(errors,cell.worksheet,cell.row,cell.col,"可选值："+f.choices.join(" / "));
+      return number;
     }
     if(f.type === "boolean") {
       if(value===true||value===1||["是","true","TRUE"].includes(value))return true;
       if(value===false||value===0||["否","false","FALSE"].includes(value))return false;
-      issue(errors,cell.worksheet,cell.row,cell.col,"疼痛标记请填是 / 否");return false;
+      issue(errors,cell.worksheet,cell.row,cell.col,"请填是 / 否");return false;
     }
     value=String(value).trim();
     value=Object.entries(choiceLabels(f)).find(([,label])=>label===value)?.[0]??value;
@@ -266,6 +279,7 @@
     return value;
   }
   const meaningful = (row, keys) => keys.some(key => {const v=get(row,key);return !empty(v)&&v!==false;});
+  const hasMeasurement = (spec, row) => isFVP(spec.id) && spec.renderer === "fvp" && spec.kind === "attempt" ? !empty(row.height) : meaningful(row,rawKeys(spec));
   function rawKeys(spec) {
     const skip = new Set(["recordId","athleteId","name","attempt","action","actionName","directionId","directionName","unit","directionProtocol","side","inputMode","phase","label","vo2Unit","metricId","metricName","jump","timeMs","activeStiffnessInputUnit","summary.activeStiffnessInputUnit","summary.selectionBasis"]);
     return spec.fields.map(f=>f.key).filter(key=>!skip.has(key));
@@ -313,12 +327,14 @@
           const f=settings(record,row.testId).find(f=>f.key===row.fieldId);
           if(!record.enabled[row.testId]||!f){error("fieldId","项目条件编号不属于本模板");continue;}
           if(seen("settings:"+row.fieldId))continue;
-          const value=cellValue(excelRow.getCell(columns.get("value")),f,errors);set(f.key,value,"value");
+          let value=cellValue(excelRow.getCell(columns.get("value")),f,errors);
+          if (f.nullable && empty(value)) value=null;
+          set(f.key,value,"value");
           if(f.choices&&empty(value)&&f.key!=="data.cpet.modality")error("value","请选择 "+f.label);
           if(["thresholds.lt1","thresholds.lt2"].includes(f.key)&&!empty(value))entry.incoming.add(row.testId);
           continue;
         }
-        const hasRaw=meaningful(row,rawKeys(spec));
+        const hasRaw=hasMeasurement(spec,row);
         if(!hasRaw&&spec.kind!=="hop")continue;
         if(hasRaw)entry.incoming.add(spec.id);
         if(spec.kind==="custom"){
@@ -420,7 +436,7 @@
     if(!record.enabled[id])record={...record,enabled:{...record.enabled,[id]:true}};
     const spec=makeSpecs([record]).find(s=>s.id===id&&!["custom","timePoints","hopJumps"].includes(s.kind));
     if(!spec)return 0;
-    let count=dataRows(spec,record,true).filter(row=>meaningful(row,rawKeys(spec))&&(!selection||id!=="iso"||selection.includes(row.directionId))).length;
+    let count=dataRows(spec,record,true).filter(row=>hasMeasurement(spec,row)&&(!selection||id!=="iso"||selection.includes(row.directionId))).length;
     if(id==="hop"&&T.isNative(record,id))count=M.repeatRows(record,id).filter(set=>meaningful(set,["summary.height","summary.rsi","summary.contactTimeMs","summary.activeStiffness","notes"])||set.jumps?.some(j=>meaningful(j,["height","contactTimeMs","flightTimeMs","notes"]))).length;
     if(id==="imtp")count=M.repeatRows(record,id).filter(row=>meaningful(row,attemptFields(record,id).map(f=>f.key))||row.timePoints?.some(p=>!empty(p.force)||!empty(p.rfd))).length;
     return count+record.definitions.filter(d=>d.testId===id&&T.isManualMetric(d)&&!T.isAttemptMetric(d)&&!empty(record.customValues[d.id]?.value)).length+settings(record,id).filter(f=>["thresholds.lt1","thresholds.lt2"].includes(f.key)&&!empty(get(record,f.key))).length;
@@ -464,7 +480,7 @@
           if(M.setIsoDirectionSelection)M.setIsoDirectionSelection(record,next);else record.isoDirectionIds=next;
         }else record.data[id]=clone(incoming.data[id]);
         for(const d of incoming.definitions.filter(d=>d.testId===id&&T.isManualMetric(d)&&!T.isAttemptMetric(d)))record.customValues[d.id]=clone(incoming.customValues[d.id]||{value:"",notes:""});
-        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)))put(record,f.key,clone(get(incoming,f.key)??""));
+        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)))put(record,f.key,clone(f.nullable && empty(get(incoming,f.key)) ? null : get(incoming,f.key)??""));
         if(id==="cmj"){record.cmjConfig=clone(incoming.cmjConfig);record.dsi.cmjUnit=incoming.dsi.cmjUnit;}
         if(id==="imtp")record.imtpConfig=clone(incoming.imtpConfig);
         const nextContext=JSON.stringify([record.protocol[id],record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);

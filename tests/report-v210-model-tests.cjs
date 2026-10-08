@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), vm = require("node:vm"), assert = require("node:assert/strict");
 const context = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto }); context.window = context;
-for (const name of ["calc", "cpet-reference", "definitions", "tests", "model", "evaluation", "interventions", "viz", "report"])
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation", "interventions", "viz", "report"])
   vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`, "utf8"), context);
 const M = context.RingsideModel, R = context.RingsideReport, V = context.RingsideViz, T = context.RingsideTests;
 let passed = 0;
@@ -80,6 +80,10 @@ test("every builtin project uses its captured display name without altering metr
   r.data.dj=[{id:"name-dj",height:30,contactTimeMs:150}];
   r.data.cmrj=[{id:"name-cmrj",firstHeight:35,height:25,contactTimeMs:125}];
   r.data.hop={id:"name-hop",inputMode:"summary",summary:{height:25,rsi:2,selectionBasis:"height_rsi"},jumps:[]};
+  for (const id of ["fvp_sj", "fvp_cmj"]) {
+    r.fvpConfig[id].distanceCm = 33;
+    r.data[id] = [0,20,40].map((load,index) => ({ id:"name_" + id + "_" + index, load, height:[33,27,22][index], excluded:false }));
+  }
   const before = R.build(r);
   r.projectSnapshots = T.snapshots(r).map(test => ({ ...test, name: "本次名称_" + test.id }));
   const report = R.build(r), html = R.render(report);

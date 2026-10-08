@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), vm = require("node:vm"), assert = require("node:assert/strict");
 const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto }); c.window = c;
-for (const name of ["calc", "cpet-reference", "definitions", "tests", "model", "evaluation"]) vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`, "utf8"), c);
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation"]) vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`, "utf8"), c);
 const M = c.RingsideModel, T = c.RingsideTests, E = c.RingsideEvaluation;
 const copy = (x) => JSON.parse(JSON.stringify(x)), near = (a,b) => assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
 let passed=0; const test=(name,fn)=>{fn();passed++;console.log("PASS "+name);};

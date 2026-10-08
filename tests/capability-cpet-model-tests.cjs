@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict"),path=require("node:path"),{execFileSync}=require("node:child_process");
 const ctx=vm.createContext({console,Intl,crypto:require("node:crypto").webcrypto});ctx.window=ctx;
-for(const name of ["calc","cpet-reference","definitions","tests","model","evaluation","interventions"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),ctx);
+for(const name of ["calc", "fvp","cpet-reference","definitions","tests","model","evaluation","interventions"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),ctx);
 const M=ctx.RingsideModel,E=ctx.RingsideEvaluation,copy=x=>JSON.parse(JSON.stringify(x));let passed=0;
 const near=(a,b)=>assert.ok(a!==null&&Math.abs(a-b)<1e-8,`${a} != ${b}`);
 const card=(r,id)=>M.stats(r).capabilityCards.find(c=>c.id===id), metric=(r,id)=>M.stats(r).capabilityCards.flatMap(c=>c.metrics).find(m=>m.id===id);

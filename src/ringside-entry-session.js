@@ -31,8 +31,12 @@
     return value;
   }
   function signature(record) {
+    const data = { ...record?.data };
+    for (const id of ["fvp_sj", "fvp_cmj"]) if (Array.isArray(data[id]) && (root.RingsideTests?.isNative ? root.RingsideTests.isNative(record, id) : !!record.fvpConfig?.[id] && !record.customTests?.some(test => test.id === id))) {
+      data[id] = data[id].filter(row => row && row.height !== undefined && row.height !== null && String(row.height).trim() !== "");
+    }
     return JSON.stringify({
-      data: project(record?.data, true),
+      data: project(data, true),
       customValues: project(record?.customValues, true),
       narrative: record?.narrative?.text?.trim() || undefined,
     });

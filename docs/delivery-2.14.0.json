@@ -1,0 +1,41 @@
+{
+  "version": "2.14.0",
+  "date": "2026-10-09",
+  "status": "local-candidate",
+  "confidence": "high",
+  "pass": true,
+  "artifact": {
+    "path": "MotionBench.html",
+    "sha256": "11e0cc68d3834389cbffc852353cc81b8c10944a128cb3e612702968d72db197"
+  },
+  "windowsPackage": {
+    "path": "output/release/MotionBench-2.14.0-Windows.zip",
+    "sha256": "269dfc1dd007378cdbe9283f54b03355f71ec8fe54fd94d084c1d1e30bf9322c",
+    "bytes": 5928021
+  },
+  "packageFiles": 17,
+  "packagedBrowserChecks": 16,
+  "models": 371,
+  "browserChecks": 188,
+  "pdfPagesReviewed": 74,
+  "evidence": [
+    {
+      "path": "docs/acceptance-2.14.0.json",
+      "sha256": "ba665f1df4729c0d182071125f836661b1cd1f5059a43d96577c450e2e5c97db"
+    },
+    {
+      "path": "output/release/package-integrity-2.14.0.json",
+      "sha256": "26b31aa55231296ae5e31bcfb7117fa1aa2a186f18e4cbab133df4a02020d595"
+    },
+    {
+      "path": "output/release/package-browser-results.json",
+      "sha256": "f75334ff064025f3fd94ce65b9f780844af12a8c392fb63259d1de1360d3fe54"
+    }
+  ],
+  "rollback": {
+    "tag": "v2.13.1",
+    "commit": "0fd163ff2fd5f57bcbf7c0053c4bf9744bd3001b",
+    "htmlSHA256": "5e6473100e8967e9a9da57eb36298e6d28f6449f2e326aef2a5cdd5fc850123c"
+  },
+  "remotePublished": false
+}

@@ -1,0 +1,214 @@
+{
+  "version": "2.14.0",
+  "date": "2026-10-09",
+  "status": "local-candidate",
+  "pass": true,
+  "artifact": {
+    "path": "MotionBench.html",
+    "sha256": "11e0cc68d3834389cbffc852353cc81b8c10944a128cb3e612702968d72db197"
+  },
+  "reproducibleBuild": true,
+  "sourceModules": {
+    "src/ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "src/ringside-app.js": "b1d923db28525b2324ca96c6214ba00ff95427879e4e367477df18cc9c7a1744",
+    "src/ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "src/ringside-definitions.js": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+    "src/ringside-entry-session.js": "8bfa128bfebd6bc105abb018eedf6134a34c6e7bfbe7aa8aef4be303c578b9d4",
+    "src/ringside-evaluation.js": "9cbcd73aa621cb1e69ba7d29cd50ce272472a6ad4ee787f92b5c1b9d07b4727c",
+    "src/ringside-excel-flow.js": "e5d71d006dee26a1c38d95a7fa1086864409d2c350e08ed14dbe85adfd279cf1",
+    "src/ringside-excel.css": "25cfe4e3bff61779bf0820a0aa94b0fb6278fd9d358b1a8a088cd74bb9de91d9",
+    "src/ringside-excel.js": "080d89267f8d18086c74e128184d190dff87def8b16d0b556225903884f0241b",
+    "src/ringside-fvp-entry.js": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+    "src/ringside-fvp.css": "fefe67bd67097e3aad6d1b7d4ea8587e6a7f47fce55a5618b5b61a5fab89f81a",
+    "src/ringside-fvp.js": "1f61f5619cc13e077cba163026987f2abe2c0dd50c06135e23f561497ae8e570",
+    "src/ringside-interventions.js": "f875ba74fd9c0e2d3bbd782056b82d4bcf6220d21a8cb03e336b99faefd8320d",
+    "src/ringside-management-refinement.css": "97dc8b58a178228adfd4d08127608084448a8c4b209c590daf850bcaed4a0070",
+    "src/ringside-management.js": "1b6b536bd57328f20c46f8ed1dedbfcef1537dc73ee09925b1017d2891e8bce8",
+    "src/ringside-model.js": "0f2fe63218b52a2d01a80967b448edba611afc084fdf6480c080ba67dc6cc44e",
+    "src/ringside-pdf.js": "2f50b052af32835f29540d1c2705cd60e80ab206f9e2624aed55b0fe2f7515c2",
+    "src/ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "src/ringside-report-refinement.css": "37ab0b3f78abffb0ed847d9dee7e42fd0d7336b410239b28c1c0ee66c8045ce8",
+    "src/ringside-report.js": "99ee425de19567bf8cd6dc098f6dc05d868c3cd0d403d34fe23f85fd786d3b55",
+    "src/ringside-settings.js": "93a53bfbc6d999e4f1530b8f2c96dc013f509b8710a2c9c749d1f931f42ee79d",
+    "src/ringside-shell.html": "1c1a680bdb3ebb6ed1ecc1b91462a0bbdcc2aa933ca3a45c70a263b506f71790",
+    "src/ringside-sources.js": "8ee70ec198e2d7f2070a778028d9b65b99aaf623d6e4ee2c625979e5c4a9c44e",
+    "src/ringside-store.js": "dcfc1d5b170293b3df49591454ebe165848d898d88783a652413eee51fb870da",
+    "src/ringside-tests.js": "a3ca232464cafbf0613f81445b1fcc1b47057413e204889e0886fcb04c133a67",
+    "src/ringside-viz.js": "a9cb1ab659a39120685436fe566748dfbf08e9aef2e81b51fff1c6859fdb83f7",
+    "src/ringside-workflow.css": "0394b74fc4ccf1962f0a002b329c0333da6cd197e998368a904a77e4871580db",
+    "src/ringside.css": "6062c7d1b54d6a653369318c9a2a7c6c1d5af3b9967f7fa34861e8643b03ee1c"
+  },
+  "modelChecks": 371,
+  "browserChecks": 188,
+  "browserSuites": [
+    {
+      "name": "chrome FVP integration",
+      "checks": 17,
+      "pass": true
+    },
+    {
+      "name": "chrome FVP storage and Excel workflow",
+      "checks": 9,
+      "pass": true
+    },
+    {
+      "name": "chrome dense points and wide confidence band",
+      "checks": 14,
+      "pass": true
+    },
+    {
+      "name": "msedge FVP integration",
+      "checks": 17,
+      "pass": true
+    },
+    {
+      "name": "msedge FVP storage and Excel workflow",
+      "checks": 9,
+      "pass": true
+    },
+    {
+      "name": "msedge dense points and wide confidence band",
+      "checks": 14,
+      "pass": true
+    },
+    {
+      "name": "unified-entry-browser-tests.cjs",
+      "checks": 14,
+      "pass": true
+    },
+    {
+      "name": "unified-entry-browser-tests.cjs (Edge)",
+      "checks": 14,
+      "pass": true
+    },
+    {
+      "name": "excel-workflow-browser-tests.cjs",
+      "checks": 15,
+      "pass": true
+    },
+    {
+      "name": "excel-workflow-browser-tests.cjs (Edge)",
+      "checks": 15,
+      "pass": true
+    },
+    {
+      "name": "refinement-workflow-browser-tests.cjs",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "name": "refinement-race-browser-tests.cjs",
+      "checks": 5,
+      "pass": true
+    },
+    {
+      "name": "report-toolbar-browser-tests.cjs",
+      "checks": 8,
+      "pass": true
+    },
+    {
+      "name": "isometric-selection-browser-tests.cjs",
+      "checks": 6,
+      "pass": true
+    },
+    {
+      "name": "management-resilience-tests.cjs",
+      "checks": 13,
+      "pass": true
+    },
+    {
+      "name": "chart-ai-browser-tests.cjs",
+      "checks": 1,
+      "pass": true
+    },
+    {
+      "name": "capability-report-browser-tests.cjs",
+      "checks": 6,
+      "pass": true
+    },
+    {
+      "name": "ai-narrative-browser-tests.cjs",
+      "checks": 1,
+      "pass": true
+    }
+  ],
+  "exportedPdfPages": 74,
+  "nativeExcel": {
+    "pass": true,
+    "saved": true,
+    "checkedAt": "2026-10-08T17:56:34.8976509Z",
+    "excelVersion": "16.0",
+    "sourceHash": "11e0cc68d3834389cbffc852353cc81b8c10944a128cb3e612702968d72db197",
+    "excelModuleSha256": "080d89267f8d18086c74e128184d190dff87def8b16d0b556225903884f0241b",
+    "inputArtifact": {
+      "path": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-native\\FVP_Input.xlsx",
+      "sha256": "085db56075e652abf1d5871738d6ffd67b354385b791587b89c57a9ec4f24157"
+    },
+    "outputArtifact": {
+      "path": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-native\\FVP_ExcelSaved.xlsx",
+      "sha256": "9ae9cb500d479c68b7f665a26b74da2e35435badb903cd3688b57309041ada31"
+    }
+  },
+  "evidence": {
+    "models": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "c5c73524fb8a0de1fbd915b8454054fbe80300b43af046823a311a2623daf1a8"
+    },
+    "chromeFVP": {
+      "path": "output/playwright/fvp/chrome-results.json",
+      "sha256": "295d6a8f645eed27dfd699c109830d69fd5cd442c165d36b43d2c2c7aec321c7"
+    },
+    "chromeFVPStorage": {
+      "path": "output/playwright/fvp-storage/chrome-results.json",
+      "sha256": "7a101b53117e582be36b9d66fbf6e0e41c033384ef8c7df5b6e5d30a3609c539"
+    },
+    "chromeFVPStress": {
+      "path": "output/playwright/fvp-stress/chrome-results.json",
+      "sha256": "59f5c312f9aee69d50f2c898f1e667f731675b25839b840cb5fee838f8f48dba"
+    },
+    "msedgeFVP": {
+      "path": "output/playwright/fvp/msedge-results.json",
+      "sha256": "af6471ac6ed48efeec6ed6afc29710bf3fac4887e2fb40b79449ecbb0210aab9"
+    },
+    "msedgeFVPStorage": {
+      "path": "output/playwright/fvp-storage/msedge-results.json",
+      "sha256": "d11d7a59ba7a81cf0c7b49614cdd819b43e3abe9a14140e02329a4d2af1db9d0"
+    },
+    "msedgeFVPStress": {
+      "path": "output/playwright/fvp-stress/msedge-results.json",
+      "sha256": "7c259e915c4a544c48d28b5ddfd84f76c02623856f730d76bd214b7303ad6f26"
+    },
+    "browserRegression": {
+      "path": "output/tests/v214-browser-regression.json",
+      "sha256": "f4de1b1e6448bb5fb4858073bc8fc8ab28feca4dd67ba7b3b2abf894bf011cd3"
+    },
+    "nativeExcel": {
+      "path": "output/excel-native/fvp-native-result.json",
+      "sha256": "39e6b24bc37085538d061d539d3db5b7f23cf742ec0f0fcb747443d1b8c1296c"
+    },
+    "nativeExcelReadback": {
+      "path": "output/excel-native/fvp-readback-result.json",
+      "sha256": "fdef8aad43ddab3be668bf8b88489a373680c40d1afb8c574c37207e5d459fd2"
+    },
+    "visualReview": {
+      "path": "output/playwright/fvp/visual-review.json",
+      "sha256": "828fa370eb088817ada56386b9531ff534bdeb042b4b5814b519f644797a51ff"
+    },
+    "pdfRenderReview": {
+      "path": "output/playwright/fvp/pdf-render-review.json",
+      "sha256": "7a6bc1bdec770af172ec1cdf068f7563916f70b1123963c0678ef6c09251c73e"
+    }
+  },
+  "rollback": {
+    "tag": "v2.13.1",
+    "commit": "0fd163ff2fd5f57bcbf7c0053c4bf9744bd3001b",
+    "htmlSHA256": "5e6473100e8967e9a9da57eb36298e6d28f6449f2e326aef2a5cdd5fc850123c"
+  },
+  "verificationLimits": [
+    "Checks use synthetic athletes in isolated installed Chrome/Edge browsers.",
+    "Mobile input and layouts use browser emulation; physical devices and printers were not tested.",
+    "AI fact parity and existing simulated AI workflow were checked; live provider output was not rerun.",
+    "The previous large Chrome backup stress cancellation was not revalidated in this candidate."
+  ]
+}

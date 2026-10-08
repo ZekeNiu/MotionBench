@@ -811,7 +811,7 @@
     const consumed = new Set(),
       grouped = new Map(),
       measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t));
-    for (const test of measured.filter((t) => t.renderer !== "lvp")) {
+    for (const test of measured.filter((t) => !["lvp","fvp"].includes(t.renderer))) {
       if (consumed.has(test.id)) continue;
       const peers =
         test.renderer === "speed"
@@ -877,7 +877,8 @@
     function renderCapabilities() {
       const digits=metric=>Number.isInteger(metric.digits)?metric.digits:metric.unit==="比值"||/rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id)?3:metric.unit==="%"?1:2;
       const cards=(s.capabilityCards||[]).map(card=>({...card,metrics:(card.metrics||[]).filter(metric=>N(metric.value)!==null)})).filter(card=>card.metrics.length);
-      if(!cards.length)return "";
+      const fvp=renderFVPAnalysis(report);
+      if(!cards.length&&!fvp)return "";
       const renderMetric=(metric,cardId)=>{
         const unit=metric.unit&&metric.unit!=="比值"?`<small>${E(metric.unit)}</small>`:"";
         const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(metric.judgment)}</p>`:"";
@@ -897,7 +898,7 @@
       };
       const rows=[];
       for(let index=0;index<cards.length;index+=2)rows.push(`<div class="capability-row" data-pdf-atomic>${cards.slice(index,index+2).map(renderCard).join("")}</div>`);
-      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>能力结构分析</summary><div class="quality-group"><div class="capability-results">${rows.join("")}</div></div></details>`;
+      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>${E(T.analysisLabel)}</summary><div class="quality-group">${fvp}<div class="capability-results">${rows.join("")}</div></div></details>`;
     }
     // LVP is a shared comparison renderer across its explicitly registered projects.
     function renderLVP(limb, s) {
@@ -972,6 +973,140 @@
       }</div><div class="lvp-table detail-data">${rows.length ? table(["动作", "回归方程", "R²", "预估1RM", "体重比 kg/kg", "速度口径", ...(repeated ? ["速度均值 ± SD · m/s", "CV"] : [])], rows, [], repeated ? "lvp-results with-repeat-columns" : "") : ""}${zoneRows.length ? table(["动作", "素质区间", "速度 m/s", "负荷 kg", "范围"], zoneRows) : ""}</div></div>${report.projects.filter((test) => all.some((series) => series.testId === test.id)).map(repeatPanel).join("")}</article>`;
     }
   }
+  function fvpChartData(solved) {
+    const current=solved.current||solved.model||{}, profiles=[];
+    const add=(profile,kind,label)=>{if(profile&&positive(profile.F0)&&positive(profile.V0))profiles.push({kind,label,F0:profile.F0,V0:profile.V0,Pmax:profile.Pmax});};
+    add(current,"current","当前剖面");
+    add(solved.optimum||solved.optimal,"optimum",`${solved.optimum?.angle||solved.optimal?.angle||90}° 最优`);
+    add(solved.comparison,"comparison",`${solved.comparison?.angle||30}° 参照`);
+    const points=(solved.points||[]).map(p=>({load:p.load,height:p.heightCm??p.height,force:p.forceRelative??p.force,velocity:p.velocity,power:p.powerRelative??p.power,n:p.n}));
+    const band=[];
+    if(solved.valid&&points.length&&typeof solved.ci==="function"){
+      const min=Math.min(...points.map(p=>p.velocity)),max=Math.max(...points.map(p=>p.velocity));
+      for(let i=0;i<=48;i++){const interval=solved.ci(min+(max-min)*i/48);if(interval&&N(interval.low)!==null&&N(interval.high)!==null)band.push({...interval,powerLow:interval.powerLow??interval.low*interval.x,powerHigh:interval.powerHigh??interval.high*interval.x});}
+    }
+    return{id:solved.id,valid:!!solved.valid,reason:solved.reason,profiles,points,band};
+  }
+  function fvpElasticityData(solved) {
+    const sensitivity=solved.sensitivity||{};
+    const model=solved.fit||solved.model,force=sensitivity.force||[],velocity=sensitivity.velocity||[];
+    const dense=(points,isForce)=>{
+      if(!solved.valid||!model?.distance||!global.RingsideFVP?.scenario||!points.length)return points;
+      const min=Math.min(...points.map(p=>p.changePct)),max=Math.max(...points.map(p=>p.changePct));
+      return Array.from({length:121},(_,i)=>{const changePct=min+(max-min)*i/120;return{changePct,...global.RingsideFVP.scenario(model,model.distance,isForce?changePct:0,isForce?0:changePct)};});
+    };
+    const compact=points=>points.map(({changePct,valid,deltaPct})=>({changePct,valid,deltaPct}));
+    return{id:solved.id,force:compact(force),velocity:compact(velocity),forceCurve:compact(dense(force,true)),velocityCurve:compact(dense(velocity,false))};
+  }
+  function fvpResultTable(solved) {
+    if(!solved.valid)return `<div class="fvp-empty-result">${E(solved.reason||"录入至少3个不同负荷的有效跳跃，并填写蹬伸距离。")}</div>`;
+    const current=solved.current||{},optimal=solved.optimum||solved.optimal||{},imbalance=solved.imbalance||{},fit=solved.fit||solved.model||{},rows=[];
+    const add=(name,before,after,unit,digits=2)=>rows.push([`${E(name)}${unit?`<small class="fvp-unit">${E(unit)}</small>`:""}`,F(before,digits),F(after,digits)]);
+    add("力量端 F₀",current.F0,optimal.F0,"N/kg");
+    add("速度端 V₀",current.V0,optimal.V0,"m/s",3);
+    add("最大功率 Pmax",current.Pmax,optimal.Pmax,"W/kg");
+    add("剖面斜率 SFV",current.slope,optimal.slope,"N/kg / (m/s)",3);
+    add("拟合 R²",fit.r2,null,"",3);
+    const imbalanceValue=imbalance.magnitudePct??solved.imbalancePct;
+    const imbalanceText=imbalanceValue>0&&imbalanceValue<.01?"＜0.01%":`${F(imbalanceValue,2)}%`;
+    return table(["指标","当前","目标最优"],rows,[],"fvp-result-table")+`<div class="fvp-core-judgment"><p><span>Imbalance</span><strong>${imbalanceText}</strong></p><p>${E(imbalance.label||"发展方向待确定")}</p></div>`;
+  }
+  function fvpScenarioTable(solved) {
+    if(!solved.valid)return `<div class="fvp-empty-result">${E(solved.reason||"完成有效剖面后可比较参数改变。")}</div>`;
+    const current=solved.verticalCurrent||solved.current||{},scenario=solved.scenario||{},elasticity=solved.elasticity||{},nextElasticity=scenario.elasticity||{},nextJudgments=nextElasticity.judgments||{},rows=[];
+    const add=(name,before,after,unit,judgment,digits=2)=>{if(N(before)!==null||N(after)!==null)rows.push([E(name),`${F(before,digits)}${unit?` ${E(unit)}`:""}`,`${F(after,digits)}${unit?` ${E(unit)}`:""}`,`<span class="fvp-judgment">${E(judgment)}</span>`]);};
+    const change=value=>`${value>=0?"+":""}${F(value,2)}%`;
+    add("力量端 F₀",current.F0,scenario.F0,"N/kg",`参数改变 ${change(scenario.deltaForcePct??0)}`);
+    add("速度端 V₀",current.V0,scenario.V0,"m/s",`参数改变 ${change(scenario.deltaVelocityPct??0)}`,3);
+    add("最大功率 Pmax",current.Pmax,scenario.Pmax,"W/kg",N(scenario.Pmax)!==null?`改变 ${change((scenario.Pmax/current.Pmax-1)*100)}`:"待计算");
+    add("垂直跳高",current.heightCm,scenario.heightCm,"cm",N(scenario.deltaCm)!==null?`${scenario.deltaCm>=0?"+":"−"}${F(Math.abs(scenario.deltaCm),2)} cm（${change(scenario.deltaPct)}）`:"情景无法计算");
+    add("力量弹性 Fₑ",elasticity.Fe,nextElasticity.Fe,"",nextJudgments.Fe||"待判断",3);
+    add("速度弹性 vₑ",elasticity.ve,nextElasticity.ve,"",nextJudgments.ve||"待判断",3);
+    add("弹性比 ER",elasticity.ER,nextElasticity.ER,"",nextJudgments.ER||"待判断",3);
+    add("归一弹性 EN",elasticity.EN,nextElasticity.EN,"",nextJudgments.EN||"待比较情景与当前敏感度",3);
+    return table(["指标","当前","情景","情景判定"],rows,[],"fvp-scenario-table")+(scenario.valid===false?`<p class="fvp-table-note" role="status">${E(scenario.reason||scenario.message||"情景无法计算，请核对输入。")}</p>`:"");
+  }
+  function fvpLoadTable(solved) {
+    const points=solved.points||[];
+    if(!points.length)return "";
+    const groupFor=load=>(solved.groups||[]).find(group=>N(group.load)===N(load));
+    return `<details class="fvp-method fvp-load-details"><summary>负荷点与重复测量</summary><div class="table-wrap"><table class="fvp-load-table"><thead><tr><th>负荷 kg</th><th>采用跳高 cm</th><th>力 N/kg</th><th>速度 m/s</th><th>功率 W/kg</th><th>均值 ± SD / CV</th></tr></thead><tbody>${points.map(p=>{const group=groupFor(p.load)||{},statistics=group.statistics||group,n=group.n??p.n,mean=statistics.mean??group.meanHeightCm,sd=statistics.sd??group.sdHeightCm,cv=statistics.cv;const repeat=n>=3&&N(mean)!==null&&N(sd)!==null?`${F(mean,2)} ± ${F(sd,2)} cm / ${F(cv,1)}%`:"—";return `<tr data-fvp-id="${E(solved.id)}" data-fvp-load="${E(p.load)}" role="button" tabindex="0" aria-label="附加负荷 ${E(p.load)} kg，采用跳高 ${F(p.heightCm??p.height,2)} cm" aria-pressed="false"><td>${F(p.load,1)}</td><td>${F(p.heightCm??p.height,2)}</td><td>${F(p.forceRelative??p.force,2)}</td><td>${F(p.velocity,3)}</td><td>${F(p.powerRelative??p.power,2)}</td><td>${repeat}</td></tr>`;}).join("")}</tbody></table></div></details>`;
+  }
+  function fvpRawTrials(record,id,solved,displayName) {
+    const rows=solved.trials||record.data?.[id]||[],selected=new Set((solved.points||[]).flatMap(p=>p.selectedIds||[]));
+    if(!rows.some(row=>N(row.height)!==null||N(row.load)!==null||row.notes))return "";
+    const label=displayName||(id==="fvp_cmj"?"负荷 CMJ":"负荷 SJ");
+    const data=rows.map((row,index)=>[index+1,F(row.load,1),F(row.height,2),F(row.distanceCm||record.fvpConfig?.[id]?.distanceCm,1),E(row.excluded?"已排除":row.valid===false?row.reason||"待复核":selected.has(row.id)?"采用":"保留"),E([row.notes,row.excluded?row.exclusionReason:""].filter(Boolean).join("；"))]);
+    return `<details class="fvp-raw-trials" data-raw-trials="${E(id)}" data-trial-title="${label} FVP"><summary>${label} · 原始试次 · ${rows.length} 次</summary>${table(["试次","负荷 kg","垂直跳高 cm","蹬伸距离 cm","采用情况","备注"],data,[],"repeat-raw-table")}</details>`;
+  }
+  function fvpMethod(record,solved) {
+    const config=record.fvpConfig?.[solved.id]||{},fit=solved.fit||{},mode="每负荷最高有效跳跃";
+    const details=[config.device,config.method,config.posture,positive(config.distanceCm)?`蹬伸距离 ${F(config.distanceCm,1)} cm`:"",config.distanceSource].filter(Boolean).map(E).join(" · ");
+    const sources=(global.RingsideSources?.entries||[]).filter(source=>source.id?.startsWith("fvp-"));
+    return `<details class="fvp-method"><summary>测试条件、计算与来源</summary><p>${details||E(record.protocol?.[solved.id]||"测试条件待记录")}</p><p>${mode}。以 m 为运动员体重、L 为附加负荷、h 为腾空高度、d 为蹬伸距离（长度换算为 m）：F = (m + L)g(1 + h/d)，V = √(gh/2)；力与功率除以 m 后分别以 N/kg、W/kg 表示。</p><p>拟合 F/m = F₀ + SFV·V；V₀ = −F₀/SFV，Pmax = F₀V₀/4。固定 Pmax 与 d 时，最优峰值功率速度 v 满足 v³/(2λ²d) + g·sinθ·v = Pmax（λ = 0.5），最优 F₀ = 2Pmax/v、V₀ = 2v；Imbalance = |1 − SFV/SFVopt| × 100%。</p><p>弹性与情景始终计算垂直跳高：起跳速度 u 满足 u²/(2d) = F₀(1 − λu/V₀) − g，h = u²/(2g)。Fe = ∂lnh/∂lnF₀，ve = ∂lnh/∂lnV₀，ER = Fe/ve，EN = √(Fe² + ve²)；改变 F₀、V₀ 后重新求解跳高。Li 的速度参数化使用 λ = 0.77，换算后保持同一物理剖面。</p><p>${fit.n||0} 个负荷代表点${fit.n>=3?`，残差自由度 ${fit.n-2}`:""}；95%置信带为 F(V) 拟合均值的 Student t 区间，仅显示实测速度范围，P(V) 区间由对应力区间乘 V 得到。未包含测量方法与蹬伸距离的系统误差。</p>${sources.map(source=>`<p><a href="${E(source.url)}" target="_blank" rel="noopener noreferrer">${E(source.title)}</a></p>`).join("")}</details>`;
+  }
+  function renderFVPAnalysis(report,{print=false}={}) {
+    const record=report.record,all=Object.entries(report.stats.fvp||{}).filter(([id])=>record.enabled[id]&&(record.data[id]||[]).some(row=>N(row.height)!==null||N(row.load)!==null||row.notes));
+    if(!all.length)return "";
+    const preferred=record.views?.fvpProtocol;
+    const chosen=all.find(([id])=>id===preferred)||all.find(([,solved])=>solved.valid)||all[0];
+    const rendered=print?all.filter(([,solved])=>solved.valid):[chosen];
+    if(!rendered.length)return "";
+    const profileOptions=all.map(([id])=>{const label=id==="fvp_cmj"?"CMJ":"SJ",builtin=T.builtins.find(test=>test.id===id),name=report.projects.find(test=>test.id===id)?.name;return `<option value="${E(id)}"${id===chosen[0]?" selected":""}>${E(name&&name!==builtin?.name?`${label} · ${name}`:label)}</option>`;}).join("");
+    return `<div class="fvp-analysis-stack" data-fvp-analysis-stack>${rendered.map(([id,solved])=>{
+      const analysis=record.fvpAnalysis?.[id]||{},angle=analysis.angle===30?30:90,view={fv:true,pv:true,points:true,optimum:true,comparison:false,confidence:true,range:"full",pinnedLoad:null,...record.fvpView?.[id]},label=id==="fvp_cmj"?"CMJ":"SJ";
+      const builtin=T.builtins.find(test=>test.id===id),displayName=report.projects.find(test=>test.id===id)?.name||builtin?.name;
+      const profileTitle=displayName&&displayName!==builtin?.name?displayName:`跳跃力–速度剖面 · ${label}`;
+      const graph=fvpChartData({...solved,id}),elasticity=fvpElasticityData({...solved,id});
+      const toggle=(key,text)=>`<label><input type="checkbox" data-action="fvp-view" data-fvp-view="${key}" data-fvp-id="${id}" aria-label="${E(text)}"${view[key]?" checked":""}>${E(text)}</label>`;
+      const common=print?"":`<div class="fvp-controls fvp-shared-controls no-print"><label>跳跃协议 <select data-fvp-protocol aria-label="FVP 跳跃协议">${profileOptions}</select></label><label>目标方向 <select data-action="fvp-angle" data-fvp-angle data-fvp-id="${id}" aria-label="FVP 目标方向"><option value="90"${angle===90?" selected":""}>90° 垂直</option><option value="30"${angle===30?" selected":""}>30° 倾斜目标</option></select></label></div>`;
+      const controls=print?"":`<div class="fvp-controls no-print">${toggle("fv","F–V")}${toggle("pv","P–V")}${toggle("points","实测点")}${toggle("optimum","目标最优曲线")}${toggle("comparison","另一角度参照")}${toggle("confidence","95%置信带")}<label>显示范围 <select data-action="fvp-range" data-fvp-view="range" data-fvp-id="${id}" aria-label="FVP 显示范围"><option value="full"${view.range!=="measured"?" selected":""}>完整剖面</option><option value="measured"${view.range==="measured"?" selected":""}>实测范围</option></select></label></div>`;
+      const input=(key,text)=>`<label>${text}<input type="number" data-fvp-scenario="${key}" data-fvp-id="${id}" value="${E(analysis[key]??0)}" step="any" aria-label="${text}"></label>`;
+      const scenario=print?`<p class="fvp-table-note">情景参数改变：F₀ ${F(analysis.deltaForcePct??0,2)}% · V₀ ${F(analysis.deltaVelocityPct??0,2)}%。</p>`:`<form class="fvp-scenario-form no-print" data-fvp-scenario-form data-fvp-id="${id}">${input("deltaForcePct","F₀ 改变 · %")}${input("deltaVelocityPct","V₀ 改变 · %")}<button class="btn small" type="submit">保存情景</button></form><div class="fvp-scenario-shortcuts no-print">${[["force","仅 F₀ +5%"],["velocity","仅 V₀ +5%"],["both","两者 +5%"]].map(([key,text])=>`<button type="button" class="btn small" data-fvp-shortcut="${key}" data-fvp-id="${id}">${text}</button>`).join("")}</div>`;
+      return `<article class="fvp-analysis-card" data-fvp-panel="${id}" data-fvp-pinned-load="${view.pinnedLoad===null?"":E(view.pinnedLoad)}"><div class="fvp-analysis-heading test-title"><div><h3>${E(profileTitle)}</h3><p>${angle===90?"90° 垂直":"30° 倾斜目标"} · ${solved.points?.length||0} 个负荷代表点</p></div></div>${common}${controls}<div class="detail-pair fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="jumpFvp" data-chart-input="${E(JSON.stringify([graph,view]))}">${V.jumpFvp(graph,view)}</div><div class="detail-data">${fvpResultTable(solved)}</div></div><p class="fvp-load-legend no-print" data-fvp-selection-summary>选择负荷点可对应查看两条曲线中的结果。</p>${fvpLoadTable({...solved,id})}${fvpMethod(record,{...solved,id})}${fvpRawTrials(record,id,solved,displayName)}</article><article class="fvp-analysis-card" data-fvp-elasticity="${id}"><div class="fvp-analysis-heading test-title"><div><h3>垂直跳表现响应 · ${label}</h3><p>力量端与速度端的垂直跳高响应</p></div></div>${scenario}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="jumpElasticity" data-chart-input="${E(JSON.stringify([elasticity]))}">${V.jumpElasticity(elasticity)}</div><div class="detail-data" data-fvp-scenario-results>${fvpScenarioTable(solved)}</div></div></article>`;
+    }).join("")}</div>`;
+  }
+  function prepareFVPPrint(clone,snapshot) {
+    const mount=clone.querySelector("[data-fvp-analysis-stack]");
+    if(mount)mount.outerHTML=renderFVPAnalysis(build(snapshot),{print:true});
+  }
+  function previewFVP(container,solved) {
+    const panel=container.querySelector(`[data-fvp-elasticity="${solved.id}"]`);
+    if(!panel)return;
+    const chart=panel.querySelector('[data-chart-kind="jumpElasticity"]'),data=fvpElasticityData(solved);
+    chart.dataset.chartInput=JSON.stringify([data]);
+    delete chart.dataset.chartLayout;
+    chart.innerHTML=V.jumpElasticity(data,{width:Math.round(chart.getBoundingClientRect().width)||480,height:330});
+    panel.querySelector("[data-fvp-scenario-results]").innerHTML=fvpScenarioTable(solved);
+    layoutCharts(panel);
+  }
+  function syncFVPSelection(panel,load,pinned=false) {
+    const id=panel.dataset.fvpPanel;
+    panel.querySelectorAll("[data-fvp-load]").forEach(node=>{
+      const selected=N(node.dataset.fvpLoad)===N(load)&&N(load)!==null;
+      node.classList.toggle("is-fvp-highlighted",selected);
+      node.classList.toggle("is-fvp-pinned",selected&&pinned);
+      node.setAttribute("aria-pressed",String(selected&&pinned));
+    });
+    const point=panel.querySelector(`[data-fvp-load="${load}"]`),summary=panel.querySelector("[data-fvp-selection-summary]");
+    if(summary)summary.textContent=point?`${pinned?"已固定":"当前"}负荷 ${F(load,1)} kg；图中 F–V、P–V 与负荷表对应同一组测试。`:"选择负荷点可对应查看两条曲线中的结果。";
+    return id;
+  }
+  const fvpBound=new WeakSet();
+  function bindFVPInteractions(container) {
+    if(!fvpBound.has(container)){
+      fvpBound.add(container);
+      const find=event=>{const node=event.target.closest("[data-fvp-load]"),panel=node?.closest("[data-fvp-panel]");return panel?{node,panel,load:N(node.dataset.fvpLoad)}:null;};
+      const pin=event=>{const hit=find(event);if(!hit)return;const previous=N(hit.panel.dataset.fvpPinnedLoad),load=previous===hit.load?null:hit.load;hit.panel.dataset.fvpPinnedLoad=load===null?"":load;if(load!==null){const details=hit.panel.querySelector(".fvp-load-details");if(details)details.open=true;}syncFVPSelection(hit.panel,load,load!==null);container.dispatchEvent(new CustomEvent("fvp-selection",{bubbles:true,detail:{id:hit.panel.dataset.fvpPanel,load}}));};
+      container.addEventListener("pointerover",event=>{if(event.pointerType==="touch")return;const hit=find(event);if(hit)syncFVPSelection(hit.panel,hit.load,N(hit.panel.dataset.fvpPinnedLoad)===hit.load);});
+      container.addEventListener("pointerout",event=>{const hit=find(event),next=event.relatedTarget?.closest?.("[data-fvp-load]");if(hit&&(!next||next.closest("[data-fvp-panel]")!==hit.panel)){const load=N(hit.panel.dataset.fvpPinnedLoad);syncFVPSelection(hit.panel,load,load!==null);}});
+      container.addEventListener("focusin",event=>{const hit=find(event);if(hit)syncFVPSelection(hit.panel,hit.load,N(hit.panel.dataset.fvpPinnedLoad)===hit.load);});
+      container.addEventListener("focusout",event=>{const hit=find(event),next=event.relatedTarget?.closest?.("[data-fvp-load]");if(hit&&(!next||next.closest("[data-fvp-panel]")!==hit.panel)){const load=N(hit.panel.dataset.fvpPinnedLoad);syncFVPSelection(hit.panel,load,load!==null);}});
+      container.addEventListener("click",pin);
+      container.addEventListener("keydown",event=>{if(!find(event))return;if(event.key==="Enter"||event.key===" "){event.preventDefault();pin(event);}else if(event.key==="Escape"){const hit=find(event);hit.panel.dataset.fvpPinnedLoad="";syncFVPSelection(hit.panel,null);container.dispatchEvent(new CustomEvent("fvp-selection",{bubbles:true,detail:{id:hit.panel.dataset.fvpPanel,load:null}}));}});
+    }
+    container.querySelectorAll("[data-fvp-panel]").forEach(panel=>{const load=N(panel.dataset.fvpPinnedLoad);syncFVPSelection(panel,load,load!==null);});
+  }
   // Recreate geometry at the actual column width. Only the neighboring primary
   // result tables determine height; attempts and supplemental tables are excluded.
   const chartObservers = new WeakMap();
@@ -994,12 +1129,12 @@
     // A wrapped mean/SD must not push the right-side statistics below the
     // corresponding right-side result and evaluation in neighboring columns.
     alignIsometricSides(container);
-    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390] };
-    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350 };
+    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400] };
+    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330 };
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);
-      if (width < 100 || !limits[kind]) return;
+      if (width < 100 || !limits[kind] || !pair) return;
       const tables = [...pair.querySelectorAll(":scope > .detail-data > .table-wrap")],
         rects = tables.map((table) => table.getBoundingClientRect()),
         target = rects.length ? Math.max(...rects.map((r) => r.bottom)) - Math.min(...rects.map((r) => r.top)) : 0,
@@ -1012,6 +1147,7 @@
       node.innerHTML = V[kind](...args, { width, height: Math.round(height), print });
       node.dataset.chartLayout = key;
     });
+    container.querySelectorAll("[data-fvp-panel]").forEach(panel=>{const load=N(panel.dataset.fvpPinnedLoad);syncFVPSelection(panel,load,load!==null);});
   }
   function observeCharts(container) {
     chartObservers.get(container)?.disconnect();
@@ -1024,6 +1160,7 @@
     chartObservers.set(container, observer);
     container.querySelectorAll("[data-chart-kind],.detail-data > .table-wrap").forEach((node) => observer.observe(node));
     layoutCharts(container);
+    bindFVPInteractions(container);
   }
-  global.RingsideReport = { build, summary, render, layoutCharts, observeCharts };
+  global.RingsideReport = { build, summary, render, layoutCharts, observeCharts, renderFVPAnalysis, prepareFVPPrint, previewFVP, bindFVPInteractions };
 })(window);

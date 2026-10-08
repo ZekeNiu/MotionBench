@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("node:fs"),vm=require("node:vm"),path=require("node:path"),assert=require("node:assert/strict");
 const ctx=vm.createContext({console,Intl,crypto:require("node:crypto").webcrypto});ctx.window=ctx;
-for(const name of ["calc","cpet-reference","definitions","tests","model","evaluation"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),ctx);
+for(const name of ["calc", "fvp","cpet-reference","definitions","tests","model","evaluation"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),ctx);
 const M=ctx.RingsideModel,E=ctx.RingsideEvaluation,R=ctx.RingsideReferences,json=x=>JSON.parse(JSON.stringify(x));let passed=0;
 function test(name,fn){try{fn();passed++;console.log("PASS "+name);}catch(error){console.error("FAIL "+name+"\n"+error.stack);process.exitCode=1;}}
 function fixture(){const r=M.defaults();r.athlete.age=25;r.athlete.sex="男";r.athlete.mass=70;r.enabled.cpet=true;Object.assign(r.data.cpet,{modality:"treadmill",vo2:45.4,vo2Unit:"ml/kg/min",rer:1.1});return r;}

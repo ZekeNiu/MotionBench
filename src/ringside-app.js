@@ -984,6 +984,8 @@
       else renderNarrativeStatus();
       if (ui.mode === "entry" && entryTab === "imtp") updateForceWarnings();
       updateJumpEntryResults();
+      if (["fvp_sj", "fvp_cmj"].includes(entryTab))
+        window.RingsideFVPEntry?.update?.(state, entryTab, $("entryContent"));
       refreshEntryChrome();
     }, 180);
   }
@@ -1177,6 +1179,12 @@
         unit: "单位",
         target: "评价目标",
         load: "负荷 kg",
+        distanceCm: "蹬伸距离 cm",
+        distanceSource: "蹬伸距离来源",
+        device: "测量设备",
+        posture: "起始姿势 / 目标蹲深",
+        excluded: "排除此试次",
+        exclusionReason: "排除原因",
         velocity: "速度 m/s",
         speed: "速度 m/s",
         force: "力 N",
@@ -1549,7 +1557,7 @@
   }
   function entryReview() {
     const computed=M.stats(effectiveRecord()),projects=orderedEntryProjects();
-    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed);return[E(t.name),E(progress?.detail||"未录入"),`<button class="btn small" onclick="App.entry('${E(t.id)}')">继续录入</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次能力结构分析</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
+    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed);return[E(t.name),E(progress?.detail||"未录入"),`<button class="btn small" onclick="App.entry('${E(t.id)}')">继续录入</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次${E(T.analysisLabel)}</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
   }
   async function finishEntry() {
     if(!state)return;
@@ -1622,6 +1630,9 @@
     if (/^data\.imtp\.\d+\.timePoints\./.test(path))
       M.syncIMTPLegacy(state.data.imtp[Number(ps[2])]);
     changed();
+    if (ui.mode === "entry" && ["fvp_sj", "fvp_cmj"].includes(entryTab) &&
+      (path.startsWith("data." + entryTab + ".") || path.startsWith("fvpConfig." + entryTab + ".") || path === "athlete.mass"))
+      window.RingsideFVPEntry?.update?.(state, entryTab, $("entryContent"));
   }
   function athleteTag(a) {
     let length = 6;
@@ -1815,8 +1826,12 @@
     );
     const focused = document.activeElement?.dataset?.lvpId,
       focusedPath = document.activeElement?.dataset?.path;
+    const active = document.activeElement;
+    const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol"].find(attribute => active?.hasAttribute(attribute));
+    const fvpFocusId = active?.dataset?.fvpId, fvpFocusValue = fvpFocus && active.getAttribute(fvpFocus);
     $("detailContent").innerHTML = window.RingsideReport.render(report);
     window.RingsideReport.observeCharts($("detailContent"));
+    window.RingsideReport.bindFVPInteractions?.($("detailContent"));
     document.querySelectorAll("#reportView .details-group,#reportView [data-raw-trials]").forEach((el) => {
       if (ui.detailOpen[el.id] !== undefined) el.open = ui.detailOpen[el.id];
     });
@@ -1829,6 +1844,8 @@
       document
         .querySelector('[data-lvp-id="' + CSS.escape(focused) + '"]')
         ?.focus({ preventScroll: true });
+    if (fvpFocus)
+      $("detailContent").querySelector(`[${fvpFocus}="${CSS.escape(fvpFocusValue)}"]${fvpFocusId ? `[data-fvp-id="${CSS.escape(fvpFocusId)}"]` : ""}`)?.focus({ preventScroll: true });
   }
   function renderNarrativeStatus() {
     if (!state) return;
@@ -2144,6 +2161,8 @@
         projectPicker(state.enabled) +
         '<button class="btn primary" onclick="App.startEntry()">开始录入</button>';
     else if (entryTab === "review") h += entryReview();
+    else if (["fvp_sj", "fvp_cmj"].includes(entryTab) && T.isNative(state, entryTab))
+      h += window.RingsideFVPEntry.render(state, entryTab, { input, select, check, field, table });
     else if (entryTab === "fms") {
       h +=
         '<p class="intro">0疼痛、1无法完成、2有代偿完成、3按标准完成。</p>' +
@@ -2761,6 +2780,13 @@
     );
   }
   function addRow(t, groupIndex = -1) {
+    if (["fvp_sj", "fvp_cmj"].includes(t) && T.isNative(state, t)) {
+      const group = state.data[t][groupIndex];
+      state.data[t].push({ id: uid(), load: group?.load ?? "", height: "", distanceCm: "", notes: "", excluded: false, exclusionReason: "" });
+      changed(false); renderEntry();
+      rowFocus(`data.${t}.${state.data[t].length - 1}.load`);
+      return;
+    }
     const templates = {
       cmj: {
         height: "",
@@ -3515,6 +3541,7 @@
         status: a.status,
       })),
       capabilityAnalysis: copy(s.capabilityCards || []),
+      jumpFVP: copy(Object.fromEntries(Object.entries(s.fvp || {}).filter(([, profile]) => profile.enabled))),
       cpet: copy(s.raw.cpet || null),
       qualityIssues: s.qualityIssues || [],
       migrationReview: {
@@ -4453,8 +4480,57 @@
     feedback.textContent = message + "，此值未保存";
     $("entrySave").textContent = "部分输入未保存，请核对标红字段";
   }
+  function fvpControlRecord(control) {
+    const id = control.dataset.fvpId || control.closest("[data-fvp-id]")?.dataset.fvpId;
+    return state && ["fvp_sj", "fvp_cmj"].includes(id) && T.isNative(state, id) ? id : null;
+  }
+  function fvpScenarioValues(id) {
+    const values = { ...state.fvpAnalysis[id] };
+    for (const control of $("detailContent").querySelectorAll(`[data-fvp-scenario][data-fvp-id="${id}"]`)) {
+      const key = control.dataset.fvpScenario;
+      if (!["deltaForcePct", "deltaVelocityPct"].includes(key)) continue;
+      if (control.value === "" || !control.validity.valid || !Number.isFinite(Number(control.value))) return null;
+      values[key] = Number(control.value);
+    }
+    return values;
+  }
+  function previewFVPScenario(id) {
+    const values = fvpScenarioValues(id);
+    if (!values) return;
+    const previewRecord = effectiveRecord();
+    previewRecord.fvpAnalysis[id] = values;
+    const solved = window.RingsideFVP.solve(previewRecord, id);
+    window.RingsideReport.previewFVP?.($("detailContent"), solved);
+  }
+  function saveFVPScenario(id, values = fvpScenarioValues(id)) {
+    if (!values) return toast("请填写有效的参数改变百分比");
+    for (const key of ["deltaForcePct", "deltaVelocityPct"]) {
+      const error = M.validateField(state, `fvpAnalysis.${id}.${key}`, values[key]);
+      if (error) return toast(error);
+    }
+    const record = effectiveRecord(); record.fvpAnalysis[id] = values;
+    const solved = window.RingsideFVP.solve(record, id);
+    if (solved.scenario?.valid === false) return toast(solved.scenario.message || "此情景无法计算跳跃高度，请调整参数");
+    state.fvpAnalysis[id] = values;
+    changed(false); renderReport();
+  }
+  document.addEventListener("fvp-selection", event => {
+    const { id, load } = event.detail || {};
+    if (!state?.fvpView?.[id]) return;
+    state.fvpView[id].pinnedLoad = load; changed(false);
+  });
+  document.addEventListener("submit", event => {
+    if (!event.target.matches("[data-fvp-scenario-form]")) return;
+    event.preventDefault();
+    const id = fvpControlRecord(event.target);
+    if (id) saveFVPScenario(id);
+  });
   document.addEventListener("input", (e) => {
     const t = e.target;
+    if (t.dataset.fvpScenario) {
+      const id = fvpControlRecord(t); if (id) previewFVPScenario(id);
+      return;
+    }
     if (t.id === "aiPreview" && pendingAI) {
       pendingAI.html = M.sanitizeHTML(t.innerHTML);
       pendingAI.text = M.htmlToText(pendingAI.html);
@@ -4515,6 +4591,15 @@
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
+    if (t.hasAttribute("data-fvp-protocol")) {
+      state.views.fvpProtocol = t.value; changed(false); renderReport(); return;
+    }
+    if (t.hasAttribute("data-fvp-view") || t.hasAttribute("data-fvp-angle")) {
+      const id = fvpControlRecord(t); if (!id) return;
+      if (t.hasAttribute("data-fvp-angle")) state.fvpAnalysis[id].angle = Number(t.value);
+      else state.fvpView[id][t.dataset.fvpView] = t.type === "checkbox" ? t.checked : t.value;
+      changed(false); renderReport(); return;
+    }
     if (t.dataset.metricUnit) return requestMetricUnit(t, t.dataset.metricUnit);
     if (t.dataset.creationProject && creation) {
       creation.enabled[t.dataset.creationProject] = t.checked;
@@ -4614,6 +4699,12 @@
     updateEditor();
   });
   document.addEventListener("click", (e) => {
+    const shortcut = e.target.closest("[data-fvp-shortcut]");
+    if (shortcut) {
+      const id = fvpControlRecord(shortcut), kind = shortcut.dataset.fvpShortcut;
+      if (id) saveFVPScenario(id, { ...state.fvpAnalysis[id], deltaForcePct: ["force", "both"].includes(kind) ? 5 : 0, deltaVelocityPct: ["velocity", "both"].includes(kind) ? 5 : 0 });
+      return;
+    }
     const anchor = e.target.closest('#reportView a[href^="#"]');
     if (anchor) {
       e.preventDefault();

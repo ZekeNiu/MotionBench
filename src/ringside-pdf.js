@@ -86,6 +86,17 @@
     .ringside-pdf-document .chart-wrap>img,.ringside-pdf-document .iso-charts>img{display:block!important;margin:0 auto!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
+    .ringside-pdf-source .fvp-analysis-stack{display:block!important;margin:0!important;}
+    .ringside-pdf-source .fvp-analysis-card{padding:0!important;margin:0!important;border:0!important;box-shadow:none!important;container-type:normal!important;}
+    .ringside-pdf-document .fvp-analysis-heading{margin:0!important;}
+    .ringside-pdf-document .fvp-result-table,.ringside-pdf-document .fvp-scenario-table{width:100%!important;min-width:0!important;font-size:10px!important;table-layout:fixed!important;}
+    .ringside-pdf-document .fvp-result-table th,.ringside-pdf-document .fvp-result-table td,.ringside-pdf-document .fvp-scenario-table th,.ringside-pdf-document .fvp-scenario-table td{padding:7px 5px!important;line-height:1.55!important;}
+    .ringside-pdf-document .fvp-result-table .fvp-unit{font-size:9px!important;}
+    .ringside-pdf-document .fvp-core-judgment{padding-top:8px!important;}
+    .ringside-pdf-document .fvp-core-judgment p{font-size:11px!important;margin:0 0 5px!important;}
+    .ringside-pdf-document .fvp-core-judgment strong{font-size:19px!important;}
+    .ringside-pdf-document .fvp-method,.ringside-pdf-document .fvp-table-note{font-size:10px!important;line-height:1.6!important;}
+    .ringside-pdf-document .fvp-load-table,.ringside-pdf-document .fvp-raw-trials table{min-width:0!important;width:100%!important;font-size:10px!important;}
     .ringside-pdf-document .jump-detail table{table-layout:auto!important;}
     .ringside-pdf-document .capability-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:stretch!important;}
     .ringside-pdf-document .capability-card{width:100%!important;min-width:0!important;padding:16px!important;border:1px solid #e1e5e9!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important;}
@@ -178,8 +189,9 @@
     return node;
   }
 
-  function cleanClone(reportElement) {
+  function cleanClone(reportElement,snapshot) {
     const clone = reportElement.cloneNode(true);
+    if(snapshot)root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
     clone.className = "ringside-pdf-document ringside-pdf-source";
     clone.removeAttribute("style");
     clone.removeAttribute("hidden");
@@ -195,7 +207,7 @@
     // Empty report sections have no results to paginate. Keep all test blocks
     // and the separate LVP cards, including partial measurements.
     clone.querySelectorAll(".details-group").forEach((node) => {
-      if (node.querySelector(".empty") && !node.querySelector(".test-block,.lvp-card")) node.remove();
+      if (node.querySelector(".empty") && !node.querySelector(".test-block,.lvp-card,.fvp-analysis-card")) node.remove();
     });
     const rawTrials = [...clone.querySelectorAll("[data-raw-trials]")];
     if (rawTrials.length) {
@@ -443,7 +455,7 @@
   }
 
   function freezePrimaryColumns(source) {
-    for (const table of source.querySelectorAll(".iso-results.with-repeat-columns,.imtp-results")) {
+    for (const table of source.querySelectorAll(".iso-results.with-repeat-columns,.imtp-results,.fvp-result-table,.fvp-scenario-table,.fvp-load-table")) {
       const widths = [...table.tHead.rows[0].cells].map(cell => cell.getBoundingClientRect().width);
       const columns = element("colgroup");
       widths.forEach(width => {
@@ -478,7 +490,7 @@
       copy.dataset.pdfBlockIndex = String(blocks.length);
       if (kind === "pair")
         copy.dataset.pdfTitle =
-          node.closest(".test-block,.lvp-card")?.querySelector("h3")
+          node.closest(".test-block,.lvp-card,.fvp-analysis-card")?.querySelector("h3")
             ?.textContent || "测试结果";
       blocks.push({
         element: copy,
@@ -486,7 +498,7 @@
         keepWithNext: !!keepWithNext,
         startsNarrative: narrative && node.matches(".section-heading"),
         group:
-          node.closest(".test-block,.lvp-card")?.dataset.pdfTestGroup ?? null,
+          node.closest(".test-block,.lvp-card,.fvp-analysis-card")?.dataset.pdfTestGroup ?? null,
       });
     }
     function walk(node) {
@@ -1192,8 +1204,8 @@
         typeof root.jspdf?.jsPDF !== "function"
       )
         throw new Error("离线 PDF 组件未加载，请使用完整报告文件。");
-      source = cleanClone(reportElement);
       captured = JSON.parse(JSON.stringify(snapshot || {}));
+      source = cleanClone(reportElement,captured);
       syncBackground(source, captured);
     } catch (error) {
       lastDiagnostics = {
@@ -1220,7 +1232,7 @@
       const sourceChartCount = source.querySelectorAll(
         "img[data-pdf-chart-index]",
       ).length;
-      [...source.querySelectorAll(".test-block,.lvp-card")].forEach(
+      [...source.querySelectorAll(".test-block,.lvp-card,.fvp-analysis-card")].forEach(
         (group, index) => {
           group.dataset.pdfTestGroup = String(index);
         },

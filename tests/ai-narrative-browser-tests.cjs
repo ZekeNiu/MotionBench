@@ -8,15 +8,23 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
 (async()=>{const browser=await chromium.launch();try{
   const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();
   page.on("pageerror",e=>result.errors.push(e.message));
-  await page.goto(pathToFileURL(file).href);await page.evaluate(chartFixture);
-  await page.evaluate(()=>{
+  await page.goto(pathToFileURL(file).href);await page.evaluate(async()=>{await App.ready;if(!App.getState())await App.loadDemo();});await page.evaluate(chartFixture);
+  const fixture=await page.evaluate(async()=>{
     const nativeTimeout=window.setTimeout;window.__timeouts=[];
     window.setTimeout=(fn,ms,...args)=>{if(ms>=60000)window.__timeouts.push(ms);return nativeTimeout(fn,ms,...args);};
     const r=App.getState();r.athlete.sport="篮球";r.athlete.notes="周六比赛；不要增加周五训练量";
     r.definitions.forEach(d=>{d.referenceEnabled=false;});
+    const priorEffectiveEnabled=App.effectiveRecord().definitions.filter(d=>d.referenceEnabled).length;
     r.narrative={text:"教练原稿",html:"<p>教练原稿</p>",revision:1,basis:RingsideModel.fingerprint(r)};
+    const profile=RingsideEvaluation.create(r,"AI 未启用分级（模拟验收）");
+    profile.criteria.imtpTimeStandards.forEach(rule=>{rule.referenceEnabled=false;});
+    App.getLibrary().evaluationProfiles.push(profile);
+    await App.saveLibraryChanges([r]);await App.assignRecordProfile(profile.id);
     App.openSettings("ai");
+    return{profileId:profile.id,priorEffectiveEnabled,disabledEffective:App.effectiveRecord().definitions.every(d=>!d.referenceEnabled),isometricTargets:App.effectiveRecord().data.iso.filter(row=>Number(row.target)>0).length};
   });
+  assert.ok(fixture.priorEffectiveEnabled>0,"raw record changes must not override the existing shared scheme");
+  assert.equal(fixture.disabledEffective,true);assert.ok(fixture.isometricTargets>0);result.fixture=fixture;result.checks.push("disabled-shared-scheme-preserves-isometric-targets");
   await page.locator("#apiURL").fill("https://ringside-tests.invalid");await page.locator("#apiKey").fill("synthetic-only");await page.locator("#apiModel").fill("synthetic-model");
   let body,responseText="## 综合训练安排\n\n结合比赛日保留优势，优先改善力量建立与落地控制。\n\n- 周一分腿蹲3组6次，RPE 6，组间休息2分钟。周四减为2组；连续两次完成稳定后再加负荷。\n- <img src=x onerror=alert(1)>";
   await page.route("https://ringside-tests.invalid/**",async route=>{
@@ -24,7 +32,7 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
     body=route.request().postDataJSON();return route.fulfill({json:{choices:[{message:{content:responseText}}]}});
   });
   await page.locator("#modelButton").click();await page.waitForFunction(()=>document.querySelector("#apiMessage").textContent.includes("已读取"));
-  await page.evaluate(()=>{App.showReport();App.openEntry("narrative");});
+  await page.evaluate(async()=>{await App.showReport();await App.openEntry("narrative");});
   await page.locator('[data-ai-generate]').click();await page.locator("#previewModal.show").waitFor();
   const facts=JSON.parse(body.messages[1].content.split("\n").slice(1).join("\n"));
   assert.equal(facts.athlete.sport,"篮球");assert.ok(facts.trainingContext.weeklySchedule.includes("周二"));

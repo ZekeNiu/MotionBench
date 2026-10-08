@@ -161,6 +161,7 @@
     yLabel,
     solidGrid = false,
     xTicks = true,
+    yColor,
   }) {
     const x = (v) => left + ((v - xMin) / (xMax - xMin)) * (right - left);
     const y = (v) => bottom - ((v - yMin) / (yMax - yMin)) * (bottom - top);
@@ -171,7 +172,7 @@
         left - 11,
         y(v) + 4,
         fmt(v),
-        'text-anchor="end" font-size="12"',
+        `text-anchor="end" font-size="12"${yColor?` fill="${yColor}"`:""}`,
       );
     });
     (xTicks ? ticks(xMin, xMax) : []).forEach((v) => {
@@ -194,7 +195,7 @@
       line(left, top, left, bottom, `stroke="${C.gray}"`);
     out +=
       text((left + right) / 2, bottom + 45, xLabel, 'text-anchor="middle" font-size="13"') +
-      text(left, top - 13, yLabel, 'font-size="13"');
+      text(left, top - 13, yLabel, `font-size="13"${yColor?` fill="${yColor}"`:""}`);
     return { out, x, y };
   }
 
@@ -1850,6 +1851,83 @@
       "圆点为实测力，菱形为按已录入起始基线和区间 RFD 推算的力。只连接已知离散时间点，不平滑或补造零点；未知峰值时间仅显示峰值参考线。每次试次先以时点力除以同次峰值力计算百分比，均值模式再平均这些百分比；不改变原始 N 与 N/s。", layout);
   }
 
+  function jumpFvp(data, options = {}, layout = {}) {
+    const w = Math.max(240, layout.width || 480), h = layout.height || 410;
+    if (!data?.valid) return layoutSVG(w, h, "跳跃力–速度剖面", text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
+    const fv = options.fv !== false, pv = options.pv !== false;
+    if (!fv && !pv) return layoutSVG(w, h, "跳跃力–速度剖面", text(w / 2, h / 2, "勾选 F–V 或 P–V 查看曲线", 'text-anchor="middle" font-size="13"'), "当前未选择显示曲线", layout);
+    const forceColor = C.blue, powerColor = C.green, small = w < 400;
+    const profiles = (data.profiles || []).filter(profile => profile.kind === "current" || profile.kind === "optimum" && options.optimum !== false || profile.kind === "comparison" && options.comparison === true);
+    const points = (data.points || []).filter(p => num(p.velocity) !== null);
+    const support = points.map(p => p.velocity), measured = options.range === "measured";
+    const vMin = measured ? Math.min(...support) : 0;
+    const vMax = Math.max(vMin + .01, ...(measured ? support : [...support, ...profiles.map(p => p.V0)])) * (measured ? 1.015 : 1.04);
+    const band = options.confidence !== false ? (data.band || []) : [];
+    const fMin = Math.min(0,...band.map(p=>p.low))*1.1, pMin = Math.min(0,...band.map(p=>p.powerLow))*1.1;
+    const fMax = Math.max(1, ...points.map(p => p.force), ...profiles.map(p => p.F0), ...band.map(p => p.high)) * 1.12;
+    const pMax = Math.max(1, ...points.map(p => p.power), ...profiles.map(p => p.Pmax), ...band.map(p => p.powerHigh)) * 1.13;
+    const left = small ? 46 : 55, right = w - (fv && pv ? small ? 47 : 56 : 20), top = small&&fv&&pv?63:48, bottom = h - 135;
+    const mainMax = fv ? fMax : pMax, mainColor = fv ? forceColor : powerColor;
+    const {out:grid, x} = axisGrid({left,right,top,bottom,xMin:vMin,xMax:vMax,yMin:fv?fMin:pMin,yMax:mainMax,xLabel:"速度 V · m/s",yLabel:fv?"力 F · N/kg":"功率 P · W/kg",yColor:mainColor,solidGrid:true});
+    const yf = v => bottom - (v-fMin) / (fMax-fMin) * (bottom - top), yp = v => bottom - (v-pMin) / (pMax-pMin) * (bottom - top);
+    const clip = `ringside-fvp-clip-${++serial}`;
+    let out = `<defs><clipPath id="${clip}"><rect x="${left}" y="${top}" width="${right-left}" height="${bottom-top}"/></clipPath></defs>` + grid;
+    if (fv && pv) {
+      out += line(right,top,right,bottom,`stroke="${powerColor}"`);
+      ticks(pMin,pMax).forEach(value => {out += text(right+7,yp(value)+4,fmt(value,1),`font-size="11" fill="${powerColor}"`);});
+      out += text(right,top-(small?31:13),"功率 P · W/kg",`text-anchor="end" font-size="12" fill="${powerColor}"`);
+    }
+    out += `<g clip-path="url(#${clip})">`;
+    if (band.length) {
+      const bandPolygon = (low,high,scale,color) => `<polygon points="${polygonPoints(band.map(p=>[x(p.x),scale(p[high])]).concat(band.slice().reverse().map(p=>[x(p.x),scale(p[low])])))}" fill="${color}" fill-opacity=".11" stroke="none" pointer-events="none"/>`;
+      if (fv) out += bandPolygon("low","high",yf,forceColor);
+      if (pv) out += bandPolygon("powerLow","powerHigh",yp,powerColor);
+    }
+    profiles.forEach(profile => {
+      const dash = profile.kind === "optimum" ? ' stroke-dasharray="7 5"' : profile.kind === "comparison" ? ' stroke-dasharray="2 5"' : "";
+      const opacity = profile.kind === "current" ? 1 : .66;
+      const samples = Array.from({length:81},(_,index)=>{const velocity=profile.V0*index/80, force=profile.F0*(1-velocity/profile.V0);return{velocity,force,power:force*velocity};});
+      if (fv) out += `<polyline points="${polygonPoints(samples.map(p=>[x(p.velocity),yf(p.force)]))}" fill="none" stroke="${forceColor}" stroke-width="${profile.kind==='current'?2.6:1.8}" opacity="${opacity}"${dash} pointer-events="none"/>`;
+      if (pv) out += `<polyline points="${polygonPoints(samples.map(p=>[x(p.velocity),yp(p.power)]))}" fill="none" stroke="${powerColor}" stroke-width="${profile.kind==='current'?2.6:1.8}" opacity="${opacity}"${dash} pointer-events="none"/>`;
+      if(pv&&profile.kind==="current"&&profile.V0/2>=vMin&&profile.V0/2<=vMax){const peakX=x(profile.V0/2),peakY=yp(profile.Pmax);out+=line(peakX,yp(0),peakX,peakY,`stroke="${powerColor}" stroke-opacity=".45" stroke-dasharray="3 4"`)+circle(peakX,peakY,3.6,powerColor)+text(clamp(peakX,left+62,right-62),Math.max(top+14,peakY-10),"Pmax · V₀/2",`text-anchor="middle" font-size="10" fill="${powerColor}"`);}
+    });
+    if (options.points !== false) {
+      out += '<g class="fvp-points">';
+      points.forEach(p => {
+        const tip=`${fmt(p.load,1)} kg · 跳高 ${fmt(p.height,2)} cm\nF ${fmt(p.force,2)} N/kg · V ${fmt(p.velocity,3)} m/s · P ${fmt(p.power,2)} W/kg`;
+        const attrs=`data-fvp-id="${esc(data.id)}" data-fvp-load="${p.load}" role="button" aria-pressed="${num(options.pinnedLoad)===p.load}"`;
+        if (fv) out += point(x(p.velocity),yf(p.force),4.6,forceColor,tip,attrs);
+        if (pv) out += point(x(p.velocity),yp(p.power),4.6,powerColor,tip,attrs,"diamond");
+      });
+      out += '</g>';
+    }
+    out += '</g>';
+    const legendY = bottom + 65;
+    if (fv) out += line(left,legendY-4,left+22,legendY-4,`stroke="${forceColor}" stroke-width="2.5"`) + text(left+29,legendY,"F–V",'font-size="11"');
+    if (pv) out += line(left+(fv?85:0),legendY-4,left+(fv?107:22),legendY-4,`stroke="${powerColor}" stroke-width="2.5"`) + text(left+(fv?114:29),legendY,"P–V",'font-size="11"');
+    profiles.forEach((profile,index)=>{const ly=legendY+20*(index<2?1:2), lx=left+(index===1?Math.min(123,(right-left)*.48):0);out+=line(lx,ly-4,lx+22,ly-4,`stroke="${mainColor}" stroke-width="2"${profile.kind==='optimum'?' stroke-dasharray="7 5"':profile.kind==='comparison'?' stroke-dasharray="2 5"':''}`)+text(lx+29,ly,profile.label,'font-size="10"');});
+    const optionY=legendY+60;
+    if(options.points!==false)out+=circle(left+11,optionY-4,3.6,mainColor)+text(left+29,optionY,"实测点",'font-size="10"');
+    if(band.length){const bx=left+(options.points!==false?Math.min(112,(right-left)*.49):0);out+=`<rect x="${bx}" y="${optionY-12}" width="22" height="12" fill="${mainColor}" fill-opacity=".18"/>`+text(bx+29,optionY,"95%置信带",'font-size="10"');}
+    return layoutSVG(w,h,"跳跃 F–V 与 P–V 剖面",out,"F–V读取力坐标，P–V读取功率坐标；实线为当前剖面，虚线为目标最优剖面，点线为另一角度参照。置信带为实测速度范围内的拟合均值响应区间。",layout);
+  }
+  function jumpElasticity(data, layout = {}) {
+    const w=Math.max(240,layout.width||480),h=layout.height||330;
+    const force=(data.force||[]).filter(p=>p.valid!==false&&num(p.deltaPct)!==null),velocity=(data.velocity||[]).filter(p=>p.valid!==false&&num(p.deltaPct)!==null),all=[...force,...velocity];
+    if(!all.length)return layoutSVG(w,h,"参数改变与垂直跳高响应",text(w/2,h/2,"完成有效剖面后显示敏感度",'text-anchor="middle" font-size="13"'),"尚无有效敏感度",layout);
+    const small=w<400,left=small?44:54,right=w-20,top=45,bottom=h-80;
+    const xMin=Math.min(0,...all.map(p=>p.changePct)),xMax=Math.max(10,...all.map(p=>p.changePct)),yMin=Math.min(0,...all.map(p=>p.deltaPct))*1.13,yMax=Math.max(.5,...all.map(p=>p.deltaPct))*1.13;
+    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin,xMax,yMin,yMax,xLabel:"参数改变 · %",yLabel:"垂直跳高改变 · %",solidGrid:true});
+    let out=grid+line(left,y(0),right,y(0),'stroke="#9aa4ae" stroke-dasharray="3 4"');
+    [[force,C.blue,"仅改变 F₀"],[velocity,C.green,"仅改变 V₀"]].forEach(([points,color,label],series)=>{
+      const curve=(series?data.velocityCurve:data.forceCurve)||points;
+      out+=`<polyline points="${polygonPoints(curve.filter(p=>p.valid!==false&&num(p.deltaPct)!==null).map(p=>[x(p.changePct),y(p.deltaPct)]))}" fill="none" stroke="${color}" stroke-width="2.5"/>`;
+      points.forEach(p=>{out+=point(x(p.changePct),y(p.deltaPct),4,color,`${label} ${fmt(p.changePct,1)}% · 垂直跳高 ${p.deltaPct>=0?'+':''}${fmt(p.deltaPct,2)}%`,"",series?"diamond":"circle");});
+      const lx=left+series*Math.min(135,(right-left)*.49);out+=line(lx,h-22,lx+22,h-22,`stroke="${color}" stroke-width="2.5"`)+text(lx+29,h-18,label,'font-size="11"');
+    });
+    return layoutSVG(w,h,"参数改变与垂直跳高响应",out,"两条曲线分别改变F₀或V₀，按垂直跳跃模型重新求解跳高；各点为情景计算结果。",layout);
+  }
+
   global.RingsideViz = {
     body,
     bodyTooltip,
@@ -1867,6 +1945,8 @@
     forceTime,
     compare,
     empty,
+    jumpFvp,
+    jumpElasticity,
     C,
   };
 })(typeof window !== "undefined" ? window : globalThis);

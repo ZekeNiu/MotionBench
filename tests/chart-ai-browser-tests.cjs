@@ -39,6 +39,7 @@ async function shot(page, version, selector, name) {
       page.on("pageerror",e=>result.errors.push(e.message));page.on("request",r=>{if(/^https?:/.test(r.url()))result.network.push(r.url());});
       await page.clock.setFixedTime(new Date("2026-10-06T15:43:00Z"));
       await page.goto(pathToFileURL(path.join(root,file)).href);await page.waitForFunction(()=>window.App?.getState);
+      await page.evaluate(async()=>{await App.ready;if(!App.getState())await App.loadDemo();});
       await page.evaluate(chartFixture);
       for(const width of [1920,1440,1280,900,390]) {
         await page.setViewportSize({width,height:width===390?844:1000});await page.waitForTimeout(380);
@@ -54,7 +55,7 @@ async function shot(page, version, selector, name) {
         const control=page.getByRole("combobox",{name:"IMTP 纵轴"});await control.selectOption("force");
         await page.waitForFunction(()=>document.querySelector("#detail-imtp svg")?.textContent.includes("力 / N"));
         assert.equal(await page.evaluate(()=>RingsideModel.fingerprint(App.getState())),basis);
-        await page.reload();await page.waitForFunction(()=>window.App?.getState);
+        await page.reload();await page.evaluate(()=>App.ready);await page.waitForFunction(()=>App.getState());
         assert.equal(await page.evaluate(()=>App.getState().views.imtp.yAxis),"force");
         await page.getByRole("combobox",{name:"IMTP 纵轴"}).selectOption("percent");
         await page.locator("#aggMode").selectOption("mean");await page.waitForTimeout(350);
