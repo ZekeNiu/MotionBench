@@ -132,7 +132,7 @@
   }
   function metricProfile(){const f=filters.metrics||={},id=f.profileId||App.getState()?.evaluationProfileId||lib().defaultEvaluationProfileId;return lib().evaluationProfiles.find(p=>p.id===id)||lib().evaluationProfiles.find(p=>p.id===lib().defaultEvaluationProfileId);}
   function isoName(row){return M.REG[row.region]+" · "+(row.region==="neck"?row.direction.replace(/[（(](?:左\s*\/\s*右|中线)[）)]/g,""):row.direction);}
-  function standardSummary(rule){if(!rule||!rule.referenceEnabled&&(rule.target===""||rule.target==null)&&!rule.ranges?.length)return '<span class="note">未设置评价标准</span>';return `<span>${rule.target!==""&&rule.target!=null?"目标 "+esc(rule.target)+" · ":""}${rule.direction==="lower"?"数值越低越好":rule.direction==="higher"?"数值越高越好":""}</span>${rule.referenceEnabled?`<small>${esc(Def.rangeText(rule.ranges||[]))}</small>`:'<small>未启用分级</small>'}${rule.source?`<small>${esc(rule.source)}</small>`:""}`;}
+  function standardSummary(rule){if(!rule||!rule.referenceEnabled&&(rule.target===""||rule.target==null)&&!rule.ranges?.length&&!rule.referenceGroups?.length)return '<span class="note">未设置评价标准</span>';return `<span>${rule.target!==""&&rule.target!=null?"目标 "+esc(rule.target)+" · ":""}${rule.direction==="lower"?"数值越低越好":rule.direction==="higher"?"数值越高越好":""}</span>${rule.referenceEnabled?`<small>${rule.referenceGroups?esc(rule.referenceGroups.length+" 组年龄 / 性别 / 测试方式标准"):esc(Def.rangeText(rule.ranges||[]))}</small>`:'<small>未启用分级</small>'}${rule.source?`<small>${esc(rule.source)}</small>`:""}`;}
   function imtpTimes(profile,record){const times=new Set((profile?.criteria.imtpTimeStandards||[]).map(r=>r.timeMs));for(const d of profile?.criteria.definitions||[]){const match=d.id.match(/^imtp_(?:f|rfd)(\d+)$/);if(match)times.add(Number(match[1]));}for(const trial of record?.data.imtp||[])for(const p of trial.timePoints||[])if(Number(p.timeMs)>0)times.add(Number(p.timeMs));return [...times].sort((a,b)=>a-b);}
   function profiles() {
     if(editor)return profileEditor();
@@ -146,13 +146,26 @@
   const check=(path,value,label)=>`<label class="check-line"><input type="checkbox" data-profile-path="${esc(path)}" ${value?"checked":""}>${label}</label>`;
   const select=(path,value,options)=>`<select data-profile-path="${esc(path)}">${options.map(([v,n])=>option(v,n,value)).join("")}</select>`;
   function ranges(path,value,label="评价区间：范围 | 名称 | red / amber / green") {return field(label,`<textarea rows="4" data-profile-ranges="${esc(path)}">${esc(editor.rangeDrafts[path]??Def.rangeText(value))}</textarea>`);}
+  function referenceGroupEditor(d,index) {
+    const groups=d.referenceGroups||[],base="definitions."+index+".referenceGroups";
+    let html=`<section class="profile-rule-block"><h3>年龄、性别与测试方式标准</h3><p class="note">年龄按下限含、上限不含匹配；空白表示不限。分层目标留空时沿用上方目标。峰值 RER 只限制本行分级区间。</p><div class="row">${button("添加分层","profile-group-add",String(index))}</div>`;
+    if(!groups.length)return html+'<p class="note">未设置分层标准。</p></section>';
+    if(!groups.some(g=>g.id===editor.referenceGroupId))editor.referenceGroupId=groups[0].id;
+    html+='<div class="management-table-wrap"><table class="management-table reference-groups-table"><thead><tr><th>性别</th><th>年龄下限</th><th>年龄上限</th><th>测试方式</th><th>最低峰值 RER</th><th>本组训练目标</th><th>操作</th></tr></thead><tbody>';
+    html+=groups.map((g,j)=>{const path=base+"."+j;return `<tr data-reference-group="${esc(g.id)}"><td data-label="性别">${select(path+".sex",g.sex,[["any","不限"],["male","男"],["female","女"]])}</td><td data-label="年龄下限">${input(path+".ageMin",g.ageMin)}</td><td data-label="年龄上限">${input(path+".ageMax",g.ageMax)}</td><td data-label="测试方式">${select(path+".mode",g.mode,[["any","不限"],["treadmill","跑台"],["cycle","功率车"]])}</td><td data-label="最低峰值 RER">${input(path+".minPeakRER",g.minPeakRER??"")}</td><td data-label="本组训练目标">${input(path+".target",g.target??"")}</td><td><div class="row">${button("编辑区间","profile-group-select",g.id,g.id===editor.referenceGroupId?'aria-current="true"':"")}${button("复制","profile-group-copy",index+":"+j)}${button("删除","profile-group-delete",index+":"+j)}</div></td></tr>`;}).join("");
+    html+='</tbody></table></div>';
+    const j=groups.findIndex(g=>g.id===editor.referenceGroupId),g=groups[j],path=base+"."+j;
+    html+=`<div class="form-grid">${field("本组来源 / 专项说明",input(path+".source",g.source,"text"))}</div>${g.modified?'<p class="note">本组已按用户设置修改。</p>':""}<div class="management-table-wrap"><table class="management-table reference-ranges-table"><thead><tr><th>下限</th><th>含下限</th><th>上限</th><th>含上限</th><th>名称</th><th>显示颜色</th><th>操作</th></tr></thead><tbody>`;
+    html+=g.ranges.map((r,k)=>{const rangePath=path+".ranges."+k;return `<tr><td data-label="下限">${input(rangePath+".min",r.min)}</td><td data-label="含下限">${check(rangePath+".includeMin",r.includeMin!==false,"包含")}</td><td data-label="上限">${input(rangePath+".max",r.max)}</td><td data-label="含上限">${check(rangePath+".includeMax",r.includeMax!==false,"包含")}</td><td data-label="名称">${input(rangePath+".label",r.label,"text")}</td><td data-label="显示颜色">${select(rangePath+".status",r.status,[["gray","中性"],["red","红色"],["amber","黄色"],["green","绿色"]])}</td><td>${button("删除","profile-group-range-delete",index+":"+j+":"+k)}</td></tr>`;}).join("");
+    return html+`</tbody></table></div><p class="note">区间端点留空表示无上限或无下限。</p>${button("添加区间","profile-group-range-add",index+":"+j)}</section>`;
+  }
   function profileEditor() {
     const r=editor.record,tab=editor.tab, tabs=[["definitions","指标标准"],["imtp","IMTP 时点"],["rules","筛查阈值"],["axes","能力汇总"],["iso","等长目标"],["balance","关节平衡"],["lvp","LVP 参数"]];
     let h=`<div class="profile-editor-header">${field("方案名称",`<input id="profileName" value="${esc(editor.profile.name)}" maxlength="120" ${editor.readOnly?"readonly":""}>`)}<div class="row">${button(editor.origin==="metrics"?"返回指标库":"返回方案列表","profile-close")}${editor.readOnly?button("复制为新方案","profile-copy",editor.profile.id):button("补充新增指标","profile-extend")+button("查看变更并保存","profile-review","",'class="btn primary"')}</div></div><div class="profile-tabs">${tabs.map(([id,label])=>button(label,"profile-tab",id,tab===id?'aria-current="page"':"")).join("")}</div><div id="profileEditorFields">`;
     if(tab==="definitions"){
       const i=Math.max(0,r.definitions.findIndex(d=>d.id===editor.metricId)),d=r.definitions[i];
       h+=field("指标",`<select id="profileMetricSelect">${r.definitions.map(d=>option(d.id,T.metricName(d)+" · "+d.unit,editor.metricId)).join("")}</select>`);
-      if(d)h+=`<p class="note">${esc(T.metricProtocol(d)||"未记录协议")} · ${esc(d.unit)} · ${esc(T.abilityLabel(lib().catalog,d.ability))}</p><div class="form-grid">${field("评价目标",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用评价标准")}${ranges("definitions."+i+".ranges",d.ranges)}<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`;
+      if(d)h+=`<p class="note">${esc(T.metricProtocol(d)||"未记录协议")} · ${esc(d.unit)} · ${esc(T.abilityLabel(lib().catalog,d.ability))}</p><div class="form-grid">${field(d.testId==="cpet"?"通用训练目标":"评价目标",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用评价标准")}${Array.isArray(d.referenceGroups)?referenceGroupEditor(d,i):ranges("definitions."+i+".ranges",d.ranges)+`<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`+(d.testId==="cpet"?button("添加年龄 / 性别 / 测试方式标准","profile-group-add",String(i)):"")}`;
     } else if(tab==="imtp")h+=imtpStandardEditor();
     else if(tab==="rules")h+='<div class="form-grid">'+Object.entries(ruleLabels).map(([id,label])=>field(label,input("rules."+id,r.rules[id]))).join("")+'</div><p class="note">FMS 保留固定 0–3 分及疼痛判定。</p>';
     else if(tab==="iso")h+=r.data.iso.map((row,i)=>`<div class="profile-rule-row" data-standard-key="${esc(row.id)}"><b>${esc(isoName(row))}</b>${field("目标 · "+esc(row.unit),input("data.iso."+i+".target",row.target))}<span class="note">${esc(row.protocol||"未记录协议")}</span></div>`).join("");
@@ -200,7 +213,7 @@
     const profile=metricProfile();if(!profile)throw Error("请先创建评价方案");if(!viewProfile(profile.id))return;App.openManagement("profiles");editor.origin="metrics";
     editor.tab=kind==="edit"?"definitions":kind==="time"?"imtp":kind;
     if(kind==="edit"){
-      if(!editor.record.definitions.some(d=>d.id===id)){const source=M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true]))),d=Eval.capture(source).definitions.find(d=>d.id===id);if(!d)throw Error("指标不存在");Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(clone(d));editor.profile.criteria.definitions.push(clone(d));}
+      if(!editor.record.definitions.some(d=>d.id===id)){const source=M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true]))),d=Eval.capture(source).definitions.find(d=>d.id===id);if(!d)throw Error("指标不存在");if(!Eval.hasInstalledStandard(d))Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(clone(d));editor.profile.criteria.definitions.push(clone(d));}
       editor.metricId=id;
     }
     if(kind==="time")editor.timeKey=id;
@@ -288,6 +301,8 @@
     const rows=[],add=(name,a,b)=>{if(Eval.canonical(a)!==Eval.canonical(b))rows.push([name,a,b]);};
     const metric=d=>d?`${d.referenceEnabled?"启用":"未启用"} · 目标 ${d.target??"—"} ${d.unit} · ${d.direction==="higher"?"越高越好":"越低越好"}\n${Def.rangeText(d.ranges)}\n${d.source||""}`:"未包含";
     for(const d of next.definitions)add(T.metricName(d),metric(old.definitions.find(x=>x.id===d.id)),metric(d));
+    const groupText=g=>g?`${{male:"男",female:"女",any:"不限性别"}[g.sex]} · 年龄 [${g.ageMin??"不限"}, ${g.ageMax??"不限"}) · ${{treadmill:"跑台",cycle:"功率车",any:"不限方式"}[g.mode]} · 最低峰值 RER ${g.minPeakRER??"不限"} · 目标 ${g.target??"沿用通用目标"}\n${Def.rangeText(g.ranges)}\n${g.source}`:"未包含";
+    for(const d of next.definitions){const prior=old.definitions.find(x=>x.id===d.id),groups=d.referenceGroups||[],before=prior?.referenceGroups||[];for(const id of new Set([...before.map(g=>g.id),...groups.map(g=>g.id)]))add(T.metricName(d)+" · 分层标准 "+id,groupText(before.find(g=>g.id===id)),groupText(groups.find(g=>g.id===id)));}
     for(const rule of next.imtpTimeStandards||[]){const unit=rule.kind==="rfd"?"N/s":"%PF",prior=old.imtpTimeStandards?.find(x=>x.timeMs===rule.timeMs&&x.kind===rule.kind);add(`IMTP ${rule.timeMs} ms ${rule.kind==="rfd"?"RFD · N/s":"力占峰值力 · %PF"}`,metric(prior?{...prior,unit}:null),metric({...rule,unit}));}
     for(const[k,label]of Object.entries(ruleLabels))add(label,old.rules[k],next.rules[k]);
     for(const row of next.iso)add(M.REG[row.region]+" · "+row.direction,old.iso.find(x=>x.id===row.id)?.target??"—",row.target);
@@ -312,6 +327,12 @@
   }
   function getPath(obj,path){return path.split(".").reduce((v,k)=>v?.[k],obj);}
   function setPath(obj,path,value){const keys=path.split(".");if(keys.some(k=>["__proto__","constructor","prototype"].includes(k)))throw Error("无效字段");let current=obj;for(const k of keys.slice(0,-1))current=current[k];current[keys.at(-1)]=value;}
+  function markReferenceEdited(path){
+    const match=path.match(/^definitions\.(\d+)\.referenceGroups\.(\d+)\.(.+)$/);if(!match||match[3]==="target")return;
+    const group=editor.record.definitions[Number(match[1])].referenceGroups[Number(match[2])];group.modified=true;
+    if(group.sourceId==="friend-2022-rer110"&&match[3]!=="source"&&!group.source.includes("用户调整"))group.source+="（用户调整）";
+  }
+  function clearGroupInputErrors(index){if(editor.invalid)for(const path of [...editor.invalid])if(path.startsWith("definitions."+index+".referenceGroups"))editor.invalid.delete(path);}
   async function action(name,id) {
     if(name==="section")return App.openManagement(id);
     if(name==="page"){filter().page=Number(id);return render();}
@@ -406,6 +427,19 @@
     if(name==="profile-tab"){editor.tab=id;return render();}
     if(name==="profile-close"){const origin=editor.origin;if(!discardEditor())return;return origin==="metrics"?App.openManagement("metrics"):render();}
     if(name==="profile-review")return reviewProfile();
+    if(name==="profile-group-select"){editor.referenceGroupId=id;return render();}
+    if(name==="profile-group-add"){
+      const d=editor.record.definitions[Number(id)],group={id:"reference_"+uid(),sex:"any",ageMin:null,ageMax:null,mode:"any",ranges:clone(d.ranges||[]),source:"用户配置专项标准"};
+      d.referenceGroups||=[];d.referenceGroups.push(group);d.referenceMode="grouped";d.ranges=[];d.referenceEnabled=true;editor.referenceGroupId=group.id;return render();
+    }
+    if(["profile-group-copy","profile-group-delete","profile-group-range-add","profile-group-range-delete"].includes(name)){
+      const [i,j,k]=id.split(":").map(Number),d=editor.record.definitions[i],group=d.referenceGroups[j];clearGroupInputErrors(i);
+      if(name==="profile-group-copy"){const copy={...clone(group),id:"reference_"+uid()};d.referenceGroups.splice(j+1,0,copy);editor.referenceGroupId=copy.id;}
+      if(name==="profile-group-delete")d.referenceGroups.splice(j,1);
+      if(name==="profile-group-range-add"){group.ranges.push({min:null,max:null,includeMin:true,includeMax:false,label:"",status:"gray"});markReferenceEdited("definitions."+i+".referenceGroups."+j+".ranges");}
+      if(name==="profile-group-range-delete"){group.ranges.splice(k,1);markReferenceEdited("definitions."+i+".referenceGroups."+j+".ranges");}
+      return render();
+    }
     if(name==="profile-default"){lib().defaultEvaluationProfileId=id;await App.saveLibraryChanges();return render();}
     if(name==="profile-toggle"){const p=lib().evaluationProfiles.find(p=>p.id===id);if(id===lib().defaultEvaluationProfileId)throw Error("请先指定其他默认方案");p.disabled=!p.disabled;await App.saveLibraryChanges();return render();}
     if(name==="profile-records"){
@@ -418,7 +452,7 @@
     }
     if(name==="profile-extend"){
       const candidates=[M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true])))];if(App.getState())candidates.push(App.getState());
-      for(const r of candidates){const c=Eval.capture(r);for(const d of c.definitions)if(!editor.record.definitions.some(x=>x.id===d.id)){Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(d);editor.profile.criteria.definitions.push(clone(d));}for(const row of c.iso)if(!editor.record.data.iso.some(x=>x.id===row.id))editor.record.data.iso.push({...row,target:"",left:"",right:"",center:"",notes:""});}
+      for(const r of candidates){const c=Eval.capture(r);for(const d of c.definitions)if(!editor.record.definitions.some(x=>x.id===d.id)){if(!Eval.hasInstalledStandard(d))Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(d);editor.profile.criteria.definitions.push(clone(d));}for(const row of c.iso)if(!editor.record.data.iso.some(x=>x.id===row.id))editor.record.data.iso.push({...row,target:"",left:"",right:"",center:"",notes:""});}
       return render();
     }
     if(name==="restore-library"){if(confirm("切换回上次导入或迁移前保留的资料库？当前资料库仍会保留。"))await App.restorePreviousLibrary();return;}
@@ -437,7 +471,11 @@
       if(t.id==="profileName"&&editor)editor.profile.name=t.value;
       if(editor&&!editor.readOnly){
         if(t.dataset.profilePath) { editor.invalid ||= new Set(); if(t.validity.badInput)editor.invalid.add(t.dataset.profilePath);else editor.invalid.delete(t.dataset.profilePath); }
-        if(t.dataset.profilePath)setPath(editor.record,t.dataset.profilePath,t.type==="checkbox"?t.checked:t.type==="number"&&t.value!==""?Number(t.value):t.value);
+        if(t.dataset.profilePath){
+          const path=t.dataset.profilePath;let value=t.type==="checkbox"?t.checked:t.type==="number"&&t.value!==""?Number(t.value):t.value;
+          if(path.includes(".referenceGroups.")&&t.type==="number"&&t.value==="")value=/\.(target|minPeakRER)$/.test(path)?undefined:null;
+          setPath(editor.record,path,value);markReferenceEdited(path);
+        }
         if(t.dataset.profileRanges)editor.rangeDrafts[t.dataset.profileRanges]=t.value;
         if(t.dataset.profileZones)editor.zoneDrafts[t.dataset.profileZones]=t.value;
       }

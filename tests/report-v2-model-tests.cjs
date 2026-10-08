@@ -10,6 +10,7 @@ const c = vm.createContext({
 c.window = c;
 for (const name of [
   "calc",
+  "cpet-reference",
   "definitions",
   "tests",
   "model",

@@ -4,7 +4,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const context = vm.createContext({ console, Intl, crypto: require('node:crypto').webcrypto });
 context.window = context;
-['ringside-calc.js', 'ringside-definitions.js', 'ringside-tests.js', 'ringside-model.js', 'ringside-interventions.js'].forEach(name => vm.runInContext(fs.readFileSync(path.join(__dirname, '../src', name), 'utf8'), context));
+['ringside-calc.js', 'ringside-cpet-reference.js', 'ringside-definitions.js', 'ringside-tests.js', 'ringside-model.js', 'ringside-interventions.js'].forEach(name => vm.runInContext(fs.readFileSync(path.join(__dirname, '../src', name), 'utf8'), context));
 const M = context.RingsideModel, Def = context.Def;
 const copy = value => JSON.parse(JSON.stringify(value));
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);

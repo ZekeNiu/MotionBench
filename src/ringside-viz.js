@@ -624,25 +624,27 @@
   }
   function jumpBars(items, layout = {}) {
     items = items.filter(item => num(item.height ?? item.value) !== null || num(item.rsi) !== null);
-    if (!items.length) return empty("跳跃表现", "录入跳高或 RSI 后显示结果");
+    if (!items.length) return empty("跳跃表现", "录入垂直跳跃高度或 RSI 后显示结果");
     const w=Math.max(240,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?38:62,right=w-(small?38:62),top=58,bottom=h-98,barColor="#7895ad",dotColor="#176b68";
     const heightMax=Math.max(10,...items.map(item=>num(item.height??item.value)||0))*1.22;
     const hasRSI=items.some(item=>num(item.rsi)!==null),rsiMax=Math.max(1,...items.map(item=>num(item.rsi)||0))*1.22;
     const heightY=value=>bottom-value/heightMax*(bottom-top),rsiY=value=>bottom-value/rsiMax*(bottom-top);
-    let out=text(left,28,"跳高 · cm",`font-size="13" fill="${C.ink}"`);
+    let out=text(left,28,"垂直跳跃高度 · cm",`font-size="${small?12:13}" fill="${C.ink}"`);
     ticks(0,heightMax).forEach(value=>{out+=line(left,heightY(value),right,heightY(value))+text(left-12,heightY(value)+4,fmt(value,1),'text-anchor="end" font-size="12"');});
     if(hasRSI){out+=text(right,28,"RSI · m/s",`text-anchor="end" font-size="13" fill="${dotColor}"`);ticks(0,rsiMax).forEach(value=>{out+=text(right+12,rsiY(value)+4,fmt(value,2),`font-size="12" fill="${dotColor}"`);});}
     out+=line(left,bottom,right,bottom,`stroke="${C.gray}"`);
     items.forEach((item,i)=>{
       const x=left+(i+.5)*(right-left)/items.length,height=num(item.height??item.value),rsi=num(item.rsi),width=Math.min(56,(right-left)/items.length*.4);
-      if(height!==null){const tip=`${item.label} · 跳高 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,rsi!==null&&Math.abs(rsiY(rsi)-(heightY(height)-11))<20?heightY(height)+18:heightY(height)-11,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
+      const defaultHeightLabel=height!==null?heightY(height)-11:null;
+      const heightLabelY=rsi===null||height===null?defaultHeightLabel:[defaultHeightLabel,heightY(height)+20,rsiY(rsi)-18,rsiY(rsi)+42].find(y=>y>top&&y<bottom-4&&Math.abs(y-rsiY(rsi))>=17&&Math.abs(y-(rsiY(rsi)+20))>=18)??defaultHeightLabel;
+      if(height!==null){const tip=`${item.label} · 垂直跳跃高度 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,heightLabelY,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
       if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x,rsiY(rsi)+20,fmt(rsi,2),`text-anchor="middle" font-size="${small?11:13}" font-weight="600" fill="${dotColor}"`)}</g>`;}
       const label=small?({cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"}[item.id]||item.label):item.label;
       out+=text(x,bottom+31,label,`text-anchor="middle" font-size="${small?11:14}" font-weight="600" fill="${C.ink}"`);
     });
-    out+=`<rect x="${left}" y="${h-37}" width="17" height="12" rx="2" fill="${barColor}"/>`+text(left+26,h-26,"跳高（左轴）",'font-size="12"');
-    if(hasRSI)out+=circle(left+(small?138:201),h-31,5,dotColor)+text(left+(small?151:215),h-26,"RSI（右轴）",'font-size="12"');
-    return layoutSVG(w,h,"跳跃表现：跳高与反应力量指数",out,"柱形读取左侧跳高 cm 坐标，圆点读取右侧 RSI m/s 坐标；不同单位分别解读。",layout);
+    out+=`<rect x="${left}" y="${h-(small?47:37)}" width="17" height="12" rx="2" fill="${barColor}"/>`+text(left+26,h-(small?36:26),"垂直跳跃高度（左轴）",'font-size="12"');
+    if(hasRSI)out+=circle(left+(small?8:201),h-(small?16:31),5,dotColor)+text(left+(small?26:215),h-(small?11:26),"RSI（右轴）",'font-size="12"');
+    return layoutSVG(w,h,"跳跃表现：垂直跳跃高度与反应力量指数",out,"柱形读取左侧垂直跳跃高度 cm 坐标，圆点读取右侧 RSI m/s 坐标；不同单位分别解读。",layout);
   }
   function asymInline(value, weakSide, rules = {}) {
     value = num(value);

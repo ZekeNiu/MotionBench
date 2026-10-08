@@ -75,6 +75,8 @@
     .ringside-pdf-document .aux-metrics{display:flex!important;gap:8px!important;padding-top:9px!important;margin:8px 0 0!important;}
     .ringside-pdf-document .aux-metric{flex:1!important;min-width:0!important;font-size:10px!important;padding-left:6px!important;}
     .ringside-pdf-document .aux-metric strong{font-size:16px!important;}
+    .ringside-pdf-document .aux-metric .aux-judgment{font-size:10px!important;line-height:1.65!important;}
+    .ringside-pdf-document .aux-metric .aux-data{font-size:9px!important;line-height:1.5!important;margin-top:5px!important;}
     .ringside-pdf-document .card-foot{padding:8px 9px!important;font-size:10px!important;line-height:1.6!important;}
     .ringside-pdf-document .legend{gap:6px!important;font-size:10px!important;}
     .ringside-pdf-document .pill{font-size:11px!important;line-height:1.5!important;padding:2px 5px!important;white-space:normal!important;}
@@ -85,17 +87,30 @@
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
     .ringside-pdf-document .jump-detail table{table-layout:auto!important;}
-    .ringside-pdf-document .derived-card{width:100%!important;padding:17px!important;border:1px solid #e2e5e9!important;border-radius:8px!important;background:#fff!important;}
-    .ringside-pdf-document .derived-actions{display:none!important;}
+    .ringside-pdf-document .capability-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:stretch!important;}
+    .ringside-pdf-document .capability-card{width:100%!important;min-width:0!important;padding:16px!important;border:1px solid #e1e5e9!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important;}
+    .ringside-pdf-document .capability-title{font-size:15px!important;margin:0 0 15px!important;line-height:1.5!important;}
+    .ringside-pdf-document .capability-metric{margin:0!important;padding:11px 0!important;}
+    .ringside-pdf-document .capability-metric:first-child{padding-top:0!important;}
+    .ringside-pdf-document .capability-metric:last-child{padding-bottom:0!important;}
+    .ringside-pdf-document .capability-metric-head{gap:10px!important;}
+    .ringside-pdf-document .capability-metric-head h4{font-size:11px!important;font-weight:500!important;line-height:1.6!important;}
+    .ringside-pdf-document .capability-value{font-size:20px!important;line-height:1.35!important;margin:0!important;}
+    .ringside-pdf-document .capability-value small{font-size:9px!important;}
+    .ringside-pdf-document .capability-judgment{font-size:11px!important;line-height:1.7!important;margin:6px 0 0!important;}
+    .ringside-pdf-document .capability-components{font-size:10px!important;margin-top:7px!important;}
+    .ringside-pdf-document .capability-components>summary{font-size:10px!important;}
+    .ringside-pdf-document .capability-components>summary::after{content:none!important;}
+    .ringside-pdf-document .capability-components dd small{font-size:9px!important;}
+    .ringside-pdf-document .capability-targets{margin:0 0 8px!important;font-size:10px!important;line-height:1.7!important;}
+    .ringside-pdf-document .capability-targets p{margin:3px 0 0!important;}
+    .ringside-pdf-document .capability-conclusion-text{margin:0!important;}
+    .ringside-pdf-document .capability-conclusion{font-size:12px!important;margin:14px 0 0!important;padding:10px 12px!important;}
+    .ringside-pdf-document .idsi-window{font-size:10px!important;margin-top:7px!important;}
     .ringside-pdf-document .idsi-print-window{display:inline!important;}
-    .ringside-pdf-document .derived-card-heading{display:flex!important;justify-content:space-between!important;gap:18px!important;}
-    .ringside-pdf-document .derived-value{font-size:25px!important;white-space:nowrap!important;}
-    .ringside-pdf-document .derived-components{margin:9px 0!important;}
-    .ringside-pdf-document .derived-components>div{padding-top:5px!important;}
-    .ringside-pdf-document .fdsi-bands{margin:10px 0!important;}
-    .ringside-pdf-document .hop-raw-table th,.ringside-pdf-document .hop-raw-table td{font-size:10px!important;padding:6px 4px!important;}
-    .ringside-pdf-document .hop-raw-table th:first-child{width:6%!important;}
-    .ringside-pdf-document .hop-raw-table th:last-child{width:21%!important;}
+    .ringside-pdf-document .hop-summary-table th,.ringside-pdf-document .hop-summary-table td{font-size:10px!important;padding:6px 4px!important;}
+    .ringside-pdf-document .hop-summary-table th:first-child{width:7%!important;}
+    .ringside-pdf-document .hop-summary-table th:last-child{width:16%!important;}
     .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail){display:block!important;}
     .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail)>.chart-wrap{margin-bottom:12px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:auto!important;min-width:0!important;}
@@ -951,7 +966,7 @@
     }
     function placeAtomic(node) {
       const splittable =
-        node.matches(".summary-grid,.micro-cards") ||
+        node.matches(".summary-grid,.micro-cards,.capability-row,.capability-card") ||
         (node.matches(".card") && node.querySelector(".ability-comparison"));
       let tooTall = false;
       if (splittable) {
@@ -966,13 +981,43 @@
         node.remove();
       }
       if (!tooTall && moveIfNeeded(node, true)) return;
-      if (node.matches(".summary-grid,.micro-cards")) {
+      if (node.matches(".summary-grid,.micro-cards,.capability-row")) {
         [...node.children].forEach((child) => {
           child.style.removeProperty("width");
           child.classList.add("ringside-pdf-block");
           child.dataset.pdfBlockIndex = node.dataset.pdfBlockIndex;
           placeAtomic(child);
         });
+        return;
+      }
+      if (node.matches(".capability-card")) {
+        const metrics=[...node.querySelectorAll(":scope>.capability-metrics>.capability-metric")];
+        const title=node.querySelector(":scope>.capability-title");
+        const conclusion=node.querySelector(":scope>.capability-conclusion");
+        // Preserve full metric rows and their judgments when a populated card
+        // exceeds one page. Repeated titles identify each continuation.
+        const chunks=[...metrics,...(conclusion?[conclusion]:[])];
+        let fragment=null;
+        for(const chunk of chunks){
+          if(!fragment){
+            fragment=node.cloneNode(false);
+            if(title)fragment.append(title.cloneNode(true));
+            fragment.append(chunk.cloneNode(true));
+            if(!moveIfNeeded(fragment,true))throw new Error("PDF 中单项能力分析超过一页，无法完整导出。");
+            continue;
+          }
+          const copy=chunk.cloneNode(true);
+          fragment.append(copy);
+          if(fits())continue;
+          copy.remove();
+          if(fragment.children.length<=(title?1:0)){fragment.remove();throw new Error("PDF 中单项能力分析超过一页，无法完整导出。");}
+          newPage();
+          fragment=node.cloneNode(false);
+          fragment.dataset.pdfContinuation="true";
+          if(title)fragment.append(title.cloneNode(true));
+          fragment.append(copy);content.append(fragment);
+          if(!fits())throw new Error("PDF 中单项能力分析超过一页，无法完整导出。");
+        }
         return;
       }
       if (node.matches(".card") && node.querySelector(".ability-comparison")) {

@@ -182,13 +182,36 @@
     return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
   }
   function recordBasis() { return state ? M.fingerprint(effectiveRecord()) : ""; }
+  function upgradeDemo(record) {
+    const linkedProfile = library.evaluationProfiles.find(profile => profile.id === record.evaluationProfileId);
+    const upgraded = M.upgradeOriginalDemo(record, linkedProfile);
+    if (!upgraded.changed) return upgraded;
+    // Demo targets must belong only to the synthetic example, not to real records
+    // sharing the old default scheme.
+    const profile = window.RingsideEvaluation.create(upgraded.record, "模拟示例评价方案");
+    library.evaluationProfiles.push(profile);
+    upgraded.record.evaluationProfileId = profile.id;
+    return upgraded;
+  }
   async function loadDirectory(preserve = true) {
     const current = preserve ? state?.recordId : null;
     library = await repository.directory();
+    const catalogBefore = JSON.stringify(library.catalog);
     library.catalog = M.normalizeCatalog(library.catalog);
+    const catalogChanged = JSON.stringify(library.catalog) !== catalogBefore;
+    const profilesChanged = window.RingsideEvaluation.upgradeLibraryProfiles(library);
     const id = current || library.activeRecordId;
     state = id ? await repository.loadRecord(id) : null;
-    if(state)state=M.normalizeRecord(state);
+    const upgrade = state ? upgradeDemo(state) : {changed:false};
+    if(state)state=M.normalizeRecord(upgrade.record || state);
+    if (catalogChanged || profilesChanged || upgrade.changed) {
+      await repository.save(library, upgrade.changed ? [state] : []);
+      if (upgrade.changed) {
+        const athlete = library.athletes.find(a => a.id === state.athleteId);
+        const index = athlete?.records.findIndex(r => r.recordId === state.recordId);
+        if (index >= 0) athlete.records[index] = window.RingsideStore.summary(state);
+      }
+    }
     const owner = state && library.athletes.find(a => a.id === state.athleteId);
     if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
     if (state) {
@@ -775,8 +798,13 @@
   function imtpForm() {
     const forceInput = (path, value, opts = {}) =>
       input(path, value, { ...opts, allowNegative: true });
+    const selectedCMJ = M.stats(effectiveRecord()).raw.cmj?.selectedRows || [];
+    const duration = selectedCMJ.length && selectedCMJ.every(row => positive(row.propulsiveDurationMs))
+      ? selectedCMJ.reduce((sum, row) => sum + Number(row.propulsiveDurationMs), 0) / selectedCMJ.length : null;
+    const windowLabel = duration === null ? "匹配 CMJ 推进期冲量 N·s" : `0–${F(duration, 2)} ms 冲量 N·s`;
     let h =
       '<p class="intro">逐次填写峰值与已知时间点。只录入 RFD 时，须填写发力起点力；起点未知请留空。</p>';
+    h += `<p class="note" data-cmj-window>${duration === null ? "在 CMJ 中录入本次采用试次的推进期时长后，这里会显示对应的 IMTP 冲量窗口。" : `本次 CMJ 推进期 ${F(duration, 2)} ms：请查找 IMTP 发力起点后 0–${F(duration, 2)} ms 的实测冲量。`}</p>`;
     h += field(
       "协议 / 设备",
       input("protocol.imtp", state.protocol.imtp, { type: "text" }),
@@ -808,7 +836,7 @@
                 ]),
               )
             : '<div class="empty">尚未录入时间点；只有峰值时，报告显示峰值参考线。</div>'
-        }<button class="btn small" style="margin-top:12px" onclick="App.addForcePoint(${i})">＋ 时间点</button><details class="supplement"><summary>冲量（用于 iDSI）</summary><div class="form-grid">${field("0–250 ms 冲量 N·s", input(`data.imtp.${i}.impulse250`, row.impulse250, {label:`试次${i+1} 0–250 ms 冲量 N·s`}))}${field("匹配时窗冲量 N·s", input(`data.imtp.${i}.matchedImpulse`, row.matchedImpulse, {label:`试次${i+1} 匹配时窗冲量 N·s`}))}${field("匹配时窗长度 ms", input(`data.imtp.${i}.matchedDurationMs`, row.matchedDurationMs, {label:`试次${i+1} 匹配时窗长度 ms`}))}</div><p class="note">填写设备从发力起点积分的结果；匹配时窗须与本次采用的 CMJ 推进期时长一致。</p></details><div class="form-grid">${T.repeatPolicy(state, "imtp").fields.map((d) => field(d.name + " " + d.unit, forceInput(`data.imtp.${i}.metrics.${d.id}`, row.metrics?.[d.id] ?? ""))).join("")}${field("试次备注", input(`data.imtp.${i}.notes`, row.notes || "", { type: "text" }))}</div><div data-force-warnings="${i}"></div></article>`;
+        }<button class="btn small" style="margin-top:12px" onclick="App.addForcePoint(${i})">＋ 时间点</button><details class="supplement"><summary>冲量（用于 iDSI）</summary><div class="form-grid">${field("0–250 ms 冲量 N·s", input(`data.imtp.${i}.impulse250`, row.impulse250, {label:`试次${i+1} 0–250 ms 冲量 N·s`}))}${field(windowLabel, input(`data.imtp.${i}.matchedImpulse`, row.matchedImpulse, {label:`试次${i+1} ${windowLabel}`}))}${field("匹配时窗长度 ms", input(`data.imtp.${i}.matchedDurationMs`, row.matchedDurationMs, {label:`试次${i+1} 匹配时窗长度 ms`}))}</div><p class="note">填写设备从发力起点积分的结果；匹配时窗须与本次采用的 CMJ 推进期时长一致。</p></details><div class="form-grid">${T.repeatPolicy(state, "imtp").fields.map((d) => field(d.name + " " + d.unit, forceInput(`data.imtp.${i}.metrics.${d.id}`, row.metrics?.[d.id] ?? ""))).join("")}${field("试次备注", input(`data.imtp.${i}.notes`, row.notes || "", { type: "text" }))}</div><div data-force-warnings="${i}"></div></article>`;
       })
       .join("");
     return (
@@ -929,8 +957,15 @@
     const sequence = ++selectionSequence;
     if (state) { captureReportUI(); saveEditor(); }
     if (!await persist()) return;
-    const stored = r ? await repository.loadRecord(r.recordId) : null,
-      loaded = stored ? M.normalizeRecord(stored) : null;
+    const stored = r ? await repository.loadRecord(r.recordId) : null;
+    if (sequence !== selectionSequence) return;
+    const upgrade = stored ? upgradeDemo(stored) : {changed:false};
+    const loaded = stored ? M.normalizeRecord(upgrade.record || stored) : null;
+    if (upgrade.changed) {
+      await repository.save(library, [loaded]);
+      const index = a.records.findIndex(item => item.recordId === loaded.recordId);
+      if (index >= 0) a.records[index] = window.RingsideStore.summary(loaded);
+    }
     if (sequence !== selectionSequence) return;
     cancelJob();
     state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
@@ -1044,6 +1079,16 @@
         side: "侧别",
         method: "测量方法",
         partial: "末级未完成秒数",
+        modality: "测试方式",
+        oxygenLabel: "报告摄氧量名称",
+        vo2: "摄氧量",
+        vo2Unit: "摄氧量单位",
+        peakHr: "峰值心率 bpm",
+        rer: "峰值 RER",
+        activeStiffness: "设备 Active Stiffness",
+        activeStiffnessInputUnit: "刚度录入单位",
+        propulsiveDurationMs: "推进期时长 ms",
+        propulsiveImpulse: "推进期冲量 N·s",
         location: "身体部位",
         referenceEnabled: "启用匹配评价标准",
         ability: "能力分类",
@@ -1370,7 +1415,7 @@
   }
   function entryReview() {
     const computed=M.stats(effectiveRecord()),projects=orderedEntryProjects();
-    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed);return[E(t.name),E(progress?.detail||"未录入"),`<button class="btn small" onclick="App.entry('${E(t.id)}')">继续录入</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次训练方向分析</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
+    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed);return[E(t.name),E(progress?.detail||"未录入"),`<button class="btn small" onclick="App.entry('${E(t.id)}')">继续录入</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次能力结构分析</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
   }
   async function finishEntry() {
     if(!state)return;
@@ -1572,16 +1617,12 @@
       : "待评价";
     $("radarLegend").innerHTML =
       '<span class="red">重点关注</span> · <span class="amber">关注</span> · <span class="green">良好／优秀</span>';
-    $("directionMetrics").innerHTML = [
-      ["EUR", s.raw.eur, "CMJ / SJ"],
-      ["DSI", s.raw.dsi, "CMJ / 等长峰值力"],
-      ["ASR", s.raw.asr, "m/s"],
-    ]
-      .map(
-        ([l, v, u]) =>
-          `<div class="aux-metric">${l}<strong>${F(v, 2)}</strong>${u}</div>`,
-      )
-      .join("");
+    const capabilityMetrics = (s.capabilityCards || []).flatMap(card => card.metrics);
+    $("directionMetrics").innerHTML = ["eur", "fdsi", "srr"].map(id => {
+      const metric = capabilityMetrics.find(item => item.id === id);
+      if (!metric || !Number.isFinite(metric.value)) return "";
+      return `<div class="aux-metric" data-overview-metric="${id}"><strong class="aux-judgment">${E(metric.judgment || metric.label)}</strong><span class="aux-data">${E(id === "fdsi" ? "DSI" : id.toUpperCase())} ${F(metric.value, 3)}${metric.unit ? " " + E(metric.unit) : ""}</span></div>`;
+    }).join("");
     renderDetails(report);
     renderNarrativeStatus();
     reportDirty = false;
@@ -1610,14 +1651,6 @@
       document
         .querySelector('[data-lvp-id="' + CSS.escape(focused) + '"]')
         ?.focus({ preventScroll: true });
-    if (report.stats.qualityIssues.some((x) => x.id === "asr_inconsistent")) {
-      const value = $("directionMetrics").children[2];
-      value.insertAdjacentHTML(
-        "beforeend",
-        ' · <span class="red">待复核</span>',
-      );
-      value.querySelector("strong").style.color = "var(--gray)";
-    }
   }
   function renderNarrativeStatus() {
     if (!state) return;
@@ -1686,18 +1719,46 @@
       `<button class="btn small" style="margin-top:12px" onclick="App.addRow('${t}')">＋ ${t === "lactate" ? "增加阶段" : lvp ? "新增负荷" : "新增试次"}</button>`
     );
   }
+  function stiffnessFields(base, row) {
+    const unit = row.activeStiffnessInputUnit || "kN/m", factor = unit === "N/m" ? 1000 : 1;
+    const value = N(row.activeStiffness) === null ? "" : Number(row.activeStiffness) * factor;
+    return field("设备 Active Stiffness · " + unit,
+      input(base + ".activeStiffness", value, {label:"设备 Active Stiffness " + unit}).replace("<input ", `<input data-stiffness-factor="${factor}" `)) +
+      field("刚度录入单位", select(base + ".activeStiffnessInputUnit", unit, ["kN/m", "N/m"]));
+  }
+  function cpetForm() {
+    const c = state.data.cpet, units = [["ml/kg/min", "mL·kg⁻¹·min⁻¹"], ["l/min", "L/min"]];
+    const oxygen = (base, value, label) => field(label, input(base + ".vo2", value.vo2, {label})) +
+      field(label + "单位", select(base + ".vo2Unit", value.vo2Unit, units));
+    return '<p class="intro">按本次心肺递增测试报告录入结果，保留报告中的阈值名称和摄氧量口径。</p><div class="form-grid">' +
+      field("测试方式", select("data.cpet.modality", c.modality, [["", "请选择"], ["treadmill", "跑台"], ["cycle", "功率车"]])) +
+      field("协议 / 设备", input("data.cpet.protocol", c.protocol, {type:"text"})) +
+      field("报告摄氧量名称", select("data.cpet.oxygenLabel", c.oxygenLabel, [["VO2max", "VO₂max · 最大摄氧量"], ["VO2peak", "VO₂peak · 峰值摄氧量"]])) +
+      oxygen("data.cpet", c, "最大 / 峰值摄氧量") +
+      field("峰值心率 bpm", input("data.cpet.peakHr", c.peakHr, {label:"峰值心率 bpm"})) +
+      field("峰值 RER", input("data.cpet.rer", c.rer, {label:"峰值 RER", placeholder:"报告未给出时留空"})) + '</div>' +
+      ["first", "second"].map((key, i) => {
+        const row = c.thresholds[key], base = "data.cpet.thresholds." + key, name = i ? "第二阈值" : "第一阈值";
+        return `<section class="imtp-attempt"><h4>${name}</h4><div class="form-grid">` +
+          field("报告阈值名称", select(base + ".label", row.label, i ? ["VT2", "LT2"] : ["VT1", "LT1"])) +
+          oxygen(base, row, name + "摄氧量") +
+          field(name + "心率 bpm", input(base + ".hr", row.hr, {label:name + "心率 bpm"})) +
+          field(name + "速度 m/s", input(base + ".speed", row.speed, {label:name + "速度 m/s"})) +
+          field(name + "功率 W", input(base + ".power", row.power, {label:name + "功率 W"})) + '</div></section>';
+      }).join("") + '<p class="note" data-cpet-result></p>';
+  }
   function reactiveJumpForm(t) {
-    const fields=T.attemptFields(state,t).filter(f=>!f.computed);
-    return '<p class="intro">按 RSI 选择同一次有效试跳，或按有效试次均值汇总。RSI 使用反弹跳高与触地时间计算。</p>'+
+    const fields=T.attemptFields(state,t).filter(f=>!f.computed&&f.key!=="activeStiffness");
+    return '<p class="intro">按 RSI 选择同一次有效试跳，或按有效试次均值汇总。RSI 使用反弹垂直跳跃高度与触地时间计算。</p>'+
       field("协议 / 设备",input("protocol."+t,state.protocol[t],{type:"text"}))+
-      state.data[t].map((row,i)=>`<article class="imtp-attempt"><div class="imtp-attempt-head"><h4>试次 ${i+1}</h4><button class="remove" onclick="App.removeRow('${t}',${i})" aria-label="删除试次 ${i+1}">删除试次</button></div><div class="form-grid">${fields.map(f=>field(f.label+" "+f.unit,input(`data.${t}.${i}.${f.key||"metrics."+f.id}`,f.key?row[f.key]:row.metrics?.[f.id],{label:`试次 ${i+1} ${f.label} ${f.unit}`}))).join("")}${field("试次备注",input(`data.${t}.${i}.notes`,row.notes||"",{type:"text"}))}</div><p class="note" data-reactive-result="${t}:${i}"></p></article>`).join("")+
+      state.data[t].map((row,i)=>`<article class="imtp-attempt"><div class="imtp-attempt-head"><h4>试次 ${i+1}</h4><button class="remove" onclick="App.removeRow('${t}',${i})" aria-label="删除试次 ${i+1}">删除试次</button></div><div class="form-grid">${fields.map(f=>field(f.label+" "+f.unit,input(`data.${t}.${i}.${f.key||"metrics."+f.id}`,f.key?row[f.key]:row.metrics?.[f.id],{label:`试次 ${i+1} ${f.label} ${f.unit}`}))).join("")}${stiffnessFields(`data.${t}.${i}`,row)}${field("试次备注",input(`data.${t}.${i}.notes`,row.notes||"",{type:"text"}))}</div><p class="note" data-reactive-result="${t}:${i}"></p></article>`).join("")+
       `<button class="btn small" onclick="App.addRow('${t}')">＋ 新增试次</button>`;
   }
   function hopSetPath(index) {return Array.isArray(state.data.hop.trials)?`data.hop.trials.${index}`:"data.hop";}
   function hopSetAt(index) {return Array.isArray(state.data.hop.trials)?state.data.hop.trials[index]:state.data.hop;}
   function hopForm() {
     const sets=Array.isArray(state.data.hop.trials)?state.data.hop.trials:[state.data.hop];
-    const fields=[["rsi","平均 RSI","m/s"],["height","平均跳高","cm"],["contactTimeMs","平均触地时间","ms"],["flightTimeMs","平均腾空时间","ms"],["flightTimeRatio","平均腾空 / 触地时间比",""],["suppliedCount","设备录入跳数","跳"],["validCount","设备有效跳数","跳"],["selectedCount","设备采用跳数","跳"]];
+    const fields=[["rsi","平均 RSI","m/s"],["height","平均垂直跳跃高度","cm"],["contactTimeMs","平均触地时间","ms"],["flightTimeMs","平均腾空时间","ms"],["flightTimeRatio","平均腾空 / 触地时间比",""],["suppliedCount","设备录入跳数","跳"],["validCount","设备有效跳数","跳"],["selectedCount","设备采用跳数","跳"]];
     return field("协议 / 设备",input("protocol.hop",state.protocol.hop,{type:"text"}))+
       '<p class="intro">一次连续跳为一次完整测试。可录入设备汇总，或录入单跳数据：有效跳数不超过5跳时全部采用，超过5跳时自动选取 RSI 最高的5跳。</p>'+
       sets.map((set,index)=>{
@@ -1705,10 +1766,10 @@
         return `<article class="imtp-attempt" data-hop-set="${index}"><div class="imtp-attempt-head"><h4>第 ${index+1} 次完整测试</h4>${Array.isArray(state.data.hop.trials)?`<button class="remove" onclick="App.removeRepeat('hop',${index})">删除本次测试</button>`:""}</div>`+
           field("录入方式",select(base+".inputMode",set.inputMode,[["summary","设备汇总值"],["jumps","逐跳数据"]]))+
           (set.inputMode!=="jumps"?'<div class="form-grid">'+fields.map(([key,label,unit])=>field(label+(unit?" "+unit:""),input(base+".summary."+key,summary[key],{label, ...(key.endsWith("Count")?{step:1}:{})}))).join("")+
-            field("设备筛选依据",select(base+".summary.selectionBasis",summary.selectionBasis||"unknown",[["unknown","未注明"],["height_rsi","跳高 / 触地时间（RSI）"],["flight_ratio","腾空 / 触地时间比"]]))+'</div><p class="note">保留设备给出的平均 RSI，不用平均跳高除以平均触地时间替代。</p>':
-            table(["跳次","跳高 cm","触地 ms","腾空 ms","RSI m/s","采用","备注","操作"],(set.jumps||[]).map((jump,j)=>[j+1,input(`${base}.jumps.${j}.height`,jump.height,{label:`第${j+1}跳 跳高 cm`}),input(`${base}.jumps.${j}.contactTimeMs`,jump.contactTimeMs,{label:`第${j+1}跳 触地 ms`}),input(`${base}.jumps.${j}.flightTimeMs`,jump.flightTimeMs,{label:`第${j+1}跳 腾空 ms`}),`<span data-hop-rsi="${index}:${j}">—</span>`,`<span data-hop-selected="${index}:${j}">—</span>`,input(`${base}.jumps.${j}.notes`,jump.notes||"",{type:"text"}),`<button class="remove" onclick="App.removeHopJump(${index},${j})" aria-label="删除第${j+1}跳">删除</button>`]))+
+            field("设备筛选依据",select(base+".summary.selectionBasis",summary.selectionBasis||"unknown",[["unknown","未注明"],["height_rsi","垂直跳跃高度 / 触地时间（RSI）"],["flight_ratio","腾空 / 触地时间比"]]))+'</div><p class="note">保留设备给出的平均 RSI，不用平均垂直跳跃高度除以平均触地时间替代。</p>':
+            table(["跳次","垂直跳跃高度 cm","触地 ms","腾空 ms","RSI m/s","采用","备注","操作"],(set.jumps||[]).map((jump,j)=>[j+1,input(`${base}.jumps.${j}.height`,jump.height,{label:`第${j+1}跳 垂直跳跃高度 cm`}),input(`${base}.jumps.${j}.contactTimeMs`,jump.contactTimeMs,{label:`第${j+1}跳 触地 ms`}),input(`${base}.jumps.${j}.flightTimeMs`,jump.flightTimeMs,{label:`第${j+1}跳 腾空 ms`}),`<span data-hop-rsi="${index}:${j}">—</span>`,`<span data-hop-selected="${index}:${j}">—</span>`,input(`${base}.jumps.${j}.notes`,jump.notes||"",{type:"text"}),`<button class="remove" onclick="App.removeHopJump(${index},${j})" aria-label="删除第${j+1}跳">删除</button>`]))+
             `<div class="row"><button class="btn small" onclick="App.addHopJump(${index})">＋ 增加1跳</button><button class="btn small" onclick="App.addHopJump(${index},5)">＋ 增加5跳</button></div>`)+
-          `<p class="note" data-hop-counts="${index}"></p>`+field("本次测试备注",input(base+".notes",set.notes||"",{type:"text"}))+"</article>";
+          `<div class="form-grid">${stiffnessFields(base+".summary",summary)}</div><p class="note" data-hop-counts="${index}"></p>`+field("本次测试备注",input(base+".notes",set.notes||"",{type:"text"}))+"</article>";
       }).join("")+`<button class="btn small" onclick="App.addHopSet()">＋ 新增一次完整测试</button>`;
   }
   function addHopJump(index,count=1) {
@@ -1730,6 +1791,11 @@
   }
   function updateJumpEntryResults() {
     if(ui.mode!=="entry")return;
+    if (entryTab === "cpet" && T.isNative(state, entryTab)) {
+      const s = M.stats(effectiveRecord()), result = $("entryContent").querySelector("[data-cpet-result]");
+      const card = s.capabilityCards?.find(item => item.id === "cardio");
+      if (result) result.textContent = card?.conclusion || "";
+    }
     if(["dj","cmrj"].includes(entryTab)&&T.isNative(state,entryTab))state.data[entryTab].forEach((row,i)=>{
       const el=$("entryContent").querySelector(`[data-reactive-result="${entryTab}:${i}"]`);
       if(el)el.textContent="RSI "+F(positive(row.height)&&positive(row.contactTimeMs)?Number(row.height)*10/Number(row.contactTimeMs):null,2)+" m/s";
@@ -1979,13 +2045,14 @@
             ),
           )
           .join("");
-    } else if (entryTab==="hop"&&T.isNative(state,entryTab)) h+=hopForm();
+    } else if (entryTab==="cpet"&&T.isNative(state,entryTab)) h+=cpetForm();
+    else if (entryTab==="hop"&&T.isNative(state,entryTab)) h+=hopForm();
     else if (["dj","cmrj"].includes(entryTab)&&T.isNative(state,entryTab)) h+=reactiveJumpForm(entryTab);
     else if (["cmj", "sj"].includes(entryTab)) {
       const t = entryTab,
-        fields = T.attemptFields(state, t).filter(f=>!f.computed&&!['propulsiveImpulse','propulsiveDurationMs'].includes(f.key));
+        fields = T.attemptFields(state, t).filter(f=>!f.computed);
       h +=
-        '<p class="intro">按最高跳高选择同一次试跳，或按有效试次均值汇总；缺测留空。</p>' +
+        '<p class="intro">按最高垂直跳跃高度选择同一次试跳，或按有效试次均值汇总；缺测留空。</p>' +
         field(
           "协议 / 设备",
           input("protocol." + t, state.protocol[t], { type: "text" }),
@@ -2003,7 +2070,6 @@
             ),
           ],
         );
-      if(t==="cmj")h+='<details class="supplement"><summary>推进期冲量与时长（用于 iDSI）</summary>'+state.data.cmj.map((row,i)=>`<div class="subheading">试次 ${i+1}</div><div class="form-grid">${field("推进期冲量 N·s",input(`data.cmj.${i}.propulsiveImpulse`,row.propulsiveImpulse,{label:`试次${i+1} 推进期冲量 N·s`}))}${field("推进期时长 ms",input(`data.cmj.${i}.propulsiveDurationMs`,row.propulsiveDurationMs,{label:`试次${i+1} 推进期时长 ms`}))}</div>`).join("")+'</details>';
       if (t === "cmj")
         h +=
           '<div class="subheading">DSI数据来源</div><div class="form-grid">' +
@@ -3274,6 +3340,8 @@
         score: a.value,
         status: a.status,
       })),
+      capabilityAnalysis: copy(s.capabilityCards || []),
+      cpet: copy(s.raw.cpet || null),
       qualityIssues: s.qualityIssues || [],
       migrationReview: {
         protocol: state.unitMigration || null,
@@ -3281,7 +3349,7 @@
       },
       findings: s.findings.map(item => ({...item, ability:T.abilityLabel(analysisRecord,item.ability)})),
       advantages: {...s.advantages,items:s.advantages.items.map(item => ({...item, ability:T.abilityLabel(analysisRecord,item.ability)}))},
-      derived: { EUR: s.raw.eur, DSI: s.raw.dsi, ASR_mps: s.raw.asr, analysis:s.derived },
+      derived: { EUR: s.raw.eur, DSI: s.raw.dsi, ASR_mps: s.raw.asr, SRR:s.raw.srr, analysis:s.derived },
       forceTime: s.raw.forceTime,
       isometric: s.isoAnalyses.filter((x) =>
         x.sides.some((y) => y.value !== null || y.pain),
@@ -3662,7 +3730,7 @@
     return {
       schema: 2,
       kind: "report",
-      record: { ...effectiveRecord(), evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
+      record: { ...window.RingsideEvaluation.materialize(effectiveRecord()), evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
       profile: copy(activeAthlete().profile),
     };
   }
@@ -3811,7 +3879,7 @@
   async function downloadLegacyLibrary() {
     try {
       const all = await libraryPayload(), profiles = new Map(all.evaluationProfiles.map(p=>[p.id,p]));
-      all.athletes = all.athletes.filter(a=>!a.deletedAt).map(a=>({...a,records:a.records.filter(r=>!r.deletedAt).map(r=>{const out=window.RingsideEvaluation.resolve(r,profiles.get(r.evaluationProfileId));delete out.evaluationProfileId;return out;})})).filter(a=>a.records.length);
+      all.athletes = all.athletes.filter(a=>!a.deletedAt).map(a=>({...a,records:a.records.filter(r=>!r.deletedAt).map(r=>{const out=window.RingsideEvaluation.materialize(r,profiles.get(r.evaluationProfileId));delete out.evaluationProfileId;return out;})})).filter(a=>a.records.length);
       all.schema=2;delete all.evaluationProfiles;delete all.groups;delete all.defaultEvaluationProfileId;delete all.testPlans;
       // Older applications use the visible ability text as identity. Materialize
       // the export snapshot, disambiguating equal names without merging axes.
@@ -3846,7 +3914,13 @@
     const result=await repository.importLibrary(incoming,{merge:conflictChoice!=="replace-library"});
     cancelJob(); await loadDirectory(false);
     const importedRecord=incoming.activeRecordId && await repository.loadRecord(result.recordMap[incoming.activeRecordId]||incoming.activeRecordId);
-    if (importedRecord && !importedRecord.deletedAt) { state=importedRecord;library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;recordBaselines.set(state.recordId,recordContent(state));await persist(); }
+    if (importedRecord && !importedRecord.deletedAt) {
+      const upgrade = upgradeDemo(importedRecord);
+      state = M.normalizeRecord(upgrade.record || importedRecord);
+      library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;
+      if (upgrade.changed) await repository.save(library, [state]);
+      recordBaselines.set(state.recordId,recordContent(state));await persist();
+    }
     ui.mode="report"; renderReport(false);renderWorkspace();return result;
     });
   }
@@ -4224,7 +4298,8 @@
     }
     if (t.dataset.path && t.tagName !== "SELECT" && t.type !== "checkbox") {
       t.setCustomValidity("");
-      let error = M.validateField(state, t.dataset.path, t.value);
+      const storedValue = t.dataset.stiffnessFactor && t.value !== "" ? Number(t.value) / Number(t.dataset.stiffnessFactor) : t.value;
+      let error = M.validateField(state, t.dataset.path, storedValue);
       if (t.type === "number" && !t.validity.valid)
         error ||= t.validity.badInput
           ? "请填写有效数值"
@@ -4246,7 +4321,7 @@
         rawNumbers.set(t, { value: t.value, selected: false });
       forgetInputError(t.dataset.path);
       inputIssue(t);
-      setPath(t.dataset.path, t.value);
+      setPath(t.dataset.path, storedValue);
     }
   });
   document.addEventListener("change", (e) => {
@@ -4260,6 +4335,16 @@
     if (t.dataset.path && (t.tagName === "SELECT" || t.type === "checkbox")) {
       const unit = t.dataset.path.match(/^data\.iso\.(\d+)\.unit$/);
       if (unit) return requestUnitChange(t, Number(unit[1]));
+      if (/^data\.cpet(?:\.thresholds\.(?:first|second))?\.vo2Unit$/.test(t.dataset.path)) {
+        const base = t.dataset.path.replace(/\.vo2Unit$/, ""), row = atPath(base);
+        if (positive(row.vo2) && row.vo2Unit !== t.value) {
+          if (!positive(state.athlete.mass)) {
+            t.value = row.vo2Unit;
+            return toast("换算摄氧量需要本次体重；请先录入体重，或清空数值后选择录入单位。");
+          }
+          setPath(base + ".vo2", t.value === "l/min" ? Number(row.vo2) * Number(state.athlete.mass) / 1000 : Number(row.vo2) * 1000 / Number(state.athlete.mass));
+        }
+      }
       if (t.dataset.path.startsWith("enabled.")) {
         const id = t.dataset.path.slice(8);
         if (t.checked && !installCatalogProject(id)) {
@@ -4284,7 +4369,7 @@
       setPath(t.dataset.path, t.type === "checkbox" ? t.checked : t.value);
       if (/^views\.lvp(Upper|Lower)\.showBand$/.test(t.dataset.path))
         state.views[t.dataset.path.split(".")[1]].bandExplicit = true;
-      if (ui.mode === "entry" && (["dsi.source"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)))
+      if (ui.mode === "entry" && (["dsi.source"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)||/\.activeStiffnessInputUnit$/.test(t.dataset.path)||/^data\.cpet.*(?:vo2Unit|oxygenLabel|label|modality)$/.test(t.dataset.path)))
         renderEntry();
     }
     if (t.dataset.axis) {

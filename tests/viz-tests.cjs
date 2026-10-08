@@ -164,7 +164,7 @@ test('jump chart uses height bars and RSI dots with separate units and no connec
   const html=V.jumpBars([{id:'cmj',label:'CMJ',value:40},{id:'sj',label:'SJ',value:35},{id:'dj',label:'DJ',value:30,rsi:2},{id:'hop',label:'Hop',value:20,rsi:3},{id:'cmrj',label:'CMRJ',value:28,rsi:2.5}]);
   assert.equal((html.match(/data-jump-series="height"/g)||[]).length,5);
   assert.equal((html.match(/data-jump-series="rsi"/g)||[]).length,3);
-  assert.match(html,/跳高 · cm/);assert.match(html,/RSI · m\/s/);assert.match(html,/fill="#7895ad"/);assert.match(html,/fill="#176b68"/);
+  assert.match(html,/垂直跳跃高度 · cm/);assert.match(html,/RSI · m\/s/);assert.match(html,/fill="#7895ad"/);assert.match(html,/fill="#176b68"/);
   assert.doesNotMatch(html,/<path|<polyline|<title/);assert.match(html,/aria-label="DJ · RSI 2 m\/s"/);finite(html);
 });
 test('jump chart omits missing tests and preserves a measured RSI without a reported height',()=>{

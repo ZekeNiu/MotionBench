@@ -1,6 +1,6 @@
 # MotionBench
 
-跨项目的运动表现评估与训练建议工作台。当前版本 **2.11.0**。录入、计算、图表、备份与 PDF 导出均可离线使用。
+跨项目的运动表现评估与训练建议工作台。当前版本 **2.12.0**。录入、计算、图表、备份与 PDF 导出均可离线使用。
 
 ![MotionBench](assets/motionbench-logo.svg)
 
@@ -44,8 +44,9 @@ Windows 本机启动入口使用当前账户的 DPAPI 加密，将地址、模�
 - 支持独立运动员与队伍管理、搜索分页、队伍筛选、批量分组或更换方案、归档和回收站。可复用测试方案保存项目顺序和推荐评价方案；历史记录保留采用时的快照。专项和惯用手分别填写。
 - 共用评价方案更新后，关联的历史记录自动使用最新标准；测量条件不匹配时保留实测值。现有解读保留，并在评价依据变化时标记待复核。
 - FMS、等长力量、CMJ/SJ/DJ、10/5 Hop Test、CMRJ、IMTP、负荷-速度、MAS/MSS、30-15VIFT、乳酸等测试与报告。指标库统一编辑能力分类、项目、指标及所选评价方案标准；分类改名、排序与项目调组只影响后续测试。IMTP时间点力支持同次峰值百分比评价，RFD保持N/s。
-- 跳跃组合图以钢蓝柱表示跳高（cm），深青圆点表示 RSI（m/s）。Hop 支持设备汇总或逐跳录入；超过五个有效跳按逐跳 RSI 选最高五跳，保留所有输入、入选标记与实际数量。CMRJ 首跳与反弹跳分别记录。
-- “训练方向分析”提供 EUR、CMJ–SJ 增益、fDSI、两类 iDSI、RQR、ASR 和 SRR，可独立启停，不合成雷达能力分。iDSI 必须有实测冲量和可比积分窗口；RQR 按腾空/触地时间比独立选跳，不用跳高版 RSI 替代。fDSI 显示文献参考侧重，原始成绩保留用于综合判断。
+- 跳跃组合图以钢蓝柱表示垂直跳跃高度（cm），深青圆点表示 RSI（m/s）。Hop 支持设备汇总或逐跳录入，报告附录每次完整测试一行，原始单跳仍完整保存。RSI 与 RSI-modified 使用已配置的独立分级标准；设备 Active Stiffness 可按 N/m 或 kN/m 录入。
+- “能力结构分析”按力量发展方向、反应力量水平、速度耐力类型、心肺发展方向分组；数据在上、对应判断在下，无数据的指标和卡片自动隐藏。iDSI 使用实测冲量及明确时间窗；DJ/Hop FT/CT 反应比独立计算，ASR 仅列数据，SRR 给出参考类型。
+- CPET 保存原报告的 VO₂max／VO₂peak、VT／LT 名称、摄氧量、心率和 RER。定义库内置 FRIEND 2022 成人分层参考表，可按年龄、性别、跑台／功率车匹配并编辑。常模等级与专项目标分别设置，心肺发展方向根据摄氧量和第二阈值占比两项目标判断。
 - 同条件重复试次按最佳或均值汇总；至少 3 个有效值显示均值、样本 SD 与适用时的 CV。缺测不当成零。IMTP最佳值仍跟随峰值力代表试次；百分比均值先逐次归一，实测与换算来源分开。
 - 等长力量保留五轴雷达；等长力量与IMTP在桌面均为左图右表，重复统计保留在原表，手机转为上下。PDF 根据完整图表高度选择左右或上下排版，长表逐页续排。
 - 等长力量评价与关节平衡采用“达标／关注／严重”短标签；未设标准的平衡比值显示灰底。悬停可查看完整原因，数值与侧别保留，常规表格与 CMJ、IMTP 对齐。
@@ -58,7 +59,7 @@ Windows 本机启动入口使用当前账户的 DPAPI 加密，将地址、模�
 
 页面与 PDF 采用统一的银灰样式，数据行白底。低矮窗口的侧栏可整体滚动，顶部关闭按钮保持可见；重新打开时会显示当前导航项。
 
-方法说明：[速度参考](docs/speed-reference.md) · [软件结构](docs/architecture.md) · [本版说明与验收](docs/motionbench-2.11.0.md)。
+方法说明：[速度参考](docs/speed-reference.md) · [软件结构](docs/architecture.md) · [本版说明与验收](docs/motionbench-2.12.0.md)。
 
 ## 开发与验证
 
@@ -81,7 +82,9 @@ python tests/local-server-tests.py
 
 `src/` 是正式源码；修改后重新构建两个内容相同的 HTML。内部 `Ringside*` 模块名与旧文件名保留用于兼容，不代表仍以拳击作为产品定位。
 
-2.11.0 核心验收使用 `npm test`、`python tests/local-server-tests.py`、`node tests/entry-v211-browser-tests.cjs`、`node tests/interaction-v211-browser-tests.cjs --pdf` 和 `node tests/ai-settings-browser-tests.cjs`；前两种浏览器流程可加 `--edge`。验收使用隔离浏览器、合成运动数据和合成密钥，AI 上游为模拟服务。旧 `live-motionbench-tests.cjs` 属于历史临时凭据协议，不作为 2.11.0 的真实服务验收入口。
+2.12.0 验收使用 `npm test`，以及 `tests/capability-entry-browser-tests.cjs`、`tests/cpet-reference-browser-tests.cjs`、`tests/capability-report-browser-tests.cjs` 三套浏览器测试；使用 `node` 运行，可加 `--edge`。报告测试加 `--pdf --stress` 检查实际导出及超长卡片分页。另运行既有工作流、并发操作和资料库恢复检查。PDF 逐页目视检查后，使用 `python scripts/verify_v212.py` 将证据绑定到最终文件，并验证可重复构建。
+
+2.11.0 已有本机启动和加密 AI 设置验收；本版未改动服务端，也未重测在线模型。旧 `live-motionbench-tests.cjs` 属于历史临时凭据协议，不作为当前真实服务验收入口。
 
 `output/`、本机备份、密钥文件和验证过程文件不进入仓库。发布包仅包含干净应用、启动入口和使用说明。
 

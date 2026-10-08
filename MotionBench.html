@@ -392,7 +392,7 @@ svg text {
   background: var(--blue-soft);
   color: var(--blue);
   font-weight: 600;
-  box-shadow: inset 2px 0 var(--blue);
+  box-shadow: none;
 }
 .sidebar-action span {
   font-size: 15px;
@@ -1873,7 +1873,7 @@ body.sidebar-collapsed .workspace {
 .ui-icon { display: block; width: 18px; height: 18px; flex: 0 0 18px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
 .report-nav button, .entry-nav button { min-height: 40px; padding: 10px 12px; font-size: 13px; border-radius: 8px; }
 .report-nav button.sub { font-size: 12px; padding-left: 40px; }
-.report-nav button.active, .entry-nav button.active { background: var(--blue-soft); color: var(--blue); box-shadow: inset 3px 0 var(--blue); }
+.report-nav button.active, .entry-nav button.active { background: var(--blue-soft); color: var(--blue); box-shadow: none; }
 .screen-item h4 { font-size: 14px; }
 .aux-metric strong { font-size: 22px; color: var(--ink); }
 .entry-identity { background: var(--blue-soft); color: var(--blue); }
@@ -3030,34 +3030,46 @@ body.sidebar-collapsed .workspace {
 .jump-detail .chart-wrap { width:100%; margin-inline:auto; }
 .jump-detail .detail-data { min-width:0; }
 .jump-detail table { table-layout:auto; }
-.hop-counts { color:#425d70; font-variant-numeric:tabular-nums; }
-.derived-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-.derived-card { border:1px solid var(--line,#e2e5e9); border-radius:8px; padding:20px; background:#fff; min-width:0; }
-.derived-card-heading { display:flex; gap:14px; align-items:start; justify-content:space-between; }
-.derived-card-heading h3 { margin:0; font-size:16px; line-height:1.45; }
-.derived-value { margin:0; font-size:28px; line-height:1.2; font-weight:650; color:var(--ink,#20252b); white-space:nowrap; }
-.derived-value small { font-size:12px; margin-left:5px; font-weight:400; }
-.derived-formula { color:#526777; font-size:12px; overflow-wrap:anywhere; margin:13px 0; }
-.derived-associated { margin:12px 0 0; color:var(--ink,#20252b); font-size:14px; }
-.derived-associated strong { margin-left:8px; font-weight:600; }
-.derived-components { margin:14px 0; display:grid; gap:7px; }
-.derived-components > div { display:flex; justify-content:space-between; gap:14px; border-top:1px solid #e6ecf1; padding-top:7px; }
-.derived-components dt { color:var(--muted,#606874); font-size:14px; }
-.derived-components dd { margin:0; text-align:right; font-size:14px; font-variant-numeric:tabular-nums; }
-.derived-components dd small { font-size:11px; color:#627783; }
-.derived-direction { border-top:1px solid var(--line,#e2e5e9); padding-top:12px; margin:14px 0 0; font-size:14px; color:var(--ink,#20252b); font-weight:500; }
-.idsi-window { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; font-size:14px; }
-.idsi-window select { flex:1; min-width:0; font:inherit; }
+.capability-results { display:grid; gap:20px; }
+.capability-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; align-items:stretch; }
+.capability-card { min-width:0; border:1px solid var(--line); border-radius:var(--radius-panel); padding:24px; background:var(--surface); box-shadow:var(--shadow-panel); }
+.capability-title { margin:0 0 18px; font-size:16px; font-weight:600; line-height:1.5; color:var(--ink); }
+.capability-metrics { display:grid; gap:0; }
+.capability-metric { min-width:0; margin:0; padding:15px 0; border-top:1px solid var(--line); }
+.capability-metric:first-child { padding-top:0; border-top:0; }
+.capability-metric:last-child { padding-bottom:0; }
+.capability-metric-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; }
+.capability-metric-head h4 { min-width:0; margin:0; font-size:13px; font-weight:500; color:var(--muted); line-height:1.6; overflow-wrap:anywhere; }
+.capability-value { flex-shrink:0; margin:0; color:var(--ink); font-size:23px; font-weight:600; line-height:1.3; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.capability-value small { margin-left:5px; font-size:11px; font-weight:400; color:var(--muted); }
+.capability-judgment { margin:7px 0 0; font-size:13px; font-weight:500; line-height:1.65; overflow-wrap:anywhere; }
+.capability-judgment.gray { color:var(--ink); }
+.capability-components { margin-top:8px; font-size:12px; color:var(--muted); }
+.capability-components > summary { display:inline-block; cursor:pointer; list-style:none; font-size:12px; padding:2px 0; }
+.capability-components > summary::after { content:" ⌄"; }
+.capability-components[open] > summary::after { content:" ⌃"; }
+.capability-components dl { display:grid; gap:5px; margin:6px 0 0; }
+.capability-components dl > div { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.capability-components dt { min-width:0; overflow-wrap:anywhere; }
+.capability-components dd { margin:0; flex-shrink:0; text-align:right; font-variant-numeric:tabular-nums; }
+.capability-components dd small { font-size:11px; }
+.capability-component-judgment { margin:3px 0 0; font-size:12px; line-height:1.6; white-space:normal; overflow-wrap:anywhere; }
+.capability-components dd:has(.capability-component-judgment) { flex-shrink:1; min-width:0; max-width:70%; }
+.capability-observations { margin-top:9px; }
+.capability-observations dl { margin:0; }
+.capability-targets { margin:0 0 8px; color:var(--muted); font-size:12px; font-weight:400; line-height:1.7; }
+.capability-targets p { margin:3px 0 0; }
+.capability-conclusion-text { margin:0; }
+.capability-conclusion { margin:18px 0 0; padding:13px 15px; background:var(--surface-soft); border-radius:var(--radius-control); color:var(--ink); font-size:14px; font-weight:600; line-height:1.7; }
+.idsi-window { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:9px; color:var(--muted); font-size:12px; }
+.idsi-window select { flex:1; min-width:0; max-width:260px; padding:5px 8px; font:inherit; }
 .idsi-print-window { display:none; }
-.derived-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-.fdsi-bands { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px; margin:16px 0; }
-.fdsi-bands > span { padding:8px 5px; background:#edf1f4; color:#647580; text-align:center; font-size:12px; border-bottom:3px solid transparent; }
-.fdsi-bands small { display:block; margin-top:3px; font-size:10px; line-height:1.5; }
-.fdsi-bands .current { background:#dce9ed; color:#285d6c; border-bottom-color:#3e7b86; }
-.derived-sources,.source-link { font-size:11px; overflow-wrap:anywhere; }
-.derived-sources { margin-bottom:0; }
-.derived-pending { margin-top:20px; }
-@media(max-width:800px){.derived-results{grid-template-columns:minmax(0,1fr)}.derived-card{padding:18px}.derived-value{font-size:24px}}
+.hop-summary-table { font-size:12px; }
+.hop-summary-table th,.hop-summary-table td { padding-inline:7px; }
+.aux-metric { border-left:0; padding:0 6px; }
+.aux-metric .aux-judgment { display:block; color:var(--ink); font-size:13px; font-weight:600; line-height:1.65; letter-spacing:0; overflow-wrap:anywhere; }
+.aux-metric .aux-data { display:block; margin-top:6px; color:var(--muted); font-size:12px; line-height:1.5; font-variant-numeric:tabular-nums; }
+@media(max-width:800px){.capability-row{grid-template-columns:minmax(0,1fr)}.capability-results,.capability-row{gap:16px}.capability-card{padding:20px}.capability-value{font-size:21px}}
 .athlete-summary .micro-value { overflow-wrap: anywhere; line-height: 1.35; }
 .athlete-summary dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; margin: 10px 0 0; }
 .athlete-summary dl > div { min-width: 0; }
@@ -3080,6 +3092,19 @@ body.sidebar-collapsed .workspace {
 .speed-reference-table .speed-goal:last-child { margin-bottom: 0; }
 .speed-reference-table .speed-time { white-space: normal; }
 .speed-recovery-option + .speed-recovery-option { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line); }
+.management-table.reference-groups-table { min-width:950px; }
+.management-table.reference-ranges-table { min-width:850px; }
+.management-table.reference-groups-table td:last-child,.management-table.reference-ranges-table td:last-child { min-width:210px; }
+.management-table.reference-groups-table td:last-child .row,.management-table.reference-ranges-table td:last-child .row { display:flex; flex-flow:row nowrap; gap:6px; }
+.management-table.reference-groups-table td:last-child button,.management-table.reference-ranges-table td:last-child button { width:auto; margin:0; white-space:nowrap; }
+@media (max-width:800px) {
+  .management-table.reference-groups-table,.management-table.reference-ranges-table { display:table; }
+  .management-table.reference-groups-table thead,.management-table.reference-ranges-table thead { display:table-header-group; }
+  .management-table.reference-groups-table tbody,.management-table.reference-ranges-table tbody { display:table-row-group; }
+  .management-table.reference-groups-table tr,.management-table.reference-ranges-table tr { display:table-row; }
+  .management-table.reference-groups-table td,.management-table.reference-ranges-table td { display:table-cell; width:auto; padding:10px 8px; border-bottom:1px solid var(--line); }
+  .management-table.reference-groups-table td::before,.management-table.reference-ranges-table td::before { display:none; }
+}
 @media (max-width: 600px) {
   #reportView .stat-side, #reportView .stat-load { min-height: 0; }
   .athlete-summary dl { gap: 6px 12px; }
@@ -3242,7 +3267,7 @@ body.sidebar-collapsed .workspace {
                 <div id="directionMetrics" class="aux-metrics"></div>
               </div>
               <div class="card-foot">
-                <span>缺项保持空白</span><span id="radarLegend"></span>
+                <span id="radarLegend"></span>
               </div>
             </article>
           </div>
@@ -3893,12 +3918,21 @@ body.sidebar-collapsed .workspace {
   // Shared by the reference page, computed metrics and report source links.
   const entries = [
     {
+      id: "friend-2022-rer110", authors: "Kaminsky LA, Arena R, Myers J, Peterman JE, et al.", year: 2022,
+      title: "Updated Reference Standards for Cardiorespiratory Fitness Measured with Cardiopulmonary Exercise Testing: Data from FRIEND",
+      publication: "Mayo Clinic Proceedings 97(2):285–293. DOI 10.1016/j.mayocp.2021.08.020.",
+      url: "https://doi.org/10.1016/j.mayocp.2021.08.020", topics: ["CPET", "VO₂peak", "年龄与性别百分位"],
+      method: "直接 CPET 测得相对峰值摄氧量；按男 / 女、跑台 / 功率车以及 20–29 至 80–89 岁分组。",
+      data: "本应用采用 RER≥1.10 子表 P5–P95，数据来自共同作者 James Peterman 的 FRIENDanalysis，固定提交 81a0866c1786e34eee853123d9b865c0bb932ac3。",
+      application: "显示匹配人群的百分位区间；未满足匹配条件时保留实测值。用户在评价方案中设置的专项训练目标独立使用。",
+    },
+    {
       id: "turner-boxing-2018", authors: "Ruddock A, Wilson D, Hembrough D; Turner A (ed.)", year: 2018,
       title: "Boxing. Routledge Handbook of Strength and Conditioning: Sport-specific Programming for High Performance",
       publication: "Routledge, 2018. ISBN 9781138687240.",
       url: "https://www.routledge.com/Routledge-Handbook-of-Strength-and-Conditioning-Sport-specific-Programming-for-High-Performance/Turner/p/book/9780367499044",
       topics: ["职业拳击", "跳跃", "力量耐力", "药球", "地雷杠", "耐力"],
-      method: "职业拳手测试参考；CMJ/SJ采用一致的跳高测量方法，药球为3 kg单臂后手投掷，地雷杠按负荷与解剖学左右侧记录峰值速度。",
+      method: "职业拳手测试参考；CMJ/SJ采用一致的垂直跳跃高度测量方法，药球为3 kg单臂后手投掷，地雷杠按负荷与解剖学左右侧记录峰值速度。",
       data: "内置参考涵盖CMJ、SJ、60秒俯卧撑、3 kg药球、30-15VIFT、乳酸转折点及20–40 kg地雷杠；具体目标与区间见下方数据表。",
       application: "数据用于核对所选评价方案的来源及人群。目标值与分级区间分别列示。",
     },
@@ -3907,8 +3941,8 @@ body.sidebar-collapsed .workspace {
       title: "Eccentric utilization ratio: effect of sport and phase of training",
       publication: "Journal of Strength and Conditioning Research 20(4):992–995. DOI 10.1519/R-19165.1.",
       url: "https://pubmed.ncbi.nlm.nih.gov/17194252/", topics: ["EUR", "CMJ", "SJ"],
-      method: "EUR为CMJ与SJ同一种表现量的比值；研究分别考察跳高与峰值功率口径。",
-      data: "142名来自橄榄球、澳式足球、足球、垒球与曲棍球的运动员；本应用采用跳高EUR＝CMJ跳高/SJ跳高。",
+      method: "EUR为CMJ与SJ同一种表现量的比值；研究分别考察垂直跳跃高度与峰值功率口径。",
+      data: "142名来自橄榄球、澳式足球、足球、垒球与曲棍球的运动员；本应用采用垂直跳跃高度EUR＝CMJ垂直跳跃高度/SJ垂直跳跃高度。",
       application: "CMJ增益＝(EUR−1)×100%。两者共用同一比较，不作为两个独立能力得分。",
     },
     {
@@ -3916,7 +3950,7 @@ body.sidebar-collapsed .workspace {
       title: "Is larger eccentric utilization ratio associated with poorer rate of force development in squat jump? An exploratory study",
       publication: "International Biomechanics 11(1):1–5. DOI 10.1080/23335432.2024.2341634.",
       url: "https://pubmed.ncbi.nlm.nih.gov/38613407/", topics: ["EUR解读", "SJ发力"],
-      method: "同时考察跳高、峰值力及峰值功率EUR与SJ发力速率的关系。",
+      method: "同时考察垂直跳跃高度、峰值力及峰值功率EUR与SJ发力速率的关系。",
       data: "209名男性、104名女性；峰值力/功率EUR与SJ发力速率出现负相关。",
       application: "较高EUR不能单独解释为能力更好；同时查看SJ和CMJ原始结果、动作策略与重复表现。",
     },
@@ -3926,7 +3960,7 @@ body.sidebar-collapsed .workspace {
       publication: "Journal of Human Kinetics 74:59–70.", url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC7706654/",
       topics: ["fDSI", "力量与弹道训练"],
       method: "fDSI＝CMJ推进峰值力/IMTP峰值力，分子分母须使用可比的力定义与测试协议。",
-      data: "88名男性、67名女性NCAA一级运动员；结合跳高、相对力量和发力特征解读DSI。文献讨论0.60与0.80作为训练方向参考。",
+      data: "88名男性、67名女性NCAA一级运动员；结合垂直跳跃高度、相对力量和发力特征解读DSI。文献讨论0.60与0.80作为训练方向参考。",
       application: "本应用按小于0.60、0.60–0.80、大于0.80分别提示弹道发力、综合发展、最大力量方向；边界0.60和0.80归入综合发展。结合同次原始力量与跳跃表现确定训练优先级。",
     },
     {
@@ -3945,16 +3979,16 @@ body.sidebar-collapsed .workspace {
       url: "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0331519", topics: ["iDSI", "固定250 ms", "fDSI"],
       method: "分别计算CMJ完整推进冲量/IMTP匹配推进时长冲量，以及CMJ完整推进冲量/IMTP起始0–250 ms冲量。",
       data: "固定250 ms指IMTP的积分时窗，CMJ分子仍为完整推进阶段；推进时长变化会影响匹配时窗版本。",
-      application: "两个iDSI独立命名与展示。只有明确记录的匹配时窗或0–250 ms设备冲量参与计算，不由稀疏力时点推算积分。",
+      application: "报告按选定的匹配时窗或固定250 ms口径展示iDSI。只有明确记录的设备冲量参与计算，不由稀疏力时点推算积分。",
     },
     {
       id: "hop-10-5", authors: "Flanagan EP, Comyns TM, Harrison AJ, Brady CJ", year: 2025,
       title: "Reactive Strength Ability Is Associated with Late-Phase Sprint Acceleration and Ground Contact Time in Field Sport Athletes",
       publication: "Applied Sciences 15(12):6910. DOI 10.3390/app15126910.",
       url: "https://www.mdpi.com/2076-3417/15/12/6910", topics: ["Hop Test", "10/5", "RSI"],
-      method: "10/5连续跳按每跳RSI＝跳高(m)/触地时间(s)排序，取最高五跳的单跳RSI均值。",
-      data: "24名精英U21男子hurling运动员；本文的连续跳与分段冲刺研究采用跳高/触地时间口径。",
-      application: "应用支持完整逐跳数据或设备汇总。逐跳有效数量超过5时取前5；不足5时使用全部有效跳并显示数量。跳高、触地时间与RSI分别求均值。",
+      method: "10/5连续跳按每跳RSI＝垂直跳跃高度(m)/触地时间(s)排序，取最高五跳的单跳RSI均值。",
+      data: "24名精英U21男子hurling运动员；本文的连续跳与分段冲刺研究采用垂直跳跃高度/触地时间口径。",
+      application: "应用支持完整逐跳数据或设备汇总。逐跳有效数量超过5时取前5；不足5时使用全部有效跳并显示数量。垂直跳跃高度、触地时间与RSI分别求均值。",
     },
     {
       id: "cmrj-xu-2024", authors: "Xu J, Turner A, Comyns TM, Chavda S, Bishop C", year: 2024,
@@ -3963,7 +3997,7 @@ body.sidebar-collapsed .workspace {
       url: "https://pure.ul.ie/en/publications/the-countermovement-rebound-jump-between-session-reliability-and-/", topics: ["CMRJ", "第一跳", "反弹跳"],
       method: "CMRJ由一次反向跳及落地后的反弹跳组成；第一跳的RSImod使用起跳时间，第二跳的RSI使用触地时间。",
       data: "33名身体活跃者，跨两次测试比较CMJ、DJ和CMRJ；动作提示和熟悉练习影响测量。",
-      application: "跳跃组合图使用CMRJ第二跳的跳高/触地时间RSI；第一跳和第二跳保留独立测量字段。",
+      application: "跳跃组合图使用CMRJ第二跳的垂直跳跃高度/触地时间RSI；第一跳和第二跳保留独立测量字段。",
     },
     {
       id: "rqr-southey-2024", authors: "Southey BM, Connick MJ, Spits DR, Austin DJ, Beckman EM", year: 2024,
@@ -3972,7 +4006,7 @@ body.sidebar-collapsed .workspace {
       url: "https://hrcak.srce.hr/en/clanak/465730", topics: ["RQR", "腾空时间/触地时间", "DJ与Hop"],
       method: "RQR＝DJ的FT/CT指数/Hop的FT/CT指数；该文口径为腾空时间/触地时间。",
       data: "DJ采用45 cm落台及3次均值；Hop取10次中FT/CT最高的5跳。",
-      application: "RQR与跳高/触地时间RSI分开计算。只有与该协议相符时命名为RQR；其他条件显示为FT/CT反应比，并保留实际协议。",
+      application: "RQR与垂直跳跃高度/触地时间RSI分开计算。只有与该协议相符时命名为RQR；其他条件显示为FT/CT反应比，并保留实际协议。",
     },
     {
       id: "sandford-asr-2019", authors: "Sandford GN, Allen SV, Kilding AE, Ross A, Laursen PB", year: 2019,
@@ -4065,9 +4099,137 @@ body.sidebar-collapsed .workspace {
 </script>
 <script>
 (function (root) {
+  "use strict";
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const sourceId = "friend-2022-rer110";
+  const source = "FRIEND 2022 · 美国成人直接 CPET · VO₂peak · RER≥1.10 · 同年龄、性别及测试方式百分位";
+  const sourceUrl = "https://doi.org/10.1016/j.mayocp.2021.08.020";
+  const dataUrl = "https://github.com/JimPeterman/FRIENDanalysis/blob/81a0866c1786e34eee853123d9b865c0bb932ac3/R/FRIENDpercentile.R";
+  const percentiles = Array.from({length:19}, (_,i) => (i+1)*5);
+  // Original 2022 / RER >= 1.10 vectors; ascending P5 through P95.
+  const values = {
+    "treadmill": {
+      "m20": [24.8,28.8,32,34.8,37.3,39.2,41,42.8,44.2,45.4,46.9,48.2,49.4,50.9,52.6,54.2,56,57.8,62.1],
+      "m30": [20.6,25,27.2,29.4,31.3,32.8,34.3,35.9,37.4,38.6,40.1,41.9,43.5,45.1,46.5,48.7,51.2,54.3,57.9],
+      "m40": [19.7,22.9,25.4,26.9,28.4,29.7,31.1,32.1,33.4,34.8,36,37.2,38.5,40,41.8,44,46.1,49.5,53.2],
+      "m50": [16.5,19.2,21.4,22.7,23.9,25.3,26.2,27.2,28.2,29.4,30.7,31.8,32.9,34.1,35.5,37.5,40.1,42.7,46.8],
+      "m60": [13.8,16.1,17.5,18.6,19.7,20.8,21.8,22.8,23.6,24.4,25.3,26.5,27.6,28.7,29.9,31.6,33.6,36.4,40.2],
+      "m70": [11.6,13.6,15,16,16.8,17.6,18.5,19.3,19.9,20.6,21.5,22.3,22.9,23.9,25,26.3,27.6,29.6,35.2],
+      "m80": [12.2,13.2,13.9,15.3,15.9,16.1,16.3,16.7,17,17.7,18.3,18.8,19.5,20.4,20.9,21.8,22.3,23.6,25.6],
+      "f20": [19.3,22.2,24.5,26.6,28.6,29.9,31.3,32.7,34.2,35.6,36.8,38,39.6,41.2,42.2,44.1,45.4,47.3,50.1],
+      "f30": [16.6,19.2,20.7,22.1,23.1,24.3,25.4,26.4,27.3,28.3,29.4,30.7,31.9,33.3,34.5,36.2,38.4,41.1,45.5],
+      "f40": [15.3,17.4,19,20,21.3,22.2,23.2,24.2,24.9,25.9,26.6,27.7,28.6,29.8,30.9,32.8,34.7,37.5,40.7],
+      "f50": [14.5,16.6,17.6,18.7,19.5,20.3,21,21.7,22.3,23.1,23.7,24.7,25.5,26.4,27.3,28.4,30,31.8,35.3],
+      "f60": [12,13.5,14.7,15.5,16.4,17,17.7,18.3,18.8,19.4,20.1,20.8,21.6,22.2,23.1,24.1,25.5,27.3,29.7],
+      "f70": [11.3,12.3,13.7,14.1,14.8,15.3,15.7,16.1,16.7,17.1,17.7,18.2,18.8,19.2,20,20.6,21.4,22.8,24.2],
+      "f80": [10.7,11.4,11.9,12.4,12.8,13.4,13.8,14.3,14.6,15.1,15.3,15.5,15.8,16.6,17.2,18,18.5,19.9,20.7],
+    },
+    "cycle": {
+      "m20": [24.6,28.9,31.9,33.7,35.7,37,38.3,40.5,42,43.6,44.9,47.2,49.2,51.4,53.8,55.8,58.3,61,64.4],
+      "m30": [16.2,19.4,21.4,23.4,24.5,26.4,27.2,28.1,29.1,30.1,30.8,31.5,33.9,35.3,36.7,38.1,41.8,45.6,53.3],
+      "m40": [18.3,20,21.3,22.1,22.8,23.9,24.9,25.5,26.3,27.5,28.1,28.9,29.8,31.3,32.6,34.6,36.3,40.5,45.2],
+      "m50": [14.9,18,19.6,20.9,21.7,22.4,22.7,23.3,24,24.7,25.6,26.4,27.3,28.4,30,31.4,33.1,35.8,42.1],
+      "m60": [12.8,15.4,16.7,18,18.7,19.2,20.1,20.8,21.3,21.8,22.6,23.2,23.8,24.4,25.2,26.6,28.2,30.5,36],
+      "m70": [10.1,12.8,14.4,15.7,16,16.7,17.1,17.6,18.2,18.5,19.4,19.9,20.5,21.3,21.9,23.2,24.5,27.1,30.7],
+      "m80": [7.9,8.4,9,9.4,10.8,11.2,12.2,12.6,13.3,13.9,14.8,15.5,16.5,17.2,17.3,17.5,17.9,18.8,18.9],
+      "f20": [17.3,19.4,20.9,22.7,24.1,25.9,27.3,28.9,30.3,31.4,33.1,34,35.3,37.2,38.9,40.9,42.6,45,50.2],
+      "f30": [13.9,15.2,16.4,17.3,17.9,18.8,19.3,19.9,20.8,21.5,22.2,23.1,23.7,24.6,25.8,26.8,28.6,31.7,36.5],
+      "f40": [12.7,13.8,14.9,15.5,16,16.8,17.3,18.1,18.6,19,19.7,20.5,21.3,21.9,22.7,23.5,24.7,26.8,30.5],
+      "f50": [12.5,13.5,14.3,14.7,15.2,15.6,16.1,16.5,16.9,17.3,17.7,18.2,18.8,19.3,20,20.7,21.5,22.6,25],
+      "f60": [11.3,12.5,13.2,13.7,14.2,14.6,14.9,15.3,15.5,15.9,16.1,16.5,16.9,17.6,18.1,18.6,19.1,20.3,21.9],
+      "f70": [10.1,11.2,12,12.5,12.8,13.2,13.6,13.7,14.4,14.6,14.9,15.3,15.7,16,16.5,16.8,17.4,18,19.1],
+      "f80": [6.8,7.8,8.6,8.7,9,9.3,9.4,9.9,10.4,10.9,11.2,11.6,12.1,12.7,13,13.1,13.4,14.1,15.6],
+    },
+  };
+  const number = value => value === "" || value == null || typeof value === "boolean" ? null : Number.isFinite(Number(value)) ? Number(value) : null;
+  function percentileRanges(points) {
+    const ranges = [{min:null,max:points[0],includeMin:true,includeMax:false,label:"低于 P5",status:"gray"}];
+    points.forEach((value,i) => ranges.push({min:value,max:points[i+1]??null,includeMin:true,includeMax:false,label:i===points.length-1?"P95 及以上":"P"+percentiles[i]+"–P"+percentiles[i+1],status:"gray"}));
+    return ranges;
+  }
+  function cpetReferenceGroups() {
+    return Object.entries(values).flatMap(([mode, rows]) => Object.entries(rows).map(([key, points]) => ({
+      id:sourceId+"-"+mode+"-"+key, sex:key[0]==="m"?"male":"female", ageMin:Number(key.slice(1)), ageMax:Number(key.slice(1))+10,
+      mode, minPeakRER:1.1, source, sourceId, sourceUrl, ranges:percentileRanges(points)
+    })));
+  }
+  function overlaps(a,b) {
+    return Math.max(a.ageMin??0,b.ageMin??0)<Math.min(a.ageMax??Infinity,b.ageMax??Infinity) &&
+      (a.sex==="any"||b.sex==="any"||a.sex===b.sex) && (a.mode==="any"||b.mode==="any"||a.mode===b.mode);
+  }
+  function validateReferenceGroups(groups) {
+    if (groups === undefined) return true;
+    if (!Array.isArray(groups) || groups.length>300) throw Error("分层标准须为不超过 300 行的列表");
+    const ids=new Set();
+    groups.forEach((g,i) => {
+      const fail=message=>{throw Error("分层标准第 "+(i+1)+" 行："+message);};
+      if (!g || typeof g!=="object" || Array.isArray(g) || typeof g.id!=="string" || !/^[A-Za-z0-9_-]+$/.test(g.id) || ids.has(g.id)) fail("编号缺失或重复");
+      ids.add(g.id);
+      if (!["male","female","any"].includes(g.sex) || !["treadmill","cycle","any"].includes(g.mode)) fail("性别或测试方式无效");
+      for (const key of ["ageMin","ageMax"]) if(g[key]!==null && (typeof g[key]!=="number"||!Number.isFinite(g[key])||g[key]<0))fail("年龄须为非负数或留空");
+      if(g.ageMax!==null && g.ageMax<=(g.ageMin??0))fail("年龄上限须大于下限");
+      if(g.target!==undefined&&g.target!==null&&(typeof g.target!=="number"||!Number.isFinite(g.target)||g.target<=0))fail("目标须为正数或留空");
+      if(g.minPeakRER!==undefined&&(typeof g.minPeakRER!=="number"||!Number.isFinite(g.minPeakRER)||g.minPeakRER<=0))fail("最低峰值 RER 须为正数或留空");
+      if(typeof g.source!=="string" || ["sourceId","sourceUrl"].some(k=>g[k]!==undefined&&typeof g[k]!=="string"))fail("来源格式无效");
+      if(!Array.isArray(g.ranges)||g.ranges.length>100)fail("分级区间格式无效");
+      g.ranges.forEach((r,j)=>{
+        if(!r||typeof r!=="object"||typeof r.label!=="string"||!r.label.trim()||!["red","amber","green","gray"].includes(r.status))fail("第 "+(j+1)+" 个区间的名称或颜色无效");
+        for(const k of ["min","max"])if(r[k]!==null&&(typeof r[k]!=="number"||!Number.isFinite(r[k])))fail("区间端点须为数值或留空");
+        if(r.min===null&&r.max===null||r.min!==null&&r.max!==null&&(r.min>r.max||r.min===r.max&&(r.includeMin===false||r.includeMax===false)))fail("区间上下限无效");
+        if(["includeMin","includeMax"].some(k=>r[k]!==undefined&&typeof r[k]!=="boolean"))fail("端点包含选项无效");
+        g.ranges.slice(0,j).forEach(prior=>{
+          const low=Math.max(r.min??-Infinity,prior.min??-Infinity), high=Math.min(r.max??Infinity,prior.max??Infinity);
+          const contains=(x,value)=>(x.min===null||value>x.min||value===x.min&&x.includeMin!==false)&&(x.max===null||value<x.max||value===x.max&&x.includeMax!==false);
+          if(low<high||low===high&&contains(r,low)&&contains(prior,low))fail("分级区间重叠");
+        });
+      });
+      if(groups.slice(0,i).some(other=>overlaps(other,g)))fail("适用年龄、性别与测试方式和其他行重叠");
+    });
+    return true;
+  }
+  function matchReferenceGroup(record,groups) {
+    const rawSex=String(record.athlete?.sex||"").toLowerCase();
+    const sex=["男","男性","male","m"].includes(rawSex)?"male":["女","女性","female","f"].includes(rawSex)?"female":null;
+    const age=number(record.athlete?.age),mode=record.data?.cpet?.modality||null;
+    const group=(groups||[]).find(g=>(g.sex==="any"||sex!==null&&g.sex===sex)&&(g.mode==="any"||mode!==null&&g.mode===mode)&&
+      (g.ageMin===null||age!==null&&age>=g.ageMin)&&(g.ageMax===null||age!==null&&age<g.ageMax));
+    if(!group)return {group:null,eligible:false,reason:"未匹配年龄、性别或测试方式的参考标准"};
+    const rer=number(record.data?.cpet?.rer);
+    if(group.minPeakRER!==undefined&&(rer===null||rer<group.minPeakRER))return {group,eligible:false,reason:"所选参考表要求峰值 RER ≥ "+group.minPeakRER};
+    return {group,eligible:true,reason:""};
+  }
+  root.RingsideReferences={sourceId,source,sourceUrl,dataUrl,percentiles:clone(percentiles),cpetReferenceGroups,validateReferenceGroups,matchReferenceGroup};
+})(typeof window !== "undefined" ? window : globalThis);
+
+
+</script>
+<script>
+(function (root) {
   'use strict';
 
   var SOURCE = 'Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。';
+  // Exact factory aliases only. Free text and user-edited protocols are never rewritten.
+  var factoryAliases = {
+    name: {
+      cmj_height: ['CMJ 跳高', 'CMJ 垂直跳跃高度'],
+      sj_height: ['SJ 跳高', 'SJ 垂直跳跃高度'],
+      dj_height: ['DJ 反弹跳高', 'DJ 反弹垂直跳跃高度'],
+      hop_height: ['HOP 反弹跳高', 'HOP 反弹垂直跳跃高度'],
+      cmrj_height: ['CMRJ 反弹跳高', 'CMRJ 反弹垂直跳跃高度'],
+      cmrj_first_height: ['CMRJ 首跳跳高', 'CMRJ 首跳垂直跳跃高度']
+    },
+    protocol: {
+      cmj_height: ['统一手臂使用、起始姿势与跳高测量方法；原章节使用光电飞行时间。', '统一手臂使用、起始姿势与垂直跳跃高度测量方法；原章节使用光电飞行时间。']
+    },
+    testProtocol: {
+      dj: ['双手叉腰；记录跌落高度；落地后立即反弹；RSI 为跳高/触地时间。', '双手叉腰；记录跌落高度；落地后立即反弹；RSI 为垂直跳跃高度/触地时间。'],
+      hop: ['垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按跳高/触地时间选最高5个；保留实际数量。', '垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按垂直跳跃高度/触地时间选最高5个；保留实际数量。']
+    }
+  };
+  function factoryText(id, field, value, legacy) {
+    var pair = factoryAliases[field] && factoryAliases[field][id];
+    return pair && value === pair[legacy ? 1 : 0] ? pair[legacy ? 0 : 1] : value;
+  }
   var anomalies = [
     '原表存在空白区间与共享边界：保留原文，不自动补齐；未命中区间显示“未分级”。共享单点默认归入数值较高的区间，可在调用分级时改为 lower 或 unclassified。',
     '地雷杠 35 kg 的部分参考值低于 40 kg，这是原表内容；不自动修订。其左右侧为解剖学 R/L，药球则为优势/非优势侧。',
@@ -4092,8 +4254,8 @@ body.sidebar-collapsed .workspace {
       if (!line) return;
       var parts = line.split('|').map(function (part) { return part.trim(); });
       function fail(message) { throw new Error('第 ' + (index + 1) + ' 行：' + message); }
-      if (parts.length !== 3 || !parts[1]) fail('请使用“区间 | 标签 | red/amber/green”。');
-      if (['red', 'amber', 'green'].indexOf(parts[2]) === -1) fail('颜色仅支持 red、amber、green。');
+      if (parts.length !== 3 || !parts[1]) fail('请使用“区间 | 标签 | red/amber/green/gray”。');
+      if (['red', 'amber', 'green', 'gray'].indexOf(parts[2]) === -1) fail('颜色仅支持 red、amber、green、gray。');
       var expression = parts[0].replace(/≤/g, '<=').replace(/≥/g, '>=').replace(/\s+/g, '');
       var min = null, max = null, includeMin = true, includeMax = true;
       var match = expression.match(/^(<=|>=|<|>|=)(.+)$/);
@@ -4153,8 +4315,8 @@ body.sidebar-collapsed .workspace {
   }
 
   var builtins = [
-    make('cmj_height', 'cmj', 'CMJ 跳高', 'cm', '下肢爆发力', 50, '统一手臂使用、起始姿势与跳高测量方法；原章节使用光电飞行时间。', four('<35', '40..44', '45..49', '>50')),
-    make('sj_height', 'sj', 'SJ 跳高', 'cm', '下肢爆发力', 50, '静止半蹲起跳，避免预先反向运动；与 CMJ 采用一致测量方法。', four('<30', '35..39', '40..44', '>50')),
+    make('cmj_height', 'cmj', 'CMJ 垂直跳跃高度', 'cm', '下肢爆发力', 50, '统一手臂使用、起始姿势与垂直跳跃高度测量方法；原章节使用光电飞行时间。', four('<35', '40..44', '45..49', '>50')),
+    make('sj_height', 'sj', 'SJ 垂直跳跃高度', 'cm', '下肢爆发力', 50, '静止半蹲起跳，避免预先反向运动；与 CMJ 采用一致测量方法。', four('<30', '35..39', '40..44', '>50')),
     make('pushup_reps', 'pushup', '60 秒俯卧撑', '次', '力量耐力', 80, '60 秒；下放至胸部与大腿触地，再完全伸肘计 1 次；记录动作规范。', four('<60', '60..70', '70..80', '>80')),
     make('mb_dom', 'mb', '3 kg 药球后手投掷·优势侧', 'm', '旋转投掷能力', 13, '3 kg 药球；拳击分腿站姿，从后脚侧肩部单臂模拟后手出拳；起点至首次落地距离。', four('<9', '9..11', '11..13', '>13')),
     make('mb_non', 'mb', '3 kg 药球后手投掷·非优势侧', 'm', '旋转投掷能力', 12, '3 kg 药球；与优势侧相同动作与测距。不是双手旋转掷球或头上向后投掷。', four('<8', '8..10', '10..12', '>12')),
@@ -4201,7 +4363,7 @@ body.sidebar-collapsed .workspace {
     var converted = '跑台改良版：2.222222 m/s 起，每级 +0.138889 m/s，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。';
     return id === 'ift_treadmill' && [legacy, converted, '30-15VIFT'].indexOf(text) !== -1 ? '30-15VIFT' : text;
   }
-  root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies, viftProtocol: viftProtocol,
+  root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies, viftProtocol: viftProtocol, factoryText: factoryText,
     defaultDefinitions: function () { return JSON.parse(JSON.stringify(builtins)); },
     parseRanges: parseRanges, rangeText: rangeText, grade: grade };
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -4629,6 +4791,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ["pushup", "60 秒俯卧撑", "performance", "scalar"],
     ["mb", "药球反手投掷", "performance", "ball"],
     ["lactate", "递增负荷测试：乳酸与心率", "performance", "lactate"],
+    ["cpet", "CPET 心肺运动测试", "performance", "cpet"],
     ["ift", "30-15VIFT", "performance", "speed"],
     ["mas", "MAS 最大有氧速度", "performance", "speed"],
     ["mss", "MSS 最大冲刺速度", "performance", "speed"],
@@ -4642,7 +4805,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       !(source.tests || source.projectSnapshots || []).some((t) => t.id === id && t.legacyCustom === true);
   }
   const jumpFields = [
-    { key: "height", suffix: "height", label: "跳高", unit: "cm" },
+    { key: "height", suffix: "height", label: "垂直跳跃高度", unit: "cm" },
     {
       key: "rsiModified",
       suffix: "rsi_modified",
@@ -4658,17 +4821,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     },
   ];
   const reactiveFields = [
-    { key: "height", suffix: "height", label: "反弹跳高", unit: "cm" },
+    { key: "height", suffix: "height", label: "反弹垂直跳跃高度", unit: "cm" },
     { key: "rsi", suffix: "rsi", label: "RSI", unit: "m/s", computed: true },
     { key: "contactTimeMs", suffix: "contact_time", label: "触地时间", unit: "ms" },
     { key: "flightTimeMs", suffix: "flight_time", label: "腾空时间", unit: "ms" },
     { key: "flightTimeRatio", suffix: "flight_time_ratio", label: "腾空 / 触地时间", unit: "比值", computed: true },
+    { key: "activeStiffness", suffix: "active_stiffness", label: "Active Stiffness", unit: "kN/m" },
   ];
   function fieldsForTest(id) {
     if (id === "dj") return reactiveFields.concat({ key: "dropHeightCm", suffix: "drop_height", label: "跌落高度", unit: "cm" });
     if (id === "hop") return reactiveFields;
     if (id === "cmrj") return [
-      { key: "firstHeight", suffix: "first_height", label: "首跳跳高", unit: "cm" },
+      { key: "firstHeight", suffix: "first_height", label: "首跳垂直跳跃高度", unit: "cm" },
       { key: "firstTimeToTakeoffMs", suffix: "first_time_to_takeoff", label: "首跳起跳用时", unit: "ms" },
       { key: "firstRsiModified", suffix: "first_rsi_modified", label: "首跳 RSI-modified", unit: "m/s", computed: true },
       ...reactiveFields,
@@ -4705,6 +4869,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ),
     ...["dj", "hop", "cmrj"].flatMap((id) => fieldsForTest(id).map((field) =>
       [id + "_" + field.suffix, id, id.toUpperCase() + " " + field.label, field.unit, "反应力量"])),
+    ["rqr", "dj", "DJ/Hop FT/CT 反应比", "比值", "反应力量"],
     ["squat_1rm", "squat", "深蹲预估1RM / 体重", "kg/kg", "最大力量"],
     ["bench_1rm", "bench", "卧推预估1RM / 体重", "kg/kg", "最大力量"],
     ["deadlift_1rm", "deadlift", "硬拉预估1RM / 体重", "kg/kg", "最大力量"],
@@ -4720,11 +4885,28 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ["imtp_impulse250", "imtp", "IMTP 0–250 ms 冲量", "N·s", "早期发力"],
     ["imtp_matched_impulse", "imtp", "IMTP 匹配时窗冲量", "N·s", "早期发力"],
     ["imtp_matched_duration", "imtp", "IMTP 匹配时窗", "ms", "早期发力"],
+    ["cpet_vo2_relative", "cpet", "CPET 相对摄氧量", "mL·kg⁻¹·min⁻¹", "有氧代谢能力"],
+    ["cpet_vo2_absolute", "cpet", "CPET 绝对摄氧量", "L/min", "有氧代谢能力"],
+    ["cpet_peak_hr", "cpet", "CPET 峰值心率", "bpm", "有氧代谢能力"],
+    ...[1, 2].flatMap(n => [
+      [`cpet_threshold${n}_vo2_relative`, "cpet", `第 ${n} 阈值相对摄氧量`, "mL·kg⁻¹·min⁻¹", "有氧代谢能力"],
+      [`cpet_threshold${n}_vo2_absolute`, "cpet", `第 ${n} 阈值绝对摄氧量`, "L/min", "有氧代谢能力"],
+      [`cpet_threshold${n}_pct`, "cpet", `第 ${n} 阈值摄氧量占比`, "%", "有氧代谢能力"],
+      [`cpet_threshold${n}_hr`, "cpet", `第 ${n} 阈值心率`, "bpm", "有氧代谢能力"],
+      [`cpet_threshold${n}_speed`, "cpet", `第 ${n} 阈值速度`, "m/s", "有氧代谢能力"],
+      [`cpet_threshold${n}_power`, "cpet", `第 ${n} 阈值功率`, "W", "有氧代谢能力"],
+    ]),
   ];
   const computedIds = new Set([
     ...(global.Def?.builtins || []).map((d) => d.id),
     ...extraMetrics.map((d) => d[0]),
   ]);
+  const jumpReference = (id) => {
+    const modified = /(?:^|_)rsi_modified$/.test(id), rsi = /^(dj|hop|cmrj)_rsi$/.test(id);
+    if (!modified && !rsi) return {};
+    return { referenceEnabled: true, source: "用户指定评价标准（2026-10-08）", protocol: modified ? "垂直跳跃高度(m) / 整个起跳动作时间(s)" : "垂直跳跃高度(m) / 触地时间(s)",
+      ranges: global.Def.parseRanges(modified ? "<0.35 | 较差 | red\n[0.35..0.50) | 一般 | amber\n0.50..0.65 | 良好 | green\n>0.65 | 优秀 | green" : "<1.5 | 较差 | red\n[1.5..2.0) | 中等 | amber\n2.0..2.5 | 良好 | green\n>2.5 | 优秀 | green") };
+  };
   const extraDefinitions = () =>
     extraMetrics.map(([id, testId, name, unit, ability]) => ({
       id,
@@ -4739,6 +4921,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       ranges: [],
       source: "用户配置评价标准",
       protocol: "使用实际测试协议与匹配评价标准",
+      ...jumpReference(id),
+      ...(id === "cpet_vo2_relative" ? { referenceEnabled: true, referenceMode: "grouped", referenceGroups: global.RingsideReferences?.cpetReferenceGroups?.() || [], source: "FRIEND 2022 · 实测摄氧量参考百分位", protocol: "CPET 实测摄氧量" } : {}),
     }));
   const isManualMetric = (definition) =>
     !!definition && (definition.legacyManual === true || !computedIds.has(definition.id));
@@ -4747,7 +4931,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   const isAttemptMetric = (definition) =>
     isManualMetric(definition) &&
     definition.entryScope === "attempt" &&
-    supportsAttemptMetrics(definition.testId);
+    (definition.legacyManual === true || supportsAttemptMetrics(definition.testId));
   function repeatPolicy(source, testId) {
     const renderer = isNative(source,testId) ? registry.get(testId).renderer : "scalar";
     const fields = (source.definitions || []).filter((d) => d.testId === testId && isAttemptMetric(d));
@@ -4756,7 +4940,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       || (source.customTests || []).find((t) => t.id === testId);
     const primary = fields.find((d) => d.id === test?.primaryMetricId) || fields[0];
     return {
-      kind: ["fms", "lactate"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
+      kind: ["fms", "lactate", "cpet"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
       primaryMetricId: primary?.id || null,
       direction: primary?.direction || "higher",
       fields,
@@ -4816,6 +5000,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       ["lactate", "乳酸 mmol/L"],
       ["hr", "心率 bpm"],
     ],
+    cpet: [["modality", "测试方式"], ["oxygenLabel", "原报告摄氧量名称"], ["vo2", "摄氧量"], ["vo2Unit", "摄氧量单位"], ["peakHr", "峰值心率 bpm"], ["rer", "峰值 RER"], ["thresholds", "实测阈值"]],
     pushup: [["reps", "次数"]],
     mb: [
       ["side", "侧别"],
@@ -4850,7 +5035,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             ]
           : nativeFields[testId] || [];
     return {
-      shape: isNative(source,testId) && ["pushup", "ift", "mas", "mss", "hop"].includes(testId)
+      shape: isNative(source,testId) && ["pushup", "ift", "mas", "mss", "hop", "cpet"].includes(testId)
         ? "object"
         : isNative(source,testId)
           ? "rows"
@@ -4943,7 +5128,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
       return { id, name: prior?.name ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
-        ...(reactiveIds.includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
+        ...([...reactiveIds, "cpet"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
         ...(primaryMetricId ? { primaryMetricId } : {}) };
     });
   }
@@ -5177,16 +5362,50 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   const extraDefs = T.extraDefinitions;
   function preserveAddedMetricCollisions(definitions, source) {
-    if (source.derivedEnabled !== undefined) return definitions;
-    const added = new Set(extraDefs().filter((d) => ["dj","hop","cmrj"].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => d.id));
+    const added = new Set(extraDefs().filter((d) =>
+      source.derivedEnabled === undefined && (["dj","hop","cmrj"].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)) ||
+      (source.capabilityVersion !== 1 || !T.isNative(source,d.testId)) && (d.testId === "cpet" || d.id === "rqr" || d.id.endsWith("_active_stiffness"))
+    ).map((d) => d.id));
     return definitions.map((d) => added.has(d.id) ? { ...d, legacyManual: true } : d);
   }
   function newJumpAttempt(testId) {
     return { id: uid(), ...Object.fromEntries(T.fieldsForTest(testId).filter((f) => !f.computed).map((f) => [f.key, ""])), metrics: {}, notes: "" };
   }
   function newHopSet() {
-    return { id: uid(), inputMode: "summary", summary: { height: "", contactTimeMs: "", flightTimeMs: "", rsi: "", flightTimeRatio: "", selectionBasis: "unknown", suppliedCount: "", validCount: "", selectedCount: "", notes: "" },
+    return { id: uid(), inputMode: "summary", summary: { height: "", contactTimeMs: "", flightTimeMs: "", rsi: "", flightTimeRatio: "", activeStiffness: "", selectionBasis: "unknown", suppliedCount: "", validCount: "", selectedCount: "", notes: "" },
       jumps: [{ id: uid(), height: "", contactTimeMs: "", flightTimeMs: "", notes: "" }], notes: "" };
+  }
+  function cpetDefaults() {
+    const threshold = label => ({ label, vo2: "", vo2Unit: "ml/kg/min", hr: "", speed: "", power: "" });
+    return { modality: "", protocol: "", oxygenLabel: "VO2peak", vo2: "", vo2Unit: "ml/kg/min", peakHr: "", rer: "", thresholds: { first: threshold("VT1"), second: threshold("VT2") } };
+  }
+  function normalizeCPET(input) {
+    const base = cpetDefaults(), value = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+    return { ...base, ...value, thresholds: { first: { ...base.thresholds.first, ...value.thresholds?.first }, second: { ...base.thresholds.second, ...value.thresholds?.second } } };
+  }
+  function cpetSummary(record) {
+    const data = normalizeCPET(record.data.cpet), mass = positive(record.athlete.mass), issues = [];
+    const oxygen = input => {
+      const value = positive(input.vo2), unit = input.vo2Unit;
+      const relative = value === null ? null : unit === "ml/kg/min" ? value : unit === "l/min" && mass !== null ? value * 1000 / mass : null;
+      const absolute = value === null ? null : unit === "l/min" ? value : unit === "ml/kg/min" && mass !== null ? value * mass / 1000 : null;
+      return { value, unit, relative, absolute };
+    };
+    const peak = { ...oxygen(data), label: data.oxygenLabel, hr: positive(data.peakHr), rer: positive(data.rer) };
+    const thresholds = Object.fromEntries(["first", "second"].map((key, index) => {
+      const input = data.thresholds[key], measured = oxygen(input);
+      let percentage = measured.relative !== null && peak.relative !== null ? measured.relative / peak.relative * 100
+        : measured.absolute !== null && peak.absolute !== null ? measured.absolute / peak.absolute * 100 : null;
+      if (percentage !== null && percentage > 100) { issues.push({ id: "cpet_threshold" + (index + 1) + "_above_peak", testId: "cpet", status: "amber", message: input.label + " 摄氧量高于本次" + peak.label + "，请核对原报告" }); percentage = null; }
+      return [key, { ...measured, label: input.label, percentage, hr: positive(input.hr), speed: data.modality === "treadmill" ? positive(input.speed) : null, power: data.modality === "cycle" ? positive(input.power) : null }];
+    }));
+    const first = thresholds.first, second = thresholds.second;
+    const comparable = first.relative !== null && second.relative !== null ? [first.relative, second.relative] : first.absolute !== null && second.absolute !== null ? [first.absolute, second.absolute] : null;
+    if (comparable && comparable[0] >= comparable[1]) {
+      issues.push({ id: "cpet_threshold_order", testId: "cpet", status: "amber", message: "第一阈值摄氧量须低于第二阈值，请核对原报告" });
+      first.percentage = null; second.percentage = null;
+    }
+    return { modality: data.modality, protocol: data.protocol || record.protocol.cpet || "", peak, thresholds, issues };
   }
   function normalizeHopSet(input, prefix = "hop") {
     const base = newHopSet(), s = input && typeof input === "object" && !Array.isArray(input) ? input : {};
@@ -5202,6 +5421,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function convertDefinition(input, legacy = false) {
     const d = clone(input);
+    if (!d.legacyManual) ["name","protocol"].forEach(key => { d[key] = Def.factoryText(d.id,key,d[key]); });
     d.ranges = Array.isArray(d.ranges) ? d.ranges : [];
     if (d.unit === "km/h") {
       if (N(d.target) !== null) d.target = N(d.target) / 3.6;
@@ -5214,8 +5434,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     if (typeof d.protocol === "string")
       d.protocol = migrateLegacySpeedText(d.protocol, {}).text;
-    if (d.id === "cmj_height") d.name = "CMJ";
-    if (d.id === "sj_height") d.name = "SJ";
+    if (d.id === "cmj_height" && ["CMJ","CMJ 垂直跳跃高度"].includes(d.name)) d.name = "CMJ";
+    if (d.id === "sj_height" && ["SJ","SJ 垂直跳跃高度"].includes(d.name)) d.name = "SJ";
     if (["squat_1rm", "bench_1rm", "deadlift_1rm"].includes(d.id))
       d.name = d.name.replace(/估计\s*1RM/g, "预估1RM");
     // Only the preserved built-in intervals have a known excellence meaning.
@@ -5229,6 +5449,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const rows = isoRows();
     return {
       schema: 2,
+      capabilityVersion: 1,
       kind: "assessment-record",
       athleteId: uid(),
       recordId: uid(),
@@ -5313,6 +5534,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           { id: uid(), side: "ND", distance: "" },
         ],
         lactate: [{ id: uid(), speed: "", lactate: "", hr: "" }],
+        cpet: cpetDefaults(),
         ift: { speed: "", unit: "m/s", protocol: "shuttle", partial: "" },
         mas: { speed: "", unit: "m/s", method: "" },
         mss: { speed: "", unit: "m/s", method: "" },
@@ -5320,8 +5542,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       protocol: {
         cmj: "双手叉腰；测量方法与设备待记录",
         sj: "双手叉腰；静止起跳；测量方法与设备待记录",
-        dj: "双手叉腰；记录跌落高度；落地后立即反弹；RSI 为跳高/触地时间。",
-        hop: "垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按跳高/触地时间选最高5个；保留实际数量。",
+        dj: "双手叉腰；记录跌落高度；落地后立即反弹；RSI 为垂直跳跃高度/触地时间。",
+        hop: "垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按垂直跳跃高度/触地时间选最高5个；保留实际数量。",
         cmrj: "双手叉腰；最大 CMJ 后落地立即反弹；分别记录首跳和第二跳。",
         imtp: "IMTP；姿势、固定方式、采样率与力起点待记录",
         iso: "",
@@ -5331,6 +5553,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         bench: "卧推；停顿、握距与设备待记录",
         deadlift: "传统硬拉；起始方式与设备待记录",
         lactate: "跑台；每级3 min；采样恢复1 min",
+        cpet: "CPET 实测；保留原报告阈值与摄氧量名称",
       },
       cmjConfig: { definition: "gross", impulseDefinition: "gross" },
       imtpConfig: { unit: "N", definition: "gross", impulseDefinition: "gross" },
@@ -5374,6 +5597,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         scoreGreen: 100,
       },
       views: {
+        idsiWindow: "idsi_matched",
         imtp: { yAxis: "percent" },
         redScope: "all",
         amberScope: "all",
@@ -5659,9 +5883,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     out.athlete = { ...d.athlete, ...s.athlete };
     out.trainingContext = { ...d.trainingContext, ...s.trainingContext };
     out.enabled = { ...d.enabled, ...s.enabled };
-    ["dj", "hop", "cmrj"].forEach((id) => { if (!Object.hasOwn(s.enabled || {}, id)) out.enabled[id] = false; });
+    ["dj", "hop", "cmrj", "cpet"].forEach((id) => { if (!Object.hasOwn(s.enabled || {}, id)) out.enabled[id] = false; });
     out.data = { ...d.data, ...s.data };
     if (T.isNative(s,"hop")) out.data.hop = normalizeHopSet(s.data?.hop);
+    if (T.isNative(s,"cpet")) out.data.cpet = normalizeCPET(s.data?.cpet);
     out.derivedEnabled = { ...d.derivedEnabled, ...s.derivedEnabled };
     out.impulseConfig = { ...d.impulseConfig, ...s.impulseConfig };
     ["ift", "mas", "mss", "pushup"].forEach((t) => {
@@ -5672,7 +5897,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     out.protocol = { ...d.protocol, ...s.protocol };
     Object.keys(out.protocol).forEach((id) => {
       const migration = migrateLegacySpeedText(out.protocol[id], s);
-      out.protocol[id] = migration.text;
+      out.protocol[id] = T.isNative(s,id) ? Def.factoryText(id,"testProtocol",migration.text) : migration.text;
       if (migration.review.required) {
         out.unitMigration ||= {
           required: true,
@@ -5772,11 +5997,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       : inferredPairs;
     out.definitions = preserveAddedMetricCollisions((
       Array.isArray(s.definitions) ? s.definitions : d.definitions
-    ).map((x) => convertDefinition(x, legacy)), s);
+    ), s).map((x) => convertDefinition(x, legacy));
     const existing = new Set(out.definitions.map((x) => x.id));
     extraDefs()
       .filter(
-        (x) => ["imtp", "cmj", "sj", "dj", "hop", "cmrj"].includes(x.testId) && T.isNative(out,x.testId) && !existing.has(x.id),
+        (x) => ["imtp", "cmj", "sj", "dj", "hop", "cmrj", "cpet"].includes(x.testId) && T.isNative(out,x.testId) && !existing.has(x.id),
       )
       .forEach((x) => out.definitions.push(x));
     out.projectSnapshots = T.snapshots(out);
@@ -6609,6 +6834,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const timeValid = jumps.filter((j) => positive(j.flightTimeRatio) !== null);
     const timeSelected = timeValid.length > 5 ? [...timeValid].sort((a,b) => b.flightTimeRatio-a.flightTimeRatio || a.index-b.index).slice(0,5) : timeValid;
     const row = Object.fromEntries(T.fieldsForTest("hop").map((f) => [f.key, average(selected.map((j) => positive(j[f.key])))]));
+    // Device Active Stiffness describes the complete Hop test, not one hop cycle.
+    row.activeStiffness = positive(set.summary?.activeStiffness);
     // A mean ratio requires the ratio from every selected jump, never a ratio of means.
     if (!flightRatioComplete) row.flightTimeRatio = null;
     return { id: set.id, inputMode: mode, row,
@@ -6621,8 +6848,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const eligible = sets.filter((s) => positive(s.row.rsi) !== null);
     const best = eligible.reduce((a,b) => !a || b.row.rsi > a.row.rsi ? b : a, null);
     const selected = record.mode === "mean" ? eligible : best ? [best] : [];
-    const row = selected.length ? Object.fromEntries(T.fieldsForTest("hop").map((f) => [f.key,
+    let row = selected.length ? Object.fromEntries(T.fieldsForTest("hop").map((f) => [f.key,
       f.key === "flightTimeRatio" && !selected.every((s) => s.flightRatioComplete) ? null : average(selected.map((s) => s.row[f.key]))])) : null;
+    const stiffnessSets = selected.length ? selected : sets.filter(s => positive(s.row.activeStiffness) !== null);
+    if (stiffnessSets.length) {
+      row ||= {};
+      row.activeStiffness = record.mode === "mean" || selected.length ? average(stiffnessSets.map(s => s.row.activeStiffness)) : Math.max(...stiffnessSets.map(s => s.row.activeStiffness));
+    }
     return { row, count: eligible.length, sets, selectedSetIds: selected.map((s) => s.id),
       counts: Object.fromEntries(["supplied","valid","selected"].map((key) => [key, selected.length && selected.every((s) => s.counts[key] !== null) ? selected.reduce((sum,s) => sum+s.counts[key],0) : null])),
       fields, metrics: fields.map((f) => ({ ...f, value: row?.[f.key] ?? null, count: selected.filter((s) => N(s.row[f.key]) !== null).length })),
@@ -6644,7 +6876,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const selected =
       record.mode === "best" ? (result.row ? [result.row] : []) : eligible;
     result.metrics = fields.map((field) => {
-      const values = selected
+      const independent = ["activeStiffness","rsiModified","firstHeight","firstTimeToTakeoffMs","firstRsiModified"].includes(field.key);
+      const fallbackKey = field.key?.startsWith("first") ? "firstRsiModified" : field.key;
+      const sourceRows = independent && !selected.length ? (record.mode === "mean" ? clean : clean.filter(row => positive(row[fallbackKey]) !== null).sort((a,b) => b[fallbackKey]-a[fallbackKey]).slice(0,1)) : selected;
+      const values = sourceRows
         .map((row) =>
           field.key ? positive(row[field.key]) : N(row.metrics?.[field.id]),
         )
@@ -6992,6 +7227,90 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     });
     return { results, enabledCount: results.length };
   }
+  function capabilityCards(record, values, raw, derived) {
+    const cards = [], result = id => derived.results.find(item => item.id === id && item.available);
+    const metric = (id, label, value, unit, judgment = "", extra = {}) => ({ id, label, value: N(value), unit, judgment, status: "gray", ...extra });
+    const rated = (id, label, value, unit) => {
+      const definition = record.definitions.find(d => d.id === id), configured = definition?.referenceEnabled === true;
+      const grade = configured ? evaluation(value, definition, record) : null;
+      // A gray percentile band is still a valid descriptive classification.
+      return metric(id, label, value, unit, grade && (grade.range || grade.status !== "gray") ? grade.label : "", { status: grade?.status || "gray" });
+    };
+    const add = (id, title, metrics, conclusion = "") => {
+      const present = metrics.filter(item => item && Number.isFinite(item.value));
+      if (present.length) cards.push({ id, title, metrics: present, conclusion });
+    };
+    const strength = ["fdsi", "eur"].map(id => {
+      const value = result(id);
+      return value && metric(id, id === "fdsi" ? "DSI" : "EUR", value.value, value.unit, value.directionHint, { components: value.components });
+    });
+    const variants = derived.results.filter(item => item.id.startsWith("idsi_") && item.available);
+    const impulse = variants.find(item => item.id === record.views?.idsiWindow) || variants.find(item => item.id === "idsi_matched") || variants[0];
+    if (impulse) strength.splice(1, 0, metric("idsi", "iDSI 冲量比", impulse.value, impulse.unit, impulse.directionHint, { components: impulse.components, selectedVariant: impulse.id, variants }));
+    for (const [id, label] of [["cmj_rsi_modified", "CMJ RSI-modified"], ["sj_rsi_modified", "SJ RSI-modified"], ["cmrj_first_rsi_modified", "CMRJ 首跳 RSI-modified"]])
+      if (positive(values[id]) !== null) strength.push(rated(id, label, values[id], "m/s"));
+    add("strength", "力量发展方向", strength);
+    const reactive = [];
+    for (const id of ["dj", "hop", "cmrj"]) {
+      const name = id === "hop" ? "Hop" : id.toUpperCase();
+      if (positive(values[id + "_rsi"]) !== null) reactive.push(rated(id + "_rsi", name + " RSI", values[id + "_rsi"], "m/s"));
+      if (positive(values[id + "_active_stiffness"]) !== null) reactive.push(rated(id + "_active_stiffness", name + " Active Stiffness", values[id + "_active_stiffness"], "kN/m"));
+    }
+    const ratio = result("rqr");
+    if (ratio) reactive.push({ ...rated("rqr", ratio.protocolMatch ? "RQR · DJ/Hop 反应比" : "DJ/Hop FT/CT 反应比", ratio.value, "比值"), components: ratio.components, protocolMatch: ratio.protocolMatch });
+    add("reactive", "反应力量水平", reactive);
+    const speed = [], asr = result("asr"), srr = result("srr");
+    if (asr && asr.value >= 0) speed.push(metric("asr", "ASR", asr.value, "m/s", "", { components: asr.components }));
+    if (srr && srr.value >= 1) speed.push(metric("srr", "SRR", srr.value, "比值", srr.value < 1.7 ? "耐力型" : srr.value > 1.8 ? "速度型" : "混合型", { components: srr.components }));
+    add("speed", "速度耐力类型", speed);
+    const cardio = [], targets = [], cpet = raw.cpet;
+    let conclusion = "";
+    if (cpet) {
+      const peak = cpet.peak, label = peak.label === "VO2max" ? "VO₂max" : "VO₂peak";
+      const id = peak.relative !== null ? "cpet_vo2_relative" : "cpet_vo2_absolute", value = peak.relative ?? peak.absolute;
+      if (value !== null) {
+        const components = [rated("cpet_peak_hr", "峰值心率", peak.hr, "bpm")].filter(item => item.value !== null);
+        if (peak.relative !== null && peak.absolute !== null) {
+          const absolute = rated("cpet_vo2_absolute", label + " 绝对摄氧量", peak.absolute, "L/min");
+          if (absolute.judgment) components.unshift(absolute);
+        }
+        cardio.push({ ...rated(id, label, value, peak.relative !== null ? "mL·kg⁻¹·min⁻¹" : "L/min"), components });
+      }
+      else if (peak.hr !== null) cardio.push(rated("cpet_peak_hr", "峰值心率", peak.hr, "bpm"));
+      for (const [index, threshold] of [cpet.thresholds.first, cpet.thresholds.second].entries()) {
+        const stem = "cpet_threshold" + (index + 1), components = [
+          rated(stem + (threshold.relative !== null ? "_vo2_relative" : "_vo2_absolute"), threshold.label + " 摄氧量", threshold.relative ?? threshold.absolute, threshold.relative !== null ? "mL·kg⁻¹·min⁻¹" : "L/min"),
+          rated(stem + "_hr", threshold.label + " 心率", threshold.hr, "bpm"),
+          rated(stem + "_speed", threshold.label + " 速度", threshold.speed, "m/s"),
+          rated(stem + "_power", threshold.label + " 功率", threshold.power, "W"),
+        ].filter(item => item.value !== null);
+        if (threshold.relative !== null && threshold.absolute !== null) {
+          const absolute = rated(stem + "_vo2_absolute", threshold.label + " 绝对摄氧量", threshold.absolute, "L/min");
+          if (absolute.judgment) components.splice(1,0,absolute);
+        }
+        if (threshold.percentage !== null) cardio.push({ ...rated(stem + "_pct", threshold.label + " 摄氧量占比", threshold.percentage, "%"), components });
+        else if (components.length) {
+          cardio.push({ ...components[0], components:components.slice(1) });
+        }
+      }
+      const oxygenTarget = record.definitions.find(d => d.id === "cpet_vo2_relative"), thresholdTarget = record.definitions.find(d => d.id === "cpet_threshold2_pct");
+      const p = cpet.thresholds.second.percentage;
+      if (oxygenTarget?.referenceEnabled && thresholdTarget?.referenceEnabled && positive(oxygenTarget.target) !== null && positive(thresholdTarget.target) !== null && peak.relative !== null && p !== null && !cpet.issues.length) {
+        const oxygenMet = peak.relative >= N(oxygenTarget.target), thresholdMet = p >= N(thresholdTarget.target), thresholdLabel = cpet.thresholds.second.label;
+        targets.push({label:label + " 目标",value:N(oxygenTarget.target),unit:"mL·kg⁻¹·min⁻¹"},{label:thresholdLabel + " 占比目标",value:N(thresholdTarget.target),unit:"%"});
+        conclusion = !oxygenMet && thresholdMet ? "优先提高 " + label + "。" : oxygenMet && !thresholdMet ? "优先提高 " + thresholdLabel + "。" : !oxygenMet && !thresholdMet ? "同步提高 " + label + " 与 " + thresholdLabel + "。" : label + " 与 " + thresholdLabel + " 均达到当前目标，保持并巩固。";
+      }
+    }
+    // Legacy lactate thresholds remain speed measurements with their original labels.
+    for (const id of ["lt1", "lt2"]) if (positive(values[id]) !== null) {
+      const definition = record.definitions.find(d => d.id === id);
+      cardio.push(rated(id, definition?.name || id.toUpperCase(), values[id], "m/s"));
+    }
+    add("cardio", "心肺发展方向", cardio, conclusion);
+    const cardioCard = cards.find(card => card.id === "cardio");
+    if (cardioCard) cardioCard.targets = targets;
+    return cards;
+  }
   function stats(record) {
     let state = record || defaults();
     // Calculations must use canonical results AND definitions even before a
@@ -7215,10 +7534,20 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           unit: state.thresholds.unit,
         });
       raw.thresholdsOrdered = !(lt1 !== null && lt2 !== null && lt1 >= lt2);
-      if (raw.lactate.length && raw.thresholdsOrdered) {
+      if (raw.thresholdsOrdered) {
         if (lt1 !== null) values.lt1 = lt1;
         if (lt2 !== null) values.lt2 = lt2;
+        if (lt1 !== null || lt2 !== null) validTests.add("lactate");
       }
+    }
+    if (use("cpet") && T.isNative(state, "cpet")) {
+      raw.cpet = cpetSummary(state);
+      const put = (id, value) => { if (value !== null && Number.isFinite(value)) { values[id] = value; validTests.add("cpet"); } };
+      put("cpet_vo2_relative", raw.cpet.peak.relative); put("cpet_vo2_absolute", raw.cpet.peak.absolute); put("cpet_peak_hr", raw.cpet.peak.hr);
+      [raw.cpet.thresholds.first, raw.cpet.thresholds.second].forEach((threshold, index) => {
+        const stem = "cpet_threshold" + (index + 1);
+        for (const [suffix, key] of [["vo2_relative", "relative"], ["vo2_absolute", "absolute"], ["pct", "percentage"], ["hr", "hr"], ["speed", "speed"], ["power", "power"]]) put(stem + "_" + suffix, threshold[key]);
+      });
     }
     if (use("fms")) {
       raw.fms = Calc.fms(state.data.fms);
@@ -7315,6 +7644,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     (raw.forceTime?.issues || [])
       .filter((x) => !x.id.startsWith("imtp_baseline_missing_"))
       .forEach((x) => qualityIssues.push({ ...x, testId: "imtp" }));
+    qualityIssues.push(...(raw.cpet?.issues || []));
     const groups = new Map(), axisValues = { ...values };
     const timeResultsById = new Map(imtpTimeResults.map(result => [result.id, result]));
     const replacedTimeIds = new Set((state.imtpTimeStandards || []).map(rule => "imtp_" + (rule.kind === "force_pct_peak" ? "f" : "rfd") + rule.timeMs));
@@ -7661,9 +7991,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       details,
       date: state.athlete.date,
     };
+    const cards = capabilityCards(state, values, raw, derived);
     return {
       values,
       derived,
+      capabilityCards: cards,
+      cardio: cards.find(card => card.id === "cardio") || null,
       imtpTimeResults,
       repetitions,
       representativeData: state.data,
@@ -7772,7 +8105,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           !positive(rows[a.index - 1].height),
       ).length;
       detail =
-        "有效跳高 " +
+        "有效垂直跳跃高度 " +
         count(rows, "height") +
         "/" +
         rows.length +
@@ -7852,6 +8185,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (cmjConfig.impulseDefinition === "gross") delete cmjConfig.impulseDefinition;
     if (imtpConfig.impulseDefinition === "gross") delete imtpConfig.impulseDefinition;
     const empty = (value) => value === "" || value === null || value === undefined;
+    ["dj","cmrj"].forEach(id => { if (T.isNative(record,id)) (data[id] || []).forEach(row => { if (empty(row.activeStiffness)) delete row.activeStiffness; }); });
+    if (T.isNative(record,"hop")) (data.hop?.trials || [data.hop]).filter(Boolean).forEach(set => { if (set.summary && empty(set.summary.activeStiffness)) delete set.summary.activeStiffness; });
     ["cmj","imtp"].forEach((id) => (data[id] || []).forEach((row) =>
       (id === "cmj" ? ["propulsiveImpulse","propulsiveDurationMs"] : ["impulse250","matchedImpulse","matchedDurationMs"]).forEach((key) => { if (empty(row[key])) delete row[key]; })));
     const meaningful = (value, key = "") => {
@@ -7861,11 +8196,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       return !empty(value) && value !== false;
     };
     const defaultProtocol = defaults().protocol;
-    const invisible = new Set(["dj","hop","cmrj"].filter((id) => T.isNative(record,id) && !enabled[id] && !meaningful(data[id]) && (!protocol[id] || protocol[id] === defaultProtocol[id])));
+    const cpetMeasured = data.cpet && [data.cpet.vo2,data.cpet.peakHr,data.cpet.rer,...["first","second"].flatMap(side => ["vo2","hr","speed","power"].map(key => data.cpet.thresholds?.[side]?.[key]))].some(value => !empty(value));
+    const invisible = new Set(["dj","hop","cmrj","cpet"].filter((id) => T.isNative(record,id) && !enabled[id] && !(id === "cpet" ? cpetMeasured || data.cpet?.protocol || data.cpet?.modality : meaningful(data[id])) && (!protocol[id] || protocol[id] === defaultProtocol[id])));
     invisible.forEach((id) => { delete data[id]; delete enabled[id]; delete protocol[id]; });
-    const extras = new Map(extraDefs().filter((d) => ["dj","hop","cmrj"].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => [d.id,d]));
+    Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
+    const projection = definition => {
+      const { referenceMatch, referenceGroups, ...result } = definition;
+      if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
+      return result;
+    };
+    const extras = new Map(extraDefs().filter((d) => ["dj","hop","cmrj","cpet"].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => [d.id,projection(d)]));
     const same = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every((key) => JSON.stringify(a[key]) === JSON.stringify(b[key]));
-    const definitions = withoutReplacedIMTPStandards(record).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
+    const definitions = withoutReplacedIMTPStandards(record).map(projection).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
     const derivedEnabled = Object.fromEntries(Object.entries(record.derivedEnabled || {}).filter(([,enabled]) => enabled === false));
     return JSON.stringify({
       athlete: record.athlete,
@@ -7931,6 +8273,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const record = defaults();
     return {
       revision: 1,
+      capabilityVersion: 1,
       tests: T.snapshots(record),
       definitions: record.definitions,
       abilityGroups: T.abilityGroups(record),
@@ -7949,7 +8292,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         ? catalog.revision
         : 1;
     catalog.tests = Array.isArray(catalog.tests) ? catalog.tests : base.tests;
-    catalog.tests.forEach((test) => { if (["dj","hop","cmrj"].includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
+    catalog.tests.forEach((test) => { if (["dj","hop","cmrj","cpet"].includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
     catalog.derivedEnabled = { ...T.derivedDefaults(), ...catalog.derivedEnabled };
     base.tests.forEach((test) => {
       if (!catalog.tests.some((t) => t.id === test.id))
@@ -7959,7 +8302,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       Array.isArray(catalog.definitions)
         ? catalog.definitions
         : base.definitions
-    ).map(convertDefinition), originalCatalog);
+    ), originalCatalog).map(convertDefinition);
+    catalog.capabilityVersion = 1;
     base.definitions.forEach((definition) => {
       if (T.isNative(catalog,definition.testId) && !catalog.definitions.some((d) => d.id === definition.id))
         catalog.definitions.push(definition);
@@ -7977,6 +8321,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         catalog.protocol[id],
         {},
       ).text;
+      if (T.isNative(catalog,id)) catalog.protocol[id] = Def.factoryText(id,"testProtocol",catalog.protocol[id]);
     });
     catalog.conflicts = Array.isArray(catalog.conflicts)
       ? catalog.conflicts
@@ -7985,7 +8330,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       conflict.variants = (conflict.variants || []).map((variant) => ({
         ...variant,
         definitions: (variant.definitions || []).map(convertDefinition),
-        protocol: migrateLegacySpeedText(variant.protocol || "", {}).text,
+        protocol: variant.test.legacyCustom ? migrateLegacySpeedText(variant.protocol || "", {}).text : Def.factoryText(variant.test.id,"testProtocol",migrateLegacySpeedText(variant.protocol || "", {}).text),
       }));
     });
     return catalog;
@@ -8302,12 +8647,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (path === "trainingContext.experienceYears") return bounds(0, 80);
     if (path === "trainingContext.weeklySessions") return bounds(0, 14, true);
     if (
-      /^data\.(cmj|sj|dj|cmrj)\.\d+\.(height|force|rsiModified|landingPeakForce|propulsiveImpulse|propulsiveDurationMs|contactTimeMs|flightTimeMs|dropHeightCm|firstHeight|firstTimeToTakeoffMs)$/.test(
+      /^data\.(cmj|sj|dj|cmrj)\.\d+\.(height|force|rsiModified|landingPeakForce|propulsiveImpulse|propulsiveDurationMs|contactTimeMs|flightTimeMs|dropHeightCm|firstHeight|firstTimeToTakeoffMs|activeStiffness)$/.test(
         path,
       )
     )
       return bounds(0, null, false, true);
-    if (/^data\.hop\.(?:summary|jumps\.\d+)\.(height|contactTimeMs|flightTimeMs|rsi|flightTimeRatio)$/.test(path)) return bounds(0, null, false, true);
+    if (/^data\.hop\.(?:summary|jumps\.\d+)\.(height|contactTimeMs|flightTimeMs|rsi|flightTimeRatio|activeStiffness)$/.test(path)) return bounds(0, null, false, true);
+    if (/^data\.cpet\.(?:thresholds\.(?:first|second)\.)?(vo2|peakHr|rer|hr|speed|power)$/.test(path)) return bounds(0, null, false, true);
     if (/^data\.hop\.summary\.(suppliedCount|validCount|selectedCount)$/.test(path)) return bounds(0, null, true);
     if (/^data\.imtp\.\d+\.(impulse250|matchedImpulse|matchedDurationMs)$/.test(path)) return bounds(0, null, false, true);
     if (/^data\.[\w-]+\.(?:\d+\.)?metrics\.[\w-]+$/.test(path))
@@ -8378,7 +8724,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             if (test.id === "ift") check(base + "partial", row.partial);
           }
           if (test.id === "hop" && T.isNative(record,"hop")) {
-            ["height","contactTimeMs","flightTimeMs","rsi","flightTimeRatio","suppliedCount","validCount","selectedCount"].forEach((key) => check(base + "summary." + key,row.summary?.[key]));
+            ["height","contactTimeMs","flightTimeMs","rsi","flightTimeRatio","activeStiffness","suppliedCount","validCount","selectedCount"].forEach((key) => check(base + "summary." + key,row.summary?.[key]));
             (row.jumps || []).forEach((jump,j) => ["height","contactTimeMs","flightTimeMs"].forEach((key) => check(base + "jumps." + j + "." + key,jump[key])));
           }
         });
@@ -8387,6 +8733,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ["age", "mass", "height"].forEach((k) =>
       check("athlete." + k, record.athlete[k]),
     );
+    if (T.isNative(record,"cpet") && record.data.cpet) {
+      ["vo2","peakHr","rer"].forEach(key => check("data.cpet." + key,record.data.cpet[key]));
+      ["first","second"].forEach(side => ["vo2","hr","speed","power"].forEach(key => check("data.cpet.thresholds." + side + "." + key,record.data.cpet.thresholds?.[side]?.[key])));
+    }
     const fields = {
       fms: ["score", "left", "right"],
       iso: ["left", "right", "center", "target"],
@@ -8521,6 +8871,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if (!plainObject(input.data.hop)) throw new Error("Hop 测试组结构无效");
       repeatRows(input,"hop").forEach((set) => {
         if (!["summary","jumps"].includes(set.inputMode) || !plainObject(set.summary)) throw new Error("Hop 录入方式或汇总结构无效");
+        if (set.summary.activeStiffnessInputUnit !== undefined && !["kN/m","N/m"].includes(set.summary.activeStiffnessInputUnit)) throw new Error("Active Stiffness 输入单位无效");
         validateRows(set.jumps);
         if (!["height_rsi","flight_ratio","unknown"].includes(set.summary.selectionBasis)) throw new Error("Hop 选跳依据无效");
         const supplied = N(set.summary.suppliedCount), valid = N(set.summary.validCount), selected = N(set.summary.selectedCount);
@@ -8578,11 +8929,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           (definition.entryScope !== undefined &&
             !["record", "attempt"].includes(definition.entryScope)) ||
           (definition.entryScope === "attempt" &&
-            !T.supportsAttemptMetrics(definition.testId)) ||
+            !T.supportsAttemptMetrics(definition.testId) && !definition.legacyManual) ||
           (definition.cvEligible !== undefined && typeof definition.cvEligible !== "boolean")
         )
           throw new Error("目录指标定义无效");
         Def.parseRanges(Def.rangeText(definition.ranges));
+        if (definition.referenceGroups !== undefined) {
+          if (!root.RingsideReferences) throw new Error("分组参考标准模块未加载");
+          root.RingsideReferences.validateReferenceGroups(definition.referenceGroups);
+        }
         const error = validateField(
           { rules: {} },
           "definitions.0.target",
@@ -8681,6 +9036,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       throw new Error("不是有效的 Ringside 报告数据");
     validateDataTree(input);
     validateDerivedOptions(input);
+    if (input.views?.idsiWindow !== undefined && !["idsi_matched","idsi_fixed250"].includes(input.views.idsiWindow)) throw new Error("iDSI 积分时窗选项无效");
     validateAbilityGroups(input.abilityGroupSnapshot);
     if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
     if (
@@ -8765,7 +9121,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         !plainObject(test) ||
         !safeId(test.id) ||
         customIds.has(test.id) ||
-        (TESTS.some((t) => t[0] === test.id) && !["dj","hop","cmrj"].includes(test.id)) ||
+        (TESTS.some((t) => t[0] === test.id) && !["dj","hop","cmrj","cpet"].includes(test.id)) ||
         typeof test.name !== "string" ||
         !["screen", "performance"].includes(test.category)
       )
@@ -8783,12 +9139,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         !["higher", "lower"].includes(d.direction) ||
         (d.entryScope !== undefined &&
           !["record", "attempt"].includes(d.entryScope)) ||
-        (d.entryScope === "attempt" && !T.supportsAttemptMetrics(d.testId)) ||
+        (d.entryScope === "attempt" && !T.supportsAttemptMetrics(d.testId) && !d.legacyManual) ||
         (d.cvEligible !== undefined && typeof d.cvEligible !== "boolean")
       )
         throw new Error("指标定义无效或 ID 重复");
       ids.add(d.id);
       Def.parseRanges(Def.rangeText(d.ranges));
+      if (d.referenceMode !== undefined && !["standard","grouped"].includes(d.referenceMode)) throw new Error("参考标准模式无效");
+      if (d.referenceGroups !== undefined) {
+        if (!root.RingsideReferences) throw new Error("分组参考标准模块未加载");
+        root.RingsideReferences.validateReferenceGroups(d.referenceGroups);
+      }
     });
     [
       "fms",
@@ -8812,6 +9173,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     ["ift", "mas", "mss", "pushup"].forEach((t) => {
       if (!plainObject(input.data[t])) throw new Error("测试数据结构不完整");
     });
+    if (input.data.cpet !== undefined && T.isNative(input,"cpet")) {
+      const cpet = input.data.cpet;
+      if (!plainObject(cpet) || !["","treadmill","cycle"].includes(cpet.modality) || !["VO2max","VO2peak"].includes(cpet.oxygenLabel) || !["ml/kg/min","l/min"].includes(cpet.vo2Unit) || !plainObject(cpet.thresholds) || typeof cpet.protocol !== "string") throw new Error("CPET 测量方式、摄氧量名称或结构无效");
+      ["first","second"].forEach((key,index) => {
+        const threshold = cpet.thresholds[key];
+        if (!plainObject(threshold) || !["VT"+(index+1),"LT"+(index+1)].includes(threshold.label) || !["ml/kg/min","l/min"].includes(threshold.vo2Unit)) throw new Error("CPET 阈值名称、摄氧量单位或结构无效");
+      });
+    }
     const speedUnits = ["m/s", "km/h"];
     ["ift", "mas", "mss"].forEach((t) => {
       if (
@@ -8826,6 +9195,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     });
     ["cmj", "sj", "dj", "cmrj"].forEach((id) =>
       (input.data[id] || []).forEach((row) => {
+        if (row.activeStiffnessInputUnit !== undefined && !["kN/m","N/m"].includes(row.activeStiffnessInputUnit)) throw new Error("Active Stiffness 输入单位无效");
         if (
           row.metrics !== undefined &&
           (!plainObject(row.metrics) ||
@@ -9032,7 +9402,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       root.RingsideInterventions.build(record, stats(record)),
     );
   }
-  function sampleRecord() {
+  function legacySampleRecord() {
     const record = defaults();
     record.demo = true;
     record.athlete = {
@@ -9189,12 +9559,85 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     };
     return record;
   }
+  function enrichDemo(record) {
+    record.demoRevision = 2;
+    ["dj", "hop", "cmrj", "cpet"].forEach(id => { record.enabled[id] = true; });
+    record.data.cmj.forEach((row, index) => Object.assign(row, { propulsiveDurationMs: 300, propulsiveImpulse: [398.47, 403.32, 402.17][index], rsiModified: row.height / 100 / .6 }));
+    record.data.sj.forEach(row => { row.rsiModified = row.height / 100 / .7; });
+    Object.assign(record.data.imtp[0], { impulse250: 533.05, matchedImpulse: 671.80, matchedDurationMs: 300 });
+    record.impulseConfig = { ...record.impulseConfig, confirmed: true };
+    record.cmjConfig.impulseDefinition = record.imtpConfig.impulseDefinition = "gross";
+    record.data.dj = [[32,200,510.84,27.2],[34,190,526.56,29.1],[33,195,518.76,28.4]].map(([height,contactTimeMs,flightTimeMs,activeStiffness]) => ({ ...newJumpAttempt("dj"), height, contactTimeMs, flightTimeMs, activeStiffness, dropHeightCm:45 }));
+    const hop = newHopSet();
+    hop.inputMode = "jumps";
+    hop.jumps = [[25,175,451.52],[27,172,469.24],[29,169,486.31],[28,173,477.85],[30,168,494.62],[31,166,502.80],[30,167,494.62],[32,164,510.84],[29,170,486.31],[31,165,502.80]].map(([height,contactTimeMs,flightTimeMs]) => ({ id:uid(),height,contactTimeMs,flightTimeMs }));
+    hop.summary.activeStiffness = 31.6;
+    record.data.hop = { ...record.data.hop, trials:[hop] };
+    record.data.cmrj = [{ ...newJumpAttempt("cmrj"), firstHeight:41,firstTimeToTakeoffMs:600,height:30,contactTimeMs:170,flightTimeMs:494.62,activeStiffness:30.4 }];
+    record.data.cpet = { ...cpetDefaults(), modality:"treadmill", protocol:"跑台递增 CPET · 模拟示例",oxygenLabel:"VO2peak",vo2:62,peakHr:192,rer:1.14,thresholds:{ first:{...cpetDefaults().thresholds.first,vo2:40,hr:148,speed:14/3.6}, second:{...cpetDefaults().thresholds.second,vo2:51,hr:178,speed:17/3.6} } };
+    record.definitions.forEach(definition => {
+      const current = extraDefs().find(d => d.id === definition.id);
+      if (current && /(?:^|_)rsi(?:_modified)?$/.test(definition.id)) Object.assign(definition, { referenceEnabled:current.referenceEnabled, ranges:clone(current.ranges), source:current.source, protocol:current.protocol });
+      if (definition.id === "cpet_vo2_relative") { definition.target = 60; definition.referenceEnabled = true; }
+      if (definition.id === "cpet_threshold2_pct") { definition.target = 85; definition.referenceEnabled = true; }
+    });
+    ["cmj","sj","imtp","dj","hop","cmrj","cpet"].forEach(id => { record.protocol[id] += "；新增数据为模拟演示"; });
+    return record;
+  }
+  function sampleRecord() {
+    const record = enrichDemo(legacySampleRecord());
+    record.narrative = { html:textToHTML(localText(record)),text:localText(record),updated:now(),basis:fingerprint(record),origin:"本地",revision:0 };
+    return record;
+  }
+  function upgradeOriginalDemo(input, profile) {
+    if (!input?.demo || input.demoRevision >= 2 || input.narrative?.origin !== "本地" || (input.narrative?.revision || 0) !== 0) return { record:input, changed:false };
+    const candidate = normalizeRecord(input), original = normalizeRecord(legacySampleRecord());
+    if (candidate.narrative.html !== original.narrative.html || candidate.narrative.text !== original.narrative.text || Object.keys(input.narrative || {}).some(key => !["html","text","updated","basis","origin","revision"].includes(key))) return { record:input, changed:false };
+    const clean = (value, key = "") => {
+      if (["id","date","measurementVersion"].includes(key)) return undefined;
+      if (Array.isArray(value)) return value.map(item => clean(item));
+      if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k,v]) => [k,clean(v,k)]).filter(([,v]) => v !== undefined && v !== "" && v !== null));
+      return value;
+    };
+    // Compare every original measurement and identity/context field. Added tests must be empty.
+    const originalTests = entries => Object.fromEntries(Object.entries(entries).filter(([id]) => !["dj","hop","cmrj","cpet"].includes(id)));
+    const core = record => ({ athlete:clean(record.athlete), data:clean(originalTests(record.data)), enabled:originalTests(record.enabled), protocol:originalTests(record.protocol), mode:record.mode, dsi:record.dsi, thresholds:record.thresholds, trainingContext:record.trainingContext, customValues:record.customValues, customTests:record.customTests, rules:record.rules, axes:record.axes, lvp:record.lvp, cmjConfig:record.cmjConfig, imtpConfig:record.imtpConfig, impulseConfig:record.impulseConfig });
+    if (canonicalJSON(core(candidate)) !== canonicalJSON(core(original))) return { record:input, changed:false };
+    const effective = profile && root.RingsideEvaluation ? root.RingsideEvaluation.resolve(candidate,profile) : candidate;
+    if (canonicalJSON(core(effective)) !== canonicalJSON(core(original))) return { record:input, changed:false };
+    const definitionProjection = definition => {
+      const { context,referenceMatch,...value } = definition;
+      if (!value.legacyManual) ["name","protocol"].forEach(key => { value[key] = Def.factoryText(value.id,key,value[key]); });
+      if (/(?:^|_)rsi(?:_modified)?$/.test(value.id) && value.target == null && value.ranges.length === 0 && value.source === "用户配置评价标准" && value.protocol === "使用实际测试协议与匹配评价标准") {
+        const current = original.definitions.find(d => d.id === value.id);
+        if (current) return { ...value, ranges:current.ranges,source:current.source,protocol:current.protocol };
+      }
+      return value;
+    };
+    const existingDefinitions = definitions => definitions.filter(d => d.testId !== "cpet" && d.id !== "rqr" && !d.id.endsWith("_active_stiffness")).map(definitionProjection).sort((a,b) => a.id.localeCompare(b.id));
+    if (canonicalJSON(existingDefinitions(effective.definitions)) !== canonicalJSON(existingDefinitions(original.definitions))) return { record:input, changed:false };
+    const additionalDefinitions = effective.definitions.filter(d => d.testId === "cpet" || d.id === "rqr" || d.id.endsWith("_active_stiffness"));
+    const latest = extraDefs();
+    if (additionalDefinitions.some(d => canonicalJSON(definitionProjection(d)) !== canonicalJSON(definitionProjection(latest.find(current => current.id === d.id) || {})))) return { record:input, changed:false };
+    const hasValue = value => {
+      if (Array.isArray(value)) return value.some(hasValue);
+      if (value && typeof value === "object") return Object.entries(value).some(([key,v]) => !["id","inputMode","selectionBasis","label","vo2Unit","oxygenLabel","measurementVersion"].includes(key) && hasValue(v));
+      return value !== "" && value !== null && value !== undefined && value !== false;
+    };
+    if (["dj","hop","cmrj","cpet"].some(id => hasValue(candidate.data[id]))) return { record:input, changed:false };
+    const record = enrichDemo(candidate);
+    // Existing prose is retained; only untouched factory samples receive measurements.
+    return { record, changed:true };
+  }
   root.RingsideModel = {
     TESTS,
     FM,
     REG,
     defaults,
     sampleRecord,
+    upgradeOriginalDemo,
+    cpetDefaults,
+    cpetSummary,
     normalizeRecord,
     normalizeIMTP,
     syncIMTPLegacy,
@@ -9261,20 +9704,36 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function measurementContext(record, d) {
     const config = d.testId === "cmj" ? { definition: record.cmjConfig?.definition || "gross" } : d.testId === "imtp" ? { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } : null;
     if (config && /impulse/.test(d.id)) config.impulseDefinition = (d.testId === "cmj" ? record.cmjConfig : record.imtpConfig)?.impulseDefinition || "gross";
-    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", metricProtocol: d.protocol || "", ...(config ? { force: clone(config) } : {}) };
+    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", metricProtocol: d.protocol || "", ...(config ? { force: clone(config) } : {}), ...(d.id === "rqr" ? { pairedProtocol: record.protocol?.hop || "" } : {}) };
   }
   function isoContext(row, record) {
     return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit, protocol: row.protocol || record.protocol?.iso || "" };
   }
-  function compatibleContext(id, context) {
-    return context ? { ...context, metricProtocol: root.Def.viftProtocol(id, context.metricProtocol) } : context;
+  const factoryText = (id, field, value) => root.Def.factoryText ? root.Def.factoryText(id, field, value) : value;
+  function compatibleContext(d, context) {
+    if (!context) return context;
+    const out = { ...context, metricProtocol: root.Def.viftProtocol(d.id, context.metricProtocol) };
+    if (!d.legacyManual) {
+      out.protocol = factoryText(d.testId, "testProtocol", out.protocol);
+      out.metricProtocol = factoryText(d.id, "protocol", out.metricProtocol);
+      if (d.id === "rqr" && out.pairedProtocol !== undefined) out.pairedProtocol = factoryText("hop", "testProtocol", out.pairedProtocol);
+    }
+    return out;
+  }
+  function normalizeFactoryText(definition) {
+    if (definition.legacyManual) return false;
+    const textFields = () => canonical({ name:definition.name, protocol:definition.protocol, context:definition.context });
+    const before = textFields();
+    for (const field of ["name", "protocol"]) definition[field] = factoryText(definition.id, field, definition[field]);
+    if (definition.context) definition.context = compatibleContext(definition, definition.context);
+    return before !== textFields();
   }
   const imtpTimeContext = record => M.imtpTimeContext(record);
   const imtpTimeMatches = (record, rule) => canonical(rule.context) === canonical(imtpTimeContext(record));
   const timeStandards = record => (record.imtpTimeStandards || []).map(({ matched, ...rule }) => clone(rule)).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind));
   function capture(record) {
     return {
-      definitions: record.definitions.map(d => ({ ...clone(d), context: measurementContext(record, d) })).sort((a,b) => a.id.localeCompare(b.id)),
+      definitions: record.definitions.map(d => { const definition = { ...clone(d), context: measurementContext(record, d) }; normalizeFactoryText(definition); return definition; }).sort((a,b) => a.id.localeCompare(b.id)),
       rules: clone(record.rules), axes: clone(record.axes),
       iso: record.data.iso.map(row => ({ id: row.id, direction: row.direction, ...isoContext(row, record), target: row.target ?? "" })).sort((a,b) => a.id.localeCompare(b.id)),
       balance: record.balancePairs.map(pair => ({ ...clone(pair), contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; }) })).sort((a,b) => a.id.localeCompare(b.id)),
@@ -9300,9 +9759,23 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       return { ...clone(rule), matched };
     });
     for (const d of out.definitions) {
+      normalizeFactoryText(d);
       const rule = definitions.get(d.id);
-      if (rule && canonical(compatibleContext(d.id, rule.context)) === canonical(compatibleContext(d.id, measurementContext(record, d)))) {
-        for (const key of ["target", "ranges", "direction", "referenceEnabled", "source"]) if (rule[key] !== undefined) d[key] = clone(rule[key]);
+      if (rule && canonical(compatibleContext(rule, rule.context)) === canonical(compatibleContext(d, measurementContext(record, d)))) {
+        for (const key of ["target", "ranges", "direction", "referenceEnabled", "source", "referenceMode", "referenceGroups"]) {
+          if (rule[key] !== undefined) d[key] = clone(rule[key]);
+          else if (["referenceMode", "referenceGroups"].includes(key)) delete d[key];
+        }
+        delete d.referenceMatch;
+        if (Array.isArray(rule.referenceGroups)) {
+          const match = root.RingsideReferences?.matchReferenceGroup(record, rule.referenceGroups) || {group:null,eligible:false,reason:"未加载分层参考标准"};
+          d.ranges = match.eligible ? clone(match.group.ranges) : [];
+          // Target selection is independent of a literature table's RER eligibility.
+          if (match.group && Number.isFinite(match.group.target) && match.group.target > 0) d.target = match.group.target;
+          if (match.group) d.source = match.group.source;
+          d.referenceMatch = {groupId:match.group?.id||null,eligible:match.eligible,reason:match.reason,sourceId:match.group?.sourceId||"",source:match.group?.source||""};
+          if (!match.eligible && rule.referenceEnabled && record.enabled[d.testId]) out.evaluationIssues.push({id:d.id,reason:match.reason});
+        }
       } else {
         d.referenceEnabled = false; d.target = null; d.ranges = [];
         if (record.enabled[d.testId]) out.evaluationIssues.push({ id: d.id, reason: rule ? "评价方案与测量条件不匹配" : "方案未包含该指标" });
@@ -9336,12 +9809,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function template(profile) {
     const r = M.defaults(), c = profile.criteria;
     r.definitions = clone(c.definitions);
+    r.definitions.forEach(normalizeFactoryText);
     r.rules = clone(c.rules); r.axes = clone(c.axes);
     r.data.iso = c.iso.map(row => ({ ...clone(row), left: "", right: "", center: "", painLeft: false, painRight: false, painCenter: false, notes: "" }));
     r.balancePairs = clone(c.balance); r.lvp = clone(c.lvp);
     r.imtpTimeStandards = clone(c.imtpTimeStandards || []);
-    for (const d of c.definitions) {
+    for (const d of r.definitions) {
       r.protocol[d.testId] = d.context.protocol;
+      if (d.id === "rqr" && d.context.pairedProtocol !== undefined) r.protocol.hop = d.context.pairedProtocol;
       if (d.context.force) r[d.testId === "cmj" ? "cmjConfig" : "imtpConfig"] = clone(d.context.force);
     }
     for (const [id,p] of Object.entries(c.lvp)) r.protocol[id.startsWith("landmine") ? "landmine" : id] = p.protocol;
@@ -9350,7 +9825,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function fromTemplate(draft, original) {
     const c = capture(draft);
     // Definition conditions belong to the source measurement and never change through target editing.
-    c.definitions.forEach(d => { const prior = original.criteria.definitions.find(x => x.id === d.id); if (prior) d.context = clone(prior.context); });
+    c.definitions.forEach(d => { const prior = original.criteria.definitions.find(x => x.id === d.id); if (prior) d.context = clone(prior.context); normalizeFactoryText(d); });
     c.imtpTimeStandards.forEach(rule => { const prior = (original.criteria.imtpTimeStandards || []).find(x => x.timeMs === rule.timeMs && x.kind === rule.kind); if (prior) rule.context = clone(prior.context); });
     return c;
   }
@@ -9361,6 +9836,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     M.validateIMTPTimeStandards(c.imtpTimeStandards);
     if (p.previous?.criteria) M.validateIMTPTimeStandards(p.previous.criteria.imtpTimeStandards);
     for (const key of ["definitions", "iso", "balance"]) if (!Array.isArray(c[key])) throw Error("评价方案缺少 " + key);
+    for (const definition of c.definitions) root.RingsideReferences?.validateReferenceGroups(definition.referenceGroups);
+    for (const definition of p.previous?.criteria?.definitions || []) root.RingsideReferences?.validateReferenceGroups(definition.referenceGroups);
     if (!c.rules || !c.axes || !c.lvp) throw Error("评价方案配置不完整");
     const r = template(p);
     const ids = new Set(r.definitions.map(d => d.testId));
@@ -9373,6 +9850,50 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       for (const z of p.zones) if (!Number.isFinite(z.min) || !Number.isFinite(z.max) || z.min < 0 || z.max <= z.min) throw Error("LVP 素质区间无效");
     }
     return true;
+  }
+  const newStandardIds = new Set(["dj_rsi","hop_rsi","cmrj_rsi","cmj_rsi_modified","sj_rsi_modified","cmrj_first_rsi_modified"]);
+  function hasInstalledStandard(definition) {
+    return !!definition && (definition.testId === "cpet" || newStandardIds.has(definition.id));
+  }
+  function upgradeLibraryProfiles(library) {
+    if (!Array.isArray(library?.evaluationProfiles)) return false;
+    const defaults = capture(M.defaults()).definitions;
+    const isOldUnmodified = d => !d.legacyManual && d.target == null && d.referenceEnabled === false &&
+      Array.isArray(d.ranges) && !d.ranges.length && d.referenceGroups === undefined &&
+      d.source === "用户配置评价标准" && d.protocol === "使用实际测试协议与匹配评价标准";
+    let changed = false;
+    const upgrade = criteria => {
+      if (!criteria?.definitions) return false;
+      let touched = false;
+      for (const builtin of defaults.filter(hasInstalledStandard)) {
+        const prior = criteria.definitions.find(d => d.id === builtin.id);
+        if (!prior) { criteria.definitions.push(clone(builtin)); touched = true; }
+        else if (newStandardIds.has(prior.id) && builtin.referenceEnabled && builtin.ranges.length && isOldUnmodified(prior) && prior.unit === builtin.unit && prior.testId === builtin.testId) {
+          for (const key of ["target","ranges","referenceEnabled","source"]) prior[key] = clone(builtin[key]);
+          touched = true;
+        }
+      }
+      return touched;
+    };
+    for (const profile of library.evaluationProfiles) {
+      for (const definition of profile.criteria?.definitions || []) if (normalizeFactoryText(definition)) changed = true;
+      if (profile.builtinStandardsVersion === 1) continue;
+      const previous = {name:profile.name,criteria:clone(profile.criteria),revision:profile.revision,updated:profile.updated};
+      const touched = upgrade(profile.criteria);
+      if (touched) { profile.previous = previous; profile.revision += 1; profile.updated = now(); }
+      // A deliberate later rollback must not be silently upgraded again on load.
+      profile.builtinStandardsVersion = 1;
+      changed = true;
+    }
+    return changed;
+  }
+  function materialize(record, profile) {
+    const out = profile ? resolve(record, profile) : clone(record);
+    for (const definition of out.definitions) {
+      delete definition.referenceGroups;
+      delete definition.referenceMode;
+    }
+    return out;
   }
   function migrate(input) {
     if (input?.schema === 3 && input.kind === "athlete-library") {
@@ -9390,7 +9911,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return { ...legacy, schema: 3, groups: [], evaluationProfiles: profiles, defaultEvaluationProfileId: defaultProfile.id,
       athletes: legacy.athletes.map(a => ({...a, groupId:"", archived:false, deletedAt:null, records:a.records.map(r=>({...r,archived:false,deletedAt:null}))})) };
   }
-  root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate, imtpTimeContext, imtpTimeMatches };
+  root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate, imtpTimeContext, imtpTimeMatches, upgradeLibraryProfiles, materialize, hasInstalledStandard };
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -9458,7 +9979,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function configuration(lib) {
     validateTestPlans(lib.testPlans, lib.catalog);
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
-      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.11.0"};
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.12.0"};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
@@ -10205,7 +10726,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             repsMax: 5,
             restSec: 90,
             progression:
-              "每次落地站稳再跳；跳高明显下降或落地失控时结束该组。连续两次稳定完成后增加1次，达到5次后再调整难度。",
+              "每次落地站稳再跳；垂直跳跃高度明显下降或落地失控时结束该组。连续两次稳定完成后增加1次，达到5次后再调整难度。",
           });
         } else if (ids.has("pushup"))
           action = actions("规范俯卧撑；无法保持躯干稳定时改为上斜俯卧撑");
@@ -11005,25 +11526,27 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function jumpBars(items, layout = {}) {
     items = items.filter(item => num(item.height ?? item.value) !== null || num(item.rsi) !== null);
-    if (!items.length) return empty("跳跃表现", "录入跳高或 RSI 后显示结果");
+    if (!items.length) return empty("跳跃表现", "录入垂直跳跃高度或 RSI 后显示结果");
     const w=Math.max(240,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?38:62,right=w-(small?38:62),top=58,bottom=h-98,barColor="#7895ad",dotColor="#176b68";
     const heightMax=Math.max(10,...items.map(item=>num(item.height??item.value)||0))*1.22;
     const hasRSI=items.some(item=>num(item.rsi)!==null),rsiMax=Math.max(1,...items.map(item=>num(item.rsi)||0))*1.22;
     const heightY=value=>bottom-value/heightMax*(bottom-top),rsiY=value=>bottom-value/rsiMax*(bottom-top);
-    let out=text(left,28,"跳高 · cm",`font-size="13" fill="${C.ink}"`);
+    let out=text(left,28,"垂直跳跃高度 · cm",`font-size="${small?12:13}" fill="${C.ink}"`);
     ticks(0,heightMax).forEach(value=>{out+=line(left,heightY(value),right,heightY(value))+text(left-12,heightY(value)+4,fmt(value,1),'text-anchor="end" font-size="12"');});
     if(hasRSI){out+=text(right,28,"RSI · m/s",`text-anchor="end" font-size="13" fill="${dotColor}"`);ticks(0,rsiMax).forEach(value=>{out+=text(right+12,rsiY(value)+4,fmt(value,2),`font-size="12" fill="${dotColor}"`);});}
     out+=line(left,bottom,right,bottom,`stroke="${C.gray}"`);
     items.forEach((item,i)=>{
       const x=left+(i+.5)*(right-left)/items.length,height=num(item.height??item.value),rsi=num(item.rsi),width=Math.min(56,(right-left)/items.length*.4);
-      if(height!==null){const tip=`${item.label} · 跳高 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,rsi!==null&&Math.abs(rsiY(rsi)-(heightY(height)-11))<20?heightY(height)+18:heightY(height)-11,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
+      const defaultHeightLabel=height!==null?heightY(height)-11:null;
+      const heightLabelY=rsi===null||height===null?defaultHeightLabel:[defaultHeightLabel,heightY(height)+20,rsiY(rsi)-18,rsiY(rsi)+42].find(y=>y>top&&y<bottom-4&&Math.abs(y-rsiY(rsi))>=17&&Math.abs(y-(rsiY(rsi)+20))>=18)??defaultHeightLabel;
+      if(height!==null){const tip=`${item.label} · 垂直跳跃高度 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,heightLabelY,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
       if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x,rsiY(rsi)+20,fmt(rsi,2),`text-anchor="middle" font-size="${small?11:13}" font-weight="600" fill="${dotColor}"`)}</g>`;}
       const label=small?({cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"}[item.id]||item.label):item.label;
       out+=text(x,bottom+31,label,`text-anchor="middle" font-size="${small?11:14}" font-weight="600" fill="${C.ink}"`);
     });
-    out+=`<rect x="${left}" y="${h-37}" width="17" height="12" rx="2" fill="${barColor}"/>`+text(left+26,h-26,"跳高（左轴）",'font-size="12"');
-    if(hasRSI)out+=circle(left+(small?138:201),h-31,5,dotColor)+text(left+(small?151:215),h-26,"RSI（右轴）",'font-size="12"');
-    return layoutSVG(w,h,"跳跃表现：跳高与反应力量指数",out,"柱形读取左侧跳高 cm 坐标，圆点读取右侧 RSI m/s 坐标；不同单位分别解读。",layout);
+    out+=`<rect x="${left}" y="${h-(small?47:37)}" width="17" height="12" rx="2" fill="${barColor}"/>`+text(left+26,h-(small?36:26),"垂直跳跃高度（左轴）",'font-size="12"');
+    if(hasRSI)out+=circle(left+(small?8:201),h-(small?16:31),5,dotColor)+text(left+(small?26:215),h-(small?11:26),"RSI（右轴）",'font-size="12"');
+    return layoutSVG(w,h,"跳跃表现：垂直跳跃高度与反应力量指数",out,"柱形读取左侧垂直跳跃高度 cm 坐标，圆点读取右侧 RSI m/s 坐标；不同单位分别解读。",layout);
   }
   function asymInline(value, weakSide, rules = {}) {
     value = num(value);
@@ -12521,19 +13044,17 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     function hopRawPanel(test) {
       const sets=r.hop?.sets||[];
       if(!sets.length)return "";
-      const basis=value=>({height_rsi:"按跳高 / 触地时间选取",flight_ratio:"按腾空时间 / 触地时间选取",unknown:"选取依据未记录"})[value]||value||"选取依据未记录";
-      const detail=sets.map((set,index)=>{
-        const counts=set.counts||{},count=value=>N(value)===null?"未记录":F(value,0);
-        const selected=(r.hop.selectedSetIds||[]).includes(set.id);
-        let body=`<h4>第 ${index+1} 组${sets.length>1?(selected?" · 纳入本次结果":" · 未纳入本次结果"):""}</h4><p class="hop-counts" data-hop-counts="${E(set.id)}">录入 ${count(counts.supplied)} 跳 · 有效 ${count(counts.valid)} 跳 · 选取 ${count(counts.selected)} 跳</p><p class="note">${set.inputMode==="jumps"?"逐跳计算":"设备汇总"} · ${E(basis(set.selectionBasis))}</p>`;
-        const showRQR=state.derivedEnabled?.rqr!==false&&state.enabled.dj&&set.rqr;
-        if(showRQR)body+=`<p class="note">RQR 单独按 FT/CT 选跳：有效 ${count(set.rqr.counts?.valid)} 跳 · 选取 ${count(set.rqr.counts?.selected)} 跳</p>`;
-        if(set.notes)body+=`<p class="metric-note">${E(set.notes)}</p>`;
-        if(set.inputMode==="jumps")body+=table(["跳次","RSI 选取",...(showRQR?["RQR 选取"]:[]),"跳高 cm","触地 ms","腾空 ms","RSI m/s","FT/CT","备注"],(set.jumps||[]).map((jump,i)=>[i+1,jump.selected?"已选":jump.valid?"未选":"数据不完整",...(showRQR?[(set.rqr.selectedIds||[]).includes(jump.id)?"已选":N(jump.flightTimeRatio)!==null?"未选":"数据不完整"]:[]),F(jump.height,2),F(jump.contactTimeMs,1),F(jump.flightTimeMs,1),F(jump.rsi,3),F(jump.flightTimeRatio,3),E(jump.notes||"—")]),[],"repeat-raw-table hop-raw-table");
-        else body+=table(["跳高 cm","触地 ms","腾空 ms","RSI m/s","FT/CT"],[[F(set.row?.height,2),F(set.row?.contactTimeMs,1),F(set.row?.flightTimeMs,1),F(set.row?.rsi,3),F(set.row?.flightTimeRatio,3)]],[],"repeat-raw-table");
-        return body;
-      }).join("");
-      return `<div class="repeat-panel" data-repeat-test="hop"><details class="attempt-details" id="trials-hop" data-raw-trials="hop" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · ${sets.length} 组测试及逐跳记录</summary>${detail}</details></div>`;
+      const fields=[
+        ["height","垂直跳跃高度 · cm",2],
+        ["rsi","RSI · m/s",3],
+        ["contactTimeMs","触地时间 · ms",1],
+        ["flightTimeMs","腾空时间 · ms",1],
+        ["flightTimeRatio","FT/CT",3],
+        ["activeStiffness","Active Stiffness · kN/m",2],
+      ].filter(([key])=>sets.some(set=>N(set.row?.[key])!==null));
+      const rows=sets.map((set,index)=>[index+1,...fields.map(([key,,digits])=>F(set.row?.[key],digits)),E(set.notes||"—")]);
+      const detail=table(["完整测试",...fields.map(([,label])=>label),"备注"],rows,sets.map(set=>"hop-set-"+set.id),"repeat-raw-table hop-summary-table");
+      return `<div class="repeat-panel" data-repeat-test="hop"><details class="attempt-details" id="trials-hop" data-raw-trials="hop" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · 完整测试结果 · 共 ${sets.length} 次</summary>${detail}</details></div>`;
     }
     function rawTable(test) {
       const contract = test.dataContract || T.dataContract(state, test.id);
@@ -12852,6 +13373,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             (hasStatistics(tests[0].metrics.map((d) => repeatedMetric(d.id))) ? metricTable(tests[0].metrics.filter((d) => !T.isManualMetric(d)), true) : "") +
             supplemental(tests),
         ),
+      cpet: (tests) => {
+        const measured = r.cpet, peakLabel = measured?.peak.label === "VO2max" ? "VO₂max" : "VO₂peak";
+        const metrics = tests[0].metrics.map(metric => {
+          let name = metric.name.replace(/^CPET /, "");
+          if (metric.id === "cpet_vo2_relative") name = peakLabel + " · 相对摄氧量";
+          if (metric.id === "cpet_vo2_absolute") name = peakLabel + " · 绝对摄氧量";
+          for (const [index, key] of ["first", "second"].entries()) {
+            if (metric.id.startsWith("cpet_threshold" + (index + 1) + "_"))
+              name = name.replace("第 " + (index + 1) + " 阈值", (measured?.thresholds[key].label || "第 " + (index + 1) + " 阈值") + " ");
+          }
+          return { ...metric, name };
+        });
+        const meta = [measured?.modality === "treadmill" ? "跑台" : measured?.modality === "cycle" ? "功率车" : "", measured?.protocol, N(measured?.peak.rer) !== null ? "RER " + F(measured.peak.rer, 2) : ""].filter(Boolean).join(" · ");
+        return block(tests, tests[0].name, meta, metricTable(metrics, true));
+      },
       scalar: (tests) =>
         block(
           tests,
@@ -13076,24 +13612,31 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
           "</div>";
       }
     }
-    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderDerived()}`;
-    function renderDerived() {
-      const definitions=T.derivedDefinitions?.()||[];
-      const allResults=report.derived?.results||[],gain=allResults.find(item=>item.id==="gain"&&item.available),hasEUR=allResults.some(item=>item.id==="eur");
-      const results=allResults.filter(item=>!["asr","srr"].includes(item.id)&&!(item.id==="gain"&&hasEUR)&&(item.available||definitions.find(d=>d.id===item.id)?.dependencies?.some(id=>state.enabled[id])));
-      if(!results.length)return "";
-      const impulseResults=results.filter(item=>item.id.startsWith("idsi_"));
-      const selectedImpulse=impulseResults.find(item=>item.id===(state.views?.idsiWindow||"idsi_matched"))||impulseResults[0];
-      const visible=results.filter(item=>!item.id.startsWith("idsi_")||item===selectedImpulse);
-      const cards=visible.map(item=>{
-        const isImpulse=item.id.startsWith("idsi_");
-        const components=(item.components||[]).map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)} ${E(component.unit||"")}</dd></div>`).join("");
-        const selector=isImpulse?`<label class="idsi-window">时间窗口<span class="idsi-print-window">${item.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 250 ms"}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${impulseResults.map(choice=>`<option value="${E(choice.id)}"${choice===item?' selected':""}>${choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 250 ms"}</option>`).join("")}</select></label>`:"";
-        const associated=item.id==="eur"&&gain?`<p class="derived-associated" data-derived-associated="gain">CMJ–SJ 增益 <strong>${F(gain.value,1)}%</strong></p>`:"";
-        const missing=isImpulse?`<div class="derived-actions"><button class="btn secondary" onclick="App.openEntry('cmj')">录入 CMJ 冲量</button><button class="btn secondary" onclick="App.openEntry('imtp')">录入 IMTP 冲量</button></div>`:"";
-        return `<article class="derived-card" data-derived-result="${E(item.id)}" data-pdf-atomic><div class="derived-card-heading"><h3>${E(isImpulse?"iDSI 冲量比":item.name)}</h3><p class="derived-value">${item.available?F(item.value,item.unit==="%"?1:3):"—"}${item.unit==="%"?"%":""}</p></div>${selector}${associated}<dl class="derived-components">${components}</dl>${item.available?`<p class="derived-direction">${E(item.directionHint)}</p>`:missing}</article>`;
-      }).join("");
-      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>训练方向分析</summary><div class="quality-group"><div class="derived-results">${cards}</div></div></details>`;
+    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderCapabilities()}`;
+    function renderCapabilities() {
+      const digits=metric=>Number.isInteger(metric.digits)?metric.digits:metric.unit==="比值"||/rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id)?3:metric.unit==="%"?1:2;
+      const cards=(s.capabilityCards||[]).map(card=>({...card,metrics:(card.metrics||[]).filter(metric=>N(metric.value)!==null)})).filter(card=>card.metrics.length);
+      if(!cards.length)return "";
+      const renderMetric=(metric,cardId)=>{
+        const unit=metric.unit&&metric.unit!=="比值"?`<small>${E(metric.unit)}</small>`:"";
+        const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(metric.judgment)}</p>`:"";
+        const components=(metric.components||[]).filter(component=>N(component.value)!==null);
+        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(component.judgment)}</p>`:""}</dd></div>`).join("");
+        const detail=components.length?(cardId==="cardio"?`<div class="capability-components capability-observations"><dl>${rows}</dl></div>`:`<details class="capability-components"><summary>组成数据</summary><dl>${rows}</dl></details>`):"";
+        const windowName=choice=>choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 0–250 ms";
+        const variants=metric.id==="idsi"?(metric.variants||[]):[];
+        const selected=variants.find(choice=>choice.id===metric.selectedVariant);
+        const selector=variants.length?`<label class="idsi-window">IMTP 时窗<span class="idsi-print-window">${E(selected?windowName(selected):"")}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${variants.map(choice=>`<option value="${E(choice.id)}"${choice===selected?" selected":""}${choice.available===false?" disabled":""}>${E(windowName(choice))}</option>`).join("")}</select></label>`:"";
+        return `<section class="capability-metric" data-capability-metric="${E(metric.id)}"${metric.id==="idsi"?` data-derived-result="${E(metric.selectedVariant)}"`:""}><div class="capability-metric-head"><h4>${E(metric.label)}</h4><p class="capability-value">${F(metric.value,digits(metric))}${unit}</p></div>${cardId==="cardio"?detail+judgment:judgment+selector+detail}</section>`;
+      };
+      const renderCard=card=>{
+        const targets=(card.targets||[]).filter(target=>N(target.value)!==null);
+        const conclusion=card.id==="cardio"&&card.conclusion?`<div class="capability-conclusion">${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(target.label)} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}<p class="capability-conclusion-text">${E(card.conclusion)}</p></div>`:"";
+        return `<article class="capability-card" data-capability-card="${E(card.id)}" data-pdf-atomic><h3 class="capability-title">${E(card.title)}</h3><div class="capability-metrics">${card.metrics.map(metric=>renderMetric(metric,card.id)).join("")}</div>${conclusion}</article>`;
+      };
+      const rows=[];
+      for(let index=0;index<cards.length;index+=2)rows.push(`<div class="capability-row" data-pdf-atomic>${cards.slice(index,index+2).map(renderCard).join("")}</div>`);
+      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>能力结构分析</summary><div class="quality-group"><div class="capability-results">${rows.join("")}</div></div></details>`;
     }
     // LVP is a shared comparison renderer across its explicitly registered projects.
     function renderLVP(limb, s) {
@@ -13696,6 +14239,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     .ringside-pdf-document .aux-metrics{display:flex!important;gap:8px!important;padding-top:9px!important;margin:8px 0 0!important;}
     .ringside-pdf-document .aux-metric{flex:1!important;min-width:0!important;font-size:10px!important;padding-left:6px!important;}
     .ringside-pdf-document .aux-metric strong{font-size:16px!important;}
+    .ringside-pdf-document .aux-metric .aux-judgment{font-size:10px!important;line-height:1.65!important;}
+    .ringside-pdf-document .aux-metric .aux-data{font-size:9px!important;line-height:1.5!important;margin-top:5px!important;}
     .ringside-pdf-document .card-foot{padding:8px 9px!important;font-size:10px!important;line-height:1.6!important;}
     .ringside-pdf-document .legend{gap:6px!important;font-size:10px!important;}
     .ringside-pdf-document .pill{font-size:11px!important;line-height:1.5!important;padding:2px 5px!important;white-space:normal!important;}
@@ -13706,17 +14251,30 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     .ringside-pdf-document [data-pdf-pair]{display:grid!important;grid-template-columns:minmax(0,44fr) minmax(0,56fr)!important;gap:16px!important;align-items:start!important;}
     .ringside-pdf-document [data-pdf-pair].wide-results{grid-template-columns:minmax(0,1fr)!important;}
     .ringside-pdf-document .jump-detail table{table-layout:auto!important;}
-    .ringside-pdf-document .derived-card{width:100%!important;padding:17px!important;border:1px solid #e2e5e9!important;border-radius:8px!important;background:#fff!important;}
-    .ringside-pdf-document .derived-actions{display:none!important;}
+    .ringside-pdf-document .capability-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:stretch!important;}
+    .ringside-pdf-document .capability-card{width:100%!important;min-width:0!important;padding:16px!important;border:1px solid #e1e5e9!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important;}
+    .ringside-pdf-document .capability-title{font-size:15px!important;margin:0 0 15px!important;line-height:1.5!important;}
+    .ringside-pdf-document .capability-metric{margin:0!important;padding:11px 0!important;}
+    .ringside-pdf-document .capability-metric:first-child{padding-top:0!important;}
+    .ringside-pdf-document .capability-metric:last-child{padding-bottom:0!important;}
+    .ringside-pdf-document .capability-metric-head{gap:10px!important;}
+    .ringside-pdf-document .capability-metric-head h4{font-size:11px!important;font-weight:500!important;line-height:1.6!important;}
+    .ringside-pdf-document .capability-value{font-size:20px!important;line-height:1.35!important;margin:0!important;}
+    .ringside-pdf-document .capability-value small{font-size:9px!important;}
+    .ringside-pdf-document .capability-judgment{font-size:11px!important;line-height:1.7!important;margin:6px 0 0!important;}
+    .ringside-pdf-document .capability-components{font-size:10px!important;margin-top:7px!important;}
+    .ringside-pdf-document .capability-components>summary{font-size:10px!important;}
+    .ringside-pdf-document .capability-components>summary::after{content:none!important;}
+    .ringside-pdf-document .capability-components dd small{font-size:9px!important;}
+    .ringside-pdf-document .capability-targets{margin:0 0 8px!important;font-size:10px!important;line-height:1.7!important;}
+    .ringside-pdf-document .capability-targets p{margin:3px 0 0!important;}
+    .ringside-pdf-document .capability-conclusion-text{margin:0!important;}
+    .ringside-pdf-document .capability-conclusion{font-size:12px!important;margin:14px 0 0!important;padding:10px 12px!important;}
+    .ringside-pdf-document .idsi-window{font-size:10px!important;margin-top:7px!important;}
     .ringside-pdf-document .idsi-print-window{display:inline!important;}
-    .ringside-pdf-document .derived-card-heading{display:flex!important;justify-content:space-between!important;gap:18px!important;}
-    .ringside-pdf-document .derived-value{font-size:25px!important;white-space:nowrap!important;}
-    .ringside-pdf-document .derived-components{margin:9px 0!important;}
-    .ringside-pdf-document .derived-components>div{padding-top:5px!important;}
-    .ringside-pdf-document .fdsi-bands{margin:10px 0!important;}
-    .ringside-pdf-document .hop-raw-table th,.ringside-pdf-document .hop-raw-table td{font-size:10px!important;padding:6px 4px!important;}
-    .ringside-pdf-document .hop-raw-table th:first-child{width:6%!important;}
-    .ringside-pdf-document .hop-raw-table th:last-child{width:21%!important;}
+    .ringside-pdf-document .hop-summary-table th,.ringside-pdf-document .hop-summary-table td{font-size:10px!important;padding:6px 4px!important;}
+    .ringside-pdf-document .hop-summary-table th:first-child{width:7%!important;}
+    .ringside-pdf-document .hop-summary-table th:last-child{width:16%!important;}
     .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail){display:block!important;}
     .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail)>.chart-wrap{margin-bottom:12px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:auto!important;min-width:0!important;}
@@ -14572,7 +15130,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     function placeAtomic(node) {
       const splittable =
-        node.matches(".summary-grid,.micro-cards") ||
+        node.matches(".summary-grid,.micro-cards,.capability-row,.capability-card") ||
         (node.matches(".card") && node.querySelector(".ability-comparison"));
       let tooTall = false;
       if (splittable) {
@@ -14587,13 +15145,43 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         node.remove();
       }
       if (!tooTall && moveIfNeeded(node, true)) return;
-      if (node.matches(".summary-grid,.micro-cards")) {
+      if (node.matches(".summary-grid,.micro-cards,.capability-row")) {
         [...node.children].forEach((child) => {
           child.style.removeProperty("width");
           child.classList.add("ringside-pdf-block");
           child.dataset.pdfBlockIndex = node.dataset.pdfBlockIndex;
           placeAtomic(child);
         });
+        return;
+      }
+      if (node.matches(".capability-card")) {
+        const metrics=[...node.querySelectorAll(":scope>.capability-metrics>.capability-metric")];
+        const title=node.querySelector(":scope>.capability-title");
+        const conclusion=node.querySelector(":scope>.capability-conclusion");
+        // Preserve full metric rows and their judgments when a populated card
+        // exceeds one page. Repeated titles identify each continuation.
+        const chunks=[...metrics,...(conclusion?[conclusion]:[])];
+        let fragment=null;
+        for(const chunk of chunks){
+          if(!fragment){
+            fragment=node.cloneNode(false);
+            if(title)fragment.append(title.cloneNode(true));
+            fragment.append(chunk.cloneNode(true));
+            if(!moveIfNeeded(fragment,true))throw new Error("PDF 中单项能力分析超过一页，无法完整导出。");
+            continue;
+          }
+          const copy=chunk.cloneNode(true);
+          fragment.append(copy);
+          if(fits())continue;
+          copy.remove();
+          if(fragment.children.length<=(title?1:0)){fragment.remove();throw new Error("PDF 中单项能力分析超过一页，无法完整导出。");}
+          newPage();
+          fragment=node.cloneNode(false);
+          fragment.dataset.pdfContinuation="true";
+          if(title)fragment.append(title.cloneNode(true));
+          fragment.append(copy);content.append(fragment);
+          if(!fits())throw new Error("PDF 中单项能力分析超过一页，无法完整导出。");
+        }
         return;
       }
       if (node.matches(".card") && node.querySelector(".ability-comparison")) {
@@ -15091,7 +15679,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function metricProfile(){const f=filters.metrics||={},id=f.profileId||App.getState()?.evaluationProfileId||lib().defaultEvaluationProfileId;return lib().evaluationProfiles.find(p=>p.id===id)||lib().evaluationProfiles.find(p=>p.id===lib().defaultEvaluationProfileId);}
   function isoName(row){return M.REG[row.region]+" · "+(row.region==="neck"?row.direction.replace(/[（(](?:左\s*\/\s*右|中线)[）)]/g,""):row.direction);}
-  function standardSummary(rule){if(!rule||!rule.referenceEnabled&&(rule.target===""||rule.target==null)&&!rule.ranges?.length)return '<span class="note">未设置评价标准</span>';return `<span>${rule.target!==""&&rule.target!=null?"目标 "+esc(rule.target)+" · ":""}${rule.direction==="lower"?"数值越低越好":rule.direction==="higher"?"数值越高越好":""}</span>${rule.referenceEnabled?`<small>${esc(Def.rangeText(rule.ranges||[]))}</small>`:'<small>未启用分级</small>'}${rule.source?`<small>${esc(rule.source)}</small>`:""}`;}
+  function standardSummary(rule){if(!rule||!rule.referenceEnabled&&(rule.target===""||rule.target==null)&&!rule.ranges?.length&&!rule.referenceGroups?.length)return '<span class="note">未设置评价标准</span>';return `<span>${rule.target!==""&&rule.target!=null?"目标 "+esc(rule.target)+" · ":""}${rule.direction==="lower"?"数值越低越好":rule.direction==="higher"?"数值越高越好":""}</span>${rule.referenceEnabled?`<small>${rule.referenceGroups?esc(rule.referenceGroups.length+" 组年龄 / 性别 / 测试方式标准"):esc(Def.rangeText(rule.ranges||[]))}</small>`:'<small>未启用分级</small>'}${rule.source?`<small>${esc(rule.source)}</small>`:""}`;}
   function imtpTimes(profile,record){const times=new Set((profile?.criteria.imtpTimeStandards||[]).map(r=>r.timeMs));for(const d of profile?.criteria.definitions||[]){const match=d.id.match(/^imtp_(?:f|rfd)(\d+)$/);if(match)times.add(Number(match[1]));}for(const trial of record?.data.imtp||[])for(const p of trial.timePoints||[])if(Number(p.timeMs)>0)times.add(Number(p.timeMs));return [...times].sort((a,b)=>a-b);}
   function profiles() {
     if(editor)return profileEditor();
@@ -15105,13 +15693,26 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   const check=(path,value,label)=>`<label class="check-line"><input type="checkbox" data-profile-path="${esc(path)}" ${value?"checked":""}>${label}</label>`;
   const select=(path,value,options)=>`<select data-profile-path="${esc(path)}">${options.map(([v,n])=>option(v,n,value)).join("")}</select>`;
   function ranges(path,value,label="评价区间：范围 | 名称 | red / amber / green") {return field(label,`<textarea rows="4" data-profile-ranges="${esc(path)}">${esc(editor.rangeDrafts[path]??Def.rangeText(value))}</textarea>`);}
+  function referenceGroupEditor(d,index) {
+    const groups=d.referenceGroups||[],base="definitions."+index+".referenceGroups";
+    let html=`<section class="profile-rule-block"><h3>年龄、性别与测试方式标准</h3><p class="note">年龄按下限含、上限不含匹配；空白表示不限。分层目标留空时沿用上方目标。峰值 RER 只限制本行分级区间。</p><div class="row">${button("添加分层","profile-group-add",String(index))}</div>`;
+    if(!groups.length)return html+'<p class="note">未设置分层标准。</p></section>';
+    if(!groups.some(g=>g.id===editor.referenceGroupId))editor.referenceGroupId=groups[0].id;
+    html+='<div class="management-table-wrap"><table class="management-table reference-groups-table"><thead><tr><th>性别</th><th>年龄下限</th><th>年龄上限</th><th>测试方式</th><th>最低峰值 RER</th><th>本组训练目标</th><th>操作</th></tr></thead><tbody>';
+    html+=groups.map((g,j)=>{const path=base+"."+j;return `<tr data-reference-group="${esc(g.id)}"><td data-label="性别">${select(path+".sex",g.sex,[["any","不限"],["male","男"],["female","女"]])}</td><td data-label="年龄下限">${input(path+".ageMin",g.ageMin)}</td><td data-label="年龄上限">${input(path+".ageMax",g.ageMax)}</td><td data-label="测试方式">${select(path+".mode",g.mode,[["any","不限"],["treadmill","跑台"],["cycle","功率车"]])}</td><td data-label="最低峰值 RER">${input(path+".minPeakRER",g.minPeakRER??"")}</td><td data-label="本组训练目标">${input(path+".target",g.target??"")}</td><td><div class="row">${button("编辑区间","profile-group-select",g.id,g.id===editor.referenceGroupId?'aria-current="true"':"")}${button("复制","profile-group-copy",index+":"+j)}${button("删除","profile-group-delete",index+":"+j)}</div></td></tr>`;}).join("");
+    html+='</tbody></table></div>';
+    const j=groups.findIndex(g=>g.id===editor.referenceGroupId),g=groups[j],path=base+"."+j;
+    html+=`<div class="form-grid">${field("本组来源 / 专项说明",input(path+".source",g.source,"text"))}</div>${g.modified?'<p class="note">本组已按用户设置修改。</p>':""}<div class="management-table-wrap"><table class="management-table reference-ranges-table"><thead><tr><th>下限</th><th>含下限</th><th>上限</th><th>含上限</th><th>名称</th><th>显示颜色</th><th>操作</th></tr></thead><tbody>`;
+    html+=g.ranges.map((r,k)=>{const rangePath=path+".ranges."+k;return `<tr><td data-label="下限">${input(rangePath+".min",r.min)}</td><td data-label="含下限">${check(rangePath+".includeMin",r.includeMin!==false,"包含")}</td><td data-label="上限">${input(rangePath+".max",r.max)}</td><td data-label="含上限">${check(rangePath+".includeMax",r.includeMax!==false,"包含")}</td><td data-label="名称">${input(rangePath+".label",r.label,"text")}</td><td data-label="显示颜色">${select(rangePath+".status",r.status,[["gray","中性"],["red","红色"],["amber","黄色"],["green","绿色"]])}</td><td>${button("删除","profile-group-range-delete",index+":"+j+":"+k)}</td></tr>`;}).join("");
+    return html+`</tbody></table></div><p class="note">区间端点留空表示无上限或无下限。</p>${button("添加区间","profile-group-range-add",index+":"+j)}</section>`;
+  }
   function profileEditor() {
     const r=editor.record,tab=editor.tab, tabs=[["definitions","指标标准"],["imtp","IMTP 时点"],["rules","筛查阈值"],["axes","能力汇总"],["iso","等长目标"],["balance","关节平衡"],["lvp","LVP 参数"]];
     let h=`<div class="profile-editor-header">${field("方案名称",`<input id="profileName" value="${esc(editor.profile.name)}" maxlength="120" ${editor.readOnly?"readonly":""}>`)}<div class="row">${button(editor.origin==="metrics"?"返回指标库":"返回方案列表","profile-close")}${editor.readOnly?button("复制为新方案","profile-copy",editor.profile.id):button("补充新增指标","profile-extend")+button("查看变更并保存","profile-review","",'class="btn primary"')}</div></div><div class="profile-tabs">${tabs.map(([id,label])=>button(label,"profile-tab",id,tab===id?'aria-current="page"':"")).join("")}</div><div id="profileEditorFields">`;
     if(tab==="definitions"){
       const i=Math.max(0,r.definitions.findIndex(d=>d.id===editor.metricId)),d=r.definitions[i];
       h+=field("指标",`<select id="profileMetricSelect">${r.definitions.map(d=>option(d.id,T.metricName(d)+" · "+d.unit,editor.metricId)).join("")}</select>`);
-      if(d)h+=`<p class="note">${esc(T.metricProtocol(d)||"未记录协议")} · ${esc(d.unit)} · ${esc(T.abilityLabel(lib().catalog,d.ability))}</p><div class="form-grid">${field("评价目标",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用评价标准")}${ranges("definitions."+i+".ranges",d.ranges)}<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`;
+      if(d)h+=`<p class="note">${esc(T.metricProtocol(d)||"未记录协议")} · ${esc(d.unit)} · ${esc(T.abilityLabel(lib().catalog,d.ability))}</p><div class="form-grid">${field(d.testId==="cpet"?"通用训练目标":"评价目标",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用评价标准")}${Array.isArray(d.referenceGroups)?referenceGroupEditor(d,i):ranges("definitions."+i+".ranges",d.ranges)+`<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`+(d.testId==="cpet"?button("添加年龄 / 性别 / 测试方式标准","profile-group-add",String(i)):"")}`;
     } else if(tab==="imtp")h+=imtpStandardEditor();
     else if(tab==="rules")h+='<div class="form-grid">'+Object.entries(ruleLabels).map(([id,label])=>field(label,input("rules."+id,r.rules[id]))).join("")+'</div><p class="note">FMS 保留固定 0–3 分及疼痛判定。</p>';
     else if(tab==="iso")h+=r.data.iso.map((row,i)=>`<div class="profile-rule-row" data-standard-key="${esc(row.id)}"><b>${esc(isoName(row))}</b>${field("目标 · "+esc(row.unit),input("data.iso."+i+".target",row.target))}<span class="note">${esc(row.protocol||"未记录协议")}</span></div>`).join("");
@@ -15159,7 +15760,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const profile=metricProfile();if(!profile)throw Error("请先创建评价方案");if(!viewProfile(profile.id))return;App.openManagement("profiles");editor.origin="metrics";
     editor.tab=kind==="edit"?"definitions":kind==="time"?"imtp":kind;
     if(kind==="edit"){
-      if(!editor.record.definitions.some(d=>d.id===id)){const source=M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true]))),d=Eval.capture(source).definitions.find(d=>d.id===id);if(!d)throw Error("指标不存在");Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(clone(d));editor.profile.criteria.definitions.push(clone(d));}
+      if(!editor.record.definitions.some(d=>d.id===id)){const source=M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true]))),d=Eval.capture(source).definitions.find(d=>d.id===id);if(!d)throw Error("指标不存在");if(!Eval.hasInstalledStandard(d))Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(clone(d));editor.profile.criteria.definitions.push(clone(d));}
       editor.metricId=id;
     }
     if(kind==="time")editor.timeKey=id;
@@ -15247,6 +15848,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const rows=[],add=(name,a,b)=>{if(Eval.canonical(a)!==Eval.canonical(b))rows.push([name,a,b]);};
     const metric=d=>d?`${d.referenceEnabled?"启用":"未启用"} · 目标 ${d.target??"—"} ${d.unit} · ${d.direction==="higher"?"越高越好":"越低越好"}\n${Def.rangeText(d.ranges)}\n${d.source||""}`:"未包含";
     for(const d of next.definitions)add(T.metricName(d),metric(old.definitions.find(x=>x.id===d.id)),metric(d));
+    const groupText=g=>g?`${{male:"男",female:"女",any:"不限性别"}[g.sex]} · 年龄 [${g.ageMin??"不限"}, ${g.ageMax??"不限"}) · ${{treadmill:"跑台",cycle:"功率车",any:"不限方式"}[g.mode]} · 最低峰值 RER ${g.minPeakRER??"不限"} · 目标 ${g.target??"沿用通用目标"}\n${Def.rangeText(g.ranges)}\n${g.source}`:"未包含";
+    for(const d of next.definitions){const prior=old.definitions.find(x=>x.id===d.id),groups=d.referenceGroups||[],before=prior?.referenceGroups||[];for(const id of new Set([...before.map(g=>g.id),...groups.map(g=>g.id)]))add(T.metricName(d)+" · 分层标准 "+id,groupText(before.find(g=>g.id===id)),groupText(groups.find(g=>g.id===id)));}
     for(const rule of next.imtpTimeStandards||[]){const unit=rule.kind==="rfd"?"N/s":"%PF",prior=old.imtpTimeStandards?.find(x=>x.timeMs===rule.timeMs&&x.kind===rule.kind);add(`IMTP ${rule.timeMs} ms ${rule.kind==="rfd"?"RFD · N/s":"力占峰值力 · %PF"}`,metric(prior?{...prior,unit}:null),metric({...rule,unit}));}
     for(const[k,label]of Object.entries(ruleLabels))add(label,old.rules[k],next.rules[k]);
     for(const row of next.iso)add(M.REG[row.region]+" · "+row.direction,old.iso.find(x=>x.id===row.id)?.target??"—",row.target);
@@ -15271,6 +15874,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function getPath(obj,path){return path.split(".").reduce((v,k)=>v?.[k],obj);}
   function setPath(obj,path,value){const keys=path.split(".");if(keys.some(k=>["__proto__","constructor","prototype"].includes(k)))throw Error("无效字段");let current=obj;for(const k of keys.slice(0,-1))current=current[k];current[keys.at(-1)]=value;}
+  function markReferenceEdited(path){
+    const match=path.match(/^definitions\.(\d+)\.referenceGroups\.(\d+)\.(.+)$/);if(!match||match[3]==="target")return;
+    const group=editor.record.definitions[Number(match[1])].referenceGroups[Number(match[2])];group.modified=true;
+    if(group.sourceId==="friend-2022-rer110"&&match[3]!=="source"&&!group.source.includes("用户调整"))group.source+="（用户调整）";
+  }
+  function clearGroupInputErrors(index){if(editor.invalid)for(const path of [...editor.invalid])if(path.startsWith("definitions."+index+".referenceGroups"))editor.invalid.delete(path);}
   async function action(name,id) {
     if(name==="section")return App.openManagement(id);
     if(name==="page"){filter().page=Number(id);return render();}
@@ -15365,6 +15974,19 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if(name==="profile-tab"){editor.tab=id;return render();}
     if(name==="profile-close"){const origin=editor.origin;if(!discardEditor())return;return origin==="metrics"?App.openManagement("metrics"):render();}
     if(name==="profile-review")return reviewProfile();
+    if(name==="profile-group-select"){editor.referenceGroupId=id;return render();}
+    if(name==="profile-group-add"){
+      const d=editor.record.definitions[Number(id)],group={id:"reference_"+uid(),sex:"any",ageMin:null,ageMax:null,mode:"any",ranges:clone(d.ranges||[]),source:"用户配置专项标准"};
+      d.referenceGroups||=[];d.referenceGroups.push(group);d.referenceMode="grouped";d.ranges=[];d.referenceEnabled=true;editor.referenceGroupId=group.id;return render();
+    }
+    if(["profile-group-copy","profile-group-delete","profile-group-range-add","profile-group-range-delete"].includes(name)){
+      const [i,j,k]=id.split(":").map(Number),d=editor.record.definitions[i],group=d.referenceGroups[j];clearGroupInputErrors(i);
+      if(name==="profile-group-copy"){const copy={...clone(group),id:"reference_"+uid()};d.referenceGroups.splice(j+1,0,copy);editor.referenceGroupId=copy.id;}
+      if(name==="profile-group-delete")d.referenceGroups.splice(j,1);
+      if(name==="profile-group-range-add"){group.ranges.push({min:null,max:null,includeMin:true,includeMax:false,label:"",status:"gray"});markReferenceEdited("definitions."+i+".referenceGroups."+j+".ranges");}
+      if(name==="profile-group-range-delete"){group.ranges.splice(k,1);markReferenceEdited("definitions."+i+".referenceGroups."+j+".ranges");}
+      return render();
+    }
     if(name==="profile-default"){lib().defaultEvaluationProfileId=id;await App.saveLibraryChanges();return render();}
     if(name==="profile-toggle"){const p=lib().evaluationProfiles.find(p=>p.id===id);if(id===lib().defaultEvaluationProfileId)throw Error("请先指定其他默认方案");p.disabled=!p.disabled;await App.saveLibraryChanges();return render();}
     if(name==="profile-records"){
@@ -15377,7 +15999,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     if(name==="profile-extend"){
       const candidates=[M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true])))];if(App.getState())candidates.push(App.getState());
-      for(const r of candidates){const c=Eval.capture(r);for(const d of c.definitions)if(!editor.record.definitions.some(x=>x.id===d.id)){Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(d);editor.profile.criteria.definitions.push(clone(d));}for(const row of c.iso)if(!editor.record.data.iso.some(x=>x.id===row.id))editor.record.data.iso.push({...row,target:"",left:"",right:"",center:"",notes:""});}
+      for(const r of candidates){const c=Eval.capture(r);for(const d of c.definitions)if(!editor.record.definitions.some(x=>x.id===d.id)){if(!Eval.hasInstalledStandard(d))Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(d);editor.profile.criteria.definitions.push(clone(d));}for(const row of c.iso)if(!editor.record.data.iso.some(x=>x.id===row.id))editor.record.data.iso.push({...row,target:"",left:"",right:"",center:"",notes:""});}
       return render();
     }
     if(name==="restore-library"){if(confirm("切换回上次导入或迁移前保留的资料库？当前资料库仍会保留。"))await App.restorePreviousLibrary();return;}
@@ -15396,7 +16018,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       if(t.id==="profileName"&&editor)editor.profile.name=t.value;
       if(editor&&!editor.readOnly){
         if(t.dataset.profilePath) { editor.invalid ||= new Set(); if(t.validity.badInput)editor.invalid.add(t.dataset.profilePath);else editor.invalid.delete(t.dataset.profilePath); }
-        if(t.dataset.profilePath)setPath(editor.record,t.dataset.profilePath,t.type==="checkbox"?t.checked:t.type==="number"&&t.value!==""?Number(t.value):t.value);
+        if(t.dataset.profilePath){
+          const path=t.dataset.profilePath;let value=t.type==="checkbox"?t.checked:t.type==="number"&&t.value!==""?Number(t.value):t.value;
+          if(path.includes(".referenceGroups.")&&t.type==="number"&&t.value==="")value=/\.(target|minPeakRER)$/.test(path)?undefined:null;
+          setPath(editor.record,path,value);markReferenceEdited(path);
+        }
         if(t.dataset.profileRanges)editor.rangeDrafts[t.dataset.profileRanges]=t.value;
         if(t.dataset.profileZones)editor.zoneDrafts[t.dataset.profileZones]=t.value;
       }
@@ -15627,13 +16253,36 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
   }
   function recordBasis() { return state ? M.fingerprint(effectiveRecord()) : ""; }
+  function upgradeDemo(record) {
+    const linkedProfile = library.evaluationProfiles.find(profile => profile.id === record.evaluationProfileId);
+    const upgraded = M.upgradeOriginalDemo(record, linkedProfile);
+    if (!upgraded.changed) return upgraded;
+    // Demo targets must belong only to the synthetic example, not to real records
+    // sharing the old default scheme.
+    const profile = window.RingsideEvaluation.create(upgraded.record, "模拟示例评价方案");
+    library.evaluationProfiles.push(profile);
+    upgraded.record.evaluationProfileId = profile.id;
+    return upgraded;
+  }
   async function loadDirectory(preserve = true) {
     const current = preserve ? state?.recordId : null;
     library = await repository.directory();
+    const catalogBefore = JSON.stringify(library.catalog);
     library.catalog = M.normalizeCatalog(library.catalog);
+    const catalogChanged = JSON.stringify(library.catalog) !== catalogBefore;
+    const profilesChanged = window.RingsideEvaluation.upgradeLibraryProfiles(library);
     const id = current || library.activeRecordId;
     state = id ? await repository.loadRecord(id) : null;
-    if(state)state=M.normalizeRecord(state);
+    const upgrade = state ? upgradeDemo(state) : {changed:false};
+    if(state)state=M.normalizeRecord(upgrade.record || state);
+    if (catalogChanged || profilesChanged || upgrade.changed) {
+      await repository.save(library, upgrade.changed ? [state] : []);
+      if (upgrade.changed) {
+        const athlete = library.athletes.find(a => a.id === state.athleteId);
+        const index = athlete?.records.findIndex(r => r.recordId === state.recordId);
+        if (index >= 0) athlete.records[index] = window.RingsideStore.summary(state);
+      }
+    }
     const owner = state && library.athletes.find(a => a.id === state.athleteId);
     if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
     if (state) {
@@ -16220,8 +16869,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   function imtpForm() {
     const forceInput = (path, value, opts = {}) =>
       input(path, value, { ...opts, allowNegative: true });
+    const selectedCMJ = M.stats(effectiveRecord()).raw.cmj?.selectedRows || [];
+    const duration = selectedCMJ.length && selectedCMJ.every(row => positive(row.propulsiveDurationMs))
+      ? selectedCMJ.reduce((sum, row) => sum + Number(row.propulsiveDurationMs), 0) / selectedCMJ.length : null;
+    const windowLabel = duration === null ? "匹配 CMJ 推进期冲量 N·s" : `0–${F(duration, 2)} ms 冲量 N·s`;
     let h =
       '<p class="intro">逐次填写峰值与已知时间点。只录入 RFD 时，须填写发力起点力；起点未知请留空。</p>';
+    h += `<p class="note" data-cmj-window>${duration === null ? "在 CMJ 中录入本次采用试次的推进期时长后，这里会显示对应的 IMTP 冲量窗口。" : `本次 CMJ 推进期 ${F(duration, 2)} ms：请查找 IMTP 发力起点后 0–${F(duration, 2)} ms 的实测冲量。`}</p>`;
     h += field(
       "协议 / 设备",
       input("protocol.imtp", state.protocol.imtp, { type: "text" }),
@@ -16253,7 +16907,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
                 ]),
               )
             : '<div class="empty">尚未录入时间点；只有峰值时，报告显示峰值参考线。</div>'
-        }<button class="btn small" style="margin-top:12px" onclick="App.addForcePoint(${i})">＋ 时间点</button><details class="supplement"><summary>冲量（用于 iDSI）</summary><div class="form-grid">${field("0–250 ms 冲量 N·s", input(`data.imtp.${i}.impulse250`, row.impulse250, {label:`试次${i+1} 0–250 ms 冲量 N·s`}))}${field("匹配时窗冲量 N·s", input(`data.imtp.${i}.matchedImpulse`, row.matchedImpulse, {label:`试次${i+1} 匹配时窗冲量 N·s`}))}${field("匹配时窗长度 ms", input(`data.imtp.${i}.matchedDurationMs`, row.matchedDurationMs, {label:`试次${i+1} 匹配时窗长度 ms`}))}</div><p class="note">填写设备从发力起点积分的结果；匹配时窗须与本次采用的 CMJ 推进期时长一致。</p></details><div class="form-grid">${T.repeatPolicy(state, "imtp").fields.map((d) => field(d.name + " " + d.unit, forceInput(`data.imtp.${i}.metrics.${d.id}`, row.metrics?.[d.id] ?? ""))).join("")}${field("试次备注", input(`data.imtp.${i}.notes`, row.notes || "", { type: "text" }))}</div><div data-force-warnings="${i}"></div></article>`;
+        }<button class="btn small" style="margin-top:12px" onclick="App.addForcePoint(${i})">＋ 时间点</button><details class="supplement"><summary>冲量（用于 iDSI）</summary><div class="form-grid">${field("0–250 ms 冲量 N·s", input(`data.imtp.${i}.impulse250`, row.impulse250, {label:`试次${i+1} 0–250 ms 冲量 N·s`}))}${field(windowLabel, input(`data.imtp.${i}.matchedImpulse`, row.matchedImpulse, {label:`试次${i+1} ${windowLabel}`}))}${field("匹配时窗长度 ms", input(`data.imtp.${i}.matchedDurationMs`, row.matchedDurationMs, {label:`试次${i+1} 匹配时窗长度 ms`}))}</div><p class="note">填写设备从发力起点积分的结果；匹配时窗须与本次采用的 CMJ 推进期时长一致。</p></details><div class="form-grid">${T.repeatPolicy(state, "imtp").fields.map((d) => field(d.name + " " + d.unit, forceInput(`data.imtp.${i}.metrics.${d.id}`, row.metrics?.[d.id] ?? ""))).join("")}${field("试次备注", input(`data.imtp.${i}.notes`, row.notes || "", { type: "text" }))}</div><div data-force-warnings="${i}"></div></article>`;
       })
       .join("");
     return (
@@ -16374,8 +17028,15 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const sequence = ++selectionSequence;
     if (state) { captureReportUI(); saveEditor(); }
     if (!await persist()) return;
-    const stored = r ? await repository.loadRecord(r.recordId) : null,
-      loaded = stored ? M.normalizeRecord(stored) : null;
+    const stored = r ? await repository.loadRecord(r.recordId) : null;
+    if (sequence !== selectionSequence) return;
+    const upgrade = stored ? upgradeDemo(stored) : {changed:false};
+    const loaded = stored ? M.normalizeRecord(upgrade.record || stored) : null;
+    if (upgrade.changed) {
+      await repository.save(library, [loaded]);
+      const index = a.records.findIndex(item => item.recordId === loaded.recordId);
+      if (index >= 0) a.records[index] = window.RingsideStore.summary(loaded);
+    }
     if (sequence !== selectionSequence) return;
     cancelJob();
     state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
@@ -16489,6 +17150,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         side: "侧别",
         method: "测量方法",
         partial: "末级未完成秒数",
+        modality: "测试方式",
+        oxygenLabel: "报告摄氧量名称",
+        vo2: "摄氧量",
+        vo2Unit: "摄氧量单位",
+        peakHr: "峰值心率 bpm",
+        rer: "峰值 RER",
+        activeStiffness: "设备 Active Stiffness",
+        activeStiffnessInputUnit: "刚度录入单位",
+        propulsiveDurationMs: "推进期时长 ms",
+        propulsiveImpulse: "推进期冲量 N·s",
         location: "身体部位",
         referenceEnabled: "启用匹配评价标准",
         ability: "能力分类",
@@ -16815,7 +17486,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function entryReview() {
     const computed=M.stats(effectiveRecord()),projects=orderedEntryProjects();
-    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed);return[E(t.name),E(progress?.detail||"未录入"),`<button class="btn small" onclick="App.entry('${E(t.id)}')">继续录入</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次训练方向分析</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
+    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed);return[E(t.name),E(progress?.detail||"未录入"),`<button class="btn small" onclick="App.entry('${E(t.id)}')">继续录入</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次能力结构分析</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
   }
   async function finishEntry() {
     if(!state)return;
@@ -17017,16 +17688,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       : "待评价";
     $("radarLegend").innerHTML =
       '<span class="red">重点关注</span> · <span class="amber">关注</span> · <span class="green">良好／优秀</span>';
-    $("directionMetrics").innerHTML = [
-      ["EUR", s.raw.eur, "CMJ / SJ"],
-      ["DSI", s.raw.dsi, "CMJ / 等长峰值力"],
-      ["ASR", s.raw.asr, "m/s"],
-    ]
-      .map(
-        ([l, v, u]) =>
-          `<div class="aux-metric">${l}<strong>${F(v, 2)}</strong>${u}</div>`,
-      )
-      .join("");
+    const capabilityMetrics = (s.capabilityCards || []).flatMap(card => card.metrics);
+    $("directionMetrics").innerHTML = ["eur", "fdsi", "srr"].map(id => {
+      const metric = capabilityMetrics.find(item => item.id === id);
+      if (!metric || !Number.isFinite(metric.value)) return "";
+      return `<div class="aux-metric" data-overview-metric="${id}"><strong class="aux-judgment">${E(metric.judgment || metric.label)}</strong><span class="aux-data">${E(id === "fdsi" ? "DSI" : id.toUpperCase())} ${F(metric.value, 3)}${metric.unit ? " " + E(metric.unit) : ""}</span></div>`;
+    }).join("");
     renderDetails(report);
     renderNarrativeStatus();
     reportDirty = false;
@@ -17055,14 +17722,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       document
         .querySelector('[data-lvp-id="' + CSS.escape(focused) + '"]')
         ?.focus({ preventScroll: true });
-    if (report.stats.qualityIssues.some((x) => x.id === "asr_inconsistent")) {
-      const value = $("directionMetrics").children[2];
-      value.insertAdjacentHTML(
-        "beforeend",
-        ' · <span class="red">待复核</span>',
-      );
-      value.querySelector("strong").style.color = "var(--gray)";
-    }
   }
   function renderNarrativeStatus() {
     if (!state) return;
@@ -17131,18 +17790,46 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       `<button class="btn small" style="margin-top:12px" onclick="App.addRow('${t}')">＋ ${t === "lactate" ? "增加阶段" : lvp ? "新增负荷" : "新增试次"}</button>`
     );
   }
+  function stiffnessFields(base, row) {
+    const unit = row.activeStiffnessInputUnit || "kN/m", factor = unit === "N/m" ? 1000 : 1;
+    const value = N(row.activeStiffness) === null ? "" : Number(row.activeStiffness) * factor;
+    return field("设备 Active Stiffness · " + unit,
+      input(base + ".activeStiffness", value, {label:"设备 Active Stiffness " + unit}).replace("<input ", `<input data-stiffness-factor="${factor}" `)) +
+      field("刚度录入单位", select(base + ".activeStiffnessInputUnit", unit, ["kN/m", "N/m"]));
+  }
+  function cpetForm() {
+    const c = state.data.cpet, units = [["ml/kg/min", "mL·kg⁻¹·min⁻¹"], ["l/min", "L/min"]];
+    const oxygen = (base, value, label) => field(label, input(base + ".vo2", value.vo2, {label})) +
+      field(label + "单位", select(base + ".vo2Unit", value.vo2Unit, units));
+    return '<p class="intro">按本次心肺递增测试报告录入结果，保留报告中的阈值名称和摄氧量口径。</p><div class="form-grid">' +
+      field("测试方式", select("data.cpet.modality", c.modality, [["", "请选择"], ["treadmill", "跑台"], ["cycle", "功率车"]])) +
+      field("协议 / 设备", input("data.cpet.protocol", c.protocol, {type:"text"})) +
+      field("报告摄氧量名称", select("data.cpet.oxygenLabel", c.oxygenLabel, [["VO2max", "VO₂max · 最大摄氧量"], ["VO2peak", "VO₂peak · 峰值摄氧量"]])) +
+      oxygen("data.cpet", c, "最大 / 峰值摄氧量") +
+      field("峰值心率 bpm", input("data.cpet.peakHr", c.peakHr, {label:"峰值心率 bpm"})) +
+      field("峰值 RER", input("data.cpet.rer", c.rer, {label:"峰值 RER", placeholder:"报告未给出时留空"})) + '</div>' +
+      ["first", "second"].map((key, i) => {
+        const row = c.thresholds[key], base = "data.cpet.thresholds." + key, name = i ? "第二阈值" : "第一阈值";
+        return `<section class="imtp-attempt"><h4>${name}</h4><div class="form-grid">` +
+          field("报告阈值名称", select(base + ".label", row.label, i ? ["VT2", "LT2"] : ["VT1", "LT1"])) +
+          oxygen(base, row, name + "摄氧量") +
+          field(name + "心率 bpm", input(base + ".hr", row.hr, {label:name + "心率 bpm"})) +
+          field(name + "速度 m/s", input(base + ".speed", row.speed, {label:name + "速度 m/s"})) +
+          field(name + "功率 W", input(base + ".power", row.power, {label:name + "功率 W"})) + '</div></section>';
+      }).join("") + '<p class="note" data-cpet-result></p>';
+  }
   function reactiveJumpForm(t) {
-    const fields=T.attemptFields(state,t).filter(f=>!f.computed);
-    return '<p class="intro">按 RSI 选择同一次有效试跳，或按有效试次均值汇总。RSI 使用反弹跳高与触地时间计算。</p>'+
+    const fields=T.attemptFields(state,t).filter(f=>!f.computed&&f.key!=="activeStiffness");
+    return '<p class="intro">按 RSI 选择同一次有效试跳，或按有效试次均值汇总。RSI 使用反弹垂直跳跃高度与触地时间计算。</p>'+
       field("协议 / 设备",input("protocol."+t,state.protocol[t],{type:"text"}))+
-      state.data[t].map((row,i)=>`<article class="imtp-attempt"><div class="imtp-attempt-head"><h4>试次 ${i+1}</h4><button class="remove" onclick="App.removeRow('${t}',${i})" aria-label="删除试次 ${i+1}">删除试次</button></div><div class="form-grid">${fields.map(f=>field(f.label+" "+f.unit,input(`data.${t}.${i}.${f.key||"metrics."+f.id}`,f.key?row[f.key]:row.metrics?.[f.id],{label:`试次 ${i+1} ${f.label} ${f.unit}`}))).join("")}${field("试次备注",input(`data.${t}.${i}.notes`,row.notes||"",{type:"text"}))}</div><p class="note" data-reactive-result="${t}:${i}"></p></article>`).join("")+
+      state.data[t].map((row,i)=>`<article class="imtp-attempt"><div class="imtp-attempt-head"><h4>试次 ${i+1}</h4><button class="remove" onclick="App.removeRow('${t}',${i})" aria-label="删除试次 ${i+1}">删除试次</button></div><div class="form-grid">${fields.map(f=>field(f.label+" "+f.unit,input(`data.${t}.${i}.${f.key||"metrics."+f.id}`,f.key?row[f.key]:row.metrics?.[f.id],{label:`试次 ${i+1} ${f.label} ${f.unit}`}))).join("")}${stiffnessFields(`data.${t}.${i}`,row)}${field("试次备注",input(`data.${t}.${i}.notes`,row.notes||"",{type:"text"}))}</div><p class="note" data-reactive-result="${t}:${i}"></p></article>`).join("")+
       `<button class="btn small" onclick="App.addRow('${t}')">＋ 新增试次</button>`;
   }
   function hopSetPath(index) {return Array.isArray(state.data.hop.trials)?`data.hop.trials.${index}`:"data.hop";}
   function hopSetAt(index) {return Array.isArray(state.data.hop.trials)?state.data.hop.trials[index]:state.data.hop;}
   function hopForm() {
     const sets=Array.isArray(state.data.hop.trials)?state.data.hop.trials:[state.data.hop];
-    const fields=[["rsi","平均 RSI","m/s"],["height","平均跳高","cm"],["contactTimeMs","平均触地时间","ms"],["flightTimeMs","平均腾空时间","ms"],["flightTimeRatio","平均腾空 / 触地时间比",""],["suppliedCount","设备录入跳数","跳"],["validCount","设备有效跳数","跳"],["selectedCount","设备采用跳数","跳"]];
+    const fields=[["rsi","平均 RSI","m/s"],["height","平均垂直跳跃高度","cm"],["contactTimeMs","平均触地时间","ms"],["flightTimeMs","平均腾空时间","ms"],["flightTimeRatio","平均腾空 / 触地时间比",""],["suppliedCount","设备录入跳数","跳"],["validCount","设备有效跳数","跳"],["selectedCount","设备采用跳数","跳"]];
     return field("协议 / 设备",input("protocol.hop",state.protocol.hop,{type:"text"}))+
       '<p class="intro">一次连续跳为一次完整测试。可录入设备汇总，或录入单跳数据：有效跳数不超过5跳时全部采用，超过5跳时自动选取 RSI 最高的5跳。</p>'+
       sets.map((set,index)=>{
@@ -17150,10 +17837,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         return `<article class="imtp-attempt" data-hop-set="${index}"><div class="imtp-attempt-head"><h4>第 ${index+1} 次完整测试</h4>${Array.isArray(state.data.hop.trials)?`<button class="remove" onclick="App.removeRepeat('hop',${index})">删除本次测试</button>`:""}</div>`+
           field("录入方式",select(base+".inputMode",set.inputMode,[["summary","设备汇总值"],["jumps","逐跳数据"]]))+
           (set.inputMode!=="jumps"?'<div class="form-grid">'+fields.map(([key,label,unit])=>field(label+(unit?" "+unit:""),input(base+".summary."+key,summary[key],{label, ...(key.endsWith("Count")?{step:1}:{})}))).join("")+
-            field("设备筛选依据",select(base+".summary.selectionBasis",summary.selectionBasis||"unknown",[["unknown","未注明"],["height_rsi","跳高 / 触地时间（RSI）"],["flight_ratio","腾空 / 触地时间比"]]))+'</div><p class="note">保留设备给出的平均 RSI，不用平均跳高除以平均触地时间替代。</p>':
-            table(["跳次","跳高 cm","触地 ms","腾空 ms","RSI m/s","采用","备注","操作"],(set.jumps||[]).map((jump,j)=>[j+1,input(`${base}.jumps.${j}.height`,jump.height,{label:`第${j+1}跳 跳高 cm`}),input(`${base}.jumps.${j}.contactTimeMs`,jump.contactTimeMs,{label:`第${j+1}跳 触地 ms`}),input(`${base}.jumps.${j}.flightTimeMs`,jump.flightTimeMs,{label:`第${j+1}跳 腾空 ms`}),`<span data-hop-rsi="${index}:${j}">—</span>`,`<span data-hop-selected="${index}:${j}">—</span>`,input(`${base}.jumps.${j}.notes`,jump.notes||"",{type:"text"}),`<button class="remove" onclick="App.removeHopJump(${index},${j})" aria-label="删除第${j+1}跳">删除</button>`]))+
+            field("设备筛选依据",select(base+".summary.selectionBasis",summary.selectionBasis||"unknown",[["unknown","未注明"],["height_rsi","垂直跳跃高度 / 触地时间（RSI）"],["flight_ratio","腾空 / 触地时间比"]]))+'</div><p class="note">保留设备给出的平均 RSI，不用平均垂直跳跃高度除以平均触地时间替代。</p>':
+            table(["跳次","垂直跳跃高度 cm","触地 ms","腾空 ms","RSI m/s","采用","备注","操作"],(set.jumps||[]).map((jump,j)=>[j+1,input(`${base}.jumps.${j}.height`,jump.height,{label:`第${j+1}跳 垂直跳跃高度 cm`}),input(`${base}.jumps.${j}.contactTimeMs`,jump.contactTimeMs,{label:`第${j+1}跳 触地 ms`}),input(`${base}.jumps.${j}.flightTimeMs`,jump.flightTimeMs,{label:`第${j+1}跳 腾空 ms`}),`<span data-hop-rsi="${index}:${j}">—</span>`,`<span data-hop-selected="${index}:${j}">—</span>`,input(`${base}.jumps.${j}.notes`,jump.notes||"",{type:"text"}),`<button class="remove" onclick="App.removeHopJump(${index},${j})" aria-label="删除第${j+1}跳">删除</button>`]))+
             `<div class="row"><button class="btn small" onclick="App.addHopJump(${index})">＋ 增加1跳</button><button class="btn small" onclick="App.addHopJump(${index},5)">＋ 增加5跳</button></div>`)+
-          `<p class="note" data-hop-counts="${index}"></p>`+field("本次测试备注",input(base+".notes",set.notes||"",{type:"text"}))+"</article>";
+          `<div class="form-grid">${stiffnessFields(base+".summary",summary)}</div><p class="note" data-hop-counts="${index}"></p>`+field("本次测试备注",input(base+".notes",set.notes||"",{type:"text"}))+"</article>";
       }).join("")+`<button class="btn small" onclick="App.addHopSet()">＋ 新增一次完整测试</button>`;
   }
   function addHopJump(index,count=1) {
@@ -17175,6 +17862,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   }
   function updateJumpEntryResults() {
     if(ui.mode!=="entry")return;
+    if (entryTab === "cpet" && T.isNative(state, entryTab)) {
+      const s = M.stats(effectiveRecord()), result = $("entryContent").querySelector("[data-cpet-result]");
+      const card = s.capabilityCards?.find(item => item.id === "cardio");
+      if (result) result.textContent = card?.conclusion || "";
+    }
     if(["dj","cmrj"].includes(entryTab)&&T.isNative(state,entryTab))state.data[entryTab].forEach((row,i)=>{
       const el=$("entryContent").querySelector(`[data-reactive-result="${entryTab}:${i}"]`);
       if(el)el.textContent="RSI "+F(positive(row.height)&&positive(row.contactTimeMs)?Number(row.height)*10/Number(row.contactTimeMs):null,2)+" m/s";
@@ -17424,13 +18116,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             ),
           )
           .join("");
-    } else if (entryTab==="hop"&&T.isNative(state,entryTab)) h+=hopForm();
+    } else if (entryTab==="cpet"&&T.isNative(state,entryTab)) h+=cpetForm();
+    else if (entryTab==="hop"&&T.isNative(state,entryTab)) h+=hopForm();
     else if (["dj","cmrj"].includes(entryTab)&&T.isNative(state,entryTab)) h+=reactiveJumpForm(entryTab);
     else if (["cmj", "sj"].includes(entryTab)) {
       const t = entryTab,
-        fields = T.attemptFields(state, t).filter(f=>!f.computed&&!['propulsiveImpulse','propulsiveDurationMs'].includes(f.key));
+        fields = T.attemptFields(state, t).filter(f=>!f.computed);
       h +=
-        '<p class="intro">按最高跳高选择同一次试跳，或按有效试次均值汇总；缺测留空。</p>' +
+        '<p class="intro">按最高垂直跳跃高度选择同一次试跳，或按有效试次均值汇总；缺测留空。</p>' +
         field(
           "协议 / 设备",
           input("protocol." + t, state.protocol[t], { type: "text" }),
@@ -17448,7 +18141,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
             ),
           ],
         );
-      if(t==="cmj")h+='<details class="supplement"><summary>推进期冲量与时长（用于 iDSI）</summary>'+state.data.cmj.map((row,i)=>`<div class="subheading">试次 ${i+1}</div><div class="form-grid">${field("推进期冲量 N·s",input(`data.cmj.${i}.propulsiveImpulse`,row.propulsiveImpulse,{label:`试次${i+1} 推进期冲量 N·s`}))}${field("推进期时长 ms",input(`data.cmj.${i}.propulsiveDurationMs`,row.propulsiveDurationMs,{label:`试次${i+1} 推进期时长 ms`}))}</div>`).join("")+'</details>';
       if (t === "cmj")
         h +=
           '<div class="subheading">DSI数据来源</div><div class="form-grid">' +
@@ -18719,6 +19411,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         score: a.value,
         status: a.status,
       })),
+      capabilityAnalysis: copy(s.capabilityCards || []),
+      cpet: copy(s.raw.cpet || null),
       qualityIssues: s.qualityIssues || [],
       migrationReview: {
         protocol: state.unitMigration || null,
@@ -18726,7 +19420,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       },
       findings: s.findings.map(item => ({...item, ability:T.abilityLabel(analysisRecord,item.ability)})),
       advantages: {...s.advantages,items:s.advantages.items.map(item => ({...item, ability:T.abilityLabel(analysisRecord,item.ability)}))},
-      derived: { EUR: s.raw.eur, DSI: s.raw.dsi, ASR_mps: s.raw.asr, analysis:s.derived },
+      derived: { EUR: s.raw.eur, DSI: s.raw.dsi, ASR_mps: s.raw.asr, SRR:s.raw.srr, analysis:s.derived },
       forceTime: s.raw.forceTime,
       isometric: s.isoAnalyses.filter((x) =>
         x.sides.some((y) => y.value !== null || y.pain),
@@ -19107,7 +19801,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     return {
       schema: 2,
       kind: "report",
-      record: { ...effectiveRecord(), evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
+      record: { ...window.RingsideEvaluation.materialize(effectiveRecord()), evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
       profile: copy(activeAthlete().profile),
     };
   }
@@ -19256,7 +19950,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
   async function downloadLegacyLibrary() {
     try {
       const all = await libraryPayload(), profiles = new Map(all.evaluationProfiles.map(p=>[p.id,p]));
-      all.athletes = all.athletes.filter(a=>!a.deletedAt).map(a=>({...a,records:a.records.filter(r=>!r.deletedAt).map(r=>{const out=window.RingsideEvaluation.resolve(r,profiles.get(r.evaluationProfileId));delete out.evaluationProfileId;return out;})})).filter(a=>a.records.length);
+      all.athletes = all.athletes.filter(a=>!a.deletedAt).map(a=>({...a,records:a.records.filter(r=>!r.deletedAt).map(r=>{const out=window.RingsideEvaluation.materialize(r,profiles.get(r.evaluationProfileId));delete out.evaluationProfileId;return out;})})).filter(a=>a.records.length);
       all.schema=2;delete all.evaluationProfiles;delete all.groups;delete all.defaultEvaluationProfileId;delete all.testPlans;
       // Older applications use the visible ability text as identity. Materialize
       // the export snapshot, disambiguating equal names without merging axes.
@@ -19291,7 +19985,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     const result=await repository.importLibrary(incoming,{merge:conflictChoice!=="replace-library"});
     cancelJob(); await loadDirectory(false);
     const importedRecord=incoming.activeRecordId && await repository.loadRecord(result.recordMap[incoming.activeRecordId]||incoming.activeRecordId);
-    if (importedRecord && !importedRecord.deletedAt) { state=importedRecord;library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;recordBaselines.set(state.recordId,recordContent(state));await persist(); }
+    if (importedRecord && !importedRecord.deletedAt) {
+      const upgrade = upgradeDemo(importedRecord);
+      state = M.normalizeRecord(upgrade.record || importedRecord);
+      library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;
+      if (upgrade.changed) await repository.save(library, [state]);
+      recordBaselines.set(state.recordId,recordContent(state));await persist();
+    }
     ui.mode="report"; renderReport(false);renderWorkspace();return result;
     });
   }
@@ -19669,7 +20369,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     }
     if (t.dataset.path && t.tagName !== "SELECT" && t.type !== "checkbox") {
       t.setCustomValidity("");
-      let error = M.validateField(state, t.dataset.path, t.value);
+      const storedValue = t.dataset.stiffnessFactor && t.value !== "" ? Number(t.value) / Number(t.dataset.stiffnessFactor) : t.value;
+      let error = M.validateField(state, t.dataset.path, storedValue);
       if (t.type === "number" && !t.validity.valid)
         error ||= t.validity.badInput
           ? "请填写有效数值"
@@ -19691,7 +20392,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
         rawNumbers.set(t, { value: t.value, selected: false });
       forgetInputError(t.dataset.path);
       inputIssue(t);
-      setPath(t.dataset.path, t.value);
+      setPath(t.dataset.path, storedValue);
     }
   });
   document.addEventListener("change", (e) => {
@@ -19705,6 +20406,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
     if (t.dataset.path && (t.tagName === "SELECT" || t.type === "checkbox")) {
       const unit = t.dataset.path.match(/^data\.iso\.(\d+)\.unit$/);
       if (unit) return requestUnitChange(t, Number(unit[1]));
+      if (/^data\.cpet(?:\.thresholds\.(?:first|second))?\.vo2Unit$/.test(t.dataset.path)) {
+        const base = t.dataset.path.replace(/\.vo2Unit$/, ""), row = atPath(base);
+        if (positive(row.vo2) && row.vo2Unit !== t.value) {
+          if (!positive(state.athlete.mass)) {
+            t.value = row.vo2Unit;
+            return toast("换算摄氧量需要本次体重；请先录入体重，或清空数值后选择录入单位。");
+          }
+          setPath(base + ".vo2", t.value === "l/min" ? Number(row.vo2) * Number(state.athlete.mass) / 1000 : Number(row.vo2) * 1000 / Number(state.athlete.mass));
+        }
+      }
       if (t.dataset.path.startsWith("enabled.")) {
         const id = t.dataset.path.slice(8);
         if (t.checked && !installCatalogProject(id)) {
@@ -19729,7 +20440,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var n,r,i,a,
       setPath(t.dataset.path, t.type === "checkbox" ? t.checked : t.value);
       if (/^views\.lvp(Upper|Lower)\.showBand$/.test(t.dataset.path))
         state.views[t.dataset.path.split(".")[1]].bandExplicit = true;
-      if (ui.mode === "entry" && (["dsi.source"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)))
+      if (ui.mode === "entry" && (["dsi.source"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)||/\.activeStiffnessInputUnit$/.test(t.dataset.path)||/^data\.cpet.*(?:vo2Unit|oxygenLabel|label|modality)$/.test(t.dataset.path)))
         renderEntry();
     }
     if (t.dataset.axis) {

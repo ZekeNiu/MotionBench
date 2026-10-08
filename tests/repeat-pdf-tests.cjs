@@ -34,7 +34,7 @@ const result={sourceHash:hash(source),fixtureHash:hash(fixturePath),syntheticPag
    assert.equal(after.diagnostics.status,"complete");for(const key of ["missingRows","duplicateRows","changedRows","missingCharts","duplicateCharts"])assert.deepEqual(after.diagnostics[key],[]);
    const text=after.pages.map(p=>p.text).join("\n"),appendix=text.indexOf("附录 · 原始试次");assert.ok(appendix>text.indexOf("教练保留正文"));assert.ok(text.indexOf("均值 ± SD")>=0 && text.indexOf("均值 ± SD")<appendix);
    for(const marker of [...Array.from({length:60},(_,i)=>"CMJ-RAW-"+String(i+1).padStart(3,"0")),...Array.from({length:3},(_,i)=>"IMTP-RAW-"+i),...['D','ND'].flatMap(s=>[0,1,2].map(i=>"BALL-RAW-"+s+i))]){assert.equal(text.split(marker).length-1,1,marker);assert.ok(text.indexOf(marker)>appendix);}
-   const continued=after.pages.flatMap((p,i)=>p.tables.filter(t=>t.rows.some(r=>r.includes("CMJ-RAW-"))).map(t=>({page:i+1,head:t.head,rows:t.rows.length})));assert.ok(new Set(continued.map(x=>x.page)).size>=2);assert.ok(continued.every(x=>x.head.includes("试次")&&x.head.includes("跳高")));
+   const continued=after.pages.flatMap((p,i)=>p.tables.filter(t=>t.rows.some(r=>r.includes("CMJ-RAW-"))).map(t=>({page:i+1,head:t.head,rows:t.rows.length})));assert.ok(new Set(continued.map(x=>x.page)).size>=2);assert.ok(continued.every(x=>x.head.includes("试次")&&x.head.includes("垂直跳跃高度")));
    assert.deepEqual(item.errors,[]);assert.deepEqual(item.network,[]);
    Object.assign(item,{pass:true,diagnostics:after.diagnostics,pages:after.pages,continued,pdfSha256:hash(dest)});console.log("PASS "+config.id+" "+after.pages.length+" pages");
   }catch(e){item.failure=e.stack;console.error(e.stack);process.exitCode=1;}

@@ -11,20 +11,36 @@
   function measurementContext(record, d) {
     const config = d.testId === "cmj" ? { definition: record.cmjConfig?.definition || "gross" } : d.testId === "imtp" ? { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } : null;
     if (config && /impulse/.test(d.id)) config.impulseDefinition = (d.testId === "cmj" ? record.cmjConfig : record.imtpConfig)?.impulseDefinition || "gross";
-    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", metricProtocol: d.protocol || "", ...(config ? { force: clone(config) } : {}) };
+    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", metricProtocol: d.protocol || "", ...(config ? { force: clone(config) } : {}), ...(d.id === "rqr" ? { pairedProtocol: record.protocol?.hop || "" } : {}) };
   }
   function isoContext(row, record) {
     return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit, protocol: row.protocol || record.protocol?.iso || "" };
   }
-  function compatibleContext(id, context) {
-    return context ? { ...context, metricProtocol: root.Def.viftProtocol(id, context.metricProtocol) } : context;
+  const factoryText = (id, field, value) => root.Def.factoryText ? root.Def.factoryText(id, field, value) : value;
+  function compatibleContext(d, context) {
+    if (!context) return context;
+    const out = { ...context, metricProtocol: root.Def.viftProtocol(d.id, context.metricProtocol) };
+    if (!d.legacyManual) {
+      out.protocol = factoryText(d.testId, "testProtocol", out.protocol);
+      out.metricProtocol = factoryText(d.id, "protocol", out.metricProtocol);
+      if (d.id === "rqr" && out.pairedProtocol !== undefined) out.pairedProtocol = factoryText("hop", "testProtocol", out.pairedProtocol);
+    }
+    return out;
+  }
+  function normalizeFactoryText(definition) {
+    if (definition.legacyManual) return false;
+    const textFields = () => canonical({ name:definition.name, protocol:definition.protocol, context:definition.context });
+    const before = textFields();
+    for (const field of ["name", "protocol"]) definition[field] = factoryText(definition.id, field, definition[field]);
+    if (definition.context) definition.context = compatibleContext(definition, definition.context);
+    return before !== textFields();
   }
   const imtpTimeContext = record => M.imtpTimeContext(record);
   const imtpTimeMatches = (record, rule) => canonical(rule.context) === canonical(imtpTimeContext(record));
   const timeStandards = record => (record.imtpTimeStandards || []).map(({ matched, ...rule }) => clone(rule)).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind));
   function capture(record) {
     return {
-      definitions: record.definitions.map(d => ({ ...clone(d), context: measurementContext(record, d) })).sort((a,b) => a.id.localeCompare(b.id)),
+      definitions: record.definitions.map(d => { const definition = { ...clone(d), context: measurementContext(record, d) }; normalizeFactoryText(definition); return definition; }).sort((a,b) => a.id.localeCompare(b.id)),
       rules: clone(record.rules), axes: clone(record.axes),
       iso: record.data.iso.map(row => ({ id: row.id, direction: row.direction, ...isoContext(row, record), target: row.target ?? "" })).sort((a,b) => a.id.localeCompare(b.id)),
       balance: record.balancePairs.map(pair => ({ ...clone(pair), contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; }) })).sort((a,b) => a.id.localeCompare(b.id)),
@@ -50,9 +66,23 @@
       return { ...clone(rule), matched };
     });
     for (const d of out.definitions) {
+      normalizeFactoryText(d);
       const rule = definitions.get(d.id);
-      if (rule && canonical(compatibleContext(d.id, rule.context)) === canonical(compatibleContext(d.id, measurementContext(record, d)))) {
-        for (const key of ["target", "ranges", "direction", "referenceEnabled", "source"]) if (rule[key] !== undefined) d[key] = clone(rule[key]);
+      if (rule && canonical(compatibleContext(rule, rule.context)) === canonical(compatibleContext(d, measurementContext(record, d)))) {
+        for (const key of ["target", "ranges", "direction", "referenceEnabled", "source", "referenceMode", "referenceGroups"]) {
+          if (rule[key] !== undefined) d[key] = clone(rule[key]);
+          else if (["referenceMode", "referenceGroups"].includes(key)) delete d[key];
+        }
+        delete d.referenceMatch;
+        if (Array.isArray(rule.referenceGroups)) {
+          const match = root.RingsideReferences?.matchReferenceGroup(record, rule.referenceGroups) || {group:null,eligible:false,reason:"未加载分层参考标准"};
+          d.ranges = match.eligible ? clone(match.group.ranges) : [];
+          // Target selection is independent of a literature table's RER eligibility.
+          if (match.group && Number.isFinite(match.group.target) && match.group.target > 0) d.target = match.group.target;
+          if (match.group) d.source = match.group.source;
+          d.referenceMatch = {groupId:match.group?.id||null,eligible:match.eligible,reason:match.reason,sourceId:match.group?.sourceId||"",source:match.group?.source||""};
+          if (!match.eligible && rule.referenceEnabled && record.enabled[d.testId]) out.evaluationIssues.push({id:d.id,reason:match.reason});
+        }
       } else {
         d.referenceEnabled = false; d.target = null; d.ranges = [];
         if (record.enabled[d.testId]) out.evaluationIssues.push({ id: d.id, reason: rule ? "评价方案与测量条件不匹配" : "方案未包含该指标" });
@@ -86,12 +116,14 @@
   function template(profile) {
     const r = M.defaults(), c = profile.criteria;
     r.definitions = clone(c.definitions);
+    r.definitions.forEach(normalizeFactoryText);
     r.rules = clone(c.rules); r.axes = clone(c.axes);
     r.data.iso = c.iso.map(row => ({ ...clone(row), left: "", right: "", center: "", painLeft: false, painRight: false, painCenter: false, notes: "" }));
     r.balancePairs = clone(c.balance); r.lvp = clone(c.lvp);
     r.imtpTimeStandards = clone(c.imtpTimeStandards || []);
-    for (const d of c.definitions) {
+    for (const d of r.definitions) {
       r.protocol[d.testId] = d.context.protocol;
+      if (d.id === "rqr" && d.context.pairedProtocol !== undefined) r.protocol.hop = d.context.pairedProtocol;
       if (d.context.force) r[d.testId === "cmj" ? "cmjConfig" : "imtpConfig"] = clone(d.context.force);
     }
     for (const [id,p] of Object.entries(c.lvp)) r.protocol[id.startsWith("landmine") ? "landmine" : id] = p.protocol;
@@ -100,7 +132,7 @@
   function fromTemplate(draft, original) {
     const c = capture(draft);
     // Definition conditions belong to the source measurement and never change through target editing.
-    c.definitions.forEach(d => { const prior = original.criteria.definitions.find(x => x.id === d.id); if (prior) d.context = clone(prior.context); });
+    c.definitions.forEach(d => { const prior = original.criteria.definitions.find(x => x.id === d.id); if (prior) d.context = clone(prior.context); normalizeFactoryText(d); });
     c.imtpTimeStandards.forEach(rule => { const prior = (original.criteria.imtpTimeStandards || []).find(x => x.timeMs === rule.timeMs && x.kind === rule.kind); if (prior) rule.context = clone(prior.context); });
     return c;
   }
@@ -111,6 +143,8 @@
     M.validateIMTPTimeStandards(c.imtpTimeStandards);
     if (p.previous?.criteria) M.validateIMTPTimeStandards(p.previous.criteria.imtpTimeStandards);
     for (const key of ["definitions", "iso", "balance"]) if (!Array.isArray(c[key])) throw Error("评价方案缺少 " + key);
+    for (const definition of c.definitions) root.RingsideReferences?.validateReferenceGroups(definition.referenceGroups);
+    for (const definition of p.previous?.criteria?.definitions || []) root.RingsideReferences?.validateReferenceGroups(definition.referenceGroups);
     if (!c.rules || !c.axes || !c.lvp) throw Error("评价方案配置不完整");
     const r = template(p);
     const ids = new Set(r.definitions.map(d => d.testId));
@@ -123,6 +157,50 @@
       for (const z of p.zones) if (!Number.isFinite(z.min) || !Number.isFinite(z.max) || z.min < 0 || z.max <= z.min) throw Error("LVP 素质区间无效");
     }
     return true;
+  }
+  const newStandardIds = new Set(["dj_rsi","hop_rsi","cmrj_rsi","cmj_rsi_modified","sj_rsi_modified","cmrj_first_rsi_modified"]);
+  function hasInstalledStandard(definition) {
+    return !!definition && (definition.testId === "cpet" || newStandardIds.has(definition.id));
+  }
+  function upgradeLibraryProfiles(library) {
+    if (!Array.isArray(library?.evaluationProfiles)) return false;
+    const defaults = capture(M.defaults()).definitions;
+    const isOldUnmodified = d => !d.legacyManual && d.target == null && d.referenceEnabled === false &&
+      Array.isArray(d.ranges) && !d.ranges.length && d.referenceGroups === undefined &&
+      d.source === "用户配置评价标准" && d.protocol === "使用实际测试协议与匹配评价标准";
+    let changed = false;
+    const upgrade = criteria => {
+      if (!criteria?.definitions) return false;
+      let touched = false;
+      for (const builtin of defaults.filter(hasInstalledStandard)) {
+        const prior = criteria.definitions.find(d => d.id === builtin.id);
+        if (!prior) { criteria.definitions.push(clone(builtin)); touched = true; }
+        else if (newStandardIds.has(prior.id) && builtin.referenceEnabled && builtin.ranges.length && isOldUnmodified(prior) && prior.unit === builtin.unit && prior.testId === builtin.testId) {
+          for (const key of ["target","ranges","referenceEnabled","source"]) prior[key] = clone(builtin[key]);
+          touched = true;
+        }
+      }
+      return touched;
+    };
+    for (const profile of library.evaluationProfiles) {
+      for (const definition of profile.criteria?.definitions || []) if (normalizeFactoryText(definition)) changed = true;
+      if (profile.builtinStandardsVersion === 1) continue;
+      const previous = {name:profile.name,criteria:clone(profile.criteria),revision:profile.revision,updated:profile.updated};
+      const touched = upgrade(profile.criteria);
+      if (touched) { profile.previous = previous; profile.revision += 1; profile.updated = now(); }
+      // A deliberate later rollback must not be silently upgraded again on load.
+      profile.builtinStandardsVersion = 1;
+      changed = true;
+    }
+    return changed;
+  }
+  function materialize(record, profile) {
+    const out = profile ? resolve(record, profile) : clone(record);
+    for (const definition of out.definitions) {
+      delete definition.referenceGroups;
+      delete definition.referenceMode;
+    }
+    return out;
   }
   function migrate(input) {
     if (input?.schema === 3 && input.kind === "athlete-library") {
@@ -140,5 +218,5 @@
     return { ...legacy, schema: 3, groups: [], evaluationProfiles: profiles, defaultEvaluationProfileId: defaultProfile.id,
       athletes: legacy.athletes.map(a => ({...a, groupId:"", archived:false, deletedAt:null, records:a.records.map(r=>({...r,archived:false,deletedAt:null}))})) };
   }
-  root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate, imtpTimeContext, imtpTimeMatches };
+  root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate, imtpTimeContext, imtpTimeMatches, upgradeLibraryProfiles, materialize, hasInstalledStandard };
 })(typeof window !== "undefined" ? window : globalThis);

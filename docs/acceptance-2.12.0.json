@@ -1,0 +1,103 @@
+{
+  "pass": true,
+  "version": "2.12.0",
+  "acceptanceScope": "Four capability cards, CPET and reference editing, migration, real entry and persistence, backup/export, responsive report and actual PDF.",
+  "html": "MotionBench.html",
+  "sha256": "552492e51f69be2b87b09bdb017cc99fe3284163ea5d1edba51d35f1f099e95b",
+  "bytes": 4482198,
+  "reproducibleBuild": true,
+  "sourceModules": {
+    "src/ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "src/ringside-app.js": "a5529b728d781db0e6fc7d2c57fa0ce1ddb1a6b9df7a1057362705f721bdd6c7",
+    "src/ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "src/ringside-definitions.js": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+    "src/ringside-evaluation.js": "54b90d51ccacc11f4ea21e374dd84a03099c49fbbb1b2578d87a8e45e053c3f0",
+    "src/ringside-interventions.js": "94de623fc97496abf6575f57c2680c0a325f6fea1ad5bf36c1eb72a5422bdd6f",
+    "src/ringside-management-refinement.css": "156274b924aa6f03f31cc74f24dffd1e97b11bf40411b93d4ba65325a887bccf",
+    "src/ringside-management.js": "efcbd66b073261745da565f5bfcec763cf2b246da078175a629d3f6d52c8ecdd",
+    "src/ringside-model.js": "34415be03de697118e9d9b59ee9a443f8e8d644a8aa78b557d6d26cfa867936b",
+    "src/ringside-pdf.js": "26574d0a2e6c9814b58657354eff66dad7c032ecf9e656e7ab2a795027ca00ba",
+    "src/ringside-report-refinement.css": "37ab0b3f78abffb0ed847d9dee7e42fd0d7336b410239b28c1c0ee66c8045ce8",
+    "src/ringside-report.js": "fd6e93c909cad53ef9cbe6f1432762cdc35191aed89467833008b7efab99b368",
+    "src/ringside-settings.js": "93a53bfbc6d999e4f1530b8f2c96dc013f509b8710a2c9c749d1f931f42ee79d",
+    "src/ringside-shell.html": "68442fefe7204de3776ac0734d7ac23d4b0e499c2e1a21ce09211f13a71be482",
+    "src/ringside-sources.js": "48aa1871cf9613371952580d731e36113f284441815a8f90d703d24e58811d74",
+    "src/ringside-store.js": "cbc49f3a5260d5059d11f9ded1ea011e7678df8ec96992f4c2d4d54d40b175c1",
+    "src/ringside-tests.js": "bfa453e206027c0de132e8989d189213ebc24674c7f7a4c3417f4f89ad684983",
+    "src/ringside-viz.js": "93865252a221e0d2818734784b52537e508cbe3f2d42bb9debdfb917a0cd6fd5",
+    "src/ringside-workflow.css": "67bc3ccc097a3fb88c0597e303a21d96f40af8ac01dc1183715518c41f0aa632",
+    "src/ringside.css": "6062c7d1b54d6a653369318c9a2a7c6c1d5af3b9967f7fa34861e8643b03ee1c"
+  },
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "838ba9a963dbd9097e6c504d986e1be707f9999f3a8f4baf0c9578623d6a27e7"
+    },
+    "chromeEntry": {
+      "path": "output/v212-entry/chrome-results.json",
+      "sha256": "e33738f6316ea1dc5ffb461eb4d469eabd14d220f6ac9f59777e7839f0b7e1bc"
+    },
+    "chromeReference": {
+      "path": "output/playwright/cpet-reference/chrome-reference-browser.json",
+      "sha256": "2b8bcd134cc4ae0ca94dd2b1c44aae2a31e3ac58baae2f91962f4c4a2cd71d54"
+    },
+    "chromeCapability": {
+      "path": "output/playwright/v212-capability/chrome-results.json",
+      "sha256": "d37688cf75a666f21b6dea75d9203354c22916fd4c49c757ed20cbe08111494b"
+    },
+    "chromeWorkflow": {
+      "path": "output/playwright/refinement/chrome-workflow.json",
+      "sha256": "31f0ba7a05dfc3305ce8252aa7662f7c6df01a6cd32f705d1915d2bba26ebe12"
+    },
+    "chromeRaces": {
+      "path": "output/playwright/refinement-races/chrome-races.json",
+      "sha256": "962863b306aa83c1397a587fe714b0f5f41ffd144756d14b700c5e8959c1925a"
+    },
+    "msedgeEntry": {
+      "path": "output/v212-entry/msedge-results.json",
+      "sha256": "21e5c903be121eaf1e6a351f3b44036bc2ca1d41cc37a8f784e728a49559cb27"
+    },
+    "msedgeReference": {
+      "path": "output/playwright/cpet-reference/msedge-reference-browser.json",
+      "sha256": "74ad0fe3a1a537dd8202abb47aceaafe2bc38628c9b213b5115540cd3096edfb"
+    },
+    "msedgeCapability": {
+      "path": "output/playwright/v212-capability/msedge-results.json",
+      "sha256": "20b3dc1fd56fd9cb56c26c0850a2237428b554a00ac80abba5edfdd1261b1db5"
+    },
+    "msedgeWorkflow": {
+      "path": "output/playwright/refinement/msedge-workflow.json",
+      "sha256": "3a30c9b524098a6e96e7ffed4e6afdb1383fb0e78e8a051bd7b043fa8862f2e9"
+    },
+    "msedgeRaces": {
+      "path": "output/playwright/refinement-races/msedge-races.json",
+      "sha256": "2595bd3119664dc365c06209450c5630d8735af0ad5a03b97a5a48eeb9d67d2d"
+    },
+    "managementResilience": {
+      "path": "output/playwright/management/resilience.json",
+      "sha256": "079dcf74508891ed2eeb6d9b810c669d4e8e3e9e4563534441e4912cb796765d"
+    },
+    "pdfVisual": {
+      "path": "output/playwright/v212-capability/pdf-review.json",
+      "sha256": "b58c1bbb7dc2f98e6b01f6e9d78a2480597431a7f24a670fc8b562684b6fbcc4"
+    },
+    "friendSourceVerification": {
+      "path": "output/playwright/cpet-reference/friend-source-verification.json",
+      "sha256": "b0a9fa73d78b03ce7360151b1ffca288204aff6b0e464874a35bf575143cdfbb"
+    }
+  },
+  "modelChecks": 273,
+  "browserChecks": 89,
+  "pdfPagesVisuallyReviewed": 15,
+  "rollback": {
+    "tag": "v2.11.0",
+    "htmlSHA256": "9cf99b5fd0985dd10811721e667d53846d8eee1569cb3a21bc4be77ec972dcb2"
+  },
+  "verificationLimits": [
+    "Synthetic measurements and isolated Chrome/Edge profiles; no personal athlete records used.",
+    "Narrow-screen layout uses browser viewports; no physical phone, test device or printer acceptance.",
+    "Local server and online AI provider were not changed or revalidated in this release.",
+    "Training priority follows configured goals; software verification does not establish individual training efficacy."
+  ]
+}

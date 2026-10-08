@@ -9,7 +9,7 @@ const context = vm.createContext({
   crypto: require("node:crypto").webcrypto,
 });
 context.window = context;
-for (const name of ["calc", "definitions", "tests", "model", "interventions", "viz", "report"])
+for (const name of ["calc", "cpet-reference", "definitions", "tests", "model", "interventions", "viz", "report"])
   vm.runInContext(
     fs.readFileSync(
       path.join(__dirname, "../src/ringside-" + name + ".js"),

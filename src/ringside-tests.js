@@ -18,6 +18,7 @@
     ["pushup", "60 秒俯卧撑", "performance", "scalar"],
     ["mb", "药球反手投掷", "performance", "ball"],
     ["lactate", "递增负荷测试：乳酸与心率", "performance", "lactate"],
+    ["cpet", "CPET 心肺运动测试", "performance", "cpet"],
     ["ift", "30-15VIFT", "performance", "speed"],
     ["mas", "MAS 最大有氧速度", "performance", "speed"],
     ["mss", "MSS 最大冲刺速度", "performance", "speed"],
@@ -31,7 +32,7 @@
       !(source.tests || source.projectSnapshots || []).some((t) => t.id === id && t.legacyCustom === true);
   }
   const jumpFields = [
-    { key: "height", suffix: "height", label: "跳高", unit: "cm" },
+    { key: "height", suffix: "height", label: "垂直跳跃高度", unit: "cm" },
     {
       key: "rsiModified",
       suffix: "rsi_modified",
@@ -47,17 +48,18 @@
     },
   ];
   const reactiveFields = [
-    { key: "height", suffix: "height", label: "反弹跳高", unit: "cm" },
+    { key: "height", suffix: "height", label: "反弹垂直跳跃高度", unit: "cm" },
     { key: "rsi", suffix: "rsi", label: "RSI", unit: "m/s", computed: true },
     { key: "contactTimeMs", suffix: "contact_time", label: "触地时间", unit: "ms" },
     { key: "flightTimeMs", suffix: "flight_time", label: "腾空时间", unit: "ms" },
     { key: "flightTimeRatio", suffix: "flight_time_ratio", label: "腾空 / 触地时间", unit: "比值", computed: true },
+    { key: "activeStiffness", suffix: "active_stiffness", label: "Active Stiffness", unit: "kN/m" },
   ];
   function fieldsForTest(id) {
     if (id === "dj") return reactiveFields.concat({ key: "dropHeightCm", suffix: "drop_height", label: "跌落高度", unit: "cm" });
     if (id === "hop") return reactiveFields;
     if (id === "cmrj") return [
-      { key: "firstHeight", suffix: "first_height", label: "首跳跳高", unit: "cm" },
+      { key: "firstHeight", suffix: "first_height", label: "首跳垂直跳跃高度", unit: "cm" },
       { key: "firstTimeToTakeoffMs", suffix: "first_time_to_takeoff", label: "首跳起跳用时", unit: "ms" },
       { key: "firstRsiModified", suffix: "first_rsi_modified", label: "首跳 RSI-modified", unit: "m/s", computed: true },
       ...reactiveFields,
@@ -94,6 +96,7 @@
     ),
     ...["dj", "hop", "cmrj"].flatMap((id) => fieldsForTest(id).map((field) =>
       [id + "_" + field.suffix, id, id.toUpperCase() + " " + field.label, field.unit, "反应力量"])),
+    ["rqr", "dj", "DJ/Hop FT/CT 反应比", "比值", "反应力量"],
     ["squat_1rm", "squat", "深蹲预估1RM / 体重", "kg/kg", "最大力量"],
     ["bench_1rm", "bench", "卧推预估1RM / 体重", "kg/kg", "最大力量"],
     ["deadlift_1rm", "deadlift", "硬拉预估1RM / 体重", "kg/kg", "最大力量"],
@@ -109,11 +112,28 @@
     ["imtp_impulse250", "imtp", "IMTP 0–250 ms 冲量", "N·s", "早期发力"],
     ["imtp_matched_impulse", "imtp", "IMTP 匹配时窗冲量", "N·s", "早期发力"],
     ["imtp_matched_duration", "imtp", "IMTP 匹配时窗", "ms", "早期发力"],
+    ["cpet_vo2_relative", "cpet", "CPET 相对摄氧量", "mL·kg⁻¹·min⁻¹", "有氧代谢能力"],
+    ["cpet_vo2_absolute", "cpet", "CPET 绝对摄氧量", "L/min", "有氧代谢能力"],
+    ["cpet_peak_hr", "cpet", "CPET 峰值心率", "bpm", "有氧代谢能力"],
+    ...[1, 2].flatMap(n => [
+      [`cpet_threshold${n}_vo2_relative`, "cpet", `第 ${n} 阈值相对摄氧量`, "mL·kg⁻¹·min⁻¹", "有氧代谢能力"],
+      [`cpet_threshold${n}_vo2_absolute`, "cpet", `第 ${n} 阈值绝对摄氧量`, "L/min", "有氧代谢能力"],
+      [`cpet_threshold${n}_pct`, "cpet", `第 ${n} 阈值摄氧量占比`, "%", "有氧代谢能力"],
+      [`cpet_threshold${n}_hr`, "cpet", `第 ${n} 阈值心率`, "bpm", "有氧代谢能力"],
+      [`cpet_threshold${n}_speed`, "cpet", `第 ${n} 阈值速度`, "m/s", "有氧代谢能力"],
+      [`cpet_threshold${n}_power`, "cpet", `第 ${n} 阈值功率`, "W", "有氧代谢能力"],
+    ]),
   ];
   const computedIds = new Set([
     ...(global.Def?.builtins || []).map((d) => d.id),
     ...extraMetrics.map((d) => d[0]),
   ]);
+  const jumpReference = (id) => {
+    const modified = /(?:^|_)rsi_modified$/.test(id), rsi = /^(dj|hop|cmrj)_rsi$/.test(id);
+    if (!modified && !rsi) return {};
+    return { referenceEnabled: true, source: "用户指定评价标准（2026-10-08）", protocol: modified ? "垂直跳跃高度(m) / 整个起跳动作时间(s)" : "垂直跳跃高度(m) / 触地时间(s)",
+      ranges: global.Def.parseRanges(modified ? "<0.35 | 较差 | red\n[0.35..0.50) | 一般 | amber\n0.50..0.65 | 良好 | green\n>0.65 | 优秀 | green" : "<1.5 | 较差 | red\n[1.5..2.0) | 中等 | amber\n2.0..2.5 | 良好 | green\n>2.5 | 优秀 | green") };
+  };
   const extraDefinitions = () =>
     extraMetrics.map(([id, testId, name, unit, ability]) => ({
       id,
@@ -128,6 +148,8 @@
       ranges: [],
       source: "用户配置评价标准",
       protocol: "使用实际测试协议与匹配评价标准",
+      ...jumpReference(id),
+      ...(id === "cpet_vo2_relative" ? { referenceEnabled: true, referenceMode: "grouped", referenceGroups: global.RingsideReferences?.cpetReferenceGroups?.() || [], source: "FRIEND 2022 · 实测摄氧量参考百分位", protocol: "CPET 实测摄氧量" } : {}),
     }));
   const isManualMetric = (definition) =>
     !!definition && (definition.legacyManual === true || !computedIds.has(definition.id));
@@ -136,7 +158,7 @@
   const isAttemptMetric = (definition) =>
     isManualMetric(definition) &&
     definition.entryScope === "attempt" &&
-    supportsAttemptMetrics(definition.testId);
+    (definition.legacyManual === true || supportsAttemptMetrics(definition.testId));
   function repeatPolicy(source, testId) {
     const renderer = isNative(source,testId) ? registry.get(testId).renderer : "scalar";
     const fields = (source.definitions || []).filter((d) => d.testId === testId && isAttemptMetric(d));
@@ -145,7 +167,7 @@
       || (source.customTests || []).find((t) => t.id === testId);
     const primary = fields.find((d) => d.id === test?.primaryMetricId) || fields[0];
     return {
-      kind: ["fms", "lactate"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
+      kind: ["fms", "lactate", "cpet"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
       primaryMetricId: primary?.id || null,
       direction: primary?.direction || "higher",
       fields,
@@ -205,6 +227,7 @@
       ["lactate", "乳酸 mmol/L"],
       ["hr", "心率 bpm"],
     ],
+    cpet: [["modality", "测试方式"], ["oxygenLabel", "原报告摄氧量名称"], ["vo2", "摄氧量"], ["vo2Unit", "摄氧量单位"], ["peakHr", "峰值心率 bpm"], ["rer", "峰值 RER"], ["thresholds", "实测阈值"]],
     pushup: [["reps", "次数"]],
     mb: [
       ["side", "侧别"],
@@ -239,7 +262,7 @@
             ]
           : nativeFields[testId] || [];
     return {
-      shape: isNative(source,testId) && ["pushup", "ift", "mas", "mss", "hop"].includes(testId)
+      shape: isNative(source,testId) && ["pushup", "ift", "mas", "mss", "hop", "cpet"].includes(testId)
         ? "object"
         : isNative(source,testId)
           ? "rows"
@@ -332,7 +355,7 @@
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
       return { id, name: prior?.name ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
-        ...(reactiveIds.includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
+        ...([...reactiveIds, "cpet"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
         ...(primaryMetricId ? { primaryMetricId } : {}) };
     });
   }

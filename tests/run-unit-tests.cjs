@@ -10,6 +10,8 @@ const summary = { sourceHash: createHash('sha256').update(fs.readFileSync(path.j
 for (const name of [
   "model-tests.cjs",
   "derived-jump-model-tests.cjs",
+  "cpet-reference-tests.cjs",
+  "capability-cpet-model-tests.cjs",
   "force-model-tests.cjs",
   "viz-tests.cjs",
   "workflow-model-tests.cjs",

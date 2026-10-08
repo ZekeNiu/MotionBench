@@ -2,34 +2,46 @@
 .jump-detail .chart-wrap { width:100%; margin-inline:auto; }
 .jump-detail .detail-data { min-width:0; }
 .jump-detail table { table-layout:auto; }
-.hop-counts { color:#425d70; font-variant-numeric:tabular-nums; }
-.derived-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-.derived-card { border:1px solid var(--line,#e2e5e9); border-radius:8px; padding:20px; background:#fff; min-width:0; }
-.derived-card-heading { display:flex; gap:14px; align-items:start; justify-content:space-between; }
-.derived-card-heading h3 { margin:0; font-size:16px; line-height:1.45; }
-.derived-value { margin:0; font-size:28px; line-height:1.2; font-weight:650; color:var(--ink,#20252b); white-space:nowrap; }
-.derived-value small { font-size:12px; margin-left:5px; font-weight:400; }
-.derived-formula { color:#526777; font-size:12px; overflow-wrap:anywhere; margin:13px 0; }
-.derived-associated { margin:12px 0 0; color:var(--ink,#20252b); font-size:14px; }
-.derived-associated strong { margin-left:8px; font-weight:600; }
-.derived-components { margin:14px 0; display:grid; gap:7px; }
-.derived-components > div { display:flex; justify-content:space-between; gap:14px; border-top:1px solid #e6ecf1; padding-top:7px; }
-.derived-components dt { color:var(--muted,#606874); font-size:14px; }
-.derived-components dd { margin:0; text-align:right; font-size:14px; font-variant-numeric:tabular-nums; }
-.derived-components dd small { font-size:11px; color:#627783; }
-.derived-direction { border-top:1px solid var(--line,#e2e5e9); padding-top:12px; margin:14px 0 0; font-size:14px; color:var(--ink,#20252b); font-weight:500; }
-.idsi-window { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:14px; font-size:14px; }
-.idsi-window select { flex:1; min-width:0; font:inherit; }
+.capability-results { display:grid; gap:20px; }
+.capability-row { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; align-items:stretch; }
+.capability-card { min-width:0; border:1px solid var(--line); border-radius:var(--radius-panel); padding:24px; background:var(--surface); box-shadow:var(--shadow-panel); }
+.capability-title { margin:0 0 18px; font-size:16px; font-weight:600; line-height:1.5; color:var(--ink); }
+.capability-metrics { display:grid; gap:0; }
+.capability-metric { min-width:0; margin:0; padding:15px 0; border-top:1px solid var(--line); }
+.capability-metric:first-child { padding-top:0; border-top:0; }
+.capability-metric:last-child { padding-bottom:0; }
+.capability-metric-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; }
+.capability-metric-head h4 { min-width:0; margin:0; font-size:13px; font-weight:500; color:var(--muted); line-height:1.6; overflow-wrap:anywhere; }
+.capability-value { flex-shrink:0; margin:0; color:var(--ink); font-size:23px; font-weight:600; line-height:1.3; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.capability-value small { margin-left:5px; font-size:11px; font-weight:400; color:var(--muted); }
+.capability-judgment { margin:7px 0 0; font-size:13px; font-weight:500; line-height:1.65; overflow-wrap:anywhere; }
+.capability-judgment.gray { color:var(--ink); }
+.capability-components { margin-top:8px; font-size:12px; color:var(--muted); }
+.capability-components > summary { display:inline-block; cursor:pointer; list-style:none; font-size:12px; padding:2px 0; }
+.capability-components > summary::after { content:" ⌄"; }
+.capability-components[open] > summary::after { content:" ⌃"; }
+.capability-components dl { display:grid; gap:5px; margin:6px 0 0; }
+.capability-components dl > div { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.capability-components dt { min-width:0; overflow-wrap:anywhere; }
+.capability-components dd { margin:0; flex-shrink:0; text-align:right; font-variant-numeric:tabular-nums; }
+.capability-components dd small { font-size:11px; }
+.capability-component-judgment { margin:3px 0 0; font-size:12px; line-height:1.6; white-space:normal; overflow-wrap:anywhere; }
+.capability-components dd:has(.capability-component-judgment) { flex-shrink:1; min-width:0; max-width:70%; }
+.capability-observations { margin-top:9px; }
+.capability-observations dl { margin:0; }
+.capability-targets { margin:0 0 8px; color:var(--muted); font-size:12px; font-weight:400; line-height:1.7; }
+.capability-targets p { margin:3px 0 0; }
+.capability-conclusion-text { margin:0; }
+.capability-conclusion { margin:18px 0 0; padding:13px 15px; background:var(--surface-soft); border-radius:var(--radius-control); color:var(--ink); font-size:14px; font-weight:600; line-height:1.7; }
+.idsi-window { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:9px; color:var(--muted); font-size:12px; }
+.idsi-window select { flex:1; min-width:0; max-width:260px; padding:5px 8px; font:inherit; }
 .idsi-print-window { display:none; }
-.derived-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-.fdsi-bands { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:3px; margin:16px 0; }
-.fdsi-bands > span { padding:8px 5px; background:#edf1f4; color:#647580; text-align:center; font-size:12px; border-bottom:3px solid transparent; }
-.fdsi-bands small { display:block; margin-top:3px; font-size:10px; line-height:1.5; }
-.fdsi-bands .current { background:#dce9ed; color:#285d6c; border-bottom-color:#3e7b86; }
-.derived-sources,.source-link { font-size:11px; overflow-wrap:anywhere; }
-.derived-sources { margin-bottom:0; }
-.derived-pending { margin-top:20px; }
-@media(max-width:800px){.derived-results{grid-template-columns:minmax(0,1fr)}.derived-card{padding:18px}.derived-value{font-size:24px}}
+.hop-summary-table { font-size:12px; }
+.hop-summary-table th,.hop-summary-table td { padding-inline:7px; }
+.aux-metric { border-left:0; padding:0 6px; }
+.aux-metric .aux-judgment { display:block; color:var(--ink); font-size:13px; font-weight:600; line-height:1.65; letter-spacing:0; overflow-wrap:anywhere; }
+.aux-metric .aux-data { display:block; margin-top:6px; color:var(--muted); font-size:12px; line-height:1.5; font-variant-numeric:tabular-nums; }
+@media(max-width:800px){.capability-row{grid-template-columns:minmax(0,1fr)}.capability-results,.capability-row{gap:16px}.capability-card{padding:20px}.capability-value{font-size:21px}}
 .athlete-summary .micro-value { overflow-wrap: anywhere; line-height: 1.35; }
 .athlete-summary dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 12px; margin: 10px 0 0; }
 .athlete-summary dl > div { min-width: 0; }
@@ -52,6 +64,19 @@
 .speed-reference-table .speed-goal:last-child { margin-bottom: 0; }
 .speed-reference-table .speed-time { white-space: normal; }
 .speed-recovery-option + .speed-recovery-option { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line); }
+.management-table.reference-groups-table { min-width:950px; }
+.management-table.reference-ranges-table { min-width:850px; }
+.management-table.reference-groups-table td:last-child,.management-table.reference-ranges-table td:last-child { min-width:210px; }
+.management-table.reference-groups-table td:last-child .row,.management-table.reference-ranges-table td:last-child .row { display:flex; flex-flow:row nowrap; gap:6px; }
+.management-table.reference-groups-table td:last-child button,.management-table.reference-ranges-table td:last-child button { width:auto; margin:0; white-space:nowrap; }
+@media (max-width:800px) {
+  .management-table.reference-groups-table,.management-table.reference-ranges-table { display:table; }
+  .management-table.reference-groups-table thead,.management-table.reference-ranges-table thead { display:table-header-group; }
+  .management-table.reference-groups-table tbody,.management-table.reference-ranges-table tbody { display:table-row-group; }
+  .management-table.reference-groups-table tr,.management-table.reference-ranges-table tr { display:table-row; }
+  .management-table.reference-groups-table td,.management-table.reference-ranges-table td { display:table-cell; width:auto; padding:10px 8px; border-bottom:1px solid var(--line); }
+  .management-table.reference-groups-table td::before,.management-table.reference-ranges-table td::before { display:none; }
+}
 @media (max-width: 600px) {
   #reportView .stat-side, #reportView .stat-load { min-height: 0; }
   .athlete-summary dl { gap: 6px 12px; }

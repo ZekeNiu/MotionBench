@@ -2,6 +2,28 @@
   'use strict';
 
   var SOURCE = 'Ruddock, Wilson & Hembrough, Boxing, in Turner (ed.), Routledge Handbook of Strength and Conditioning (2018), 第 22 章表 22.2，印刷页 393 / PDF 页 406。职业拳手参考。';
+  // Exact factory aliases only. Free text and user-edited protocols are never rewritten.
+  var factoryAliases = {
+    name: {
+      cmj_height: ['CMJ 跳高', 'CMJ 垂直跳跃高度'],
+      sj_height: ['SJ 跳高', 'SJ 垂直跳跃高度'],
+      dj_height: ['DJ 反弹跳高', 'DJ 反弹垂直跳跃高度'],
+      hop_height: ['HOP 反弹跳高', 'HOP 反弹垂直跳跃高度'],
+      cmrj_height: ['CMRJ 反弹跳高', 'CMRJ 反弹垂直跳跃高度'],
+      cmrj_first_height: ['CMRJ 首跳跳高', 'CMRJ 首跳垂直跳跃高度']
+    },
+    protocol: {
+      cmj_height: ['统一手臂使用、起始姿势与跳高测量方法；原章节使用光电飞行时间。', '统一手臂使用、起始姿势与垂直跳跃高度测量方法；原章节使用光电飞行时间。']
+    },
+    testProtocol: {
+      dj: ['双手叉腰；记录跌落高度；落地后立即反弹；RSI 为跳高/触地时间。', '双手叉腰；记录跌落高度；落地后立即反弹；RSI 为垂直跳跃高度/触地时间。'],
+      hop: ['垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按跳高/触地时间选最高5个；保留实际数量。', '垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按垂直跳跃高度/触地时间选最高5个；保留实际数量。']
+    }
+  };
+  function factoryText(id, field, value, legacy) {
+    var pair = factoryAliases[field] && factoryAliases[field][id];
+    return pair && value === pair[legacy ? 1 : 0] ? pair[legacy ? 0 : 1] : value;
+  }
   var anomalies = [
     '原表存在空白区间与共享边界：保留原文，不自动补齐；未命中区间显示“未分级”。共享单点默认归入数值较高的区间，可在调用分级时改为 lower 或 unclassified。',
     '地雷杠 35 kg 的部分参考值低于 40 kg，这是原表内容；不自动修订。其左右侧为解剖学 R/L，药球则为优势/非优势侧。',
@@ -26,8 +48,8 @@
       if (!line) return;
       var parts = line.split('|').map(function (part) { return part.trim(); });
       function fail(message) { throw new Error('第 ' + (index + 1) + ' 行：' + message); }
-      if (parts.length !== 3 || !parts[1]) fail('请使用“区间 | 标签 | red/amber/green”。');
-      if (['red', 'amber', 'green'].indexOf(parts[2]) === -1) fail('颜色仅支持 red、amber、green。');
+      if (parts.length !== 3 || !parts[1]) fail('请使用“区间 | 标签 | red/amber/green/gray”。');
+      if (['red', 'amber', 'green', 'gray'].indexOf(parts[2]) === -1) fail('颜色仅支持 red、amber、green、gray。');
       var expression = parts[0].replace(/≤/g, '<=').replace(/≥/g, '>=').replace(/\s+/g, '');
       var min = null, max = null, includeMin = true, includeMax = true;
       var match = expression.match(/^(<=|>=|<|>|=)(.+)$/);
@@ -87,8 +109,8 @@
   }
 
   var builtins = [
-    make('cmj_height', 'cmj', 'CMJ 跳高', 'cm', '下肢爆发力', 50, '统一手臂使用、起始姿势与跳高测量方法；原章节使用光电飞行时间。', four('<35', '40..44', '45..49', '>50')),
-    make('sj_height', 'sj', 'SJ 跳高', 'cm', '下肢爆发力', 50, '静止半蹲起跳，避免预先反向运动；与 CMJ 采用一致测量方法。', four('<30', '35..39', '40..44', '>50')),
+    make('cmj_height', 'cmj', 'CMJ 垂直跳跃高度', 'cm', '下肢爆发力', 50, '统一手臂使用、起始姿势与垂直跳跃高度测量方法；原章节使用光电飞行时间。', four('<35', '40..44', '45..49', '>50')),
+    make('sj_height', 'sj', 'SJ 垂直跳跃高度', 'cm', '下肢爆发力', 50, '静止半蹲起跳，避免预先反向运动；与 CMJ 采用一致测量方法。', four('<30', '35..39', '40..44', '>50')),
     make('pushup_reps', 'pushup', '60 秒俯卧撑', '次', '力量耐力', 80, '60 秒；下放至胸部与大腿触地，再完全伸肘计 1 次；记录动作规范。', four('<60', '60..70', '70..80', '>80')),
     make('mb_dom', 'mb', '3 kg 药球后手投掷·优势侧', 'm', '旋转投掷能力', 13, '3 kg 药球；拳击分腿站姿，从后脚侧肩部单臂模拟后手出拳；起点至首次落地距离。', four('<9', '9..11', '11..13', '>13')),
     make('mb_non', 'mb', '3 kg 药球后手投掷·非优势侧', 'm', '旋转投掷能力', 12, '3 kg 药球；与优势侧相同动作与测距。不是双手旋转掷球或头上向后投掷。', four('<8', '8..10', '10..12', '>12')),
@@ -135,7 +157,7 @@
     var converted = '跑台改良版：2.222222 m/s 起，每级 +0.138889 m/s，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。';
     return id === 'ift_treadmill' && [legacy, converted, '30-15VIFT'].indexOf(text) !== -1 ? '30-15VIFT' : text;
   }
-  root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies, viftProtocol: viftProtocol,
+  root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies, viftProtocol: viftProtocol, factoryText: factoryText,
     defaultDefinitions: function () { return JSON.parse(JSON.stringify(builtins)); },
     parseRanges: parseRanges, rangeText: rangeText, grade: grade };
 })(typeof window !== 'undefined' ? window : globalThis);

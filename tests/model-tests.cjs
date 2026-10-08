@@ -6,7 +6,7 @@ const html = fs.readFileSync(path.join(__dirname, '../Ringside_Boxing_Assessment
 const scripts = [...html.matchAll(/<script>\s*([^]*?)<\/script>/g)].map(m => m[1]);
 const context = vm.createContext({ console, Intl, crypto: require('node:crypto').webcrypto });
 context.window = context;
-["ringside-calc.js", "ringside-sources.js", "ringside-definitions.js"].forEach(name => vm.runInContext(fs.readFileSync(path.join(__dirname, "../src", name), "utf8"), context));
+["ringside-calc.js", "ringside-sources.js", "ringside-cpet-reference.js", "ringside-definitions.js"].forEach(name => vm.runInContext(fs.readFileSync(path.join(__dirname, "../src", name), "utf8"), context));
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/ringside-tests.js'), 'utf8'), context);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/ringside-model.js'), 'utf8'), context);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/ringside-interventions.js'), 'utf8'), context);

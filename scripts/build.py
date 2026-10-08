@@ -14,7 +14,7 @@ for dependency in manifest["dependencies"]:
         if hashlib.sha256(path.read_bytes()).hexdigest() != dependency[hash_key]:
             raise SystemExit("Pinned dependency checksum mismatch: " + str(path))
 pieces = []
-for name in ["ringside-calc.js", "ringside-sources.js", "ringside-definitions.js"]:
+for name in ["ringside-calc.js", "ringside-sources.js", "ringside-cpet-reference.js", "ringside-definitions.js"]:
     path = SRC / name
     subprocess.run(["node", "--check", str(path)], check=True)
     pieces.append(path.read_text(encoding="utf-8"))

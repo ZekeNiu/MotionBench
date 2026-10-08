@@ -304,19 +304,17 @@
     function hopRawPanel(test) {
       const sets=r.hop?.sets||[];
       if(!sets.length)return "";
-      const basis=value=>({height_rsi:"按跳高 / 触地时间选取",flight_ratio:"按腾空时间 / 触地时间选取",unknown:"选取依据未记录"})[value]||value||"选取依据未记录";
-      const detail=sets.map((set,index)=>{
-        const counts=set.counts||{},count=value=>N(value)===null?"未记录":F(value,0);
-        const selected=(r.hop.selectedSetIds||[]).includes(set.id);
-        let body=`<h4>第 ${index+1} 组${sets.length>1?(selected?" · 纳入本次结果":" · 未纳入本次结果"):""}</h4><p class="hop-counts" data-hop-counts="${E(set.id)}">录入 ${count(counts.supplied)} 跳 · 有效 ${count(counts.valid)} 跳 · 选取 ${count(counts.selected)} 跳</p><p class="note">${set.inputMode==="jumps"?"逐跳计算":"设备汇总"} · ${E(basis(set.selectionBasis))}</p>`;
-        const showRQR=state.derivedEnabled?.rqr!==false&&state.enabled.dj&&set.rqr;
-        if(showRQR)body+=`<p class="note">RQR 单独按 FT/CT 选跳：有效 ${count(set.rqr.counts?.valid)} 跳 · 选取 ${count(set.rqr.counts?.selected)} 跳</p>`;
-        if(set.notes)body+=`<p class="metric-note">${E(set.notes)}</p>`;
-        if(set.inputMode==="jumps")body+=table(["跳次","RSI 选取",...(showRQR?["RQR 选取"]:[]),"跳高 cm","触地 ms","腾空 ms","RSI m/s","FT/CT","备注"],(set.jumps||[]).map((jump,i)=>[i+1,jump.selected?"已选":jump.valid?"未选":"数据不完整",...(showRQR?[(set.rqr.selectedIds||[]).includes(jump.id)?"已选":N(jump.flightTimeRatio)!==null?"未选":"数据不完整"]:[]),F(jump.height,2),F(jump.contactTimeMs,1),F(jump.flightTimeMs,1),F(jump.rsi,3),F(jump.flightTimeRatio,3),E(jump.notes||"—")]),[],"repeat-raw-table hop-raw-table");
-        else body+=table(["跳高 cm","触地 ms","腾空 ms","RSI m/s","FT/CT"],[[F(set.row?.height,2),F(set.row?.contactTimeMs,1),F(set.row?.flightTimeMs,1),F(set.row?.rsi,3),F(set.row?.flightTimeRatio,3)]],[],"repeat-raw-table");
-        return body;
-      }).join("");
-      return `<div class="repeat-panel" data-repeat-test="hop"><details class="attempt-details" id="trials-hop" data-raw-trials="hop" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · ${sets.length} 组测试及逐跳记录</summary>${detail}</details></div>`;
+      const fields=[
+        ["height","垂直跳跃高度 · cm",2],
+        ["rsi","RSI · m/s",3],
+        ["contactTimeMs","触地时间 · ms",1],
+        ["flightTimeMs","腾空时间 · ms",1],
+        ["flightTimeRatio","FT/CT",3],
+        ["activeStiffness","Active Stiffness · kN/m",2],
+      ].filter(([key])=>sets.some(set=>N(set.row?.[key])!==null));
+      const rows=sets.map((set,index)=>[index+1,...fields.map(([key,,digits])=>F(set.row?.[key],digits)),E(set.notes||"—")]);
+      const detail=table(["完整测试",...fields.map(([,label])=>label),"备注"],rows,sets.map(set=>"hop-set-"+set.id),"repeat-raw-table hop-summary-table");
+      return `<div class="repeat-panel" data-repeat-test="hop"><details class="attempt-details" id="trials-hop" data-raw-trials="hop" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · 完整测试结果 · 共 ${sets.length} 次</summary>${detail}</details></div>`;
     }
     function rawTable(test) {
       const contract = test.dataContract || T.dataContract(state, test.id);
@@ -635,6 +633,21 @@
             (hasStatistics(tests[0].metrics.map((d) => repeatedMetric(d.id))) ? metricTable(tests[0].metrics.filter((d) => !T.isManualMetric(d)), true) : "") +
             supplemental(tests),
         ),
+      cpet: (tests) => {
+        const measured = r.cpet, peakLabel = measured?.peak.label === "VO2max" ? "VO₂max" : "VO₂peak";
+        const metrics = tests[0].metrics.map(metric => {
+          let name = metric.name.replace(/^CPET /, "");
+          if (metric.id === "cpet_vo2_relative") name = peakLabel + " · 相对摄氧量";
+          if (metric.id === "cpet_vo2_absolute") name = peakLabel + " · 绝对摄氧量";
+          for (const [index, key] of ["first", "second"].entries()) {
+            if (metric.id.startsWith("cpet_threshold" + (index + 1) + "_"))
+              name = name.replace("第 " + (index + 1) + " 阈值", (measured?.thresholds[key].label || "第 " + (index + 1) + " 阈值") + " ");
+          }
+          return { ...metric, name };
+        });
+        const meta = [measured?.modality === "treadmill" ? "跑台" : measured?.modality === "cycle" ? "功率车" : "", measured?.protocol, N(measured?.peak.rer) !== null ? "RER " + F(measured.peak.rer, 2) : ""].filter(Boolean).join(" · ");
+        return block(tests, tests[0].name, meta, metricTable(metrics, true));
+      },
       scalar: (tests) =>
         block(
           tests,
@@ -859,24 +872,31 @@
           "</div>";
       }
     }
-    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderDerived()}`;
-    function renderDerived() {
-      const definitions=T.derivedDefinitions?.()||[];
-      const allResults=report.derived?.results||[],gain=allResults.find(item=>item.id==="gain"&&item.available),hasEUR=allResults.some(item=>item.id==="eur");
-      const results=allResults.filter(item=>!["asr","srr"].includes(item.id)&&!(item.id==="gain"&&hasEUR)&&(item.available||definitions.find(d=>d.id===item.id)?.dependencies?.some(id=>state.enabled[id])));
-      if(!results.length)return "";
-      const impulseResults=results.filter(item=>item.id.startsWith("idsi_"));
-      const selectedImpulse=impulseResults.find(item=>item.id===(state.views?.idsiWindow||"idsi_matched"))||impulseResults[0];
-      const visible=results.filter(item=>!item.id.startsWith("idsi_")||item===selectedImpulse);
-      const cards=visible.map(item=>{
-        const isImpulse=item.id.startsWith("idsi_");
-        const components=(item.components||[]).map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)} ${E(component.unit||"")}</dd></div>`).join("");
-        const selector=isImpulse?`<label class="idsi-window">时间窗口<span class="idsi-print-window">${item.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 250 ms"}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${impulseResults.map(choice=>`<option value="${E(choice.id)}"${choice===item?' selected':""}>${choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 250 ms"}</option>`).join("")}</select></label>`:"";
-        const associated=item.id==="eur"&&gain?`<p class="derived-associated" data-derived-associated="gain">CMJ–SJ 增益 <strong>${F(gain.value,1)}%</strong></p>`:"";
-        const missing=isImpulse?`<div class="derived-actions"><button class="btn secondary" onclick="App.openEntry('cmj')">录入 CMJ 冲量</button><button class="btn secondary" onclick="App.openEntry('imtp')">录入 IMTP 冲量</button></div>`:"";
-        return `<article class="derived-card" data-derived-result="${E(item.id)}" data-pdf-atomic><div class="derived-card-heading"><h3>${E(isImpulse?"iDSI 冲量比":item.name)}</h3><p class="derived-value">${item.available?F(item.value,item.unit==="%"?1:3):"—"}${item.unit==="%"?"%":""}</p></div>${selector}${associated}<dl class="derived-components">${components}</dl>${item.available?`<p class="derived-direction">${E(item.directionHint)}</p>`:missing}</article>`;
-      }).join("");
-      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>训练方向分析</summary><div class="quality-group"><div class="derived-results">${cards}</div></div></details>`;
+    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderCapabilities()}`;
+    function renderCapabilities() {
+      const digits=metric=>Number.isInteger(metric.digits)?metric.digits:metric.unit==="比值"||/rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id)?3:metric.unit==="%"?1:2;
+      const cards=(s.capabilityCards||[]).map(card=>({...card,metrics:(card.metrics||[]).filter(metric=>N(metric.value)!==null)})).filter(card=>card.metrics.length);
+      if(!cards.length)return "";
+      const renderMetric=(metric,cardId)=>{
+        const unit=metric.unit&&metric.unit!=="比值"?`<small>${E(metric.unit)}</small>`:"";
+        const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(metric.judgment)}</p>`:"";
+        const components=(metric.components||[]).filter(component=>N(component.value)!==null);
+        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(component.judgment)}</p>`:""}</dd></div>`).join("");
+        const detail=components.length?(cardId==="cardio"?`<div class="capability-components capability-observations"><dl>${rows}</dl></div>`:`<details class="capability-components"><summary>组成数据</summary><dl>${rows}</dl></details>`):"";
+        const windowName=choice=>choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 0–250 ms";
+        const variants=metric.id==="idsi"?(metric.variants||[]):[];
+        const selected=variants.find(choice=>choice.id===metric.selectedVariant);
+        const selector=variants.length?`<label class="idsi-window">IMTP 时窗<span class="idsi-print-window">${E(selected?windowName(selected):"")}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${variants.map(choice=>`<option value="${E(choice.id)}"${choice===selected?" selected":""}${choice.available===false?" disabled":""}>${E(windowName(choice))}</option>`).join("")}</select></label>`:"";
+        return `<section class="capability-metric" data-capability-metric="${E(metric.id)}"${metric.id==="idsi"?` data-derived-result="${E(metric.selectedVariant)}"`:""}><div class="capability-metric-head"><h4>${E(metric.label)}</h4><p class="capability-value">${F(metric.value,digits(metric))}${unit}</p></div>${cardId==="cardio"?detail+judgment:judgment+selector+detail}</section>`;
+      };
+      const renderCard=card=>{
+        const targets=(card.targets||[]).filter(target=>N(target.value)!==null);
+        const conclusion=card.id==="cardio"&&card.conclusion?`<div class="capability-conclusion">${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(target.label)} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}<p class="capability-conclusion-text">${E(card.conclusion)}</p></div>`:"";
+        return `<article class="capability-card" data-capability-card="${E(card.id)}" data-pdf-atomic><h3 class="capability-title">${E(card.title)}</h3><div class="capability-metrics">${card.metrics.map(metric=>renderMetric(metric,card.id)).join("")}</div>${conclusion}</article>`;
+      };
+      const rows=[];
+      for(let index=0;index<cards.length;index+=2)rows.push(`<div class="capability-row" data-pdf-atomic>${cards.slice(index,index+2).map(renderCard).join("")}</div>`);
+      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>能力结构分析</summary><div class="quality-group"><div class="capability-results">${rows.join("")}</div></div></details>`;
     }
     // LVP is a shared comparison renderer across its explicitly registered projects.
     function renderLVP(limb, s) {
