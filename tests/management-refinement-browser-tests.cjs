@@ -25,10 +25,20 @@ const root=path.resolve(__dirname,".."),file=path.join(root,"MotionBench.html"),
   });
   await check("named test plans persist ordered projects and support copy disable and delete",async()=>{
    await manage("plans");await click("plan-new");await page.locator('#testPlanName').fill("力量测试组合");await page.locator('#testPlanProfile').selectOption(alternateId);
-   for(const id of ["cmj","imtp"]){await page.locator('#testPlanAddProject').selectOption(id);await click("plan-add-project");}await click("plan-up","imtp");await click("plan-save");
+   for(const id of ["cmj","imtp"])await page.locator(`[data-plan-project-choice="${id}"]`).check();await page.locator('.picker-order summary').click();await page.locator('[data-picker-action="up"][data-picker-id="imtp"]').click();await click("plan-save");
    const plan=await page.evaluate(()=>App.getLibrary().testPlans.find(p=>p.name==="力量测试组合"));planId=plan.id;assert.deepEqual(plan.testIds,["imtp","cmj"]);assert.equal(plan.defaultEvaluationProfileId,alternateId);
    await page.reload();await page.evaluate(()=>App.ready);await manage("plans");assert.deepEqual(await page.evaluate(id=>App.getLibrary().testPlans.find(p=>p.id===id).testIds,planId),["imtp","cmj"]);
    await click("plan-copy",planId);await click("plan-save");const copy=await page.evaluate(()=>App.getLibrary().testPlans.find(p=>p.name==="力量测试组合 副本"));assert.notEqual(copy.id,planId);await click("plan-toggle",copy.id);await page.locator(`[data-test-plan="${copy.id}"] .pill`).waitFor();assert.equal(await page.evaluate(id=>App.getLibrary().testPlans.find(p=>p.id===id).disabled,copy.id),true);await click("plan-delete",copy.id);await page.locator(`[data-test-plan="${copy.id}"]`).waitFor({state:"hidden"});assert.equal(await page.locator('[data-test-plan]').count(),1);
+  });
+  await check("isometric plan choices save explicit directions and legacy plans retain their original 22 directions",async()=>{
+   await manage("plans");await click("plan-new");await page.locator('#testPlanName').fill("关节测试组合");await page.locator('[data-plan-project-choice="iso"]').check();
+   assert.equal(await page.locator('[data-picker-iso]:checked').count(),0);await click("plan-save");assert.match(await page.locator('#testPlanError').innerText(),/至少选择一个等长力量测试方向/);
+   for(const id of ["iso_neck_flexion","iso_hip_extension"])await page.locator(`[data-picker-iso="${id}"]`).check();await click("plan-save");
+   const saved=await page.evaluate(()=>App.getLibrary().testPlans.find(p=>p.name==="关节测试组合"));assert.deepEqual(saved.isoDirectionIds,["iso_neck_flexion","iso_hip_extension"]);
+   await click("plan-edit",saved.id);assert.equal(await page.locator('[data-picker-iso]:checked').count(),2);await page.locator('[data-plan-project-choice="cmj"]').check();assert.equal(await page.locator('#testPlanName').inputValue(),"关节测试组合");await click("plan-close");assert.deepEqual(await page.evaluate(id=>App.getLibrary().testPlans.find(p=>p.id===id).testIds,saved.id),["iso"]);
+   await page.evaluate(async()=>{const lib=App.getLibrary();lib.testPlans.push({id:"plan_legacy_picker",name:"旧关节方案",testIds:["iso"],defaultEvaluationProfileId:lib.defaultEvaluationProfileId,disabled:false});await App.saveLibraryChanges();RingsideManagement.render();});
+   await click("plan-edit","plan_legacy_picker");assert.equal(await page.locator('[data-picker-iso]:checked').count(),22);await page.locator('[data-plan-project-choice="cmj"]').check();await click("plan-save");assert.equal(await page.evaluate(()=>App.getLibrary().testPlans.find(p=>p.id==="plan_legacy_picker").isoDirectionIds.length),22);
+   await click("plan-delete",saved.id);await click("plan-delete","plan_legacy_picker");
   });
   await check("metric library keeps each project in one ability table and selects standards without assigning the report",async()=>{
    await manage("metrics");assert.equal(await page.locator('[data-metric-project="imtp"]').count(),1);assert.equal(await page.locator('[data-metric-project="cmj"]').count(),1);assert.ok(await page.locator('[data-metric-ability]').count()>3);
@@ -56,7 +66,7 @@ const root=path.resolve(__dirname,".."),file=path.join(root,"MotionBench.html"),
   await check("management pages fit desktop low window and phone without horizontal page overflow",async()=>{
    for(const [width,height]of [[1440,960],[1024,640],[390,844]]){await page.setViewportSize({width,height});for(const tab of ["teams","plans","metrics","profiles"]){await manage(tab);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,`${width} ${tab}`);}await manage("metrics");await page.evaluate(()=>scrollTo({top:0,behavior:"instant"}));await page.screenshot({path:path.join(out,`${channel}-metrics-${width}.png`),fullPage:true});await page.screenshot({path:path.join(out,`${channel}-metrics-${width}-viewport.png`)});}
   });
-  assert.deepEqual(result.errors,[]);result.pass=true;
+  assert.deepEqual(result.errors,[]);assert.equal(createHash("sha256").update(fs.readFileSync(file)).digest("hex"),result.sourceHash);result.pass=true;
  }catch(error){result.error=error.stack;process.exitCode=1;console.error(error);await page.screenshot({path:path.join(out,channel+"-failure.png"),fullPage:true}).catch(()=>{});}
  finally{fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,channel+"-browser.json"),JSON.stringify(result,null,2));await browser.close();}
 })();

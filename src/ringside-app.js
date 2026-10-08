@@ -915,6 +915,8 @@
     )?.focus();
   }
   function close(id) {
+    if(id==="excelModal"&&window.RingsideExcelFlow?.isBusy())return;
+    if(id==="excelModal")window.RingsideExcelFlow?.cancel();
     if (id === "newAthleteModal" && ui.mode === "creation") return cancelCreation();
     const returnToCatalog =
       id === "unitModal" && unitChange?.kind === "catalog";
@@ -979,7 +981,9 @@
     renderWorkspace(); closeMobileSidebar(); window.scrollTo({top:ui.mode === "report" ? ui.reportScroll:0,behavior:"instant"});
   }
   async function selectAthlete(id) {
-    const a = library.athletes.find(a => a.id === id && !a.deletedAt);
+    closeAthleteChooser();
+    if (!id) return switchRecord(null, null);
+    const a = library.athletes.find(a => a.id === id && !a.deletedAt && !a.archived);
     if (!a) return;
     const records = a.records.filter(r => !r.deletedAt && !r.archived);
     const r = records.find(r => r.recordId === ui.lastViewed?.[id]) || M.latestRecord({records});
@@ -987,6 +991,7 @@
   }
   async function selectRecord(id) {
     const a = activeAthlete(), r = a?.records.find(r => r.recordId === id && !r.deletedAt);
+    if (!id) return switchRecord(a,null);
     if (r) return switchRecord(a,r);
   }
   async function openManagedRecord(athleteId, recordId, edit = false) {
@@ -1139,39 +1144,32 @@
     }
     return suffix;
   }
-  function projectPicker(enabled, forCreation = false) {
-    const projects = (forCreation ? T.describe(library.catalog) : allProjects()).filter(t=>!library.catalog.tests.find(x=>x.id===t.id)?.disabled || (!forCreation && state.enabled[t.id]));
-    let html =
-      '<div class="plan-tools"><button type="button" class="btn small" onclick="App.selectProjects(\'all\',true,' +
-      forCreation +
-      ')">全选</button><button type="button" class="btn small" onclick="App.selectProjects(\'all\',false,' +
-      forCreation +
-      ')">清空</button><span class="plan-count" ' +
-      (forCreation ? "data-creation-count" : "data-plan-count") +
-      ">" +
-      projects.filter((t) => enabled[t.id]).length +
-      " 项已选</span></div>";
-    const computed = forCreation ? null : M.stats(effectiveRecord());
-    const groupingSource = forCreation ? library.catalog : state;
-    for (const group of T.groups(projects, groupingSource)) {
-      html += `<section class="plan-group" data-plan-group="${E(group.id)}"><div class="plan-group-heading"><h4>${E(group.label)}</h4><button type="button" class="text-btn" onclick="App.selectProjects('${E(group.id)}',true,${forCreation})">选择本组</button><button type="button" class="text-btn" onclick="App.selectProjects('${E(group.id)}',false,${forCreation})">清空本组</button></div><div class="check-grid">`;
-      html +=
-        group.projects
-          .map((test) => {
-            const blocked =
-              projectBlocked(test.id) &&
-              (forCreation ||
-                (Array.isArray(state.catalogAppliedTests) &&
-                  !state.catalogAppliedTests.includes(test.id)) ||
-                !state.definitions.some((d) => d.testId === test.id));
-            const other = test.abilities.filter(
-              (ability) => ability !== test.primaryAbility,
-            ).map(ability => T.abilityLabel(groupingSource, ability));
-            return `<label class="check-tile"><input type="checkbox" value="${E(test.id)}" data-project-group="${E(group.id)}" ${forCreation ? `data-creation-project="${E(test.id)}"` : `data-path="enabled.${E(test.id)}"`} aria-label="${E(test.name)}" ${enabled[test.id] ? "checked" : ""} ${blocked ? "disabled" : ""}><span>${E(test.name)}${other.length ? '<small class="ability-tags">' + other.map(E).join(" · ") + "</small>" : ""}<small class="plan-state" ${forCreation ? "" : `data-plan-status="${E(test.id)}"`}>${blocked ? "目录定义待确认" : forCreation ? "" : E(M.recordProgressDetail(state, test.id, computed)?.detail || "未录入")}</small></span></label>`;
-          })
-          .join("") + "</div></section>";
+  function projectPickerOptions(enabled, forCreation = false) {
+    const projects=(forCreation?T.describe(library.catalog):allProjects()).filter(t=>!library.catalog.tests.find(x=>x.id===t.id)?.disabled||(!forCreation&&state.enabled[t.id]));
+    const source=forCreation?library.catalog:state,computed=forCreation?null:M.stats(effectiveRecord());
+    return {source,projects,showOrder:false,context:forCreation?"creation":"record",
+      selection:{testIds:projects.filter(t=>enabled[t.id]).map(t=>t.id),isoDirectionIds:forCreation?(creation.isoDirectionIds||[]):M.selectedIsoRows(state).map(r=>r.id)},
+      isoRows:forCreation?(creation.isoCatalog||M.isoRows()):M.isoDirectionCatalog(state),
+      blockedIds:projects.filter(t=>projectBlocked(t.id)&&(forCreation||(Array.isArray(state.catalogAppliedTests)&&!state.catalogAppliedTests.includes(t.id))||!state.definitions.some(d=>d.testId===t.id))).map(t=>t.id),
+      statuses:forCreation?{}:Object.fromEntries(projects.map(t=>[t.id,M.recordProgressDetail(state,t.id,computed)?.detail||"未录入"])),
+      onChange(next){
+        if(forCreation){creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,next.testIds.includes(t.id)]));creation.isoDirectionIds=[...next.isoDirectionIds];refreshCreationCount();}
+        else{
+          for(const id of next.testIds)if(!state.enabled[id]&&!installCatalogProject(id)){toast("请先确认项目目录定义");return false;}
+          state.enabled=Object.fromEntries(Object.keys(state.enabled).map(id=>[id,next.testIds.includes(id)]));
+          M.setIsoDirectionSelection(state,next.isoDirectionIds);
+          if(!next.isoDirectionIds.length)state.enabled.iso=false;
+          changed(false);refreshEntryChrome();
+        }
+      }};
+  }
+  function projectPicker(enabled,forCreation=false){return window.RingsidePicker.render(projectPickerOptions(enabled,forCreation));}
+  function bindProjectPicker(container,forCreation=false){window.RingsidePicker.bind(container,projectPickerOptions(forCreation?creation.enabled:state.enabled,forCreation));}
+  function installIsoSelection(record,ids,rows=[]){
+    for(const row of rows)if(ids.includes(row.id)&&!record.data.iso.some(r=>r.id===row.id)&&!M.isoRows().some(r=>r.id===row.id)){
+      const blank=copy(row);delete blank.trials;for(const key of ["left","right","center","target","notes"])blank[key]="";for(const key of ["painLeft","painRight","painCenter"])blank[key]=false;record.data.iso.push(blank);
     }
-    return html;
+    M.setIsoDirectionSelection(record,ids);
   }
   function selectProjects(group, checked, forCreation = false) {
     const container = forCreation ? $("creationProjects") : $("entryContent");
@@ -1202,7 +1200,8 @@
     document
       .querySelectorAll("[data-creation-count]")
       .forEach((el) => (el.textContent = count + " 项已选"));
-    $("creationSubmit").disabled = creation.submitting || count === 0;
+    $("creationSubmit").disabled = creation.submitting || count === 0 || (creation.enabled.iso && !creation.isoDirectionIds?.length);
+    $("creationExcelActions").hidden=creation.kind!=="record";
   }
   async function startDataEntry(athleteId = "", newAthlete = false) {
     if (creation?.submitting) return;
@@ -1210,7 +1209,7 @@
     if (creation) { ui.mode="creation";renderWorkspace();return; }
     captureReportUI();saveEditor();if(!await persist())return;
     const owner=library.athletes.find(a=>a.id===athleteId&&!a.deletedAt&&!a.archived);
-    creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
+    creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",isoDirectionIds:[],isoCatalog:M.isoRows(),enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
     for(const id of ["newAthleteName","newAthleteSport","newAthleteLevel","creationAge","creationMass","creationHeight","creationAthleteSearch"])$(id).value="";
     $("newAthleteSex").value="未注明";$("newAthleteHand").value="未注明";$("creationDate").value=today();$("creationError").hidden=true;
     ui.mode="creation";renderCreationAthletes();renderCreationStep();renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
@@ -1235,7 +1234,7 @@
       creation.selectionToken=(creation.selectionToken||0)+1;
       creation.profile={name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
       creation.testPlanId="";creation.evaluationProfileId=library.defaultEvaluationProfileId;
-      creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,false]));
+      creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,false]));creation.isoDirectionIds=[];creation.isoCatalog=M.isoRows();
       $("creationSource").textContent="";renderCreationAthletes();
     }
     renderCreationStep();
@@ -1250,6 +1249,8 @@
     const summary=M.latestRecord({records:owner.records.filter(r=>!r.deletedAt)}),latest=summary?await repository.loadRecord(summary.recordId):null;
     if(creation!==draft||draft.kind!=="record"||draft.ownerId!==id||draft.selectionToken!==token)return false;
     draft.profile=copy(owner.profile);draft.loadedOwnerId=id;draft.testPlanId="";
+    draft.isoDirectionIds=latest?M.selectedIsoRows(latest).map(r=>r.id):[];
+    draft.isoCatalog=latest?M.isoDirectionCatalog(latest):M.isoRows();
     draft.evaluationProfileId=library.evaluationProfiles.find(p=>p.id===latest?.evaluationProfileId&&!p.disabled)?.id||library.defaultEvaluationProfileId;
     draft.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,!!latest?.enabled[t.id]&&!t.disabled&&!projectBlocked(t.id)]));
     $("creationSource").textContent=latest?`${owner.name} · 已带入上次所选项目；本次测量重新录入。`:`${owner.name} · 首次测试，请选择方案或项目。`;
@@ -1260,12 +1261,14 @@
     if(!creation)return;
     $("creationTestPlan").innerHTML='<option value="">临时选择项目</option>'+(library.testPlans||[]).filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.testPlanId?"selected":""}>${E(p.name)}</option>`).join("");
     $("creationEvaluationProfile").innerHTML=library.evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("");
-    $("creationProjects").innerHTML=projectPicker(creation.enabled,true);refreshCreationCount();
+    $("creationProjects").innerHTML=projectPicker(creation.enabled,true);bindProjectPicker($("creationProjects"),true);refreshCreationCount();
   }
   function selectCreationPlan(id) {
     if(!creation||creation.submitting)return;creation.testPlanId=id;
     const plan=(library.testPlans||[]).find(p=>p.id===id&&!p.disabled);
     if(plan){
+      creation.isoDirectionIds=plan.isoDirectionIds?[...plan.isoDirectionIds]:(plan.testIds.includes("iso")?M.legacyIsoDirectionIds():[]);
+      creation.isoCatalog=M.isoRows();
       creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,plan.testIds.includes(t.id)&&!t.disabled&&!projectBlocked(t.id)]));
       const profile=library.evaluationProfiles.find(p=>p.id===plan.defaultEvaluationProfileId&&!p.disabled);
       if(profile)creation.evaluationProfileId=profile.id;
@@ -1331,6 +1334,7 @@
       return creationError("请填写有效的测试日期");
     if (!Object.values(creation.enabled).some(Boolean))
       return creationError("至少选择一个本次测试项目");
+    if(creation.enabled.iso&&!creation.isoDirectionIds?.length)return creationError("请至少勾选一个等长力量方向");
     for (const [id,label] of [["creationAge","年龄"],["creationMass","体重"],["creationHeight","身高"]]) if (!$(id).validity.valid) return creationError("请核对本次"+label);
     if(!library.evaluationProfiles.some(p=>p.id===$("creationEvaluationProfile").value&&!p.disabled))return creationError("请选择在用评价方案");
     creation.submitting = true;
@@ -1370,7 +1374,8 @@
       draft.evaluationProfileId = $("creationEvaluationProfile")?.value || creation.evaluationProfileId;
       for (const [id,key] of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]]) draft.athlete[key]=$(id).value===""?"":Number($(id).value);
       const plan=(library.testPlans||[]).find(p=>p.id===creation.testPlanId);
-      if(plan)draft.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))]};
+      installIsoSelection(draft,creation.isoDirectionIds||[],creation.isoCatalog);
+      if(plan)draft.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...draft.isoDirectionIds]};
       athlete.records.push(window.RingsideStore.summary(draft));
       next.activeAthleteId = athlete.id;
       next.activeRecordId = draft.recordId;
@@ -1412,6 +1417,60 @@
           : error.message,
       );
     }
+  }
+  function creationExcelRecords() {
+    if(!creation||creation.kind!=="record"||creation.step!=="test")throw Error("请先选择已有运动员和本次测试项目");
+    if(!$("creationDate").value||!$("creationDate").validity.valid)throw Error("请填写有效的测试日期");
+    if(!Object.values(creation.enabled).some(Boolean))throw Error("请至少选择一个测试项目");
+    if(creation.enabled.iso&&!creation.isoDirectionIds?.length)throw Error("请至少选择一个等长力量方向");
+    for(const id of ["creationAge","creationMass","creationHeight"])if(!$(id).validity.valid)throw Error("请核对本次年龄、体重和身高");
+    const owner=library.athletes.find(a=>a.id===creation.ownerId&&!a.deletedAt&&!a.archived);
+    if(!owner)throw Error("运动员不可用，请重新选择");
+    const draft=M.recordFromCatalog(library.catalog,owner.profile,creation.enabled,$("creationDate").value);
+    draft.athleteId=owner.id;draft.recordId=uid();draft.evaluationProfileId=$("creationEvaluationProfile").value;
+    for(const [id,key]of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]])draft.athlete[key]=$(id).value===""?"":Number($(id).value);
+    installIsoSelection(draft,creation.isoDirectionIds||[],creation.isoCatalog);
+    const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
+    if(plan)draft.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...draft.isoDirectionIds]};
+    return [draft];
+  }
+  async function openExcel(mode="batch") {
+    if(libraryTransferActive||creation?.submitting)return;
+    try{
+      saveEditor();if(!await persist())throw Error("当前修改尚未保存，请先处理保存错误");
+      const records=mode==="creation"?creationExcelRecords():mode==="edit"&&state?[copy(state)]:null;
+      if(mode==="edit"&&!records)throw Error("请先选择测试记录");
+      await window.RingsideExcelFlow.open({mode,records});
+    }catch(error){toast(error.message);}
+  }
+  async function commitExcel(result,checks,sourceLibrary) {
+    if(libraryTransferActive)throw Error("导入正在保存，请勿重复提交");
+    if(state&&recordBaselines.get(state.recordId)!==recordContent(state))throw Error("当前记录已更改，请重新预览 Excel");
+    libraryTransferActive=true;
+    try{
+      await repository.flush();
+      const next=copy(sourceLibrary||library);
+      for(const record of result.records){
+        const owner=next.athletes.find(a=>a.id===record.athleteId&&!a.deletedAt&&!a.archived);
+        if(!owner)throw Error("运动员已不存在或已归档，请重新预览");
+        if(!next.evaluationProfiles.some(p=>p.id===record.evaluationProfileId))throw Error("评价方案已不存在，请重新预览");
+        M.validateRecord(record);record.updated=now();
+        const index=owner.records.findIndex(r=>r.recordId===record.recordId),summary=window.RingsideStore.summary(record);
+        if(index<0)owner.records.push(summary);else owner.records[index]=summary;
+      }
+      if(!result.records.length)return;
+      next.updated=now();
+      await repository.save(next,result.records,{},checks);
+      library=await repository.directory();storageFailed=false;
+      const current=result.records.find(r=>r.recordId===state?.recordId);
+      if(current){cancelJob();state=copy(current);recordBaselines.set(state.recordId,recordContent(state));}
+      creation=null;reportDirty=true;renderSelectors();$("saveStatus").textContent="已保存到本机";
+    }finally{libraryTransferActive=false;}
+  }
+  async function showExcelRecord(athleteId,recordId){
+    close("excelModal");creation=null;
+    const owner=library.athletes.find(a=>a.id===athleteId),summary=owner?.records.find(r=>r.recordId===recordId);
+    if(owner&&summary)await switchRecord(owner,summary);
   }
   function entryReview() {
     const computed=M.stats(effectiveRecord()),projects=orderedEntryProjects();
@@ -1513,6 +1572,47 @@
     );
   }
   const pendingSelectUpdates = new WeakMap();
+  let athleteChooserOpen = false, athleteChooserIndex = -1;
+  function reportAthletes(query = "") {
+    const group = $("reportGroupFilter").value, q = query.trim().toLocaleLowerCase();
+    return library.athletes.filter(a => !a.deletedAt && !a.archived && (!group || a.groupId === group) && (!q || [a.name,a.profile?.sport,a.id].join(" ").toLocaleLowerCase().includes(q)));
+  }
+  function athleteLabel(a) { return a ? `${a.name} · ${library.groups.find(g=>g.id===a.groupId)?.name || a.profile?.sport || "未分组"} · ${a.id.slice(-6)}` : ""; }
+  function closeAthleteChooser() {
+    athleteChooserOpen = false; athleteChooserIndex = -1;
+    $("reportAthleteOptions").hidden = true;
+    $("reportAthleteSearch").setAttribute("aria-expanded","false");
+    $("reportAthleteSearch").removeAttribute("aria-activedescendant");
+    $("reportAthleteSearch").value = athleteLabel(activeAthlete());
+  }
+  function filterAthleteChooser() {
+    athleteChooserOpen = true; athleteChooserIndex = -1;
+    const rows = reportAthletes($("reportAthleteSearch").value);
+    $("reportAthleteOptions").innerHTML = rows.length ? rows.map((a,i)=>`<button type="button" id="reportAthleteOption-${i}" class="athlete-option" role="option" aria-selected="${a.id===activeAthlete()?.id}" data-athlete-choice="${E(a.id)}" onclick="App.selectAthlete(this.dataset.athleteChoice)">${E(athleteLabel(a))}</button>`).join("") : '<p class="athlete-no-results" role="status">没有匹配的运动员</p>';
+    $("reportAthleteOptions").hidden = false; $("reportAthleteSearch").setAttribute("aria-expanded","true");
+    $("reportAthleteSearch").removeAttribute("aria-activedescendant");
+  }
+  function openAthleteChooser() { if(!athleteChooserOpen){ $("reportAthleteSearch").value="";filterAthleteChooser(); } }
+  function athleteChooserKey(event) {
+    if(event.key==="Escape"){event.preventDefault();closeAthleteChooser();return;}
+    if(event.key==="Tab"){closeAthleteChooser();return;}
+    if(!["ArrowDown","ArrowUp","Enter"].includes(event.key))return;
+    if(!athleteChooserOpen)openAthleteChooser();
+    const options=[...$("reportAthleteOptions").querySelectorAll("[data-athlete-choice]")];
+    if(event.key==="Enter") {event.preventDefault();if(options[athleteChooserIndex])selectAthlete(options[athleteChooserIndex].dataset.athleteChoice);return;}
+    event.preventDefault();if(!options.length)return;
+    athleteChooserIndex=Math.max(0,Math.min(options.length-1,athleteChooserIndex+(event.key==="ArrowDown"?1:-1)));
+    options.forEach((el,i)=>el.classList.toggle("highlighted",i===athleteChooserIndex));
+    $("reportAthleteSearch").setAttribute("aria-activedescendant",options[athleteChooserIndex].id);
+    options[athleteChooserIndex].scrollIntoView({block:"nearest"});
+  }
+  async function selectReportGroup() {
+    ++selectionSequence;
+    closeAthleteChooser();
+    const current=activeAthlete(),group=$("reportGroupFilter").value;
+    if(current&&group&&current.groupId!==group)await switchRecord(null,null);
+    renderSelectors();
+  }
   function updateSelectOptions(selectElement, rows, selected) {
     if (!selectElement) return;
     const same = selectElement.options.length === rows.length && rows.every(([value,label],i) =>
@@ -1542,7 +1642,9 @@
     const a = activeAthlete(), q = ($("reportAthleteSearch")?.value || "").trim().toLocaleLowerCase(), group = $("reportGroupFilter")?.value || "";
     const groups = $("reportGroupFilter");
     updateSelectOptions(groups, [["","全部队伍"],...library.groups.map(g=>[g.id,g.name])],group);
-    const athletes = library.athletes.filter(x=>!x.deletedAt&&!x.archived&&(!group||x.groupId===group)&&(!q||[x.name,x.profile?.sport].join(" ").toLocaleLowerCase().includes(q)));
+    const athletes = reportAthletes();
+    if (!athleteChooserOpen) $("reportAthleteSearch").value = athleteLabel(a);
+    $("recordSelect").disabled = !a || !a.records.some(r=>!r.deletedAt&&!r.archived);
     updateSelectOptions($("athleteSelect"), [["","选择运动员"],...athletes.map(x=>[x.id,`${x.name} · ${library.groups.find(g=>g.id===x.groupId)?.name||x.profile?.sport||"未分组"} · ${x.id.slice(-6)}`])],a?.id);
     updateSelectOptions($("recordSelect"), [["","选择测试记录"],...[...(a?.records||[])].filter(r=>!r.deletedAt&&!r.archived).sort((x,y)=>(y.athlete.date||"").localeCompare(x.athlete.date||"")||y.recordId.localeCompare(x.recordId)).map(r=>[r.recordId,`${r.athlete.date||"未填日期"} · ${r.title||Object.values(r.enabled).filter(Boolean).length+"个项目 · "+r.recordId.slice(-4)}`])],state?.recordId);
     $("sampleLabel").classList.toggle("hidden", !state?.demo);
@@ -1819,14 +1921,14 @@
   function repeatEditor(t, isoIndex = -1) {
     const rows = M.ensureRepeatRows(state, t, isoIndex), base = repeatArrayPath(t, isoIndex);
     const direction = t === "iso" ? state.data.iso[isoIndex] : null;
-    const fields = direction ? (direction.paired ? [["left", "左侧 " + direction.unit], ["right", "右侧 " + direction.unit]] : [["center", "力量 " + direction.unit]])
+    const fields = direction ? (direction.paired ? [["left", M.isoSideLabels(direction).left + " " + direction.unit], ["right", M.isoSideLabels(direction).right + " " + direction.unit]] : [["center", "力量 " + direction.unit]])
       : t === "pushup" ? [["reps", "60秒有效次数"]]
       : ["mas", "mss", "ift"].includes(t) ? [["speed", (t === "ift" ? "VIFT" : "速度") + " m/s"], ...(t === "ift" ? [["partial", "末级未完成秒数"]] : [])] : [];
     if (!direction) T.repeatPolicy(state, t).fields.forEach((d) => fields.push(["metrics." + d.id, d.name + " " + d.unit]));
     return `<div class="repeat-entry" data-repeat-entry="${E(t)}">` + table(["试次", ...fields.map((f) => f[1]), ...(direction ? ["疼痛"] : []), "备注", ""], rows.map((row, i) => [
       i + 1,
       ...fields.map(([key, label]) => input(base + "." + i + "." + key, key.startsWith("metrics.") ? row.metrics?.[key.slice(8)] ?? "" : row[key] ?? "", { label: "试次 " + (i + 1) + " " + label, ...(key.startsWith("metrics.") ? { allowNegative: true } : {}) })),
-      ...(direction ? [(direction.paired ? ["Left", "Right"] : ["Center"]).map((side) => check(base + "." + i + ".pain" + side, row["pain" + side], side === "Left" ? "左" : side === "Right" ? "右" : "疼痛")).join("")] : []),
+      ...(direction ? [(direction.paired ? ["Left", "Right"] : ["Center"]).map((side) => check(base + "." + i + ".pain" + side, row["pain" + side], side === "Left" ? M.isoSideLabels(direction).left : side === "Right" ? M.isoSideLabels(direction).right : "疼痛")).join("")] : []),
       input(base + "." + i + ".notes", row.notes || "", { type: "text", label: "试次 " + (i + 1) + " 备注" }),
       `<button type="button" class="remove" aria-label="删除试次 ${i + 1}" onclick="App.removeRepeat('${E(t)}',${i},${isoIndex})">删除</button>`,
     ])) + `<button type="button" class="btn small" onclick="App.addRepeat('${E(t)}',${isoIndex})">＋ 新增试次</button></div>`;
@@ -2007,7 +2109,7 @@
           )
           .join("");
     } else if (entryTab === "iso") {
-      const isoValues = M.stats(effectiveRecord()).isoAnalyses;
+      const isoValues = new Map(M.stats(effectiveRecord()).isoAnalyses.map(row=>[row.id,row])), selectedIso = new Set(M.selectedIsoRows(state).map(row=>row.id));
       h +=
         '<div class="row"><select id="isoFilter" aria-label="等长力量区域筛选" onchange="App.isoFilter(this.value)"><option value="all">全部区域</option>' +
         Object.entries(M.REG)
@@ -2016,27 +2118,27 @@
               `<option value="${k}" ${isoFilter === k ? "selected" : ""}>${v}</option>`,
           )
           .join("") +
-        '</select><button class="btn small" onclick="App.addIso()">＋ 新增方向</button></div>' +
+        '</select><button class="btn small" onclick="App.entry(\'plan\')">调整本次方向</button><button class="btn small" onclick="App.addIso()">＋ 自定义方向</button></div>' +
         table(
-          ["部位／方向", "左侧／单项", "右侧", "单位", "评价标准", "疼痛"],
+          ["部位／方向", "左侧／左向／单项", "右侧／右向", "单位", "评价标准", "疼痛"],
           state.data.iso
             .map((x, i) => ({ x, i }))
-            .filter(({ x }) => isoFilter === "all" || x.region === isoFilter)
+            .filter(({ x }) => selectedIso.has(x.id) && (isoFilter === "all" || x.region === isoFilter))
             .map(({ x, i }) => [
               E(M.REG[x.region] + " · " + x.direction.replace(/[（(]中线[）)]/g, "")) + `<small class="metric-meta">${M.repeatRows(state, "iso", i).length} 次试次</small><button type="button" class="btn small" aria-label="${E(M.REG[x.region] + ' ' + x.direction.replace(/[（(]中线[）)]/g, ''))} 新增试次" onclick="App.addRepeat('iso',${i})">＋ 新增试次</button>`,
-              Array.isArray(x.trials) ? F(isoValues[i]?.[x.paired ? "left" : "center"]) : input(
+              Array.isArray(x.trials) ? F(isoValues.get(x.id)?.[x.paired ? "left" : "center"]) : input(
                 "data.iso." + i + "." + (x.paired ? "left" : "center"),
                 x.paired ? x.left : x.center,
               ),
-              x.paired ? Array.isArray(x.trials) ? F(isoValues[i]?.right) : input("data.iso." + i + ".right", x.right) : "—",
+              x.paired ? Array.isArray(x.trials) ? F(isoValues.get(x.id)?.right) : input("data.iso." + i + ".right", x.right) : "—",
               select("data.iso." + i + ".unit", x.unit, ["N", "kgf", "Nm"]),
               `<span class="note">${E(effectiveRecord().data.iso[i].target || "未设目标")} ${E(x.unit)}</span>`,
-              Array.isArray(x.trials) ? isoValues[i]?.sides.map((s) => (s.side || "") + (s.pain ? " 疼痛" : " —")).join(" / ") : `<div class="row">${check("data.iso." + i + "." + (x.paired ? "painLeft" : "painCenter"), x.paired ? x.painLeft : x.painCenter, "")}${x.paired ? check("data.iso." + i + ".painRight", x.painRight, "") : ""}</div>`,
+              Array.isArray(x.trials) ? isoValues.get(x.id)?.sides.map((s) => (s.sideLabel || s.side || "") + (s.pain ? " 疼痛" : " —")).join(" / ") : `<div class="row">${check("data.iso." + i + "." + (x.paired ? "painLeft" : "painCenter"), x.paired ? x.painLeft : x.painCenter, "")}${x.paired ? check("data.iso." + i + ".painRight", x.painRight, "") : ""}</div>`,
             ]),
         ) +
         state.data.iso
           .map((x, i) => ({ x, i }))
-          .filter(({ x }) => isoFilter === "all" || x.region === isoFilter)
+          .filter(({ x }) => selectedIso.has(x.id) && (isoFilter === "all" || x.region === isoFilter))
           .map(({ x, i }) =>
             (Array.isArray(x.trials) ? `<section class="iso-repeat-entry"><h4>${E(M.REG[x.region] + " · " + x.direction.replace(/[（(]中线[）)]/g, ""))}</h4>${repeatEditor("iso", i)}</section>` : "") + supplement(
               "data.iso." + i + ".notes",
@@ -2249,7 +2351,8 @@
       h='<div class="form-grid">'+keys.map(id=>field((id==="landmineL"?"左侧 ":id==="landmineR"?"右侧 ":"")+"设备速度口径",select("lvp."+id+".metric",state.lvp[id].metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))).join("")+'</div>'+h;
     }
     if(entryTab==="iso")h+='<details class="supplement"><summary>关节配对测量确认</summary>'+state.balancePairs.map((p,i)=>check("balancePairs."+i+".confirmed",p.confirmed,E(p.label)+" · 测量口径、单位与协议可比较")).join("")+'</details>';
-    $("entryContent").innerHTML = h;
+    $("entryContent").innerHTML = '<div class="excel-entry-choice"><span>本次数据</span><button type="button" class="btn small" onclick="App.openExcel(\'edit\')">下载补录模板 / 导入 Excel</button></div>'+h;
+    if(entryTab==="plan")bindProjectPicker($("entryContent"));
     $("entryContent")
       .querySelectorAll("table")
       .forEach((t) => t.classList.add("entry-table"));
@@ -2264,14 +2367,7 @@
     refreshEntryChrome();
   }
   function regionOptions() {
-    return [
-      ["", "未指定"],
-      ["neck", "颈"],
-      ...["shoulder", "hip", "knee", "ankle"].flatMap((k) => [
-        [k + "_l", "左" + M.REG[k]],
-        [k + "_r", "右" + M.REG[k]],
-      ]),
-    ];
+    return [["","未指定"],...Object.entries(M.REG).flatMap(([key,label])=>["neck","trunk"].includes(key)?[[key,label]]:[[key+"_l","左"+label],[key+"_r","右"+label]])];
   }
   function previousBackground() {
     const a = activeAthlete(),
@@ -2632,14 +2728,15 @@
   }
   function addIso() {
     const region = prompt(
-      "区域：neck / shoulder / hip / knee / ankle",
+      "区域："+Object.keys(M.REG).join(" / "),
       isoFilter === "all" ? "shoulder" : isoFilter,
     );
     if (!M.REG[region]) return;
     const direction = prompt("测试方向或姿势名称");
     if (!direction?.trim()) return;
+    const selected=M.selectedIsoRows(state).map(row=>row.id),newId=uid();
     state.data.iso.push({
-      id: uid(),
+      id: newId,
       region,
       direction: direction.trim(),
       directionCode: "custom_" + uid(),
@@ -2653,6 +2750,7 @@
       painRight: false,
       notes: "",
     });
+    M.setIsoDirectionSelection(state,[...selected,newId]);
     persist();
     renderEntry();
     renderReport();
@@ -3369,7 +3467,7 @@
       protocols: state.protocol,
       rawRecordsNote: "原始记录供口径、备注与试次背景核对；含未完成或无效字段，判断以有效 results、汇总值及 qualityIssues 为准。",
       rawRecords: Object.fromEntries(Object.entries(analysisRecord.data)
-        .filter(([id]) => state.enabled[id]).map(([id, value]) => [id, copy(value)])),
+        .filter(([id]) => state.enabled[id]).map(([id, value]) => [id, copy(id==="iso"?M.selectedIsoRows(analysisRecord):value)])),
       customMeasurements: report.projects.flatMap((test) => test.metrics)
         .filter((d) => window.RingsideTests.isManualMetric(d))
         .map((d) => ({ id: d.id, name: d.name, value: d.value, unit: d.unit,
@@ -3769,6 +3867,7 @@
       "entryProjectTitle",
       "entryProblemSummary",
       "creationProjects",
+      "excelContent", "excelFooter", "excelError", "excelTitle",
       "creationSource",
       "creationError", "creationAthleteSelect", "creationTestPlan", "creationEvaluationProfile", "creationSteps", "entrySteps",
       "catalogFields",
@@ -3780,6 +3879,11 @@
     ])
       clone.querySelector("#" + id)?.replaceChildren();
     clone.querySelector("#athleteSelect").replaceChildren();
+    clone.querySelector("#reportAthleteOptions").replaceChildren();
+    clone.querySelector("#reportAthleteOptions").hidden = true;
+    clone.querySelector("#reportAthleteSearch").value = "";
+    clone.querySelector("#reportAthleteSearch").setAttribute("value", "");
+    clone.querySelector("#reportAthleteSearch").setAttribute("aria-expanded", "false");
     clone.querySelector("#recordSelect").replaceChildren();
     clone
       .querySelectorAll('#newAthleteModal input:not([type="radio"]):not([type="checkbox"]),#newAthleteModal select')
@@ -3894,7 +3998,13 @@
       };
       legacyAbilities(all.catalog);
       delete all.catalog.abilityGroups;delete all.catalog.abilityGroupConflicts;
-      for(const athlete of all.athletes)for(const record of athlete.records){legacyAbilities(record);delete record.abilityGroupSnapshot;}
+      for(const athlete of all.athletes)for(const record of athlete.records){
+        legacyAbilities(record);delete record.abilityGroupSnapshot;
+        const selected=record.enabled.iso?M.selectedIsoRows(record):[];
+        if(selected.some(row=>!["neck","shoulder","hip","knee","ankle"].includes(row.region)))throw Error("本次等长力量包含旧版不支持的部位，请导出完整备份；回退时恢复升级前备份。");
+        record.data.iso=copy(selected);delete record.isoDirectionIds;
+        const ids=new Set(selected.map(row=>row.id));record.balancePairs=(record.balancePairs||[]).filter(pair=>ids.has(pair.numeratorId)&&ids.has(pair.denominatorId));
+      }
       for(const a of all.athletes){delete a.groupId;delete a.archived;delete a.deletedAt;for(const r of a.records){delete r.archived;delete r.deletedAt;delete r.deletedWithAthlete;delete r.evaluationIssues;delete r.imtpTimeStandards;delete r.testPlanSnapshot;}}
       if (!all.athletes.some(a=>a.id===all.activeAthleteId&&a.records.some(r=>r.recordId===all.activeRecordId))) {all.activeAthleteId=all.athletes[0]?.id||"";all.activeRecordId=all.athletes[0]?.records[0]?.recordId||"";}
       M.validateLibrary(all); download(JSON.stringify(all),"MotionBench_旧版兼容_"+today()+".json","application/json");
@@ -4129,6 +4239,7 @@
     saveNow: persist,
     async loadDemo() { return importPayload(M.recordEnvelope(M.sampleRecord())); },
     creationNext,
+    openExcel, commitExcel, showExcelRecord,
     creationBack,
     submitCreation,
     selectProjects,
@@ -4188,6 +4299,7 @@
     newTest,
     selectAthlete,
     selectRecord,
+    selectReportGroup, openAthleteChooser, filterAthleteChooser, athleteChooserKey,
     addRow,
     addHopJump, removeHopJump, addHopSet,
     removeRow,
@@ -4526,6 +4638,7 @@
     // Touch synthesizes focus and mouse events before click. Opening here would
     // move the click target under the finger, so touch opens only on click.
     bodyTouchInteraction = e.pointerType === "touch";
+    if (athleteChooserOpen && !e.target.closest(".athlete-combobox")) closeAthleteChooser();
   }, true);
   document.addEventListener("pointerover", (e) => {
     if (e.pointerType === "touch" || bodyTouchInteraction) return;

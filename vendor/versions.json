@@ -23,6 +23,18 @@
       "license": "MIT",
       "license_file": "jspdf.LICENSE.txt",
       "license_sha256": "dc388ec35ff463288cdde3588a36fd4ed12a45deff053243b37309acc9ef583b"
+    },
+    {
+      "name": "exceljs",
+      "version": "4.4.0",
+      "source": "https://registry.npmjs.org/exceljs/-/exceljs-4.4.0.tgz",
+      "npm_integrity": "sha512-XctvKaEMaj1Ii9oDOqbW/6e1gXknSY4g/aLCDicOXqBE4M0nRWkUu0PTp++UPNzoFY12BNHMfs/VadKIS6llvg==",
+      "file": "exceljs.min.js",
+      "sha256": "7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9",
+      "bytes": 947702,
+      "license": "MIT",
+      "license_file": "exceljs.LICENSE.txt",
+      "license_sha256": "2ed526b7e7c7681dc2347995b5036ddf73dc27d0539cdea59b6d4a72b63a57a0"
     }
   ]
 }

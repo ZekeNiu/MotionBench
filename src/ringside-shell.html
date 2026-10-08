@@ -79,26 +79,21 @@
       </header>
       <section id="reportToolbar" class="report-toolbar no-print" aria-label="选择与导出本次测试">
       <div id="reportControls" class="report-selection">
-        <label class="sr-only" for="reportAthleteSearch">搜索报告运动员</label><input id="reportAthleteSearch" type="search" placeholder="搜索姓名或专项" oninput="App.renderSelectors()">
-        <label class="sr-only" for="reportGroupFilter">按队伍选择报告</label><select id="reportGroupFilter" onchange="App.renderSelectors()"><option value="">全部队伍</option></select>
-        <div class="sidebar-field">
-          <label for="athleteSelect">运动员</label
-          ><select
-            id="athleteSelect"
-            onchange="App.selectAthlete(this.value)"
-          ></select>
+        <div class="report-field report-team"><label for="reportGroupFilter">队伍</label><select id="reportGroupFilter" onchange="App.selectReportGroup(this.value)"><option value="">全部队伍</option></select></div>
+        <div class="report-field report-athlete">
+          <label for="reportAthleteSearch">运动员</label>
+          <div class="athlete-combobox"><input id="reportAthleteSearch" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="reportAthleteOptions" autocomplete="off" placeholder="搜索姓名、专项或编号" onfocus="App.openAthleteChooser()" oninput="App.filterAthleteChooser()" onkeydown="App.athleteChooserKey(event)"><button type="button" class="athlete-clear" aria-label="清空运动员" onclick="App.selectAthlete('')">×</button><div id="reportAthleteOptions" class="athlete-options" role="listbox" aria-label="运动员搜索结果" hidden></div></div>
+          <select id="athleteSelect" class="sr-only" aria-hidden="true" tabindex="-1" onchange="App.selectAthlete(this.value)"></select>
         </div>
-        <div class="sidebar-field">
+        <div class="report-field report-record">
           <label for="recordSelect">测试记录</label
           ><select
             id="recordSelect"
             onchange="App.selectRecord(this.value)"
           ></select>
         </div>
-        <span id="sampleLabel" class="pill hidden">示例运动员</span>
-        <button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button>
       </div>
-        <div id="reportActions" class="report-actions" hidden><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">本次测试 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">本次测试数据 JSON</button></div></details></div>
+        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">本次测试 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">本次测试数据 JSON</button></div></details></div>
       </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
       <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button><button class="btn" onclick="App.loadDemo()">载入示例</button></div></section>
@@ -354,6 +349,7 @@
           <div class="settings-content creation-content">
             <div id="creationSteps" class="workflow-steps" aria-label="录入步骤"></div>
             <div id="creationSelectStep">
+              <div class="excel-entry-choice"><strong>单人录入</strong><button type="button" class="btn" onclick="App.openExcel('batch')">多人 Excel 录入</button></div>
               <div class="creation-choice"><label><input type="radio" name="creationAthleteMode" value="existing" checked onchange="App.creationAthleteMode(this.value)">选择已有运动员</label><label><input type="radio" name="creationAthleteMode" value="new" onchange="App.creationAthleteMode(this.value)">新建运动员档案</label></div>
               <div id="creationExistingFields" class="form-grid"><label class="field"><span>搜索运动员</span><input id="creationAthleteSearch" type="search" placeholder="姓名、专项或编号" oninput="App.renderCreationAthletes()"></label><label class="field"><span>运动员</span><select id="creationAthleteSelect" onchange="App.creationChooseAthlete(this.value)"></select></label></div>
             </div>
@@ -386,6 +382,7 @@
               <p id="creationSource" class="notice"></p>
               <div class="creation-project-heading"><h3>选择本次测试项目</h3><span id="creationCount" class="plan-count" aria-live="polite"></span></div>
               <div id="creationProjects"></div>
+              <div class="excel-entry-choice" id="creationExcelActions"><span>也可以下载所选项目模板，填写后导入。</span><button type="button" class="btn" onclick="App.openExcel('creation')">Excel 模板与导入</button></div>
             </div>
             <p id="creationError" class="field-error" role="alert" hidden></p>
           </div>
@@ -402,6 +399,7 @@
     </div></section>
     </div>
     <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
+    <div id="excelModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">Excel 模板与导入</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
     <datalist id="sportOptions"><option value="田径"></option><option value="篮球"></option><option value="足球"></option><option value="排球"></option><option value="游泳"></option><option value="网球"></option><option value="羽毛球"></option><option value="举重"></option><option value="拳击"></option><option value="散打"></option><option value="跆拳道"></option></datalist>
     <div class="modal-backdrop" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
       <div class="modal">

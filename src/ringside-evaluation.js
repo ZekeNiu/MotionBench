@@ -96,7 +96,7 @@
       const rule = c.iso.find(v => v.id === row.id);
       const matches = rule && canonical(isoContext(row, record)) === canonical({region:rule.region,directionCode:rule.directionCode,paired:rule.paired,unit:rule.unit,protocol:rule.protocol});
       row.target = matches ? rule.target : "";
-      if (rule && !matches && record.enabled.iso) out.evaluationIssues.push({ id: row.id, reason: "等长目标的单位或协议不匹配" });
+      if (rule && !matches && record.enabled.iso && M.selectedIsoRows(record).some(item => item.id === row.id)) out.evaluationIssues.push({ id: row.id, reason: "等长目标的单位或协议不匹配" });
     }
     for (const pair of out.balancePairs) {
       const rule = c.balance.find(p => p.id === pair.id);

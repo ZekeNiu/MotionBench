@@ -128,7 +128,7 @@
     return {
       record: snapshot,
       stats,
-      isoRadar: M.isoRadar(stats.isoAnalyses),
+      isoRadar: M.isoRadar(stats.isoAnalyses, snapshot),
       diagnostics: [],
       projects: results,
       groups: T.groups(results, snapshot),
@@ -318,7 +318,7 @@
     }
     function rawTable(test) {
       const contract = test.dataContract || T.dataContract(state, test.id);
-      const value = state.data[test.id];
+      const value = test.id === "iso" ? M.selectedIsoRows(state) : state.data[test.id];
       let rows = Array.isArray(value)
         ? value
         : value && typeof value === "object"
@@ -464,6 +464,7 @@
         );
       },
       iso: (tests) => {
+        const sideText = (row, side) => ["neck", "trunk"].includes(row.region) ? side.sideLabel || (side.side === "L" ? "左向" : side.side === "R" ? "右向" : "") : side.side;
         const radar = { ...report.isoRadar, axes: report.isoRadar.axes.map((axis) => ({
           ...axis,
           strengthSources: axis.strengthSources.map((source) => ({ ...source, label: directionLabel(source.label) })),
@@ -518,7 +519,7 @@
           );
           if (!available) return "-";
           return row.sides.map((side) => {
-            const label = side.side ? side.side + " · " : "";
+            const label = side.side ? sideText(row, side) + " · " : "";
             const description = label + (side.reasons.length ? side.reasons.join("；") : "达到目标");
             const value = side.pain ? statusPill(label.trim(), "red", description)
               : side.value === null || !positive(row.target) ? E(label) + "-"
@@ -529,7 +530,7 @@
         const sideStatistics = (row) => row.sides.map((side) => {
           const key = side.side === "L" ? "left" : side.side === "R" ? "right" : "center";
           const group = s.repetitions.find((g) => g.testId === "iso" && g.directionId === row.id && g.side === key);
-          return { side: side.side, metric: group?.statistics[0] };
+          return { side: side.side ? sideText(row, side) : "", metric: group?.statistics[0] };
         });
         const repeated = measured.some((row) => hasStatistics(sideStatistics(row).map((x) => x.metric)));
         const sideCells = (row) => [0, 1].map((col) => sideStatistics(row).map(({ side, metric }) =>
@@ -539,7 +540,7 @@
           row.sides
             .map(
               (side, index) => {
-                const value = `${side.side ? E(side.side) + " " : ""}${F(side.value)} ${E(row.unit)}${side.pain ? " · 疼痛" : ""}`;
+                const value = `${side.side ? E(sideText(row, side)) + " " : ""}${F(side.value)} ${E(row.unit)}${side.pain ? " · 疼痛" : ""}`;
                 const target = index === row.sides.length - 1 && positive(row.target)
                   ? `<small class="metric-meta">目标 ${F(row.target)} ${E(row.unit)}</small>` : "";
                 return repeated ? `<div class="stat-side">${value}${target}</div>` : value + target;
@@ -549,7 +550,7 @@
           ...(repeated ? sideCells(row) : []),
           row.asym === null
             ? "—"
-            : `<span class="pill ${E(row.asymStatus)}"><i class="dot"></i><span class="asym-value">${F(row.asym)}% ·</span> <span class="asym-side">${row.weakSide ? row.weakSide === "L" ? "左侧较弱" : "右侧较弱" : "一致"}</span></span>`,
+            : `<span class="pill ${E(row.asymStatus)}"><i class="dot"></i><span class="asym-value">${F(row.asym)}% ·</span> <span class="asym-side">${row.weakSide ? E(M.isoSideLabels(row)[row.weakSide === "L" ? "left" : "right"] + "较弱") : "一致"}</span></span>`,
           evaluationCell(row, repeated),
           balanceCell(row),
         ]);

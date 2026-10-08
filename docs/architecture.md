@@ -159,3 +159,14 @@ CPET 使用独立 `data.cpet`，保存原测量单位和报告标签，相对/�
 `ringside-cpet-reference.js` 在定义和模型前加载。评价定义的可选 `referenceGroups` 保存结构化年龄、性别、测试方式、RER条件、分级及组目标；普通指标继续使用原固定标准。RER只控制文献分级，显式通用目标与组目标按已确认优先关系生效。年龄使用测试记录保存值。参考表编辑、复制、校验、版本和回退沿用现有评价方案。
 
 升级仅安装新增标准和识别出的旧原厂空标准，保留用户更改及回退。`Evaluation.materialize` 用于单记录和旧版兼容导出，保存实际生效区间及来源；完整备份保留全表。原厂示例升级经严格数据/叙述检查并单独关联模拟目标方案，保存成功后才设置编辑基线。
+
+
+## 2.13.0 Excel、项目选择与方向投影
+
+`ringside-picker.js`按外部selection渲染并局部更新，管理方案持有顺序，新建/编辑只选择项目；不绑定App内部草稿。`isoDirectionIds`是记录、方案、方案快照的可选字段，缺字段维持旧记录方向集；新记录显式保存选择，取消不删除data.iso。`selectedIsoRows`用于统计、报告、AI和Excel，录入通过方向ID关联分析结果，不能用筛选后的数组位置映射原始行。
+
+`ringside-excel.js`是无存储副作用的模板/解析/预览/apply模块。XLSX隐藏表保存schema1模板绑定和稳定ID，中文输入表只提供原始测量与输入条件。`ringside-excel-flow.js`承接单人、多人和补录的下载、文件上传、差异选择及结果列表；App提交时一次保存所有record。相同目标recordId实现重导幂等。
+
+Repository.save第四参可传expectedConfig、expectedRecords、expectedAthletes。实际IndexedDB写事务先读取并比对这些快照和generation，再写元数据、记录及索引；预览过期或任何保存失败均不部分提交。Excel预览采用同次读取的资料库副本作为提交基础，避免用旧页面目录覆盖新的人员元数据。
+
+报告运动员搜索使用可访问combobox，查询与当前选中分离。每次队伍变更均递增selectionSequence，含当前人员仍在范围内的情况，从而使正在加载的旧人员响应失效。

@@ -329,10 +329,9 @@
       );
     const isoAction = (row, side) =>
       actions(
-        isoExercises[row.region]?.[row.directionCode] ||
-          row.direction + "轻阻力等长",
+        isoExercises[row.region][row.directionCode],
         {
-          side: side === "L" ? "左侧" : side === "R" ? "右侧" : "双侧／中线",
+          side: M.isoSideLabels(row)[side === "L" ? "left" : side === "R" ? "right" : "center"],
           load: row.region === "neck" ? "轻阻力，RPE 4–5" : "自我阻力，RPE 6–7",
           sets: 2,
           repsMin: 4,
@@ -353,20 +352,21 @@
       const side = row.weakSide || deficits[0].side;
       add(
         "iso_" + row.region,
-        REG[row.region] + "力量与双侧控制",
+        (row.region === "ankle" && record.isoDirectionIds === undefined ? "踝" : REG[row.region]) + "力量与双侧控制",
         row.direction +
           "：" +
           row.sides
             .map(
-              (x) => (x.side || "中线") + " " + fmt(x.value) + " " + row.unit,
+              (x) => (["neck", "trunk"].includes(row.region) ? x.sideLabel : x.side || "中线") + " " + fmt(x.value) + " " + row.unit,
             )
             .join(" / ") +
           (positive(row.target) !== null
             ? "；目标 " + fmt(row.target) + " " + row.unit
             : "") +
           (row.asym !== null ? "；双侧差异 " + fmt(row.asym, 1) + "%" : ""),
-        [isoAction(row, side)],
+        isoExercises[row.region]?.[row.directionCode] ? [isoAction(row, side)] : [],
         row.status === "red" ? 2 : 1,
+        isoExercises[row.region]?.[row.directionCode] ? "" : "复核本方向的测量姿势、固定方式与目标，由教练据此制定训练内容。",
       );
     }
     for (const balance of s.balanceResults) {
@@ -402,9 +402,9 @@
             fmt(result.value) +
             "，优先加强" +
             row.direction,
-          [isoAction(row, result.side)],
+          isoExercises[row.region]?.[row.directionCode] ? [isoAction(row, result.side)] : [],
           result.status === "red" ? 2 : 1,
-          "保留较强方向的能力，不通过降低较强方向力量来改变比值。",
+          isoExercises[row.region]?.[row.directionCode] ? "保留较强方向的能力，不通过降低较强方向力量来改变比值。" : "复核配对测量条件，由教练据此制定训练内容。",
         );
       }
     }

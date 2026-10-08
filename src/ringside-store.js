@@ -56,12 +56,13 @@
       if (typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 || !Array.isArray(plan.testIds) || !plan.testIds.length || plan.testIds.length > 1000 || new Set(plan.testIds).size !== plan.testIds.length || plan.testIds.some(id=>!tests.has(id))) throw Error("测试方案名称或项目无效");
       if (typeof plan.defaultEvaluationProfileId !== "string" || !plan.defaultEvaluationProfileId) throw Error("测试方案缺少推荐评价方案");
       if (plan.disabled !== undefined && typeof plan.disabled !== "boolean") throw Error("测试方案状态无效");
+      M.validateIsoDirectionIds(plan.isoDirectionIds, M.isoRows(), !plan.testIds.includes("iso"));
     }
   }
   function configuration(lib) {
     validateTestPlans(lib.testPlans, lib.catalog);
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
-      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.12.0"};
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.13.0"};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
@@ -106,10 +107,10 @@
     loadRecord(id) { return this.get("records",id); }
     enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
     flush() { return this.queue; }
-    save(lib,records=[],removals={}) {
+    save(lib,records=[],removals={},checks={}) {
       const generation=this.generation;
       const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles],["config",[{...configuration(lib),id:"library"}]]].map(([table,items])=>[table,clone(items)]);
-      const snapshots=records.map(r=>{validateEntity("record",r);return clone(r);}),deletions=clone(removals);
+      const snapshots=records.map(r=>{validateEntity("record",r);return clone(r);}),deletions=clone(removals),expected=clone(checks);
       // Capture caller values now, but compare metadata only after preceding writes commit.
       return this.enqueue(async()=>{
         if((await this.meta("active"))?.value!==generation) throw Error("资料库已在另一个页面切换，请先备份未保存内容再重新打开");
@@ -121,12 +122,25 @@
         }
         for(const r of snapshots)writes.push(["records",r.recordId,r],["recordIndex",r.recordId,summary(r)]);
         for(const id of deletions.records||[])(deletions.recordIndex ||= []).push(id);
-        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions)))];
-        if(!names.length)return;
+        const guarded = expected.expectedConfig !== undefined || expected.expectedRecords || expected.expectedAthletes;
+        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions), ["meta"], guarded ? ["records","athletes","config"] : []))];
+        if(!writes.length&&!Object.keys(deletions).length&&!guarded)return;
         const tx=this.db.transaction(names,"readwrite"),done=completed(tx);
-        for(const [table,id,value] of writes)tx.objectStore(table).put({generation,id,value});
-        for(const [table,ids] of Object.entries(deletions))for(const id of ids)tx.objectStore(table).delete([generation,id]);
-        await done;this.metadataHashes=nextHashes;
+        try {
+          const active = await request(tx.objectStore("meta").get("active"));
+          if (active?.value !== generation) throw Error("资料库已在另一个页面切换，请重新打开并重新预览");
+          const comparisons = [];
+          for (const [table, entries] of [["records", expected.expectedRecords], ["athletes", expected.expectedAthletes]])
+            for (const [id, encoded] of Object.entries(entries || {})) comparisons.push(request(tx.objectStore(table).get([generation,id])).then(row => JSON.stringify(row?.value ?? null) === encoded));
+          if (expected.expectedConfig !== undefined) comparisons.push(request(tx.objectStore("config").get([generation,"library"])).then(row => JSON.stringify(row?.value ?? null) === expected.expectedConfig));
+          if ((await Promise.all(comparisons)).some(matches => !matches)) throw Error("导入预览已过期：资料已被其他页面修改，请重新预览后再导入");
+          for(const [table,id,value] of writes)tx.objectStore(table).put({generation,id,value});
+          for(const [table,ids] of Object.entries(deletions))for(const id of ids)tx.objectStore(table).delete([generation,id]);
+          await done;this.metadataHashes=nextHashes;
+        } catch (error) {
+          try { tx.abort(); } catch (_) {}
+          await done.catch(()=>{}); throw error;
+        }
       });
     }
     async *batches(table,generation=this.generation,size=40) {

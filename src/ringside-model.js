@@ -53,10 +53,15 @@
   ];
   const REG = {
     neck: "颈",
+    trunk: "躯干",
     shoulder: "肩",
+    scapula: "肩胛带",
+    elbow: "肘",
+    forearm: "前臂",
+    wrist: "腕",
     hip: "髋",
     knee: "膝",
-    ankle: "踝",
+    ankle: "踝足",
   };
   const DIRS = {
     neck: [
@@ -65,6 +70,12 @@
       ["lateralFlexion", "侧屈（左 / 右）", true],
       ["rotation", "旋转（左 / 右）", true],
     ],
+    trunk: [
+      ["flexion", "屈曲（中线）", false],
+      ["extension", "伸展（中线）", false],
+      ["lateralFlexion", "侧屈（左向 / 右向）", true],
+      ["rotation", "旋转（左向 / 右向）", true],
+    ],
     shoulder: [
       ["flexion", "屈曲", true],
       ["extension", "伸展", true],
@@ -72,6 +83,18 @@
       ["adduction", "内收", true],
       ["internalRotation", "内旋", true],
       ["externalRotation", "外旋", true],
+      ["horizontalAbduction", "水平外展", true],
+      ["horizontalAdduction", "水平内收", true],
+    ],
+    scapula: [
+      ["elevation", "上提", true], ["depression", "下压", true],
+      ["protraction", "前伸", true], ["retraction", "后缩", true],
+    ],
+    elbow: [["flexion", "屈曲", true], ["extension", "伸展", true]],
+    forearm: [["pronation", "旋前", true], ["supination", "旋后", true]],
+    wrist: [
+      ["flexion", "屈曲", true], ["extension", "伸展", true],
+      ["radialDeviation", "桡偏", true], ["ulnarDeviation", "尺偏", true],
     ],
     hip: [
       ["flexion", "屈曲", true],
@@ -84,6 +107,8 @@
     knee: [
       ["extension", "伸展", true],
       ["flexion", "屈曲", true],
+      ["internalRotation", "胫骨内旋", true],
+      ["externalRotation", "胫骨外旋", true],
     ],
     ankle: [
       ["dorsiflexion", "背屈", true],
@@ -92,6 +117,42 @@
       ["eversion", "外翻", true],
     ],
   };
+  const LEGACY_ISO_REGIONS = ["neck", "shoulder", "hip", "knee", "ankle"];
+  const isLegacyIsoRow = row => LEGACY_ISO_REGIONS.includes(row.region)
+    && !["horizontalAbduction", "horizontalAdduction"].includes(row.directionCode)
+    && !(row.region === "knee" && ["internalRotation", "externalRotation"].includes(row.directionCode));
+  const legacyIsoDirectionIds = () => isoRows().filter(isLegacyIsoRow).map(row => row.id);
+  const isoSideLabels = row => ["neck", "trunk"].includes(row.region)
+    ? { left: "左向", right: "右向", center: "中线" }
+    : { left: "左侧", right: "右侧", center: "单项" };
+  const bodyRegionLabel = region => ({ neck: "颈部", trunk: "躯干", scapula: "肩胛带", forearm: "前臂", ankle: "踝关节" }[region] || REG[region] + "关节");
+  function isoDirectionCatalog(record) {
+    const rows = isoRows(), ids = new Set(rows.map(row => row.id));
+    return rows.concat((record?.data?.iso || []).filter(row => !ids.has(row.id)));
+  }
+  function validateIsoDirectionIds(ids, rows, allowEmpty = true) {
+    if (ids === undefined) return;
+    const available = new Set(rows.map(row => row.id));
+    if (!Array.isArray(ids) || (!allowEmpty && !ids.length) || ids.length > 1000
+      || new Set(ids).size !== ids.length || ids.some(id => typeof id !== "string" || !available.has(id)))
+      throw new Error("等长力量方向选择无效，请核对所选方向");
+  }
+  function selectedIsoRows(record) {
+    const rows = record.data?.iso || [];
+    if (record.isoDirectionIds === undefined) return rows;
+    validateIsoDirectionIds(record.isoDirectionIds, rows);
+    const byId = new Map(rows.map(row => [row.id, row]));
+    return record.isoDirectionIds.map(id => byId.get(id));
+  }
+  function setIsoDirectionSelection(record, ids) {
+    if (!Array.isArray(ids)) throw new Error("请选择本次等长力量方向");
+    const catalog = isoDirectionCatalog(record);
+    validateIsoDirectionIds(ids, catalog);
+    const existing = new Set(record.data.iso.map(row => row.id));
+    ids.forEach(id => { if (!existing.has(id)) record.data.iso.push(clone(catalog.find(row => row.id === id))); });
+    record.isoDirectionIds = [...ids];
+    return record;
+  }
   const PAIRS = [
     [
       "shoulder_IR_ER",
@@ -130,7 +191,7 @@
         painCenter: false,
         notes: "",
       })),
-    );
+    ).sort((a, b) => Number(isLegacyIsoRow(b)) - Number(isLegacyIsoRow(a)));
   }
   function directionCode(row) {
     if (row.directionCode) return row.directionCode;
@@ -786,6 +847,7 @@
       row.directionCode = directionCode(row);
       return { ...row, protocol: row.protocol || "", notes: row.notes || "" };
     });
+    validateIsoDirectionIds(out.isoDirectionIds, out.data.iso);
     const inferredPairs = balancePairs(out.data.iso);
     out.balancePairs = Array.isArray(s.balancePairs)
       ? s.balancePairs.concat(
@@ -1478,13 +1540,13 @@
         : "R";
   }
   function regionKey(region, side) {
-    return region === "neck"
-      ? "neck"
+    return ["neck", "trunk"].includes(region)
+      ? region
       : region + (side ? "_" + side.toLowerCase() : "");
   }
 
   function isoAnalysis(record) {
-    return record.data.iso.map((row) => {
+    return selectedIsoRows(record).map((row) => {
       const left = nonnegative(row.left),
         right = nonnegative(row.right),
         center = nonnegative(row.center),
@@ -1531,6 +1593,7 @@
         }
         return {
           side,
+          sideLabel: isoSideLabels(row)[side === "L" ? "left" : side === "R" ? "right" : "center"],
           value,
           pain: !!pain,
           status,
@@ -1559,12 +1622,16 @@
     });
   }
   // Display-only aggregation. Directional grades and ability scores keep their original inputs.
-  function isoRadar(rows) {
+  function isoRadar(rows, record) {
     const mean = (items) =>
       items.length
         ? items.reduce((sum, x) => sum + x.value / items.length, 0)
         : null;
-    const axes = Object.entries(REG).map(([id, label]) => {
+    const regionIds = record?.isoDirectionIds !== undefined
+      ? Object.keys(REG).filter(id => rows.some(row => row.region === id))
+      : LEGACY_ISO_REGIONS;
+    const axes = regionIds.map((id) => {
+      const label = REG[id];
       const directions = rows.filter((row) => row.region === id);
       const strengthSources = [],
         symmetrySources = [];
@@ -1706,7 +1773,8 @@
   }
   function computeBalances(record, rows) {
     const idMap = new Map(rows.map((r) => [r.id, r]));
-    return (record.balancePairs || []).map((pair) => {
+    return (record.balancePairs || []).filter(pair => record.isoDirectionIds === undefined
+      || idMap.has(pair.numeratorId) && idMap.has(pair.denominatorId)).map((pair) => {
       const numerator = idMap.get(pair.numeratorId),
         denominator = idMap.get(pair.denominatorId);
       let reason = "";
@@ -1890,8 +1958,9 @@
           }))));
         add(id, id, test.name, fields.concat(extras), normalized, "imtp_peak_force");
       } else if (test.renderer === "iso") {
-        record.data.iso.forEach((direction, index) => {
-          (direction.paired ? [["left", "左侧"], ["right", "右侧"]] : [["center", "中线"]]).forEach(([side, label]) =>
+        selectedIsoRows(record).forEach((direction) => {
+          const index = record.data.iso.findIndex(row => row.id === direction.id), labels = isoSideLabels(direction);
+          (direction.paired ? [["left", labels.left], ["right", labels.right]] : [["center", labels.center]]).forEach(([side, label]) =>
             add(id, direction.id + ":" + side, (REG[direction.region] || direction.region) + " · " + direction.direction + " · " + label,
               [field(side, side, "力量", direction.unit)], repeatRows(record, id, index), side, "higher", { directionId: direction.id, side }));
         });
@@ -2112,6 +2181,7 @@
   }
   function stats(record) {
     let state = record || defaults();
+    if (state.isoDirectionIds !== undefined) state = { ...state, data: { ...state.data, iso: selectedIsoRows(state) } };
     // Calculations must use canonical results AND definitions even before a
     // legacy record is normalized or reloaded; never alter the caller's data.
     if (state.definitions.some((d) => d.unit === "km/h")) {
@@ -2555,9 +2625,7 @@
     isoAnalyses.forEach((row) =>
       row.sides.forEach((side) => {
         const title =
-          (side.side === "L" ? "左" : side.side === "R" ? "右" : "") +
-          REG[row.region] +
-          (row.region === "neck" ? "部" : "关节");
+          (["neck", "trunk"].includes(row.region) ? "" : side.side === "L" ? "左" : side.side === "R" ? "右" : "") + bodyRegionLabel(row.region);
         const detail =
           row.direction +
           (side.reasons.length ? "：" + side.reasons.join("；") : "：已测");
@@ -2574,9 +2642,7 @@
         .filter((x) => x.value !== null)
         .forEach((side) => {
           const title =
-              (side.side === "L" ? "左" : side.side === "R" ? "右" : "") +
-              REG[b.region] +
-              (b.region === "neck" ? "部" : "关节"),
+              (["neck", "trunk"].includes(b.region) ? "" : side.side === "L" ? "左" : side.side === "R" ? "右" : "") + bodyRegionLabel(b.region),
             detail = b.label + " " + fmt(side.value) + " · " + side.label;
           mark(side.region, side.status, title, detail);
           finding(
@@ -2724,7 +2790,7 @@
       const selected = repetitions.find(group => group.testId === "iso" && group.directionId === row.id && group.side === sideKey)?.selectedIds || [];
       const notes = [row.notes, ...(row.trials || []).filter(trial => selected.includes(trial.id)).map(trial => trial.notes)].filter(Boolean);
       addBodyTest(side.region, { id: row.id + "_" + (side.side || "C"), testId: "iso", name: row.direction,
-        side: side.side || "C", value, unit: row.unit, target: row.target, status: side.status,
+        side: side.side || "C", sideLabel: side.sideLabel, value, unit: row.unit, target: row.target, status: side.status,
         label: side.reasons.join("；") || (value === null ? "未测" : "已测"), pain: side.pain,
         missing: value === null, asym: row.asym, notes: [...new Set(notes)].join("；") });
     }
@@ -3012,6 +3078,7 @@
       athlete: record.athlete,
       trainingContext: record.trainingContext,
       enabled,
+      ...(record.isoDirectionIds !== undefined ? { isoDirectionIds: record.isoDirectionIds } : {}),
       mode: record.mode,
       data,
       definitions,
@@ -4028,6 +4095,9 @@
         throw new Error("等长方向 ID 或定义无效");
       isoIds.add(row.id);
     });
+    validateIsoDirectionIds(input.isoDirectionIds, input.data.iso);
+    if (input.testPlanSnapshot?.isoDirectionIds !== undefined)
+      validateIsoDirectionIds(input.testPlanSnapshot.isoDirectionIds, isoDirectionCatalog(input));
     validateRepeatStorage(input);
     if (input.balancePairs !== undefined) {
       if (
@@ -4203,6 +4273,7 @@
   }
   function legacySampleRecord() {
     const record = defaults();
+    record.data.iso = record.data.iso.filter(row => legacyIsoDirectionIds().includes(row.id));
     record.demo = true;
     record.athlete = {
       ...record.athlete,
@@ -4450,6 +4521,12 @@
     targetStatus,
     evaluation,
     isoRows,
+    legacyIsoDirectionIds,
+    isoDirectionCatalog,
+    selectedIsoRows,
+    setIsoDirectionSelection,
+    validateIsoDirectionIds,
+    isoSideLabels,
     isoRadar,
     jumpSummary,
     hopSummary,

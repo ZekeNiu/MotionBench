@@ -12,8 +12,8 @@ function finite(html) { assert.ok(!/NaN|Infinity/.test(html)); }
 
 test('body markers preserve region accessibility without white specular dots', () => {
   const html = V.body({ shoulder_l: { status: 'red', tooltip: '疼痛' } });
-  assert.equal((html.match(/class="viz-hotspot"/g) || []).length, 9);
-  assert.equal((html.match(/<circle /g) || []).length, 18);
+  assert.equal((html.match(/class="viz-hotspot"/g) || []).length, 18);
+  assert.equal((html.match(/<circle /g) || []).length, 36);
   assert.ok(html.includes('data-region="shoulder_l"'));
   assert.ok(html.includes('role="button" tabindex="0"'));
   assert.ok(!html.includes('opacity=".35"'));

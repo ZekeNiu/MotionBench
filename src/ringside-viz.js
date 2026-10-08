@@ -201,7 +201,7 @@
   const bodyStatusLabels = { red: "重点关注", amber: "关注", green: "优秀", gray: "未测", neutral: "已测" };
   const bodyStatusLabel = (region) => region.status === "green" ? "优秀" : region.label || bodyStatusLabels[region.status] || "未测";
   function bodyTestText(test) {
-    const side = { L: "左侧", R: "右侧", C: "中线" }[test.side] || test.side || "",
+    const side = test.sideLabel || { L: "左侧", R: "右侧", C: "中线" }[test.side] || test.side || "",
       title = [test.testName && test.testName !== test.name ? test.testName : "", test.name || "测试", side].filter(Boolean).join(" · "),
       value = test.missing ? "未测" : num(test.value) !== null ? fmt(test.value, 2) + (test.unit ? " " + test.unit : "") : test.label || "已测",
       facts = [value];
@@ -255,12 +255,21 @@
       ["neck", "颈部", 512, 282],
       ["shoulder_r", "右肩", 367, 358],
       ["shoulder_l", "左肩", 657, 358],
+      ["scapula_r", "右肩胛带", 417, 392],
+      ["scapula_l", "左肩胛带", 607, 392],
+      ["elbow_r", "右肘", 331, 550],
+      ["elbow_l", "左肘", 694, 550],
+      ["forearm_r", "右前臂", 315, 632],
+      ["forearm_l", "左前臂", 709, 632],
+      ["wrist_r", "右腕", 296, 711],
+      ["wrist_l", "左腕", 729, 711],
+      ["trunk", "躯干", 512, 545],
       ["hip_r", "右髋", 425, 676],
       ["hip_l", "左髋", 601, 676],
       ["knee_r", "右膝", 444, 957],
       ["knee_l", "左膝", 584, 957],
-      ["ankle_r", "右踝", 459, 1230],
-      ["ankle_l", "左踝", 579, 1230],
+      ["ankle_r", "右踝足", 459, 1230],
+      ["ankle_l", "左踝足", 579, 1230],
     ];
     let out = imageURL
       ? `<image x="0" y="0" width="1024" height="1536" href="${esc(imageURL)}" preserveAspectRatio="xMidYMid meet"/>`
@@ -283,6 +292,7 @@
         tests = Array.isArray(r.tests) ? r.tests : [],
         details = tests.length ? tests.map(test => { const item = bodyTestText(test); return item.title + "：" + item.detail; }).join("；") : r.tooltip || r.detail || "",
         tooltip = `${name}：${bodyStatusLabel(r)}${details ? " · " + details : ""}`;
+      if (key.startsWith("scapula")) out += line(key.endsWith("_r") ? 377 : 647, 368, x, y, `stroke="${c}" stroke-width="2" stroke-dasharray="4 3"`);
       out += `<g class="viz-region" data-region="${key}" data-body-detail="${esc(JSON.stringify(r))}" data-tooltip="${esc(tooltip)}" role="button" tabindex="0" aria-label="${esc(tooltip)}">${circle(x, y, 32, c, 'opacity=".16"')}${circle(x, y, 24, c, 'class="viz-hotspot" stroke="white" stroke-width="3"')}</g>`;
     });
     const id = `ringside-body-${++serial}`;
@@ -536,6 +546,7 @@
     return layoutSVG(w, h, "FMS 动作表现雷达图", out, "保留原动作分数、疼痛与缺测，不推断病因。", layout);
   }
   function isoRadar(data, layout = {}) {
+    if (data.axes.length < 3 || data.axes.length > 8) return isoRegionPlot(data, layout);
     const w = layout.width || 470,
       h = layout.height || 360,
       cx = w / 2,
@@ -573,8 +584,7 @@
     }
     axes.forEach((axis, i) => {
       out += line(cx, cy, ...polar(i, radius));
-      const side = i === 1 || i === 4,
-        p = polar(i, radius + (side ? 25 : 22)),
+      const p = polar(i, radius + 25),
         anchor = "middle";
       out += text(
         ...p,
@@ -621,6 +631,33 @@
       "每个关节按有效方向等权平均；缺测留空，两条轮廓均越外越好。",
       layout,
     );
+  }
+  function isoRegionPlot(data, layout = {}) {
+    const axes = data.axes || [], w = layout.width || 470,
+      h = Math.max(layout.height || 360, 118 + axes.length * 45), left = 78, right = w - 35,
+      max = data.max || 100, top = 37, rowHeight = axes.length ? Math.min(45, (h - 112) / axes.length) : 45,
+      x = value => left + value / max * (right - left), colors = { strength: C.blue, symmetry: "#956a43" };
+    if (!axes.length) return empty("等长力量等待数据", "选择本次方向并录入结果后显示", w, h);
+    let out = "";
+    [0, 50, 100, ...(max > 100 ? [max] : [])].forEach(value => {
+      out += line(x(value), top - 10, x(value), top + axes.length * rowHeight, `stroke="${C.grid}"`)
+        + text(x(value), top - 18, value + "%", 'text-anchor="middle" font-size="10"');
+    });
+    axes.forEach((axis, i) => {
+      const y = top + i * rowHeight + 12;
+      out += text(left - 12, y + 4, axis.label, `text-anchor="end" font-size="12" fill="${axis.pain ? C.red : C.ink}"`);
+      ["strength", "symmetry"].forEach((key, j) => {
+        const value = num(axis[key]), yy = y + (j ? 7 : -7);
+        if (value === null) { out += text(right + 8, yy + 4, "—", `font-size="11" fill="${colors[key]}"`); return; }
+        const title = axis.label + " · " + (key === "strength" ? "力量水平 " : "对称性 ") + fmt(value, 1) + "%";
+        out += line(left, yy, x(value), yy, `stroke="${colors[key]}" stroke-opacity=".35" stroke-width="3"`)
+          + point(x(value), yy, 4, colors[key], title);
+      });
+    });
+    out += circle(w / 2 - 105, h - 35, 4, colors.strength) + text(w / 2 - 94, h - 31, "力量水平", 'font-size="12"')
+      + circle(w / 2 + 26, h - 35, 4, colors.symmetry) + text(w / 2 + 37, h - 31, "对称性", 'font-size="12"')
+      + text(w / 2, h - 8, "力量：目标达成均值 · 对称：100% − 平均差异", 'text-anchor="middle" font-size="11"');
+    return layoutSVG(w, h, "部位力量与对称性", out, "按所选部位展示；缺测留空，不以零代替。", layout);
   }
   function jumpBars(items, layout = {}) {
     items = items.filter(item => num(item.height ?? item.value) !== null || num(item.rsi) !== null);

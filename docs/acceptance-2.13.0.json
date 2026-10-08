@@ -1,0 +1,362 @@
+{
+  "pass": true,
+  "version": "2.13.0",
+  "html": "MotionBench.html",
+  "sha256": "a5e025e02b5ed644c515a87841ae14cca841637f97de1f2d1c8a1c602a2fc07b",
+  "bytes": 5534262,
+  "acceptanceScope": "Offline Excel template/import and native workbook roundtrip; shared grouped test picker; 42 isometric directions across ten regions; record/plan compatibility; report toolbar; selected-data statistics, AI facts, charts and actual PDF; persistence, backups and documented capacity results.",
+  "cleanEmbeddedData": true,
+  "reproducibleBuild": true,
+  "buildStdout": "Built MotionBench.html: 5,534,262 bytes; 23 offline scripts\n",
+  "sourceModules": {
+    "src/ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "src/ringside-app.js": "8dad4957a735efa2ec498c15717f758922859250e2d374674f3447d2514c29e0",
+    "src/ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "src/ringside-definitions.js": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+    "src/ringside-evaluation.js": "9cbcd73aa621cb1e69ba7d29cd50ce272472a6ad4ee787f92b5c1b9d07b4727c",
+    "src/ringside-excel-flow.js": "4ca9957183c9f1ea86bf5d7bb479b534775cf9ce2e7d657df60fce07cd9d2e89",
+    "src/ringside-excel.css": "23530fbd5484ef996bcfb5de7801cc073869227ebf95c9234d6dde144ff64c4f",
+    "src/ringside-excel.js": "9bd6e02cd2e2ee21b33252d955412fb33f59978e7a34f0e1b93236e64b074405",
+    "src/ringside-interventions.js": "dcbc194ed35b0aecd7fc97dbbf236ade81faa0538715b4e2e7625fef56127df1",
+    "src/ringside-management-refinement.css": "97dc8b58a178228adfd4d08127608084448a8c4b209c590daf850bcaed4a0070",
+    "src/ringside-management.js": "20b04d179a0fc9b775758b4263b47f21899abbf917eba24d428768b34cc2c1ef",
+    "src/ringside-model.js": "df5c5385c56fae4ed6cf172f49160ffb458a69058aa690f12a9e3ede1688ff94",
+    "src/ringside-pdf.js": "26574d0a2e6c9814b58657354eff66dad7c032ecf9e656e7ab2a795027ca00ba",
+    "src/ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "src/ringside-report-refinement.css": "37ab0b3f78abffb0ed847d9dee7e42fd0d7336b410239b28c1c0ee66c8045ce8",
+    "src/ringside-report.js": "e35436216b160b83f0323e2bb079e80197fd39d71021d765115f26c55e4643ea",
+    "src/ringside-settings.js": "93a53bfbc6d999e4f1530b8f2c96dc013f509b8710a2c9c749d1f931f42ee79d",
+    "src/ringside-shell.html": "64d0117df1debf80dd28697dec6c40d5ad94153092e4c6dcfd88f811c4bfc427",
+    "src/ringside-sources.js": "48aa1871cf9613371952580d731e36113f284441815a8f90d703d24e58811d74",
+    "src/ringside-store.js": "8d9ac90721721550d3d37b50a74be01ebe45d458aaef92394b5d0121ca7ad2a5",
+    "src/ringside-tests.js": "bfa453e206027c0de132e8989d189213ebc24674c7f7a4c3417f4f89ad684983",
+    "src/ringside-viz.js": "4a44ccdb6f63b2dc83ad5ad5d9b3231fea93925b18e543fc68ca98f6508973ee",
+    "src/ringside-workflow.css": "0394b74fc4ccf1962f0a002b329c0333da6cd197e998368a904a77e4871580db",
+    "src/ringside.css": "6062c7d1b54d6a653369318c9a2a7c6c1d5af3b9967f7fa34861e8643b03ee1c"
+  },
+  "vendorManifest": {
+    "path": "vendor/versions.json",
+    "sha256": "4f2a59a286cd6a242a4d1793a2b1c14eae2cd05182fc6d17b6eba21a14465a74"
+  },
+  "verifiedVendorFiles": [
+    {
+      "path": "vendor/html2canvas.min.js",
+      "sha256": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb"
+    },
+    {
+      "path": "vendor/html2canvas.LICENSE.txt",
+      "sha256": "86200ce4e92d9a22c41c8647a55f7a5fddff304ff89b4d36ecc699ed8c123d2c"
+    },
+    {
+      "path": "vendor/jspdf.umd.min.js",
+      "sha256": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54"
+    },
+    {
+      "path": "vendor/jspdf.LICENSE.txt",
+      "sha256": "dc388ec35ff463288cdde3588a36fd4ed12a45deff053243b37309acc9ef583b"
+    },
+    {
+      "path": "vendor/exceljs.min.js",
+      "sha256": "7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9"
+    },
+    {
+      "path": "vendor/exceljs.LICENSE.txt",
+      "sha256": "2ed526b7e7c7681dc2347995b5036ddf73dc27d0539cdea59b6d4a72b63a57a0"
+    }
+  ],
+  "externalAssets": [
+    {
+      "path": "body-map-front.png",
+      "sha256": "9b36275b9817c737ff62cd802f45e0efb0832a48e27cc0601a88727222a29ea4"
+    }
+  ],
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "454846fe1426fc128f708953dc23284d2700a445ec79ec68263c27f7dad9f9ae"
+    },
+    "chromeExcel": {
+      "path": "output/playwright/v213-excel/chrome-results.json",
+      "sha256": "3d360b11b2a3d699a4199a32949a59ddc6257dc6834887750cfdd0f54020aae4"
+    },
+    "chromeToolbar": {
+      "path": "output/playwright/report-toolbar/chrome-results.json",
+      "sha256": "107eead74e07fb81ed94054263580e987f3e0cb8bd174c61b9fe90344a9123b8"
+    },
+    "chromeManagement": {
+      "path": "output/playwright/management-refinement/chrome-browser.json",
+      "sha256": "2a8de9f6464aaf506f32fabdec4c78827e073f7c1ff1a68887d2ed52bde01e87"
+    },
+    "chromeWorkflow": {
+      "path": "output/playwright/refinement/chrome-workflow.json",
+      "sha256": "5146f1f69328a6968098d73ba8145cdd81c3c03373db83e9396fc435d6afbab0"
+    },
+    "chromeRaces": {
+      "path": "output/playwright/refinement-races/chrome-races.json",
+      "sha256": "56fa4f0993bc7db434c21af8d223808b90cfd34e6384cc1e3235334383d76693"
+    },
+    "chromeIsometric": {
+      "path": "output/playwright/isometric-selection/chrome-review.json",
+      "sha256": "b4ae00a9d4ca45dba812bdab336b096be5a8d47744d5242c54a341fcfc9b6545"
+    },
+    "chromePicker": {
+      "path": "output/playwright/picker/chrome-results.json",
+      "sha256": "a305f2e1495e63bbf0f13e3538c1aef44a870923d0da35b40f648e7921fbc507"
+    },
+    "msedgeExcel": {
+      "path": "output/playwright/v213-excel/msedge-results.json",
+      "sha256": "24e25c20952775f25161d187b21ad629b7935a8a703f51e338b02915044c7be0"
+    },
+    "msedgeToolbar": {
+      "path": "output/playwright/report-toolbar/msedge-results.json",
+      "sha256": "01cd928bf12e139d14e30f3aa6f62388d61689633af9d9299a190c50e08326c4"
+    },
+    "msedgeManagement": {
+      "path": "output/playwright/management-refinement/msedge-browser.json",
+      "sha256": "9360a91d1f74b600730c0f29abb14843886aed239329f6a091f7deda131f9f5b"
+    },
+    "msedgeWorkflow": {
+      "path": "output/playwright/refinement/msedge-workflow.json",
+      "sha256": "9793896be8321e8068faf44b9669f8523261a6345b15253999179e95a24706ca"
+    },
+    "msedgeRaces": {
+      "path": "output/playwright/refinement-races/msedge-races.json",
+      "sha256": "7be52a4c518cfbd51c1140720aa85573327602d5626b6cb70b9d8612be231f4a"
+    },
+    "msedgeIsometric": {
+      "path": "output/playwright/isometric-selection/msedge-review.json",
+      "sha256": "1c0ed39369e6a043a12707f728324f9f9e2f900af21e59a952bcafc90e5b20d0"
+    },
+    "msedgePicker": {
+      "path": "output/playwright/picker/msedge-results.json",
+      "sha256": "5b5498109a36fe405d26eb855932c5bf5fadc9f3f2d68bf741919a73eb0a8791"
+    },
+    "managementResilience": {
+      "path": "output/playwright/management/resilience.json",
+      "sha256": "5c8fd589548d91984e738bcbff3c7863687e274e2ccc6a45b7cee21bc93bb580"
+    },
+    "pdfVisual": {
+      "path": "output/playwright/isometric-selection/pdf-review.json",
+      "sha256": "a1d053e2eb412abb453252aa3a12f9908b574eeddf809f42d37ae105599bd19c"
+    },
+    "nativeExcelSave": {
+      "path": "output/excel-native/native-result.json",
+      "sha256": "6f358d071784dedea3ed98a228aa560f76d28fa5155bd9be9aacbf18bd16ba0f"
+    },
+    "nativeExcelNormalOpen": {
+      "path": "output/excel-native/native-open-result.json",
+      "sha256": "a0fb33d9aec22041cea17aca387dde4614b93505b6277dfeb455fcbcded51c9d"
+    },
+    "chromeCapacityLimitation": {
+      "path": "output/playwright/management/chrome-capacity-limitation.json",
+      "sha256": "00d305370c39499e18bf5f0fb892853ed7c867909c418051b5672f7f7e0c668d"
+    },
+    "msedgeCapacity": {
+      "path": "output/playwright/management/msedge-capacity.json",
+      "sha256": "ffdb2c8ac350bbed19d6a216a4dace52304bc7cf91dfcbe92c01507fa1158a0f"
+    }
+  },
+  "modelChecks": 316,
+  "modelSuites": 21,
+  "browserChecks": 127,
+  "browserSuites": [
+    {
+      "name": "chromeExcel",
+      "checks": 15,
+      "pass": true
+    },
+    {
+      "name": "chromeToolbar",
+      "checks": 8,
+      "pass": true
+    },
+    {
+      "name": "chromeManagement",
+      "checks": 8,
+      "pass": true
+    },
+    {
+      "name": "chromeWorkflow",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "name": "chromeRaces",
+      "checks": 5,
+      "pass": true
+    },
+    {
+      "name": "chromeIsometric",
+      "checks": 6,
+      "pass": true
+    },
+    {
+      "name": "chromePicker",
+      "checks": 5,
+      "pass": true
+    },
+    {
+      "name": "msedgeExcel",
+      "checks": 15,
+      "pass": true
+    },
+    {
+      "name": "msedgeToolbar",
+      "checks": 8,
+      "pass": true
+    },
+    {
+      "name": "msedgeManagement",
+      "checks": 8,
+      "pass": true
+    },
+    {
+      "name": "msedgeWorkflow",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "name": "msedgeRaces",
+      "checks": 5,
+      "pass": true
+    },
+    {
+      "name": "msedgeIsometric",
+      "checks": 6,
+      "pass": true
+    },
+    {
+      "name": "msedgePicker",
+      "checks": 5,
+      "pass": true
+    },
+    {
+      "name": "managementResilience",
+      "checks": 13,
+      "pass": true
+    }
+  ],
+  "nativeExcel": {
+    "pass": true,
+    "application": "Microsoft Excel",
+    "version": "16.0",
+    "sourceSha256": "9bd6e02cd2e2ee21b33252d955412fb33f59978e7a34f0e1b93236e64b074405",
+    "artifactSha256": "a5e025e02b5ed644c515a87841ae14cca841637f97de1f2d1c8a1c602a2fc07b",
+    "input": {
+      "path": "output/excel-native/template.xlsx",
+      "sha256": "fe964460ea7c885d36bab6cdab8590f05dec6883e77f419a669d7e3e0e4807e9"
+    },
+    "output": {
+      "path": "output/excel-native/excel-saved.xlsx",
+      "sha256": "8544d75e1c561ac4e73a3d2c03b1e3b3d585e8f5a5b00fb994dd8ac43e664f52"
+    },
+    "seed": {
+      "path": "output/excel-native/native-seed.json",
+      "sha256": "2ea774728b82b465ab74348789b2cdc96b302a3e69f6c59d70d32c5d65bcbbb9"
+    },
+    "normalOpenWithAlerts": true,
+    "repairMode": false,
+    "parserVerification": {
+      "command": [
+        "node",
+        "tests/excel-model-tests.cjs",
+        "--verify-native"
+      ],
+      "exitCode": 0,
+      "checksPassed": 26,
+      "stdout": "PASS actual XLSX preserves every native project's calculated results\nPASS same-name athletes bind by stable IDs and receive separate records\nPASS blank batch rows skip people and do not turn into zero measurements\nPASS zero FMS, zero force baseline and signed RFD remain explicit\nPASS arbitrary IMTP time points and added attempts survive\nPASS Hop raw jumps retain groups while summary RSI remains a supplied mean\nPASS device stiffness N/m normalizes once and round-trips its display unit\nPASS CPET raw labels, modality, absolute units and threshold outputs survive\nPASS custom record and attempt metrics preserve independent values and notes\nPASS formulas and invalid numeric cells report precise sheet and address\nPASS duplicate attempt numbers and invalid dates are blocking errors\nPASS changed identity, unknown athletes and changed field units cannot be imported\nPASS supplement keeps old values by default and replacement swaps complete attempts\nPASS blank project replacement never erases current measurements\nPASS shared DSI settings default to keep and can be replaced independently of CMJ measurements\nPASS DSI-only changes do not mark CMJ trials as different and a blank shared force cannot erase a prior value\nPASS project protocols, force and speed definitions and selected isometric units are disclosed and follow replacement\nPASS a supplied shared force is retained in a new record without inventing CMJ attempts\nPASS same template target prevents duplicate records on repeated imports\nPASS isometric subset replacement preserves all unselected directions\nPASS export carries no scoring overrides in editable worksheets\nPASS workbook dropdowns display Chinese choices and accept their original codes\nPASS Hop summary keeps inactive supplied jumps without interpreting them as another test\nPASS plan order, inherited training context and existing comparability are retained\nPASS missing measurement side or unit is rejected with a cell address\nPASS native Microsoft Excel save can be parsed and measured values match\n26 Excel model checks passed\n",
+      "stderr": ""
+    },
+    "countingNote": "26 checks rerun independently against the native Excel-saved workbook; the existing 25 Excel model checks are already included in modelChecks."
+  },
+  "pdfPagesVisuallyReviewed": 36,
+  "capacity": [
+    {
+      "channel": "chrome",
+      "pass": false,
+      "status": "Additional stress case not accepted",
+      "athletes": 300,
+      "records": 3000,
+      "failure": "Approximately 570 MB backup download canceled; cause unknown.",
+      "observations": [
+        "The final DSI-preview revision also failed the same Chrome capacity download check; normal Excel import checks passed.",
+        "Chrome backup download canceled on two unmodified final-artifact runs.",
+        "Delaying Blob URL revocation by 30 seconds in an isolated diagnostic context also canceled; no product change was made.",
+        "The same unmodified capacity script against v2.12.0 also canceled in Chrome.",
+        "Edge completed 3000-record backup and restore.",
+        "Cause is not determined; ordinary Chrome Excel, backup/restore and export checks passed."
+      ]
+    },
+    {
+      "channel": "msedge",
+      "pass": true,
+      "athletes": 300,
+      "records": 3000,
+      "allEntitiesExact": true,
+      "backups": [
+        {
+          "path": "output/playwright/management/msedge-capacity.motionbench.jsonl",
+          "sha256": "4dcd2e6a10c151d1b958a3f2b576539853035e0fde33f1ec87dd52813355ad06",
+          "bytes": 570062860,
+          "entities": {
+            "sha256": "4f1c5fd60f8fa3c26b07c33a550e2b1620d0e3b8fcddc2db3d102feb9dbca679",
+            "counts": {
+              "config": 1,
+              "group": 10,
+              "profile": 1,
+              "athlete": 300,
+              "record": 3000
+            }
+          }
+        },
+        {
+          "path": "output/playwright/management/msedge-capacity-restored.motionbench.jsonl",
+          "sha256": "c43a421a76475927df3727cff854584dbecd5fca708a6cfc08c5436012462eb9",
+          "bytes": 570062860,
+          "entities": {
+            "sha256": "4f1c5fd60f8fa3c26b07c33a550e2b1620d0e3b8fcddc2db3d102feb9dbca679",
+            "counts": {
+              "config": 1,
+              "group": 10,
+              "profile": 1,
+              "athlete": 300,
+              "record": 3000
+            }
+          }
+        }
+      ],
+      "timings": {
+        "seedMs": 16456.89999999851,
+        "startupMs": [
+          828,
+          550,
+          519
+        ],
+        "searchMs": [
+          159,
+          131,
+          123
+        ],
+        "openMs": 172.60000000149012,
+        "saveMs": 29,
+        "backupMs": 14932,
+        "restoreMs": 16992
+      }
+    }
+  ],
+  "capacityFullyAccepted": false,
+  "additionalStressChromePassed": false,
+  "rollback": {
+    "tag": "v2.12.0",
+    "htmlSHA256": "552492e51f69be2b87b09bdb017cc99fe3284163ea5d1edba51d35f1f099e95b"
+  },
+  "verificationLimits": [
+    "Synthetic measurements and isolated Chrome/Edge profiles; no personal athlete records used.",
+    "Mobile layouts were checked with browser viewports, not physical phones, measurement devices or printers.",
+    "Online AI provider behavior and live model response quality were not revalidated in this release.",
+    "Native workbook checks used the installed Microsoft Excel version reported in nativeExcel; other spreadsheet applications were not verified.",
+    "New joint directions do not introduce clinical norms or training efficacy claims; targets remain user-configured.",
+    "The additional Chrome 300-athlete/3000-record stress case did not pass: the approximately 570 MB backup download was canceled. A v2.12.0 baseline and delayed-URL-revocation diagnostic also failed, but the cause remains unknown; this does not establish absence of a regression. Edge completed the same capacity backup/restore with every entity verified. Chrome stress is not counted among successful browser checks."
+  ]
+}

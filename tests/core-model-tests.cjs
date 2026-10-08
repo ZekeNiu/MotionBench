@@ -275,7 +275,7 @@ test("isometric result table keeps units and missing-side blanks while showing w
   Object.assign(record.data.iso[2], { left: 80, right: 100 });
   record.balancePairs = [];
   const html = R.render(R.build(record));
-  assert.ok(/20(?:\.0)?% · 左侧较弱/.test(html.replace(/<[^>]+>/g, "")));
+  assert.ok(/20(?:\.0)?% · 左向较弱/.test(html.replace(/<[^>]+>/g, "")));
   assert.ok(html.includes("Nm"));
   assert.equal((html.match(/class="inline-asym"/g) || []).length, 0);
   assert.ok(!html.includes("双侧不对称性"));
