@@ -12,7 +12,8 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
  const saveForm=async()=>{await page.locator('#managementForm [type="submit"]').click();await page.locator("#managementModal").waitFor({state:"hidden"});};
  try{
   await page.goto(pathToFileURL(file).href);assert.equal(await page.evaluate(()=>App.ready),true);
-  await check("fresh library remains empty and management has independent context",async()=>{
+  await page.evaluate(()=>App.importPayload(RingsideModel.libraryDefaults(),"replace-library"));
+  await check("restored empty library remains empty and management has independent context",async()=>{
    assert.equal(await page.evaluate(()=>App.getState()),null);await manage();assert.equal(await page.locator("#athleteSelect").isVisible(),false);assert.equal(await page.locator("#editButton").isVisible(),false);
    await click("new-athlete");await page.locator('#managementForm [name="name"]').fill("运动员甲");await page.locator('#managementForm [name="sport"]').fill("篮球");await saveForm();
    const a=await page.evaluate(()=>App.getLibrary().athletes[0]);assert.equal(a.records.length,0);assert.equal(await page.evaluate(()=>App.getState()),null);

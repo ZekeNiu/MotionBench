@@ -233,6 +233,86 @@
     if (job && (!currentMatches(job) || job.basis !== recordBasis())) cancelJob();
     renderReport(); renderWorkspace();
   }
+  async function updateAthleteProfile(id, profile, groupId = "") {
+    if (libraryTransferActive) throw Error("资料正在保存，请稍后重试");
+    M.validateAthleteProfile(profile);
+    if (groupId && !library.groups.some(group => group.id === groupId && !group.deletedAt)) throw Error("请选择有效队伍");
+    const originalOwner=id&&library.athletes.find(athlete=>athlete.id===id);
+    if(originalOwner){
+      const {records:ownerRecords,...metadata}=originalOwner;
+      if(JSON.stringify(await repository.get("athletes",id))!==JSON.stringify(metadata))throw Error("运动员档案已在其他页面修改，请重新打开档案");
+    }
+    saveEditor();
+    if (!await persist()) throw Error("当前修改尚未保存，请先重试");
+    await entryPersistQueue; await repository.flush();
+    libraryTransferActive = true;
+    try {
+      const next = copy(library), storedTarget = id && next.athletes.find(athlete => athlete.id === id);
+      const pendingTarget = !storedTarget && id && entrySession?.pendingAthletes.find(athlete=>athlete.id===id);
+      const owner = storedTarget || (pendingTarget && copy(pendingTarget));
+      if (id && !owner) throw Error("运动员不存在");
+      const storedOwner = storedTarget ? await repository.get("athletes", id) : null;
+      if (storedTarget) {
+        const {records:ownerRecords, ...metadata}=owner;
+        if (JSON.stringify(storedOwner) !== JSON.stringify(metadata)) throw Error("运动员档案已在其他页面修改，请重新打开档案");
+      }
+      const birthChanged = owner && (owner.profile.birthDate || "") !== (profile.birthDate || "");
+      const records = [], expectedRecords = {}, pending = [];
+      if (birthChanged) {
+        for (const summary of owner.records) {
+          const record = await repository.loadRecord(summary.recordId);
+          if (!record) throw Error("测试记录不存在，请重新打开资料库");
+          expectedRecords[record.recordId] = JSON.stringify(record);
+          const updated = copy(record); M.applyAge(updated, profile.birthDate || ""); M.validateAthleteContext(updated);
+          updated.updated = now(); records.push(updated);
+        }
+        for (const record of entrySession?.records || []) if (record.athleteId === id && !entrySession.savedIds.has(record.recordId)) {
+          const updated = copy(record); M.applyAge(updated, profile.birthDate || ""); M.validateAthleteContext(updated); pending.push(updated);
+        }
+      }
+      const target = owner || {id:uid(), records:[], sample:false, archived:false, deletedAt:null};
+      target.profile = M.profileFromRecord(profile); target.name = target.profile.name; target.groupId = groupId; target.updated = now();
+      if (!storedTarget) next.athletes.push(target);
+      for (const record of records) target.records[target.records.findIndex(item => item.recordId === record.recordId)] = window.RingsideStore.summary(record);
+      next.updated = now();
+      await repository.save(next, records, {}, {expectedRecords, ...(storedOwner ? {expectedAthletes:{[id]:JSON.stringify(storedOwner)}} : {}), ...(birthChanged ? {expectedOwnerRecordIds:{[id]:owner.records.map(record=>record.recordId)}} : {})});
+      library = next;
+      const updates = new Map([...records, ...pending].map(record => [record.recordId, record]));
+      if (entrySession) {
+        entrySession.records = entrySession.records.map(record => updates.get(record.recordId) || record);
+        const pendingOwner = entrySession.pendingAthletes.find(athlete => athlete.id === id);
+        if (pendingOwner) { pendingOwner.profile = copy(target.profile); pendingOwner.name = target.name; pendingOwner.groupId = groupId; }
+      }
+      if (updates.has(state?.recordId)) state = entrySession?.records.find(record => record.recordId === state.recordId) || copy(updates.get(state.recordId));
+      for (const record of records) recordBaselines.set(record.recordId, recordContent(record));
+      if (birthChanged) cancelJob({preserveModalId:"managementModal"});
+      saveEntrySession(); reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
+      return target.id;
+    } finally { libraryTransferActive = false; }
+  }
+  async function updateRecordDate(recordId, testDate, {title} = {}) {
+    if (libraryTransferActive) throw Error("资料正在保存，请稍后重试");
+    saveEditor(); if (!await persist()) throw Error("当前修改尚未保存，请先重试");
+    await entryPersistQueue; await repository.flush(); libraryTransferActive = true;
+    try {
+      const stored = await repository.loadRecord(recordId);
+      if (!stored) throw Error("测试记录不存在");
+      const next = copy(library), owner = next.athletes.find(athlete => athlete.id === stored.athleteId);
+      if (!owner) throw Error("运动员不存在");
+      const record = copy(stored); record.athlete.date = testDate;
+      if (title !== undefined) record.title = title;
+      M.applyAge(record, owner.profile.birthDate || "");
+      const dateError = M.validateField(record,"athlete.date",testDate); if (dateError) throw Error(dateError);
+      M.validateAthleteContext(record); M.validateRecord(record); record.updated = now();
+      owner.records[owner.records.findIndex(item => item.recordId === recordId)] = window.RingsideStore.summary(record); next.updated = now();
+      await repository.save(next,[record],{},{expectedRecords:{[recordId]:JSON.stringify(stored)}});
+      library = next;
+      if (entrySession) entrySession.records = entrySession.records.map(item => item.recordId === recordId ? copy(record) : item);
+      if (state?.recordId === recordId) state = entrySession?.records.find(item => item.recordId === recordId) || copy(record);
+      recordBaselines.set(recordId,recordContent(record)); cancelJob({preserveModalId:"managementModal"}); saveEntrySession();
+      reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
+    } finally { libraryTransferActive = false; }
+  }
   function openManagement(tab = "athletes") {
     if (tab === "catalog") tab = "metrics";
     if (creation?.submitting) return;
@@ -627,6 +707,14 @@
       }
       lastRestorePayload = input || lastRestorePayload;
       const migrated = window.RingsideEvaluation.migrate(input || M.libraryDefaults());
+      if (!input) {
+        const record = M.sampleRecord(); record.athlete.name = "示例";
+        const profile = window.RingsideEvaluation.create(record, "模拟示例评价方案");
+        record.evaluationProfileId = profile.id;
+        migrated.evaluationProfiles.push(profile);
+        migrated.athletes.push({id:record.athleteId,name:"示例",profile:M.profileFromRecord(record),sample:true,groupId:"",archived:false,deletedAt:null,records:[record]});
+        migrated.activeAthleteId = record.athleteId; migrated.activeRecordId = record.recordId;
+      }
       await repository.importLibrary(migrated);
     }
     await loadDirectory(false);
@@ -907,8 +995,10 @@
       '<button class="btn small" onclick="App.addRow(\'imtp\')">＋ 新增试次</button>'
     );
   }
-  function persist() {
+  function persist({duringTransfer = false} = {}) {
     if (!library || !repository) return Promise.resolve(false);
+    if (libraryTransferActive && !duringTransfer) return Promise.resolve(false);
+    if (state) { try { M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }
     clearTimeout(saveTimer); saveTimer = null;
     if (entrySession?.records.some(r => r.recordId === state?.recordId)) {
       const index = entrySession.records.findIndex(r => r.recordId === state.recordId);
@@ -1122,7 +1212,6 @@
       "imtpConfig",
       "cmjConfig",
       "derivedEnabled",
-      "trainingContext",
     ])
       if (source[k]) r[k] = copy(source[k]);
     r.dsi = { ...copy(source.dsi), force: "", confirmed: false };
@@ -1148,9 +1237,7 @@
   }
   async function createAthlete(name) {
     if (!String(name||"").trim()) return;
-    const id=uid(), profile={name:String(name).trim(),sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
-    library.athletes.push({id,name:profile.name,profile,records:[],groupId:"",archived:false,deletedAt:null,sample:false});
-    await saveLibraryChanges();return id;
+    return updateAthleteProfile("",M.profileFromRecord({name:String(name).trim()}));
   }
   async function newTest(athleteId) { return startDataEntry(athleteId || activeAthlete()?.id); }
   function pathLabel(path) {
@@ -1321,8 +1408,9 @@
     captureReportUI();saveEditor();if(!await persist())return;
     const owner=library.athletes.find(a=>a.id===athleteId&&!a.deletedAt&&!a.archived);
     creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",ownerIds:owner?[owner.id]:[],returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",isoDirectionIds:[],isoCatalog:M.isoRows(),enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
-    for(const id of ["newAthleteName","newAthleteSport","newAthleteLevel","creationAge","creationMass","creationHeight","creationAthleteSearch"])$(id).value="";
-    $("newAthleteSex").value="未注明";$("newAthleteHand").value="未注明";$("creationDate").value=today();$("creationError").hidden=true;
+    $("creationProfileFields").innerHTML=window.RingsideProfile.render(creation.profile,{creation:true,groups:library.groups,groupId:""});
+    creation.contexts={};creation.previousContexts={};
+    $("creationAthleteSearch").value="";$("creationDate").value=today();$("creationError").hidden=true;
     $("creationGroupFilter").innerHTML='<option value="">全部队伍</option>'+(library.groups||[]).filter(g=>!g.deletedAt).map(g=>`<option value="${E(g.id)}">${E(g.name)}</option>`).join("");
     ui.mode="creation";renderCreationAthletes();renderCreationStep();renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
     const draft=creation;
@@ -1361,6 +1449,8 @@
       creation.kind=kind;creation.ownerId="";creation.ownerIds=[];creation.loadedOwnerId="";
       creation.selectionToken=(creation.selectionToken||0)+1;
       creation.profile={name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
+      creation.contexts={};creation.previousContexts={};creation.contextOwnerId="";creation.setupPrepared=false;
+      $("creationProfileFields").innerHTML=window.RingsideProfile.render(creation.profile,{creation:true,groups:library.groups,groupId:""});
       creation.testPlanId="";creation.evaluationProfileId=library.defaultEvaluationProfileId;
       creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,false]));creation.isoDirectionIds=[];creation.isoCatalog=M.isoRows();
       $("creationSource").textContent="";renderCreationAthletes();
@@ -1390,6 +1480,61 @@
     $("creationTestPlan").innerHTML='<option value="">临时选择项目</option>'+(library.testPlans||[]).filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.testPlanId?"selected":""}>${E(p.name)}</option>`).join("");
     $("creationEvaluationProfile").innerHTML=library.evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("");
     $("creationProjects").innerHTML=projectPicker(creation.enabled,true);bindProjectPicker($("creationProjects"),true);refreshCreationCount();
+    renderCreationContext();
+  }
+  function creationOwners() {
+    return creation.kind==="athlete"?[{id:"new",name:creation.profile.name,profile:creation.profile}]:creation.ownerIds.map(id=>library.athletes.find(athlete=>athlete.id===id));
+  }
+  async function prepareCreationContexts(draft) {
+    for(const owner of creationOwners()) {
+      if(!draft.contexts[owner.id]) {
+        const priorSummary=owner.id!=="new"&&M.latestRecord({records:owner.records.filter(record=>!record.deletedAt)});
+        const prior=priorSummary?await repository.loadRecord(priorSummary.recordId):null;
+        if(creation!==draft)return false;
+        draft.previousContexts[owner.id]=prior;
+        draft.contexts[owner.id]={athlete:{date:$("creationDate").value,birthDate:owner.profile.birthDate||"",age:"",mass:"",height:"",injury:"",cycle:"",notes:""},trainingContext:{...copy(M.defaults().trainingContext),experienceYears:owner.profile.experienceYears||""}};
+      }
+      const context=draft.contexts[owner.id];context.athlete.date=$("creationDate").value;
+      M.applyAge(context,owner.profile.birthDate||"");
+    }
+    return true;
+  }
+  function captureCreationContext() {
+    if(!creation?.contextOwnerId||!creation.contexts[creation.contextOwnerId])return;
+    creation.contexts[creation.contextOwnerId]=window.RingsideContextUI.read($("creationBodyFields"),creation.contexts[creation.contextOwnerId]);
+  }
+  function renderCreationContext() {
+    if(!creation)return;
+    const owners=creationOwners().filter(Boolean);
+    if(!owners.length)return;
+    if(!owners.some(owner=>owner.id===creation.contextOwnerId))creation.contextOwnerId=owners[0].id;
+    const context=creation.contexts[creation.contextOwnerId];if(!context)return;
+    $("creationContextPerson").hidden=owners.length<2;
+    $("creationContextPerson").innerHTML=owners.map(owner=>`<option value="${E(owner.id)}" ${owner.id===creation.contextOwnerId?"selected":""}>${E(owner.name)} · ${E(owner.id.slice(-6))}</option>`).join("");
+    $("creationBodyFields").innerHTML=window.RingsideContextUI.render(context,{creation:true,source:creation.previousContexts[creation.contextOwnerId]});
+  }
+  function selectCreationContext(id) {
+    if(!creation||creation.submitting)return;
+    try{captureCreationContext();creation.contextOwnerId=id;renderCreationContext();}catch(error){creationError(error.message);}
+  }
+  function creationDateChanged() {
+    if(!creation||creation.submitting||!$("creationDate").value)return;
+    try{
+      captureCreationContext();
+      for(const context of Object.values(creation.contexts||{})){context.athlete.date=$("creationDate").value;M.applyAge(context);}
+      const active=creation.contexts[creation.contextOwnerId];if(active)window.RingsideContextUI.refresh(active,$("creationBodyFields"));
+      $("creationError").hidden=true;
+    }catch(error){creationError(error.message);}
+  }
+  function creationContextInput() {
+    if(!creation||creation.submitting)return;
+    try{captureCreationContext();const context=creation.contexts[creation.contextOwnerId];if(context)window.RingsideContextUI.refresh(context,$("creationBodyFields"));}catch(error){creationError(error.message);}
+  }
+  function reuseCreationTraining() {
+    if(!creation)return;
+    captureCreationContext();const source=creation.previousContexts[creation.contextOwnerId],target=creation.contexts[creation.contextOwnerId];
+    if(source&&target)for(const key of ["equipment","weeklySchedule","weeklySessions"])target.trainingContext[key]=source.trainingContext?.[key]??"";
+    renderCreationContext();
   }
   function selectCreationPlan(id) {
     if(!creation||creation.submitting)return;creation.testPlanId=id;
@@ -1416,9 +1561,10 @@
     $("newAthleteTitle").textContent="数据录入";$("creationSteps").innerHTML=workflowSteps(select?1:2);
     $("creationSelectStep").hidden=!select;$("creationExistingFields").hidden=creation.kind==="athlete";
     $("creationProfileStep").hidden=!select||creation.kind!=="athlete";$("creationTestStep").hidden=select;
+    $("creationProfileFields").querySelectorAll("input,select,textarea").forEach(node=>node.disabled=!select||creation.kind!=="athlete");
     document.querySelectorAll('[name="creationAthleteMode"]').forEach(x=>x.checked=x.value===(creation.kind==="athlete"?"new":"existing"));
     $("creationBack").hidden=select;$("creationNext").hidden=!select;$("creationSubmit").hidden=select;$("creationSubmit").textContent="开始录入";
-    $("creationBodyFields").hidden=creation.kind==="record"&&creation.ownerIds.length>1;
+    $("creationBodyFields").hidden=false;
     $("creationPeopleSummary").textContent=creation.kind==="record"?`本次 ${creation.ownerIds.length} 名运动员：`+creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id)?.name||id).join("、"):creation.profile.name;
     if(!select)renderCreationSetup();refreshCreationCount();
   }
@@ -1433,13 +1579,14 @@
       else $("creationSource").textContent="设置本次共同测试项目；身体资料和测试背景按各自档案保存。";
     }else{
       const name=$("newAthleteName").value.trim();if(!name){creationError("请填写姓名或编号");$("newAthleteName").focus();return;}
-      creation.profile={name,sex:$("newAthleteSex").value,sport:$("newAthleteSport").value.trim(),dominantHand:$("newAthleteHand").value,sportLevel:$("newAthleteLevel").value.trim()};
+      try{const entered=window.RingsideProfile.read($("creationProfileFields"),{creation:true});creation.profile=entered.profile;creation.groupId=entered.groupId;M.validateAthleteProfile(creation.profile);}catch(error){return creationError(error.message);}
       $("creationSource").textContent=name+" · 首次测试，请选择方案或项目。";
     }
+    try{if(!await prepareCreationContexts(draft)||creation!==draft)return;}catch(error){return creationError(error.message);}
     creation.setupPrepared=true;creation.step="test";$("creationError").hidden=true;renderCreationStep();$("creationTestPlan").focus();
   }
   function creationBack() {
-    if(!creation||creation.submitting)return;creation.evaluationProfileId=$("creationEvaluationProfile").value;creation.step="select";renderCreationStep();
+    if(!creation||creation.submitting)return;captureCreationContext();creation.evaluationProfileId=$("creationEvaluationProfile").value;creation.step="select";renderCreationStep();
   }
   function cancelCreation() {
     if(creation?.submitting)return;
@@ -1465,13 +1612,15 @@
     if (!$("creationDate").value || !$("creationDate").validity.valid) return creationError("请填写有效的测试日期");
     if (!Object.values(creation.enabled).some(Boolean)) return creationError("至少选择一个本次测试项目");
     if (creation.enabled.iso && !creation.isoDirectionIds?.length) return creationError("请至少勾选一个等长力量方向");
-    const single = creation.kind === "athlete" || creation.ownerIds.length === 1;
-    if(single) for(const [id,label] of [["creationAge","年龄"],["creationMass","体重"],["creationHeight","身高"]]) if(!$(id).validity.valid)return creationError("请核对本次"+label);
+    try{captureCreationContext();for(const owner of creationOwners()){
+      const context=creation.contexts[owner.id];context.athlete.date=$("creationDate").value;M.applyAge(context,owner.profile.birthDate||"");M.validateAthleteContext(context);
+      for(const key of ["age","mass","height"]){const error=M.validateField(context,"athlete."+key,context.athlete[key]);if(error)throw Error(owner.name+"："+error);}
+    }}catch(error){return creationError(error.message);}
     if(!library.evaluationProfiles.some(p=>p.id===$("creationEvaluationProfile").value&&!p.disabled))return creationError("请选择在用评价方案");
     creation.submitting=true;refreshCreationCount();lockCreation(true);
     try {
       captureReportUI();saveEditor();if(!await persist())throw Error("当前修改尚未保存");
-      const pendingAthletes=[], owners=creation.kind==="athlete"?[{id:uid(),name:creation.profile.name,profile:copy(creation.profile),sample:false,groupId:"",archived:false,deletedAt:null,records:[]}]:creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived));
+      const pendingAthletes=[], owners=creation.kind==="athlete"?[{id:uid(),name:creation.profile.name,profile:copy(creation.profile),sample:false,groupId:creation.groupId||"",archived:false,deletedAt:null,records:[]}]:creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived));
       if(!owners.length||owners.some(a=>!a))throw Error("请选择有效运动员");
       if(creation.kind==="athlete")pendingAthletes.push(owners[0]);
       const base=M.recordFromCatalog(library.catalog,owners[0].profile,creation.enabled,$("creationDate").value);
@@ -1482,10 +1631,11 @@
       const records=[];
       for(const owner of owners){
         const draft=copy(base);draft.athleteId=owner.id;draft.recordId=uid();
-        draft.athlete={...draft.athlete,...copy(owner.profile),date:$("creationDate").value};
-        const priorSummary=M.latestRecord({records:owner.records.filter(r=>!r.deletedAt)}),prior=priorSummary&&await repository.loadRecord(priorSummary.recordId);
-        draft.trainingContext=copy(prior?.trainingContext||draft.trainingContext);
-        for(const [id,key]of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]])draft.athlete[key]=single?($(id).value===""?"":Number($(id).value)):(prior?.athlete[key]??"");
+        const context=creation.contexts[creation.kind==="athlete"?"new":owner.id];
+        draft.athlete={...draft.athlete,...M.profileFromRecord(owner.profile),...copy(context.athlete),date:$("creationDate").value};
+        delete draft.athlete.experienceYears;
+        for(const key of ["age","mass","height"])if(draft.athlete[key]!=="")draft.athlete[key]=Number(draft.athlete[key]);
+        draft.trainingContext={...draft.trainingContext,...copy(context.trainingContext)};M.applyAge(draft,owner.profile.birthDate||"");
         records.push(draft);
       }
       entrySession=window.RingsideEntrySession.create(records,{origin:{mode:creation.returnMode,tab:creation.returnTab,athleteId:creation.returnAthleteId,recordId:creation.returnRecordId},pendingAthletes});
@@ -1597,6 +1747,7 @@
     return `<details class="supplement"><summary>${E(label)}</summary><textarea data-path="${E(path)}" rows="2">${E(value)}</textarea></details>`;
   }
   function setPath(path, value) {
+    if (libraryTransferActive || (path === "athlete.age" && state.athlete.birthDate)) return;
     const undo = undoDeletes.get(state.recordId),
       rowIndex = path.match(/^data\.iso\.(\d+)\./);
     if (
@@ -1614,6 +1765,8 @@
       obj = obj[part];
     }
     obj[ps.at(-1)] = value;
+    if (path === "athlete.date") M.applyAge(state);
+    if (path === "athlete.date" || /CompetitionDate$/.test(path)) window.RingsideContextUI.refresh(state,$("entryContent"));
     if (/^definitions\.\d+\.category$/.test(path)) {
       const testId = state.definitions[Number(ps[1])].testId;
       state.definitions
@@ -1851,7 +2004,7 @@
     if (!state) return;
     renderAIStatus();
     const n = state.narrative,
-      stale = n.text && n.basis !== recordBasis();
+      stale = n.text && n.basis !== recordBasis() && !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId));
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
@@ -2080,81 +2233,10 @@
     let h = "";
     if (entryTab === "athlete" || entryTab === "plan") h += `<div class="record-evaluation"><label class="field"><span>共用评价方案</span><select id="recordEvaluationSelect" onchange="App.assignRecordProfile(this.value)">${library.evaluationProfiles.filter(p=>!p.disabled||p.id===state.evaluationProfileId).map(p=>`<option value="${E(p.id)}" ${p.id===state.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("")}</select></label><button class="btn small" onclick="App.viewEvaluation()">查看生效标准</button></div>`;
     if (entryTab === "athlete") {
-      const a = state.athlete;
-      h +=
-        '<div class="form-grid">' +
-        field("姓名 / 编号", input("athlete.name", a.name, { type: "text" })) +
-        field("年龄", input("athlete.age", a.age, { max: 100 })) +
-        field("性别", select("athlete.sex", a.sex, ["未注明", "男", "女"])) +
-        field("体重 kg", input("athlete.mass", a.mass)) +
-        field("身高 cm", input("athlete.height", a.height)) +
-        field("测试日期", input("athlete.date", a.date, { type: "date" })) +
-        field(
-          "专项",
-          input("athlete.sport", a.sport, { type: "text" }).replace(
-            "<input ",
-            '<input list="sportOptions" ',
-          ),
-        ) +
-        field(
-          "惯用手",
-          select("athlete.dominantHand", a.dominantHand, [
-            "未注明",
-            "右手",
-            "左手",
-            "双手",
-          ]),
-        ) +
-        field(
-          "水平 / 级别",
-          input("athlete.sportLevel", a.sportLevel, { type: "text" }),
-        ) +
-        field("训练周期", input("athlete.cycle", a.cycle, { type: "text" })) +
-        field(
-          "既往损伤与当前症状",
-          `<textarea data-path="athlete.injury">${E(a.injury)}</textarea>`,
-          true,
-        ) +
-        field(
-          "补充说明",
-          `<textarea data-path="athlete.notes">${E(a.notes)}</textarea>`,
-          true,
-        ) +
-        "</div>" +
-        (state.athlete.stance
-          ? `<p class="note">历史拳击站架：${E(state.athlete.stance)}。惯用手需单独填写。</p>`
-          : "") +
-        previousBackground() +
-        '<h4 class="subheading">训练背景</h4><div class="form-grid">' +
-        field(
-          "抗阻训练年限",
-          input(
-            "trainingContext.experienceYears",
-            state.trainingContext.experienceYears,
-          ),
-        ) +
-        field(
-          "每周体能训练次数",
-          input(
-            "trainingContext.weeklySessions",
-            state.trainingContext.weeklySessions,
-            { max: 14, step: 1 },
-          ),
-        ) +
-        field(
-          "可用器械",
-          input("trainingContext.equipment", state.trainingContext.equipment, {
-            type: "text",
-            placeholder: "如：自重、弹力带、哑铃、杠铃、药球、跑道",
-          }),
-          true,
-        ) +
-        field(
-          "现有周训练安排",
-          `<textarea data-path="trainingContext.weeklySchedule">${E(state.trainingContext.weeklySchedule)}</textarea>`,
-          true,
-        ) +
-        "</div>";
+      const profile = activeAthlete()?.profile || state.athlete;
+      h += `<div class="record-evaluation"><div><b>${E(profile.name || state.athlete.name)}</b><p class="note">${[profile.sport, profile.sex, profile.birthDate ? "出生日期 " + profile.birthDate : "", profile.sportLevel].filter(Boolean).map(E).join(" · ")}</p>${profile.injuryHistory ? `<p class="note">相关既往伤病：${E(profile.injuryHistory)}</p>` : ""}${profile.experienceYears !== "" && profile.experienceYears != null ? `<p class="note">抗阻训练年限：${E(profile.experienceYears)} 年</p>` : ""}</div><button type="button" class="btn small" onclick="App.editCurrentAthlete()">编辑运动员档案</button></div>`;
+      const priorSummary = previousRecordSummary();
+      h += previousBackground() + window.RingsideContextUI.render(state, {source:priorSummary});
     } else if (entryTab === "plan")
       h +=
         '<p class="intro">选择本次项目。停用保留已有数据，当前报告只计算已选项目。</p>' +
@@ -2464,14 +2546,17 @@
   function regionOptions() {
     return [["","未指定"],...Object.entries(M.REG).flatMap(([key,label])=>["neck","trunk"].includes(key)?[[key,label]]:[[key+"_l","左"+label],[key+"_r","右"+label]])];
   }
-  function previousBackground() {
+  function previousRecordSummary() {
     const a = activeAthlete(),
-      records = a.records.filter(
+      records = (a?.records || []).filter(
         (r) =>
           r.recordId !== state.recordId &&
           (r.athlete.date || "") <= (state.athlete.date || ""),
       );
-    const prior = M.latestRecord({ records });
+    return M.latestRecord({ records });
+  }
+  function previousBackground() {
+    const prior = previousRecordSummary();
     if (!prior) return "";
     return `<details class="supplement"><summary>查看上次背景 · ${E(prior.athlete.date)}</summary><p class="note">${
       [
@@ -2485,6 +2570,13 @@
         .map(([k, v]) => E(k + "：" + v))
         .join("；") || "上次未填写背景"
     }</p></details>`;
+  }
+  async function reusePreviousTraining() {
+    const prior = previousRecordSummary(); if(!prior)return;
+    const target = state, source = await repository.loadRecord(prior.recordId);
+    if(state!==target||!source)return;
+    for(const key of ["equipment","weeklySchedule","weeklySessions"])state.trainingContext[key]=source.trainingContext?.[key]??"";
+    changed(false);renderEntry();
   }
   function startEntry() {
     const first = orderedEntryProjects()[0];
@@ -3511,9 +3603,11 @@
         level: state.athlete.sportLevel,
         cycle: state.athlete.cycle,
         injury: state.athlete.injury,
+        injuryHistory: state.athlete.injuryHistory || "",
         notes: state.athlete.notes,
       },
       trainingContext: copy(state.trainingContext),
+      competition: M.competitionContext(state),
       evaluationPolicy: "仅 referenceEnabled 为 true 的目标和区间可用于达标判断；未启用评价的测量仍可用于描述、指标间比较和训练安排。时间点力的百分比评价须使用evaluationValue与evaluationUnit，不得将N数值直接与%PF目标比较。",
       fms: s.raw.fms?.items || [],
       jumps: { cmj: s.raw.cmj, sj: s.raw.sj, dj:s.raw.dj, hop:s.raw.hop, cmrj:s.raw.cmrj },
@@ -4124,7 +4218,7 @@
   async function importPayload(parsed, conflictChoice = "merge") {
     return runLibraryTransfer(async()=>{
     const incoming=window.RingsideEvaluation.migrate(parsed);
-    if (!await persist()) throw Error("当前修改尚未保存");
+    if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
     const result=await repository.importLibrary(incoming,{merge:conflictChoice!=="replace-library"});
     cancelJob(); await loadDirectory(false);
     const importedRecord=incoming.activeRecordId && await repository.loadRecord(result.recordMap[incoming.activeRecordId]||incoming.activeRecordId);
@@ -4133,14 +4227,14 @@
       state = M.normalizeRecord(upgrade.record || importedRecord);
       library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;
       if (upgrade.changed) await repository.save(library, [state]);
-      recordBaselines.set(state.recordId,recordContent(state));await persist();
+      recordBaselines.set(state.recordId,recordContent(state));await persist({duringTransfer:true});
     }
     ui.mode="report"; renderReport(false);renderWorkspace();return result;
     });
   }
   async function importBackup(file, merge = false) {
     return runLibraryTransfer(async()=>{
-    if (!await persist()) throw Error("当前修改尚未保存");
+    if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
     const result=await repository.importRows(window.RingsideStore.fileRows(file),{merge,onProgress:n=>toast("正在校验与导入 "+n+" 条测试")});
     cancelJob();await loadDirectory(false);ui.mode="management";window.RingsideManagement.open("athletes");renderReport(false);renderWorkspace();return result;
     });
@@ -4333,7 +4427,8 @@
   window.App = {
     openEntry,
     openManagement, openManagedRecord, effectiveRecord, recordBasis,
-    saveLibraryChanges, loadDirectory, renderSelectors, downloadLegacyLibrary, importBackup,
+    saveLibraryChanges, updateAthleteProfile, updateRecordDate, loadDirectory, renderSelectors, downloadLegacyLibrary, importBackup,
+    getAthlete(id) { return library?.athletes.find(athlete=>athlete.id===id)||entrySession?.pendingAthletes.find(athlete=>athlete.id===id); },
     getRepository: () => repository,
     async assignRecordProfile(id) { if (!state || !library.evaluationProfiles.some(p=>p.id===id)) return; state.evaluationProfileId=id;cancelJob();await persist();renderReport();renderEntry(); },
     viewEvaluation() { if(state) window.RingsideManagement.showEffective(effectiveRecord(),library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)); },
@@ -4341,8 +4436,9 @@
     downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
     refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
     saveNow: persist,
-    async loadDemo() { return importPayload(M.recordEnvelope(M.sampleRecord())); },
     creationNext,
+    selectCreationContext, creationDateChanged, creationContextInput, reuseCreationTraining, reusePreviousTraining,
+    editCurrentAthlete() { const owner=activeAthlete();if(owner)window.RingsideManagement.editAthlete(owner.id); },
     downloadExcelTemplate, importExcelFile, commitExcel, showExcelRecord, selectEntryAthlete,
     creationBack,
     submitCreation,

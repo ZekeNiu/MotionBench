@@ -10,6 +10,7 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
  let athlete,record,profile,alternate;
  try{
   await page.goto(pathToFileURL(file).href);assert.equal(await page.evaluate(()=>App.ready),true);
+  await page.evaluate(()=>App.importPayload(RingsideModel.libraryDefaults(), "replace-library"));
   await check("fixed navigation and cancellation keep an empty library empty",async()=>{
    assert.equal(await page.locator('#sidebar').getByText('报告工作台',{exact:true}).count(),0);assert.equal(await page.locator('#sidebar').getByText('报告目录',{exact:true}).count(),0);
    await page.locator('[data-workspace-nav=entry]').click();await page.locator('[name=creationAthleteMode][value=new]').check();await page.locator('#newAthleteName').fill('取消的草稿');await page.locator('#creationNext').click();await page.locator('[data-creation-project=cmj]').check();await page.locator('#workspaceBack').click();await page.waitForFunction(()=>App.getUIState().mode==='report');assert.equal(await page.evaluate(()=>App.getLibrary().athletes.length),0);assert.equal(await page.evaluate(()=>App.getState()),null);

@@ -8,7 +8,7 @@ const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).dige
 (async()=>{const browser=await chromium.launch();try{
   const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();
   page.on("pageerror",e=>result.errors.push(e.message));
-  await page.goto(pathToFileURL(file).href);await page.evaluate(async()=>{await App.ready;if(!App.getState())await App.loadDemo();});await page.evaluate(chartFixture);
+  await page.goto(pathToFileURL(file).href);await page.evaluate(async()=>{await App.ready;if(!App.getState())await App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord()));});await page.evaluate(chartFixture);
   const fixture=await page.evaluate(async()=>{
     const nativeTimeout=window.setTimeout;window.__timeouts=[];
     window.setTimeout=(fn,ms,...args)=>{if(ms>=60000)window.__timeouts.push(ms);return nativeTimeout(fn,ms,...args);};

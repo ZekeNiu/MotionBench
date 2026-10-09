@@ -1,0 +1,198 @@
+{
+  "version": "2.15.0",
+  "date": "2026-10-09",
+  "status": "local-offline-delivery",
+  "implementationChecksPass": true,
+  "allRequestedVerificationComplete": false,
+  "artifact": {
+    "path": "MotionBench.html",
+    "sha256": "5415e9352d43be9f071ae8519a1f12ccd8e80e55b40f1e891d5c74e3b1fccff6"
+  },
+  "compatibleArtifact": {
+    "path": "Ringside_Boxing_Assessment.html",
+    "sha256": "5415e9352d43be9f071ae8519a1f12ccd8e80e55b40f1e891d5c74e3b1fccff6"
+  },
+  "reproducibleBuild": true,
+  "modelChecks": 400,
+  "browserChecks": 159,
+  "browserSuites": [
+    {
+      "name": "chrome athlete context",
+      "checks": 19,
+      "pass": true
+    },
+    {
+      "name": "chrome report/HTML/PDF",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "name": "chrome FVP/Excel/storage regression",
+      "checks": 9,
+      "pass": true
+    },
+    {
+      "name": "msedge athlete context",
+      "checks": 19,
+      "pass": true
+    },
+    {
+      "name": "msedge report/HTML/PDF",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "name": "msedge FVP/Excel/storage regression",
+      "checks": 9,
+      "pass": true
+    },
+    {
+      "name": "management-browser-tests.cjs chrome",
+      "checks": 14,
+      "pass": true
+    },
+    {
+      "name": "unified-entry-browser-tests.cjs chrome",
+      "checks": 14,
+      "pass": true
+    },
+    {
+      "name": "refinement-workflow-browser-tests.cjs chrome",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "name": "management-browser-tests.cjs msedge",
+      "checks": 14,
+      "pass": true
+    },
+    {
+      "name": "refinement-workflow-browser-tests.cjs msedge",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "name": "unified-entry-browser-tests.cjs msedge",
+      "checks": 14,
+      "pass": true
+    },
+    {
+      "name": "ai-narrative-browser-tests.cjs simulated AI",
+      "checks": 7,
+      "pass": true
+    }
+  ],
+  "exportedPDFPages": 34,
+  "nativeExcelUniqueScenarios": 8,
+  "liveAI": {
+    "ran": false,
+    "pass": false,
+    "qualityReviewed": false,
+    "configuration": {
+      "hasKey": false,
+      "model": "",
+      "state": "empty",
+      "revision": "0"
+    },
+    "unrunReason": "现有 Windows DPAPI 配置缺少已保存密钥或模型；未修改配置，未发起模型请求。"
+  },
+  "sourceModules": {
+    "src/ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "src/ringside-app.js": "d1cde1f0549fe5fc06c2af0c8ed71df19e7ccb7a7c5d555b8ad81ed301eff666",
+    "src/ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+    "src/ringside-context-ui.js": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+    "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "src/ringside-definitions.js": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+    "src/ringside-entry-session.js": "8bfa128bfebd6bc105abb018eedf6134a34c6e7bfbe7aa8aef4be303c578b9d4",
+    "src/ringside-evaluation.js": "9cbcd73aa621cb1e69ba7d29cd50ce272472a6ad4ee787f92b5c1b9d07b4727c",
+    "src/ringside-excel-flow.js": "e5d71d006dee26a1c38d95a7fa1086864409d2c350e08ed14dbe85adfd279cf1",
+    "src/ringside-excel.css": "25cfe4e3bff61779bf0820a0aa94b0fb6278fd9d358b1a8a088cd74bb9de91d9",
+    "src/ringside-excel.js": "848792fb85449f2f15802da41a9afa8caf46c0ad934f0564b209fbf64323ea2b",
+    "src/ringside-fvp-entry.js": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+    "src/ringside-fvp.css": "fefe67bd67097e3aad6d1b7d4ea8587e6a7f47fce55a5618b5b61a5fab89f81a",
+    "src/ringside-fvp.js": "1f61f5619cc13e077cba163026987f2abe2c0dd50c06135e23f561497ae8e570",
+    "src/ringside-interventions.js": "846978f0ecf98b78464730a9d9cc9ec23b51273e4bfd827850109de5fc5c2542",
+    "src/ringside-management-refinement.css": "97dc8b58a178228adfd4d08127608084448a8c4b209c590daf850bcaed4a0070",
+    "src/ringside-management.js": "97a760858bc1884f7fc414d8cb85d8e01c615d57973ea169e5a9420d9cac9928",
+    "src/ringside-model.js": "f2a1bf0b68f57f6908df47dae16542b50c36205f553769eb16ae23c3b91e4c9b",
+    "src/ringside-pdf.js": "2f50b052af32835f29540d1c2705cd60e80ab206f9e2624aed55b0fe2f7515c2",
+    "src/ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "src/ringside-profile.js": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+    "src/ringside-report-refinement.css": "37ab0b3f78abffb0ed847d9dee7e42fd0d7336b410239b28c1c0ee66c8045ce8",
+    "src/ringside-report.js": "1280fe8ea0a4ce7976b54c2269efc416ab2547848bd2bbeda8c9263c96f7261b",
+    "src/ringside-settings.js": "93a53bfbc6d999e4f1530b8f2c96dc013f509b8710a2c9c749d1f931f42ee79d",
+    "src/ringside-shell.html": "a8f5df6ea4f114e5d4c466a6c511d6011a088822ffdd36fc719a6f2487d0d953",
+    "src/ringside-sources.js": "8ee70ec198e2d7f2070a778028d9b65b99aaf623d6e4ee2c625979e5c4a9c44e",
+    "src/ringside-store.js": "24734474bed9e629efe69eecfbbd730af2fa8fe285c5e6eaa4b5a64d479d82e1",
+    "src/ringside-tests.js": "a3ca232464cafbf0613f81445b1fcc1b47057413e204889e0886fcb04c133a67",
+    "src/ringside-viz.js": "a9cb1ab659a39120685436fe566748dfbf08e9aef2e81b51fff1c6859fdb83f7",
+    "src/ringside-workflow.css": "0394b74fc4ccf1962f0a002b329c0333da6cd197e998368a904a77e4871580db",
+    "src/ringside.css": "6062c7d1b54d6a653369318c9a2a7c6c1d5af3b9967f7fa34861e8643b03ee1c"
+  },
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "e8898600142e01f4e2f8318a6e282796408a58c9126450fad2164863bc7ea3ea"
+    },
+    "chromeContext": {
+      "path": "output/playwright/athlete-context/chrome-results.json",
+      "sha256": "cccd5bc1efdca6fbe5e59730d5afad28993d4b1b59c2d8d8c769ba10863adce3"
+    },
+    "chromeReport": {
+      "path": "output/playwright/v212-capability/chrome-results.json",
+      "sha256": "9492ab885ee16c3ba5759906a98abde04a105ac90dbdb3ae87af2458026b1cd6"
+    },
+    "chromePDFRender": {
+      "path": "output/playwright/v212-capability/pdf-rendered/5415e9352d43/chrome-render-results.json",
+      "sha256": "33aa6e6bc5ab4254eed6c57e0b7018c76a4cf9dda1b5076210499deb529408ea"
+    },
+    "chromeFVPRegression": {
+      "path": "output/playwright/fvp-storage/chrome-results.json",
+      "sha256": "36905d02ad3b691997f8b428aa64e10dcbfcd449aabfd1e5b34a1ece6dc22192"
+    },
+    "msedgeContext": {
+      "path": "output/playwright/athlete-context/msedge-results.json",
+      "sha256": "e891c399013babd547bf888a34608abbe7fdf8d7aab5994fea5a85658df31636"
+    },
+    "msedgeReport": {
+      "path": "output/playwright/v212-capability/msedge-results.json",
+      "sha256": "0c62276185da1d9a015b1c5845706f71c7981798745876549e5e5c3c4cd93322"
+    },
+    "msedgePDFRender": {
+      "path": "output/playwright/v212-capability/pdf-rendered/5415e9352d43/msedge-render-results.json",
+      "sha256": "c1c9590a07f0981265f487fab5da6bd843ad8be3f582bb9090084d3c1a82cb9e"
+    },
+    "msedgeFVPRegression": {
+      "path": "output/playwright/fvp-storage/msedge-results.json",
+      "sha256": "894f8ce24dd6fd52411ce9c582f5f49322e13cc1dbe8688209a655a63a3e178c"
+    },
+    "regressions": {
+      "path": "output/tests/v215-browser-regression.json",
+      "sha256": "2dc3cdf9865eaf77f1d10cc6acaeeff453db74d94593d28b9aaab0c1dcb58190"
+    },
+    "nativeExcel": {
+      "path": "output/excel-native/athlete-context-results.json",
+      "sha256": "633ff6a628a6c4b597c88f900bd433eb14b3b40b4afb1ca1614f674e1bb68a73"
+    },
+    "contextVisual": {
+      "path": "output/playwright/athlete-context/visual-review.json",
+      "sha256": "f453435d1393633c2ed957ee2bf7de568a7099857ff201b9411d2d7aaf1f23fd"
+    },
+    "liveAI": {
+      "path": "output/ai/athlete-context/results.json",
+      "sha256": "5b4690c456d88c6ecef67289d365ec3485a20d141b3a04c9bdb53eca974e9a54"
+    }
+  },
+  "rollback": {
+    "tag": "rollback-v2.14.0-20261009",
+    "commit": "b8256ff8559807fe637b3feeb845c3d5d30119f9",
+    "htmlSHA256": "11e0cc68d3834389cbffc852353cc81b8c10944a128cb3e612702968d72db197",
+    "sourceBackupSHA256": "0731a579f3b7e9df68cab385091eeef4b2fc354f00024806ef812f035c566d70"
+  },
+  "verificationLimits": [
+    "Synthetic athletes in isolated installed Chrome/Edge; personal browser databases were not accessed or backed up.",
+    "Mobile layouts were emulated; physical phones, printers and clean-machine launcher setup were not tested.",
+    "Actual model contrast was not run because the saved Windows AI configuration contains no key/model.",
+    "No website was deployed; only the baseline rollback tag was pushed."
+  ]
+}

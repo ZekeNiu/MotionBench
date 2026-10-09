@@ -46,6 +46,7 @@ const columns = sheet => Object.fromEntries(sheet.getRow(2).values.map((key, ind
   let people, emptyTemplate, templateTargets, filledTemplate;
   try {
     await page.goto(pathToFileURL(file).href); await ready();
+    await page.evaluate(()=>App.importPayload(RingsideModel.libraryDefaults(), "replace-library"));
     people = await page.evaluate(async () => {
       const first = await App.createAthlete("统一录入同名运动员");
       const second = await App.createAthlete("统一录入同名运动员");

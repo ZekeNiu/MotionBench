@@ -26,7 +26,7 @@ const result = { sourceHash: createHash('sha256').update(fs.readFileSync(file)).
   });
   try {
     await page.goto(pathToFileURL(file).href); await page.waitForFunction(() => window.App?.getState);
-    await page.evaluate(() => App.ready); await page.evaluate(() => App.loadDemo());
+    await page.evaluate(() => App.ready); await page.evaluate(() => App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord())));
     await sample();
     await check('approved-values-Chinese-goals-measured-MSS-and-work-rest-ratios', async () => {
       assert.equal(await page.locator('.speed-reference-table tbody tr').count(), 5);

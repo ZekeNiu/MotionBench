@@ -26,6 +26,53 @@
       month: "2-digit",
       day: "2-digit",
     }).format(new Date());
+  function dateStamp(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value.slice(0, 4) === "0000") return null;
+    const parsed = new Date(value + "T00:00:00Z");
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? parsed.getTime() : null;
+  }
+  function ageAtDate(birthDate, testDate) {
+    const born = dateStamp(birthDate), tested = dateStamp(testDate);
+    if (born === null || tested === null || born > tested) return null;
+    return Number(testDate.slice(0, 4)) - Number(birthDate.slice(0, 4)) - (testDate.slice(5) < birthDate.slice(5) ? 1 : 0);
+  }
+  function applyAge(record, birthDate = record.athlete.birthDate) {
+    const value = birthDate ?? "";
+    if (value !== "" && dateStamp(value) === null) throw Error("生日须为有效的 YYYY-MM-DD");
+    const age = value === "" ? null : ageAtDate(value, record.athlete.date);
+    if (value !== "" && age === null) throw Error("测试日期不能早于生日，请填写有效的测试日期");
+    record.athlete.birthDate = value;
+    if (age !== null) record.athlete.age = age;
+    return record;
+  }
+  function competitionContext(record) {
+    const tested = dateStamp(record.athlete?.date), context = record.trainingContext || {};
+    const previous = dateStamp(context.previousCompetitionDate), next = dateStamp(context.nextCompetitionDate);
+    return {
+      daysSincePrevious: tested !== null && previous !== null && previous <= tested ? (tested - previous) / 86400000 : null,
+      daysUntilNext: tested !== null && next !== null && next >= tested ? (next - tested) / 86400000 : null,
+    };
+  }
+  function validateAthleteProfile(profile) {
+    if (!plainObject(profile)) throw Error("运动员档案资料无效");
+    for (const key of PROFILE_KEYS) if (profile[key] !== undefined && typeof profile[key] !== "string") throw Error("运动员档案资料无效");
+    if (profile.birthDate) {
+      if (dateStamp(profile.birthDate) === null) throw Error("生日须为有效的 YYYY-MM-DD");
+      if (profile.birthDate > date()) throw Error("生日不能晚于今天");
+    }
+    if (profile.experienceYears !== undefined && profile.experienceYears !== "" && (N(profile.experienceYears) === null || N(profile.experienceYears) < 0 || N(profile.experienceYears) > 80)) throw Error("抗阻训练年限须为 0–80 年或留空");
+    return true;
+  }
+  function validateAthleteContext(record) {
+    for (const path of ["athlete.birthDate", "trainingContext.previousCompetitionDate", "trainingContext.nextCompetitionDate"]) {
+      const parts = path.split("."), value = record[parts[0]]?.[parts[1]];
+      if (value !== undefined && value !== "" && typeof value !== "string") throw Error("日期须为有效的 YYYY-MM-DD");
+      const error = validateField(record, path, value);
+      if (error) throw Error(error);
+    }
+    if (record.athlete.injuryHistory !== undefined && typeof record.athlete.injuryHistory !== "string") throw Error("既往伤病史格式无效");
+    return true;
+  }
   const positive = (value) =>
     N(value) !== null && N(value) > 0 ? N(value) : null;
   const nonnegative = (value) =>
@@ -244,6 +291,11 @@
     return { id: uid(), inputMode: "summary", summary: { height: "", contactTimeMs: "", flightTimeMs: "", rsi: "", flightTimeRatio: "", activeStiffness: "", selectionBasis: "unknown", suppliedCount: "", validCount: "", selectedCount: "", notes: "" },
       jumps: [{ id: uid(), height: "", contactTimeMs: "", flightTimeMs: "", notes: "" }], notes: "" };
   }
+  function hasMeaningfulHopSet(set) {
+    const present = (row, keys) => keys.some(key => N(row?.[key]) !== null);
+    return present(set?.summary, ["height", "contactTimeMs", "flightTimeMs", "rsi", "flightTimeRatio", "activeStiffness"]) ||
+      (set?.jumps || []).some(jump => present(jump, ["height", "contactTimeMs", "flightTimeMs"]));
+  }
   function cpetDefaults() {
     const threshold = label => ({ label, vo2: "", vo2Unit: "ml/kg/min", hr: "", speed: "", power: "" });
     return { modality: "", protocol: "", oxygenLabel: "VO2peak", vo2: "", vo2Unit: "ml/kg/min", peakHr: "", rer: "", thresholds: { first: threshold("VT1"), second: threshold("VT2") } };
@@ -327,6 +379,7 @@
       demo: false,
       athlete: {
         name: "",
+        birthDate: "",
         age: "",
         sex: "未注明",
         mass: "",
@@ -337,6 +390,7 @@
         date: date(),
         sportLevel: "",
         injury: "",
+        injuryHistory: "",
         cycle: "",
         notes: "",
       },
@@ -347,6 +401,8 @@
         equipment: "",
         weeklySchedule: "",
         weeklySessions: "",
+        previousCompetitionDate: "",
+        nextCompetitionDate: "",
       },
       data: {
         fms: FM.map(([name, bilateral]) => ({
@@ -3136,9 +3192,13 @@
     const same = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every((key) => JSON.stringify(a[key]) === JSON.stringify(b[key]));
     const definitions = withoutReplacedIMTPStandards(record).map(projection).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
     const derivedEnabled = Object.fromEntries(Object.entries(record.derivedEnabled || {}).filter(([,enabled]) => enabled === false));
+    const athlete = { ...record.athlete }, trainingContext = { ...record.trainingContext };
+    delete athlete.birthDate;
+    if (empty(athlete.injuryHistory)) delete athlete.injuryHistory;
+    for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (empty(trainingContext[key])) delete trainingContext[key];
     return JSON.stringify({
-      athlete: record.athlete,
-      trainingContext: record.trainingContext,
+      athlete,
+      trainingContext,
       enabled,
       ...(record.isoDirectionIds !== undefined ? { isoDirectionIds: record.isoDirectionIds } : {}),
       mode: record.mode,
@@ -3162,6 +3222,28 @@
       protocol,
     });
   }
+  function fingerprintWithoutAge(record) {
+    const value = JSON.parse(fingerprint(record));
+    delete value.athlete.age;
+    return canonicalJSON(value);
+  }
+  function fingerprintMatchesExceptAge(basis, record, evaluationProfile) {
+    try {
+      const value = JSON.parse(basis);
+      if (!plainObject(value) || !plainObject(value.athlete)) return false;
+      let comparison = record;
+      if (evaluationProfile && root.RingsideEvaluation) {
+        comparison = clone(record);
+        comparison.athlete.age = value.athlete.age;
+        comparison = root.RingsideEvaluation.resolve(comparison, evaluationProfile);
+      }
+      delete value.athlete.age;
+      delete value.athlete.birthDate;
+      if (["", null, undefined].includes(value.athlete.injuryHistory)) delete value.athlete.injuryHistory;
+      for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (["", null, undefined].includes(value.trainingContext?.[key])) delete value.trainingContext?.[key];
+      return canonicalJSON(value) === fingerprintWithoutAge(comparison);
+    } catch (_) { return false; }
+  }
   function recordEnvelope(record, profile, catalog) {
     return {
       schema: 2,
@@ -3171,14 +3253,14 @@
       ...(catalog ? { catalog: clone(catalog) } : {}),
     };
   }
-  const PROFILE_KEYS = ["name", "sex", "sport", "dominantHand", "sportLevel"];
+  const PROFILE_KEYS = ["name", "sex", "sport", "dominantHand", "sportLevel", "birthDate", "injuryHistory", "experienceYears"];
   function profileFromRecord(record) {
     const a = record?.athlete || record || {};
     return Object.fromEntries(
       PROFILE_KEYS.map((key) => [
         key,
         String(
-          a[key] ?? (["sex", "dominantHand"].includes(key) ? "未注明" : ""),
+          (key === "experienceYears" ? record?.trainingContext?.experienceYears ?? a[key] : a[key]) ?? (["sex", "dominantHand"].includes(key) ? "未注明" : ""),
         ),
       ]),
     );
@@ -3386,6 +3468,9 @@
       ...profileFromRecord(profile),
       date: testDate,
     };
+    delete record.athlete.experienceYears;
+    record.trainingContext.experienceYears = profileFromRecord(profile).experienceYears;
+    applyAge(record);
     record.projectSnapshots = T.snapshots(catalog);
     record.abilityGroupSnapshot = clone(T.abilityGroups(catalog));
     // This legacy value selects an existing metric ID, not a test method.
@@ -3523,6 +3608,20 @@
       .replace(/^(data\.hop)\.trials\.\d+\./, "$1.")
       .replace(/^(data\.iso\.\d+)\.trials\.\d+\./, "$1.");
     const empty = value === "" || value === null || value === undefined;
+    if (["athlete.birthDate", "athlete.date", "trainingContext.previousCompetitionDate", "trainingContext.nextCompetitionDate"].includes(path)) {
+      if (empty) return "";
+      if (dateStamp(value) === null) return "日期须为有效的 YYYY-MM-DD";
+      const tested = path === "athlete.date" ? value : record.athlete?.date;
+      const born = path === "athlete.birthDate" ? value : record.athlete?.birthDate;
+      const previous = path === "trainingContext.previousCompetitionDate" ? value : record.trainingContext?.previousCompetitionDate;
+      const next = path === "trainingContext.nextCompetitionDate" ? value : record.trainingContext?.nextCompetitionDate;
+      if (born && dateStamp(born) !== null && born > date()) return "生日不能晚于今天";
+      if (dateStamp(tested) === null) return "请填写有效的测试日期";
+      if (born && dateStamp(born) !== null && born > tested) return "测试日期不能早于生日";
+      if (previous && dateStamp(previous) !== null && previous > tested) return "上一场比赛日期不能晚于测试日期";
+      if (next && dateStamp(next) !== null && next < tested) return "下一场比赛日期不能早于测试日期";
+      return "";
+    }
     const number = N(value),
       requireNumber = () => (number === null ? "请填写有限数值" : "");
     const bounds = (min, max, integer = false, strictlyPositive = false) => {
@@ -3990,6 +4089,7 @@
       throw new Error("运动员或测试记录 ID 无效");
     if (typeof input.athlete.name !== "string")
       throw new Error("运动员姓名字段无效");
+    validateAthleteContext(input);
     ["sport", "dominantHand"].forEach((key) => {
       if (
         input.athlete[key] !== undefined &&
@@ -4317,16 +4417,7 @@
         athleteIds.add(athlete.id);
         if (athlete.sample !== undefined && typeof athlete.sample !== "boolean")
           throw new Error("示例运动员标记无效");
-        if (
-          athlete.profile !== undefined &&
-          (!plainObject(athlete.profile) ||
-            PROFILE_KEYS.some(
-              (key) =>
-                athlete.profile[key] !== undefined &&
-                typeof athlete.profile[key] !== "string",
-            ))
-        )
-          throw new Error("运动员档案资料无效");
+        if (athlete.profile !== undefined) validateAthleteProfile(athlete.profile);
         athlete.records.forEach((record) => {
           validateRecord(record, options);
           if (record.schema === 2 && record.athleteId !== athlete.id)
@@ -4359,16 +4450,7 @@
         !plainObject(input.record)
       )
         throw new Error("单报告备份格式无效");
-      if (
-        input.profile !== undefined &&
-        (!plainObject(input.profile) ||
-          PROFILE_KEYS.some(
-            (key) =>
-              input.profile[key] !== undefined &&
-              typeof input.profile[key] !== "string",
-          ))
-      )
-        throw new Error("运动员档案资料无效");
+      if (input.profile !== undefined) validateAthleteProfile(input.profile);
       if (input.catalog !== undefined) validateCatalog(input.catalog);
       return validateRecord(input.record, options);
     }
@@ -4648,6 +4730,8 @@
     extraDefs,
     groupPoints,
     fingerprint,
+    fingerprintWithoutAge,
+    fingerprintMatchesExceptAge,
     sanitizeHTML,
     textToHTML,
     htmlToText,
@@ -4662,6 +4746,12 @@
     diagnoseRules,
     repairRules,
     profileFromRecord,
+    ageAtDate,
+    applyAge,
+    competitionContext,
+    validateAthleteProfile,
+    validateAthleteContext,
+    hasMeaningfulHopSet,
     latestRecord,
     normalizeCatalog,
     mergeCatalog,

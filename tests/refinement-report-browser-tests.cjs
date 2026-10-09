@@ -15,7 +15,7 @@ const cases = [{ id: "mean-percent-partial", partial: true, rows: 5 }, { id: "th
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: "zh-CN", offline: true, acceptDownloads: true, reducedMotion: "reduce" });
   const page = await context.newPage(); page.on("pageerror", error => check.errors.push(error.message));
   try {
-    await page.goto(pathToFileURL(file).href); await page.evaluate(() => App.ready); await page.evaluate(() => App.loadDemo());
+    await page.goto(pathToFileURL(file).href); await page.evaluate(() => App.ready); await page.evaluate(() => App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord())));
     await page.evaluate(config => {
       const r = App.getState(); r.mode = "mean";
       Object.assign(r.athlete, { name: "报告改版验收运动员", age: 21, sport: "拳击", mass: 72.5, sex: "男" });

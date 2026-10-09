@@ -96,7 +96,7 @@
         <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">本次测试 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">本次测试数据 JSON</button></div></details></div>
       </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
-      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button><button class="btn" onclick="App.loadDemo()">载入示例</button></div></section>
+      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button></div></section>
       <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
         <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
         <div class="row">
@@ -367,33 +367,15 @@
                 <select id="creationAthleteSelect" class="sr-only" aria-label="运动员" aria-hidden="true" tabindex="-1" onchange="App.creationChooseAthlete(this.value)"></select>
               </div>
             </div>
-            <div id="creationProfileStep">
-              <p class="creation-step-label">填写档案，录入测量后保存</p>
-              <div class="form-grid creation-profile-grid">
-                <label class="field wide" for="newAthleteName"><span>姓名 / 编号 <span class="required-mark">必填</span></span>
-                  <input id="newAthleteName" autocomplete="off" maxlength="100" aria-required="true" placeholder="填写姓名或运动员编号" />
-                </label>
-                <label class="field" for="newAthleteSex"><span>性别</span>
-                  <select id="newAthleteSex"><option value="未注明">未注明</option><option value="男">男</option><option value="女">女</option></select>
-                </label>
-                <label class="field" for="newAthleteSport"><span>专项</span>
-                  <input id="newAthleteSport" list="sportOptions" autocomplete="off" maxlength="100" placeholder="选择或填写运动项目" />
-                </label>
-                <label class="field" for="newAthleteHand"><span>惯用手</span>
-                  <select id="newAthleteHand"><option value="未注明">未注明</option><option value="右手">右手</option><option value="左手">左手</option><option value="双手">双手</option></select>
-                </label>
-                <label class="field" for="newAthleteLevel"><span>级别</span>
-                  <input id="newAthleteLevel" autocomplete="off" maxlength="100" placeholder="如体重级别" />
-                </label>
-              </div>
-            </div>
+            <div id="creationProfileStep"><p class="creation-step-label">填写档案，录入测量后保存</p><div id="creationProfileFields"></div></div>
             <div id="creationTestStep" hidden>
               <label class="field"><span>测试方案</span><select id="creationTestPlan" onchange="App.selectCreationPlan(this.value)"></select></label>
               <label class="field"><span>评价方案</span><select id="creationEvaluationProfile"></select></label>
               <p class="creation-step-label">本次测试</p>
-              <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" /></label>
+              <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" onchange="App.creationDateChanged()" /></label>
               <p id="creationPeopleSummary" class="creation-people-summary"></p>
-              <div id="creationBodyFields" class="form-grid"><label class="field"><span>本次年龄</span><input id="creationAge" type="number" min="0" max="100" step="any"></label><label class="field"><span>本次体重 kg</span><input id="creationMass" type="number" min="0" step="any"></label><label class="field"><span>本次身高 cm</span><input id="creationHeight" type="number" min="0" step="any"></label></div>
+              <select id="creationContextPerson" aria-label="本次背景运动员" onchange="App.selectCreationContext(this.value)" hidden></select>
+              <div id="creationBodyFields" oninput="App.creationContextInput(event)"></div>
               <p id="creationSource" class="notice"></p>
               <div class="creation-project-heading"><h3>选择本次测试项目</h3><span id="creationCount" class="plan-count" aria-live="polite"></span></div>
               <div id="creationProjects"></div>

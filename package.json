@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.14.0",
+  "version": "2.15.0",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -36,7 +36,9 @@
     "test:excel": "node tests/excel-model-tests.cjs && node tests/excel-workflow-browser-tests.cjs && node tests/excel-workflow-browser-tests.cjs --edge",
     "test:iso-selection": "node tests/isometric-selection-model-tests.cjs && node tests/isometric-selection-browser-tests.cjs && node tests/isometric-selection-browser-tests.cjs --edge",
     "test:entry": "node tests/unified-entry-browser-tests.cjs && node tests/unified-entry-browser-tests.cjs --edge",
-    "test:toolbar": "node tests/report-toolbar-browser-tests.cjs && node tests/report-toolbar-browser-tests.cjs --edge"
+    "test:toolbar": "node tests/report-toolbar-browser-tests.cjs && node tests/report-toolbar-browser-tests.cjs --edge",
+    "test:athlete-context": "node tests/athlete-context-browser-tests.cjs && node tests/athlete-context-browser-tests.cjs --edge",
+    "test:athlete-context-live": "node tests/athlete-context-live-ai-tests.cjs"
   },
   "devDependencies": {
     "playwright": "1.57.0"

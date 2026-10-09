@@ -39,7 +39,7 @@ async function shot(page, version, selector, name) {
       page.on("pageerror",e=>result.errors.push(e.message));page.on("request",r=>{if(/^https?:/.test(r.url()))result.network.push(r.url());});
       await page.clock.setFixedTime(new Date("2026-10-06T15:43:00Z"));
       await page.goto(pathToFileURL(path.join(root,file)).href);await page.waitForFunction(()=>window.App?.getState);
-      await page.evaluate(async()=>{await App.ready;if(!App.getState())await App.loadDemo();});
+      await page.evaluate(async()=>{await App.ready;if(!App.getState())await App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord()));});
       await page.evaluate(chartFixture);
       for(const width of [1920,1440,1280,900,390]) {
         await page.setViewportSize({width,height:width===390?844:1000});await page.waitForTimeout(380);

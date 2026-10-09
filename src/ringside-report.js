@@ -302,7 +302,13 @@
       return `<div class="repeat-panel" data-repeat-test="${E(test.id)}"><details class="attempt-details" id="trials-${E(test.id)}" data-raw-trials="${E(test.id)}" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · 原始试次 · 共 ${count} 次</summary>${raw}</details></div>`;
     }
     function hopRawPanel(test) {
-      const sets=r.hop?.sets||[];
+      const inputs=M.repeatRows(state,"hop"), entered=value=>N(value)!==null||typeof value==="string"&&value.trim()!=="";
+      const sets=(r.hop?.sets||[]).map((set,index)=>({...set,number:index+1})).filter((set,index)=>{
+        const input=inputs[index]||{},summary=input.summary||{};
+        if(entered(input.notes)||entered(summary.notes))return true;
+        if(input.inputMode==="jumps")return entered(summary.activeStiffness)||(input.jumps||[]).some(jump=>["height","contactTimeMs","flightTimeMs","notes"].some(key=>entered(jump[key])));
+        return [...T.fieldsForTest("hop").map(field=>field.key),"suppliedCount","validCount","selectedCount"].some(key=>entered(summary[key]));
+      });
       if(!sets.length)return "";
       const fields=[
         ["height","垂直跳跃高度 · cm",2],
@@ -312,7 +318,7 @@
         ["flightTimeRatio","FT/CT",3],
         ["activeStiffness","Active Stiffness · kN/m",2],
       ].filter(([key])=>sets.some(set=>N(set.row?.[key])!==null));
-      const rows=sets.map((set,index)=>[index+1,...fields.map(([key,,digits])=>F(set.row?.[key],digits)),E(set.notes||"—")]);
+      const rows=sets.map(set=>[set.number,...fields.map(([key,,digits])=>F(set.row?.[key],digits)),E(set.notes||"—")]);
       const detail=table(["完整测试",...fields.map(([,label])=>label),"备注"],rows,sets.map(set=>"hop-set-"+set.id),"repeat-raw-table hop-summary-table");
       return `<div class="repeat-panel" data-repeat-test="hop"><details class="attempt-details" id="trials-hop" data-raw-trials="hop" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · 完整测试结果 · 共 ${sets.length} 次</summary>${detail}</details></div>`;
     }
@@ -873,7 +879,7 @@
           "</div>";
       }
     }
-    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderCapabilities()}`;
+    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderCapabilities()}`;
     function renderCapabilities() {
       const digits=metric=>Number.isInteger(metric.digits)?metric.digits:metric.unit==="比值"||/rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id)?3:metric.unit==="%"?1:2;
       const cards=(s.capabilityCards||[]).map(card=>({...card,metrics:(card.metrics||[]).filter(metric=>N(metric.value)!==null)})).filter(card=>card.metrics.length);

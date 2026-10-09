@@ -83,7 +83,7 @@ async function run(channel){
   await page.unroute("**/api/relay");await page.locator("#apiModel").fill("chat-model");await page.locator("#saveAISettingsButton").click();
   await page.waitForFunction(()=>!document.querySelector("#saveAISettingsButton").disabled);
   item.checks.push("late-model-list-cannot-overwrite-new-settings-after-navigation");
-  await page.evaluate(async()=>{await App.loadDemo();App.getState().narrative={text:"加密配置测试保留原稿",html:"<p>加密配置测试保留原稿</p>",revision:1};await App.saveNow();});
+  await page.evaluate(async()=>{await App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord()));App.getState().narrative={text:"加密配置测试保留原稿",html:"<p>加密配置测试保留原稿</p>",revision:1};await App.saveNow();});
   item.checks.push("save-real-dpapi-read-models-clear-browser-key");
   const port=server.port;await context.close();context=null;await stop(server);server=await start(configDir,port);page=await launch();
   await page.evaluate(()=>App.openSettings("ai"));

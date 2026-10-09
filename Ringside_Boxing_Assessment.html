@@ -3372,7 +3372,7 @@ body.sidebar-collapsed .workspace {
         <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">本次测试 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">本次测试数据 JSON</button></div></details></div>
       </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
-      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button><button class="btn" onclick="App.loadDemo()">载入示例</button></div></section>
+      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button></div></section>
       <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
         <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
         <div class="row">
@@ -3643,33 +3643,15 @@ body.sidebar-collapsed .workspace {
                 <select id="creationAthleteSelect" class="sr-only" aria-label="运动员" aria-hidden="true" tabindex="-1" onchange="App.creationChooseAthlete(this.value)"></select>
               </div>
             </div>
-            <div id="creationProfileStep">
-              <p class="creation-step-label">填写档案，录入测量后保存</p>
-              <div class="form-grid creation-profile-grid">
-                <label class="field wide" for="newAthleteName"><span>姓名 / 编号 <span class="required-mark">必填</span></span>
-                  <input id="newAthleteName" autocomplete="off" maxlength="100" aria-required="true" placeholder="填写姓名或运动员编号" />
-                </label>
-                <label class="field" for="newAthleteSex"><span>性别</span>
-                  <select id="newAthleteSex"><option value="未注明">未注明</option><option value="男">男</option><option value="女">女</option></select>
-                </label>
-                <label class="field" for="newAthleteSport"><span>专项</span>
-                  <input id="newAthleteSport" list="sportOptions" autocomplete="off" maxlength="100" placeholder="选择或填写运动项目" />
-                </label>
-                <label class="field" for="newAthleteHand"><span>惯用手</span>
-                  <select id="newAthleteHand"><option value="未注明">未注明</option><option value="右手">右手</option><option value="左手">左手</option><option value="双手">双手</option></select>
-                </label>
-                <label class="field" for="newAthleteLevel"><span>级别</span>
-                  <input id="newAthleteLevel" autocomplete="off" maxlength="100" placeholder="如体重级别" />
-                </label>
-              </div>
-            </div>
+            <div id="creationProfileStep"><p class="creation-step-label">填写档案，录入测量后保存</p><div id="creationProfileFields"></div></div>
             <div id="creationTestStep" hidden>
               <label class="field"><span>测试方案</span><select id="creationTestPlan" onchange="App.selectCreationPlan(this.value)"></select></label>
               <label class="field"><span>评价方案</span><select id="creationEvaluationProfile"></select></label>
               <p class="creation-step-label">本次测试</p>
-              <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" /></label>
+              <label class="field creation-date" for="creationDate"><span>测试日期</span><input id="creationDate" type="date" onchange="App.creationDateChanged()" /></label>
               <p id="creationPeopleSummary" class="creation-people-summary"></p>
-              <div id="creationBodyFields" class="form-grid"><label class="field"><span>本次年龄</span><input id="creationAge" type="number" min="0" max="100" step="any"></label><label class="field"><span>本次体重 kg</span><input id="creationMass" type="number" min="0" step="any"></label><label class="field"><span>本次身高 cm</span><input id="creationHeight" type="number" min="0" step="any"></label></div>
+              <select id="creationContextPerson" aria-label="本次背景运动员" onchange="App.selectCreationContext(this.value)" hidden></select>
+              <div id="creationBodyFields" oninput="App.creationContextInput(event)"></div>
               <p id="creationSource" class="notice"></p>
               <div class="creation-project-heading"><h3>选择本次测试项目</h3><span id="creationCount" class="plan-count" aria-live="polite"></span></div>
               <div id="creationProjects"></div>
@@ -5741,6 +5723,53 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       month: "2-digit",
       day: "2-digit",
     }).format(new Date());
+  function dateStamp(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value.slice(0, 4) === "0000") return null;
+    const parsed = new Date(value + "T00:00:00Z");
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? parsed.getTime() : null;
+  }
+  function ageAtDate(birthDate, testDate) {
+    const born = dateStamp(birthDate), tested = dateStamp(testDate);
+    if (born === null || tested === null || born > tested) return null;
+    return Number(testDate.slice(0, 4)) - Number(birthDate.slice(0, 4)) - (testDate.slice(5) < birthDate.slice(5) ? 1 : 0);
+  }
+  function applyAge(record, birthDate = record.athlete.birthDate) {
+    const value = birthDate ?? "";
+    if (value !== "" && dateStamp(value) === null) throw Error("生日须为有效的 YYYY-MM-DD");
+    const age = value === "" ? null : ageAtDate(value, record.athlete.date);
+    if (value !== "" && age === null) throw Error("测试日期不能早于生日，请填写有效的测试日期");
+    record.athlete.birthDate = value;
+    if (age !== null) record.athlete.age = age;
+    return record;
+  }
+  function competitionContext(record) {
+    const tested = dateStamp(record.athlete?.date), context = record.trainingContext || {};
+    const previous = dateStamp(context.previousCompetitionDate), next = dateStamp(context.nextCompetitionDate);
+    return {
+      daysSincePrevious: tested !== null && previous !== null && previous <= tested ? (tested - previous) / 86400000 : null,
+      daysUntilNext: tested !== null && next !== null && next >= tested ? (next - tested) / 86400000 : null,
+    };
+  }
+  function validateAthleteProfile(profile) {
+    if (!plainObject(profile)) throw Error("运动员档案资料无效");
+    for (const key of PROFILE_KEYS) if (profile[key] !== undefined && typeof profile[key] !== "string") throw Error("运动员档案资料无效");
+    if (profile.birthDate) {
+      if (dateStamp(profile.birthDate) === null) throw Error("生日须为有效的 YYYY-MM-DD");
+      if (profile.birthDate > date()) throw Error("生日不能晚于今天");
+    }
+    if (profile.experienceYears !== undefined && profile.experienceYears !== "" && (N(profile.experienceYears) === null || N(profile.experienceYears) < 0 || N(profile.experienceYears) > 80)) throw Error("抗阻训练年限须为 0–80 年或留空");
+    return true;
+  }
+  function validateAthleteContext(record) {
+    for (const path of ["athlete.birthDate", "trainingContext.previousCompetitionDate", "trainingContext.nextCompetitionDate"]) {
+      const parts = path.split("."), value = record[parts[0]]?.[parts[1]];
+      if (value !== undefined && value !== "" && typeof value !== "string") throw Error("日期须为有效的 YYYY-MM-DD");
+      const error = validateField(record, path, value);
+      if (error) throw Error(error);
+    }
+    if (record.athlete.injuryHistory !== undefined && typeof record.athlete.injuryHistory !== "string") throw Error("既往伤病史格式无效");
+    return true;
+  }
   const positive = (value) =>
     N(value) !== null && N(value) > 0 ? N(value) : null;
   const nonnegative = (value) =>
@@ -5959,6 +5988,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return { id: uid(), inputMode: "summary", summary: { height: "", contactTimeMs: "", flightTimeMs: "", rsi: "", flightTimeRatio: "", activeStiffness: "", selectionBasis: "unknown", suppliedCount: "", validCount: "", selectedCount: "", notes: "" },
       jumps: [{ id: uid(), height: "", contactTimeMs: "", flightTimeMs: "", notes: "" }], notes: "" };
   }
+  function hasMeaningfulHopSet(set) {
+    const present = (row, keys) => keys.some(key => N(row?.[key]) !== null);
+    return present(set?.summary, ["height", "contactTimeMs", "flightTimeMs", "rsi", "flightTimeRatio", "activeStiffness"]) ||
+      (set?.jumps || []).some(jump => present(jump, ["height", "contactTimeMs", "flightTimeMs"]));
+  }
   function cpetDefaults() {
     const threshold = label => ({ label, vo2: "", vo2Unit: "ml/kg/min", hr: "", speed: "", power: "" });
     return { modality: "", protocol: "", oxygenLabel: "VO2peak", vo2: "", vo2Unit: "ml/kg/min", peakHr: "", rer: "", thresholds: { first: threshold("VT1"), second: threshold("VT2") } };
@@ -6042,6 +6076,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       demo: false,
       athlete: {
         name: "",
+        birthDate: "",
         age: "",
         sex: "未注明",
         mass: "",
@@ -6052,6 +6087,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         date: date(),
         sportLevel: "",
         injury: "",
+        injuryHistory: "",
         cycle: "",
         notes: "",
       },
@@ -6062,6 +6098,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         equipment: "",
         weeklySchedule: "",
         weeklySessions: "",
+        previousCompetitionDate: "",
+        nextCompetitionDate: "",
       },
       data: {
         fms: FM.map(([name, bilateral]) => ({
@@ -8851,9 +8889,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const same = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every((key) => JSON.stringify(a[key]) === JSON.stringify(b[key]));
     const definitions = withoutReplacedIMTPStandards(record).map(projection).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
     const derivedEnabled = Object.fromEntries(Object.entries(record.derivedEnabled || {}).filter(([,enabled]) => enabled === false));
+    const athlete = { ...record.athlete }, trainingContext = { ...record.trainingContext };
+    delete athlete.birthDate;
+    if (empty(athlete.injuryHistory)) delete athlete.injuryHistory;
+    for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (empty(trainingContext[key])) delete trainingContext[key];
     return JSON.stringify({
-      athlete: record.athlete,
-      trainingContext: record.trainingContext,
+      athlete,
+      trainingContext,
       enabled,
       ...(record.isoDirectionIds !== undefined ? { isoDirectionIds: record.isoDirectionIds } : {}),
       mode: record.mode,
@@ -8877,6 +8919,28 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       protocol,
     });
   }
+  function fingerprintWithoutAge(record) {
+    const value = JSON.parse(fingerprint(record));
+    delete value.athlete.age;
+    return canonicalJSON(value);
+  }
+  function fingerprintMatchesExceptAge(basis, record, evaluationProfile) {
+    try {
+      const value = JSON.parse(basis);
+      if (!plainObject(value) || !plainObject(value.athlete)) return false;
+      let comparison = record;
+      if (evaluationProfile && root.RingsideEvaluation) {
+        comparison = clone(record);
+        comparison.athlete.age = value.athlete.age;
+        comparison = root.RingsideEvaluation.resolve(comparison, evaluationProfile);
+      }
+      delete value.athlete.age;
+      delete value.athlete.birthDate;
+      if (["", null, undefined].includes(value.athlete.injuryHistory)) delete value.athlete.injuryHistory;
+      for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (["", null, undefined].includes(value.trainingContext?.[key])) delete value.trainingContext?.[key];
+      return canonicalJSON(value) === fingerprintWithoutAge(comparison);
+    } catch (_) { return false; }
+  }
   function recordEnvelope(record, profile, catalog) {
     return {
       schema: 2,
@@ -8886,14 +8950,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       ...(catalog ? { catalog: clone(catalog) } : {}),
     };
   }
-  const PROFILE_KEYS = ["name", "sex", "sport", "dominantHand", "sportLevel"];
+  const PROFILE_KEYS = ["name", "sex", "sport", "dominantHand", "sportLevel", "birthDate", "injuryHistory", "experienceYears"];
   function profileFromRecord(record) {
     const a = record?.athlete || record || {};
     return Object.fromEntries(
       PROFILE_KEYS.map((key) => [
         key,
         String(
-          a[key] ?? (["sex", "dominantHand"].includes(key) ? "未注明" : ""),
+          (key === "experienceYears" ? record?.trainingContext?.experienceYears ?? a[key] : a[key]) ?? (["sex", "dominantHand"].includes(key) ? "未注明" : ""),
         ),
       ]),
     );
@@ -9101,6 +9165,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       ...profileFromRecord(profile),
       date: testDate,
     };
+    delete record.athlete.experienceYears;
+    record.trainingContext.experienceYears = profileFromRecord(profile).experienceYears;
+    applyAge(record);
     record.projectSnapshots = T.snapshots(catalog);
     record.abilityGroupSnapshot = clone(T.abilityGroups(catalog));
     // This legacy value selects an existing metric ID, not a test method.
@@ -9238,6 +9305,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       .replace(/^(data\.hop)\.trials\.\d+\./, "$1.")
       .replace(/^(data\.iso\.\d+)\.trials\.\d+\./, "$1.");
     const empty = value === "" || value === null || value === undefined;
+    if (["athlete.birthDate", "athlete.date", "trainingContext.previousCompetitionDate", "trainingContext.nextCompetitionDate"].includes(path)) {
+      if (empty) return "";
+      if (dateStamp(value) === null) return "日期须为有效的 YYYY-MM-DD";
+      const tested = path === "athlete.date" ? value : record.athlete?.date;
+      const born = path === "athlete.birthDate" ? value : record.athlete?.birthDate;
+      const previous = path === "trainingContext.previousCompetitionDate" ? value : record.trainingContext?.previousCompetitionDate;
+      const next = path === "trainingContext.nextCompetitionDate" ? value : record.trainingContext?.nextCompetitionDate;
+      if (born && dateStamp(born) !== null && born > date()) return "生日不能晚于今天";
+      if (dateStamp(tested) === null) return "请填写有效的测试日期";
+      if (born && dateStamp(born) !== null && born > tested) return "测试日期不能早于生日";
+      if (previous && dateStamp(previous) !== null && previous > tested) return "上一场比赛日期不能晚于测试日期";
+      if (next && dateStamp(next) !== null && next < tested) return "下一场比赛日期不能早于测试日期";
+      return "";
+    }
     const number = N(value),
       requireNumber = () => (number === null ? "请填写有限数值" : "");
     const bounds = (min, max, integer = false, strictlyPositive = false) => {
@@ -9705,6 +9786,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       throw new Error("运动员或测试记录 ID 无效");
     if (typeof input.athlete.name !== "string")
       throw new Error("运动员姓名字段无效");
+    validateAthleteContext(input);
     ["sport", "dominantHand"].forEach((key) => {
       if (
         input.athlete[key] !== undefined &&
@@ -10032,16 +10114,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         athleteIds.add(athlete.id);
         if (athlete.sample !== undefined && typeof athlete.sample !== "boolean")
           throw new Error("示例运动员标记无效");
-        if (
-          athlete.profile !== undefined &&
-          (!plainObject(athlete.profile) ||
-            PROFILE_KEYS.some(
-              (key) =>
-                athlete.profile[key] !== undefined &&
-                typeof athlete.profile[key] !== "string",
-            ))
-        )
-          throw new Error("运动员档案资料无效");
+        if (athlete.profile !== undefined) validateAthleteProfile(athlete.profile);
         athlete.records.forEach((record) => {
           validateRecord(record, options);
           if (record.schema === 2 && record.athleteId !== athlete.id)
@@ -10074,16 +10147,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         !plainObject(input.record)
       )
         throw new Error("单报告备份格式无效");
-      if (
-        input.profile !== undefined &&
-        (!plainObject(input.profile) ||
-          PROFILE_KEYS.some(
-            (key) =>
-              input.profile[key] !== undefined &&
-              typeof input.profile[key] !== "string",
-          ))
-      )
-        throw new Error("运动员档案资料无效");
+      if (input.profile !== undefined) validateAthleteProfile(input.profile);
       if (input.catalog !== undefined) validateCatalog(input.catalog);
       return validateRecord(input.record, options);
     }
@@ -10363,6 +10427,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     extraDefs,
     groupPoints,
     fingerprint,
+    fingerprintWithoutAge,
+    fingerprintMatchesExceptAge,
     sanitizeHTML,
     textToHTML,
     htmlToText,
@@ -10377,6 +10443,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     diagnoseRules,
     repairRules,
     profileFromRecord,
+    ageAtDate,
+    applyAge,
+    competitionContext,
+    validateAthleteProfile,
+    validateAthleteContext,
+    hasMeaningfulHopSet,
     latestRecord,
     normalizeCatalog,
     mergeCatalog,
@@ -10680,7 +10752,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   function configuration(lib) {
     validateTestPlans(lib.testPlans, lib.catalog);
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
-      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.14.0"};
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.15.0"};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
@@ -10740,8 +10812,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         }
         for(const r of snapshots)writes.push(["records",r.recordId,r],["recordIndex",r.recordId,summary(r)]);
         for(const id of deletions.records||[])(deletions.recordIndex ||= []).push(id);
-        const guarded = expected.expectedConfig !== undefined || expected.expectedRecords || expected.expectedAthletes;
-        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions), ["meta"], guarded ? ["records","athletes","config"] : []))];
+        const guarded = expected.expectedConfig !== undefined || expected.expectedRecords || expected.expectedAthletes || expected.expectedOwnerRecordIds;
+        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions), ["meta"], guarded ? ["records","athletes","config"] : [], expected.expectedOwnerRecordIds ? ["recordIndex"] : [], snapshots.length ? ["athletes"] : []))];
         if(!writes.length&&!Object.keys(deletions).length&&!guarded)return;
         const tx=this.db.transaction(names,"readwrite"),done=completed(tx);
         try {
@@ -10752,6 +10824,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             for (const [id, encoded] of Object.entries(entries || {})) comparisons.push(request(tx.objectStore(table).get([generation,id])).then(row => JSON.stringify(row?.value ?? null) === encoded));
           if (expected.expectedConfig !== undefined) comparisons.push(request(tx.objectStore("config").get([generation,"library"])).then(row => JSON.stringify(row?.value ?? null) === expected.expectedConfig));
           if ((await Promise.all(comparisons)).some(matches => !matches)) throw Error("导入预览已过期：资料已被其他页面修改，请重新预览后再导入");
+          if(expected.expectedOwnerRecordIds){
+            const index=await request(tx.objectStore("recordIndex").getAll(keyRange(generation)));
+            for(const [ownerId,ids] of Object.entries(expected.expectedOwnerRecordIds)){
+              const actual=index.filter(row=>row.value.athleteId===ownerId).map(row=>row.value.recordId).sort();
+              if(JSON.stringify(actual)!==JSON.stringify([...ids].sort()))throw Error("运动员测试记录已在其他页面修改，请重新打开档案后保存");
+            }
+          }
+          const changedOwners=new Map(writes.filter(([table])=>table==="athletes").map(([,id,value])=>[id,value]));
+          for(const [id,owner] of changedOwners){
+            const current=(await request(tx.objectStore("athletes").get([generation,id])))?.value;
+            if(current&&(current.profile?.birthDate||"")!==(owner.profile?.birthDate||"")&&!expected.expectedAthletes?.[id])throw Error("运动员生日已更新，请重新打开档案后保存");
+          }
+          for(const record of snapshots){
+            const owner=changedOwners.get(record.athleteId)||(await request(tx.objectStore("athletes").get([generation,record.athleteId])))?.value;
+            if(owner&&(owner.profile?.birthDate||"")!==(record.athlete.birthDate||""))throw Error("运动员生日已更新，请重新打开本次记录后保存");
+          }
           for(const [table,id,value] of writes)tx.objectStore(table).put({generation,id,value});
           for(const [table,ids] of Object.entries(deletions))for(const id of ids)tx.objectStore(table).delete([generation,id]);
           await done;this.metadataHashes=nextHashes;
@@ -11599,7 +11687,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 直接返回可编辑的中文 Markdown 教练建议，不输出 JSON、代码围栏或候选动作清单合同。根据资料自主选择训练方法、动作和剂量，不受本地建议库限制。正文应在正常字号下放进最多两页 A4，目标900–1400个汉字，通常2–3个简短小标题；信息少时更短。开头用一段150–220字给出最重要的综合判断与关键依据，至少三分之二篇幅用于训练执行。不要复述运动员档案、完整测试清单或另写一份长篇周计划。最多一张精简表格，避免在段落、表格和总量核对中重复同一安排。
 先形成综合判断：结合多个有效指标解释能力之间的关系、专项需求和当前训练阶段的取舍。区分值得优先干预的限制因素、可以维持并利用的优势、以及证据不足需要验证的假设；不要逐项抄数值，也不要将“低于某标准→练同名动作”当成分析。把相互支持或矛盾的结果放在一起推理：哪些证据支持当前训练优先级，哪些不同解释仍可能成立，哪项复测或训练反应会改变判断。只串联测量口径允许关联的结果；不要为凑综合结论强行建立因果关系。有效次数、波动和疼痛应影响结论的把握程度。避免按每项测试机械生成一个章节，以运动员实际需要解决的问题组织正文。
 通常安排2–3个重点，按实际需要取舍。每个重点用一句话说明训练目的与动作选择理由，给出能执行的强度或负荷、组次或时长、休息、周频率与现有课次的衔接，并给出关键进阶、减量或换动作条件。兼顾专项课疲劳和优势维持。建议剂量不得表述成已测结果。每个重点优先1–2个主要训练手段，只在器械或疼痛实际需要时给一个替代，避免堆砌选做动作。自行核对逐动作组次与每周总量、接触次数及用时是否一致；正文只保留便于执行的必要总量，不展开计算过程。
-使用已提供的专项、水平、周期、经历、器械、可训练时间、周安排、伤病和备注。信息不足时给出明确的条件式起点与替代选择，并指出影响安排的少数关键信息，不编造经历、设备、赛期或可用训练日。
+使用已提供的专项、水平、周期、经历、器械、可训练时间、周安排、相关既往伤病、本次症状与限制、比赛间隔和备注。competition中的天数以本次测试日期为基准；距上一场与距下一场分别用于恢复和备赛安排。未填写的伤病或比赛信息不等于无伤病或无比赛。信息不足时给出明确的条件式起点与替代选择，并指出影响安排的少数关键信息，不编造经历、设备、赛期或可用训练日。
 尊重评价开关：只有 referenceEnabled=true 的目标/区间才可作为达标依据；未启用评价不代表未达标。可基于实际测量、指标关系和背景作合理推断，但要交代依据和不确定性，不自行创建常模、达标线或人群排名。
 jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 与发展方向使用当前选择目标的最优剖面，简洁说明力量端或速度端，不比较其他目标。Fₑ、vₑ描述模型高度对参数的比例响应，ER比较两端响应，EN描述整体敏感度；情景是指定参数变化后的模型结果，不能将参数敏感度转换成训练适应速度、训练投入比例或确定的收益。分析时沿用已有结果，正文省略公式和这些生成规则。
 以下测量口径用于分析时核对，不需要逐条写入正文：缺测不等于零，RFD推算不等于实测；独立录入且标记有效的RFD仍是有效记录，缺少基线力只阻止反推时点力，不会自动否定RFD本身。不要额外扣除IMTP体重/基线，不把峰值百分比当作新评价阈值，不从FMS分数推断病因，不混淆MAS与VIFT或折返与跑台协议，不把相关性当作因果。有效次数、数据冲突或协议缺失只有实际改变训练选择时才用一句话说明；与当前动作和剂量无关的RFD换算、分级开关等细节省略。
@@ -13874,7 +13962,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       return `<div class="repeat-panel" data-repeat-test="${E(test.id)}"><details class="attempt-details" id="trials-${E(test.id)}" data-raw-trials="${E(test.id)}" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · 原始试次 · 共 ${count} 次</summary>${raw}</details></div>`;
     }
     function hopRawPanel(test) {
-      const sets=r.hop?.sets||[];
+      const inputs=M.repeatRows(state,"hop"), entered=value=>N(value)!==null||typeof value==="string"&&value.trim()!=="";
+      const sets=(r.hop?.sets||[]).map((set,index)=>({...set,number:index+1})).filter((set,index)=>{
+        const input=inputs[index]||{},summary=input.summary||{};
+        if(entered(input.notes)||entered(summary.notes))return true;
+        if(input.inputMode==="jumps")return entered(summary.activeStiffness)||(input.jumps||[]).some(jump=>["height","contactTimeMs","flightTimeMs","notes"].some(key=>entered(jump[key])));
+        return [...T.fieldsForTest("hop").map(field=>field.key),"suppliedCount","validCount","selectedCount"].some(key=>entered(summary[key]));
+      });
       if(!sets.length)return "";
       const fields=[
         ["height","垂直跳跃高度 · cm",2],
@@ -13884,7 +13978,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
         ["flightTimeRatio","FT/CT",3],
         ["activeStiffness","Active Stiffness · kN/m",2],
       ].filter(([key])=>sets.some(set=>N(set.row?.[key])!==null));
-      const rows=sets.map((set,index)=>[index+1,...fields.map(([key,,digits])=>F(set.row?.[key],digits)),E(set.notes||"—")]);
+      const rows=sets.map(set=>[set.number,...fields.map(([key,,digits])=>F(set.row?.[key],digits)),E(set.notes||"—")]);
       const detail=table(["完整测试",...fields.map(([,label])=>label),"备注"],rows,sets.map(set=>"hop-set-"+set.id),"repeat-raw-table hop-summary-table");
       return `<div class="repeat-panel" data-repeat-test="hop"><details class="attempt-details" id="trials-hop" data-raw-trials="hop" data-trial-title="${E(test.name)}"><summary>${E(test.name)} · 完整测试结果 · 共 ${sets.length} 次</summary>${detail}</details></div>`;
     }
@@ -14445,7 +14539,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
           "</div>";
       }
     }
-    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderCapabilities()}`;
+    return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderCapabilities()}`;
     function renderCapabilities() {
       const digits=metric=>Number.isInteger(metric.digits)?metric.digits:metric.unit==="比值"||/rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id)?3:metric.unit==="%"?1:2;
       const cards=(s.capabilityCards||[]).map(card=>({...card,metrics:(card.metrics||[]).filter(metric=>N(metric.value)!==null)})).filter(card=>card.metrics.length);
@@ -16826,7 +16920,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     requireExcel();
     if (!Array.isArray(records) || !records.length || records.length > 300) throw Error("请选择 1–300 名已有运动员");
     const ids = new Set(); records = records.map(input => {
-      const record = M.normalizeRecord(clone(input)); M.validateRecord(record);
+      const record = M.normalizeRecord(clone(input)); M.applyAge(record); M.validateRecord(record);
       if (!safe(record.athleteId) || !safe(record.recordId) || ids.has(record.recordId)) throw Error("运动员或目标测试编号无效 / 重复");
       if (!selectedTests(record).length) throw Error("请至少选择一个测试项目");
       ids.add(record.recordId); return record;
@@ -16863,7 +16957,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
         const row = ws.addRow(effectiveFields.map(f => writeValue(get(data,f.key),forValue(f))));
         row.alignment = {vertical:"middle",wrapText:true}; row.height=28;
         effectiveFields.forEach((f,i) => {
-          const cell=row.getCell(i+1); cell.protection={locked:i<3};
+          const ageReference = spec.kind === "metadata" && f.key === "age" && !!record.athlete.birthDate;
+          const cell=row.getCell(i+1); cell.protection={locked:i<3 || ageReference};
+          if (ageReference) cell.note = "根据生日与测试日期自动计算；修改测试日期后，导入时会更新年龄。";
           if (i<3) cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF0F3F2"}};
           else cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:row.number%2?"FFF1F8F5":"FFFFFFFF"}};
           if (f.type === "date") cell.numFmt="@";
@@ -16874,6 +16970,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       ws.getRow(1).height=42;ws.getRow(1).font={bold:true,color:{argb:"FFFFFFFF"}};
       ws.getRow(1).alignment={vertical:"middle",wrapText:true};ws.getRow(1).fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF245C54"}};
       ws.autoFilter={from:{row:1,column:3},to:{row:Math.max(3,ws.rowCount),column:spec.fields.length}};
+      if (spec.kind === "metadata" && records.some(record => !!record.athlete.birthDate))
+        await ws.protect("", {selectLockedCells:true,selectUnlockedCells:true,autoFilter:true});
     }
     const info = book.addWorksheet("_MotionBench",{state:"veryHidden"});
     const manifest = {format:"motionbench-test-template",schema:1,templateId,records:records.map(blankRecord)};
@@ -16948,7 +17046,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       for(const [key,col]of columns)if(!spec.fields.some(f=>f.key===key))issue(errors,ws,2,col,"未知字段："+key);
       for(let i=3;i<=ws.rowCount;i++){
         const excelRow=ws.getRow(i);if(!excelRow.values.some(v=>!empty(v)))continue;
-        const row={};for(const f of spec.fields)put(row,f.key,cellValue(excelRow.getCell(columns.get(f.key)),f,errors));
+        const templateEntry = byId.get(String(excelRow.getCell(columns.get("recordId")).value || ""));
+        const row={};for(const f of spec.fields)put(row,f.key,spec.kind === "metadata" && f.key === "age" && templateEntry?.record.athlete.birthDate ? templateEntry.record.athlete.age : cellValue(excelRow.getCell(columns.get(f.key)),f,errors));
         const entry=byId.get(row.recordId),record=entry?.record;
         if(!record||row.athleteId!==record.athleteId||row.name!==identity(record).name){issue(errors,ws,i,columns.get("name"),"运动员 / 测试编号与模板不符；请勿改名或复制其他人的编号");continue;}
         if(spec.id&&!record.enabled[spec.id]){issue(errors,ws,i,columns.get("name"),"该运动员未选择此项目");continue;}
@@ -17051,6 +17150,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
         else record.data[test.id]=holders;
       }
       try {
+        M.applyAge(record);
         const walk=(value,path="")=>{if(value&&typeof value==="object"){for(const [key,child]of Object.entries(value))walk(child,path?path+"."+key:key);return;}const message=M.validateField(record,path,value);if(message){const location=entry.locations.get(path);issue(errors,location?.sheet,location?.row,location?.column,record.athlete.name+"："+message+"（"+path+"）");}};
         walk(record);
         M.validateRecord(record);
@@ -17085,6 +17185,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       const incoming=clone(item.record),previous=existing.get(incoming.recordId),owner=owners.get(incoming.athleteId);
       if(!owner||owner.deletedAt||owner.archived){issue(errors,null,0,0,incoming.athlete.name+"：运动员不在当前在用档案中");continue;}
       if(previous&&(previous.athleteId!==incoming.athleteId||previous.deletedAt||previous.archived)){issue(errors,null,0,0,incoming.athlete.name+"：目标记录不属于此运动员或已归档 / 删除");continue;}
+      try {
+        M.applyAge(incoming, owner.profile?.birthDate ?? previous?.athlete.birthDate ?? incoming.athlete.birthDate);
+        M.validateAthleteContext(incoming);
+      } catch (error) { issue(errors,null,0,0,incoming.athlete.name+"："+error.message); continue; }
       const current=previous||M.recordFromCatalog(catalog,owner.profile,incoming.enabled,incoming.athlete.date);
       const projects=selectedTests(incoming).map(test=>{
         const catalogTest=catalog.tests.find(t=>t.id===test.id);
@@ -17107,6 +17211,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       if(!entry.existing&&!entry.projects.some(p=>p.hasIncoming)&&!hasSharedMeasurement){skipped.push({recordId:entry.recordId,name:entry.name,reason:"未填写测试数据"});continue;}
       record.athleteId=entry.athleteId;record.recordId=entry.recordId;
       if(!entry.existing||decision.metadata==="replace")for(const f of metaFields)record.athlete[f.key]=incoming.athlete[f.key];
+      M.applyAge(record, incoming.athlete.birthDate);
       for(const project of chosen){
         const id=project.id;record.enabled[id]=true;
         const priorContext=JSON.stringify([record.protocol[id],record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);
@@ -17144,6 +17249,114 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
   }
   root.RingsideExcel=Object.freeze({createTemplate,readTemplate,preview,apply});
 })(typeof window!=="undefined"?window:globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[char]));
+  const fields = ["name", "sex", "sport", "dominantHand", "sportLevel", "birthDate", "experienceYears", "injuryHistory"];
+  const creationIds = { name:"newAthleteName", sex:"newAthleteSex", sport:"newAthleteSport", dominantHand:"newAthleteHand", sportLevel:"newAthleteLevel", groupId:"newAthleteGroup", birthDate:"newAthleteBirthDate", experienceYears:"newAthleteExperienceYears", injuryHistory:"newAthleteInjuryHistory" };
+  const option = (value, label, selected) => `<option value="${esc(value)}" ${value === selected ? "selected" : ""}>${esc(label)}</option>`;
+
+  function render(profile = {}, { creation = false, groups = [], groupId = "" } = {}) {
+    const id = key => creation ? ` id="${creationIds[key]}"` : "";
+    const field = (label, control, wide = false) => `<label class="field${wide ? " wide" : ""}"><span>${label}</span>${control}</label>`;
+    const input = (key, extra = "") => `<input${id(key)} name="${key}" ${extra} value="${esc(profile[key])}">`;
+    const select = (key, values, selected) => `<select${id(key)} name="${key}">${values.map(([value, label]) => option(value, label, selected)).join("")}</select>`;
+    return '<div class="form-grid athlete-profile-core">' +
+      field("姓名 / 编号", input("name", 'required maxlength="100"')) +
+      field("队伍 / 训练组", select("groupId", [["", "未分组"], ...groups.map(group => [group.id, group.name])], groupId)) +
+      field("性别", select("sex", ["未注明", "男", "女"].map(value => [value, value]), profile.sex || "未注明")) +
+      field("出生日期（可选）", input("birthDate", 'type="date"')) +
+      field("专项", input("sport", 'maxlength="100" list="sportOptions"')) +
+      '</div><details class="supplement athlete-profile-more"><summary>更多长期背景（可选）</summary><div class="form-grid">' +
+      field("惯用手", select("dominantHand", ["未注明", "右手", "左手", "双手"].map(value => [value, value]), profile.dominantHand || "未注明")) +
+      field("水平 / 级别", input("sportLevel", 'maxlength="100"')) +
+      field("抗阻训练年限", input("experienceYears", 'type="number" min="0" max="80" step="any" inputmode="decimal"')) +
+      field("长期相关伤病简述", `<textarea${id("injuryHistory")} name="injuryHistory" rows="2">${esc(profile.injuryHistory)}</textarea>`, true) +
+      '</div></details>';
+  }
+
+  function read(form, { creation = false } = {}) {
+    const profile = {};
+    let groupId = "";
+    for (const key of [...fields, "groupId"]) {
+      const control = form.querySelector(`[name="${key}"]`) || (creation ? form.querySelector(`#${creationIds[key]}`) : null);
+      if (!control) throw Error("运动员资料表单不完整，请重新打开。");
+      if (!control.checkValidity()) {
+        const more = control.closest("details");
+        if (more) more.open = true;
+        control.reportValidity();
+        throw Error("请核对运动员资料中的日期或数值。");
+      }
+      if (key === "groupId") { groupId = control.value; continue; }
+      profile[key] = control.value.trim();
+    }
+    if (!profile.name) throw Error("请填写姓名或编号");
+    profile.sex ||= "未注明";
+    profile.dominantHand ||= "未注明";
+    return { profile, groupId };
+  }
+
+  root.RingsideProfile = { render, read };
+})(window);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const fields = [
+    ["athlete.age","本次年龄","number","creationAge"],
+    ["athlete.mass","本次体重 kg","number","creationMass"],
+    ["athlete.height","本次身高 cm","number","creationHeight"],
+    ["athlete.injury","当前伤病、症状与训练限制","textarea","creationInjury"],
+    ["trainingContext.previousCompetitionDate","上一场比赛日期","date","creationPreviousCompetitionDate"],
+    ["trainingContext.nextCompetitionDate","下一场比赛日期","date","creationNextCompetitionDate"],
+    ["athlete.cycle","训练周期","text","creationCycle"],
+    ["trainingContext.weeklySessions","每周体能训练次数","number","creationWeeklySessions"],
+    ["trainingContext.equipment","可用器械","text","creationEquipment"],
+    ["trainingContext.weeklySchedule","周训练安排","textarea","creationWeeklySchedule"],
+    ["athlete.notes","补充说明","textarea","creationNotes"],
+  ];
+  const get = (record, path) => path.split(".").reduce((value,key) => value?.[key],record) ?? "";
+  function control(record, specification, creation) {
+    const [path,label,type,id]=specification, value=get(record,path);
+    const attr=creation?`id="${id}" data-creation-context="${path}"`:`data-path="${path}"`;
+    const readonly=path==="athlete.age"&&record.athlete.birthDate;
+    const numeric=type==="number"?`min="0" step="${path==="trainingContext.weeklySessions"?"1":"any"}" ${path==="athlete.age"?'max="100"':path==="trainingContext.weeklySessions"?'max="14"':""}`:"";
+    const input=type==="textarea"?`<textarea ${attr} rows="2" aria-label="${esc(label)}">${esc(value)}</textarea>`:`<input ${attr} type="${type}" value="${esc(value)}" aria-label="${esc(label)}" ${numeric} ${readonly?'readonly aria-readonly="true"':""}>`;
+    return `<label class="field ${type==="textarea"?"wide":""}"><span>${esc(label)}</span>${input}</label>`;
+  }
+  function intervals(record) {
+    const context=root.RingsideModel.competitionContext(record);
+    return [context.daysSincePrevious===null?"":`距上一场 ${context.daysSincePrevious} 天`,context.daysUntilNext===null?"":`距下一场 ${context.daysUntilNext} 天`].filter(Boolean).join(" · ");
+  }
+  function render(record,{creation=false,source=null}={}) {
+    let result=creation?"":`<div class="form-grid"><label class="field"><span>测试日期</span><input type="date" data-path="athlete.date" value="${esc(record.athlete.date)}" aria-label="测试日期" required></label></div>`;
+    result+=`<div class="form-grid">${fields.slice(0,6).map(spec=>control(record,spec,creation)).join("")}</div><p class="note" data-competition-interval>${esc(intervals(record))}</p>`;
+    result+=`<details class="supplement"><summary>本次训练安排（可选）</summary>`;
+    if(source)result+=`<p class="note">上次测试：${esc(source.athlete.date)}</p><button type="button" class="btn small" onclick="App.${creation?"reuseCreationTraining":"reusePreviousTraining"}()">沿用上次训练安排</button>`;
+    result+=`<div class="form-grid">${fields.slice(6).map(spec=>control(record,spec,creation)).join("")}</div></details>`;
+    return result;
+  }
+  function read(container,record) {
+    const result=JSON.parse(JSON.stringify(record));
+    for(const [path] of fields){
+      const node=container.querySelector(`[data-creation-context="${path}"]`);
+      if(!node)continue;
+      const [section,key]=path.split(".");result[section][key]=node.value;
+    }
+    root.RingsideModel.applyAge(result);return result;
+  }
+  function refresh(record,container) {
+    const age=container.querySelector('[data-path="athlete.age"],[data-creation-context="athlete.age"]');
+    if(age){age.readOnly=!!record.athlete.birthDate;age.setAttribute("aria-readonly",String(age.readOnly));if(age.readOnly)age.value=record.athlete.age;}
+    const interval=container.querySelector("[data-competition-interval]");if(interval)interval.textContent=intervals(record);
+  }
+  root.RingsideContextUI={render,read,refresh};
+})(window);
 
 </script>
 <script>
@@ -17398,13 +17611,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
   }
   function editAthlete(id="") {
-    const a=lib().athletes.find(a=>a.id===id),p=a?.profile||{};
-    showForm(a?"编辑运动员资料":"新建运动员",`<div class="form-grid">${field("姓名 / 编号",`<input name="name" required maxlength="100" value="${esc(p.name||a?.name||"")}">`)}${field("队伍 / 训练组",`<select name="groupId">${groupOptions(a?.groupId)}</select>`)}${field("专项",`<input name="sport" maxlength="100" value="${esc(p.sport)}" list="sportOptions">`)}${field("性别",`<select name="sex">${["未注明","男","女"].map(v=>option(v,v,p.sex||"未注明")).join("")}</select>`)}${field("惯用手",`<select name="dominantHand">${["未注明","右手","左手","双手"].map(v=>option(v,v,p.dominantHand||"未注明")).join("")}</select>`)}${field("级别",`<input name="sportLevel" maxlength="100" value="${esc(p.sportLevel)}">`)}</div>`,async form=>{
-      const data=Object.fromEntries(new FormData(form));if(!data.name.trim())throw Error("请填写姓名或编号");
-      const profile={...p,name:data.name.trim(),sport:data.sport.trim(),sex:data.sex,dominantHand:data.dominantHand,sportLevel:data.sportLevel.trim()};
-      if(a){a.profile=profile;a.name=profile.name;a.groupId=data.groupId;a.updated=now();}
-      else lib().athletes.push({id:uid(),name:profile.name,profile,groupId:data.groupId,archived:false,deletedAt:null,sample:false,updated:now(),records:[]});
-      await App.saveLibraryChanges();
+    const a=lib().athletes.find(a=>a.id===id)||(id?App.getAthlete?.(id):null),p=a?.profile||{};
+    showForm(a?"编辑运动员资料":"新建运动员",root.RingsideProfile.render({...p,name:p.name||a?.name||""},{groups:lib().groups,groupId:a?.groupId||""}),async form=>{
+      const {profile,groupId}=root.RingsideProfile.read(form);
+      await App.updateAthleteProfile(id,{...p,...profile},groupId);
     });
   }
   function groups() {
@@ -17495,7 +17705,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     if(name==="athlete-records"){const a=lib().athletes.find(a=>a.id===id);filters.records={...filter(),q:a.id,page:1,status:"all",from:"",to:"",test:""};return App.openManagement("records");}
     if(name==="report"||name==="entry"){const a=lib().athletes.find(a=>a.records.some(r=>r.recordId===id));return App.openManagedRecord(a.id,id,name==="entry");}
     if(name==="edit-record"){
-      const r=await App.getRepository().loadRecord(id);return showForm("测试名称与日期",field("名称",`<input name="title" maxlength="100" value="${esc(r.title)}">`)+field("测试日期",`<input type="date" name="date" value="${esc(r.athlete.date)}" required>`),async form=>{const data=new FormData(form);r.title=data.get("title").trim();r.athlete.date=data.get("date");r.updated=now();await App.saveLibraryChanges([r]);});
+      const r=await App.getRepository().loadRecord(id);return showForm("测试名称与日期",field("名称",`<input name="title" maxlength="100" value="${esc(r.title)}">`)+field("测试日期",`<input type="date" name="date" value="${esc(r.athlete.date)}" required>`),async form=>{const data=new FormData(form);await App.updateRecordDate(id,data.get("date"),{title:data.get("title").trim()});});
     }
     if(name==="groups")return groups();
     if(name==="group-new"||name==="group-edit")return editTeam(id);
@@ -18203,6 +18413,86 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     if (job && (!currentMatches(job) || job.basis !== recordBasis())) cancelJob();
     renderReport(); renderWorkspace();
   }
+  async function updateAthleteProfile(id, profile, groupId = "") {
+    if (libraryTransferActive) throw Error("资料正在保存，请稍后重试");
+    M.validateAthleteProfile(profile);
+    if (groupId && !library.groups.some(group => group.id === groupId && !group.deletedAt)) throw Error("请选择有效队伍");
+    const originalOwner=id&&library.athletes.find(athlete=>athlete.id===id);
+    if(originalOwner){
+      const {records:ownerRecords,...metadata}=originalOwner;
+      if(JSON.stringify(await repository.get("athletes",id))!==JSON.stringify(metadata))throw Error("运动员档案已在其他页面修改，请重新打开档案");
+    }
+    saveEditor();
+    if (!await persist()) throw Error("当前修改尚未保存，请先重试");
+    await entryPersistQueue; await repository.flush();
+    libraryTransferActive = true;
+    try {
+      const next = copy(library), storedTarget = id && next.athletes.find(athlete => athlete.id === id);
+      const pendingTarget = !storedTarget && id && entrySession?.pendingAthletes.find(athlete=>athlete.id===id);
+      const owner = storedTarget || (pendingTarget && copy(pendingTarget));
+      if (id && !owner) throw Error("运动员不存在");
+      const storedOwner = storedTarget ? await repository.get("athletes", id) : null;
+      if (storedTarget) {
+        const {records:ownerRecords, ...metadata}=owner;
+        if (JSON.stringify(storedOwner) !== JSON.stringify(metadata)) throw Error("运动员档案已在其他页面修改，请重新打开档案");
+      }
+      const birthChanged = owner && (owner.profile.birthDate || "") !== (profile.birthDate || "");
+      const records = [], expectedRecords = {}, pending = [];
+      if (birthChanged) {
+        for (const summary of owner.records) {
+          const record = await repository.loadRecord(summary.recordId);
+          if (!record) throw Error("测试记录不存在，请重新打开资料库");
+          expectedRecords[record.recordId] = JSON.stringify(record);
+          const updated = copy(record); M.applyAge(updated, profile.birthDate || ""); M.validateAthleteContext(updated);
+          updated.updated = now(); records.push(updated);
+        }
+        for (const record of entrySession?.records || []) if (record.athleteId === id && !entrySession.savedIds.has(record.recordId)) {
+          const updated = copy(record); M.applyAge(updated, profile.birthDate || ""); M.validateAthleteContext(updated); pending.push(updated);
+        }
+      }
+      const target = owner || {id:uid(), records:[], sample:false, archived:false, deletedAt:null};
+      target.profile = M.profileFromRecord(profile); target.name = target.profile.name; target.groupId = groupId; target.updated = now();
+      if (!storedTarget) next.athletes.push(target);
+      for (const record of records) target.records[target.records.findIndex(item => item.recordId === record.recordId)] = window.RingsideStore.summary(record);
+      next.updated = now();
+      await repository.save(next, records, {}, {expectedRecords, ...(storedOwner ? {expectedAthletes:{[id]:JSON.stringify(storedOwner)}} : {}), ...(birthChanged ? {expectedOwnerRecordIds:{[id]:owner.records.map(record=>record.recordId)}} : {})});
+      library = next;
+      const updates = new Map([...records, ...pending].map(record => [record.recordId, record]));
+      if (entrySession) {
+        entrySession.records = entrySession.records.map(record => updates.get(record.recordId) || record);
+        const pendingOwner = entrySession.pendingAthletes.find(athlete => athlete.id === id);
+        if (pendingOwner) { pendingOwner.profile = copy(target.profile); pendingOwner.name = target.name; pendingOwner.groupId = groupId; }
+      }
+      if (updates.has(state?.recordId)) state = entrySession?.records.find(record => record.recordId === state.recordId) || copy(updates.get(state.recordId));
+      for (const record of records) recordBaselines.set(record.recordId, recordContent(record));
+      if (birthChanged) cancelJob({preserveModalId:"managementModal"});
+      saveEntrySession(); reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
+      return target.id;
+    } finally { libraryTransferActive = false; }
+  }
+  async function updateRecordDate(recordId, testDate, {title} = {}) {
+    if (libraryTransferActive) throw Error("资料正在保存，请稍后重试");
+    saveEditor(); if (!await persist()) throw Error("当前修改尚未保存，请先重试");
+    await entryPersistQueue; await repository.flush(); libraryTransferActive = true;
+    try {
+      const stored = await repository.loadRecord(recordId);
+      if (!stored) throw Error("测试记录不存在");
+      const next = copy(library), owner = next.athletes.find(athlete => athlete.id === stored.athleteId);
+      if (!owner) throw Error("运动员不存在");
+      const record = copy(stored); record.athlete.date = testDate;
+      if (title !== undefined) record.title = title;
+      M.applyAge(record, owner.profile.birthDate || "");
+      const dateError = M.validateField(record,"athlete.date",testDate); if (dateError) throw Error(dateError);
+      M.validateAthleteContext(record); M.validateRecord(record); record.updated = now();
+      owner.records[owner.records.findIndex(item => item.recordId === recordId)] = window.RingsideStore.summary(record); next.updated = now();
+      await repository.save(next,[record],{},{expectedRecords:{[recordId]:JSON.stringify(stored)}});
+      library = next;
+      if (entrySession) entrySession.records = entrySession.records.map(item => item.recordId === recordId ? copy(record) : item);
+      if (state?.recordId === recordId) state = entrySession?.records.find(item => item.recordId === recordId) || copy(record);
+      recordBaselines.set(recordId,recordContent(record)); cancelJob({preserveModalId:"managementModal"}); saveEntrySession();
+      reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
+    } finally { libraryTransferActive = false; }
+  }
   function openManagement(tab = "athletes") {
     if (tab === "catalog") tab = "metrics";
     if (creation?.submitting) return;
@@ -18597,6 +18887,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       }
       lastRestorePayload = input || lastRestorePayload;
       const migrated = window.RingsideEvaluation.migrate(input || M.libraryDefaults());
+      if (!input) {
+        const record = M.sampleRecord(); record.athlete.name = "示例";
+        const profile = window.RingsideEvaluation.create(record, "模拟示例评价方案");
+        record.evaluationProfileId = profile.id;
+        migrated.evaluationProfiles.push(profile);
+        migrated.athletes.push({id:record.athleteId,name:"示例",profile:M.profileFromRecord(record),sample:true,groupId:"",archived:false,deletedAt:null,records:[record]});
+        migrated.activeAthleteId = record.athleteId; migrated.activeRecordId = record.recordId;
+      }
       await repository.importLibrary(migrated);
     }
     await loadDirectory(false);
@@ -18877,8 +19175,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       '<button class="btn small" onclick="App.addRow(\'imtp\')">＋ 新增试次</button>'
     );
   }
-  function persist() {
+  function persist({duringTransfer = false} = {}) {
     if (!library || !repository) return Promise.resolve(false);
+    if (libraryTransferActive && !duringTransfer) return Promise.resolve(false);
+    if (state) { try { M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }
     clearTimeout(saveTimer); saveTimer = null;
     if (entrySession?.records.some(r => r.recordId === state?.recordId)) {
       const index = entrySession.records.findIndex(r => r.recordId === state.recordId);
@@ -19092,7 +19392,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       "imtpConfig",
       "cmjConfig",
       "derivedEnabled",
-      "trainingContext",
     ])
       if (source[k]) r[k] = copy(source[k]);
     r.dsi = { ...copy(source.dsi), force: "", confirmed: false };
@@ -19118,9 +19417,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
   }
   async function createAthlete(name) {
     if (!String(name||"").trim()) return;
-    const id=uid(), profile={name:String(name).trim(),sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
-    library.athletes.push({id,name:profile.name,profile,records:[],groupId:"",archived:false,deletedAt:null,sample:false});
-    await saveLibraryChanges();return id;
+    return updateAthleteProfile("",M.profileFromRecord({name:String(name).trim()}));
   }
   async function newTest(athleteId) { return startDataEntry(athleteId || activeAthlete()?.id); }
   function pathLabel(path) {
@@ -19291,8 +19588,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     captureReportUI();saveEditor();if(!await persist())return;
     const owner=library.athletes.find(a=>a.id===athleteId&&!a.deletedAt&&!a.archived);
     creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",ownerIds:owner?[owner.id]:[],returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",isoDirectionIds:[],isoCatalog:M.isoRows(),enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
-    for(const id of ["newAthleteName","newAthleteSport","newAthleteLevel","creationAge","creationMass","creationHeight","creationAthleteSearch"])$(id).value="";
-    $("newAthleteSex").value="未注明";$("newAthleteHand").value="未注明";$("creationDate").value=today();$("creationError").hidden=true;
+    $("creationProfileFields").innerHTML=window.RingsideProfile.render(creation.profile,{creation:true,groups:library.groups,groupId:""});
+    creation.contexts={};creation.previousContexts={};
+    $("creationAthleteSearch").value="";$("creationDate").value=today();$("creationError").hidden=true;
     $("creationGroupFilter").innerHTML='<option value="">全部队伍</option>'+(library.groups||[]).filter(g=>!g.deletedAt).map(g=>`<option value="${E(g.id)}">${E(g.name)}</option>`).join("");
     ui.mode="creation";renderCreationAthletes();renderCreationStep();renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
     const draft=creation;
@@ -19331,6 +19629,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       creation.kind=kind;creation.ownerId="";creation.ownerIds=[];creation.loadedOwnerId="";
       creation.selectionToken=(creation.selectionToken||0)+1;
       creation.profile={name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
+      creation.contexts={};creation.previousContexts={};creation.contextOwnerId="";creation.setupPrepared=false;
+      $("creationProfileFields").innerHTML=window.RingsideProfile.render(creation.profile,{creation:true,groups:library.groups,groupId:""});
       creation.testPlanId="";creation.evaluationProfileId=library.defaultEvaluationProfileId;
       creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,false]));creation.isoDirectionIds=[];creation.isoCatalog=M.isoRows();
       $("creationSource").textContent="";renderCreationAthletes();
@@ -19360,6 +19660,61 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     $("creationTestPlan").innerHTML='<option value="">临时选择项目</option>'+(library.testPlans||[]).filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.testPlanId?"selected":""}>${E(p.name)}</option>`).join("");
     $("creationEvaluationProfile").innerHTML=library.evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("");
     $("creationProjects").innerHTML=projectPicker(creation.enabled,true);bindProjectPicker($("creationProjects"),true);refreshCreationCount();
+    renderCreationContext();
+  }
+  function creationOwners() {
+    return creation.kind==="athlete"?[{id:"new",name:creation.profile.name,profile:creation.profile}]:creation.ownerIds.map(id=>library.athletes.find(athlete=>athlete.id===id));
+  }
+  async function prepareCreationContexts(draft) {
+    for(const owner of creationOwners()) {
+      if(!draft.contexts[owner.id]) {
+        const priorSummary=owner.id!=="new"&&M.latestRecord({records:owner.records.filter(record=>!record.deletedAt)});
+        const prior=priorSummary?await repository.loadRecord(priorSummary.recordId):null;
+        if(creation!==draft)return false;
+        draft.previousContexts[owner.id]=prior;
+        draft.contexts[owner.id]={athlete:{date:$("creationDate").value,birthDate:owner.profile.birthDate||"",age:"",mass:"",height:"",injury:"",cycle:"",notes:""},trainingContext:{...copy(M.defaults().trainingContext),experienceYears:owner.profile.experienceYears||""}};
+      }
+      const context=draft.contexts[owner.id];context.athlete.date=$("creationDate").value;
+      M.applyAge(context,owner.profile.birthDate||"");
+    }
+    return true;
+  }
+  function captureCreationContext() {
+    if(!creation?.contextOwnerId||!creation.contexts[creation.contextOwnerId])return;
+    creation.contexts[creation.contextOwnerId]=window.RingsideContextUI.read($("creationBodyFields"),creation.contexts[creation.contextOwnerId]);
+  }
+  function renderCreationContext() {
+    if(!creation)return;
+    const owners=creationOwners().filter(Boolean);
+    if(!owners.length)return;
+    if(!owners.some(owner=>owner.id===creation.contextOwnerId))creation.contextOwnerId=owners[0].id;
+    const context=creation.contexts[creation.contextOwnerId];if(!context)return;
+    $("creationContextPerson").hidden=owners.length<2;
+    $("creationContextPerson").innerHTML=owners.map(owner=>`<option value="${E(owner.id)}" ${owner.id===creation.contextOwnerId?"selected":""}>${E(owner.name)} · ${E(owner.id.slice(-6))}</option>`).join("");
+    $("creationBodyFields").innerHTML=window.RingsideContextUI.render(context,{creation:true,source:creation.previousContexts[creation.contextOwnerId]});
+  }
+  function selectCreationContext(id) {
+    if(!creation||creation.submitting)return;
+    try{captureCreationContext();creation.contextOwnerId=id;renderCreationContext();}catch(error){creationError(error.message);}
+  }
+  function creationDateChanged() {
+    if(!creation||creation.submitting||!$("creationDate").value)return;
+    try{
+      captureCreationContext();
+      for(const context of Object.values(creation.contexts||{})){context.athlete.date=$("creationDate").value;M.applyAge(context);}
+      const active=creation.contexts[creation.contextOwnerId];if(active)window.RingsideContextUI.refresh(active,$("creationBodyFields"));
+      $("creationError").hidden=true;
+    }catch(error){creationError(error.message);}
+  }
+  function creationContextInput() {
+    if(!creation||creation.submitting)return;
+    try{captureCreationContext();const context=creation.contexts[creation.contextOwnerId];if(context)window.RingsideContextUI.refresh(context,$("creationBodyFields"));}catch(error){creationError(error.message);}
+  }
+  function reuseCreationTraining() {
+    if(!creation)return;
+    captureCreationContext();const source=creation.previousContexts[creation.contextOwnerId],target=creation.contexts[creation.contextOwnerId];
+    if(source&&target)for(const key of ["equipment","weeklySchedule","weeklySessions"])target.trainingContext[key]=source.trainingContext?.[key]??"";
+    renderCreationContext();
   }
   function selectCreationPlan(id) {
     if(!creation||creation.submitting)return;creation.testPlanId=id;
@@ -19386,9 +19741,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     $("newAthleteTitle").textContent="数据录入";$("creationSteps").innerHTML=workflowSteps(select?1:2);
     $("creationSelectStep").hidden=!select;$("creationExistingFields").hidden=creation.kind==="athlete";
     $("creationProfileStep").hidden=!select||creation.kind!=="athlete";$("creationTestStep").hidden=select;
+    $("creationProfileFields").querySelectorAll("input,select,textarea").forEach(node=>node.disabled=!select||creation.kind!=="athlete");
     document.querySelectorAll('[name="creationAthleteMode"]').forEach(x=>x.checked=x.value===(creation.kind==="athlete"?"new":"existing"));
     $("creationBack").hidden=select;$("creationNext").hidden=!select;$("creationSubmit").hidden=select;$("creationSubmit").textContent="开始录入";
-    $("creationBodyFields").hidden=creation.kind==="record"&&creation.ownerIds.length>1;
+    $("creationBodyFields").hidden=false;
     $("creationPeopleSummary").textContent=creation.kind==="record"?`本次 ${creation.ownerIds.length} 名运动员：`+creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id)?.name||id).join("、"):creation.profile.name;
     if(!select)renderCreationSetup();refreshCreationCount();
   }
@@ -19403,13 +19759,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       else $("creationSource").textContent="设置本次共同测试项目；身体资料和测试背景按各自档案保存。";
     }else{
       const name=$("newAthleteName").value.trim();if(!name){creationError("请填写姓名或编号");$("newAthleteName").focus();return;}
-      creation.profile={name,sex:$("newAthleteSex").value,sport:$("newAthleteSport").value.trim(),dominantHand:$("newAthleteHand").value,sportLevel:$("newAthleteLevel").value.trim()};
+      try{const entered=window.RingsideProfile.read($("creationProfileFields"),{creation:true});creation.profile=entered.profile;creation.groupId=entered.groupId;M.validateAthleteProfile(creation.profile);}catch(error){return creationError(error.message);}
       $("creationSource").textContent=name+" · 首次测试，请选择方案或项目。";
     }
+    try{if(!await prepareCreationContexts(draft)||creation!==draft)return;}catch(error){return creationError(error.message);}
     creation.setupPrepared=true;creation.step="test";$("creationError").hidden=true;renderCreationStep();$("creationTestPlan").focus();
   }
   function creationBack() {
-    if(!creation||creation.submitting)return;creation.evaluationProfileId=$("creationEvaluationProfile").value;creation.step="select";renderCreationStep();
+    if(!creation||creation.submitting)return;captureCreationContext();creation.evaluationProfileId=$("creationEvaluationProfile").value;creation.step="select";renderCreationStep();
   }
   function cancelCreation() {
     if(creation?.submitting)return;
@@ -19435,13 +19792,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     if (!$("creationDate").value || !$("creationDate").validity.valid) return creationError("请填写有效的测试日期");
     if (!Object.values(creation.enabled).some(Boolean)) return creationError("至少选择一个本次测试项目");
     if (creation.enabled.iso && !creation.isoDirectionIds?.length) return creationError("请至少勾选一个等长力量方向");
-    const single = creation.kind === "athlete" || creation.ownerIds.length === 1;
-    if(single) for(const [id,label] of [["creationAge","年龄"],["creationMass","体重"],["creationHeight","身高"]]) if(!$(id).validity.valid)return creationError("请核对本次"+label);
+    try{captureCreationContext();for(const owner of creationOwners()){
+      const context=creation.contexts[owner.id];context.athlete.date=$("creationDate").value;M.applyAge(context,owner.profile.birthDate||"");M.validateAthleteContext(context);
+      for(const key of ["age","mass","height"]){const error=M.validateField(context,"athlete."+key,context.athlete[key]);if(error)throw Error(owner.name+"："+error);}
+    }}catch(error){return creationError(error.message);}
     if(!library.evaluationProfiles.some(p=>p.id===$("creationEvaluationProfile").value&&!p.disabled))return creationError("请选择在用评价方案");
     creation.submitting=true;refreshCreationCount();lockCreation(true);
     try {
       captureReportUI();saveEditor();if(!await persist())throw Error("当前修改尚未保存");
-      const pendingAthletes=[], owners=creation.kind==="athlete"?[{id:uid(),name:creation.profile.name,profile:copy(creation.profile),sample:false,groupId:"",archived:false,deletedAt:null,records:[]}]:creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived));
+      const pendingAthletes=[], owners=creation.kind==="athlete"?[{id:uid(),name:creation.profile.name,profile:copy(creation.profile),sample:false,groupId:creation.groupId||"",archived:false,deletedAt:null,records:[]}]:creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived));
       if(!owners.length||owners.some(a=>!a))throw Error("请选择有效运动员");
       if(creation.kind==="athlete")pendingAthletes.push(owners[0]);
       const base=M.recordFromCatalog(library.catalog,owners[0].profile,creation.enabled,$("creationDate").value);
@@ -19452,10 +19811,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       const records=[];
       for(const owner of owners){
         const draft=copy(base);draft.athleteId=owner.id;draft.recordId=uid();
-        draft.athlete={...draft.athlete,...copy(owner.profile),date:$("creationDate").value};
-        const priorSummary=M.latestRecord({records:owner.records.filter(r=>!r.deletedAt)}),prior=priorSummary&&await repository.loadRecord(priorSummary.recordId);
-        draft.trainingContext=copy(prior?.trainingContext||draft.trainingContext);
-        for(const [id,key]of [["creationAge","age"],["creationMass","mass"],["creationHeight","height"]])draft.athlete[key]=single?($(id).value===""?"":Number($(id).value)):(prior?.athlete[key]??"");
+        const context=creation.contexts[creation.kind==="athlete"?"new":owner.id];
+        draft.athlete={...draft.athlete,...M.profileFromRecord(owner.profile),...copy(context.athlete),date:$("creationDate").value};
+        delete draft.athlete.experienceYears;
+        for(const key of ["age","mass","height"])if(draft.athlete[key]!=="")draft.athlete[key]=Number(draft.athlete[key]);
+        draft.trainingContext={...draft.trainingContext,...copy(context.trainingContext)};M.applyAge(draft,owner.profile.birthDate||"");
         records.push(draft);
       }
       entrySession=window.RingsideEntrySession.create(records,{origin:{mode:creation.returnMode,tab:creation.returnTab,athleteId:creation.returnAthleteId,recordId:creation.returnRecordId},pendingAthletes});
@@ -19567,6 +19927,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     return `<details class="supplement"><summary>${E(label)}</summary><textarea data-path="${E(path)}" rows="2">${E(value)}</textarea></details>`;
   }
   function setPath(path, value) {
+    if (libraryTransferActive || (path === "athlete.age" && state.athlete.birthDate)) return;
     const undo = undoDeletes.get(state.recordId),
       rowIndex = path.match(/^data\.iso\.(\d+)\./);
     if (
@@ -19584,6 +19945,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       obj = obj[part];
     }
     obj[ps.at(-1)] = value;
+    if (path === "athlete.date") M.applyAge(state);
+    if (path === "athlete.date" || /CompetitionDate$/.test(path)) window.RingsideContextUI.refresh(state,$("entryContent"));
     if (/^definitions\.\d+\.category$/.test(path)) {
       const testId = state.definitions[Number(ps[1])].testId;
       state.definitions
@@ -19821,7 +20184,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     if (!state) return;
     renderAIStatus();
     const n = state.narrative,
-      stale = n.text && n.basis !== recordBasis();
+      stale = n.text && n.basis !== recordBasis() && !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId));
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
@@ -20050,81 +20413,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     let h = "";
     if (entryTab === "athlete" || entryTab === "plan") h += `<div class="record-evaluation"><label class="field"><span>共用评价方案</span><select id="recordEvaluationSelect" onchange="App.assignRecordProfile(this.value)">${library.evaluationProfiles.filter(p=>!p.disabled||p.id===state.evaluationProfileId).map(p=>`<option value="${E(p.id)}" ${p.id===state.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("")}</select></label><button class="btn small" onclick="App.viewEvaluation()">查看生效标准</button></div>`;
     if (entryTab === "athlete") {
-      const a = state.athlete;
-      h +=
-        '<div class="form-grid">' +
-        field("姓名 / 编号", input("athlete.name", a.name, { type: "text" })) +
-        field("年龄", input("athlete.age", a.age, { max: 100 })) +
-        field("性别", select("athlete.sex", a.sex, ["未注明", "男", "女"])) +
-        field("体重 kg", input("athlete.mass", a.mass)) +
-        field("身高 cm", input("athlete.height", a.height)) +
-        field("测试日期", input("athlete.date", a.date, { type: "date" })) +
-        field(
-          "专项",
-          input("athlete.sport", a.sport, { type: "text" }).replace(
-            "<input ",
-            '<input list="sportOptions" ',
-          ),
-        ) +
-        field(
-          "惯用手",
-          select("athlete.dominantHand", a.dominantHand, [
-            "未注明",
-            "右手",
-            "左手",
-            "双手",
-          ]),
-        ) +
-        field(
-          "水平 / 级别",
-          input("athlete.sportLevel", a.sportLevel, { type: "text" }),
-        ) +
-        field("训练周期", input("athlete.cycle", a.cycle, { type: "text" })) +
-        field(
-          "既往损伤与当前症状",
-          `<textarea data-path="athlete.injury">${E(a.injury)}</textarea>`,
-          true,
-        ) +
-        field(
-          "补充说明",
-          `<textarea data-path="athlete.notes">${E(a.notes)}</textarea>`,
-          true,
-        ) +
-        "</div>" +
-        (state.athlete.stance
-          ? `<p class="note">历史拳击站架：${E(state.athlete.stance)}。惯用手需单独填写。</p>`
-          : "") +
-        previousBackground() +
-        '<h4 class="subheading">训练背景</h4><div class="form-grid">' +
-        field(
-          "抗阻训练年限",
-          input(
-            "trainingContext.experienceYears",
-            state.trainingContext.experienceYears,
-          ),
-        ) +
-        field(
-          "每周体能训练次数",
-          input(
-            "trainingContext.weeklySessions",
-            state.trainingContext.weeklySessions,
-            { max: 14, step: 1 },
-          ),
-        ) +
-        field(
-          "可用器械",
-          input("trainingContext.equipment", state.trainingContext.equipment, {
-            type: "text",
-            placeholder: "如：自重、弹力带、哑铃、杠铃、药球、跑道",
-          }),
-          true,
-        ) +
-        field(
-          "现有周训练安排",
-          `<textarea data-path="trainingContext.weeklySchedule">${E(state.trainingContext.weeklySchedule)}</textarea>`,
-          true,
-        ) +
-        "</div>";
+      const profile = activeAthlete()?.profile || state.athlete;
+      h += `<div class="record-evaluation"><div><b>${E(profile.name || state.athlete.name)}</b><p class="note">${[profile.sport, profile.sex, profile.birthDate ? "出生日期 " + profile.birthDate : "", profile.sportLevel].filter(Boolean).map(E).join(" · ")}</p>${profile.injuryHistory ? `<p class="note">相关既往伤病：${E(profile.injuryHistory)}</p>` : ""}${profile.experienceYears !== "" && profile.experienceYears != null ? `<p class="note">抗阻训练年限：${E(profile.experienceYears)} 年</p>` : ""}</div><button type="button" class="btn small" onclick="App.editCurrentAthlete()">编辑运动员档案</button></div>`;
+      const priorSummary = previousRecordSummary();
+      h += previousBackground() + window.RingsideContextUI.render(state, {source:priorSummary});
     } else if (entryTab === "plan")
       h +=
         '<p class="intro">选择本次项目。停用保留已有数据，当前报告只计算已选项目。</p>' +
@@ -20434,14 +20726,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
   function regionOptions() {
     return [["","未指定"],...Object.entries(M.REG).flatMap(([key,label])=>["neck","trunk"].includes(key)?[[key,label]]:[[key+"_l","左"+label],[key+"_r","右"+label]])];
   }
-  function previousBackground() {
+  function previousRecordSummary() {
     const a = activeAthlete(),
-      records = a.records.filter(
+      records = (a?.records || []).filter(
         (r) =>
           r.recordId !== state.recordId &&
           (r.athlete.date || "") <= (state.athlete.date || ""),
       );
-    const prior = M.latestRecord({ records });
+    return M.latestRecord({ records });
+  }
+  function previousBackground() {
+    const prior = previousRecordSummary();
     if (!prior) return "";
     return `<details class="supplement"><summary>查看上次背景 · ${E(prior.athlete.date)}</summary><p class="note">${
       [
@@ -20455,6 +20750,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
         .map(([k, v]) => E(k + "：" + v))
         .join("；") || "上次未填写背景"
     }</p></details>`;
+  }
+  async function reusePreviousTraining() {
+    const prior = previousRecordSummary(); if(!prior)return;
+    const target = state, source = await repository.loadRecord(prior.recordId);
+    if(state!==target||!source)return;
+    for(const key of ["equipment","weeklySchedule","weeklySessions"])state.trainingContext[key]=source.trainingContext?.[key]??"";
+    changed(false);renderEntry();
   }
   function startEntry() {
     const first = orderedEntryProjects()[0];
@@ -21481,9 +21783,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
         level: state.athlete.sportLevel,
         cycle: state.athlete.cycle,
         injury: state.athlete.injury,
+        injuryHistory: state.athlete.injuryHistory || "",
         notes: state.athlete.notes,
       },
       trainingContext: copy(state.trainingContext),
+      competition: M.competitionContext(state),
       evaluationPolicy: "仅 referenceEnabled 为 true 的目标和区间可用于达标判断；未启用评价的测量仍可用于描述、指标间比较和训练安排。时间点力的百分比评价须使用evaluationValue与evaluationUnit，不得将N数值直接与%PF目标比较。",
       fms: s.raw.fms?.items || [],
       jumps: { cmj: s.raw.cmj, sj: s.raw.sj, dj:s.raw.dj, hop:s.raw.hop, cmrj:s.raw.cmrj },
@@ -22094,7 +22398,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
   async function importPayload(parsed, conflictChoice = "merge") {
     return runLibraryTransfer(async()=>{
     const incoming=window.RingsideEvaluation.migrate(parsed);
-    if (!await persist()) throw Error("当前修改尚未保存");
+    if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
     const result=await repository.importLibrary(incoming,{merge:conflictChoice!=="replace-library"});
     cancelJob(); await loadDirectory(false);
     const importedRecord=incoming.activeRecordId && await repository.loadRecord(result.recordMap[incoming.activeRecordId]||incoming.activeRecordId);
@@ -22103,14 +22407,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
       state = M.normalizeRecord(upgrade.record || importedRecord);
       library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;
       if (upgrade.changed) await repository.save(library, [state]);
-      recordBaselines.set(state.recordId,recordContent(state));await persist();
+      recordBaselines.set(state.recordId,recordContent(state));await persist({duringTransfer:true});
     }
     ui.mode="report"; renderReport(false);renderWorkspace();return result;
     });
   }
   async function importBackup(file, merge = false) {
     return runLibraryTransfer(async()=>{
-    if (!await persist()) throw Error("当前修改尚未保存");
+    if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
     const result=await repository.importRows(window.RingsideStore.fileRows(file),{merge,onProgress:n=>toast("正在校验与导入 "+n+" 条测试")});
     cancelJob();await loadDirectory(false);ui.mode="management";window.RingsideManagement.open("athletes");renderReport(false);renderWorkspace();return result;
     });
@@ -22303,7 +22607,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
   window.App = {
     openEntry,
     openManagement, openManagedRecord, effectiveRecord, recordBasis,
-    saveLibraryChanges, loadDirectory, renderSelectors, downloadLegacyLibrary, importBackup,
+    saveLibraryChanges, updateAthleteProfile, updateRecordDate, loadDirectory, renderSelectors, downloadLegacyLibrary, importBackup,
+    getAthlete(id) { return library?.athletes.find(athlete=>athlete.id===id)||entrySession?.pendingAthletes.find(athlete=>athlete.id===id); },
     getRepository: () => repository,
     async assignRecordProfile(id) { if (!state || !library.evaluationProfiles.some(p=>p.id===id)) return; state.evaluationProfileId=id;cancelJob();await persist();renderReport();renderEntry(); },
     viewEvaluation() { if(state) window.RingsideManagement.showEffective(effectiveRecord(),library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)); },
@@ -22311,8 +22616,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP 的 imbalance 
     downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
     refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
     saveNow: persist,
-    async loadDemo() { return importPayload(M.recordEnvelope(M.sampleRecord())); },
     creationNext,
+    selectCreationContext, creationDateChanged, creationContextInput, reuseCreationTraining, reusePreviousTraining,
+    editCurrentAthlete() { const owner=activeAthlete();if(owner)window.RingsideManagement.editAthlete(owner.id); },
     downloadExcelTemplate, importExcelFile, commitExcel, showExcelRecord, selectEntryAthlete,
     creationBack,
     submitCreation,

@@ -53,6 +53,7 @@ const subset = record => ({recordId:record.recordId, athleteId:record.athleteId,
   let people, firstId, secondId, firstSnapshot, expectedRecords, backup, filled, excelTargets;
   try {
     await page.goto(pathToFileURL(file).href); await ready(page);
+    await page.evaluate(()=>App.importPayload(RingsideModel.libraryDefaults(),"replace-library"));
     await check("manual batch creates stable isolated drafts while athlete metadata and FVP setup stay unmeasured", async () => {
       people = await page.evaluate(async () => [await App.createAthlete("FVP 隔离甲（模拟）"), await App.createAthlete("FVP 隔离乙（模拟）")]); await start(people);
       const options = await page.locator("#entryAthleteSelect option").evaluateAll(nodes => nodes.map(node => ({id:node.value, name:node.textContent})));
@@ -119,6 +120,7 @@ const subset = record => ({recordId:record.recordId, athleteId:record.athleteId,
       await page.evaluate(() => App.showReport()); await start(people); const pending = page.waitForEvent("download"); await page.getByRole("button", {name:"下载 Excel 模板", exact:true}).click(); const download = await pending;
       const target = path.join(out, channel + "-new-fvp-template.xlsx"); await download.saveAs(target); artifact(target, "fvp-template"); const book = new ExcelJS.Workbook(); await book.xlsx.load(fs.readFileSync(target));
       const metadata = book.getWorksheet("本次测试"), mc = columns(metadata); excelTargets = Array.from({length:metadata.rowCount - 2}, (_, index) => ({recordId:metadata.getCell(index + 3, mc.recordId).value, athleteId:metadata.getCell(index + 3, mc.athleteId).value}));
+      for (let row = 3; row <= metadata.rowCount; row++) metadata.getCell(row, mc.mass).value = metadata.getCell(row, mc.athleteId).value === people[0] ? 75 : 77;
       assert.deepEqual(excelTargets.map(value => value.athleteId).sort(), [...people].sort()); assert.ok(excelTargets.every(value => ![firstId, secondId].includes(value.recordId))); assert.equal((await records()).length, 2);
       const sheets = book.worksheets.filter(sheet => /SJ F|CMJ F/.test(sheet.name)); assert.equal(sheets.length, 2);
       for (const sheet of sheets) {

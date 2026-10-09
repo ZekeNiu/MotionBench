@@ -33,7 +33,7 @@ async function check(id, fn) {
   browser = await chromium.launch({ channel, headless: true });
   const context = await browser.newContext({ offline: true, acceptDownloads: true, viewport: { width: 1440, height: 1100 }, locale: "zh-CN" });
   page = await context.newPage(); page.on("pageerror", error => result.errors.push(error.message));
-  await page.goto(pathToFileURL(file).href); await page.evaluate(() => App.ready); await page.evaluate(() => App.loadDemo());
+  await page.goto(pathToFileURL(file).href); await page.evaluate(() => App.ready); await page.evaluate(() => App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord())));
   await check("IMTP-single-and-repeated-share-desktop-columns-and-stack-at-content-breakpoint", async () => {
     const layouts = [];
     for (const count of [1, 3]) {

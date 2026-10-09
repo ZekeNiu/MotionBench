@@ -45,7 +45,7 @@ async function download(action, id, extension) {
   browser = await chromium.launch({ channel, headless: true });
   context = await browser.newContext({ offline: true, acceptDownloads: true, viewport: { width: 1440, height: 1000 }, locale: "zh-CN" });
   page = await context.newPage(); page.on("pageerror", error => result.errors.push(error.message));
-  await page.goto(pathToFileURL(file).href); await page.evaluate(() => App.ready); await page.evaluate(() => App.loadDemo());
+  await page.goto(pathToFileURL(file).href); await page.evaluate(() => App.ready); await page.evaluate(() => App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord())));
 
   await check("desktop-repeat-tables-share-column-edges-and-mobile-remains-contained", async () => {
     const layouts = [];
@@ -117,7 +117,7 @@ async function download(action, id, extension) {
     }
     const mobile = await browser.newContext({ offline: true, isMobile: true, hasTouch: true, viewport: { width: 390, height: 500 } });
     try {
-      const touchPage = await mobile.newPage(); await touchPage.goto(pathToFileURL(file).href); await touchPage.evaluate(() => App.ready); await touchPage.evaluate(() => App.loadDemo());
+      const touchPage = await mobile.newPage(); await touchPage.goto(pathToFileURL(file).href); await touchPage.evaluate(() => App.ready); await touchPage.evaluate(() => App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord())));
       const target = touchPage.locator('[data-body-detail][data-region="neck"]'); await target.scrollIntoViewIfNeeded();
       await target.tap(); assert.equal(await touchPage.locator("#bodyRegionTooltip").isVisible(), true);
       await target.tap(); assert.equal(await touchPage.locator("#bodyRegionTooltip").isVisible(), false);

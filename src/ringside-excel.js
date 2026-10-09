@@ -188,7 +188,7 @@
     requireExcel();
     if (!Array.isArray(records) || !records.length || records.length > 300) throw Error("请选择 1–300 名已有运动员");
     const ids = new Set(); records = records.map(input => {
-      const record = M.normalizeRecord(clone(input)); M.validateRecord(record);
+      const record = M.normalizeRecord(clone(input)); M.applyAge(record); M.validateRecord(record);
       if (!safe(record.athleteId) || !safe(record.recordId) || ids.has(record.recordId)) throw Error("运动员或目标测试编号无效 / 重复");
       if (!selectedTests(record).length) throw Error("请至少选择一个测试项目");
       ids.add(record.recordId); return record;
@@ -225,7 +225,9 @@
         const row = ws.addRow(effectiveFields.map(f => writeValue(get(data,f.key),forValue(f))));
         row.alignment = {vertical:"middle",wrapText:true}; row.height=28;
         effectiveFields.forEach((f,i) => {
-          const cell=row.getCell(i+1); cell.protection={locked:i<3};
+          const ageReference = spec.kind === "metadata" && f.key === "age" && !!record.athlete.birthDate;
+          const cell=row.getCell(i+1); cell.protection={locked:i<3 || ageReference};
+          if (ageReference) cell.note = "根据生日与测试日期自动计算；修改测试日期后，导入时会更新年龄。";
           if (i<3) cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF0F3F2"}};
           else cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:row.number%2?"FFF1F8F5":"FFFFFFFF"}};
           if (f.type === "date") cell.numFmt="@";
@@ -236,6 +238,8 @@
       ws.getRow(1).height=42;ws.getRow(1).font={bold:true,color:{argb:"FFFFFFFF"}};
       ws.getRow(1).alignment={vertical:"middle",wrapText:true};ws.getRow(1).fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF245C54"}};
       ws.autoFilter={from:{row:1,column:3},to:{row:Math.max(3,ws.rowCount),column:spec.fields.length}};
+      if (spec.kind === "metadata" && records.some(record => !!record.athlete.birthDate))
+        await ws.protect("", {selectLockedCells:true,selectUnlockedCells:true,autoFilter:true});
     }
     const info = book.addWorksheet("_MotionBench",{state:"veryHidden"});
     const manifest = {format:"motionbench-test-template",schema:1,templateId,records:records.map(blankRecord)};
@@ -310,7 +314,8 @@
       for(const [key,col]of columns)if(!spec.fields.some(f=>f.key===key))issue(errors,ws,2,col,"未知字段："+key);
       for(let i=3;i<=ws.rowCount;i++){
         const excelRow=ws.getRow(i);if(!excelRow.values.some(v=>!empty(v)))continue;
-        const row={};for(const f of spec.fields)put(row,f.key,cellValue(excelRow.getCell(columns.get(f.key)),f,errors));
+        const templateEntry = byId.get(String(excelRow.getCell(columns.get("recordId")).value || ""));
+        const row={};for(const f of spec.fields)put(row,f.key,spec.kind === "metadata" && f.key === "age" && templateEntry?.record.athlete.birthDate ? templateEntry.record.athlete.age : cellValue(excelRow.getCell(columns.get(f.key)),f,errors));
         const entry=byId.get(row.recordId),record=entry?.record;
         if(!record||row.athleteId!==record.athleteId||row.name!==identity(record).name){issue(errors,ws,i,columns.get("name"),"运动员 / 测试编号与模板不符；请勿改名或复制其他人的编号");continue;}
         if(spec.id&&!record.enabled[spec.id]){issue(errors,ws,i,columns.get("name"),"该运动员未选择此项目");continue;}
@@ -413,6 +418,7 @@
         else record.data[test.id]=holders;
       }
       try {
+        M.applyAge(record);
         const walk=(value,path="")=>{if(value&&typeof value==="object"){for(const [key,child]of Object.entries(value))walk(child,path?path+"."+key:key);return;}const message=M.validateField(record,path,value);if(message){const location=entry.locations.get(path);issue(errors,location?.sheet,location?.row,location?.column,record.athlete.name+"："+message+"（"+path+"）");}};
         walk(record);
         M.validateRecord(record);
@@ -447,6 +453,10 @@
       const incoming=clone(item.record),previous=existing.get(incoming.recordId),owner=owners.get(incoming.athleteId);
       if(!owner||owner.deletedAt||owner.archived){issue(errors,null,0,0,incoming.athlete.name+"：运动员不在当前在用档案中");continue;}
       if(previous&&(previous.athleteId!==incoming.athleteId||previous.deletedAt||previous.archived)){issue(errors,null,0,0,incoming.athlete.name+"：目标记录不属于此运动员或已归档 / 删除");continue;}
+      try {
+        M.applyAge(incoming, owner.profile?.birthDate ?? previous?.athlete.birthDate ?? incoming.athlete.birthDate);
+        M.validateAthleteContext(incoming);
+      } catch (error) { issue(errors,null,0,0,incoming.athlete.name+"："+error.message); continue; }
       const current=previous||M.recordFromCatalog(catalog,owner.profile,incoming.enabled,incoming.athlete.date);
       const projects=selectedTests(incoming).map(test=>{
         const catalogTest=catalog.tests.find(t=>t.id===test.id);
@@ -469,6 +479,7 @@
       if(!entry.existing&&!entry.projects.some(p=>p.hasIncoming)&&!hasSharedMeasurement){skipped.push({recordId:entry.recordId,name:entry.name,reason:"未填写测试数据"});continue;}
       record.athleteId=entry.athleteId;record.recordId=entry.recordId;
       if(!entry.existing||decision.metadata==="replace")for(const f of metaFields)record.athlete[f.key]=incoming.athlete[f.key];
+      M.applyAge(record, incoming.athlete.birthDate);
       for(const project of chosen){
         const id=project.id;record.enabled[id]=true;
         const priorContext=JSON.stringify([record.protocol[id],record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);

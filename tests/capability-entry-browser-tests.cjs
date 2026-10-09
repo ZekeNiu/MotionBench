@@ -69,7 +69,7 @@ function originalDemo() {
    const saved=await page.evaluate(()=>App.getState());assert.equal(saved.demoRevision,undefined);assert.equal(Number(saved.data.cmj[0].height),99);assert.equal(saved.narrative.text,'用户自己的说明');assert.equal(saved.data.cpet.vo2,'');
   });
   await check("synthetic demo displays all four cards with its own training goals",async()=>{
-   await page.evaluate(()=>App.loadDemo());await page.evaluate(()=>App.showReport());assert.deepEqual(await page.locator('[data-capability-card]').evaluateAll(els=>els.map(el=>el.dataset.capabilityCard)),['strength','reactive','speed','cardio']);assert.equal(await page.locator('[data-overview-metric="srr"]').count(),1);assert.equal(await page.locator('[data-overview-metric="asr"]').count(),0);assert.doesNotMatch(await page.locator('#reportView').innerText(),/跳高|缺项保持空白|录入 CMJ 冲量|录入 IMTP 冲量/);await shot('all-four-demo');
+   await page.evaluate(()=>App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord())));await page.evaluate(()=>App.showReport());assert.deepEqual(await page.locator('[data-capability-card]').evaluateAll(els=>els.map(el=>el.dataset.capabilityCard)),['strength','reactive','speed','cardio']);assert.equal(await page.locator('[data-overview-metric="srr"]').count(),1);assert.equal(await page.locator('[data-overview-metric="asr"]').count(),0);assert.doesNotMatch(await page.locator('#reportView').innerText(),/跳高|缺项保持空白|录入 CMJ 冲量|录入 IMTP 冲量/);await shot('all-four-demo');
   });
   assert.deepEqual(result.errors,[]);result.pass=true;
  }catch(error){result.failure=error.stack;console.error(error.stack);process.exitCode=1;if(page)await shot('failure').catch(()=>{});}

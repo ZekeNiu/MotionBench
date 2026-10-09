@@ -249,13 +249,10 @@
     formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
   }
   function editAthlete(id="") {
-    const a=lib().athletes.find(a=>a.id===id),p=a?.profile||{};
-    showForm(a?"编辑运动员资料":"新建运动员",`<div class="form-grid">${field("姓名 / 编号",`<input name="name" required maxlength="100" value="${esc(p.name||a?.name||"")}">`)}${field("队伍 / 训练组",`<select name="groupId">${groupOptions(a?.groupId)}</select>`)}${field("专项",`<input name="sport" maxlength="100" value="${esc(p.sport)}" list="sportOptions">`)}${field("性别",`<select name="sex">${["未注明","男","女"].map(v=>option(v,v,p.sex||"未注明")).join("")}</select>`)}${field("惯用手",`<select name="dominantHand">${["未注明","右手","左手","双手"].map(v=>option(v,v,p.dominantHand||"未注明")).join("")}</select>`)}${field("级别",`<input name="sportLevel" maxlength="100" value="${esc(p.sportLevel)}">`)}</div>`,async form=>{
-      const data=Object.fromEntries(new FormData(form));if(!data.name.trim())throw Error("请填写姓名或编号");
-      const profile={...p,name:data.name.trim(),sport:data.sport.trim(),sex:data.sex,dominantHand:data.dominantHand,sportLevel:data.sportLevel.trim()};
-      if(a){a.profile=profile;a.name=profile.name;a.groupId=data.groupId;a.updated=now();}
-      else lib().athletes.push({id:uid(),name:profile.name,profile,groupId:data.groupId,archived:false,deletedAt:null,sample:false,updated:now(),records:[]});
-      await App.saveLibraryChanges();
+    const a=lib().athletes.find(a=>a.id===id)||(id?App.getAthlete?.(id):null),p=a?.profile||{};
+    showForm(a?"编辑运动员资料":"新建运动员",root.RingsideProfile.render({...p,name:p.name||a?.name||""},{groups:lib().groups,groupId:a?.groupId||""}),async form=>{
+      const {profile,groupId}=root.RingsideProfile.read(form);
+      await App.updateAthleteProfile(id,{...p,...profile},groupId);
     });
   }
   function groups() {
@@ -346,7 +343,7 @@
     if(name==="athlete-records"){const a=lib().athletes.find(a=>a.id===id);filters.records={...filter(),q:a.id,page:1,status:"all",from:"",to:"",test:""};return App.openManagement("records");}
     if(name==="report"||name==="entry"){const a=lib().athletes.find(a=>a.records.some(r=>r.recordId===id));return App.openManagedRecord(a.id,id,name==="entry");}
     if(name==="edit-record"){
-      const r=await App.getRepository().loadRecord(id);return showForm("测试名称与日期",field("名称",`<input name="title" maxlength="100" value="${esc(r.title)}">`)+field("测试日期",`<input type="date" name="date" value="${esc(r.athlete.date)}" required>`),async form=>{const data=new FormData(form);r.title=data.get("title").trim();r.athlete.date=data.get("date");r.updated=now();await App.saveLibraryChanges([r]);});
+      const r=await App.getRepository().loadRecord(id);return showForm("测试名称与日期",field("名称",`<input name="title" maxlength="100" value="${esc(r.title)}">`)+field("测试日期",`<input type="date" name="date" value="${esc(r.athlete.date)}" required>`),async form=>{const data=new FormData(form);await App.updateRecordDate(id,data.get("date"),{title:data.get("title").trim()});});
     }
     if(name==="groups")return groups();
     if(name==="group-new"||name==="group-edit")return editTeam(id);

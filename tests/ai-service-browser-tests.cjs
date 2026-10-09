@@ -10,7 +10,7 @@ fs.mkdirSync(out,{recursive:true});
   page.on("pageerror",e=>result.errors.push(e.message));
   await page.goto(pathToFileURL(file).href);
   assert.equal(await page.evaluate(()=>App.ready),true);
-  await page.evaluate(()=>App.loadDemo());
+  await page.evaluate(()=>App.importPayload(RingsideModel.recordEnvelope(RingsideModel.sampleRecord())));
   await page.evaluate(()=>{const r=App.getState();r.narrative={text:"保留教练原稿",html:"<p>保留教练原稿</p>",revision:1};App.openEntry("narrative");});
   await page.locator("[data-ai-generate]").click();
   assert.equal(await page.locator("#aiProgress").getAttribute("data-state"),"error");
