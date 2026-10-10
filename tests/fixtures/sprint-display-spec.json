@@ -1,0 +1,23 @@
+{
+  "synthetic": true,
+  "fixtureVersion": 1,
+  "baseFixture": "tests/fixtures/three-fvp-regions.json",
+  "baseFixtureSha256": "7698e3bce363614da67df19b560393aeffd607057fc92b2a1435c3b85a7c73ad",
+  "recordId": "sprint-display-synthetic-record",
+  "athleteId": "sprint-display-synthetic-athlete",
+  "massKg": 75,
+  "heightCm": 180,
+  "splits": [
+    {"distanceM": 5, "timeS": 1.365540650},
+    {"distanceM": 10, "timeS": 2.115124657},
+    {"distanceM": 15, "timeS": 2.730824962},
+    {"distanceM": 20, "timeS": 3.366550575},
+    {"distanceM": 25, "timeS": 3.923491664},
+    {"distanceM": 30, "timeS": 4.516234883}
+  ],
+  "confidence": {"methodVersion": "sprint-fvp-pointwise-delta-v1", "level": 0.95, "n": 6, "df": 4},
+  "legacyExcel": [
+    {"path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema1.xlsx", "sha256": "3a08f2de5b2a2bd4e2d69c25a63dcc803fd274da829c82f7c387510b1ee4f6bc"},
+    {"path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema2.xlsx", "sha256": "943244f8d9139f4bc3251642c895aa03feaec3c63e0f3816af2ae1bdbac57ef0"}
+  ]
+}

@@ -22,6 +22,7 @@
   const field = (key, label, type = "number", choices) => ({key, label, type, ...(choices ? {choices} : {})});
   const text = (key, label, choices) => field(key, label, "text", choices);
   const bool = (key, label) => field(key, label, "boolean", ["否", "是"]);
+  const settingValue=(record,f)=>f.key.startsWith("sprintFvpView.")?get(M.normalizeSprintFvpView(record.sprintFvpView),f.key.slice("sprintFvpView.".length)):get(record,f.key);
   function choiceLabels(f) {
     const key=f.key.split(".").at(-1);
     if(key==="inputMode")return {summary:"设备汇总",jumps:"逐跳"};
@@ -92,6 +93,10 @@
       rows.push(text(config + "device", "冲刺计时设备"), field(config + "heightCm", "模型身高 cm（留空沿用运动员身高）"), field(config + "temperatureC", "温度 °C"), field(config + "pressureHpa", "气压 hPa"), field(config + "windMps", "风速 m/s（顺风为正）"));
       rows.push(text(config + "inputTimeMode", "原始时间方式", ["cumulative", "interval"]), text(config + "timingStart", "计时起点", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), text(config + "startConvention", "原始计时起点标记", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), field(config + "timeCorrectionS", "确定的累计时间修正 s"), field(config + "positionStartM", "空间起点距出发线 m"), field(analysis + "targetDistanceM", "专项目标距离 m（留空跟随末段）"));
       rows.push(text(config + "methodVersion", "计算方法版本"), field(config + "sampleStepS", "采样步长 s"), field(config + "rfAfterS", "RF 起始时间 s（严格大于）"), text(config + "samplingWindow", "采样终点依据"));
+      for(const [key,label] of [["fv","显示 F–V 曲线"],["pv","显示 P–V 曲线"],["optimum","显示目标距离最优曲线"]])rows.push(bool("sprintFvpView."+key,label));
+      rows.push(bool("sprintFvpView.confidence","显示近似 95% 拟合均值区间"));
+      rows.push(text("sprintFvpView.confidenceMethodVersion","近似区间方法版本"),field("sprintFvpView.confidenceLevel","近似区间水平"));
+      for(const [key,label] of [["F0","力量端 F₀"],["V0","速度端 V₀"],["Pmax","最大功率 Pmax"],["F0Absolute","力量端 F₀ · 绝对"],["PmaxAbsolute","最大功率 Pmax · 绝对"],["slope","剖面斜率 SFV"],["RFmax","RF max"],["DRF","DRF"],["Vmax","速度模型渐近值 Vmax"],["endVelocity","终点速度"],["Vopt","峰值功率对应速度 Vopt"]])rows.push(bool("sprintFvpView.metrics."+key,"显示参数 · "+label));
     }
     if (selectedTests(record)[0]?.id === id) rows.push(text("views.capabilitySelections.strength", "力量发展判定指标", ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"]), text("views.capabilitySelections.reactive", "反应力量判定指标", ["dj_rsi","hop_rsi","cmrj_rsi"]), text("views.capabilitySelections.speed", "速度发展判定指标", ["sprint_fvp","srr"]));
     return rows;
@@ -103,7 +108,7 @@
   }
   function projectConditions(previous,incoming,id) {
     if(!previous)return [];
-    const changes=settings(incoming,id).filter(f=>!isSharedSetting(f)&&String(get(previous,f.key)??"")!==String(get(incoming,f.key)??"")).map(f=>change(f,get(previous,f.key),get(incoming,f.key)));
+    const changes=settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)&&String(settingValue(previous,f)??"")!==String(settingValue(incoming,f)??"")).map(f=>change(f,settingValue(previous,f),settingValue(incoming,f)));
     if(id==="iso")for(const direction of isoRows(incoming)){
       const prior=previous.data.iso.find(row=>row.id===direction.id);if(!prior)continue;
       const label=(M.REG[direction.region]||direction.region)+" · "+direction.direction;
@@ -117,6 +122,9 @@
   }
   function blankRecord(input) {
     const record = M.normalizeRecord(clone(input));
+    // A legacy workbook with no display namespace supplies no replacement choices.
+    // Explicit new setting rows may create it later during parsing.
+    if(isSprint(input,"sprint_fvp")&&input.sprintFvpView===undefined)delete record.sprintFvpView;
     record.narrative = M.defaults().narrative;
     record.customValues = {};
     const defaults = M.defaults();
@@ -137,7 +145,9 @@
       const sources = records.filter(r => r.enabled[id]), source = sources[0], descriptor = T.describe(source).find(t => t.id === id);
       if (sources.some(record => canonical(contract(record,id)) !== canonical(contract(source,id)))) throw Error(descriptor.name + " 的字段或单位不一致，请分别下载模板");
       const label = ((index + 1).toString().padStart(2, "0") + "_" + descriptor.name).replace(/[\\/*?:\[\]]/g, "_").slice(0, 26);
-      const add = (kind, suffix, fields) => specs.push({id, name:label + suffix, kind, renderer:descriptor.renderer, fields:prefix.concat(fields)});
+      const rawName=isSprint(source,id)?(source.projectSnapshots||[]).find(test=>test.id===id)?.name||T.builtins.find(test=>test.id===id).name:descriptor.name;
+      const legacyLabel=((index+1).toString().padStart(2,"0")+"_"+rawName).replace(/[\\/*?:\[\]]/g,"_").slice(0,26);
+      const add = (kind, suffix, fields) => specs.push({id, name:label + suffix,...(label!==legacyLabel?{legacyName:legacyLabel+suffix}:{}), kind, renderer:descriptor.renderer, fields:prefix.concat(fields)});
       if (id === "fms") add("fms", "", [field("action", "动作序号"), text("actionName", "动作"), field("left", "左分 0–3"), field("right", "右分 0–3"), field("score", "单项分 0–3"), bool("pain", "疼痛"), text("location", "疼痛位置"), notes]);
       else if (id === "iso") add("iso", "", [text("directionId", "方向编号"), text("directionName", "关节 / 运动方向"), field("attempt", "试次"), field("left", "左侧 / 左向"), field("right", "右侧 / 右向"), field("center", "中线"), text("unit", "力单位", ["N", "kgf", "Nm"]), bool("painLeft", "左侧 / 左向疼痛"), bool("painRight", "右侧 / 右向疼痛"), bool("painCenter", "中线疼痛"), text("directionProtocol", "方向测试条件"), notes]);
       else if (id === "hop" && T.isNative(source,id)) {
@@ -170,7 +180,7 @@
     const fill = value => prefill ? clone(value) : {};
     if (spec.kind === "metadata") { push(Object.fromEntries(metaFields.map(f => [f.key,record.athlete[f.key] ?? ""]))); return result; }
     if (spec.kind === "settings") {
-      for (const test of selectedTests(record)) for (const f of settings(record,test.id)) push({testId:test.id,testName:test.name,fieldId:f.key,fieldName:f.label,value:(!prefill && ["dsi.force","thresholds.lt1","thresholds.lt2"].includes(f.key)) ? "" : get(record,f.key) ?? "",choices:f.choices?.map(value=>displayChoice(f,value)).join(" / ") || (f.type === "number" ? "数值；未知留空" : "文字；可留空")});
+      for (const test of selectedTests(record)) for (const f of settings(record,test.id)) push({testId:test.id,testName:test.name,fieldId:f.key,fieldName:f.label,value:(!prefill && ["dsi.force","thresholds.lt1","thresholds.lt2"].includes(f.key)) ? "" : settingValue(record,f) ?? "",choices:f.choices?.map(value=>displayChoice(f,value)).join(" / ") || (f.type === "number" ? "数值；未知留空" : "文字；可留空")});
       return result;
     }
     if (!record.enabled[spec.id]) return result;
@@ -377,7 +387,20 @@
     if(manifest.schema===2&&(!Array.isArray(manifest.sheets)||manifest.listsSheet!=="_MotionBench_Lists"||JSON.stringify(manifest.recordRefs)!==JSON.stringify(recordReferences(manifest.records))||JSON.stringify(manifest.directionRefs)!==JSON.stringify(directionReferences(manifest.records))))throw Error("模板身份映射损坏，请重新下载模板");
     const targets=new Map(), entries=[];
     for(const raw of manifest.records){M.validateRecord(raw);if(targets.has(raw.recordId))throw Error("模板目标测试编号重复");const record=blankRecord(raw);targets.set(raw.recordId,record);entries.push({record,locations:new Map(),seen:new Set(),groups:new Map(),incoming:new Set(),metadataSeen:false});}
-    const byId=new Map(entries.map(e=>[e.record.recordId,e])),specs=makeSpecs(manifest.records),known=new Set(["填写说明","_MotionBench",...(manifest.schema===2?["_MotionBench_Lists"]:[]),...specs.map(s=>s.name)]);
+    const byId=new Map(entries.map(e=>[e.record.recordId,e])),specs=makeSpecs(manifest.records);
+    if(manifest.schema===2){
+      if(manifest.sheets.length!==specs.length||new Set(manifest.sheets.map(sheet=>sheet?.name)).size!==specs.length)throw Error("模板工作表映射损坏，请重新下载模板");
+      for(const spec of specs){
+        const matches=manifest.sheets.filter(sheet=>sheet?.kind===spec.kind&&sheet?.testId===(spec.id||null));
+        if(matches.length!==1||typeof matches[0].name!=="string"||!matches[0].name)throw Error("模板工作表映射损坏，请重新下载模板");
+        spec.name=matches[0].name;
+      }
+    }else for(const spec of specs)if(spec.legacyName){
+      const matches=[spec.name,spec.legacyName].filter(name=>book.getWorksheet(name));
+      if(matches.length>1)issue(errors,book.getWorksheet(spec.name),1,1,"冲刺FVP工作表名称有歧义，请保留原模板的一张项目表");
+      else if(matches.length===1)spec.name=matches[0];
+    }
+    const known=new Set(["填写说明","_MotionBench",...(manifest.schema===2?["_MotionBench_Lists"]:[]),...specs.map(s=>s.name)]);
     let totalRows=0;
     book.eachSheet(ws=>{
       if(ws.rowCount>100000||ws.columnCount>400)throw Error("工作表超出支持的行列数量");totalRows+=ws.rowCount;
@@ -525,6 +548,7 @@
         else record.data[test.id]=holders;
       }
       try {
+        if(isSprint(record,"sprint_fvp")&&record.sprintFvpView!==undefined)record.sprintFvpView=M.normalizeSprintFvpView(record.sprintFvpView);
         M.applyAge(record);
         const walk=(value,path="")=>{if(value&&typeof value==="object"){for(const [key,child]of Object.entries(value))walk(child,path?path+"."+key:key);return;}const message=M.validateField(record,path,value);if(message){const location=entry.locations.get(path);issue(errors,location?.sheet,location?.row,location?.column,record.athlete.name+"："+message+"（"+path+"）");}};
         walk(record);
@@ -598,8 +622,9 @@
           const next=[...new Set([...isoRows(record).map(r=>r.id),...selected.map(r=>r.id)])];
           if(M.setIsoDirectionSelection)M.setIsoDirectionSelection(record,next);else record.isoDirectionIds=next;
         }else record.data[id]=clone(incoming.data[id]);
+        if(isSprint(incoming,id)&&incoming.sprintFvpView!==undefined)record.sprintFvpView=M.normalizeSprintFvpView({...record.sprintFvpView,...incoming.sprintFvpView,metrics:{...record.sprintFvpView?.metrics,...incoming.sprintFvpView?.metrics}});
         for(const d of incoming.definitions.filter(d=>d.testId===id&&T.isManualMetric(d)&&!T.isAttemptMetric(d)))record.customValues[d.id]=clone(incoming.customValues[d.id]||{value:"",notes:""});
-        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)))put(record,f.key,clone(f.nullable && empty(get(incoming,f.key)) ? null : get(incoming,f.key)??""));
+        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)))put(record,f.key,clone(f.nullable && empty(settingValue(incoming,f)) ? null : settingValue(incoming,f)??""));
         if(id==="cmj"){record.cmjConfig=clone(incoming.cmjConfig);record.dsi.cmjUnit=incoming.dsi.cmjUnit;}
         if(id==="imtp")record.imtpConfig=clone(incoming.imtpConfig);
         const nextContext=JSON.stringify([record.protocol[id],record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);

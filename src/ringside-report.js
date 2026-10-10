@@ -108,6 +108,18 @@
   function build(record) {
     const snapshot = JSON.parse(JSON.stringify(record));
     const stats = M.stats(snapshot);
+    const sprintView = M.normalizeSprintFvpView(snapshot.sprintFvpView);
+    let sprintFvpConfidence = null;
+    if (sprintView.confidence === true) {
+      sprintFvpConfidence = global.RingsideSprintFVPConfidence?.evaluate(stats.sprintFvp, { count: 49 })
+        || { available: false, reason: "拟合置信区间模块尚未加载。", band: [], metadata: null };
+      if (sprintFvpConfidence.metadata && (sprintView.confidenceMethodVersion !== sprintFvpConfidence.metadata.version || sprintView.confidenceLevel !== sprintFvpConfidence.metadata.level)) {
+        const reason = "当前保存的置信区间方法或置信水平暂不支持。";
+        sprintFvpConfidence = { ...sprintFvpConfidence, available: false, reason, band: [],
+          metadata: { ...sprintFvpConfidence.metadata, available: false, reason, reasonCode: "unsupported-declaration" },
+          requested: { version: sprintView.confidenceMethodVersion, level: sprintView.confidenceLevel } };
+      }
+    }
     const projects = T.describe(snapshot).filter(
       (test) => snapshot.enabled[test.id],
     );
@@ -127,6 +139,7 @@
     return {
       record: snapshot,
       stats,
+      sprintFvpConfidence,
       isoRadar: M.isoRadar(stats.isoAnalyses, snapshot),
       diagnostics: [],
       projects: results,
@@ -1036,48 +1049,62 @@
     const plots = fvp || sprint ? `<div class="capability-plot-region"><div class="capability-region-heading pdf-group-heading">${E(T.analysisLabel)}</div><div class="quality-group">${fvp}${sprint}</div></div>` : "";
     return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}">${plots}<details class="details-group" id="trainingAnalysisDetail" open><summary>能力发展方向与参数</summary><div class="quality-group"><div class="detail-pair capability-structure-pair" data-capability-analysis data-pdf-pair data-pdf-title="能力发展方向与参数"><div class="capability-directions">${left}</div><div class="detail-data capability-parameter-column"><div class="capability-parameter-groups">${right}</div></div></div></div></details></section>`;
   }
-  function sprintFvpChartData(solved) {
+  function sprintFvpChartData(solved, confidence) {
     const profiles = [], add = (profile, kind, label) => {
       if (profile?.valid && positive(profile.F0) && positive(profile.V0)) profiles.push({ kind, label, F0: profile.F0, V0: profile.V0, Pmax: profile.Pmax });
     };
     add(solved.model, "current", "当前冲刺剖面");
     add(solved.optimum, "optimum", `${F(solved.targetDistanceM, 1)} m 最优`);
-    return { kind: "sprint", id: "sprint_fvp", valid: !!solved.valid, reason: solved.reason, profiles, points: [], band: [] };
+    return { kind: "sprint", id: "sprint_fvp", valid: !!solved.valid, reason: solved.reason, profiles, points: [], band: confidence?.available ? confidence.band : [], confidence: confidence?.metadata || null };
   }
   function renderSprintFVPAnalysis(report, { print = false } = {}) {
     const { record, stats } = report, solved = stats.sprintFvp;
     if (!record.enabled.sprint_fvp || !solved || !(record.data.sprint_fvp || []).some(row => (row.splits || []).some(split => N(split.distanceM) !== null || N(split.timeS) !== null))) return "";
-    const builtin = T.builtins.find(test => test.id === "sprint_fvp"), displayName = report.projects.find(test => test.id === "sprint_fvp")?.name;
-    const title = displayName && displayName !== builtin?.name ? displayName : "分段计时冲刺 F–V/P–V";
-    const model = solved.model || {}, optimal = solved.optimum?.valid ? solved.optimum : {}, graph = sprintFvpChartData(solved), rows = [];
-    const add = (label, current, best, unit, digits = 2) => rows.push([`${E(label)}<small class="fvp-unit">${E(unit)}</small>`, F(current, digits), F(best, digits)]);
+    const project = report.projects.find(test => test.id === "sprint_fvp") || T.builtins.find(test => test.id === "sprint_fvp");
+    const title = T.displayName(project, record) || "冲刺FVP", view = M.normalizeSprintFvpView(record.sprintFvpView);
+    const confidence = report.sprintFvpConfidence;
+    const model = solved.model || {}, optimal = solved.optimum?.valid ? solved.optimum : {}, graph = sprintFvpChartData(solved, confidence), rows = [], keys = [];
+    const metrics = [
+      ["F0", "力量端 F₀"], ["V0", "速度端 V₀"], ["Pmax", "最大功率 Pmax"],
+      ["F0Absolute", "力量端 F₀ · 绝对"], ["PmaxAbsolute", "最大功率 Pmax · 绝对"], ["slope", "剖面斜率 SFV"],
+      ["RFmax", "RF max"], ["DRF", "DRF"], ["Vmax", "速度模型渐近值 Vmax"], ["endVelocity", "终点速度"], ["Vopt", "峰值功率对应速度 Vopt"],
+    ];
+    const add = (key, current, best, unit, digits = 2) => {
+      if (view.metrics[key] === false) return;
+      keys.push(key);
+      rows.push([`${E(metrics.find(([id]) => id === key)[1])}<small class="fvp-unit">${E(unit)}</small>`, F(current, digits), F(best, digits)]);
+    };
     if (solved.valid) {
-      add("力量端 F₀", model.F0, optimal.F0, "N/kg");
-      add("速度端 V₀", model.V0, optimal.V0, "m/s", 3);
-      add("最大功率 Pmax", model.Pmax, optimal.Pmax, "W/kg");
-      add("力量端 F₀ · 绝对", model.F0Absolute, optimal.F0Absolute, "N", 1);
-      add("最大功率 Pmax · 绝对", model.PmaxAbsolute, optimal.PmaxAbsolute, "W", 1);
-      add("剖面斜率 SFV", model.slope, optimal.slope, "(N/kg)/(m/s)", 3);
-      add("RF max", N(model.RFmax) === null ? null : model.RFmax * 100, null, "%", 1);
+      add("F0", model.F0, optimal.F0, "N/kg");
+      add("V0", model.V0, optimal.V0, "m/s", 3);
+      add("Pmax", model.Pmax, optimal.Pmax, "W/kg");
+      add("F0Absolute", model.F0Absolute, optimal.F0Absolute, "N", 1);
+      add("PmaxAbsolute", model.PmaxAbsolute, optimal.PmaxAbsolute, "W", 1);
+      add("slope", model.slope, optimal.slope, "(N/kg)/(m/s)", 3);
+      add("RFmax", N(model.RFmax) === null ? null : model.RFmax * 100, null, "%", 1);
       add("DRF", model.DRF, null, "百分点/(m/s)", 3);
-      add("速度模型渐近值 Vmax", solved.fit?.vmax, null, "m/s", 3);
+      add("Vmax", solved.fit?.vmax, null, "m/s", 3);
       const endVelocity = solved.fit?.vmax > 0 && solved.fit?.tau > 0 ? solved.fit.vmax * (1 - Math.exp(-solved.selected.endTimeS / solved.fit.tau)) : null;
-      add("终点速度", endVelocity, null, "m/s", 3);
-      add("峰值功率对应速度 Vopt", N(model.V0) === null ? null : model.V0 / 2, N(optimal.V0) === null ? null : optimal.V0 / 2, "m/s", 3);
+      add("endVelocity", endVelocity, null, "m/s", 3);
+      add("Vopt", N(model.V0) === null ? null : model.V0 / 2, N(optimal.V0) === null ? null : optimal.V0 / 2, "m/s", 3);
     }
     const follows = N(record.sprintFvpAnalysis?.targetDistanceM) === null;
     const distanceText = positive(solved.targetDistanceM) ? `目标冲刺距离 ${F(solved.targetDistanceM, 1)} m${follows ? " · 跟随当前测试末段" : " · 专项目标"}` : "目标冲刺距离待确定";
-    const controls = print ? "" : `<form class="sprint-target-form no-print" data-sprint-target-form><label>专项目标距离 · m<input type="number" min="0.1" step="any" data-sprint-target-distance aria-label="冲刺 FVP 目标距离" value="${E(record.sprintFvpAnalysis?.targetDistanceM ?? "")}" placeholder="跟随测试末段"></label><button class="btn small" type="submit">保存目标距离</button><button class="btn small" type="button" data-sprint-target-follow>跟随测试末段</button></form>`;
+    const toggle = (key, label) => `<label><input type="checkbox" data-sprint-fvp-view="${key}"${view[key] === true ? " checked" : ""}>${E(label)}</label>`;
+    const controls = print ? "" : `<form class="sprint-target-form no-print" data-sprint-target-form><label>专项目标距离 · m<input type="number" min="0.1" step="any" data-sprint-target-distance aria-label="冲刺FVP 目标距离" value="${E(record.sprintFvpAnalysis?.targetDistanceM ?? "")}" placeholder="跟随测试末段"></label><button class="btn small" type="submit">保存目标距离</button><button class="btn small" type="button" data-sprint-target-follow>跟随测试末段</button></form><div class="fvp-controls no-print">${toggle("fv", "F–V")}${toggle("pv", "P–V")}${toggle("optimum", "目标最优曲线")}${toggle("confidence", "95%拟合置信区间（近似）")}</div><details class="fvp-method no-print" id="sprintFvpDisplaySettings" data-sprint-fvp-display-settings><summary>显示参数</summary><div class="fvp-controls">${metrics.map(([key, label]) => `<label><input type="checkbox" data-sprint-fvp-metric="${key}"${view.metrics[key] !== false ? " checked" : ""}>${E(label)}</label>`).join("")}</div></details>`;
+    const metadata = confidence?.metadata;
+    const confidenceStatus = view.confidence === true ? `<p class="fvp-table-note" data-sprint-fvp-confidence-status data-confidence-available="${confidence?.available === true}" data-confidence-version="${E(metadata?.version)}" data-confidence-n="${E(metadata?.n)}" data-confidence-df="${E(metadata?.df)}" data-sprint-fvp-confidence-meta="${E(JSON.stringify({ ...(metadata || {}), requested: confidence?.requested, available: confidence?.available === true, reason: confidence?.reason || "" }))}">${confidence?.available ? `95%逐点拟合置信区间（近似） · 当前剖面 · n=${E(metadata.n)} · df=${E(metadata.df)}` : E(confidence?.reason || "拟合置信区间待计算。")}</p>` : "";
+    const confidenceMethod = view.confidence === true && metadata ? `<p data-sprint-fvp-confidence-method>95%区间为当前曲线的逐点平均拟合置信区间，使用分段位置拟合残差估计参数协方差并作一阶传播；P–V 区间由同一速度乘力区间得到。近似位置残差独立且同方差，体重、环境、时间与起始位置修正作为固定条件；不含计时误差相关性、系统误差及日间变异，也不是同时置信带或预测区间。n=${E(metadata.n)}，df=${E(metadata.df)}；方法版本 ${E(metadata.version)}。</p>` : "";
     const imbalance = solved.imbalance;
-    const result = solved.valid ? table(["指标", "当前", "距离最优"], rows, [], "fvp-result-table sprint-fvp-result-table")
+    const result = solved.valid ? (rows.length ? table(["指标", "当前", "距离最优"], rows, keys, "fvp-result-table sprint-fvp-result-table") : '<p class="fvp-table-note" data-sprint-fvp-metrics-empty>已隐藏全部显示参数。</p>')
       + (imbalance ? `<div class="fvp-core-judgment"><p><span>FVP 不平衡性</span><strong>${F(imbalance.magnitudePct, 2)}%</strong></p><p>相对最优剖面 ${F(imbalance.profilePct, 2)}% · 100% 为最优</p><p>${E(imbalance.label)}</p></div>` : `<p class="fvp-table-note">${E(solved.optimumReason || "距离最优剖面待计算")}</p>`)
       : `<div class="fvp-empty-result">${E(solved.reason || "录入完整分段计时后计算冲刺剖面。")}</div>`;
     const selected = solved.selected, splits = selected?.fit?.points || selected?.splits || [];
     const fitRows = splits.map(split => [F(split.distanceM, 1), F(split.timeS, 3), F(split.predictedDistanceM, 3), F(split.residualM, 4)]);
     const config = solved.config || record.sprintFvpConfig || {}, conditions = [`${F(solved.mass ?? record.athlete.mass, 1)} kg`, `身高 ${F(solved.heightCm ?? config.heightCm ?? record.athlete.height, 1)} cm`, `${F(config.temperatureC, 1)} °C`, `${F(config.pressureHpa, 1)} hPa`, `风速 ${F(config.windMps, 2)} m/s`].join(" · ");
     const trials = (solved.trials || []).filter(trial => trial.present).flatMap(trial => (trial.inputSplits || trial.splits || []).filter(split => N(split.distanceM) !== null || N(split.timeS) !== null).map((split, index) => [String(trial.index + 1), F(split.distanceM, 1), F(split.timeS, 3), E(trial.excluded ? "已排除" : trial.selected ? "采用" : trial.eligible ? "保留" : trial.reason || "待复核"), index === 0 ? E([trial.notes, trial.exclusionReason].filter(Boolean).join("；")) : ""]));
-    const method = `<details class="fvp-method sprint-fvp-method"><summary>拟合残差、测试条件与方法</summary><p>${E(conditions)}</p><p>${E(solved.selectionBasis || "采用同一完整冲刺试次的分段计时")}${selected ? ` · 第 ${selected.index + 1} 次` : ""}。${config.inputTimeMode === "interval" ? "分段耗时累加为累计时间" : "累计时间输入"}；固定时间修正 ${F(config.timeCorrectionS, 3)} s，起始位置修正 ${F(config.positionStartM, 2)} m。</p>${fitRows.length ? table(["距离 m", "累计时间 s", "拟合距离 m", "残差 m"], fitRows, [], "sprint-fvp-fit-table") : ""}<p>V(t) = Vmax(1 − exp(−t/τ))，x(t) = Vmax[t + τ(exp(−t/τ) − 1)]。τ ${F(solved.fit?.tau, 3)} s；距离残差 RMSE ${F(solved.fit?.rmseM, 4)} m；F–V 回归 R² ${F(model.r2, 4)}。</p><p>水平力由体重×加速度与空气阻力求得，以 0.1 s 采样至当前试次末段时间；RF = F水平/√(F水平² + (mg)²)，RF max 为 t &gt; 0.3 s 样本中的最大值，DRF 为同一窗口 RF–V 回归斜率，以百分点/(m/s)显示。</p><p>V₀ 为 F–V 外推的零力速度；Vmax 为分段速度模型的渐近值；终点速度为测试末段时间的模型值；Vopt = V₀/2 为峰值功率对应速度。</p><p>距离最优剖面由独立冲刺模型在固定 Pmax、体重与空气阻力下求最短目标距离时间。相对最优剖面 = 100·SFV/SFVopt；FVP 不平衡性 = 100·|1 − SFV/SFVopt|。${solved.optimum?.valid && solved.optimum.withinStudySimulation === false ? "当前目标距离或功率超出原研究的模拟范围。" : ""}</p><p><a href="https://doi.org/10.1111/sms.12490" target="_blank" rel="noopener noreferrer">Samozino 等 · 分段计时冲刺力–速度–功率方法（2016）</a> · <a href="https://doi.org/10.1111/sms.14097" target="_blank" rel="noopener noreferrer">Samozino 等 · 距离最优冲刺 F–V（2022）</a></p></details>`;
-    return `<article class="fvp-analysis-card sprint-fvp-analysis" id="detail-sprint_fvp" data-test-ids="sprint_fvp" data-sprint-fvp-panel><div class="fvp-analysis-heading test-title"><div><h3>${E(title)}</h3><p class="sprint-target-summary">${E(distanceText)}</p></div></div>${controls}<div class="detail-pair sprint-fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="sprintFvp" data-chart-input="${E(JSON.stringify([graph, {}]))}">${V.sprintFvp(graph)}</div><div class="detail-data">${result}</div></div>${method}${trials.length ? `<details class="fvp-raw-trials" data-raw-trials="sprint_fvp" data-trial-title="冲刺 FVP · 原始录入分段"><summary>冲刺 FVP · 原始录入分段</summary>${table(["试次", "录入距离 m", "录入时间 s", "采用情况", "备注"], trials, [], "repeat-raw-table")}</details>` : ""}</article>`;
+    const method = `<details class="fvp-method sprint-fvp-method"><summary>拟合残差、测试条件与方法</summary><p>${E(conditions)}</p><p>${E(solved.selectionBasis || "采用同一完整冲刺试次的分段计时")}${selected ? ` · 第 ${selected.index + 1} 次` : ""}。${config.inputTimeMode === "interval" ? "分段耗时累加为累计时间" : "累计时间输入"}；固定时间修正 ${F(config.timeCorrectionS, 3)} s，起始位置修正 ${F(config.positionStartM, 2)} m。</p>${fitRows.length ? table(["距离 m", "累计时间 s", "拟合距离 m", "残差 m"], fitRows, [], "sprint-fvp-fit-table") : ""}<p>V(t) = Vmax(1 − exp(−t/τ))，x(t) = Vmax[t + τ(exp(−t/τ) − 1)]。τ ${F(solved.fit?.tau, 3)} s；距离残差 RMSE ${F(solved.fit?.rmseM, 4)} m；F–V 回归 R² ${F(model.r2, 4)}。</p><p>水平力由体重×加速度与空气阻力求得，以 0.1 s 采样至当前试次末段时间；RF = F水平/√(F水平² + (mg)²)，RF max 为 t &gt; 0.3 s 样本中的最大值，DRF 为同一窗口 RF–V 回归斜率，以百分点/(m/s)显示。</p><p>V₀ 为 F–V 外推的零力速度；Vmax 为分段速度模型的渐近值；终点速度为测试末段时间的模型值；Vopt = V₀/2 为峰值功率对应速度。</p><p>距离最优剖面由独立冲刺模型在固定 Pmax、体重与空气阻力下求最短目标距离时间。相对最优剖面 = 100·SFV/SFVopt；FVP 不平衡性 = 100·|1 − SFV/SFVopt|。${solved.optimum?.valid && solved.optimum.withinStudySimulation === false ? "当前目标距离或功率超出原研究的模拟范围。" : ""}</p><p><a href="https://doi.org/10.1111/sms.12490" target="_blank" rel="noopener noreferrer">Samozino 等 · 分段计时冲刺力–速度–功率方法（2016）</a> · <a href="https://doi.org/10.1111/sms.14097" target="_blank" rel="noopener noreferrer">Samozino 等 · 距离最优冲刺 F–V（2022）</a></p>${confidenceMethod}</details>`;
+    return `<article class="fvp-analysis-card sprint-fvp-analysis" id="detail-sprint_fvp" data-test-ids="sprint_fvp" data-sprint-fvp-panel><div class="fvp-analysis-heading test-title"><div><h3>${E(title)}</h3><p class="sprint-target-summary">${E(distanceText)}</p></div></div>${controls}${confidenceStatus}<div class="detail-pair sprint-fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="sprintFvp" data-chart-input="${E(JSON.stringify([graph, view]))}">${V.sprintFvp(graph, view)}</div><div class="detail-data">${result}</div></div>${method}${trials.length ? `<details class="fvp-raw-trials" data-raw-trials="sprint_fvp" data-trial-title="${E(title)} · 原始录入分段"><summary>${E(title)} · 原始录入分段</summary>${table(["试次", "录入距离 m", "录入时间 s", "采用情况", "备注"], trials, [], "repeat-raw-table")}</details>` : ""}</article>`;
   }
   function fvpChartData(solved) {
     const current=solved.current||solved.model||{}, profiles=[];

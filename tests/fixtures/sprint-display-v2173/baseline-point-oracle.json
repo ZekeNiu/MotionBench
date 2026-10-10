@@ -1,0 +1,799 @@
+{
+  "baselineRef": "7dfee7c4",
+  "sourceHashes": {
+    "src/ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "src/ringside-sprint-fvp.js": "044adda2f1ff94ee334a139d86a5fd1426feaca216b6b97e25e83ca09ae731bd"
+  },
+  "syntheticOnly": true,
+  "producer": "Actual git baseline Calc and SprintFVP modules executed in a VM",
+  "cases": [
+    {
+      "name": "standard40",
+      "record": {
+        "athlete": {
+          "mass": 75,
+          "height": 180
+        },
+        "sprintFvpConfig": {
+          "heightCm": "",
+          "temperatureC": 20,
+          "pressureHpa": 1013.25,
+          "windMps": 0,
+          "device": "",
+          "startConvention": "first_propulsive_action",
+          "timingStart": "first_propulsive_action",
+          "inputTimeMode": "cumulative",
+          "timeCorrectionS": 0,
+          "positionStartM": 0,
+          "methodVersion": "samozino-2016-splits-v1",
+          "sampleStepS": 0.1,
+          "rfAfterS": 0.3,
+          "samplingWindow": "terminal_time"
+        },
+        "sprintFvpAnalysis": {
+          "targetDistanceM": 60
+        },
+        "data": {
+          "sprint_fvp": [
+            {
+              "id": "synthetic_legacy_sprint",
+              "splits": [
+                {
+                  "distanceM": 5,
+                  "timeS": 1.3073569504098859,
+                  "id": "sprint_split_0"
+                },
+                {
+                  "distanceM": 10,
+                  "timeS": 2.000736940679147,
+                  "id": "sprint_split_1"
+                },
+                {
+                  "distanceM": 20,
+                  "timeS": 3.1830480440542592,
+                  "id": "sprint_split_2"
+                },
+                {
+                  "distanceM": 30,
+                  "timeS": 4.280075936620976,
+                  "id": "sprint_split_3"
+                },
+                {
+                  "distanceM": 40,
+                  "timeS": 5.349550057946043,
+                  "id": "sprint_split_4"
+                }
+              ],
+              "excluded": false,
+              "exclusionReason": "",
+              "notes": "Synthetic baseline fixture"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "fit": {
+          "tau": 1.1499999999992512,
+          "vmax": 9.499999999998069,
+          "sse": 8.107323104765359e-24,
+          "valid": true,
+          "reason": "",
+          "n": 5,
+          "rmseM": 1.2733674336000084e-12,
+          "r2": 1,
+          "points": [
+            {
+              "distanceM": 5,
+              "timeS": 1.3073569504098859,
+              "id": "sprint_split_0",
+              "rawDistanceM": 5,
+              "rawTimeS": 1.3073569504098859,
+              "predictedDistanceM": 5.000000000001221,
+              "residualM": 1.2212453270876722e-12
+            },
+            {
+              "distanceM": 10,
+              "timeS": 2.000736940679147,
+              "id": "sprint_split_1",
+              "rawDistanceM": 10,
+              "rawTimeS": 2.000736940679147,
+              "predictedDistanceM": 10.000000000001661,
+              "residualM": 1.6608936448392342e-12
+            },
+            {
+              "distanceM": 20,
+              "timeS": 3.1830480440542592,
+              "id": "sprint_split_2",
+              "rawDistanceM": 20,
+              "rawTimeS": 3.1830480440542592,
+              "predictedDistanceM": 20.000000000001364,
+              "residualM": 1.3642420526593924e-12
+            },
+            {
+              "distanceM": 30,
+              "timeS": 4.280075936620976,
+              "id": "sprint_split_3",
+              "rawDistanceM": 30,
+              "rawTimeS": 4.280075936620976,
+              "predictedDistanceM": 30.000000000000192,
+              "residualM": 1.9184653865522705e-13
+            },
+            {
+              "distanceM": 40,
+              "timeS": 5.349550057946043,
+              "id": "sprint_split_4",
+              "rawDistanceM": 40,
+              "rawTimeS": 5.349550057946043,
+              "predictedDistanceM": 39.9999999999986,
+              "residualM": -1.3997691894473974e-12
+            }
+          ]
+        },
+        "model": {
+          "valid": true,
+          "reason": "",
+          "F0": 8.158552503841085,
+          "F0Absolute": 611.8914377880814,
+          "V0": 9.885917211633148,
+          "Pmax": 20.163693654933823,
+          "PmaxAbsolute": 1512.2770241200367,
+          "slope": -0.8252701625136608,
+          "r2": 0.9998944328779709,
+          "RFmax": 0.5130216360063474,
+          "DRF": -7.417462218077736,
+          "rfIntercept": 0.7441571411855071,
+          "rfR2": 0.9977697076643107,
+          "mass": 75,
+          "sampleStepS": 0.1,
+          "rfAfterS": 0.3,
+          "endTimeS": 5.349550057946043,
+          "sampleCount": 53,
+          "rfSampleCount": 50,
+          "units": {
+            "F0": "N/kg",
+            "F0Absolute": "N",
+            "V0": "m/s",
+            "Pmax": "W/kg",
+            "PmaxAbsolute": "W",
+            "slope": "(N/kg)/(m/s)",
+            "RFmax": "ratio",
+            "DRF": "百分点/(m/s)"
+          }
+        },
+        "optimum": {
+          "valid": true,
+          "F0": 5.578933000113896,
+          "V0": 14.457025136901395,
+          "Pmax": 20.163693654933823,
+          "slope": -0.38589771735775236,
+          "tau": 2.273249131650695,
+          "vmax": 12.68230459804632,
+          "timeS": 6.8947450496204645,
+          "distanceM": 60,
+          "reason": "",
+          "methodVersion": "samozino-2022-optimum-v1",
+          "relativeDrag": 0.0037352963999655966,
+          "searchSlope": {
+            "min": -1.9,
+            "max": -0.03
+          },
+          "withinStudySimulation": false,
+          "mass": 75,
+          "F0Absolute": 418.41997500854217,
+          "PmaxAbsolute": 1512.2770241200367
+        },
+        "imbalance": {
+          "ratio": 2.1385722832575906,
+          "profilePct": 213.85722832575905,
+          "magnitudePct": 113.85722832575907,
+          "signedPct": -113.85722832575907,
+          "direction": "velocity",
+          "label": "发展方向：速度端"
+        },
+        "atmosphere": {
+          "density": 1.204740614334471,
+          "frontalArea": 0.5167497406387167,
+          "dragCoefficient": 0.9,
+          "K": 0.28014722999741976
+        },
+        "heightCm": 180,
+        "mass": 75,
+        "targetDistanceM": 60,
+        "window": {
+          "startS": 0.1,
+          "endS": 5.349550057946043,
+          "stepS": 0.1,
+          "rfAfterS": 0.3,
+          "basis": "选中试次末段累计时间"
+        },
+        "samplesSha256": "55b26f24e3103297ca44e0a8af331121c5049128f5cb1b33d02421c5d192c31a",
+        "curveSha256": "f1fbf1b0071742102f562888e27b691149b2b9a7ad23626ced676daa9fd32ec3",
+        "optimalCurveSha256": "2064b03ff2f3a1aa7b6bc7ce16887a8c180618386050165535126e175ed6877f"
+      }
+    },
+    {
+      "name": "nonuniform40",
+      "record": {
+        "athlete": {
+          "mass": 75,
+          "height": 180
+        },
+        "sprintFvpConfig": {
+          "heightCm": "",
+          "temperatureC": 20,
+          "pressureHpa": 1013.25,
+          "windMps": 0,
+          "device": "",
+          "startConvention": "first_propulsive_action",
+          "timingStart": "first_propulsive_action",
+          "inputTimeMode": "cumulative",
+          "timeCorrectionS": 0,
+          "positionStartM": 0,
+          "methodVersion": "samozino-2016-splits-v1",
+          "sampleStepS": 0.1,
+          "rfAfterS": 0.3,
+          "samplingWindow": "terminal_time"
+        },
+        "sprintFvpAnalysis": {
+          "targetDistanceM": 60
+        },
+        "data": {
+          "sprint_fvp": [
+            {
+              "id": "synthetic_legacy_sprint",
+              "splits": [
+                {
+                  "id": "oracle_split_0",
+                  "distanceM": 3,
+                  "timeS": 0.9718350399105924
+                },
+                {
+                  "id": "oracle_split_1",
+                  "distanceM": 8,
+                  "timeS": 1.7385002880043618
+                },
+                {
+                  "id": "oracle_split_2",
+                  "distanceM": 17,
+                  "timeS": 2.8423581399573896
+                },
+                {
+                  "id": "oracle_split_3",
+                  "distanceM": 29,
+                  "timeS": 4.172073558995232
+                },
+                {
+                  "id": "oracle_split_4",
+                  "distanceM": 40,
+                  "timeS": 5.349550057946043
+                }
+              ],
+              "excluded": false,
+              "exclusionReason": "",
+              "notes": "Synthetic baseline fixture"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "fit": {
+          "tau": 1.1499999999992512,
+          "vmax": 9.499999999998085,
+          "sse": 7.689309852608497e-24,
+          "valid": true,
+          "reason": "",
+          "n": 5,
+          "rmseM": 1.2401056287759118e-12,
+          "r2": 1,
+          "points": [
+            {
+              "id": "oracle_split_0",
+              "distanceM": 3,
+              "timeS": 0.9718350399105924,
+              "rawDistanceM": 3,
+              "rawTimeS": 0.9718350399105924,
+              "predictedDistanceM": 3.0000000000008717,
+              "residualM": 8.717471189356729e-13
+            },
+            {
+              "id": "oracle_split_1",
+              "distanceM": 8,
+              "timeS": 1.7385002880043618,
+              "rawDistanceM": 8,
+              "rawTimeS": 1.7385002880043618,
+              "predictedDistanceM": 8.00000000000156,
+              "residualM": 1.55964130499342e-12
+            },
+            {
+              "id": "oracle_split_2",
+              "distanceM": 17,
+              "timeS": 2.8423581399573896,
+              "rawDistanceM": 17,
+              "rawTimeS": 2.8423581399573896,
+              "predictedDistanceM": 17.000000000001606,
+              "residualM": 1.6058265828178264e-12
+            },
+            {
+              "id": "oracle_split_3",
+              "distanceM": 29,
+              "timeS": 4.172073558995232,
+              "rawDistanceM": 29,
+              "rawTimeS": 4.172073558995232,
+              "predictedDistanceM": 29.00000000000039,
+              "residualM": 3.907985046680551e-13
+            },
+            {
+              "id": "oracle_split_4",
+              "distanceM": 40,
+              "timeS": 5.349550057946043,
+              "rawDistanceM": 40,
+              "rawTimeS": 5.349550057946043,
+              "predictedDistanceM": 39.99999999999867,
+              "residualM": -1.3287149158713873e-12
+            }
+          ]
+        },
+        "model": {
+          "valid": true,
+          "reason": "",
+          "F0": 8.158552503841104,
+          "F0Absolute": 611.8914377880828,
+          "V0": 9.88591721163317,
+          "Pmax": 20.16369365493392,
+          "PmaxAbsolute": 1512.277024120044,
+          "slope": -0.8252701625136609,
+          "r2": 0.9998944328779709,
+          "RFmax": 0.5130216360063482,
+          "DRF": -7.417462218077735,
+          "rfIntercept": 0.7441571411855084,
+          "rfR2": 0.9977697076643107,
+          "mass": 75,
+          "sampleStepS": 0.1,
+          "rfAfterS": 0.3,
+          "endTimeS": 5.349550057946043,
+          "sampleCount": 53,
+          "rfSampleCount": 50,
+          "units": {
+            "F0": "N/kg",
+            "F0Absolute": "N",
+            "V0": "m/s",
+            "Pmax": "W/kg",
+            "PmaxAbsolute": "W",
+            "slope": "(N/kg)/(m/s)",
+            "RFmax": "ratio",
+            "DRF": "百分点/(m/s)"
+          }
+        },
+        "optimum": {
+          "valid": true,
+          "F0": 5.578932957818496,
+          "V0": 14.457025246504081,
+          "Pmax": 20.16369365493392,
+          "slope": -0.38589771150656066,
+          "tau": 2.2732491597720412,
+          "vmax": 12.682304658785444,
+          "timeS": 6.894745049620454,
+          "distanceM": 60,
+          "reason": "",
+          "methodVersion": "samozino-2022-optimum-v1",
+          "relativeDrag": 0.0037352963999655966,
+          "searchSlope": {
+            "min": -1.9,
+            "max": -0.03
+          },
+          "withinStudySimulation": false,
+          "mass": 75,
+          "F0Absolute": 418.41997183638716,
+          "PmaxAbsolute": 1512.277024120044
+        },
+        "imbalance": {
+          "ratio": 2.138572315683791,
+          "profilePct": 213.8572315683791,
+          "magnitudePct": 113.8572315683791,
+          "signedPct": -113.8572315683791,
+          "direction": "velocity",
+          "label": "发展方向：速度端"
+        },
+        "atmosphere": {
+          "density": 1.204740614334471,
+          "frontalArea": 0.5167497406387167,
+          "dragCoefficient": 0.9,
+          "K": 0.28014722999741976
+        },
+        "heightCm": 180,
+        "mass": 75,
+        "targetDistanceM": 60,
+        "window": {
+          "startS": 0.1,
+          "endS": 5.349550057946043,
+          "stepS": 0.1,
+          "rfAfterS": 0.3,
+          "basis": "选中试次末段累计时间"
+        },
+        "samplesSha256": "8debff99865896c5e8e15e3b383027a5f30db93d4c2906c6184f5078e94b5646",
+        "curveSha256": "dcab138bc1aa2da6aa579ff90d26d985e5f5b0f36609582de345fb02224efd6b",
+        "optimalCurveSha256": "c0f18c80b3c53a65b5f8eba37a8d44e87fa8e8ef8e913113261c7fdba91bff9a"
+      }
+    },
+    {
+      "name": "wind",
+      "record": {
+        "athlete": {
+          "mass": 75,
+          "height": 180
+        },
+        "sprintFvpConfig": {
+          "heightCm": "",
+          "temperatureC": 20,
+          "pressureHpa": 1013.25,
+          "windMps": 1.5,
+          "device": "",
+          "startConvention": "first_propulsive_action",
+          "timingStart": "first_propulsive_action",
+          "inputTimeMode": "cumulative",
+          "timeCorrectionS": 0,
+          "positionStartM": 0,
+          "methodVersion": "samozino-2016-splits-v1",
+          "sampleStepS": 0.1,
+          "rfAfterS": 0.3,
+          "samplingWindow": "terminal_time"
+        },
+        "sprintFvpAnalysis": {
+          "targetDistanceM": 60
+        },
+        "data": {
+          "sprint_fvp": [
+            {
+              "id": "synthetic_legacy_sprint",
+              "splits": [
+                {
+                  "distanceM": 5,
+                  "timeS": 1.3073569504098859,
+                  "id": "sprint_split_0"
+                },
+                {
+                  "distanceM": 10,
+                  "timeS": 2.000736940679147,
+                  "id": "sprint_split_1"
+                },
+                {
+                  "distanceM": 20,
+                  "timeS": 3.1830480440542592,
+                  "id": "sprint_split_2"
+                },
+                {
+                  "distanceM": 30,
+                  "timeS": 4.280075936620976,
+                  "id": "sprint_split_3"
+                },
+                {
+                  "distanceM": 40,
+                  "timeS": 5.349550057946043,
+                  "id": "sprint_split_4"
+                }
+              ],
+              "excluded": false,
+              "exclusionReason": "",
+              "notes": "Synthetic baseline fixture"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "fit": {
+          "tau": 1.1499999999992512,
+          "vmax": 9.499999999998069,
+          "sse": 8.107323104765359e-24,
+          "valid": true,
+          "reason": "",
+          "n": 5,
+          "rmseM": 1.2733674336000084e-12,
+          "r2": 1,
+          "points": [
+            {
+              "distanceM": 5,
+              "timeS": 1.3073569504098859,
+              "id": "sprint_split_0",
+              "rawDistanceM": 5,
+              "rawTimeS": 1.3073569504098859,
+              "predictedDistanceM": 5.000000000001221,
+              "residualM": 1.2212453270876722e-12
+            },
+            {
+              "distanceM": 10,
+              "timeS": 2.000736940679147,
+              "id": "sprint_split_1",
+              "rawDistanceM": 10,
+              "rawTimeS": 2.000736940679147,
+              "predictedDistanceM": 10.000000000001661,
+              "residualM": 1.6608936448392342e-12
+            },
+            {
+              "distanceM": 20,
+              "timeS": 3.1830480440542592,
+              "id": "sprint_split_2",
+              "rawDistanceM": 20,
+              "rawTimeS": 3.1830480440542592,
+              "predictedDistanceM": 20.000000000001364,
+              "residualM": 1.3642420526593924e-12
+            },
+            {
+              "distanceM": 30,
+              "timeS": 4.280075936620976,
+              "id": "sprint_split_3",
+              "rawDistanceM": 30,
+              "rawTimeS": 4.280075936620976,
+              "predictedDistanceM": 30.000000000000192,
+              "residualM": 1.9184653865522705e-13
+            },
+            {
+              "distanceM": 40,
+              "timeS": 5.349550057946043,
+              "id": "sprint_split_4",
+              "rawDistanceM": 40,
+              "rawTimeS": 5.349550057946043,
+              "predictedDistanceM": 39.9999999999986,
+              "residualM": -1.3997691894473974e-12
+            }
+          ]
+        },
+        "model": {
+          "valid": true,
+          "reason": "",
+          "F0": 8.166956920741011,
+          "F0Absolute": 612.5217690555759,
+          "V0": 9.763527484152885,
+          "Pmax": 19.93457708938687,
+          "PmaxAbsolute": 1495.0932817040152,
+          "slope": -0.8364760517135579,
+          "r2": 0.9998972421128458,
+          "RFmax": 0.5115449148017319,
+          "DRF": -7.550472482742602,
+          "rfIntercept": 0.7468048091639736,
+          "rfR2": 0.9977944131228653,
+          "mass": 75,
+          "sampleStepS": 0.1,
+          "rfAfterS": 0.3,
+          "endTimeS": 5.349550057946043,
+          "sampleCount": 53,
+          "rfSampleCount": 50,
+          "units": {
+            "F0": "N/kg",
+            "F0Absolute": "N",
+            "V0": "m/s",
+            "Pmax": "W/kg",
+            "PmaxAbsolute": "W",
+            "slope": "(N/kg)/(m/s)",
+            "RFmax": "ratio",
+            "DRF": "百分点/(m/s)"
+          }
+        },
+        "optimum": null,
+        "imbalance": null,
+        "atmosphere": {
+          "density": 1.204740614334471,
+          "frontalArea": 0.5167497406387167,
+          "dragCoefficient": 0.9,
+          "K": 0.28014722999741976
+        },
+        "heightCm": 180,
+        "mass": 75,
+        "targetDistanceM": 60,
+        "window": {
+          "startS": 0.1,
+          "endS": 5.349550057946043,
+          "stepS": 0.1,
+          "rfAfterS": 0.3,
+          "basis": "选中试次末段累计时间"
+        },
+        "samplesSha256": "1a31e53b393f8e6fb42b9f27f7a1fe7d890fd23dffc4930b13e54363223da20e",
+        "curveSha256": "2f31ccfaaa33ec0d1e4b45ffc72947cc34df3061c7e3ea70bc31f4a08904fdad",
+        "optimalCurveSha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      }
+    },
+    {
+      "name": "heightOverride",
+      "record": {
+        "athlete": {
+          "mass": 75,
+          "height": 180
+        },
+        "sprintFvpConfig": {
+          "heightCm": 188,
+          "temperatureC": 20,
+          "pressureHpa": 1013.25,
+          "windMps": 0,
+          "device": "",
+          "startConvention": "first_propulsive_action",
+          "timingStart": "first_propulsive_action",
+          "inputTimeMode": "cumulative",
+          "timeCorrectionS": 0,
+          "positionStartM": 0,
+          "methodVersion": "samozino-2016-splits-v1",
+          "sampleStepS": 0.1,
+          "rfAfterS": 0.3,
+          "samplingWindow": "terminal_time"
+        },
+        "sprintFvpAnalysis": {
+          "targetDistanceM": 60
+        },
+        "data": {
+          "sprint_fvp": [
+            {
+              "id": "synthetic_legacy_sprint",
+              "splits": [
+                {
+                  "distanceM": 5,
+                  "timeS": 1.3073569504098859,
+                  "id": "sprint_split_0"
+                },
+                {
+                  "distanceM": 10,
+                  "timeS": 2.000736940679147,
+                  "id": "sprint_split_1"
+                },
+                {
+                  "distanceM": 20,
+                  "timeS": 3.1830480440542592,
+                  "id": "sprint_split_2"
+                },
+                {
+                  "distanceM": 30,
+                  "timeS": 4.280075936620976,
+                  "id": "sprint_split_3"
+                },
+                {
+                  "distanceM": 40,
+                  "timeS": 5.349550057946043,
+                  "id": "sprint_split_4"
+                }
+              ],
+              "excluded": false,
+              "exclusionReason": "",
+              "notes": "Synthetic baseline fixture"
+            }
+          ]
+        }
+      },
+      "expected": {
+        "fit": {
+          "tau": 1.1499999999992512,
+          "vmax": 9.499999999998069,
+          "sse": 8.107323104765359e-24,
+          "valid": true,
+          "reason": "",
+          "n": 5,
+          "rmseM": 1.2733674336000084e-12,
+          "r2": 1,
+          "points": [
+            {
+              "distanceM": 5,
+              "timeS": 1.3073569504098859,
+              "id": "sprint_split_0",
+              "rawDistanceM": 5,
+              "rawTimeS": 1.3073569504098859,
+              "predictedDistanceM": 5.000000000001221,
+              "residualM": 1.2212453270876722e-12
+            },
+            {
+              "distanceM": 10,
+              "timeS": 2.000736940679147,
+              "id": "sprint_split_1",
+              "rawDistanceM": 10,
+              "rawTimeS": 2.000736940679147,
+              "predictedDistanceM": 10.000000000001661,
+              "residualM": 1.6608936448392342e-12
+            },
+            {
+              "distanceM": 20,
+              "timeS": 3.1830480440542592,
+              "id": "sprint_split_2",
+              "rawDistanceM": 20,
+              "rawTimeS": 3.1830480440542592,
+              "predictedDistanceM": 20.000000000001364,
+              "residualM": 1.3642420526593924e-12
+            },
+            {
+              "distanceM": 30,
+              "timeS": 4.280075936620976,
+              "id": "sprint_split_3",
+              "rawDistanceM": 30,
+              "rawTimeS": 4.280075936620976,
+              "predictedDistanceM": 30.000000000000192,
+              "residualM": 1.9184653865522705e-13
+            },
+            {
+              "distanceM": 40,
+              "timeS": 5.349550057946043,
+              "id": "sprint_split_4",
+              "rawDistanceM": 40,
+              "rawTimeS": 5.349550057946043,
+              "predictedDistanceM": 39.9999999999986,
+              "residualM": -1.3997691894473974e-12
+            }
+          ]
+        },
+        "model": {
+          "valid": true,
+          "reason": "",
+          "F0": 8.15527539715332,
+          "F0Absolute": 611.645654786499,
+          "V0": 9.898963588663376,
+          "Pmax": 20.18219355298574,
+          "PmaxAbsolute": 1513.6645164739305,
+          "slope": -0.8238514390024642,
+          "r2": 0.999887175411897,
+          "RFmax": 0.5130817105135194,
+          "DRF": -7.400060288306948,
+          "rfIntercept": 0.7435581678500409,
+          "rfR2": 0.9977935894746417,
+          "mass": 75,
+          "sampleStepS": 0.1,
+          "rfAfterS": 0.3,
+          "endTimeS": 5.349550057946043,
+          "sampleCount": 53,
+          "rfSampleCount": 50,
+          "units": {
+            "F0": "N/kg",
+            "F0Absolute": "N",
+            "V0": "m/s",
+            "Pmax": "W/kg",
+            "PmaxAbsolute": "W",
+            "slope": "(N/kg)/(m/s)",
+            "RFmax": "ratio",
+            "DRF": "百分点/(m/s)"
+          }
+        },
+        "optimum": {
+          "valid": true,
+          "F0": 5.595136749208616,
+          "V0": 14.428382688476978,
+          "Pmax": 20.18219355298574,
+          "slope": -0.38778682753383664,
+          "tau": 2.255262875186563,
+          "vmax": 12.618504192082222,
+          "timeS": 6.904604529877391,
+          "distanceM": 60,
+          "reason": "",
+          "methodVersion": "samozino-2022-optimum-v1",
+          "relativeDrag": 0.003854933972116493,
+          "searchSlope": {
+            "min": -1.9,
+            "max": -0.03
+          },
+          "withinStudySimulation": false,
+          "mass": 75,
+          "F0Absolute": 419.6352561906462,
+          "PmaxAbsolute": 1513.6645164739305
+        },
+        "imbalance": {
+          "ratio": 2.1244956777975608,
+          "profilePct": 212.44956777975608,
+          "magnitudePct": 112.44956777975608,
+          "signedPct": -112.44956777975608,
+          "direction": "velocity",
+          "label": "发展方向：速度端"
+        },
+        "atmosphere": {
+          "density": 1.204740614334471,
+          "frontalArea": 0.5333006853991354,
+          "dragCoefficient": 0.9,
+          "K": 0.28912004790873697
+        },
+        "heightCm": 188,
+        "mass": 75,
+        "targetDistanceM": 60,
+        "window": {
+          "startS": 0.1,
+          "endS": 5.349550057946043,
+          "stepS": 0.1,
+          "rfAfterS": 0.3,
+          "basis": "选中试次末段累计时间"
+        },
+        "samplesSha256": "b47c3c44946a1b5ca26ead57ef0849d52e5e02ee7c098eb393663d98d0b3483c",
+        "curveSha256": "10cb134945e6530635af555a7c74554fb378a8635cb7340a4da1d2f50b29731f",
+        "optimalCurveSha256": "93053da0f6d94e062b8cb6d37affb3355697ae6cfb909f5429079706a2cd5d95"
+      }
+    }
+  ]
+}

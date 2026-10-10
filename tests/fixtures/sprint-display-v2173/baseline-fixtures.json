@@ -1,0 +1,51 @@
+{
+  "baselineRef": "7dfee7c4",
+  "sourceHashes": {
+    "src/ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "src/ringside-sprint-fvp.js": "044adda2f1ff94ee334a139d86a5fd1426feaca216b6b97e25e83ca09ae731bd",
+    "src/ringside-fvp.js": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+    "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "src/ringside-definitions.js": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+    "src/ringside-tests.js": "2047b2fe17a63f177b7ac86dc70b62c33b3963e2be7cf5aec954ffa6a4ce8855",
+    "src/ringside-model.js": "40a2009b6417d88ede126c82c654a4ece19a8907e39b1137d2e2df89e67da9e0",
+    "src/ringside-evaluation.js": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+    "src/ringside-interventions.js": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+    "src/ringside-excel.js": "b2d7b4e3dbbf31b7471c5279f84a2619ef67b0d2cabb4a42cd2c97a98eb5f402"
+  },
+  "syntheticOnly": true,
+  "producer": "Actual git baseline modules executed in a VM with the unchanged bundled ExcelJS",
+  "rawProjectName": "分段计时冲刺 F–V/P–V 剖面",
+  "viewFieldPresent": false,
+  "targetDistanceM": 60,
+  "outputs": [
+    {
+      "name": "baseline-sprint-schema1.xlsx",
+      "schema": 1,
+      "bytes": 30971,
+      "sha256": "3a08f2de5b2a2bd4e2d69c25a63dcc803fd274da829c82f7c387510b1ee4f6bc",
+      "baselineReadPassed": true,
+      "worksheets": [
+        "填写说明",
+        "本次测试",
+        "01_分段计时冲刺 F–V_P–V 剖面",
+        "测试条件",
+        "_MotionBench"
+      ]
+    },
+    {
+      "name": "baseline-sprint-schema2.xlsx",
+      "schema": 2,
+      "bytes": 33314,
+      "sha256": "943244f8d9139f4bc3251642c895aa03feaec3c63e0f3816af2ae1bdbac57ef0",
+      "baselineReadPassed": true,
+      "worksheets": [
+        "填写说明",
+        "_MotionBench_Lists",
+        "本次测试",
+        "01_分段计时冲刺 F–V_P–V 剖面",
+        "测试条件",
+        "_MotionBench"
+      ]
+    }
+  ]
+}

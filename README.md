@@ -1,26 +1,26 @@
 # MotionBench
 
-跨项目的运动表现评估与训练建议工作台。本地审查版本 **2.17.3-local**，基于正式版 2.16.1。录入、计算、图表、备份与 PDF 导出均可离线使用。本轮尚未合并、正式发布或部署。
+跨项目的运动表现评估与训练建议工作台。当前本地审查版本 **2.17.5-local**，完成冲刺 FVP 显示、录入和历史 Excel 兼容收尾；原跳跃 FVP 与弹性框架保留。本轮完成交付后暂停项目。
 
-本轮 GitHub 审查分支：[2.17.3 图表修正版源代码](https://github.com/ZekeNiu/MotionBench/tree/codex/motionbench-2.17.3-chart-restore-review-20261010)。下载 [试用 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.3-chart-restore-20261010/downloads/MotionBench-v2.17.3-local-preview.zip)，解压后打开 `MotionBench.html`；也可[单独下载 HTML](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.3-chart-restore-20261010/MotionBench.html)。[整区截图对照](docs/chart-restore-comparison-2.17.3.md)展示原版、已交付版和修正版。[下载校验与回退说明](downloads/README.md)记录完整 SHA256 和版本标签。此版本仍是本地 HTML/服务器工作台，Windows 应用按实施计划逐步推进。
+[直接下载试用 ZIP](https://raw.githubusercontent.com/ZekeNiu/MotionBench/review-v2.17.5-sprint-display-20261010/downloads/MotionBench-v2.17.5-local-preview.zip)，解压后运行 `Start_MotionBench.cmd`；[单独下载 HTML](https://raw.githubusercontent.com/ZekeNiu/MotionBench/review-v2.17.5-sprint-display-20261010/MotionBench.html)。[源码](https://github.com/ZekeNiu/MotionBench/tree/review-v2.17.5-sprint-display-20261010)、[实际截图](docs/sprint-display-screenshots-2.17.5.md)、[版本与回退](docs/sprint-display-2.17.5.md)、[下载校验](downloads/README.md)。这是现有本地服务器工作台，尚未合并 main 或创建正式 Release。
 
 
-本轮加入分段计时冲刺 F–V / P–V、Pmax、RFmax、DRF 与按目标距离计算的最佳冲刺剖面；能力结构分析采用左侧四张单指标方向卡、右侧分类参数表。方向依据和专项距离随记录保存，原始分段时间保留。详见[冲刺模型](docs/sprint-fvp-method.md)、[本地基线和回退](docs/local-baseline-20261010.md)、[Windows 应用实施计划](docs/windows-app-plan.md)。
+本轮加入分段计时冲刺 F–V / P–V、Pmax、RFmax、DRF 与按目标距离计算的最佳冲刺剖面；能力结构分析采用左侧四张单指标方向卡、右侧分类参数表。方向依据和专项距离随记录保存，原始分段时间保留。详见[冲刺模型](docs/sprint-fvp-method.md)、[本地基线和回退](docs/local-baseline-20261010.md)。
 
 2.17.1-local 修正默认四段录入、分段草稿删除后的定位与备份来源版本，并统一小数目标距离显示。详见[小修复与回退说明](docs/local-usability-2.17.1.md)。
 
 2.17.2-local 增加会话与普通记录保存的并发保护、显式分段 ID 校验，共享能力方向判定，并修复旧 PDF 测试流程。备份、导入和恢复的独立并发问题已用合成数据库复现，仍待后续修复。详见[本轮修复、已知问题与回退说明](docs/local-fixes-2.17.2.md)。
 
-2.17.3-local 保留原完整 FVP、弹性框架和其下方的完整冲刺 FVP，将三图区与四卡的共用折叠状态分开。原尺寸、控件和计算不变。详见[图表修正与回退说明](docs/chart-restore-2.17.3.md)及[当前版本验收](docs/acceptance-2.17.3-local.json)。存储扩展已暂停，旧版与正式 Release 保留。
+2.17.5-local 统一冲刺 FVP 名称，保存三种曲线与 11 项参数选择，提供默认关闭的近似 95% 拟合置信区间；支持自由分段、四/六段模板和累计/逐段计时的正确转换。[本轮验收](docs/acceptance-2.17.5-local.json)。2.17.4 存储修复独立暂停，旧版、历史截图和正式 Release 保留。
 
 ![MotionBench](assets/motionbench-logo.svg)
 
 ### 打开与使用
 
-- **离线评估**：双击 `MotionBench.html`，无需安装。直接打开 HTML 时，AI 服务需要允许浏览器跨域访问。
+- **日常使用**：运行 `Start_MotionBench.cmd`，继续使用原浏览器及 `http://127.0.0.1:8765/MotionBench.html` 地址。
 - **使用中转 AI 服务**：Windows 双击 `Start_MotionBench.cmd`，在自动打开的页面中使用；保持启动窗口开启。需要 Python 3.10 或更新版本。其他系统运行 `python3 scripts/serve.py`。
 - **更新旧版**：`Ringside_Boxing_Assessment.html` 保留为内容相同的兼容入口。把新版放回原文件位置，用原浏览器打开，可继续访问该路径的记录。切换到新文件名、另一浏览器或本机启动入口前，请先在旧页面导出运动员库（2.8.0 使用“备份与恢复”），再导入新入口；不同页面地址的浏览器数据不会自动合并。
-- 下载后的两个 HTML 均可独立工作。无需使用 GitHub 网站上传测试数据。
+- 解压后运行 Start_MotionBench.cmd；测试资料保存在使用该入口的本地浏览器中。
 
 ### 迁移与回退
 

@@ -1,0 +1,2399 @@
+{
+  "version": "2.17.5-local",
+  "pass": true,
+  "fullAcceptancePass": true,
+  "localReviewable": true,
+  "sourceHash": "f48b2ba8a21bbc5eea74dea904951964fa30a6249d93eacdde15d6e42583d1bc",
+  "sourceUnchanged": true,
+  "synthetic": true,
+  "verifiedAtUtc": "2026-10-10T15:56:55.942388+00:00",
+  "sourceContract": {
+    "baselineCommit": "7dfee7c4ac40c2ad6edde4ece5e2bffbc6c97e89",
+    "storageRepairsIncluded": false,
+    "backupSchema": 3,
+    "indexedDBVersion": 1,
+    "pointMathChanged": false,
+    "coreSprintPatch": {
+      "pointEstimateFormulasUnchanged": true,
+      "numericalIdentificationGuardAdded": true,
+      "firstSplitMaximum10mRequired": false,
+      "terminalMinimum30mRequired": false,
+      "minimumSplits": 4,
+      "labelUnified": true
+    },
+    "protectedSources": [
+      {
+        "path": "src/ringside-ai-settings.js",
+        "sha256": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+        "bytes": 1296
+      },
+      {
+        "path": "src/ringside-calc.js",
+        "sha256": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+        "bytes": 13853
+      },
+      {
+        "path": "src/ringside-context-ui.js",
+        "sha256": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+        "bytes": 4152
+      },
+      {
+        "path": "src/ringside-cpet-reference.js",
+        "sha256": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+        "bytes": 8712
+      },
+      {
+        "path": "src/ringside-definitions.js",
+        "sha256": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+        "bytes": 13976
+      },
+      {
+        "path": "src/ringside-entry-session.js",
+        "sha256": "61a00a757a8629a371b66564eef12405cf6684acd466cd5fe6696c1a10490fae",
+        "bytes": 9566
+      },
+      {
+        "path": "src/ringside-evaluation.js",
+        "sha256": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+        "bytes": 18399
+      },
+      {
+        "path": "src/ringside-excel-flow.js",
+        "sha256": "e5d71d006dee26a1c38d95a7fa1086864409d2c350e08ed14dbe85adfd279cf1",
+        "bytes": 11091
+      },
+      {
+        "path": "src/ringside-excel.css",
+        "sha256": "25cfe4e3bff61779bf0820a0aa94b0fb6278fd9d358b1a8a088cd74bb9de91d9",
+        "bytes": 4742
+      },
+      {
+        "path": "src/ringside-fvp-entry.js",
+        "sha256": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+        "bytes": 6283
+      },
+      {
+        "path": "src/ringside-fvp.css",
+        "sha256": "4ddd6d6c41d6868b10807fc554382c54d6b153842411cc30c0e3fc6ab0832e09",
+        "bytes": 6303
+      },
+      {
+        "path": "src/ringside-fvp.js",
+        "sha256": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+        "bytes": 14819
+      },
+      {
+        "path": "src/ringside-interventions.js",
+        "sha256": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+        "bytes": 31627
+      },
+      {
+        "path": "src/ringside-iso-reference.js",
+        "sha256": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+        "bytes": 10925
+      },
+      {
+        "path": "src/ringside-management-refinement.css",
+        "sha256": "97dc8b58a178228adfd4d08127608084448a8c4b209c590daf850bcaed4a0070",
+        "bytes": 7498
+      },
+      {
+        "path": "src/ringside-management.js",
+        "sha256": "94bf5e2905d6ecc7d70c00edd388939b6aed79fa82a1002ace189cc2312b4047",
+        "bytes": 81651
+      },
+      {
+        "path": "src/ringside-pdf.js",
+        "sha256": "1c7be89bcb6661bfa01e1fb70d163fd1e4a806389c9c54286b2fdef1d7cec229",
+        "bytes": 70509
+      },
+      {
+        "path": "src/ringside-picker.js",
+        "sha256": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+        "bytes": 10442
+      },
+      {
+        "path": "src/ringside-profile.js",
+        "sha256": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+        "bytes": 3501
+      },
+      {
+        "path": "src/ringside-report-refinement.css",
+        "sha256": "2d75dbe318d392baa784138087741f383ffb20a123efb6acdb3589720858d5cf",
+        "bytes": 15972
+      },
+      {
+        "path": "src/ringside-settings.js",
+        "sha256": "e6fa91412feb26756609b9340f1e0406e1b4912161023d8e1d5b2709342e9a79",
+        "bytes": 20309
+      },
+      {
+        "path": "src/ringside-shell.html",
+        "sha256": "cfe8260a18c1142bc6027a64d031b9f459b7fa5f9bad72694d9e1a3b78fe5b53",
+        "bytes": 30586
+      },
+      {
+        "path": "src/ringside-sources.js",
+        "sha256": "909277eeafede0663a125b7b8d56ff84567fb458fef525e19872042c16e06db4",
+        "bytes": 24602
+      },
+      {
+        "path": "src/ringside-store.js",
+        "sha256": "52b54d74b138d01022310d51e0c0f68b13fe027f99ef2d131b56b1aa0d904db4",
+        "bytes": 26076
+      },
+      {
+        "path": "src/ringside-workflow.css",
+        "sha256": "0394b74fc4ccf1962f0a002b329c0333da6cd197e998368a904a77e4871580db",
+        "bytes": 9701
+      },
+      {
+        "path": "src/ringside.css",
+        "sha256": "6062c7d1b54d6a653369318c9a2a7c6c1d5af3b9967f7fa34861e8643b03ee1c",
+        "bytes": 67200
+      }
+    ],
+    "historicalAssets": [
+      {
+        "path": "downloads/MotionBench-v2.17.3-local-preview.zip",
+        "sha256": "b32c8d6563b9242313e46294f2be90f610bedff5b145095e68fb513c8a489a39",
+        "bytes": 4023651
+      },
+      {
+        "path": "downloads/chart-restore-2.17.3/before-1440.png",
+        "sha256": "8534ff5f881b55039ecc1a6a109e60e2c3c1720274f0f45b14107a002181d208",
+        "bytes": 332645
+      },
+      {
+        "path": "downloads/chart-restore-2.17.3/before-390.png",
+        "sha256": "a28e8813720d9ef0a4e1239c0289bff5404236b0f780a10a24b5f7bf56ecc254",
+        "bytes": 298890
+      },
+      {
+        "path": "downloads/chart-restore-2.17.3/fixed-1440.png",
+        "sha256": "99a433f667ea9addd45408ffb780cfd4351b674029eb537e9be89352d50b453a",
+        "bytes": 339078
+      },
+      {
+        "path": "downloads/chart-restore-2.17.3/fixed-390.png",
+        "sha256": "b95224d45dca24acd15c9ddc656b0568bb76caf253bab6e220e93bf52b917182",
+        "bytes": 301954
+      },
+      {
+        "path": "downloads/chart-restore-2.17.3/fixed-cards-folded-1440.png",
+        "sha256": "67d23a39708d717c7d07483ab4a1a1975fde1e58ebbcf68a27e8da14825f33ad",
+        "bytes": 228890
+      },
+      {
+        "path": "downloads/chart-restore-2.17.3/fixed-cards-folded-390.png",
+        "sha256": "01746ba77355a4bf99764de4986cfb8c0b7d2e6f7390e0bb4ff395be4743bcbe",
+        "bytes": 188418
+      },
+      {
+        "path": "downloads/chart-restore-2.17.3/original-1440.png",
+        "sha256": "ec72c3f096b148ca2d1d8375922727d433f821e9ef9d487354731ce3f9554cd8",
+        "bytes": 253035
+      },
+      {
+        "path": "downloads/chart-restore-2.17.3/original-390.png",
+        "sha256": "3e5b2d278a6bac79142d33d44f143f4066e67c7c784594bc2145d0fc7174e9de",
+        "bytes": 226463
+      }
+    ],
+    "historicalAssetsIncludedInCurrentAcceptance": false
+  },
+  "modules": {
+    "ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "ringside-app.js": "54a5f002733250650d5d1f260c63b28f3c73e934a0ff8acb2186bbeb6d93f60a",
+    "ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "ringside-context-ui.js": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+    "ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "ringside-definitions.js": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+    "ringside-entry-session.js": "61a00a757a8629a371b66564eef12405cf6684acd466cd5fe6696c1a10490fae",
+    "ringside-evaluation.js": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+    "ringside-excel-flow.js": "e5d71d006dee26a1c38d95a7fa1086864409d2c350e08ed14dbe85adfd279cf1",
+    "ringside-excel.js": "869dfcec7121e2e18acf5ae022cab573cabcd329154fe9b309f637157051c2b2",
+    "ringside-fvp-entry.js": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+    "ringside-fvp.js": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+    "ringside-interventions.js": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+    "ringside-iso-reference.js": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+    "ringside-management.js": "94bf5e2905d6ecc7d70c00edd388939b6aed79fa82a1002ace189cc2312b4047",
+    "ringside-model.js": "b2b48880054a66afd50d8188c51b7e7502a5d6ad8f4da363b0cc2a5333203711",
+    "ringside-pdf.js": "1c7be89bcb6661bfa01e1fb70d163fd1e4a806389c9c54286b2fdef1d7cec229",
+    "ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "ringside-profile.js": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+    "ringside-report.js": "eb073aa81102938496af4087e6bbf6d5a28a0e86c8d7a9379593cdbb2cb5a0f2",
+    "ringside-settings.js": "e6fa91412feb26756609b9340f1e0406e1b4912161023d8e1d5b2709342e9a79",
+    "ringside-sources.js": "909277eeafede0663a125b7b8d56ff84567fb458fef525e19872042c16e06db4",
+    "ringside-sprint-fvp-confidence.js": "d307e1e3575454696c89e6520026e17e858f0970123b42effc92a71fd8ead020",
+    "ringside-sprint-fvp-entry.js": "86332c1ca4327af3e95f0c54ac5b6864464e74f1ab75bb61a059a17653137d7e",
+    "ringside-sprint-fvp.js": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+    "ringside-store.js": "52b54d74b138d01022310d51e0c0f68b13fe027f99ef2d131b56b1aa0d904db4",
+    "ringside-tests.js": "d0e49476a7a29d1abd3b1ac5f35196f4df10e5e17da50afbd91c9f35d9af9f0a",
+    "ringside-viz.js": "b0ed904aedf6a7a29fe28c213001995cc4d4caba7d717d1eba1c48612615da5a"
+  },
+  "units": {
+    "pass": true,
+    "suiteCount": 45,
+    "checks": 661,
+    "runner": {
+      "path": "tests/run-unit-tests.cjs",
+      "sha256": "32b4636dbcd9778934ca89dcbae6041eb856df9f9e329adea7a5a638dd4e463f",
+      "bytes": 4336
+    },
+    "inputs": [
+      {
+        "path": "tests/model-tests.cjs",
+        "sha256": "01fff0c04364c998b76db9b8b7ca69a4d5e51e2a46b25192bdaadbd8a00880e7",
+        "bytes": 24365
+      },
+      {
+        "path": "tests/athlete-context-model-tests.cjs",
+        "sha256": "d890042101addf0eced5459275b4a7b8b970945a57cdc99de0d0d68d84f9c0d6",
+        "bytes": 8992
+      },
+      {
+        "path": "tests/athlete-context-excel-tests.cjs",
+        "sha256": "1c886a7505bd296737a4fe9b09d77d5da2e76477ee20103f9b8fee45493fa7c2",
+        "bytes": 7274
+      },
+      {
+        "path": "tests/athlete-context-report-tests.cjs",
+        "sha256": "8f1e72933350033e697924482a4cfc77d149fde126083034b57b948a5048257e",
+        "bytes": 5054
+      },
+      {
+        "path": "tests/fvp-model-tests.cjs",
+        "sha256": "a8854f0f07cb97caef4729e2b51e765a6e20ff199bb680e150821c0495c8441c",
+        "bytes": 17842
+      },
+      {
+        "path": "tests/sprint-fvp-model-tests.cjs",
+        "sha256": "07d1d2edf9edaffa9dd5df4259d5c87bf8023ad6b60cc18ea45233fed9c4f72e",
+        "bytes": 19631
+      },
+      {
+        "path": "tests/sprint-fvp-display-model-tests.cjs",
+        "sha256": "0e684ca31ae1b535b39491ead85c5cca960acee6f017eccb2fabada9f24b9d89",
+        "bytes": 19607
+      },
+      {
+        "path": "tests/sprint-fvp-display-report-model-tests.cjs",
+        "sha256": "21b090989ecf12e3484c710c6cf76d976867062b4c0182f68ce3a43033a3212e",
+        "bytes": 16051
+      },
+      {
+        "path": "tests/sprint-fvp-entry-controls-tests.cjs",
+        "sha256": "d9c9fab22c1bf9e761fd2716bf09004d202c3578ec7fa3d76ca92a0cb5679b17",
+        "bytes": 13666
+      },
+      {
+        "path": "tests/sprint-fvp-confidence-model-tests.cjs",
+        "sha256": "68ebc15984e688865ad88ba4fe83c74e2cf44f41cc10a16125875646ae8561e5",
+        "bytes": 16234
+      },
+      {
+        "path": "tests/sprint-fvp-usability-model-tests.cjs",
+        "sha256": "a05b026028be9ad3e84650148a899b522fba2f33981e951afc99cebaf992cedf",
+        "bytes": 5976
+      },
+      {
+        "path": "tests/sprint-capability-report-model-tests.cjs",
+        "sha256": "08f5744e224adf791580b31f21b0abb85e30cc2b4ee52f8ebdfa144ec0d92bc6",
+        "bytes": 12904
+      },
+      {
+        "path": "tests/capability-directions-model-tests.cjs",
+        "sha256": "20a3e2d8a18ec01e70a0b2afd8ed7dde755437114c5178fffc5004d3e87c5ed0",
+        "bytes": 20437
+      },
+      {
+        "path": "tests/sprint-fvp-excel-model-tests.cjs",
+        "sha256": "9efa238fe25a431ffd47ec1ad2cf544149e4f04ac3e482fffd57d93b570d3185",
+        "bytes": 13444
+      },
+      {
+        "path": "tests/fvp-report-model-tests.cjs",
+        "sha256": "e9c5cea335d1823fc680df5faae1a45a210964b0efb3dd1566f100bf5baa1f53",
+        "bytes": 5301
+      },
+      {
+        "path": "tests/report-v216-model-tests.cjs",
+        "sha256": "63da2c4b8b1f4a9bea75e355053090584e6a813e0db73e54cf23110a11fbb4fe",
+        "bytes": 8458
+      },
+      {
+        "path": "tests/report-v2161-model-tests.cjs",
+        "sha256": "db33bfea516c227de7577376b9b027fbccbe96e27b500a721e39ccc0c9029f38",
+        "bytes": 7698
+      },
+      {
+        "path": "tests/dsi-v2161-model-tests.cjs",
+        "sha256": "80c4a0cc3d6ecc0cc6133fa1f8b4219b27f0f91873e67f1322d1b96a31fc0b87",
+        "bytes": 2986
+      },
+      {
+        "path": "tests/fvp-excel-model-tests.cjs",
+        "sha256": "0439ea9e24a0517203e228c6ef88a511b148fe252a28760e58a82120b1ed290c",
+        "bytes": 14530
+      },
+      {
+        "path": "tests/entry-session-model-tests.cjs",
+        "sha256": "fb5db7b6e786ce541a8d55de05b55ed3b12d492df5e6e1671cc391c5cb0b92a6",
+        "bytes": 10673
+      },
+      {
+        "path": "tests/entry-session-save-model-tests.cjs",
+        "sha256": "1173d0afca7e38e9af98087daad585d8166865deb5290f52bdc4209eb9b742f0",
+        "bytes": 12292
+      },
+      {
+        "path": "tests/ordinary-save-model-tests.cjs",
+        "sha256": "1aa21aacf12ca54852b8f5422ee5d57e36364a8279e81b3460fb74f7e75f9097",
+        "bytes": 10615
+      },
+      {
+        "path": "tests/isometric-selection-model-tests.cjs",
+        "sha256": "8a1368340e8e288cf46f3d709cea76440cae67a60755aa58652592be2eb0618c",
+        "bytes": 8515
+      },
+      {
+        "path": "tests/picker-model-tests.cjs",
+        "sha256": "9e8911701a17e974d57947258f0c40b4cd066648d808f4dbdf8401bd3a0bec6f",
+        "bytes": 4536
+      },
+      {
+        "path": "tests/excel-model-tests.cjs",
+        "sha256": "1cc89d2e41402952affbb72639711fdcfc94c747afec9fc9c8e3eb2ca21b3fa1",
+        "bytes": 27361
+      },
+      {
+        "path": "tests/excel-v216-tests.cjs",
+        "sha256": "bdd203a6c256752da6f46b1b4d9c92f713d349a60f9c91e520e05db8efa03202",
+        "bytes": 9564
+      },
+      {
+        "path": "tests/derived-jump-model-tests.cjs",
+        "sha256": "c8f644075c10fe2943166f469776d4b67ea122f33662fef9ae7df6e4e08310d6",
+        "bytes": 13771
+      },
+      {
+        "path": "tests/v216-direction-model-tests.cjs",
+        "sha256": "f58d7ef4157188f6484895ae10b277d95e91e18f5d051aa332d6286a4018b7cd",
+        "bytes": 5836
+      },
+      {
+        "path": "tests/isometric-reference-model-tests.cjs",
+        "sha256": "92732db4583238f6b13f41a4970609a5d98a1f7af6586dc93260c4da55985c16",
+        "bytes": 28358
+      },
+      {
+        "path": "tests/cpet-reference-tests.cjs",
+        "sha256": "88e757dda902dfee5f5152514923dd4bfd63387bd5328f282e643a77ff44a868",
+        "bytes": 9599
+      },
+      {
+        "path": "tests/capability-cpet-model-tests.cjs",
+        "sha256": "b260aa669fef9cad9512e187a4288075a55f254ca257402c0a6be720465c1548",
+        "bytes": 14688
+      },
+      {
+        "path": "tests/force-model-tests.cjs",
+        "sha256": "b5808b22803c3e4110e1d06a668904dbefed7625ec371a21aee61f0f8b5b0c03",
+        "bytes": 11383
+      },
+      {
+        "path": "tests/viz-tests.cjs",
+        "sha256": "32e82dbb4efe30fcd6320ec8f926885ba122d11be013d36152190712d4a6b899",
+        "bytes": 12085
+      },
+      {
+        "path": "tests/workflow-model-tests.cjs",
+        "sha256": "f40aea4459deb1730441129e313b593326d18b18cdea8268f6fe9e17161f4894",
+        "bytes": 15757
+      },
+      {
+        "path": "tests/core-model-tests.cjs",
+        "sha256": "811140c71ca1f8578d00d47179ed8a451d4f5a1008b11df958b0e61693d94632",
+        "bytes": 12083
+      },
+      {
+        "path": "tests/report-v2-model-tests.cjs",
+        "sha256": "bf2bbddc169edddffddf2cd7164caff95961b87583fc11e0ea6c1f096137ec6d",
+        "bytes": 25610
+      },
+      {
+        "path": "tests/chart-ai-model-tests.cjs",
+        "sha256": "32a44f7d32e0a151ab0d50009a6ecc347b4cd2bdaf37e15adde26ec16fd30a7a",
+        "bytes": 4665
+      },
+      {
+        "path": "tests/repeat-model-tests.cjs",
+        "sha256": "539a5931d653830a4cf8604a8b59424eaca2892a9afe3cf893cc0a584bd5c571",
+        "bytes": 13114
+      },
+      {
+        "path": "tests/management-model-tests.cjs",
+        "sha256": "9f3fe4937630c751b530132dcbc01a252f3fd66f5391cb19b9c199c351ed12e6",
+        "bytes": 4906
+      },
+      {
+        "path": "tests/imtp-standards-model-tests.cjs",
+        "sha256": "556a6b6cb2f191796cc945d90dcc0cba80a668f8ad580be8462cb32a7ee549f1",
+        "bytes": 22938
+      },
+      {
+        "path": "tests/report-refinement-model-tests.cjs",
+        "sha256": "172cb2357b334d648d76327e0b71b8dbf0e3305c17367bb3176fb8e0c7615724",
+        "bytes": 10305
+      },
+      {
+        "path": "tests/catalog-body-vift-model-tests.cjs",
+        "sha256": "8a57693d6dc6487b0b2a419d6b9bc52cd5d187cda7ea762ccaa0b3c390b2b673",
+        "bytes": 17725
+      },
+      {
+        "path": "tests/store-catalog-model-tests.cjs",
+        "sha256": "1abb848d6f763f9ac182f1bb0661a881fadc36fa16608a2dad3f35269e744842",
+        "bytes": 10411
+      },
+      {
+        "path": "tests/report-v210-model-tests.cjs",
+        "sha256": "09f63cf108af54461fd8252c61b2ce7e66d95009a102b09e264cd61e3ab0ade1",
+        "bytes": 11728
+      },
+      {
+        "path": "tests/report-v211-model-tests.cjs",
+        "sha256": "319cc6ca69ffdb2bcd28ae80842028f45ba14922dc63e24d49a5e5f49b5ca31e",
+        "bytes": 12450
+      }
+    ]
+  },
+  "pointEstimates": {
+    "pass": true,
+    "exactCases": 4,
+    "caseNames": [
+      "standard40",
+      "nonuniform40",
+      "wind",
+      "heightOverride"
+    ],
+    "result": {
+      "path": "output/tests/v2.17.5-sprint-view/point-estimate-baseline-comparison.json",
+      "sha256": "77ea708a209f0312f64dbcc8501dd7eaf93117b174cb90f8d1cfd65a01b66cd1",
+      "bytes": 36615
+    },
+    "suite": {
+      "path": "tests/sprint-fvp-display-model-tests.cjs",
+      "sha256": "0e684ca31ae1b535b39491ead85c5cca960acee6f017eccb2fabada9f24b9d89",
+      "bytes": 19607
+    },
+    "oracle": {
+      "path": "tests/fixtures/sprint-display-v2173/baseline-point-oracle.json",
+      "sha256": "2dc9c80fba5a6918cb8e3309a7f27f17e506ef4c54ed3b4e4fb55d36266ac095",
+      "bytes": 25570
+    },
+    "oracleProducer": {
+      "path": "tests/fixtures/sprint-display-v2173/write-baseline-point-oracle.cjs",
+      "sha256": "0db97f0d9c8def04ebaf7ec258c4d8746c7bad3a11d83bee2980040c924b106a",
+      "bytes": 2487
+    },
+    "baselineSources": {
+      "src/ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+      "src/ringside-sprint-fvp.js": "044adda2f1ff94ee334a139d86a5fd1426feaca216b6b97e25e83ca09ae731bd"
+    },
+    "currentSources": {
+      "src/ringside-model.js": "b2b48880054a66afd50d8188c51b7e7502a5d6ad8f4da363b0cc2a5333203711",
+      "src/ringside-tests.js": "d0e49476a7a29d1abd3b1ac5f35196f4df10e5e17da50afbd91c9f35d9af9f0a",
+      "src/ringside-excel.js": "869dfcec7121e2e18acf5ae022cab573cabcd329154fe9b309f637157051c2b2",
+      "src/ringside-sprint-fvp.js": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+      "src/ringside-store.js": "52b54d74b138d01022310d51e0c0f68b13fe027f99ef2d131b56b1aa0d904db4"
+    }
+  },
+  "confidenceScience": {
+    "pass": true,
+    "checks": 28,
+    "result": {
+      "path": "output/verify/v2175-sprint-confidence-model-results.json",
+      "sha256": "3980e0e39a2c2bde03c4c04661ac1b68232d0320392cb207a8d7f5215de60c65",
+      "bytes": 8156
+    },
+    "runner": {
+      "path": "tests/sprint-fvp-confidence-model-tests.cjs",
+      "sha256": "68ebc15984e688865ad88ba4fe83c74e2cf44f41cc10a16125875646ae8561e5",
+      "bytes": 16234
+    },
+    "inputs": [
+      {
+        "path": "src/ringside-calc.js",
+        "sha256": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+        "bytes": 13853
+      },
+      {
+        "path": "src/ringside-sprint-fvp.js",
+        "sha256": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+        "bytes": 21889
+      },
+      {
+        "path": "src/ringside-sprint-fvp-confidence.js",
+        "sha256": "d307e1e3575454696c89e6520026e17e858f0970123b42effc92a71fd8ead020",
+        "bytes": 8183
+      }
+    ],
+    "executionHtmlHash": "f48b2ba8a21bbc5eea74dea904951964fa30a6249d93eacdde15d6e42583d1bc",
+    "htmlWasAcceptanceSource": false,
+    "numericEvidence": [
+      {
+        "n": 4,
+        "df": 2,
+        "fit": {
+          "vmax": 9.0000000096677,
+          "tau": 1.2000000036833725
+        },
+        "sse": 0.005983520055718028,
+        "covariance": [
+          [
+            0.002847737578380636,
+            0.0010238778906795098
+          ],
+          [
+            0.0010238778906795098,
+            0.0003900913451465948
+          ]
+        ],
+        "independentSciPyCovariance": [
+          [
+            0.002847737557679249,
+            0.0010238778834705088
+          ],
+          [
+            0.0010238778834705088,
+            0.0003900913426082751
+          ]
+        ],
+        "tCritical": 4.3026527297,
+        "scaledConditionNumber": 69.02276039055405,
+        "independentSEAtVelocity5": 0.015728452023736732
+      },
+      {
+        "n": 6,
+        "df": 4,
+        "fit": {
+          "vmax": 9.000000000791438,
+          "tau": 1.2000000003222855
+        },
+        "sse": 0.010230829232441053,
+        "covariance": [
+          [
+            0.001184762864519934,
+            0.0004508402490937145
+          ],
+          [
+            0.0004508402490937145,
+            0.00018363079497334258
+          ]
+        ],
+        "independentSciPyCovariance": [
+          [
+            0.0011847628642216923,
+            0.00045084024898388043
+          ],
+          [
+            0.00045084024898388043,
+            0.00018363079493109805
+          ]
+        ],
+        "tCritical": 2.7764451052,
+        "scaledConditionNumber": 58.830071173838526,
+        "independentSEAtVelocity5": 0.012346371774460121
+      }
+    ],
+    "sources": [
+      "https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.curve_fit.html",
+      "https://www.mathworks.com/help/stats/nlpredci.html",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC6027739/"
+    ],
+    "independentSciPy": {
+      "checks": 19,
+      "result": {
+        "path": "output/verify/v2175-sprint-confidence-scipy-results.json",
+        "sha256": "4f9048fa4801e63f19a6d524763909c19858304763fcf0db4b1a652d8119438e",
+        "bytes": 7798
+      },
+      "script": {
+        "path": "output/verify/v2175-confidence-scipy-reference.py",
+        "sha256": "1603f860a1507319dcd8894c5e2c244a74e1bf9d884e605cbbf1373d6bb37893",
+        "bytes": 5794
+      },
+      "input": {
+        "path": "output/verify/v2175-sprint-confidence-model-results.json",
+        "sha256": "3980e0e39a2c2bde03c4c04661ac1b68232d0320392cb207a8d7f5215de60c65",
+        "bytes": 8156
+      }
+    },
+    "scope": "Independent synthetic calculation-module checks; final HTML binding is by exact module hashes",
+    "method": "Approximate pointwise 95% fitted-mean intervals; split n minus two degrees of freedom; delta propagation to current F-V/P-V only",
+    "optimalProfileInterval": false,
+    "predictionInterval": false,
+    "simultaneousBand": false,
+    "inventedNoiseFloor": false,
+    "pseudoinverseFallback": false
+  },
+  "displayBrowsers": [
+    {
+      "channel": "chrome",
+      "pass": true,
+      "checks": 16,
+      "result": {
+        "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-results.json",
+        "sha256": "25cf7c51b861010a59edfd6701b7e31326e0124ae93513a4d9049ddb83f49582",
+        "bytes": 281016
+      },
+      "runner": {
+        "path": "tests/sprint-fvp-display-browser-tests.cjs",
+        "sha256": "1c3fe5d2590b7ce317c5eb6f7e25494002dbbf9c8ff1191a31241a0009551012",
+        "bytes": 38185
+      },
+      "helpers": [
+        {
+          "path": "tests/helpers/playwright.cjs",
+          "sha256": "e3b59e20e025d134519e02af6ad56ce31654231802f5fe44c3ca3b0749d24d5d",
+          "bytes": 881
+        },
+        {
+          "path": "tests/helpers/excel-template.cjs",
+          "sha256": "b965f94148ff3d3c065e549ba0000f2c0c98cb88493ca16d971090a7b4591b31",
+          "bytes": 1588
+        }
+      ],
+      "fixtures": [
+        {
+          "path": "tests/fixtures/sprint-display-spec.json",
+          "sha256": "f6532d0e8d75bca400490b66a0b725b0396aa5dddee0d128bb5d31cff6a0241b",
+          "bytes": 1061
+        },
+        {
+          "path": "tests/fixtures/three-fvp-regions.json",
+          "sha256": "7698e3bce363614da67df19b560393aeffd607057fc92b2a1435c3b85a7c73ad",
+          "bytes": 918612
+        },
+        {
+          "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema1.xlsx",
+          "sha256": "3a08f2de5b2a2bd4e2d69c25a63dcc803fd274da829c82f7c387510b1ee4f6bc",
+          "bytes": 30971
+        },
+        {
+          "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema2.xlsx",
+          "sha256": "943244f8d9139f4bc3251642c895aa03feaec3c63e0f3816af2ae1bdbac57ef0",
+          "bytes": 33314
+        },
+        {
+          "path": "tests/fixtures/sprint-display-v2173/baseline-fixtures.json",
+          "sha256": "392e76f4a3695fe29778544e4523478b1aea9d38b3f01b4e5efbd63a28b54a51",
+          "bytes": 2132
+        },
+        {
+          "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-library.json",
+          "sha256": "52a95a96fd8a83400d5c8fd69b7e1a4e9128ab029d276c470f7134fc1a2b3b9a",
+          "bytes": 817503
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-history-normalization.xlsx",
+          "sha256": "8355c83210b8eefc435fe25a5905dd397863236c6df31ea6edf7012292919552",
+          "bytes": 96514
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-all-off-1440.png",
+          "sha256": "53754695ab6539078c506b0184bc433f6332a9bd86fc7444790170c1c8c6d0a9",
+          "bytes": 40461
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-expected.json",
+          "sha256": "11c8b4f1c52452eb03503cfbcb55c83f45f1c18b2b007e5f2001fe2b94dbc7c2",
+          "bytes": 1939
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-regions-1440.png",
+          "sha256": "6d26c0a44752aefcc91b44a1b90db915edb6f68812e4c01abf09f9befcce4279",
+          "bytes": 312709
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-sprint-1440.png",
+          "sha256": "989b4324c238bb8f4d95c8f40d899605c559b91087e904b99fe6a52879238b79",
+          "bytes": 55895
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-folded-1440.png",
+          "sha256": "178e95a4c663c3ee140ee8f3d3f6f29c22b3fb24de186846fb327714e6e5233f",
+          "bytes": 203967
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-regions-390.png",
+          "sha256": "49d10f112d23207d04188fbf0b78c9d8fb6eb25c101d55872d5a381199e6163d",
+          "bytes": 284388
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-sprint-390.png",
+          "sha256": "e93bd2428cd444129204fa467f23848e2f62d291bb55dec86a2b0f3243732327",
+          "bytes": 47532
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-folded-390.png",
+          "sha256": "ae48ad8e751428ddb67af159fe880307733b2e370471aa24fc023ca34e34c8e1",
+          "bytes": 171865
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-record.json",
+          "sha256": "6035d56ac8953895333c697297dbf1a6c4d741eae32f81ed29810ca810727f58",
+          "bytes": 205141
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-backup.motionbench.jsonl",
+          "sha256": "4c07746b3630176007c71658c81768629a77f8ec87b1aa3ed0165344250956d5",
+          "bytes": 5445708
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-report.html",
+          "sha256": "17ff8ecb0c40e62e11bdc84eaaea83f66f18724d937ae9f415fa3770eae47e68",
+          "bytes": 4584069
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-template.xlsx",
+          "sha256": "2a3b208e3f0adb543d322f5f70e7db17aefc5adfb269555198cbb960b149e91d",
+          "bytes": 96577
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-filled.xlsx",
+          "sha256": "720a210c3135bc6d915b806b68e950ef4f30d9599bc059c17da760c954d172e9",
+          "bytes": 97818
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-report.pdf",
+          "sha256": "5a5c5eb5764984854d5e936760feceb27f39b31613f88ec7b05004a025cdcd69",
+          "bytes": 9694539
+        }
+      ],
+      "exports": {
+        "saved": {
+          "raw": [
+            {
+              "id": "excel_1",
+              "splits": [
+                {
+                  "id": "sprint_split_0",
+                  "distanceM": 5,
+                  "timeS": 1.36554065
+                },
+                {
+                  "id": "sprint_split_1",
+                  "distanceM": 10,
+                  "timeS": 2.115124657
+                },
+                {
+                  "id": "sprint_split_2",
+                  "distanceM": 15,
+                  "timeS": 2.730824962
+                },
+                {
+                  "id": "sprint_split_3",
+                  "distanceM": 20,
+                  "timeS": 3.366550575
+                },
+                {
+                  "id": "sprint_split_4",
+                  "distanceM": 25,
+                  "timeS": 3.923491664
+                },
+                {
+                  "id": "sprint_split_5",
+                  "distanceM": 30,
+                  "timeS": 4.516234883
+                }
+              ],
+              "excluded": false,
+              "exclusionReason": "",
+              "notes": "Six independent synthetic timing observations"
+            }
+          ],
+          "config": {
+            "heightCm": "",
+            "temperatureC": 20,
+            "pressureHpa": 1013.25,
+            "windMps": 0,
+            "device": "Synthetic timing fixture",
+            "startConvention": "first_propulsive_action",
+            "timingStart": "first_propulsive_action",
+            "inputTimeMode": "cumulative",
+            "timeCorrectionS": 0,
+            "positionStartM": 0,
+            "methodVersion": "samozino-2016-splits-v1",
+            "sampleStepS": 0.1,
+            "rfAfterS": 0.3,
+            "samplingWindow": "terminal_time"
+          },
+          "analysis": {
+            "targetDistanceM": 10.5
+          },
+          "view": {
+            "fv": true,
+            "pv": false,
+            "optimum": false,
+            "confidence": true,
+            "confidenceMethodVersion": "sprint-fvp-pointwise-delta-v1",
+            "confidenceLevel": 0.95,
+            "metrics": {
+              "F0": true,
+              "V0": false,
+              "Pmax": true,
+              "F0Absolute": false,
+              "PmaxAbsolute": false,
+              "slope": false,
+              "RFmax": true,
+              "DRF": true,
+              "Vmax": false,
+              "endVelocity": false,
+              "Vopt": true
+            }
+          },
+          "selections": {
+            "strength": "fvp",
+            "reactive": "dj_rsi",
+            "speed": "sprint_fvp"
+          }
+        },
+        "backupSchema": 3,
+        "producerVersion": "2.17.5-local",
+        "excelSettingsValidatedByBrowserRoundTrip": true,
+        "excelInternalIdentity": {
+          "recordIdPreserved": true,
+          "athleteIdPreserved": true,
+          "measurementFieldsExactlyPreserved": true,
+          "contract": "Existing Excel attempt/split positions reconstruct internal trial/split ids; JSON and JSONL retain full ids."
+        },
+        "legacyExcel": [
+          {
+            "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema1.xlsx",
+            "sha256": "3a08f2de5b2a2bd4e2d69c25a63dcc803fd274da829c82f7c387510b1ee4f6bc",
+            "bytes": 30971,
+            "recordIdPreserved": true,
+            "athleteIdPreserved": true,
+            "measurementFieldsExactlyPreserved": true
+          },
+          {
+            "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema2.xlsx",
+            "sha256": "943244f8d9139f4bc3251642c895aa03feaec3c63e0f3816af2ae1bdbac57ef0",
+            "bytes": 33314,
+            "recordIdPreserved": true,
+            "athleteIdPreserved": true,
+            "measurementFieldsExactlyPreserved": true
+          }
+        ]
+      },
+      "pdf": {
+        "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-report.pdf",
+        "sha256": "5a5c5eb5764984854d5e936760feceb27f39b31613f88ec7b05004a025cdcd69",
+        "bytes": 9694539,
+        "pageCount": 24,
+        "chartCounts": {
+          "jumpFvp": 2,
+          "jumpElasticity": 2,
+          "sprintFvp": 1
+        }
+      }
+    },
+    {
+      "channel": "msedge",
+      "pass": true,
+      "checks": 16,
+      "result": {
+        "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-results.json",
+        "sha256": "3d54efcd78a5ef43707162068faac2dbaf3ffb6dc60abeaf2eefc30d3419e9c1",
+        "bytes": 281016
+      },
+      "runner": {
+        "path": "tests/sprint-fvp-display-browser-tests.cjs",
+        "sha256": "1c3fe5d2590b7ce317c5eb6f7e25494002dbbf9c8ff1191a31241a0009551012",
+        "bytes": 38185
+      },
+      "helpers": [
+        {
+          "path": "tests/helpers/playwright.cjs",
+          "sha256": "e3b59e20e025d134519e02af6ad56ce31654231802f5fe44c3ca3b0749d24d5d",
+          "bytes": 881
+        },
+        {
+          "path": "tests/helpers/excel-template.cjs",
+          "sha256": "b965f94148ff3d3c065e549ba0000f2c0c98cb88493ca16d971090a7b4591b31",
+          "bytes": 1588
+        }
+      ],
+      "fixtures": [
+        {
+          "path": "tests/fixtures/sprint-display-spec.json",
+          "sha256": "f6532d0e8d75bca400490b66a0b725b0396aa5dddee0d128bb5d31cff6a0241b",
+          "bytes": 1061
+        },
+        {
+          "path": "tests/fixtures/three-fvp-regions.json",
+          "sha256": "7698e3bce363614da67df19b560393aeffd607057fc92b2a1435c3b85a7c73ad",
+          "bytes": 918612
+        },
+        {
+          "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema1.xlsx",
+          "sha256": "3a08f2de5b2a2bd4e2d69c25a63dcc803fd274da829c82f7c387510b1ee4f6bc",
+          "bytes": 30971
+        },
+        {
+          "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema2.xlsx",
+          "sha256": "943244f8d9139f4bc3251642c895aa03feaec3c63e0f3816af2ae1bdbac57ef0",
+          "bytes": 33314
+        },
+        {
+          "path": "tests/fixtures/sprint-display-v2173/baseline-fixtures.json",
+          "sha256": "392e76f4a3695fe29778544e4523478b1aea9d38b3f01b4e5efbd63a28b54a51",
+          "bytes": 2132
+        },
+        {
+          "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-library.json",
+          "sha256": "52a95a96fd8a83400d5c8fd69b7e1a4e9128ab029d276c470f7134fc1a2b3b9a",
+          "bytes": 817503
+        }
+      ],
+      "artifacts": [
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-history-normalization.xlsx",
+          "sha256": "cc474a268389fb0ba567ae22635d64794c6b53124bfd2a6e00df10da572313c3",
+          "bytes": 96506
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-all-off-1440.png",
+          "sha256": "53754695ab6539078c506b0184bc433f6332a9bd86fc7444790170c1c8c6d0a9",
+          "bytes": 40461
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-expected.json",
+          "sha256": "11c8b4f1c52452eb03503cfbcb55c83f45f1c18b2b007e5f2001fe2b94dbc7c2",
+          "bytes": 1939
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-regions-1440.png",
+          "sha256": "6d26c0a44752aefcc91b44a1b90db915edb6f68812e4c01abf09f9befcce4279",
+          "bytes": 312709
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-sprint-1440.png",
+          "sha256": "989b4324c238bb8f4d95c8f40d899605c559b91087e904b99fe6a52879238b79",
+          "bytes": 55895
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-folded-1440.png",
+          "sha256": "1107c4363d8d88440721a98266f403a343166a981046a1b618cea30ecb802f69",
+          "bytes": 203982
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-regions-390.png",
+          "sha256": "49d10f112d23207d04188fbf0b78c9d8fb6eb25c101d55872d5a381199e6163d",
+          "bytes": 284388
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-sprint-390.png",
+          "sha256": "7471185abf64145cf6a061a5fbb0643a07ff70008c20b5c089d3bd66de21134b",
+          "bytes": 47486
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-folded-390.png",
+          "sha256": "ae48ad8e751428ddb67af159fe880307733b2e370471aa24fc023ca34e34c8e1",
+          "bytes": 171865
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-record.json",
+          "sha256": "087c7d5931afd7ab67ab7ec7cafe9e7eab9e20553e0976aebb8437fdbcd06186",
+          "bytes": 205141
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-backup.motionbench.jsonl",
+          "sha256": "d6f0ff6aff4834169481dbcc501f4d1300f6c255c4cd0b749c9a24a3fbcd9ecf",
+          "bytes": 5445708
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-report.html",
+          "sha256": "655f9f79153f91d87d2276fa3bf0f61559e86d4c8fefb0f318775b19fa8edb1d",
+          "bytes": 4584069
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-template.xlsx",
+          "sha256": "96e837756e511e1365834f50cc2e00c453e676195e70f924a3b56d90d3e01284",
+          "bytes": 96577
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-filled.xlsx",
+          "sha256": "8d9108d841cae9f0d64049c9a8de8837ab917d1341d30650074f7e2af0f2dcbc",
+          "bytes": 97818
+        },
+        {
+          "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-report.pdf",
+          "sha256": "9b9a480dd8526341cdfea760edfe0b013e9c170e75c17343e2c043f8503d95b8",
+          "bytes": 9694539
+        }
+      ],
+      "exports": {
+        "saved": {
+          "raw": [
+            {
+              "id": "excel_1",
+              "splits": [
+                {
+                  "id": "sprint_split_0",
+                  "distanceM": 5,
+                  "timeS": 1.36554065
+                },
+                {
+                  "id": "sprint_split_1",
+                  "distanceM": 10,
+                  "timeS": 2.115124657
+                },
+                {
+                  "id": "sprint_split_2",
+                  "distanceM": 15,
+                  "timeS": 2.730824962
+                },
+                {
+                  "id": "sprint_split_3",
+                  "distanceM": 20,
+                  "timeS": 3.366550575
+                },
+                {
+                  "id": "sprint_split_4",
+                  "distanceM": 25,
+                  "timeS": 3.923491664
+                },
+                {
+                  "id": "sprint_split_5",
+                  "distanceM": 30,
+                  "timeS": 4.516234883
+                }
+              ],
+              "excluded": false,
+              "exclusionReason": "",
+              "notes": "Six independent synthetic timing observations"
+            }
+          ],
+          "config": {
+            "heightCm": "",
+            "temperatureC": 20,
+            "pressureHpa": 1013.25,
+            "windMps": 0,
+            "device": "Synthetic timing fixture",
+            "startConvention": "first_propulsive_action",
+            "timingStart": "first_propulsive_action",
+            "inputTimeMode": "cumulative",
+            "timeCorrectionS": 0,
+            "positionStartM": 0,
+            "methodVersion": "samozino-2016-splits-v1",
+            "sampleStepS": 0.1,
+            "rfAfterS": 0.3,
+            "samplingWindow": "terminal_time"
+          },
+          "analysis": {
+            "targetDistanceM": 10.5
+          },
+          "view": {
+            "fv": true,
+            "pv": false,
+            "optimum": false,
+            "confidence": true,
+            "confidenceMethodVersion": "sprint-fvp-pointwise-delta-v1",
+            "confidenceLevel": 0.95,
+            "metrics": {
+              "F0": true,
+              "V0": false,
+              "Pmax": true,
+              "F0Absolute": false,
+              "PmaxAbsolute": false,
+              "slope": false,
+              "RFmax": true,
+              "DRF": true,
+              "Vmax": false,
+              "endVelocity": false,
+              "Vopt": true
+            }
+          },
+          "selections": {
+            "strength": "fvp",
+            "reactive": "dj_rsi",
+            "speed": "sprint_fvp"
+          }
+        },
+        "backupSchema": 3,
+        "producerVersion": "2.17.5-local",
+        "excelSettingsValidatedByBrowserRoundTrip": true,
+        "excelInternalIdentity": {
+          "recordIdPreserved": true,
+          "athleteIdPreserved": true,
+          "measurementFieldsExactlyPreserved": true,
+          "contract": "Existing Excel attempt/split positions reconstruct internal trial/split ids; JSON and JSONL retain full ids."
+        },
+        "legacyExcel": [
+          {
+            "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema1.xlsx",
+            "sha256": "3a08f2de5b2a2bd4e2d69c25a63dcc803fd274da829c82f7c387510b1ee4f6bc",
+            "bytes": 30971,
+            "recordIdPreserved": true,
+            "athleteIdPreserved": true,
+            "measurementFieldsExactlyPreserved": true
+          },
+          {
+            "path": "tests/fixtures/sprint-display-v2173/baseline-sprint-schema2.xlsx",
+            "sha256": "943244f8d9139f4bc3251642c895aa03feaec3c63e0f3816af2ae1bdbac57ef0",
+            "bytes": 33314,
+            "recordIdPreserved": true,
+            "athleteIdPreserved": true,
+            "measurementFieldsExactlyPreserved": true
+          }
+        ]
+      },
+      "pdf": {
+        "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-report.pdf",
+        "sha256": "9b9a480dd8526341cdfea760edfe0b013e9c170e75c17343e2c043f8503d95b8",
+        "bytes": 9694539,
+        "pageCount": 24,
+        "chartCounts": {
+          "jumpFvp": 2,
+          "jumpElasticity": 2,
+          "sprintFvp": 1
+        }
+      }
+    }
+  ],
+  "graphBrowsers": [
+    {
+      "channel": "chrome",
+      "pass": true,
+      "checks": 10,
+      "result": {
+        "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-results.json",
+        "sha256": "dbb813a4a328efa00581989a626caffb4688cf572fe330003eedc3a20f543d51",
+        "bytes": 2708821
+      },
+      "runner": {
+        "path": "tests/fvp-three-region-browser-tests.cjs",
+        "sha256": "b5ef0a6899f31e5cc184d52c3aa6e16fc7360a4bc32cf043ed1a94380de9837b",
+        "bytes": 23068
+      },
+      "helpers": [],
+      "fixtures": [],
+      "artifacts": [
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-initial-viewport.png",
+          "sha256": "8c703e8a6ad8d93b9d3c3da5061c0f696a4821db54d57ee224399d24f92a8848",
+          "bytes": 109346
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-initial.png",
+          "sha256": "7b4bc6ac2abb58d901a5f15aea742a460815c080848f7b647d139e74d3953dea",
+          "bytes": 341252
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-initial-jumpFvp-viewport.png",
+          "sha256": "ef4a77dbed22afb0ed276f90e95dc2fee4f52ea5ba9cf641a0271e0de28a8832",
+          "bytes": 110664
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-initial-jumpElasticity-viewport.png",
+          "sha256": "d56574c5299d407432f985177d11331b6299a8a6dae68de0e35a1012646e562d",
+          "bytes": 113717
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-initial-sprintFvp-viewport.png",
+          "sha256": "675212a26a6369c37720783d9fd52e345437a6deae6326e90052fe6b54c8059e",
+          "bytes": 105497
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-cmj-viewport.png",
+          "sha256": "c29ad03a11ce5378747992fa49d5be2253e8dbda0ad42cf7db8782242113ae7e",
+          "bytes": 108632
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-cmj.png",
+          "sha256": "7736e431e5906aee82237a787029adca053232864cbf02db4c547820c61d9c4d",
+          "bytes": 339649
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-cmj-jumpFvp-viewport.png",
+          "sha256": "9b485c07b394a498805266296a64a13011c636064545b3de95e961074cec7110",
+          "bytes": 110092
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-cmj-jumpElasticity-viewport.png",
+          "sha256": "86a9a443d1f751303e67e5619af778cefe8c183149a024c657771b74f5076830",
+          "bytes": 113708
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-cmj-sprintFvp-viewport.png",
+          "sha256": "0a86c46a181ce910652802b9d247981594c6f182ada950e7744e04293a0d85a1",
+          "bytes": 105372
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-controls-after-reload-viewport.png",
+          "sha256": "9944a0389cfef11da0cbe0928fc76809c2d973d008dc24418585f23d85a51992",
+          "bytes": 89528
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-controls-after-reload.png",
+          "sha256": "38037964e4c04d796102e99448d4d7cf78853724ca2d2e93f79d1588e8080f28",
+          "bytes": 325084
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-pinned-reopened-viewport.png",
+          "sha256": "0b4993d030b16593bdf5f3fd10db64d73aa00200719652660fba107a612da8a7",
+          "bytes": 91080
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-pinned-reopened.png",
+          "sha256": "b9ee1b64db953c693b1976a54b4b7481af9f7d4541e46ad22178f87fd2d41c41",
+          "bytes": 328037
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-folded-viewport.png",
+          "sha256": "8c703e8a6ad8d93b9d3c3da5061c0f696a4821db54d57ee224399d24f92a8848",
+          "bytes": 109346
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-folded.png",
+          "sha256": "11b769c07b6cf2a7d7c421c17f0a647dd62fb5ebd72fb38a589d3ae57420ba62",
+          "bytes": 231203
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-folded-reopened-viewport.png",
+          "sha256": "0d717f283507b6c40827fc26bdcd13dd397afc9fb2254a1f16055df4ab68b48d",
+          "bytes": 104743
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-historical-folded-reopened.png",
+          "sha256": "7b4bc6ac2abb58d901a5f15aea742a460815c080848f7b647d139e74d3953dea",
+          "bytes": 341252
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-independent-graphs-folded-capability-viewport.png",
+          "sha256": "8c703e8a6ad8d93b9d3c3da5061c0f696a4821db54d57ee224399d24f92a8848",
+          "bytes": 109346
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-independent-graphs-folded-capability.png",
+          "sha256": "11b769c07b6cf2a7d7c421c17f0a647dd62fb5ebd72fb38a589d3ae57420ba62",
+          "bytes": 231203
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-independent-graphs-folded-capability-jumpFvp-viewport.png",
+          "sha256": "ef4a77dbed22afb0ed276f90e95dc2fee4f52ea5ba9cf641a0271e0de28a8832",
+          "bytes": 110664
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-independent-graphs-folded-capability-jumpElasticity-viewport.png",
+          "sha256": "d56574c5299d407432f985177d11331b6299a8a6dae68de0e35a1012646e562d",
+          "bytes": 113717
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-independent-graphs-folded-capability-sprintFvp-viewport.png",
+          "sha256": "675212a26a6369c37720783d9fd52e345437a6deae6326e90052fe6b54c8059e",
+          "bytes": 105497
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-enabled-missing-input-viewport.png",
+          "sha256": "356cb405c611e203387152b36f0cbe16db4a0e1cdaf2d2bda78085c42ae911c1",
+          "bytes": 125589
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-enabled-missing-input.png",
+          "sha256": "7acf6a8d81dda50ea66073b0e3961279730cf950a2f87dcda500ce1db1847c38",
+          "bytes": 109419
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-mixed-invalid-cmj-selected-viewport.png",
+          "sha256": "678a5de9d9aed0a0bc91767a8cb1ff982882da804a7db38454f7a542d7b41019",
+          "bytes": 72273
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-mixed-invalid-cmj-selected.png",
+          "sha256": "95efdd827c5f39fcf5aaadf60fde6cff2b2295989fdaa64dbfae2b66bf9e4249",
+          "bytes": 253820
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-disabled-with-valid-raw-viewport.png",
+          "sha256": "17f852266a255acf101f2ed3122e72af09db9743b5a26b0275770619d227eeef",
+          "bytes": 131766
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-disabled-with-valid-raw.png",
+          "sha256": "0d2679711167f8d4125313e0d86bf40c44cbac9483069c9d0603c7f49612ad65",
+          "bytes": 115371
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-default-empty-record.png",
+          "sha256": "d9fa0c2a2305920fca7403cdf50f4a9eed307be65bb237a7dbb31da214b71dff",
+          "bytes": 200120
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-new-entry-before-reopen-viewport.png",
+          "sha256": "4ca31dab5af8a7f2295d438fe46dd3a98fdae6280888e69cafab1ea32e113fcc",
+          "bytes": 110067
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-new-entry-before-reopen.png",
+          "sha256": "56dea7c856a795638c0ebb830fcacb05d17b934af83a86651c38a54346b7032a",
+          "bytes": 262292
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-new-entry-after-reopen-viewport.png",
+          "sha256": "05a8de84dd144ea9db78aa5617c75768a41915a378c1dcce2178da1d38d7d0fc",
+          "bytes": 105059
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-new-entry-after-reopen.png",
+          "sha256": "56dea7c856a795638c0ebb830fcacb05d17b934af83a86651c38a54346b7032a",
+          "bytes": 262292
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-new-entry-after-reopen-jumpFvp-viewport.png",
+          "sha256": "ce27b977775a7ac4eb5154f67998092cc9eecb8e036b86fd3d24e7dedb83678f",
+          "bytes": 106298
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-new-entry-after-reopen-jumpElasticity-viewport.png",
+          "sha256": "626370429b35998d48fea7962c3c37f4bdc7993f7f61a46389b6eead5ab6ec11",
+          "bytes": 110047
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-new-entry-after-reopen-sprintFvp-viewport.png",
+          "sha256": "61aac75b02e944ad86162cdf984394febaf44e60bc9ac7e6bd9cec0523cb68cb",
+          "bytes": 100703
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-three-regions.pdf",
+          "sha256": "58a0e52b5321ebc99be80b63fd7c31cee288215644e1021b115e633333ad4b8f",
+          "bytes": 9766622
+        }
+      ],
+      "width": 1440,
+      "pdf": {
+        "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-three-regions.pdf",
+        "sha256": "58a0e52b5321ebc99be80b63fd7c31cee288215644e1021b115e633333ad4b8f",
+        "bytes": 9766622,
+        "pageCount": 25,
+        "chartCounts": {
+          "jumpFvp": 2,
+          "jumpElasticity": 2,
+          "sprintFvp": 1
+        }
+      }
+    },
+    {
+      "channel": "chrome",
+      "pass": true,
+      "checks": 9,
+      "result": {
+        "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-results.json",
+        "sha256": "3c8eb277c725a6e8cdfc0b4ab811b498093f458a784a47837408dbec5c45cc95",
+        "bytes": 2587491
+      },
+      "runner": {
+        "path": "tests/fvp-three-region-browser-tests.cjs",
+        "sha256": "b5ef0a6899f31e5cc184d52c3aa6e16fc7360a4bc32cf043ed1a94380de9837b",
+        "bytes": 23068
+      },
+      "helpers": [],
+      "fixtures": [],
+      "artifacts": [
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-initial-viewport.png",
+          "sha256": "6c092d6ef56fcad4f769beb00b3d7ded4c1940e9fd8dcfffde0a1c2aadd91957",
+          "bytes": 56232
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-initial.png",
+          "sha256": "e719486af3af82f742a56106aeed60632a127f67557c4025eed0e84d7be1a5d5",
+          "bytes": 304594
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-initial-jumpFvp-viewport.png",
+          "sha256": "d1f842abdf8daf6724a786c26450950fe2d9aeecf827fcf2f19aca08695e0557",
+          "bytes": 56219
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-initial-jumpElasticity-viewport.png",
+          "sha256": "1854837ea6291aa7cbdb148ccd6ca95e9c9c9052d45624455c82644186b78f5a",
+          "bytes": 53648
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-initial-sprintFvp-viewport.png",
+          "sha256": "8b2c0fb9d01d95745314498e3c723f172be0ddcba5551ebe7c7f9560fffba008",
+          "bytes": 51967
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-cmj-viewport.png",
+          "sha256": "cb4c13b2085cffb6261e8bb9f5dd7b9b6bc1004ae958c378e3172ea3ebd2859b",
+          "bytes": 56454
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-cmj.png",
+          "sha256": "199802ad7568aa28f071bb292d0f6cc4e80309e91171207f90aeb61983ef71e4",
+          "bytes": 305284
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-cmj-jumpFvp-viewport.png",
+          "sha256": "43c2d2e3638e3dffc7946653dae4b8a639d68c4388e3de4677e72bf370871adf",
+          "bytes": 56409
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-cmj-jumpElasticity-viewport.png",
+          "sha256": "1f9632575bf832779f1c3e56170d002ba14f9348de3944e53062ffb153059bf5",
+          "bytes": 54580
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-cmj-sprintFvp-viewport.png",
+          "sha256": "d2c12478e8f350215e1a8fa52624aa409583cd31bc77733b2647b7e5cb428b28",
+          "bytes": 51911
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-controls-after-reload-viewport.png",
+          "sha256": "e46e3ab1f3ba852c2262d7528e38b69c56d1240cc5b64e89a9ef48482da6c4ea",
+          "bytes": 41759
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-controls-after-reload.png",
+          "sha256": "8df1cb954781430f090f6d378a059aa31901ed4402d9bdf8053d9f7a4d6257e4",
+          "bytes": 296172
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-pinned-reopened-viewport.png",
+          "sha256": "e02eced0c6a3aae8053fe6056990d539a9db58f45e273cf808042558e514c84a",
+          "bytes": 41844
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-pinned-reopened.png",
+          "sha256": "d2e8d6df24f463fcb899b2c3f74689fc206e8386875d3ef686d4014fd13a8a0f",
+          "bytes": 298900
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-folded-viewport.png",
+          "sha256": "30b9edfa9d4daff818fa1ae4cdc79eb604228453d4fe78a264c661ef2e1b267c",
+          "bytes": 55363
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-folded.png",
+          "sha256": "fe941b1a7f0523a7a913c9b0997cc80a310d65e313ad27ccb00addfdf9b21faf",
+          "bytes": 191071
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-folded-reopened-viewport.png",
+          "sha256": "792cbb532fde678354f0d726518568e3655fcdf87501aece742958bd130b6042",
+          "bytes": 51571
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-historical-folded-reopened.png",
+          "sha256": "d65fb4b248defb5c48a7eca72e50a7798a28ccd4bfd89b105d154a9834ef55a9",
+          "bytes": 304556
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-independent-graphs-folded-capability-viewport.png",
+          "sha256": "30b9edfa9d4daff818fa1ae4cdc79eb604228453d4fe78a264c661ef2e1b267c",
+          "bytes": 55363
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-independent-graphs-folded-capability.png",
+          "sha256": "fe941b1a7f0523a7a913c9b0997cc80a310d65e313ad27ccb00addfdf9b21faf",
+          "bytes": 191071
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-independent-graphs-folded-capability-jumpFvp-viewport.png",
+          "sha256": "aba9e3e5518e8fe27552f7c099355d63564b077ae1a4e4b6f65d0e95bed04a6b",
+          "bytes": 55372
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-independent-graphs-folded-capability-jumpElasticity-viewport.png",
+          "sha256": "ad218cf66c4d5af701258d9cb2afc2b34caf6b32d4cf2cc8d2729b9bb7440019",
+          "bytes": 52782
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-independent-graphs-folded-capability-sprintFvp-viewport.png",
+          "sha256": "020deaeb9c529c4d7b55e0a9dc57913af31020bdf0056536b39c9649f2b495dc",
+          "bytes": 51107
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-enabled-missing-input-viewport.png",
+          "sha256": "790d454d3dcd1cb31243df8fab24295837b8cf286ee643344ea4fe666ccf5638",
+          "bytes": 34883
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-enabled-missing-input.png",
+          "sha256": "82e072bcb2386bc764cfd7db37b34beadff58b8b54dc8e55a141c3c4957300b7",
+          "bytes": 110236
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-mixed-invalid-cmj-selected-viewport.png",
+          "sha256": "5fe3f955eb42fcbc27d39f8a15d1fb3171fa1314042ef943c46bff033398349c",
+          "bytes": 38382
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-mixed-invalid-cmj-selected.png",
+          "sha256": "030008c72a1e6e246c1eb86248da2c469943664e01b6b3e9faaed8520fb17f99",
+          "bytes": 233821
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-disabled-with-valid-raw-viewport.png",
+          "sha256": "7c9ac8eaf09ad063cf2ed82eb29f51c765f9521a6cc58f49a8d2fe0cc0fa542c",
+          "bytes": 39024
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-disabled-with-valid-raw.png",
+          "sha256": "8b36948ec0b52f32654b70b430abb2f39b054f2ed1aa001ebf93db86797c665f",
+          "bytes": 115991
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-default-empty-record.png",
+          "sha256": "0566bacd1a4ccf75597fd739b09069c295f77b26d1fd9cf652f12c261e247efc",
+          "bytes": 142391
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-new-entry-before-reopen-viewport.png",
+          "sha256": "1da9d94738cc54785651b386827f040c95970178b61e90c42b85fa19de3b0e2e",
+          "bytes": 55869
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-new-entry-before-reopen.png",
+          "sha256": "ba8c100d43b84e1f1e202b8e9ded79d47946f3dedd5f753404e6b491a29d4645",
+          "bytes": 223519
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-new-entry-after-reopen-viewport.png",
+          "sha256": "25cf101eeba2fc5cc13a794eb5e19b82218cbd015017f9855b98ec1779f308bb",
+          "bytes": 51481
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-new-entry-after-reopen.png",
+          "sha256": "fd51e60c77b2f7fe74f99618115c53f1e151d53874464243001abf9c808454a1",
+          "bytes": 223185
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-new-entry-after-reopen-jumpFvp-viewport.png",
+          "sha256": "5b4b7a2dc976806425a9ff26066a4be4c48b1d161eede67a51fb704656dc6894",
+          "bytes": 52014
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-new-entry-after-reopen-jumpElasticity-viewport.png",
+          "sha256": "ea5ddb8ae183b100385585445dfd632fec585889fa4fe74ddaf40716d3e4b43e",
+          "bytes": 50175
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-new-entry-after-reopen-sprintFvp-viewport.png",
+          "sha256": "8e591adafc394fc19870a81e8c9522d28c0aa7a17d90faca6628d02557cdc608",
+          "bytes": 48826
+        }
+      ],
+      "width": 390
+    },
+    {
+      "channel": "msedge",
+      "pass": true,
+      "checks": 10,
+      "result": {
+        "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-results.json",
+        "sha256": "94c5cc89911fb7086e4b7e2ddc64d2a78c10b05b2b33335fb67e3e47e080a75b",
+        "bytes": 2708821
+      },
+      "runner": {
+        "path": "tests/fvp-three-region-browser-tests.cjs",
+        "sha256": "b5ef0a6899f31e5cc184d52c3aa6e16fc7360a4bc32cf043ed1a94380de9837b",
+        "bytes": 23068
+      },
+      "helpers": [],
+      "fixtures": [],
+      "artifacts": [
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-initial-viewport.png",
+          "sha256": "8c703e8a6ad8d93b9d3c3da5061c0f696a4821db54d57ee224399d24f92a8848",
+          "bytes": 109346
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-initial.png",
+          "sha256": "7b4bc6ac2abb58d901a5f15aea742a460815c080848f7b647d139e74d3953dea",
+          "bytes": 341252
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-initial-jumpFvp-viewport.png",
+          "sha256": "ef4a77dbed22afb0ed276f90e95dc2fee4f52ea5ba9cf641a0271e0de28a8832",
+          "bytes": 110664
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-initial-jumpElasticity-viewport.png",
+          "sha256": "d56574c5299d407432f985177d11331b6299a8a6dae68de0e35a1012646e562d",
+          "bytes": 113717
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-initial-sprintFvp-viewport.png",
+          "sha256": "675212a26a6369c37720783d9fd52e345437a6deae6326e90052fe6b54c8059e",
+          "bytes": 105497
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-cmj-viewport.png",
+          "sha256": "c29ad03a11ce5378747992fa49d5be2253e8dbda0ad42cf7db8782242113ae7e",
+          "bytes": 108632
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-cmj.png",
+          "sha256": "7736e431e5906aee82237a787029adca053232864cbf02db4c547820c61d9c4d",
+          "bytes": 339649
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-cmj-jumpFvp-viewport.png",
+          "sha256": "9b485c07b394a498805266296a64a13011c636064545b3de95e961074cec7110",
+          "bytes": 110092
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-cmj-jumpElasticity-viewport.png",
+          "sha256": "86a9a443d1f751303e67e5619af778cefe8c183149a024c657771b74f5076830",
+          "bytes": 113708
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-cmj-sprintFvp-viewport.png",
+          "sha256": "0a86c46a181ce910652802b9d247981594c6f182ada950e7744e04293a0d85a1",
+          "bytes": 105372
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-controls-after-reload-viewport.png",
+          "sha256": "9944a0389cfef11da0cbe0928fc76809c2d973d008dc24418585f23d85a51992",
+          "bytes": 89528
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-controls-after-reload.png",
+          "sha256": "38037964e4c04d796102e99448d4d7cf78853724ca2d2e93f79d1588e8080f28",
+          "bytes": 325084
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-pinned-reopened-viewport.png",
+          "sha256": "0b4993d030b16593bdf5f3fd10db64d73aa00200719652660fba107a612da8a7",
+          "bytes": 91080
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-pinned-reopened.png",
+          "sha256": "b9ee1b64db953c693b1976a54b4b7481af9f7d4541e46ad22178f87fd2d41c41",
+          "bytes": 328037
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-folded-viewport.png",
+          "sha256": "8c703e8a6ad8d93b9d3c3da5061c0f696a4821db54d57ee224399d24f92a8848",
+          "bytes": 109346
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-folded.png",
+          "sha256": "11b769c07b6cf2a7d7c421c17f0a647dd62fb5ebd72fb38a589d3ae57420ba62",
+          "bytes": 231203
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-folded-reopened-viewport.png",
+          "sha256": "0d717f283507b6c40827fc26bdcd13dd397afc9fb2254a1f16055df4ab68b48d",
+          "bytes": 104743
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-historical-folded-reopened.png",
+          "sha256": "7b4bc6ac2abb58d901a5f15aea742a460815c080848f7b647d139e74d3953dea",
+          "bytes": 341252
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-independent-graphs-folded-capability-viewport.png",
+          "sha256": "8c703e8a6ad8d93b9d3c3da5061c0f696a4821db54d57ee224399d24f92a8848",
+          "bytes": 109346
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-independent-graphs-folded-capability.png",
+          "sha256": "11b769c07b6cf2a7d7c421c17f0a647dd62fb5ebd72fb38a589d3ae57420ba62",
+          "bytes": 231203
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-independent-graphs-folded-capability-jumpFvp-viewport.png",
+          "sha256": "ef4a77dbed22afb0ed276f90e95dc2fee4f52ea5ba9cf641a0271e0de28a8832",
+          "bytes": 110664
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-independent-graphs-folded-capability-jumpElasticity-viewport.png",
+          "sha256": "d56574c5299d407432f985177d11331b6299a8a6dae68de0e35a1012646e562d",
+          "bytes": 113717
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-independent-graphs-folded-capability-sprintFvp-viewport.png",
+          "sha256": "675212a26a6369c37720783d9fd52e345437a6deae6326e90052fe6b54c8059e",
+          "bytes": 105497
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-enabled-missing-input-viewport.png",
+          "sha256": "356cb405c611e203387152b36f0cbe16db4a0e1cdaf2d2bda78085c42ae911c1",
+          "bytes": 125589
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-enabled-missing-input.png",
+          "sha256": "7acf6a8d81dda50ea66073b0e3961279730cf950a2f87dcda500ce1db1847c38",
+          "bytes": 109419
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-mixed-invalid-cmj-selected-viewport.png",
+          "sha256": "678a5de9d9aed0a0bc91767a8cb1ff982882da804a7db38454f7a542d7b41019",
+          "bytes": 72273
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-mixed-invalid-cmj-selected.png",
+          "sha256": "95efdd827c5f39fcf5aaadf60fde6cff2b2295989fdaa64dbfae2b66bf9e4249",
+          "bytes": 253820
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-disabled-with-valid-raw-viewport.png",
+          "sha256": "17f852266a255acf101f2ed3122e72af09db9743b5a26b0275770619d227eeef",
+          "bytes": 131766
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-disabled-with-valid-raw.png",
+          "sha256": "0d2679711167f8d4125313e0d86bf40c44cbac9483069c9d0603c7f49612ad65",
+          "bytes": 115371
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-default-empty-record.png",
+          "sha256": "d9fa0c2a2305920fca7403cdf50f4a9eed307be65bb237a7dbb31da214b71dff",
+          "bytes": 200120
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-new-entry-before-reopen-viewport.png",
+          "sha256": "4ca31dab5af8a7f2295d438fe46dd3a98fdae6280888e69cafab1ea32e113fcc",
+          "bytes": 110067
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-new-entry-before-reopen.png",
+          "sha256": "56dea7c856a795638c0ebb830fcacb05d17b934af83a86651c38a54346b7032a",
+          "bytes": 262292
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-new-entry-after-reopen-viewport.png",
+          "sha256": "05a8de84dd144ea9db78aa5617c75768a41915a378c1dcce2178da1d38d7d0fc",
+          "bytes": 105059
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-new-entry-after-reopen.png",
+          "sha256": "56dea7c856a795638c0ebb830fcacb05d17b934af83a86651c38a54346b7032a",
+          "bytes": 262292
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-new-entry-after-reopen-jumpFvp-viewport.png",
+          "sha256": "ce27b977775a7ac4eb5154f67998092cc9eecb8e036b86fd3d24e7dedb83678f",
+          "bytes": 106298
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-new-entry-after-reopen-jumpElasticity-viewport.png",
+          "sha256": "626370429b35998d48fea7962c3c37f4bdc7993f7f61a46389b6eead5ab6ec11",
+          "bytes": 110047
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-new-entry-after-reopen-sprintFvp-viewport.png",
+          "sha256": "61aac75b02e944ad86162cdf984394febaf44e60bc9ac7e6bd9cec0523cb68cb",
+          "bytes": 100703
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-three-regions.pdf",
+          "sha256": "d1e00620cd20ebcca103759188821075b02bcb6e4530a5841395bb12bdfdce55",
+          "bytes": 9766622
+        }
+      ],
+      "width": 1440,
+      "pdf": {
+        "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-three-regions.pdf",
+        "sha256": "d1e00620cd20ebcca103759188821075b02bcb6e4530a5841395bb12bdfdce55",
+        "bytes": 9766622,
+        "pageCount": 25,
+        "chartCounts": {
+          "jumpFvp": 2,
+          "jumpElasticity": 2,
+          "sprintFvp": 1
+        }
+      }
+    },
+    {
+      "channel": "msedge",
+      "pass": true,
+      "checks": 9,
+      "result": {
+        "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-results.json",
+        "sha256": "48ab5fe21ebf9db9c9f0486dd41d80f7e74462fe084bdee9efe25f260a3af4b1",
+        "bytes": 2587491
+      },
+      "runner": {
+        "path": "tests/fvp-three-region-browser-tests.cjs",
+        "sha256": "b5ef0a6899f31e5cc184d52c3aa6e16fc7360a4bc32cf043ed1a94380de9837b",
+        "bytes": 23068
+      },
+      "helpers": [],
+      "fixtures": [],
+      "artifacts": [
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-initial-viewport.png",
+          "sha256": "6c092d6ef56fcad4f769beb00b3d7ded4c1940e9fd8dcfffde0a1c2aadd91957",
+          "bytes": 56232
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-initial.png",
+          "sha256": "e719486af3af82f742a56106aeed60632a127f67557c4025eed0e84d7be1a5d5",
+          "bytes": 304594
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-initial-jumpFvp-viewport.png",
+          "sha256": "d1f842abdf8daf6724a786c26450950fe2d9aeecf827fcf2f19aca08695e0557",
+          "bytes": 56219
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-initial-jumpElasticity-viewport.png",
+          "sha256": "1854837ea6291aa7cbdb148ccd6ca95e9c9c9052d45624455c82644186b78f5a",
+          "bytes": 53648
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-initial-sprintFvp-viewport.png",
+          "sha256": "8b2c0fb9d01d95745314498e3c723f172be0ddcba5551ebe7c7f9560fffba008",
+          "bytes": 51967
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-cmj-viewport.png",
+          "sha256": "cb4c13b2085cffb6261e8bb9f5dd7b9b6bc1004ae958c378e3172ea3ebd2859b",
+          "bytes": 56454
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-cmj.png",
+          "sha256": "199802ad7568aa28f071bb292d0f6cc4e80309e91171207f90aeb61983ef71e4",
+          "bytes": 305284
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-cmj-jumpFvp-viewport.png",
+          "sha256": "43c2d2e3638e3dffc7946653dae4b8a639d68c4388e3de4677e72bf370871adf",
+          "bytes": 56409
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-cmj-jumpElasticity-viewport.png",
+          "sha256": "1f9632575bf832779f1c3e56170d002ba14f9348de3944e53062ffb153059bf5",
+          "bytes": 54580
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-cmj-sprintFvp-viewport.png",
+          "sha256": "d2c12478e8f350215e1a8fa52624aa409583cd31bc77733b2647b7e5cb428b28",
+          "bytes": 51911
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-controls-after-reload-viewport.png",
+          "sha256": "e46e3ab1f3ba852c2262d7528e38b69c56d1240cc5b64e89a9ef48482da6c4ea",
+          "bytes": 41759
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-controls-after-reload.png",
+          "sha256": "8df1cb954781430f090f6d378a059aa31901ed4402d9bdf8053d9f7a4d6257e4",
+          "bytes": 296172
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-pinned-reopened-viewport.png",
+          "sha256": "e02eced0c6a3aae8053fe6056990d539a9db58f45e273cf808042558e514c84a",
+          "bytes": 41844
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-pinned-reopened.png",
+          "sha256": "d2e8d6df24f463fcb899b2c3f74689fc206e8386875d3ef686d4014fd13a8a0f",
+          "bytes": 298900
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-folded-viewport.png",
+          "sha256": "30b9edfa9d4daff818fa1ae4cdc79eb604228453d4fe78a264c661ef2e1b267c",
+          "bytes": 55363
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-folded.png",
+          "sha256": "fe941b1a7f0523a7a913c9b0997cc80a310d65e313ad27ccb00addfdf9b21faf",
+          "bytes": 191071
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-folded-reopened-viewport.png",
+          "sha256": "792cbb532fde678354f0d726518568e3655fcdf87501aece742958bd130b6042",
+          "bytes": 51571
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-historical-folded-reopened.png",
+          "sha256": "d65fb4b248defb5c48a7eca72e50a7798a28ccd4bfd89b105d154a9834ef55a9",
+          "bytes": 304556
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-independent-graphs-folded-capability-viewport.png",
+          "sha256": "30b9edfa9d4daff818fa1ae4cdc79eb604228453d4fe78a264c661ef2e1b267c",
+          "bytes": 55363
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-independent-graphs-folded-capability.png",
+          "sha256": "fe941b1a7f0523a7a913c9b0997cc80a310d65e313ad27ccb00addfdf9b21faf",
+          "bytes": 191071
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-independent-graphs-folded-capability-jumpFvp-viewport.png",
+          "sha256": "aba9e3e5518e8fe27552f7c099355d63564b077ae1a4e4b6f65d0e95bed04a6b",
+          "bytes": 55372
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-independent-graphs-folded-capability-jumpElasticity-viewport.png",
+          "sha256": "ad218cf66c4d5af701258d9cb2afc2b34caf6b32d4cf2cc8d2729b9bb7440019",
+          "bytes": 52782
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-independent-graphs-folded-capability-sprintFvp-viewport.png",
+          "sha256": "020deaeb9c529c4d7b55e0a9dc57913af31020bdf0056536b39c9649f2b495dc",
+          "bytes": 51107
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-enabled-missing-input-viewport.png",
+          "sha256": "790d454d3dcd1cb31243df8fab24295837b8cf286ee643344ea4fe666ccf5638",
+          "bytes": 34883
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-enabled-missing-input.png",
+          "sha256": "82e072bcb2386bc764cfd7db37b34beadff58b8b54dc8e55a141c3c4957300b7",
+          "bytes": 110236
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-mixed-invalid-cmj-selected-viewport.png",
+          "sha256": "5fe3f955eb42fcbc27d39f8a15d1fb3171fa1314042ef943c46bff033398349c",
+          "bytes": 38382
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-mixed-invalid-cmj-selected.png",
+          "sha256": "030008c72a1e6e246c1eb86248da2c469943664e01b6b3e9faaed8520fb17f99",
+          "bytes": 233821
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-disabled-with-valid-raw-viewport.png",
+          "sha256": "7c9ac8eaf09ad063cf2ed82eb29f51c765f9521a6cc58f49a8d2fe0cc0fa542c",
+          "bytes": 39024
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-disabled-with-valid-raw.png",
+          "sha256": "8b36948ec0b52f32654b70b430abb2f39b054f2ed1aa001ebf93db86797c665f",
+          "bytes": 115991
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-default-empty-record.png",
+          "sha256": "0566bacd1a4ccf75597fd739b09069c295f77b26d1fd9cf652f12c261e247efc",
+          "bytes": 142391
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-new-entry-before-reopen-viewport.png",
+          "sha256": "1da9d94738cc54785651b386827f040c95970178b61e90c42b85fa19de3b0e2e",
+          "bytes": 55869
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-new-entry-before-reopen.png",
+          "sha256": "ba8c100d43b84e1f1e202b8e9ded79d47946f3dedd5f753404e6b491a29d4645",
+          "bytes": 223519
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-new-entry-after-reopen-viewport.png",
+          "sha256": "25cf101eeba2fc5cc13a794eb5e19b82218cbd015017f9855b98ec1779f308bb",
+          "bytes": 51481
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-new-entry-after-reopen.png",
+          "sha256": "fd51e60c77b2f7fe74f99618115c53f1e151d53874464243001abf9c808454a1",
+          "bytes": 223185
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-new-entry-after-reopen-jumpFvp-viewport.png",
+          "sha256": "5b4b7a2dc976806425a9ff26066a4be4c48b1d161eede67a51fb704656dc6894",
+          "bytes": 52014
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-new-entry-after-reopen-jumpElasticity-viewport.png",
+          "sha256": "ea5ddb8ae183b100385585445dfd632fec585889fa4fe74ddaf40716d3e4b43e",
+          "bytes": 50175
+        },
+        {
+          "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-new-entry-after-reopen-sprintFvp-viewport.png",
+          "sha256": "8e591adafc394fc19870a81e8c9522d28c0aa7a17d90faca6628d02557cdc608",
+          "bytes": 48826
+        }
+      ],
+      "width": 390
+    }
+  ],
+  "existingSprintFlows": {
+    "pass": true,
+    "checks": 28,
+    "cases": [
+      {
+        "channel": "chrome",
+        "checks": 14,
+        "pass": true,
+        "command": "node tests/sprint-fvp-browser-tests.cjs --artifact-dir output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native",
+        "executionReceipt": {
+          "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/execution-receipt.json",
+          "sha256": "18a7e370fd8e55fbf72aef2329681e3b4c5bc6df032dc06b211d598d26fcaa79",
+          "bytes": 1649
+        },
+        "result": {
+          "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-results.json",
+          "sha256": "544d553c6dba80460f7bb5335601de8bab752bb0a608a16557bbfee2805f625b",
+          "bytes": 13790
+        },
+        "inputs": [
+          {
+            "path": "tests/sprint-fvp-browser-tests.cjs",
+            "sha256": "4335e2babe38ccb380425f214f2cbc7c996c1ea8f1623417920c04ac5bf83a00",
+            "bytes": 38833
+          },
+          {
+            "path": "tests/helpers/playwright.cjs",
+            "sha256": "e3b59e20e025d134519e02af6ad56ce31654231802f5fe44c3ca3b0749d24d5d",
+            "bytes": 881
+          },
+          {
+            "path": "tests/helpers/excel-template.cjs",
+            "sha256": "b965f94148ff3d3c065e549ba0000f2c0c98cb88493ca16d971090a7b4591b31",
+            "bytes": 1588
+          }
+        ],
+        "artifacts": [
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-report-1440.png",
+            "sha256": "e3da2475064218b8708c44de327a7381fe1c1187ab54aecb58d7e52033e04481",
+            "bytes": 119336
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-capability-1440.png",
+            "sha256": "7b7c74b731322e9de1d9adb71ce243c2746c2410317a2ee71bed60c13a7c09ea",
+            "bytes": 110150
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-sprint-1440.png",
+            "sha256": "1752c4b4f3f19ebd20b0aa27f961f3e274ca1cb63f408b984950ae65e5d7ab73",
+            "bytes": 80657
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-entry-1440.png",
+            "sha256": "c2518a1225f25e7d1aa910c1e7d2fbb13777b6b77838fd6dce69eee29a3f27ff",
+            "bytes": 133057
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-report-900.png",
+            "sha256": "95fa25defed6d7c9161c8cae018ec35231ebe4af2017594c68c4a7944fdf7534",
+            "bytes": 119364
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-entry-900.png",
+            "sha256": "c0ca35fc1b631cd80beed52a37c406d675cbf04ac7ad5f5c8ca869bc8848cdad",
+            "bytes": 106891
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-report-390.png",
+            "sha256": "cf5aa7bb8bf59b128e5ab6b3eb4c37eefa25729656a5b013ffb96aa9ff731931",
+            "bytes": 120800
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-capability-390.png",
+            "sha256": "04b75e530c01fd090d2e369b1b8670db5c5e34f37a55129fd1e4b7ab0840a35d",
+            "bytes": 110599
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-sprint-390.png",
+            "sha256": "77df159c694f019bd7b58a464d72836f835483e994d58ac634864e3d431ee7f4",
+            "bytes": 64993
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-entry-390.png",
+            "sha256": "6f021cc5548382d429291453287449f059a83a2c7e488a0753b52364e2f4091c",
+            "bytes": 96750
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-record.json",
+            "sha256": "c0025a1fdf7b60ef21f956e515ac4f0cb45cde4cfb3c301da91e75f61356afb1",
+            "bytes": 204690
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-backup.motionbench.jsonl",
+            "sha256": "96cae4655948a2eb3e81d7d74a72f92fdc4da287c40752d76212fa0c668bd0db",
+            "bytes": 611622
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-report.html",
+            "sha256": "5a635c2facaaeefbee85e5e31f918a76c69a434380f8dace204adbfc78a0064a",
+            "bytes": 4583759
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-template.xlsx",
+            "sha256": "bbc7652f20c981cfbaa74a3ca00fd2c8a0e97754b0495d1b558574a1dd29108d",
+            "bytes": 96278
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/chrome-native/chrome-filled.xlsx",
+            "sha256": "7360af8db11c7594c673ff4f4f0774df413f6754b9f920919b8aa415347560a2",
+            "bytes": 97512
+          }
+        ]
+      },
+      {
+        "channel": "msedge",
+        "checks": 14,
+        "pass": true,
+        "command": "node tests/sprint-fvp-browser-tests.cjs --edge --artifact-dir output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native",
+        "executionReceipt": {
+          "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/execution-receipt.json",
+          "sha256": "8a48ede3fec29b4b5603c087dc906b84ac7eec64058fd9e2ac5a87a84771e74c",
+          "bytes": 1652
+        },
+        "result": {
+          "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-results.json",
+          "sha256": "02cc2ec1131ce306e6161e45944f005cb2cfa2a7698c17135ba92d97fbf7c295",
+          "bytes": 13760
+        },
+        "inputs": [
+          {
+            "path": "tests/sprint-fvp-browser-tests.cjs",
+            "sha256": "4335e2babe38ccb380425f214f2cbc7c996c1ea8f1623417920c04ac5bf83a00",
+            "bytes": 38833
+          },
+          {
+            "path": "tests/helpers/playwright.cjs",
+            "sha256": "e3b59e20e025d134519e02af6ad56ce31654231802f5fe44c3ca3b0749d24d5d",
+            "bytes": 881
+          },
+          {
+            "path": "tests/helpers/excel-template.cjs",
+            "sha256": "b965f94148ff3d3c065e549ba0000f2c0c98cb88493ca16d971090a7b4591b31",
+            "bytes": 1588
+          }
+        ],
+        "artifacts": [
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-report-1440.png",
+            "sha256": "e3da2475064218b8708c44de327a7381fe1c1187ab54aecb58d7e52033e04481",
+            "bytes": 119336
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-capability-1440.png",
+            "sha256": "7b7c74b731322e9de1d9adb71ce243c2746c2410317a2ee71bed60c13a7c09ea",
+            "bytes": 110150
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-sprint-1440.png",
+            "sha256": "1752c4b4f3f19ebd20b0aa27f961f3e274ca1cb63f408b984950ae65e5d7ab73",
+            "bytes": 80657
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-entry-1440.png",
+            "sha256": "c2518a1225f25e7d1aa910c1e7d2fbb13777b6b77838fd6dce69eee29a3f27ff",
+            "bytes": 133057
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-report-900.png",
+            "sha256": "95fa25defed6d7c9161c8cae018ec35231ebe4af2017594c68c4a7944fdf7534",
+            "bytes": 119364
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-entry-900.png",
+            "sha256": "c0ca35fc1b631cd80beed52a37c406d675cbf04ac7ad5f5c8ca869bc8848cdad",
+            "bytes": 106891
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-report-390.png",
+            "sha256": "cf5aa7bb8bf59b128e5ab6b3eb4c37eefa25729656a5b013ffb96aa9ff731931",
+            "bytes": 120800
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-capability-390.png",
+            "sha256": "04b75e530c01fd090d2e369b1b8670db5c5e34f37a55129fd1e4b7ab0840a35d",
+            "bytes": 110599
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-sprint-390.png",
+            "sha256": "77df159c694f019bd7b58a464d72836f835483e994d58ac634864e3d431ee7f4",
+            "bytes": 64993
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-entry-390.png",
+            "sha256": "6f021cc5548382d429291453287449f059a83a2c7e488a0753b52364e2f4091c",
+            "bytes": 96750
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-record.json",
+            "sha256": "3b0b900a9a4eae1801a6887c8d18e0665339e7d6f4feb99673e6131e1ea10577",
+            "bytes": 204690
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-backup.motionbench.jsonl",
+            "sha256": "da6005ad87f451ce094df252a06bbc04635de78159d2832853f402a7ed766de0",
+            "bytes": 611622
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-report.html",
+            "sha256": "c2c620b60163d41a77f5690bab8c8dd0f7d03c7f5a5706a4f321448ba6b06a06",
+            "bytes": 4583759
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-template.xlsx",
+            "sha256": "1ed710a6e909a7f3a9d52f24ff0dda0072fee6dbf562983aac8180b5501c0297",
+            "bytes": 96276
+          },
+          {
+            "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/edge-native/msedge-filled.xlsx",
+            "sha256": "aef82f75fe22481d8bad845dd31a3f55a9242992cc96677294b124b8b7c20a33",
+            "bytes": 97510
+          }
+        ]
+      }
+    ],
+    "scope": "Existing 14-scenario workflows on both browsers; actual PDF acceptance is recorded separately"
+  },
+  "visualReview": {
+    "displayPdfReview": {
+      "pass": true,
+      "actualImagesViewed": true,
+      "pdfPagesViewed": 6,
+      "reviewScope": "sprint-display",
+      "allPagesVisuallyReviewed": false,
+      "scope": "Current graph pages reviewed; other PDF pages covered by automated diagnostics unless individually listed",
+      "screenshots": 14,
+      "historicalFullPdfReviewIncludedInCurrentAcceptance": false,
+      "limitations": []
+    },
+    "originalGraphTargetedReview": {
+      "pass": true,
+      "actualImagesViewed": true,
+      "pdfPagesViewed": 8,
+      "reviewScope": "original-graphs",
+      "allPagesVisuallyReviewed": false,
+      "scope": "Current graph pages reviewed; other PDF pages covered by automated diagnostics unless individually listed",
+      "screenshots": 12,
+      "historicalFullPdfReviewIncludedInCurrentAcceptance": false,
+      "limitations": [
+        "Only PDF pages 12,14,16,17 in each final-v2 PDF were visually reviewed; other pages are rendered but have no visual approval in this receipt.",
+        "Original runner historical-initial screenshots retain its transient import-status toast and actual viewport; each shows the complete plot but does not show an entire long parameter card. They are not claimed as settled final-state or full-report screenshots."
+      ]
+    }
+  },
+  "storage2174AcceptanceIncluded": false,
+  "realAthleteDataReadOrMigrated": false,
+  "githubDeliveryVerified": false,
+  "originalWindowsDeploymentVerified": false,
+  "limitations": [
+    "2.17.4 storage repair and capacity evidence are outside this UI release",
+    "Old unconditional storage writers and backup snapshot risks remain inherited from 2.17.3",
+    "Code rollback does not restore athlete data; no real user database was backed up or migrated"
+  ],
+  "verifier": {
+    "path": "scripts/verify_v2175_sprint_display.py",
+    "sha256": "1f0bfa460f37735c9571d3cb9bd44af24d4cb83a5120af8362f871bd203ef0ab",
+    "bytes": 43322
+  },
+  "evidence": {
+    "html": {
+      "path": "MotionBench.html",
+      "sha256": "f48b2ba8a21bbc5eea74dea904951964fa30a6249d93eacdde15d6e42583d1bc",
+      "bytes": 4462858
+    },
+    "htmlAlias": {
+      "path": "Ringside_Boxing_Assessment.html",
+      "sha256": "f48b2ba8a21bbc5eea74dea904951964fa30a6249d93eacdde15d6e42583d1bc",
+      "bytes": 4462858
+    },
+    "buildRecipe": {
+      "path": "scripts/build.py",
+      "sha256": "3905cdfaea764d06b4b3e685302a51c60672efa074d4d99085dda7c2f68c2bb5",
+      "bytes": 3474
+    },
+    "package": {
+      "path": "package.json",
+      "sha256": "48fa7a444cbb22b5fc6e5b933f0ee65438ac16465f7777199e6182f4246af2e0",
+      "bytes": 5450
+    },
+    "units": {
+      "path": "output/tests/v2.17.5-sprint-display-final-v3/unit-results.json",
+      "sha256": "672cfe39cf6f7a259a619922c50bed1ae212249df1efd611b414917904467e17",
+      "bytes": 75406
+    },
+    "pointEstimateBaselineComparison": {
+      "path": "output/tests/v2.17.5-sprint-view/point-estimate-baseline-comparison.json",
+      "sha256": "77ea708a209f0312f64dbcc8501dd7eaf93117b174cb90f8d1cfd65a01b66cd1",
+      "bytes": 36615
+    },
+    "independentConfidenceModelResults": {
+      "path": "output/verify/v2175-sprint-confidence-model-results.json",
+      "sha256": "3980e0e39a2c2bde03c4c04661ac1b68232d0320392cb207a8d7f5215de60c65",
+      "bytes": 8156
+    },
+    "independentConfidenceSciPyResults": {
+      "path": "output/verify/v2175-sprint-confidence-scipy-results.json",
+      "sha256": "4f9048fa4801e63f19a6d524763909c19858304763fcf0db4b1a652d8119438e",
+      "bytes": 7798
+    },
+    "chromeDisplayResults": {
+      "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-results.json",
+      "sha256": "25cf7c51b861010a59edfd6701b7e31326e0124ae93513a4d9049ddb83f49582",
+      "bytes": 281016
+    },
+    "msedgeDisplayResults": {
+      "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-results.json",
+      "sha256": "3d54efcd78a5ef43707162068faac2dbaf3ffb6dc60abeaf2eefc30d3419e9c1",
+      "bytes": 281016
+    },
+    "chromeGraph1440": {
+      "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-results.json",
+      "sha256": "dbb813a4a328efa00581989a626caffb4688cf572fe330003eedc3a20f543d51",
+      "bytes": 2708821
+    },
+    "chromeGraph390": {
+      "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-390-results.json",
+      "sha256": "3c8eb277c725a6e8cdfc0b4ab811b498093f458a784a47837408dbec5c45cc95",
+      "bytes": 2587491
+    },
+    "msedgeGraph1440": {
+      "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-results.json",
+      "sha256": "94c5cc89911fb7086e4b7e2ddc64d2a78c10b05b2b33335fb67e3e47e080a75b",
+      "bytes": 2708821
+    },
+    "msedgeGraph390": {
+      "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-390-results.json",
+      "sha256": "48ab5fe21ebf9db9c9f0486dd41d80f7e74462fe084bdee9efe25f260a3af4b1",
+      "bytes": 2587491
+    },
+    "existingSprintExecutionManifest": {
+      "path": "output/playwright/sprint-fvp-2.17.5-local/final-v2/execution-manifest.json",
+      "sha256": "e0580fecc26da0418b9224713a099e9d1061a4a1254271654700d55a44147c17",
+      "bytes": 13282
+    },
+    "render:output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-report.pdf": {
+      "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/chrome-report-rendered/render-results.json",
+      "sha256": "2dfe6d8492a02e5f135a073d54ee274c9a7abe31e0a02d241d88b38920c596e8",
+      "bytes": 11414
+    },
+    "render:output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-report.pdf": {
+      "path": "output/playwright/sprint-display-2.17.5/final-v2-attempt-06/msedge-report-rendered/render-results.json",
+      "sha256": "1c00d8fc8b16c2ac9914e2959aba8d458838787c9a8f431fb03d5398e5a40df0",
+      "bytes": 11414
+    },
+    "visual:output/playwright/sprint-display-2.17.5/visual-review.json": {
+      "path": "output/playwright/sprint-display-2.17.5/visual-review.json",
+      "sha256": "8962fadaee038426dd2fe5f0ebcdaf27fb778167095a008523dfbe2766e159ff",
+      "bytes": 13427
+    },
+    "render:output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-three-regions.pdf": {
+      "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/chrome-1440-three-regions-rendered/render-results.json",
+      "sha256": "6fb5631f8b99501826d7406325a0a8668bddc7c8b13b8c707eefb08c4984be72",
+      "bytes": 14971
+    },
+    "render:output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-three-regions.pdf": {
+      "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/msedge-1440-three-regions-rendered/render-results.json",
+      "sha256": "da484bed5a3c94ef9cddbbfa7f7596e44279b15f00a58226b817eb3b7478fe39",
+      "bytes": 14971
+    },
+    "visual:output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/target-visual-review.json": {
+      "path": "output/playwright/fvp-three-regions/sprint-display-v2175-final-v2/target-visual-review.json",
+      "sha256": "0a384767a99fe5d7ef78b3b9588a313f9a73c81bd216c44d592a36d34a943246",
+      "bytes": 14344
+    }
+  }
+}

@@ -24,3 +24,5 @@ tmp/
 !/Ringside_Boxing_Assessment.html
 !src/*.html
 !tests/fixtures/*.html
+
+!/downloads/MotionBench-v2.17.5-local-preview.zip

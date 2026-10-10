@@ -14,6 +14,40 @@
   }).map(([key, options]) => [key, Object.freeze(options.map(option => Object.freeze(option)))])));
   const sprintFvpConfigDefaults = () => root.RingsideSprintFVP?.defaultsConfig() || { heightCm: "", temperatureC: 20, pressureHpa: 1013.25, windMps: 0, device: "", startConvention: "first_propulsive_action", timingStart: "first_propulsive_action", inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0, methodVersion: "samozino-2016-splits-v1", sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" };
   const sprintFvpAnalysisDefaults = () => root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" };
+  const sprintFvpMetricKeys = Object.freeze(["F0","V0","Pmax","F0Absolute","PmaxAbsolute","slope","RFmax","DRF","Vmax","endVelocity","Vopt"]);
+  const sprintFvpViewDefaults = () => ({fv:true,pv:true,optimum:true,confidence:false,confidenceMethodVersion:"sprint-fvp-pointwise-delta-v1",confidenceLevel:.95,metrics:Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,true]))});
+  function normalizeSprintFvpView(input) {
+    const source=input&&typeof input==="object"&&!Array.isArray(input)?input:{},metrics=source.metrics&&typeof source.metrics==="object"&&!Array.isArray(source.metrics)?source.metrics:{};
+    return {...sprintFvpViewDefaults(),...source,...Object.fromEntries(["fv","pv","optimum"].map(key=>[key,source[key]!==false])),confidence:source.confidence===true,metrics:{...metrics,...Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,metrics[key]!==false]))}};
+  }
+  function convertSprintTimeMode(record,nextMode) {
+    const modes=["cumulative","interval"],mode=record?.sprintFvpConfig?.inputTimeMode??"cumulative",rows=record?.data?.sprint_fvp;
+    if(!modes.includes(nextMode)||!modes.includes(mode))return {ok:false,reason:"请选择累计计时或各段用时"};
+    if(!record||!T.isNative(record,"sprint_fvp")||!Array.isArray(rows))return {ok:false,reason:"当前项目未采用系统冲刺计时结构"};
+    if(mode===nextMode)return {ok:true,inputTimeMode:nextMode,trials:clone(rows)};
+    const blank=value=>value===undefined||value===null||typeof value==="string"&&!value.trim(),converted=[];
+    for(let trialIndex=0;trialIndex<rows.length;trialIndex++){
+      const row=rows[trialIndex],splits=row?.splits??[];
+      if(!Array.isArray(splits))return {ok:false,reason:`试次 ${trialIndex+1} 的分段结构无效`};
+      let gap=false,lastDistance=0,lastTime=0;const times=[];
+      for(let splitIndex=0;splitIndex<splits.length;splitIndex++){
+        const split=splits[splitIndex];
+        if(!split||typeof split!=="object")return {ok:false,reason:`试次 ${trialIndex+1} 的分段结构无效`};
+        if(blank(split.timeS)){gap=true;times.push(split.timeS);continue;}
+        const distance=N(split.distanceM),time=N(split.timeS);
+        if(gap)return {ok:false,reason:`试次 ${trialIndex+1} 在已填写时间之前有缺失分段，请先补全再切换`};
+        if(distance===null||distance<=lastDistance||time===null||time<=0||mode==="cumulative"&&time<=lastTime)
+          return {ok:false,reason:`试次 ${trialIndex+1} 的已填写距离须为正且递增，时间须为有效${mode==="cumulative"?"递增累计":"正数分段"}用时`};
+        const cumulative=mode==="interval"?lastTime+time:time;
+        if(!Number.isFinite(cumulative))return {ok:false,reason:`试次 ${trialIndex+1} 的累计时间超过有效数值范围`};
+        times.push(nextMode==="interval"?time-lastTime:cumulative);lastDistance=distance;lastTime=cumulative;
+      }
+      converted.push(times);
+    }
+    const trials=clone(rows);
+    trials.forEach((row,i)=>(row.splits||[]).forEach((split,j)=>{if(!blank(split.timeS))split.timeS=converted[i][j];}));
+    return {ok:true,inputTimeMode:nextMode,trials};
+  }
   const fvpConfigDefaults = () => root.RingsideFVP?.defaultsConfig() || { device: "", method: "", posture: "", distanceCm: "", distanceSource: "" };
   const fvpAnalysisDefaults = () => root.RingsideFVP?.defaultsAnalysis() || { angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 };
   const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null, responseForce: true, responseVelocity: true, responseBoth: true };
@@ -23,7 +57,9 @@
   }
   function sprintFvpAnalysis(record) {
     if (!T.isNative(record, "sprint_fvp")) return null;
-    return root.RingsideSprintFVP ? root.RingsideSprintFVP.solve(record) : { id: "sprint_fvp", valid: false, status: "empty", reason: "冲刺 F–V 模块尚未加载", points: [], trials: [], issues: [] };
+    if (!root.RingsideSprintFVP) return { id: "sprint_fvp", valid: false, status: "empty", reason: "冲刺 F–V 模块尚未加载", points: [], trials: [], issues: [] };
+    const solved=root.RingsideSprintFVP.solve(record);
+    return {...solved,label:T.displayName({id:"sprint_fvp",name:solved.label},record)};
   }
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const uid = () =>
@@ -555,6 +591,7 @@
       fvpView: Object.fromEntries(FVP_IDS.map(id => [id, fvpViewDefaults()])),
       sprintFvpConfig: sprintFvpConfigDefaults(),
       sprintFvpAnalysis: sprintFvpAnalysisDefaults(),
+      sprintFvpView: sprintFvpViewDefaults(),
       lvp: {
         squat: { metric: "MV", mvt: "", zones: [] },
         bench: { metric: "MV", mvt: "", zones: [] },
@@ -911,6 +948,7 @@
       if (s.sprintFvpConfig?.timingStart === undefined && s.sprintFvpConfig?.startConvention !== undefined)
         out.sprintFvpConfig.timingStart = s.sprintFvpConfig.startConvention;
       out.sprintFvpAnalysis = { ...sprintFvpAnalysisDefaults(), ...s.sprintFvpAnalysis };
+      out.sprintFvpView = normalizeSprintFvpView(s.sprintFvpView);
     }
     out.sprintFvpVersion = 1;
     ["ift", "mas", "mss", "pushup"].forEach((t) => {
@@ -4598,7 +4636,18 @@
       value === "" ||
       ((typeof value === "number" || typeof value === "string") &&
         N(value) !== null);
-    if (T.isNative(input,"sprint_fvp")) root.RingsideSprintFVP?.validate(input, { plainObject, safeId, optionalNumber });
+    if (T.isNative(input,"sprint_fvp")) {
+      root.RingsideSprintFVP?.validate(input, { plainObject, safeId, optionalNumber });
+      const view=input.sprintFvpView;
+      if(view!==undefined&&!plainObject(view))throw Error("冲刺FVP显示设置须为数据字典");
+      if(view){
+        ["fv","pv","optimum","confidence"].forEach(key=>{if(view[key]!==undefined&&typeof view[key]!=="boolean")throw Error("冲刺FVP曲线显示选项无效");});
+        if(view.confidenceMethodVersion!==undefined&&typeof view.confidenceMethodVersion!=="string")throw Error("冲刺FVP区间方法版本须为文字");
+        if(view.confidenceLevel!==undefined&&(!optionalNumber(view.confidenceLevel)||N(view.confidenceLevel)===null||N(view.confidenceLevel)<=0||N(view.confidenceLevel)>=1))throw Error("冲刺FVP区间水平须在 0 与 1 之间");
+        if(view.metrics!==undefined&&!plainObject(view.metrics))throw Error("冲刺FVP参数显示设置须为数据字典");
+        sprintFvpMetricKeys.forEach(key=>{if(view.metrics?.[key]!==undefined&&typeof view.metrics[key]!=="boolean")throw Error("冲刺FVP参数显示选项无效");});
+      }
+    }
     FVP_IDS.filter(id => T.isNative(input,id)).forEach(id => {
       const rows = input.data[id];
       if (rows !== undefined && (!Array.isArray(rows) || rows.length > 1000 || rows.some(row => !plainObject(row)))) throw new Error("F–V 试次须为数据行");
@@ -4993,6 +5042,10 @@
     capabilityDirectionsBasis,
     fvpAnalysis,
     sprintFvpAnalysis,
+    sprintFvpMetricKeys,
+    sprintFvpViewDefaults,
+    normalizeSprintFvpView,
+    convertSprintTimeMode,
     grade,
     attainment,
     unitFactor,

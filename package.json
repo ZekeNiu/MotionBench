@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.17.3-local",
+  "version": "2.17.5-local",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -42,8 +42,8 @@
     "test:v216-migration": "node tests/v216-migration-browser-tests.cjs && node tests/v216-migration-browser-tests.cjs --edge",
     "test:v216-report": "node tests/report-v216-browser-tests.cjs && node tests/report-v216-browser-tests.cjs --edge",
     "test:fvp-regions": "node tests/fvp-three-region-browser-tests.cjs --artifact-dir output/playwright/fvp-three-regions/fixed && node tests/fvp-three-region-browser-tests.cjs --edge --artifact-dir output/playwright/fvp-three-regions/fixed",
-    "test:sprint": "node tests/sprint-fvp-browser-tests.cjs --artifact-dir output/playwright/sprint-fvp-2.17.3-local && node tests/sprint-fvp-browser-tests.cjs --edge --artifact-dir output/playwright/sprint-fvp-2.17.3-local",
-    "test:sprint-pdf": "node tests/sprint-fvp-browser-tests.cjs --pdf --artifact-dir output/playwright/sprint-fvp-2.17.3-local",
+    "test:sprint": "node tests/sprint-fvp-browser-tests.cjs --artifact-dir output/playwright/sprint-fvp-2.17.5-local && node tests/sprint-fvp-browser-tests.cjs --edge --artifact-dir output/playwright/sprint-fvp-2.17.5-local",
+    "test:sprint-pdf": "node tests/sprint-fvp-browser-tests.cjs --pdf --artifact-dir output/playwright/sprint-fvp-2.17.5-local",
     "test:entry-concurrency": "node tests/entry-concurrency-browser-tests.cjs --artifact-dir output/playwright/entry-concurrency-2.17.3/final && node tests/entry-concurrency-browser-tests.cjs --edge --artifact-dir output/playwright/entry-concurrency-2.17.3/final",
     "test:storage-repros": "node tests/storage-concurrency-repros.cjs --artifact-dir output/playwright/storage-repros-v2.17.3/final && node tests/storage-concurrency-repros.cjs --edge --artifact-dir output/playwright/storage-repros-v2.17.3/final",
     "test:split-id-import": "node tests/sprint-split-id-import-tests.cjs --artifact-dir output/playwright/split-id-import-2.17.3/final && node tests/sprint-split-id-import-tests.cjs --edge --artifact-dir output/playwright/split-id-import-2.17.3/final"

@@ -65,7 +65,7 @@ test("target distance refreshes the optimum, speed judgment and chart from the s
   assert.match(a, /RF max[\s\S]*48\.2/); assert.match(a, /DRF[\s\S]*-7\.240/);
   assert.match(a, /相对最优剖面[\s\S]*100% 为最优/); assert.match(a, /sprint-fvp-fit-table/);
   assert.equal((a.match(/data-raw-trials="sprint_fvp"/g) || []).length, 1);
-  assert.match(a, /data-raw-trials="sprint_fvp" data-trial-title="冲刺 FVP · 原始录入分段"/);
+  assert.match(a, /data-raw-trials="sprint_fvp" data-trial-title="冲刺FVP · 原始录入分段"/);
   assert.match(a, /录入时间 s/);
 });
 
@@ -91,7 +91,7 @@ test("the FVP card follows the selected jump protocol even when that protocol ne
 
 test("sprint chart labels the sprint model and remains finite at narrow and print widths", () => {
   const report = R.build(fixture()), html = R.renderSprintFVPAnalysis(report);
-  assert.match(html, /data-chart-kind="sprintFvp"/); assert.match(html, /冲刺 F–V 与 P–V 剖面/); assert.doesNotMatch(html, /跳跃 F–V 与 P–V 剖面|实测点/);
+  assert.match(html, /data-chart-kind="sprintFvp"/); assert.match(html, /aria-label="冲刺FVP"/); assert.doesNotMatch(html, /跳跃 F–V 与 P–V 剖面|实测点/);
   const chartData = { valid: true, profiles: [{ kind: "current", label: "当前冲刺剖面", ...report.stats.sprintFvp.model }, { kind: "optimum", label: "40 m 最优", ...report.stats.sprintFvp.optimum }], points: [], band: [] };
   for (const width of [280, 480]) for (const print of [false, true]) {
     const svg = V.sprintFvp(chartData, {}, { width, print, height: 390 }); assert.doesNotMatch(svg, /NaN|Infinity/); assert.match(svg, /当前冲刺剖面/); assert.match(svg, /40 m 最优/);

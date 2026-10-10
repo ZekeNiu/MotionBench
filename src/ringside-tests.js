@@ -35,6 +35,11 @@
     return registry.has(id) && !(source.customTests || []).some((t) => t.id === id) &&
       !(source.tests || source.projectSnapshots || []).some((t) => t.id === id && t.legacyCustom === true);
   }
+  function displayName(test, source) {
+    const name=test?.name??"";
+    if(test?.id==="sprint_fvp"&&!test.legacyCustom&&(!source||isNative(source,test.id))&&["分段计时冲刺 F–V/P–V 剖面","分段计时冲刺 F–V/P–V"].includes(name))return "冲刺FVP";
+    return test?.id==="ift"&&name==="30–15 IFT"?"30-15VIFT":name;
+  }
   const jumpFields = [
     { key: "height", suffix: "height", label: "垂直跳跃高度", unit: "cm" },
     {
@@ -351,7 +356,7 @@
       const preferred = primaryAbility(test, definitions);
       return {
         id: test.id,
-        name: test.id === "ift" && test.name === "30–15 IFT" ? "30-15VIFT" : test.name,
+        name: displayName(test,source),
         category: test.category || "performance",
         primaryAbility: preferred,
         primaryAbilityLabel: groups.find(group => group.key === preferred)?.name || preferred,
@@ -371,7 +376,9 @@
   function snapshots(source) {
     return describe(source).map(({ id, name, category, primaryAbility, primaryMetricId }) => {
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
-      return { id, name: prior?.name ?? name, category,
+      // Display aliases must not rewrite measurement snapshots or catalog names.
+      const rawSprintName=id==="sprint_fvp"&&isNative(source,id)?(source.tests||source.projectSnapshots||builtins).find(test=>test.id===id)?.name:undefined;
+      return { id, name: prior?.name ?? rawSprintName ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
         ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj", "sprint_fvp"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
         ...(primaryMetricId ? { primaryMetricId } : {}) };
@@ -425,6 +432,7 @@
     repeatPolicy,
     builtins,
     isNative,
+    displayName,
     registry,
     extraDefinitions,
     isManualMetric,

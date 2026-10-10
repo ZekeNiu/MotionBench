@@ -68,6 +68,15 @@
     const result = candidate(goldenMin(x => candidate(x).sse, grid[best - 1], grid[best + 1]));
     if (![result.tau, result.vmax, result.sse].every(Number.isFinite) || !(result.vmax > 0))
       return { ...empty, reason: "分段拟合超出数值范围" };
+    // A numerical identifiability check, independent of measured distances.
+    // The two parameter columns are scaled before checking their conditioning;
+    // 1e10 is a double-precision limit, not a sport-specific quality threshold.
+    const jacobian=splits.map(p=>{const q=p.timeS/result.tau;return [p.timeS+result.tau*Math.expm1(-q),result.vmax*(-1+(1+q)*Math.exp(-q))];});
+    const scales=[0,1].map(column=>Math.hypot(...jacobian.map(row=>row[column])));
+    const correlation=jacobian.reduce((sum,row)=>sum+row[0]/scales[0]*(row[1]/scales[1]),0),absoluteCorrelation=Math.min(1,Math.abs(correlation));
+    const determinant=(1-absoluteCorrelation)*(1+absoluteCorrelation),condition=(1+absoluteCorrelation)/(1-absoluteCorrelation);
+    if(!scales.every(scale=>Number.isFinite(scale)&&scale>0)||!Number.isFinite(condition)||!(determinant>0)||condition>1e10)
+      return {...empty,reason:"分段数据不足以在数值精度内区分最大速度和加速时间常数"};
     const mean = splits.reduce((sum, p) => sum + p.distanceM / splits.length, 0);
     const total = splits.reduce((sum, p) => sum + Math.pow(p.distanceM - mean, 2), 0);
     return { ...result, valid: true, reason: "", n: splits.length, rmseM: Math.sqrt(result.sse / splits.length),
@@ -171,15 +180,18 @@
       splits.push({ ...p, rawDistanceM: rawDistance, rawTimeS: rawTime, distanceM, timeS });
       lastDistance = distanceM; lastTime = timeS;
     }
-    const reason = splits.length < 4 ? "已验证的分段方法至少需要 4 个累计分段" : splits[0].distanceM > 10 || lastDistance < 30 ? "已验证的分段方法需要早期分段（≤10 m）及至少 30 m 的末段" : "";
-    return { valid: !reason, present: supplied.length > 0, splits, reason, endDistanceM: lastDistance, endTimeS: lastTime };
+    const reason = splits.length < 4 ? "分段拟合至少需要 4 个有效累计分段" : "";
+    const methodNotes=[];
+    if(splits.length&&splits[0].distanceM>10)methodNotes.push("首个分段在 10 m 之后，起跑早期加速主要由模型外推。");
+    if(splits.length&&lastDistance<30)methodNotes.push("测试末段小于 30 m；最优剖面仍按单独选择的目标距离计算。");
+    return { valid: !reason, present: supplied.length > 0, splits, reason, methodNotes, endDistanceM: lastDistance, endTimeS: lastTime };
   }
   function solve(record) {
     const config = { ...defaultsConfig(), ...record.sprintFvpConfig }, analysis = { ...defaultsAnalysis(), ...record.sprintFvpAnalysis };
     if (record.sprintFvpConfig?.timingStart === undefined && record.sprintFvpConfig?.startConvention !== undefined)
       config.timingStart = record.sprintFvpConfig.startConvention;
     const mass = positive(record.athlete?.mass), heightCm = present(config.heightCm) ? positive(config.heightCm) : positive(record.athlete?.height);
-    const result = { id: "sprint_fvp", label: "分段计时冲刺 F–V/P–V", config, analysis, valid: false, status: "empty", reason: "未录入有效冲刺试次",
+    const result = { id: "sprint_fvp", label: "冲刺FVP", config, analysis, valid: false, status: "empty", reason: "未录入有效冲刺试次",
       model: null, fit: null, trials: [], selected: null, selectedTrialId: null, points: [], curve: [], samples: [], optimum: null, optimal: null,
       optimumReason: "", imbalance: null, imbalancePct: null, direction: null, targetDistanceM: null, issues: [], methodVersion: METHOD_VERSION };
     const invalidConfig = mass === null ? "需要运动员体重" : heightCm === null ? "需要运动员身高" :

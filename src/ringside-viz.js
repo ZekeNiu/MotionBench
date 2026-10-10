@@ -1865,17 +1865,17 @@
 
   function jumpFvp(data, options = {}, layout = {}) {
     const w = Math.max(240, layout.width || 480), h = layout.height || 410;
-    const sprint = data?.kind === "sprint", title = sprint ? "冲刺 F–V 与 P–V 剖面" : "跳跃 F–V 与 P–V 剖面";
+    const sprint = data?.kind === "sprint", title = sprint ? "冲刺FVP" : "跳跃 F–V 与 P–V 剖面";
     if (!data?.valid) return layoutSVG(w, h, title, text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
     const fv = options.fv !== false, pv = options.pv !== false;
-    if (!fv && !pv) return layoutSVG(w, h, "跳跃力–速度剖面", text(w / 2, h / 2, "勾选 F–V 或 P–V 查看曲线", 'text-anchor="middle" font-size="13"'), "当前未选择显示曲线", layout);
+    if (!fv && !pv) return layoutSVG(w, h, sprint ? title : "跳跃力–速度剖面", text(w / 2, h / 2, "勾选 F–V 或 P–V 查看曲线", 'text-anchor="middle" font-size="13"'), "当前未选择显示曲线", layout);
     const forceColor = C.blue, powerColor = C.green, small = w < 400;
     const profiles = (data.profiles || []).filter(profile => profile.kind === "current" || profile.kind === "optimum" && options.optimum !== false || profile.kind === "comparison" && options.comparison === true);
     const points = (data.points || []).filter(p => num(p.velocity) !== null);
-    const support = points.map(p => p.velocity), measured = options.range === "measured";
-    const vMin = measured ? Math.min(...support) : 0;
-    const vMax = Math.max(vMin + .01, ...(measured ? support : [...support, ...profiles.map(p => p.V0)])) * (measured ? 1.015 : 1.04);
     const band = options.confidence !== false ? (data.band || []) : [];
+    const support = points.map(p => p.velocity), measured = options.range === "measured", bandVelocities = sprint ? band.map(p => p.x).filter(v => num(v) !== null) : [];
+    const vMin = measured ? Math.min(...support) : Math.min(0, ...bandVelocities);
+    const vMax = Math.max(vMin + .01, ...(measured ? support : [...support, ...profiles.map(p => p.V0), ...bandVelocities])) * (measured ? 1.015 : 1.04);
     const fMin = Math.min(0,...band.map(p=>p.low))*1.1, pMin = Math.min(0,...band.map(p=>p.powerLow))*1.1;
     const fMax = Math.max(1, ...points.map(p => p.force), ...profiles.map(p => p.F0), ...band.map(p => p.high)) * 1.12;
     const pMax = Math.max(1, ...points.map(p => p.power), ...profiles.map(p => p.Pmax), ...band.map(p => p.powerHigh)) * 1.13;
@@ -1892,9 +1892,9 @@
     }
     out += `<g clip-path="url(#${clip})">`;
     if (band.length) {
-      const bandPolygon = (low,high,scale,color) => `<polygon points="${polygonPoints(band.map(p=>[x(p.x),scale(p[high])]).concat(band.slice().reverse().map(p=>[x(p.x),scale(p[low])])))}" fill="${color}" fill-opacity=".11" stroke="none" pointer-events="none"/>`;
-      if (fv) out += bandPolygon("low","high",yf,forceColor);
-      if (pv) out += bandPolygon("powerLow","powerHigh",yp,powerColor);
+      const bandPolygon = (low,high,scale,color,kind) => `<polygon${sprint ? ` data-sprint-fvp-confidence-band="${kind}"` : ""} points="${polygonPoints(band.map(p=>[x(p.x),scale(p[high])]).concat(band.slice().reverse().map(p=>[x(p.x),scale(p[low])])))}" fill="${color}" fill-opacity=".11" stroke="none" pointer-events="none"/>`;
+      if (fv) out += bandPolygon("low","high",yf,forceColor,"fv");
+      if (pv) out += bandPolygon("powerLow","powerHigh",yp,powerColor,"pv");
     }
     profiles.forEach(profile => {
       const dash = profile.kind === "optimum" ? ' stroke-dasharray="7 5"' : profile.kind === "comparison" ? ' stroke-dasharray="2 5"' : "";
@@ -1921,11 +1921,12 @@
     profiles.forEach((profile,index)=>{const ly=legendY+20*(index<2?1:2), lx=left+(index===1?Math.min(123,(right-left)*.48):0);out+=line(lx,ly-4,lx+22,ly-4,`stroke="${mainColor}" stroke-width="2"${profile.kind==='optimum'?' stroke-dasharray="7 5"':profile.kind==='comparison'?' stroke-dasharray="2 5"':''}`)+text(lx+29,ly,profile.label,'font-size="10"');});
     const optionY=legendY+60;
     if(options.points!==false)out+=circle(left+11,optionY-4,3.6,mainColor)+text(left+29,optionY,"实测点",'font-size="10"');
-    if(band.length){const bx=left+(options.points!==false?Math.min(112,(right-left)*.49):0);out+=`<rect x="${bx}" y="${optionY-12}" width="22" height="12" fill="${mainColor}" fill-opacity=".18"/>`+text(bx+29,optionY,"95%置信带",'font-size="10"');}
-    return layoutSVG(w,h,title,out,sprint ? "F–V读取力坐标，P–V读取功率坐标；实线为当前冲刺剖面，虚线为固定当前最大功率时的目标距离最优冲刺剖面。" : "F–V读取力坐标，P–V读取功率坐标；实线为当前剖面，虚线为目标最优剖面，点线为另一角度参照。置信带为实测速度范围内的拟合均值响应区间。",layout);
+    if(band.length){const bx=left+(options.points!==false?Math.min(112,(right-left)*.49):0);out+=`<rect x="${bx}" y="${optionY-12}" width="22" height="12" fill="${mainColor}" fill-opacity=".18"/>`+text(bx+29,optionY,sprint ? "95%拟合区间（近似）" : "95%置信带",'font-size="10"');}
+    const sprintDescription = sprint ? `${[fv ? "F–V读取力坐标" : "", pv ? "P–V读取功率坐标" : ""].filter(Boolean).join("，")}；实线为当前冲刺剖面${profiles.some(profile => profile.kind === "optimum") ? "，虚线为固定当前最大功率时的目标距离最优冲刺剖面" : ""}。${band.length ? "阴影为当前剖面的95%逐点平均拟合置信区间（近似），只覆盖模型机械采样的速度范围。" : ""}` : "";
+    return layoutSVG(w,h,title,out,sprint ? sprintDescription : "F–V读取力坐标，P–V读取功率坐标；实线为当前剖面，虚线为目标最优剖面，点线为另一角度参照。置信带为实测速度范围内的拟合均值响应区间。",layout);
   }
   function sprintFvp(data, options = {}, layout = {}) {
-    return jumpFvp({ ...data, kind: "sprint" }, { ...options, points: false, comparison: false, confidence: false, range: "full" }, layout);
+    return jumpFvp({ ...data, kind: "sprint" }, { ...options, points: false, comparison: false, confidence: options.confidence === true, range: "full" }, layout);
   }
   function jumpElasticity(data, layout = {}) {
     const w=Math.max(240,layout.width||480),h=layout.height||330;

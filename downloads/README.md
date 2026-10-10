@@ -1,3 +1,28 @@
+# MotionBench 2.17.5-local 下载与回退
+
+- [下载预览 ZIP](https://raw.githubusercontent.com/ZekeNiu/MotionBench/review-v2.17.5-sprint-display-20261010/downloads/MotionBench-v2.17.5-local-preview.zip)，解压后运行 `Start_MotionBench.cmd`。
+- [单独下载 HTML](https://raw.githubusercontent.com/ZekeNiu/MotionBench/review-v2.17.5-sprint-display-20261010/MotionBench.html)、[固定源码](https://github.com/ZekeNiu/MotionBench/tree/review-v2.17.5-sprint-display-20261010)。
+- [八张实际宽窄屏截图](../docs/sprint-display-screenshots-2.17.5.md)、[功能与备份说明](../docs/sprint-display-2.17.5.md)、[实际验收](../docs/acceptance-2.17.5-local.json)。
+
+本轮完成冲刺FVP名称、三条曲线与11项参数选择、默认关闭的近似95%拟合置信区间、自由分段和四/六段模板及累计/逐段时间转换；保留原完整三图区。用户日常 D 盘入口已备份并更新；以下 ZIP 供独立审查。
+
+| 文件 | 字节数 | SHA256 |
+| --- | ---: | --- |
+| MotionBench.html | 4462858 | `f48b2ba8a21bbc5eea74dea904951964fa30a6249d93eacdde15d6e42583d1bc` |
+| MotionBench-v2.17.5-local-preview.zip | 3158921 | `275f4a76e46adbd2e7a3aab2a2f7b26909c5d52aeb30db945248bbd14b59a987` |
+
+PowerShell：`Get-FileHash -Algorithm SHA256 -LiteralPath '文件路径'`。
+
+实际通过45套/661项单元检查、19项独立SciPy复核、双浏览器98项主要流程/显示/图区检查，以及原日常启动入口8项检查。PDF已实际下载及渲染，人工查看范围为各验收记录列明的目标页，未声称所有页面均逐页目检。全部使用合成数据与隔离浏览器。
+
+[代码回退标签](https://github.com/ZekeNiu/MotionBench/tree/review-rollback-v2.17.3-before-sprint-display-20261010) 指向 `7dfee7c4ac40c2ad6edde4ece5e2bffbc6c97e89`。修改前 bundle 和原 D 盘8文件备份均已实际校验。旧别名移至备份的 `retired` 目录，可按原路径恢复。程序回退不能代替资料库回滚，本轮没有读取或迁移真实运动员资料。
+
+2.17.4存储实验独立暂停、未包含于本版本；指定Library附件的原生工作簿核验仍受物化阻塞。GitHub仅新建审查分支及标签，不合并main，不创建正式Release。交付后暂停项目。
+
+以下保留原2.17.3交付说明及历史下载，供回退查阅。
+
+---
+
 # MotionBench 2.17.3-local 图表修正版下载
 
 - [下载试用 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.3-chart-restore-20261010/downloads/MotionBench-v2.17.3-local-preview.zip)：应用、版本说明、验收、Windows 计划及八张实际对照截图。

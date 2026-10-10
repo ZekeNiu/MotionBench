@@ -774,7 +774,7 @@
     if (ui.mode !== "report") return;
     ui.reportScroll = window.scrollY;
     document
-      .querySelectorAll("#reportView .details-group,#reportView [data-raw-trials]")
+      .querySelectorAll("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings]")
       .forEach((el) => (ui.detailOpen[el.id] = el.open));
     ui.records[state.recordId] = {
       reportScroll: ui.reportScroll,
@@ -1262,6 +1262,7 @@
       "fvpView",
       "sprintFvpConfig",
       "sprintFvpAnalysis",
+      "sprintFvpView",
     ])
       if (source[k]) r[k] = copy(source[k]);
     r.dsi = { ...copy(source.dsi), force: "", confirmed: false };
@@ -1378,7 +1379,8 @@
     if (p[0] === "definitions")
       return (state.definitions[Number(p[1])]?.name || "指标") + " · " + suffix;
     if (p[0] === "data") {
-      const test = M.TESTS.find((t) => t[0] === p[1])?.[1] || p[1],
+      const project = allProjects().find((test) => test.id === p[1]),
+        test = project ? T.displayName(project, state) : M.TESTS.find((t) => t[0] === p[1])?.[1] || p[1],
         row = state.data[p[1]]?.[Number(p[2])];
       const detail =
         p[1] === "iso" && row
@@ -2037,12 +2039,12 @@
     const focused = document.activeElement?.dataset?.lvpId,
       focusedPath = document.activeElement?.dataset?.path;
     const active = document.activeElement;
-    const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol", "data-capability-selection", "data-sprint-target-distance"].find(attribute => active?.hasAttribute(attribute));
+    const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol", "data-capability-selection", "data-sprint-target-distance", "data-sprint-fvp-view", "data-sprint-fvp-metric"].find(attribute => active?.hasAttribute(attribute));
     const fvpFocusId = active?.dataset?.fvpId, fvpFocusValue = fvpFocus && active.getAttribute(fvpFocus);
     $("detailContent").innerHTML = window.RingsideReport.render(report);
     window.RingsideReport.observeCharts($("detailContent"));
     window.RingsideReport.bindFVPInteractions?.($("detailContent"));
-    document.querySelectorAll("#reportView .details-group,#reportView [data-raw-trials]").forEach((el) => {
+    document.querySelectorAll("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings]").forEach((el) => {
       if (ui.detailOpen[el.id] !== undefined) el.open = ui.detailOpen[el.id];
     });
     menus.forEach((id) => {
@@ -2956,9 +2958,11 @@
         : "对应测量已清空，请重新录入；可撤销",
     );
   }
-  function addRow(t, groupIndex = -1) {
+  function addRow(t, groupIndex = -1, sprintTemplate = "four") {
     if (t === "sprint_fvp" && T.isNative(state, t)) {
-      const distances = state.data[t]?.[groupIndex]?.splits?.map(split => split.distanceM);
+      const templates = {four:[5, 10, 20, 30], six:[5, 10, 15, 20, 25, 30]};
+      if (!Object.hasOwn(templates, sprintTemplate)) return;
+      const distances = state.data[t]?.[groupIndex]?.splits?.map(split => split.distanceM) || templates[sprintTemplate];
       (state.data[t] ||= []).push(window.RingsideSprintFVPEntry.defaultTrial(distances));
       changed(false); renderEntry(); rowFocus(`data.${t}.${state.data[t].length - 1}.splits.0.timeS`); return;
     }
@@ -3234,6 +3238,8 @@
       projectOnly,
       submitting: false,
       unit: definition && T.isManualMetric(definition) ? definition.unit : null,
+      initialTestName: test?.name || "",
+      initialDisplayName: test ? T.displayName(test, catalog) : "",
     };
     const category = definition?.category || test?.category || "performance";
     const builtIn = !!definition && !T.isManualMetric(definition);
@@ -3252,7 +3258,7 @@
           )
           .map(
             (item) =>
-              `<option value="${E(item.id)}" ${item.id === selectedTest?.id ? "selected" : ""}>${E(item.name)}</option>`,
+              `<option value="${E(item.id)}" ${item.id === selectedTest?.id ? "selected" : ""}>${E(T.displayName(item, catalog))}</option>`,
           )
           .join("")}</select>`,
       );
@@ -3261,7 +3267,7 @@
       fields += `<input id="catalogTestId" type="hidden" value="${E(test?.id || "")}">`;
       fields += label(
         "测试项目名称",
-        `<input id="catalogTestName" value="${E(test?.name || "")}" aria-label="测试项目名称" required maxlength="120" data-initial-focus>`,
+        `<input id="catalogTestName" value="${E(test ? T.displayName(test, catalog) : "")}" aria-label="测试项目名称" required maxlength="120" data-initial-focus>`,
       );
     }
     if (!projectOnly) {
@@ -3398,8 +3404,8 @@
           ))
       )
         throw Error("请选择已确认定义的测试项目");
-      const testName =
-        edit.mode === "new-metric" ? test.name : value("catalogTestName");
+      const displayedTestName = value("catalogTestName"),
+        testName = edit.mode === "new-metric" ? test.name : edit.mode === "edit" && displayedTestName === edit.initialDisplayName ? edit.initialTestName : displayedTestName;
       const category = value("catalogCategory"),
         protocol = value("catalogProtocol");
       if (!testName) throw Error("请填写测试项目名称");
@@ -3564,7 +3570,7 @@
     }
     const message =
       "将“" +
-      project.name +
+      T.displayName(project, library.catalog) +
       "”更新为项目库版本，仅影响本次记录。" +
       (changedUnits.length
         ? "\n单位变化：\n" +
@@ -3616,7 +3622,7 @@
     if (feedback)
       feedback.textContent =
         "已更新“" +
-        project.name +
+        T.displayName(project, library.catalog) +
         "”的本次定义。" +
         (changedUnits.some((change) => change.factor === null)
           ? "无法换算的测量值已清空，请重新录入。"
@@ -3635,7 +3641,7 @@
     if (
       !confirm(
         "采用“" +
-          variant.test.name +
+          T.displayName(variant.test) +
           "”的版本 " +
           (variantIndex + 1) +
           "（" +
@@ -3666,7 +3672,7 @@
       if (feedback)
         feedback.textContent =
           "已确认“" +
-          variant.test.name +
+          T.displayName(variant.test) +
           "”的共用目录版本；已有测试记录保持原定义。";
       return true;
     } catch (error) {
@@ -4823,6 +4829,20 @@
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
+    if (t.hasAttribute("data-sprint-fvp-view") || t.hasAttribute("data-sprint-fvp-metric")) {
+      if (!state || !T.isNative(state, "sprint_fvp") || t.type !== "checkbox") return;
+      const view = M.normalizeSprintFvpView(state.sprintFvpView), defaults = M.sprintFvpViewDefaults();
+      if (t.hasAttribute("data-sprint-fvp-metric")) {
+        const key = t.dataset.sprintFvpMetric;
+        if (!Object.hasOwn(defaults.metrics, key)) return;
+        view.metrics[key] = t.checked;
+      } else {
+        const key = t.dataset.sprintFvpView;
+        if (!["fv", "pv", "optimum", "confidence"].includes(key)) return;
+        view[key] = t.checked;
+      }
+      state.sprintFvpView = view; changed(false); renderReport(); return;
+    }
     if (t.hasAttribute("data-capability-selection")) {
       const key = t.dataset.capabilitySelection, choices = M.capabilityDirectionOptions;
       if (!state || !choices[key]?.some(([id]) => id === t.value)) return;
@@ -4844,6 +4864,27 @@
       return;
     }
     if (t.dataset.path && (t.tagName === "SELECT" || t.type === "checkbox")) {
+      if (t.dataset.path === "sprintFvpConfig.inputTimeMode") {
+        if (!state || !T.isNative(state, "sprint_fvp")) return;
+        const previousMode = state.sprintFvpConfig?.inputTimeMode || "cumulative";
+        if (Object.keys(draftsFor()).some(key => /^data\.sprint_fvp\.\d+\.splits\.\d+\.(?:distanceM|timeS)$/.test(resolveDraftPath(key) || ""))) {
+          t.value = previousMode;
+          toast("请先修正冲刺FVP标红分段，再切换计时方式"); return;
+        }
+        const conversion = M.convertSprintTimeMode(state, t.value);
+        if (!conversion.ok) { t.value = previousMode; toast(conversion.reason); return; }
+        state.data.sprint_fvp = conversion.trials;
+        (state.sprintFvpConfig ||= {}).inputTimeMode = conversion.inputTimeMode;
+        const undo = undoDeletes.get(state.recordId);
+        if (previousMode !== conversion.inputTimeMode && (undo?.type === "sprint-split" || undo?.type === "row" && undo.test === "sprint_fvp"))
+          undoDeletes.delete(state.recordId);
+        forgetInputError(t.dataset.path); inputIssue(t); changed(false);
+        if (ui.mode === "entry") {
+          renderEntry();
+          $("entryContent").querySelector('[data-path="sprintFvpConfig.inputTimeMode"]')?.focus({preventScroll:true});
+        }
+        return;
+      }
       const unit = t.dataset.path.match(/^data\.iso\.(\d+)\.unit$/);
       if (unit) return requestUnitChange(t, Number(unit[1]));
       if (/^data\.cpet(?:\.thresholds\.(?:first|second))?\.vo2Unit$/.test(t.dataset.path)) {
@@ -5132,7 +5173,7 @@
     (e) => {
       if (
         e.target.isConnected &&
-        e.target.matches("#reportView .details-group,#reportView [data-raw-trials]")
+        e.target.matches("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings]")
       ) {
         ui.detailOpen[e.target.id] = e.target.open;
         rememberUI();
