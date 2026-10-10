@@ -8,7 +8,7 @@ const { chromium } = require("./helpers/playwright.cjs");
 const { extensionFixture } = require("./helpers/core-fixtures.cjs");
 const { radarFixture } = require("./helpers/radar-fixtures.cjs");
 const { chartFixture } = require("./helpers/chart-ai-fixture.cjs");
-const { artifactDirectory, ready, downloadFromReport, emptyRecord } = require("./helpers/pdf-browser.cjs");
+const { artifactDirectory, ready, openExport, downloadFromReport, emptyRecord } = require("./helpers/pdf-browser.cjs");
 const root = path.resolve(__dirname, ".."),
   out = artifactDirectory(root, "output/pdf/v2.17.2-work/download");
 fs.mkdirSync(out, { recursive: true });
@@ -283,6 +283,10 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
         };
       }, !!config.empty);
       await page.waitForTimeout(220);
+      // Measure restoration from the real export start, after menu interaction
+      // has made the current toolbar action visible.
+      await openExport(page);
+      await page.locator('#reportExportMenu [data-pdf-action]').scrollIntoViewIfNeeded();
       const before = await page.evaluate(() => ({
         id: App.getState().recordId,
         open: document.querySelector("#performanceDetail")?.open ?? null,
@@ -354,6 +358,8 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
         sourceHash,
         printFigures,
         chartAxis: config.chartAxis || null,
+        scrollBefore: before.scroll,
+        scrollAfter: after.scroll,
         pass: true,
         file: destination,
         filename: file.suggestedFilename(),

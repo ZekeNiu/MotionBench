@@ -2,7 +2,7 @@
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict");
 const {pathToFileURL}=require("node:url"),{createHash}=require("node:crypto");
 const {chromium}=require("./helpers/playwright.cjs");
-const {artifactDirectory,ready,showReport,downloadFromReport}=require("./helpers/pdf-browser.cjs");
+const {artifactDirectory,ready,showReport,downloadFromReport,emptyRecord}=require("./helpers/pdf-browser.cjs");
 const root=path.resolve(__dirname,".."),out=artifactDirectory(root,"output/pdf/v2.17.2-work/repeat-fixture"),source=path.join(root,"Ringside_Boxing_Assessment.html");
 fs.mkdirSync(out,{recursive:true});
 const digest=p=>createHash("sha256").update(fs.readFileSync(p)).digest("hex");
@@ -23,6 +23,7 @@ async function saveCatalog(){await page.locator('#catalogForm [type="submit"]').
  try{
   await page.goto(pathToFileURL(source).href);await ready(page);
   await page.evaluate(()=>App.importPayload(RingsideModel.libraryDefaults(),"replace-library"));
+  result.setupRecord=await emptyRecord(page,"repeat-setup-synthetic");
   let projectId,metrics;
   await check("create custom multi-metric test through catalog",async()=>{
    await manage();await page.locator('.management-heading [data-manager-action="new-test"]').click();
@@ -33,6 +34,7 @@ async function saveCatalog(){await page.locator('#catalogForm [type="submit"]').
    await page.locator(`[data-manager-action="new-metric"][data-id="${projectId}"]`).click();
    await page.locator("#catalogMetricName").fill("配套力量");await page.locator("#catalogUnit").fill("N");await page.locator("#catalogAbility").selectOption(ability);await page.locator("#catalogCVEligible").check();assert.equal(await page.locator("#catalogEntryScope").inputValue(),"attempt");await saveCatalog();
    metrics=await page.evaluate(id=>App.getLibrary().catalog.definitions.filter(d=>d.testId===id),projectId);assert.equal(metrics.length,2);
+   await page.locator('#metricEvaluationProfile').selectOption(await page.evaluate(()=>App.getLibrary().defaultEvaluationProfileId));
    await page.locator(`[data-manager-action="standard-edit"][data-id="${metrics[0].id}"]`).click();
    await page.locator('[data-profile-path$=".direction"]').selectOption("lower");await page.locator('[data-manager-action="profile-review"]').click();await page.locator('#managementForm [type="submit"]').click();await page.locator('#managementModal').waitFor({state:"hidden"});
   });
@@ -60,12 +62,12 @@ async function saveCatalog(){await page.locator('#catalogForm [type="submit"]').
   await check("isometric trials, pain and all-trial unit conversion",async()=>{
    await entry("iso");const index=await page.evaluate(()=>App.getState().data.iso.findIndex(r=>r.paired));
    await set(`data.iso.${index}.left`,100);await set(`data.iso.${index}.right`,130);
-   await page.locator(`[onclick="App.addRepeat('iso',${index})"]`).click();
-   for(let i=1;i<3;i++){if(i===2)await page.locator(`[onclick="App.addRepeat('iso',${index})"]`).click();await set(`data.iso.${index}.trials.${i}.left`,100+i*10);await set(`data.iso.${index}.trials.${i}.right`,130-i*10);}
+   await page.locator(`[aria-label][onclick="App.addRepeat('iso',${index})"]`).click();
+   for(let i=1;i<3;i++){if(i===2)await page.locator(`[aria-label][onclick="App.addRepeat('iso',${index})"]`).click();await set(`data.iso.${index}.trials.${i}.left`,100+i*10);await set(`data.iso.${index}.trials.${i}.right`,130-i*10);}
    await page.locator(`[data-path="data.iso.${index}.trials.0.painLeft"]`).check();
    await page.locator(`[data-path="data.iso.${index}.unit"]`).selectOption("kgf");await page.locator("#unitConvertButton").click();
    near(await page.evaluate(i=>App.getState().data.iso[i].trials[2].left,index),120/9.80665);
-   assert.ok(await page.evaluate(i=>App.stats().isoAnalyses[i].sides[0].pain,index));
+   assert.ok(await page.evaluate(i=>App.stats().isoAnalyses.find(row=>row.id===App.getState().data.iso[i].id).sides[0].pain,index));
   });
   await check("LVP same-load addition and regression point count",async()=>{
    await entry("bench");await set("data.bench.0.load",40);await set("data.bench.0.velocity",.8);
