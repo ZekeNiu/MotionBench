@@ -1,4 +1,11 @@
 /* Report content follows the selected test snapshot. */
+.capability-analysis-region { margin:0; }
+.capability-plot-region { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); margin:24px 0; overflow:hidden; }
+.capability-region-heading { display:flex; align-items:center; gap:12px; padding:16px 20px; background:#f7f9fc; font-size:17px; font-weight:600; color:#45546a; }
+.capability-plot-region > .quality-group { border-top:0; }
+.ringside-pdf-source .capability-plot-region { border:0!important; margin:0!important; box-shadow:none!important; overflow:visible!important; }
+@media (max-width:600px) { .capability-region-heading { padding:14px; font-size:16px; } }
+@media print { .capability-plot-region { border:0; } }
 .jump-detail .chart-wrap { width:100%; margin-inline:auto; }
 .jump-detail .detail-data { min-width:0; }
 .jump-detail table { table-layout:auto; }

@@ -105,4 +105,58 @@ test("parameter group titles and conclusions remain one heading unit before thei
   assert.match(html, /capability-parameter-judgment green/); assert.ok(html.includes(c.Def.assessmentLabel("green"))); assert.doesNotMatch(html, /原始自定义等级/);
   assert.equal(JSON.stringify(report), before);
 });
+test("the complete FVP and sprint regions precede the independent direction fold", () => {
+  const r = fixture();
+  for (const id of ["fvp_sj", "fvp_cmj"]) {
+    r.enabled[id] = true; r.fvpConfig[id].distanceCm = 33;
+    r.data[id] = [0, 20, 40, 60, 80].map((load, i) => ({ id: id + i, load, height: [33, 27, 22, 14, 10][i] }));
+  }
+  r.views.fvpProtocol = "fvp_cmj";
+  const report = R.build(r), before = JSON.stringify(r), html = R.renderCapabilityAnalysis(report);
+  assert.equal((html.match(/data-capability-region/g) || []).length, 1);
+  const fold = html.indexOf('<details class="details-group" id="trainingAnalysisDetail"');
+  const profile = html.indexOf('data-fvp-panel="fvp_cmj"'), elasticity = html.indexOf('data-fvp-elasticity="fvp_cmj"'), sprint = html.indexOf('data-sprint-fvp-panel');
+  assert.ok(profile >= 0 && profile < elasticity && elasticity < sprint && sprint < fold);
+  assert.match(html.slice(0, fold), /class="capability-plot-region"><div class="capability-region-heading pdf-group-heading">能力结构分析<\/div><div class="quality-group">/);
+  assert.match(html.slice(fold), /<summary>能力发展方向与参数<\/summary>/);
+  assert.equal((html.match(/class="capability-region-heading pdf-group-heading"/g) || []).length, 1);
+  assert.doesNotMatch(html.slice(fold), /data-fvp-panel=|data-fvp-elasticity=|data-chart-kind="sprintFvp"/);
+  for (const key of ["strength", "reactive", "speed", "endurance"]) assert.match(html.slice(fold), new RegExp(`data-capability-direction="${key}"`));
+  assert.match(html.slice(0, fold), /data-fvp-protocol/); assert.match(html.slice(0, fold), /data-fvp-scenario-form/);
+  assert.match(html.slice(0, fold), /data-raw-trials="fvp_cmj"/); assert.match(html.slice(0, fold), /data-raw-trials="sprint_fvp"/);
+  assert.equal(JSON.stringify(r), before);
+});
+
+test("print preparation replaces one full region, preserves all valid protocols and the direction fold", () => {
+  const r = fixture();
+  for (const id of ["fvp_sj", "fvp_cmj"]) {
+    r.enabled[id] = true; r.fvpConfig[id].distanceCm = 33;
+    r.data[id] = [0, 20, 40, 60, 80].map((load, i) => ({ id: id + i, load, height: [33, 27, 22, 14, 10][i] }));
+  }
+  r.views.fvpProtocol = "fvp_cmj";
+  const before = JSON.stringify(r); let html = "", replacements = 0;
+  const printedDirections = { open: true };
+  const region = { querySelector: selector => selector === "#trainingAnalysisDetail" ? { open: false } : null,
+    set outerHTML(value) { html = value; replacements++; printedDirections.open = true; } };
+  const clone = { querySelector: selector => selector === "[data-capability-region]" ? region : selector === "[data-capability-region] #trainingAnalysisDetail" ? printedDirections : null };
+  for (let i = 0; i < 2; i++) {
+    R.prepareFVPPrint(clone, r);
+    assert.equal(printedDirections.open, false);
+    assert.equal((html.match(/data-capability-region/g) || []).length, 1);
+    assert.equal((html.match(/id="trainingAnalysisDetail"/g) || []).length, 1);
+    assert.deepEqual([...html.matchAll(/data-chart-kind="([^"]+)"/g)].map(match => match[1]), ["jumpFvp", "jumpElasticity", "jumpFvp", "jumpElasticity", "sprintFvp"]);
+    const fold = html.indexOf('id="trainingAnalysisDetail"');
+    assert.doesNotMatch(html.slice(fold), /data-fvp-panel=|data-fvp-elasticity=|data-chart-kind="sprintFvp"/);
+    assert.doesNotMatch(html, /<select|<input|<button|data-sprint-target-form/);
+  }
+  assert.equal(replacements, 2); assert.equal(JSON.stringify(r), before);
+  R.prepareFVPPrint({ querySelector: () => null }, r); assert.equal(replacements, 2);
+});
+
+test("independent regions keep existing empty and disabled measurement gates", () => {
+  const r = fixture(); r.enabled.sprint_fvp = false; r.enabled.fvp_sj = true; r.data.fvp_sj = [];
+  const html = R.renderCapabilityAnalysis(R.build(r));
+  assert.match(html, /data-capability-region/); assert.match(html, /id="trainingAnalysisDetail"/);
+  assert.doesNotMatch(html, /class="capability-plot-region"|data-fvp-panel=|data-fvp-elasticity=|data-sprint-fvp-panel/);
+});
 console.log(`${passed} sprint and capability report checks passed`);

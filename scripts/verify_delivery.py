@@ -9,6 +9,9 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 HTML = ROOT / "Ringside_Boxing_Assessment.html"
 version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+if version == "2.17.3-local":
+    subprocess.run([sys.executable, str(ROOT / "scripts/verify_v2173_charts.py")], cwd=ROOT, check=True)
+    sys.exit(0)
 if version in {"2.17.0-local", "2.17.1-local", "2.17.2-local"}:
     subprocess.run([sys.executable, str(ROOT / "scripts/verify_v217_local.py")], cwd=ROOT, check=True)
     sys.exit(0)

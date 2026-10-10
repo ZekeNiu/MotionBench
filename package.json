@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.17.2-local",
+  "version": "2.17.3-local",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -8,9 +8,9 @@
     "test": "node tests/run-unit-tests.cjs",
     "test:browser": "node tests/redesign-browser-tests.cjs",
     "test:workflow": "node tests/workflow-browser-tests.cjs",
-    "test:pdf": "node tests/pdf-module-tests.cjs --artifact-dir output/pdf/v2.17.2-work/module",
-    "test:pdf-download": "node tests/pdf-download-tests.cjs --artifact-dir output/pdf/v2.17.2-work/download",
-    "test:pdf-failure": "node tests/pdf-failure-ui-tests.cjs --artifact-dir output/pdf/v2.17.2-work/failure",
+    "test:pdf": "node tests/pdf-module-tests.cjs --artifact-dir output/pdf/v2.17.3-work/module",
+    "test:pdf-download": "node tests/pdf-download-tests.cjs --artifact-dir output/pdf/v2.17.3-work/download",
+    "test:pdf-failure": "node tests/pdf-failure-ui-tests.cjs --artifact-dir output/pdf/v2.17.3-work/failure",
     "test:visual": "node tests/visual-review.cjs",
     "test:core": "node tests/core-browser-tests.cjs",
     "test:radar": "node tests/radar-browser-tests.cjs",
@@ -21,8 +21,8 @@
     "test:design": "node tests/design-review.cjs",
     "test:chart-ai": "node tests/chart-ai-browser-tests.cjs",
     "test:ai-flow": "node tests/ai-narrative-browser-tests.cjs",
-    "test:repeats": "node tests/repeat-browser-tests.cjs --artifact-dir output/pdf/v2.17.2-work/repeats",
-    "test:repeat-pdf": "node tests/repeat-pdf-tests.cjs --artifact-dir output/pdf/v2.17.2-work/repeat-pdf",
+    "test:repeats": "node tests/repeat-browser-tests.cjs --artifact-dir output/pdf/v2.17.3-work/repeats",
+    "test:repeat-pdf": "node tests/repeat-pdf-tests.cjs --artifact-dir output/pdf/v2.17.3-work/repeat-pdf",
     "test:iso-layout": "node tests/iso-layout-browser-tests.cjs",
     "start": "python scripts/serve.py",
     "test:ai-service": "node tests/ai-service-browser-tests.cjs",
@@ -41,11 +41,12 @@
     "test:athlete-context-live": "node tests/athlete-context-live-ai-tests.cjs",
     "test:v216-migration": "node tests/v216-migration-browser-tests.cjs && node tests/v216-migration-browser-tests.cjs --edge",
     "test:v216-report": "node tests/report-v216-browser-tests.cjs && node tests/report-v216-browser-tests.cjs --edge",
-    "test:sprint": "node tests/sprint-fvp-browser-tests.cjs --artifact-dir output/playwright/sprint-fvp-2.17.2-local && node tests/sprint-fvp-browser-tests.cjs --edge --artifact-dir output/playwright/sprint-fvp-2.17.2-local",
-    "test:sprint-pdf": "node tests/sprint-fvp-browser-tests.cjs --pdf --artifact-dir output/playwright/sprint-fvp-2.17.2-local",
-    "test:entry-concurrency": "node tests/entry-concurrency-browser-tests.cjs --artifact-dir output/playwright/entry-concurrency-2.17.2/final && node tests/entry-concurrency-browser-tests.cjs --edge --artifact-dir output/playwright/entry-concurrency-2.17.2/final",
-    "test:storage-repros": "node tests/storage-concurrency-repros.cjs --artifact-dir output/playwright/storage-repros-v2.17.2/final && node tests/storage-concurrency-repros.cjs --edge --artifact-dir output/playwright/storage-repros-v2.17.2/final",
-    "test:split-id-import": "node tests/sprint-split-id-import-tests.cjs --artifact-dir output/playwright/split-id-import-2.17.2/final && node tests/sprint-split-id-import-tests.cjs --edge --artifact-dir output/playwright/split-id-import-2.17.2/final"
+    "test:fvp-regions": "node tests/fvp-three-region-browser-tests.cjs --artifact-dir output/playwright/fvp-three-regions/fixed && node tests/fvp-three-region-browser-tests.cjs --edge --artifact-dir output/playwright/fvp-three-regions/fixed",
+    "test:sprint": "node tests/sprint-fvp-browser-tests.cjs --artifact-dir output/playwright/sprint-fvp-2.17.3-local && node tests/sprint-fvp-browser-tests.cjs --edge --artifact-dir output/playwright/sprint-fvp-2.17.3-local",
+    "test:sprint-pdf": "node tests/sprint-fvp-browser-tests.cjs --pdf --artifact-dir output/playwright/sprint-fvp-2.17.3-local",
+    "test:entry-concurrency": "node tests/entry-concurrency-browser-tests.cjs --artifact-dir output/playwright/entry-concurrency-2.17.3/final && node tests/entry-concurrency-browser-tests.cjs --edge --artifact-dir output/playwright/entry-concurrency-2.17.3/final",
+    "test:storage-repros": "node tests/storage-concurrency-repros.cjs --artifact-dir output/playwright/storage-repros-v2.17.3/final && node tests/storage-concurrency-repros.cjs --edge --artifact-dir output/playwright/storage-repros-v2.17.3/final",
+    "test:split-id-import": "node tests/sprint-split-id-import-tests.cjs --artifact-dir output/playwright/split-id-import-2.17.3/final && node tests/sprint-split-id-import-tests.cjs --edge --artifact-dir output/playwright/split-id-import-2.17.3/final"
   },
   "devDependencies": {
     "playwright": "1.57.0"

@@ -1033,7 +1033,8 @@
       return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
     };
     const right = cards.length ? cards.map(parameterGroup).join("") : '<p class="empty">完成测试后显示能力参数。</p>';
-    return `<details class="details-group" id="trainingAnalysisDetail" open><summary>${E(T.analysisLabel)}</summary><div class="quality-group">${fvp}${sprint}<div class="detail-pair capability-structure-pair" data-capability-analysis data-pdf-pair data-pdf-title="能力结构分析"><div class="capability-directions">${left}</div><div class="detail-data capability-parameter-column"><div class="capability-parameter-groups">${right}</div></div></div></div></details>`;
+    const plots = fvp || sprint ? `<div class="capability-plot-region"><div class="capability-region-heading pdf-group-heading">${E(T.analysisLabel)}</div><div class="quality-group">${fvp}${sprint}</div></div>` : "";
+    return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}">${plots}<details class="details-group" id="trainingAnalysisDetail" open><summary>能力发展方向与参数</summary><div class="quality-group"><div class="detail-pair capability-structure-pair" data-capability-analysis data-pdf-pair data-pdf-title="能力发展方向与参数"><div class="capability-directions">${left}</div><div class="detail-data capability-parameter-column"><div class="capability-parameter-groups">${right}</div></div></div></div></details></section>`;
   }
   function sprintFvpChartData(solved) {
     const profiles = [], add = (profile, kind, label) => {
@@ -1174,8 +1175,12 @@
     }).join("")}</div>`;
   }
   function prepareFVPPrint(clone,snapshot) {
-    const analysis=clone.querySelector("#trainingAnalysisDetail");
-    if(analysis)analysis.outerHTML=renderCapabilityAnalysis(build(snapshot),{print:true});
+    const region=clone.querySelector("[data-capability-region]");
+    if(!region)return;
+    const directionOpen=region.querySelector("#trainingAnalysisDetail")?.open;
+    region.outerHTML=renderCapabilityAnalysis(build(snapshot),{print:true});
+    const directions=clone.querySelector("[data-capability-region] #trainingAnalysisDetail");
+    if(directions&&directionOpen!==undefined)directions.open=directionOpen;
   }
   function previewFVP(container,solved) {
     const panel=container.querySelector(`[data-fvp-elasticity="${solved.id}"]`);

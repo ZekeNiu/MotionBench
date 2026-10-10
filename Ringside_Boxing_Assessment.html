@@ -3076,6 +3076,13 @@ body.sidebar-collapsed .workspace {
 }
 
 /* Report content follows the selected test snapshot. */
+.capability-analysis-region { margin:0; }
+.capability-plot-region { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); margin:24px 0; overflow:hidden; }
+.capability-region-heading { display:flex; align-items:center; gap:12px; padding:16px 20px; background:#f7f9fc; font-size:17px; font-weight:600; color:#45546a; }
+.capability-plot-region > .quality-group { border-top:0; }
+.ringside-pdf-source .capability-plot-region { border:0!important; margin:0!important; box-shadow:none!important; overflow:visible!important; }
+@media (max-width:600px) { .capability-region-heading { padding:14px; font-size:16px; } }
+@media print { .capability-plot-region { border:0; } }
 .jump-detail .chart-wrap { width:100%; margin-inline:auto; }
 .jump-detail .detail-data { min-width:0; }
 .jump-detail table { table-layout:auto; }
@@ -3885,7 +3892,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.17.2-local"});
+window.RingsideBuild=Object.freeze({"version": "2.17.3-local"});
 </script>
 <script>
 (function (root) {
@@ -15559,7 +15566,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
     };
     const right = cards.length ? cards.map(parameterGroup).join("") : '<p class="empty">完成测试后显示能力参数。</p>';
-    return `<details class="details-group" id="trainingAnalysisDetail" open><summary>${E(T.analysisLabel)}</summary><div class="quality-group">${fvp}${sprint}<div class="detail-pair capability-structure-pair" data-capability-analysis data-pdf-pair data-pdf-title="能力结构分析"><div class="capability-directions">${left}</div><div class="detail-data capability-parameter-column"><div class="capability-parameter-groups">${right}</div></div></div></div></details>`;
+    const plots = fvp || sprint ? `<div class="capability-plot-region"><div class="capability-region-heading pdf-group-heading">${E(T.analysisLabel)}</div><div class="quality-group">${fvp}${sprint}</div></div>` : "";
+    return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}">${plots}<details class="details-group" id="trainingAnalysisDetail" open><summary>能力发展方向与参数</summary><div class="quality-group"><div class="detail-pair capability-structure-pair" data-capability-analysis data-pdf-pair data-pdf-title="能力发展方向与参数"><div class="capability-directions">${left}</div><div class="detail-data capability-parameter-column"><div class="capability-parameter-groups">${right}</div></div></div></div></details></section>`;
   }
   function sprintFvpChartData(solved) {
     const profiles = [], add = (profile, kind, label) => {
@@ -15700,8 +15708,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }).join("")}</div>`;
   }
   function prepareFVPPrint(clone,snapshot) {
-    const analysis=clone.querySelector("#trainingAnalysisDetail");
-    if(analysis)analysis.outerHTML=renderCapabilityAnalysis(build(snapshot),{print:true});
+    const region=clone.querySelector("[data-capability-region]");
+    if(!region)return;
+    const directionOpen=region.querySelector("#trainingAnalysisDetail")?.open;
+    region.outerHTML=renderCapabilityAnalysis(build(snapshot),{print:true});
+    const directions=clone.querySelector("[data-capability-region] #trainingAnalysisDetail");
+    if(directions&&directionOpen!==undefined)directions.open=directionOpen;
   }
   function previewFVP(container,solved) {
     const panel=container.querySelector(`[data-fvp-elasticity="${solved.id}"]`);
