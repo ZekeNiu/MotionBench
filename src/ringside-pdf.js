@@ -487,7 +487,7 @@
   function collectBlocks(source) {
     const blocks = [];
     const headingSelectors =
-      ".section-heading,.quality-heading,.test-title,.pdf-group-heading";
+      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading";
     const atomicSelectors =
       ".hero,.micro-cards,.summary-grid,.stat-row,.empty,.aux-metrics,.card-foot,[data-pdf-atomic]";
     function push(node, kind, keepWithNext) {
@@ -504,7 +504,7 @@
       copy.dataset.pdfBlockIndex = String(blocks.length);
       if (kind === "pair")
         copy.dataset.pdfTitle =
-          node.closest(".test-block,.lvp-card,.fvp-analysis-card")?.querySelector("h3")
+          node.dataset.pdfTitle || node.closest(".test-block,.lvp-card,.fvp-analysis-card")?.querySelector("h3")
             ?.textContent || "测试结果";
       blocks.push({
         element: copy,
@@ -965,7 +965,7 @@
       if (remainder.length) {
         // A subheading without its first data row belongs to the continuation.
         const trailing = column.lastElementChild;
-        if (trailing?.matches("h1,h2,h3,h4,h5,.pdf-group-heading")) {
+        if (trailing?.matches("h1,h2,h3,h4,h5,.pdf-group-heading,.capability-parameter-heading")) {
           trailing.remove();
           remainder.unshift({
             element: trailing,
@@ -1254,7 +1254,7 @@
       const rows = annotateRows(source);
       const pairTexts = [
         ...source.querySelectorAll(
-          ".detail-data p,.detail-data h4,.detail-data summary",
+          ".detail-data p,.detail-data h3,.detail-data h4,.detail-data summary",
         ),
       ].map((node, index) => {
         node.dataset.pdfPairText = String(index);

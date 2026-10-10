@@ -92,7 +92,8 @@ async function main() {
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => { if (/^https?:/i.test(request.url())) requests.push(request.url()); });
     await page.goto(pathToFileURL(path.join(root, 'Ringside_Boxing_Assessment.html')).href);
-    await page.waitForFunction(() => window.App);
+    await page.waitForFunction(() => !!window.App?.ready);
+    assert.equal(await page.evaluate(() => App.ready), true, 'application initialization must complete');
     for (const filename of ['vendor/html2canvas.min.js', 'vendor/jspdf.umd.min.js', 'src/ringside-pdf.js']) await inject(page, filename);
 
     // Opening export details must not trigger the live application's toggle
@@ -123,19 +124,21 @@ async function main() {
     fs.writeFileSync(path.join(artifacts, 'module-sample.pdf'), Buffer.from(sample.base64, 'base64'));
     console.log(`PASS real offline sample PDF: ${sample.pages.length} pages, ${sample.bytes} bytes`);
 
-    if (await page.locator('#pdfButton').count()) {
-      const pending = page.waitForEvent('download', { timeout: 120000 });
-      if (!await page.locator('#saveModal').isVisible()) {
-        if (await page.locator('#sidebar').evaluate(el=>el.inert)) await page.locator('#sidebarToggle').click();
-        await page.locator('#sidebar button[onclick="App.saveMenu()"] ').click();
-      }
-      await page.locator('#pdfButton').click();
-      const download = await pending;
+    {
+      // The sidebar backup action opens library management. Exercise the
+      // current report export menu, rather than the hidden legacy save modal.
+      const button = page.locator('#reportExportMenu [data-pdf-action]');
+      assert.equal(await button.count(), 1, 'the current report must expose its PDF action');
+      await page.locator('#reportExportMenu > summary').click();
+      const [download] = await Promise.all([
+        page.waitForEvent('download', { timeout: 120000 }),
+        button.click(),
+      ]);
       const destination = path.join(artifacts, 'module-button-sample.pdf');
       await download.saveAs(destination);
       assert.equal(fs.readFileSync(destination).subarray(0, 5).toString(), '%PDF-');
       assert.match(download.suggestedFilename(), /\.pdf$/i);
-      await page.waitForFunction(() => !document.getElementById('pdfButton').disabled);
+      await page.waitForFunction(() => !document.querySelector('#reportExportMenu [data-pdf-action]').disabled);
       assert.equal(await page.evaluate(() => RingsidePDF.lastDiagnostics.status), 'complete');
       console.log('PASS real application PDF button downloads an offline PDF file');
     }

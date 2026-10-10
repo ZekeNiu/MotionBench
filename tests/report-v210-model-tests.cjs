@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), vm = require("node:vm"), assert = require("node:assert/strict");
 const context = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto }); context.window = context;
-for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation", "interventions", "viz", "report"])
+for (const name of ["calc", "fvp", "sprint-fvp", "cpet-reference", "definitions", "tests", "model", "evaluation", "interventions", "viz", "report"])
   vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`, "utf8"), context);
 const M = context.RingsideModel, R = context.RingsideReport, V = context.RingsideViz, T = context.RingsideTests;
 let passed = 0;
@@ -84,6 +84,11 @@ test("every builtin project uses its captured display name without altering metr
     r.fvpConfig[id].distanceCm = 33;
     r.data[id] = [0,20,40].map((load,index) => ({ id:"name_" + id + "_" + index, load, height:[33,27,22][index], excluded:false }));
   }
+  // Synthetic standing acceleration: Vmax = 9 m/s, tau = 1.2 s.
+  // The fixture is explicit because ordinary demonstration records have no sprint FVP data.
+  r.athlete.height = 180;
+  const sprintTimes = [1.3735406501017202, 2.1031246565401025, 3.3485505747362385, 4.505234882806160, 5.633470563022033];
+  r.data.sprint_fvp = [{ id: "name_synthetic_sprint", splits: [5, 10, 20, 30, 40].map((distanceM, i) => ({ distanceM, timeS: sprintTimes[i] })), excluded: false }];
   const before = R.build(r);
   r.projectSnapshots = T.snapshots(r).map(test => ({ ...test, name: "本次名称_" + test.id }));
   const report = R.build(r), html = R.render(report);

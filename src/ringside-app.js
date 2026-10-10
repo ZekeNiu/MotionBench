@@ -1077,6 +1077,7 @@
       updateJumpEntryResults();
       if (["fvp_sj", "fvp_cmj"].includes(entryTab))
         window.RingsideFVPEntry?.update?.(state, entryTab, $("entryContent"));
+      if (entryTab === "sprint_fvp") window.RingsideSprintFVPEntry?.update?.(state, $("entryContent"));
       refreshEntryChrome();
     }, 180);
   }
@@ -1213,6 +1214,11 @@
       "imtpConfig",
       "cmjConfig",
       "derivedEnabled",
+      "fvpConfig",
+      "fvpAnalysis",
+      "fvpView",
+      "sprintFvpConfig",
+      "sprintFvpAnalysis",
     ])
       if (source[k]) r[k] = copy(source[k]);
     r.dsi = { ...copy(source.dsi), force: "", confirmed: false };
@@ -1767,6 +1773,7 @@
     }
     const contextChanged = obj[ps.at(-1)] !== value;
     obj[ps.at(-1)] = value;
+    if (path === "sprintFvpConfig.timingStart") state.sprintFvpConfig.startConvention = value;
     const dsiContextPaths = ["dsi.source", "dsi.cmjUnit", "cmjConfig.definition", "protocol.cmj", ...(state.dsi.source === "manual"
       ? ["dsi.unit", "dsi.definition", "dsi.protocol"] : ["imtpConfig.definition", "imtpConfig.unit", "protocol.imtp"])];
     if (contextChanged && dsiContextPaths.includes(path)) {
@@ -1795,6 +1802,9 @@
     if (ui.mode === "entry" && ["fvp_sj", "fvp_cmj"].includes(entryTab) &&
       (path.startsWith("data." + entryTab + ".") || path.startsWith("fvpConfig." + entryTab + ".") || path === "athlete.mass"))
       window.RingsideFVPEntry?.update?.(state, entryTab, $("entryContent"));
+    if (ui.mode === "entry" && entryTab === "sprint_fvp" &&
+      (/^(data\.sprint_fvp\.|sprintFvpConfig\.|sprintFvpAnalysis\.)/.test(path) || ["athlete.mass", "athlete.height"].includes(path)))
+      window.RingsideSprintFVPEntry?.update?.(state, $("entryContent"));
   }
   function athleteTag(a) {
     let length = 6;
@@ -1984,7 +1994,7 @@
     const focused = document.activeElement?.dataset?.lvpId,
       focusedPath = document.activeElement?.dataset?.path;
     const active = document.activeElement;
-    const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol"].find(attribute => active?.hasAttribute(attribute));
+    const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol", "data-capability-selection", "data-sprint-target-distance"].find(attribute => active?.hasAttribute(attribute));
     const fvpFocusId = active?.dataset?.fvpId, fvpFocusValue = fvpFocus && active.getAttribute(fvpFocus);
     $("detailContent").innerHTML = window.RingsideReport.render(report);
     window.RingsideReport.observeCharts($("detailContent"));
@@ -2269,6 +2279,8 @@
     else if (entryTab === "review") h += entryReview();
     else if (["fvp_sj", "fvp_cmj"].includes(entryTab) && T.isNative(state, entryTab))
       h += window.RingsideFVPEntry.render(state, entryTab, { input, select, check, field, table });
+    else if (entryTab === "sprint_fvp" && T.isNative(state, entryTab))
+      h += window.RingsideSprintFVPEntry.render(state, { input, select, check, field, table });
     else if (entryTab === "fms") {
       h +=
         '<p class="intro">0疼痛、1无法完成、2有代偿完成、3按标准完成。</p>' +
@@ -2625,9 +2637,9 @@
   }
   function rememberDeletion(type, test, index) {
     const array =
-      type === "point" ? state.data.imtp[test].timePoints : state.data[test];
+      type === "point" ? state.data.imtp[test].timePoints : type === "sprint-split" ? state.data.sprint_fvp[test].splits : state.data[test];
     const prefix =
-      type === "point"
+      type === "sprint-split" ? stablePath(`data.sprint_fvp.${test}.splits.${index}.timeS`).replace(/\.timeS$/, ".") : type === "point"
         ? stablePath(`data.imtp.${test}.timePoints.${index}.force`).replace(
             /\.force$/,
             ".",
@@ -2657,7 +2669,7 @@
     renderEntry();
     reportDirty = true;
     rowFocus(
-      `data.${t}.${Math.min(i, state.data[t].length - 1)}.${t === "cmj" || t === "sj" ? "height" : "load"}`,
+      `data.${t}.${Math.min(i, state.data[t].length - 1)}.${t === "sprint_fvp" ? "splits.0.timeS" : t === "cmj" || t === "sj" ? "height" : "load"}`,
     );
     toast("已删除，可在底部撤销");
   }
@@ -2673,7 +2685,7 @@
       });
     } else {
       const array =
-        undo.type === "repeat" ? atPath(resolveDraftPath(undo.arrayPath) || "") : undo.type === "point"
+        undo.type === "repeat" ? atPath(resolveDraftPath(undo.arrayPath) || "") : undo.type === "sprint-split" ? state.data.sprint_fvp[undo.test]?.splits : undo.type === "point"
           ? state.data.imtp[undo.test]?.timePoints
           : state.data[undo.test];
       if (!array) return;
@@ -2696,6 +2708,8 @@
       rowFocus((resolveDraftPath(undo.arrayPath) || "") + "." + undo.index + "." + (Object.keys(undo.item).find((key) => !["id", "metrics", "notes"].includes(key)) || "notes"));
     else if (undo.type === "point")
       rowFocus(`data.imtp.${undo.test}.timePoints.${undo.index}.force`);
+    else if (undo.type === "sprint-split")
+      rowFocus(`data.sprint_fvp.${undo.test}.splits.${undo.index}.timeS`);
     else
       rowFocus(
         `data.${undo.test}.${undo.index}.${Object.keys(undo.item).find((k) => k !== "id") || "id"}`,
@@ -2896,6 +2910,11 @@
     );
   }
   function addRow(t, groupIndex = -1) {
+    if (t === "sprint_fvp" && T.isNative(state, t)) {
+      const distances = state.data[t]?.[groupIndex]?.splits?.map(split => split.distanceM);
+      (state.data[t] ||= []).push(window.RingsideSprintFVPEntry.defaultTrial(distances));
+      changed(false); renderEntry(); rowFocus(`data.${t}.${state.data[t].length - 1}.splits.0.timeS`); return;
+    }
     if (["fvp_sj", "fvp_cmj"].includes(t) && T.isNative(state, t)) {
       const group = state.data[t][groupIndex];
       state.data[t].push({ id: uid(), load: group?.load ?? "", height: "", distanceCm: "", notes: "", excluded: false, exclusionReason: "" });
@@ -3660,6 +3679,14 @@
       })),
       capabilityAnalysis: copy(s.capabilityCards || []),
       jumpFVP: copy(Object.fromEntries(Object.entries(s.fvp || {}).filter(([, profile]) => profile.enabled))),
+      sprintFVP: s.sprintFvp?.enabled ? {
+        valid:s.sprintFvp.valid, reason:s.sprintFvp.reason, methodVersion:s.sprintFvp.config?.methodVersion,
+        config:copy(s.sprintFvp.config), targetDistanceM:s.sprintFvp.targetDistanceM,
+        selectionBasis:s.sprintFvp.selectionBasis, selectedTrialId:s.sprintFvp.selectedTrialId,
+        model:s.sprintFvp.model ? Object.fromEntries(["F0","F0Absolute","V0","Pmax","PmaxAbsolute","RFmax","DRF","slope","r2","units"].map(key => [key,copy(s.sprintFvp.model[key] ?? null)])) : null,
+        optimum:copy(s.sprintFvp.optimum), optimumReason:s.sprintFvp.optimumReason,
+        imbalance:copy(s.sprintFvp.imbalance), judgments:copy(s.sprintFvp.judgments || null),
+      } : null,
       cpet: copy(s.raw.cpet || null),
       qualityIssues: s.qualityIssues || [],
       migrationReview: {
@@ -4526,6 +4553,18 @@
     selectRecord,
     selectReportGroup, openAthleteChooser, filterAthleteChooser, athleteChooserKey,
     addRow,
+    addSprintSplit(index) {
+      const trial = state?.data?.sprint_fvp?.[index];
+      if (!trial || !T.isNative(state, "sprint_fvp")) return;
+      trial.splits.push({distanceM:"", timeS:""}); changed(false); renderEntry();
+      rowFocus(`data.sprint_fvp.${index}.splits.${trial.splits.length - 1}.distanceM`);
+    },
+    removeSprintSplit(index, splitIndex) {
+      const trial = state?.data?.sprint_fvp?.[index];
+      if (!trial?.splits?.[splitIndex] || !T.isNative(state, "sprint_fvp")) return;
+      rememberDeletion("sprint-split", index, splitIndex); trial.splits.splice(splitIndex, 1);
+      changed(false); renderEntry(); toast("已删除分段，可在底部撤销");
+    },
     addHopJump, removeHopJump, addHopSet,
     removeRow,
     addRepeat,
@@ -4641,6 +4680,14 @@
     state.fvpView[id].pinnedLoad = load; changed(false);
   });
   document.addEventListener("submit", event => {
+    if (event.target.matches("[data-sprint-target-form]")) {
+      event.preventDefault(); if (!state) return;
+      const control = event.target.querySelector("[data-sprint-target-distance]"), value = control?.value.trim() || "";
+      const error = M.validateField(state, "sprintFvpAnalysis.targetDistanceM", value);
+      if (error || value && (!Number.isFinite(Number(value)) || Number(value) <= 0)) return toast(error || "目标距离须为正数");
+      (state.sprintFvpAnalysis ||= {}).targetDistanceM = value === "" ? "" : Number(value);
+      changed(false); renderReport(); return;
+    }
     if (!event.target.matches("[data-fvp-scenario-form]")) return;
     event.preventDefault();
     const id = fvpControlRecord(event.target);
@@ -4712,6 +4759,11 @@
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
+    if (t.hasAttribute("data-capability-selection")) {
+      const key = t.dataset.capabilitySelection, choices = {strength:["fvp","fdsi","idsi_matched","idsi_fixed250","eur"], reactive:["dj_rsi","hop_rsi","cmrj_rsi"], speed:["sprint_fvp","srr"]};
+      if (!state || !choices[key]?.includes(t.value)) return;
+      (state.views.capabilitySelections ||= {})[key] = t.value; changed(false); renderReport(); return;
+    }
     if (t.hasAttribute("data-fvp-protocol")) {
       state.views.fvpProtocol = t.value; changed(false); renderReport(); return;
     }
@@ -4764,7 +4816,7 @@
       setPath(t.dataset.path, t.type === "checkbox" ? t.checked : t.value);
       if (/^views\.lvp(Upper|Lower)\.showBand$/.test(t.dataset.path))
         state.views[t.dataset.path.split(".")[1]].bandExplicit = true;
-      if (ui.mode === "entry" && (["dsi.source"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)||/\.activeStiffnessInputUnit$/.test(t.dataset.path)||/^data\.cpet.*(?:vo2Unit|oxygenLabel|label|modality)$/.test(t.dataset.path)))
+      if (ui.mode === "entry" && (["dsi.source", "sprintFvpConfig.inputTimeMode"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)||/\.activeStiffnessInputUnit$/.test(t.dataset.path)||/^data\.cpet.*(?:vo2Unit|oxygenLabel|label|modality)$/.test(t.dataset.path)))
         renderEntry();
     }
     if (t.dataset.axis) {
@@ -4820,6 +4872,10 @@
     updateEditor();
   });
   document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-sprint-target-follow]")) {
+      if (!state) return; (state.sprintFvpAnalysis ||= {}).targetDistanceM = "";
+      changed(false); renderReport(); return;
+    }
     const shortcut = e.target.closest("[data-fvp-shortcut]");
     if (shortcut) {
       const id = fvpControlRecord(shortcut), kind = shortcut.dataset.fvpShortcut;

@@ -836,7 +836,7 @@
     const consumed = new Set(),
       grouped = new Map(),
       measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t));
-    for (const test of measured.filter((t) => !["lvp","fvp"].includes(t.renderer))) {
+    for (const test of measured.filter((t) => !["lvp","fvp","sprint-fvp"].includes(t.renderer))) {
       if (consumed.has(test.id)) continue;
       const peers =
         test.renderer === "speed"
@@ -900,40 +900,7 @@
     }
     return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderCapabilities()}`;
     function renderCapabilities() {
-      const digits=metric=>Number.isInteger(metric.digits)?metric.digits:metric.unit==="比值"||/rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id)?3:metric.unit==="%"?1:2;
-      const cards=(s.capabilityCards||[]).map(card=>({...card,metrics:(card.metrics||[]).filter(metric=>N(metric.value)!==null)})).filter(card=>card.metrics.length);
-      const fvp=renderFVPAnalysis(report);
-      if(!cards.length&&!fvp)return "";
-      const targetProgress=metric=>{
-        const definition=state.definitions.find(item=>item.id===metric.id);
-        const target=positive(metric.target)?N(metric.target):definition?.referenceEnabled===true&&definition.direction==="higher"&&definition.matched!==false&&positive(definition.target)?N(definition.target):null;
-        if(target===null||!positive(metric.value))return "";
-        const attainment=N(metric.value)/target*100;
-        return `<div class="capability-progress" data-capability-target="${E(metric.id)}"><div class="capability-progress-label"><span>参考目标 ${F(target,1)}${metric.unit&&metric.unit!=="比值"?` ${E(metric.unit)}`:""}</span><span>达成 ${F(attainment,1)}%</span></div><div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,attainment))}%"></span></div></div>`;
-      };
-      const renderMetric=(metric,cardId)=>{
-        const unit=metric.unit&&metric.unit!=="比值"?`<small>${E(metric.unit)}</small>`:"";
-        const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(assessmentLabel(metric.status, metric.judgment))}</p>`:"";
-        const hasSpeedEndpoints=cardId==="speed"&&cards.find(card=>card.id==="speed").metrics.some(item=>["mss_speed","mas_speed"].includes(item.id));
-        const components=(hasSpeedEndpoints?[]:metric.components||[]).filter(component=>N(component.value)!==null);
-        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(assessmentLabel(component.status, component.judgment))}</p>`:""}${cardId==="cardio"?targetProgress(component):""}</dd></div>`).join("");
-        const detail=components.length?(["cardio","speed"].includes(cardId)?`<div class="capability-components capability-observations"><dl>${rows}</dl></div>`:`<details class="capability-components"><summary>组成数据</summary><dl>${rows}</dl></details>`):"";
-        const windowName=choice=>choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 0–250 ms";
-        const variants=metric.id==="idsi"?(metric.variants||[]):[];
-        const selected=variants.find(choice=>choice.id===metric.selectedVariant);
-        const selector=variants.length?`<label class="idsi-window">IMTP 时窗<span class="idsi-print-window">${E(selected?windowName(selected):"")}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${variants.map(choice=>`<option value="${E(choice.id)}"${choice===selected?" selected":""}${choice.available===false?" disabled":""}>${E(windowName(choice))}</option>`).join("")}</select></label>`:"";
-        const progress=["speed","cardio"].includes(cardId)?targetProgress(metric):"";
-        return `<section class="capability-metric${metric.id==="srr"?" capability-primary":""}${metric.id==="asr"?" capability-secondary":""}" data-capability-metric="${E(metric.id)}"${metric.id==="idsi"?` data-derived-result="${E(metric.selectedVariant)}"`:""}><div class="capability-metric-head"><h4>${E(metric.label)}</h4><p class="capability-value">${F(metric.value,digits(metric))}${unit}</p></div>${cardId==="cardio"?detail+judgment+progress:judgment+progress+selector+detail}</section>`;
-      };
-      const renderCard=card=>{
-        const targets=(card.targets||[]).filter(target=>N(target.value)!==null);
-        const conclusion=["speed","cardio"].includes(card.id)&&card.conclusion?`<div class="capability-conclusion"><p class="capability-conclusion-text">${E(card.conclusion)}</p>${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(String(target.label || "").replace(/(?:参考)?目标$/, "参考目标"))} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}</div>`:"";
-        const metrics=card.id==="speed"?[...card.metrics].sort((a,b)=>["srr","mss_speed","mas_speed","asr"].indexOf(a.id)-["srr","mss_speed","mas_speed","asr"].indexOf(b.id)):card.metrics;
-        return `<article class="capability-card" data-capability-card="${E(card.id)}" data-pdf-atomic><h3 class="capability-title">${E(card.title)}</h3>${conclusion}<div class="capability-metrics">${metrics.map(metric=>renderMetric(metric,card.id)).join("")}</div></article>`;
-      };
-      const rows=[];
-      for(let index=0;index<cards.length;index+=2)rows.push(`<div class="capability-row" data-pdf-atomic>${cards.slice(index,index+2).map(renderCard).join("")}</div>`);
-      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>${E(T.analysisLabel)}</summary><div class="quality-group">${fvp}<div class="capability-results">${rows.join("")}</div></div></details>`;
+      return renderCapabilityAnalysis(report);
     }
     // LVP is a shared comparison renderer across its explicitly registered projects.
     function renderLVP(limb, s) {
@@ -1007,6 +974,143 @@
           : '<div class="empty">选择已有数据的动作</div>'
       }</div><div class="lvp-table detail-data">${rows.length ? table(["动作", "回归方程", "R²", "预估1RM", "体重比 kg/kg", "速度口径", ...(repeated ? ["速度均值 ± SD · m/s", "CV"] : [])], rows, [], repeated ? "lvp-results with-repeat-columns" : "") : ""}${zoneRows.length ? table(["动作", "素质区间", "速度 m/s", "负荷 kg", "范围"], zoneRows) : ""}</div></div>${report.projects.filter((test) => all.some((series) => series.testId === test.id)).map(repeatPanel).join("")}</article>`;
     }
+  }
+  function renderCapabilityAnalysis(report, { print = false } = {}) {
+    const { record, stats } = report;
+    const cards = (stats.capabilityCards || []).map(card => ({ ...card,
+      metrics: (card.metrics || []).filter(metric => N(metric.value) !== null),
+    })).filter(card => card.metrics.length);
+    const fvp = renderFVPAnalysis(report, { print }), sprint = renderSprintFVPAnalysis(report, { print });
+    if (!cards.length && !fvp && !sprint) return "";
+    const source = id => cards.find(card => card.id === id);
+    const byId = id => cards.flatMap(card => card.metrics).find(metric => metric.id === id);
+    const impulseName = id => id === "idsi_fixed250" ? "iDSI · 固定 0–250 ms" : "iDSI · 匹配 CMJ 推进期";
+    const impulse = id => {
+      const result = (stats.derived?.results || report.derived?.results || []).find(item => item.id === id);
+      return result && { ...result, label: impulseName(id), judgment: result.directionHint, status: "gray" };
+    };
+    const format = metric => F(metric?.value, Number.isInteger(metric?.digits) ? metric.digits
+      : metric?.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric?.id || "") ? 3 : metric?.unit === "%" ? 1 : 2);
+    const unit = metric => metric?.unit && metric.unit !== "比值" ? ` <small>${E(metric.unit)}</small>` : "";
+    const selectedFvp = record.views?.fvpProtocol;
+    const jumpEntries = Object.entries(stats.fvp || {}).filter(([id]) => record.enabled[id]
+      && (record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
+    const jumpId = jumpEntries.find(([id]) => id === selectedFvp)?.[0] || jumpEntries[0]?.[0] || selectedFvp || "fvp_sj";
+    const jump = stats.fvp?.[jumpId], sprintSolved = stats.sprintFvp;
+    const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
+      value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
+      judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
+    const sprintMetric = { id: "sprint_fvp", label: "冲刺 FVP 不平衡性", value: sprintSolved?.valid ? sprintSolved.imbalance?.magnitudePct : null,
+      unit: "%", digits: 2, judgment: sprintSolved?.imbalance?.label || "待计算", status: "gray" };
+    const options = {
+      strength: [["fvp", "FVP 不平衡性"], ["fdsi", "DSI"], ["idsi_matched", impulseName("idsi_matched")], ["idsi_fixed250", impulseName("idsi_fixed250")], ["eur", "EUR"]],
+      reactive: [["dj_rsi", "DJ RSI"], ["hop_rsi", "Hop RSI"], ["cmrj_rsi", "CMRJ RSI"]],
+      speed: [["sprint_fvp", "冲刺 FVP 不平衡性"], ["srr", "SRR"]],
+    };
+    const candidate = id => id === "fvp" ? jumpMetric : id === "sprint_fvp" ? sprintMetric
+      : id.startsWith("idsi_") ? impulse(id) : byId(id);
+    const choice = key => {
+      const saved = record.views?.capabilitySelections?.[key];
+      return options[key].some(([id]) => id === saved) ? saved
+        : options[key].find(([id]) => N(candidate(id)?.value) !== null)?.[0] || options[key][0][0];
+    };
+    const judgmentFor = (key, metric) => {
+      if (N(metric?.value) === null) return "待计算";
+      if (key === "reactive") return metric.judgment
+        ? (metric.status === "red" || metric.status === "amber" ? "优先提高反应力量 · " : metric.status === "green" ? "保持并巩固反应力量 · " : "当前 RSI 标准 · ") + assessmentLabel(metric.status, metric.judgment)
+        : "已测量；在评价标准中选择 RSI 参考。";
+      if (metric.id === "eur") {
+        const definition = record.definitions.find(item => item.id === "eur");
+        const grade = definition?.referenceEnabled ? M.evaluation(metric.value, definition, record) : null;
+        return grade?.range ? assessmentLabel(grade.status, grade.label) : "结合 CMJ 与 SJ 的绝对成绩和纵向变化判断发展方向。";
+      }
+      return metric.judgment ? assessmentLabel(metric.status, metric.judgment) : "待判断";
+    };
+    const directionCard = (key, title) => {
+      const selected = choice(key), metric = candidate(selected) || { id: selected, label: options[key].find(([id]) => id === selected)?.[1], value: null };
+      const selector = print ? "" : `<label class="capability-selector no-print">判断依据<select data-capability-selection="${key}" aria-label="${E(title)}判断依据">${options[key].map(([id, label]) => `<option value="${id}"${id === selected ? " selected" : ""}>${E(label)}</option>`).join("")}</select></label>`;
+      const basis = selected === "fvp" && jump?.valid ? `${jump.analysis?.angle || 90}° 目标方向`
+        : selected === "sprint_fvp" && positive(sprintSolved?.targetDistanceM) ? `目标距离 ${F(sprintSolved.targetDistanceM, 1)} m` : "";
+      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3>${selector}<section data-direction-metric="${E(selected)}"><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}<p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(judgmentFor(key, metric))}</p></section></article>`;
+    };
+    const cardio = source("cardio"), cardioPrimary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
+    const endurance = `<article class="capability-direction-card" data-capability-direction="endurance"><h3>耐力发展方向</h3><section data-direction-metric="${E(cardioPrimary?.id || "endurance")}"><p class="capability-direction-basis">${E(cardioPrimary?.label || "心肺与阈值表现")}</p><p class="capability-direction-value">${format(cardioPrimary)}${unit(cardioPrimary)}</p><p class="capability-direction-judgment">${E(cardio?.conclusion || (cardioPrimary?.judgment ? assessmentLabel(cardioPrimary.status, cardioPrimary.judgment) : cardioPrimary ? "已测量；按当前心肺与阈值目标判断。" : "待计算"))}</p></section></article>`;
+    const left = `<div class="capability-direction-grid">${directionCard("strength", "力量发展方向")}${directionCard("reactive", "反应力量水平")}${directionCard("speed", "速度发展方向")}${endurance}</div>`;
+    const target = metric => {
+      const definition = record.definitions.find(item => item.id === metric.id);
+      const value = positive(metric.target) ? N(metric.target) : definition?.referenceEnabled && definition.matched !== false && positive(definition.target) ? N(definition.target) : null;
+      return value === null ? "" : `参考目标 ${F(value, 1)}${metric.unit && metric.unit !== "比值" ? " " + E(metric.unit) : ""}${positive(metric.value) ? ` · 达成 ${F(metric.value / value * 100, 1)}%` : ""}`;
+    };
+    const parameterGroup = card => {
+      const rows = [];
+      const add = metric => {
+        const note = target(metric), components = card.id === "speed" ? [] : (metric.components || []).filter(component => N(component.value) !== null);
+        const assessment = metric.judgment ? `<p class="capability-parameter-judgment ${E(metric.status || "gray")}">${E(assessmentLabel(metric.status, metric.judgment))}</p>` : "";
+        const componentData = components.length ? `<dl class="capability-parameter-components">${components.map(component => `<div data-capability-component="${E(component.id || component.label)}"><dt>${E(component.label)}</dt><dd>${format(component)}${unit(component)}${component.judgment ? `<p class="capability-component-judgment ${E(component.status || "gray")}">${E(assessmentLabel(component.status, component.judgment))}</p>` : ""}${target(component) ? `<p class="capability-parameter-target">${target(component)}</p>` : ""}</dd></div>`).join("")}</dl>` : "";
+        const folded = components.length || (metric.judgment || "").length > 26;
+        const detail = folded ? `<details class="capability-parameter-notes"><summary>${components.length ? "组成数据与解读" : "参数解读"}</summary>${componentData}${assessment}</details>` : assessment;
+        const progress = positive(metric.target) && positive(metric.value) ? `<div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100, Math.max(0, metric.value / metric.target * 100))}%"></span></div>` : "";
+        rows.push(`<tr data-capability-metric="${E(metric.id)}"><td>${E(metric.label)}</td><td><span class="capability-value">${format(metric)}${unit(metric)}</span>${note ? `<p class="capability-parameter-target">${note}</p>${progress}` : ""}${detail}</td></tr>`);
+      };
+      const ordered = card.id === "speed" ? [...card.metrics].sort((a, b) => ["srr", "mss_speed", "mas_speed", "asr"].indexOf(a.id) - ["srr", "mss_speed", "mas_speed", "asr"].indexOf(b.id)) : card.metrics;
+      for (const metric of ordered) {
+        if (metric.id === "idsi") {
+          const variants = ["idsi_matched", "idsi_fixed250"].map(impulse).filter(item => N(item?.value) !== null);
+          if (variants.length) variants.forEach(add);
+          else add(metric);
+        } else {
+          add(metric);
+        }
+      }
+      const labels = { strength: "力量参数", reactive: "反应力量参数", speed: "速度与速度储备参数", cardio: "心肺与阈值参数" };
+      const targets = (card.targets || []).filter(item => N(item.value) !== null);
+      return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
+    };
+    const right = cards.length ? cards.map(parameterGroup).join("") : '<p class="empty">完成测试后显示能力参数。</p>';
+    return `<details class="details-group" id="trainingAnalysisDetail" open><summary>${E(T.analysisLabel)}</summary><div class="quality-group">${fvp}${sprint}<div class="detail-pair capability-structure-pair" data-capability-analysis data-pdf-pair data-pdf-title="能力结构分析"><div class="capability-directions">${left}</div><div class="detail-data capability-parameter-column"><div class="capability-parameter-groups">${right}</div></div></div></div></details>`;
+  }
+  function sprintFvpChartData(solved) {
+    const profiles = [], add = (profile, kind, label) => {
+      if (profile?.valid && positive(profile.F0) && positive(profile.V0)) profiles.push({ kind, label, F0: profile.F0, V0: profile.V0, Pmax: profile.Pmax });
+    };
+    add(solved.model, "current", "当前冲刺剖面");
+    add(solved.optimum, "optimum", `${F(solved.targetDistanceM, 1)} m 最优`);
+    return { kind: "sprint", id: "sprint_fvp", valid: !!solved.valid, reason: solved.reason, profiles, points: [], band: [] };
+  }
+  function renderSprintFVPAnalysis(report, { print = false } = {}) {
+    const { record, stats } = report, solved = stats.sprintFvp;
+    if (!record.enabled.sprint_fvp || !solved || !(record.data.sprint_fvp || []).some(row => (row.splits || []).some(split => N(split.distanceM) !== null || N(split.timeS) !== null))) return "";
+    const builtin = T.builtins.find(test => test.id === "sprint_fvp"), displayName = report.projects.find(test => test.id === "sprint_fvp")?.name;
+    const title = displayName && displayName !== builtin?.name ? displayName : "分段计时冲刺 F–V/P–V";
+    const model = solved.model || {}, optimal = solved.optimum?.valid ? solved.optimum : {}, graph = sprintFvpChartData(solved), rows = [];
+    const add = (label, current, best, unit, digits = 2) => rows.push([`${E(label)}<small class="fvp-unit">${E(unit)}</small>`, F(current, digits), F(best, digits)]);
+    if (solved.valid) {
+      add("力量端 F₀", model.F0, optimal.F0, "N/kg");
+      add("速度端 V₀", model.V0, optimal.V0, "m/s", 3);
+      add("最大功率 Pmax", model.Pmax, optimal.Pmax, "W/kg");
+      add("力量端 F₀ · 绝对", model.F0Absolute, optimal.F0Absolute, "N", 1);
+      add("最大功率 Pmax · 绝对", model.PmaxAbsolute, optimal.PmaxAbsolute, "W", 1);
+      add("剖面斜率 SFV", model.slope, optimal.slope, "(N/kg)/(m/s)", 3);
+      add("RF max", N(model.RFmax) === null ? null : model.RFmax * 100, null, "%", 1);
+      add("DRF", model.DRF, null, "百分点/(m/s)", 3);
+      add("速度模型渐近值 Vmax", solved.fit?.vmax, null, "m/s", 3);
+      const endVelocity = solved.fit?.vmax > 0 && solved.fit?.tau > 0 ? solved.fit.vmax * (1 - Math.exp(-solved.selected.endTimeS / solved.fit.tau)) : null;
+      add("终点速度", endVelocity, null, "m/s", 3);
+      add("峰值功率对应速度 Vopt", N(model.V0) === null ? null : model.V0 / 2, N(optimal.V0) === null ? null : optimal.V0 / 2, "m/s", 3);
+    }
+    const follows = N(record.sprintFvpAnalysis?.targetDistanceM) === null;
+    const distanceText = positive(solved.targetDistanceM) ? `目标冲刺距离 ${F(solved.targetDistanceM, 1)} m${follows ? " · 跟随当前测试末段" : " · 专项目标"}` : "目标冲刺距离待确定";
+    const controls = print ? "" : `<form class="sprint-target-form no-print" data-sprint-target-form><label>专项目标距离 · m<input type="number" min="0.1" step="any" data-sprint-target-distance aria-label="冲刺 FVP 目标距离" value="${E(record.sprintFvpAnalysis?.targetDistanceM ?? "")}" placeholder="跟随测试末段"></label><button class="btn small" type="submit">保存目标距离</button><button class="btn small" type="button" data-sprint-target-follow>跟随测试末段</button></form>`;
+    const imbalance = solved.imbalance;
+    const result = solved.valid ? table(["指标", "当前", "距离最优"], rows, [], "fvp-result-table sprint-fvp-result-table")
+      + (imbalance ? `<div class="fvp-core-judgment"><p><span>FVP 不平衡性</span><strong>${F(imbalance.magnitudePct, 2)}%</strong></p><p>相对最优剖面 ${F(imbalance.profilePct, 2)}% · 100% 为最优</p><p>${E(imbalance.label)}</p></div>` : `<p class="fvp-table-note">${E(solved.optimumReason || "距离最优剖面待计算")}</p>`)
+      : `<div class="fvp-empty-result">${E(solved.reason || "录入完整分段计时后计算冲刺剖面。")}</div>`;
+    const selected = solved.selected, splits = selected?.fit?.points || selected?.splits || [];
+    const fitRows = splits.map(split => [F(split.distanceM, 1), F(split.timeS, 3), F(split.predictedDistanceM, 3), F(split.residualM, 4)]);
+    const config = solved.config || record.sprintFvpConfig || {}, conditions = [`${F(solved.mass ?? record.athlete.mass, 1)} kg`, `身高 ${F(solved.heightCm ?? config.heightCm ?? record.athlete.height, 1)} cm`, `${F(config.temperatureC, 1)} °C`, `${F(config.pressureHpa, 1)} hPa`, `风速 ${F(config.windMps, 2)} m/s`].join(" · ");
+    const trials = (solved.trials || []).filter(trial => trial.present).flatMap(trial => (trial.inputSplits || trial.splits || []).filter(split => N(split.distanceM) !== null || N(split.timeS) !== null).map((split, index) => [String(trial.index + 1), F(split.distanceM, 1), F(split.timeS, 3), E(trial.excluded ? "已排除" : trial.selected ? "采用" : trial.eligible ? "保留" : trial.reason || "待复核"), index === 0 ? E([trial.notes, trial.exclusionReason].filter(Boolean).join("；")) : ""]));
+    const method = `<details class="fvp-method sprint-fvp-method"><summary>拟合残差、测试条件与方法</summary><p>${E(conditions)}</p><p>${E(solved.selectionBasis || "采用同一完整冲刺试次的分段计时")}${selected ? ` · 第 ${selected.index + 1} 次` : ""}。${config.inputTimeMode === "interval" ? "分段耗时累加为累计时间" : "累计时间输入"}；固定时间修正 ${F(config.timeCorrectionS, 3)} s，起始位置修正 ${F(config.positionStartM, 2)} m。</p>${fitRows.length ? table(["距离 m", "累计时间 s", "拟合距离 m", "残差 m"], fitRows, [], "sprint-fvp-fit-table") : ""}<p>V(t) = Vmax(1 − exp(−t/τ))，x(t) = Vmax[t + τ(exp(−t/τ) − 1)]。τ ${F(solved.fit?.tau, 3)} s；距离残差 RMSE ${F(solved.fit?.rmseM, 4)} m；F–V 回归 R² ${F(model.r2, 4)}。</p><p>水平力由体重×加速度与空气阻力求得，以 0.1 s 采样至当前试次末段时间；RF = F水平/√(F水平² + (mg)²)，RF max 为 t &gt; 0.3 s 样本中的最大值，DRF 为同一窗口 RF–V 回归斜率，以百分点/(m/s)显示。</p><p>V₀ 为 F–V 外推的零力速度；Vmax 为分段速度模型的渐近值；终点速度为测试末段时间的模型值；Vopt = V₀/2 为峰值功率对应速度。</p><p>距离最优剖面由独立冲刺模型在固定 Pmax、体重与空气阻力下求最短目标距离时间。相对最优剖面 = 100·SFV/SFVopt；FVP 不平衡性 = 100·|1 − SFV/SFVopt|。${solved.optimum?.valid && solved.optimum.withinStudySimulation === false ? "当前目标距离或功率超出原研究的模拟范围。" : ""}</p><p><a href="https://doi.org/10.1111/sms.12490" target="_blank" rel="noopener noreferrer">Samozino 等 · 分段计时冲刺力–速度–功率方法（2016）</a> · <a href="https://doi.org/10.1111/sms.14097" target="_blank" rel="noopener noreferrer">Samozino 等 · 距离最优冲刺 F–V（2022）</a></p></details>`;
+    return `<article class="fvp-analysis-card sprint-fvp-analysis" id="detail-sprint_fvp" data-test-ids="sprint_fvp" data-sprint-fvp-panel><div class="fvp-analysis-heading test-title"><div><h3>${E(title)}</h3><p class="sprint-target-summary">${E(distanceText)}</p></div></div>${controls}<div class="detail-pair sprint-fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="sprintFvp" data-chart-input="${E(JSON.stringify([graph, {}]))}">${V.sprintFvp(graph)}</div><div class="detail-data">${result}</div></div>${method}${trials.length ? `<details class="fvp-raw-trials" data-raw-trials="sprint_fvp" data-trial-title="冲刺 FVP · 原始录入分段"><summary>冲刺 FVP · 原始录入分段</summary>${table(["试次", "录入距离 m", "录入时间 s", "采用情况", "备注"], trials, [], "repeat-raw-table")}</details>` : ""}</article>`;
   }
   function fvpChartData(solved) {
     const current=solved.current||solved.model||{}, profiles=[];
@@ -1104,8 +1208,8 @@
     }).join("")}</div>`;
   }
   function prepareFVPPrint(clone,snapshot) {
-    const mount=clone.querySelector("[data-fvp-analysis-stack]");
-    if(mount)mount.outerHTML=renderFVPAnalysis(build(snapshot),{print:true});
+    const analysis=clone.querySelector("#trainingAnalysisDetail");
+    if(analysis)analysis.outerHTML=renderCapabilityAnalysis(build(snapshot),{print:true});
   }
   function previewFVP(container,solved) {
     const panel=container.querySelector(`[data-fvp-elasticity="${solved.id}"]`);
@@ -1167,8 +1271,8 @@
     // A wrapped mean/SD must not push the right-side statistics below the
     // corresponding right-side result and evaluation in neighboring columns.
     alignIsometricSides(container);
-    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400] };
-    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330 };
+    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], sprintFvp:[390,450] };
+    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, sprintFvp:390 };
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);
@@ -1200,5 +1304,5 @@
     layoutCharts(container);
     bindFVPInteractions(container);
   }
-  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, prepareFVPPrint, previewFVP, bindFVPInteractions };
+  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderCapabilityAnalysis, prepareFVPPrint, previewFVP, bindFVPInteractions };
 })(window);

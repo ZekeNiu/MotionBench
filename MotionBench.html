@@ -3128,6 +3128,72 @@ body.sidebar-collapsed .workspace {
 .capability-progress-label { display:flex; justify-content:space-between; flex-wrap:wrap; gap:3px 12px; font-variant-numeric:tabular-nums; }
 .capability-progress-track { height:4px; margin-top:6px; overflow:hidden; border-radius:2px; background:var(--surface-soft); }
 .capability-progress-track > span { display:block; height:100%; background:var(--blue); border-radius:inherit; }
+.capability-structure-pair { grid-template-columns:minmax(0,44fr) minmax(0,56fr); gap:22px; align-items:start; container-type:inline-size; }
+.capability-directions,.capability-parameter-column,.capability-parameter-groups { min-width:0; }
+.capability-parameter-column { container-type:inline-size; }
+.capability-direction-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; align-items:stretch; }
+.capability-direction-card { min-width:0; padding:18px 17px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); }
+.capability-direction-card h3 { margin:0 0 13px; font-size:14px; font-weight:600; line-height:1.5; }
+.capability-direction-card > section { margin:0; }
+.capability-selector { display:grid; gap:5px; margin:0 0 13px; color:var(--muted); font-size:11px; }
+.capability-selector select { width:100%; min-width:0; min-height:38px; padding:6px 7px; font:inherit; color:var(--ink); }
+.capability-direction-basis { margin:0 0 6px; color:var(--muted); font-size:12px; line-height:1.65; overflow-wrap:anywhere; }
+.capability-direction-value { margin:0; color:var(--ink); font-size:25px; font-weight:600; line-height:1.4; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.capability-direction-value small { font-size:10px; font-weight:400; color:var(--muted); }
+.capability-direction-context { margin:5px 0 0; color:var(--muted); font-size:11px; line-height:1.65; }
+.capability-direction-judgment { margin:12px 0 0; padding-top:11px; border-top:1px solid var(--line); color:var(--ink); font-size:12px; line-height:1.75; overflow-wrap:anywhere; }
+.capability-direction-judgment.red,.capability-direction-judgment.amber { color:var(--ink); }
+.capability-parameter-groups { display:grid; grid-template-columns:minmax(0,1fr); gap:15px; align-items:start; }
+.capability-parameter-group { min-width:0; margin:0; padding:13px 16px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); }
+.capability-parameter-group h3 { margin:0 0 8px; font-size:13px; font-weight:600; line-height:1.6; }
+.capability-parameter-conclusion { margin:0 0 8px; color:var(--muted); font-size:11px; line-height:1.7; }
+.capability-parameter-table { width:100%; table-layout:fixed; font-size:11px; }
+.capability-parameter-table th:first-child { width:43%; }
+.capability-parameter-table th,.capability-parameter-table td { padding:7px 8px; vertical-align:top; overflow-wrap:anywhere; }
+.capability-parameter-table .capability-value { font-size:16px; white-space:normal; line-height:1.4; }
+.capability-parameter-table .capability-value small { margin-left:3px; font-size:9px; }
+.capability-parameter-judgment,.capability-parameter-target { margin:4px 0 0; font-size:10px; line-height:1.7; }
+.capability-parameter-target { color:var(--muted); }
+.capability-parameter-notes { margin:5px 0 0; font-size:10px; line-height:1.7; }
+.capability-parameter-notes > summary { cursor:pointer; color:var(--muted); }
+.capability-parameter-components { display:grid; gap:5px; margin:7px 0 0; }
+.capability-parameter-components > div { min-width:0; }
+.capability-parameter-components dt { color:var(--muted); font-size:10px; }
+.capability-parameter-components dd { margin:0; color:var(--ink); font-variant-numeric:tabular-nums; }
+.capability-parameter-group .capability-targets { font-size:10px; }
+@media (max-width:1050px) {
+  .capability-structure-pair { grid-template-columns:minmax(0,1fr); }
+}
+@container (min-width:500px) {
+  .capability-parameter-groups { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:600px) {
+  .capability-direction-grid,.capability-parameter-groups { grid-template-columns:minmax(0,1fr); gap:12px; }
+  .capability-direction-card,.capability-parameter-group { padding:16px; }
+  .capability-selector select { min-height:44px; }
+  .capability-parameter-table,.capability-parameter-table thead,.capability-parameter-table tbody,.capability-parameter-table tr { display:table; width:100%; }
+  .capability-parameter-table thead { display:table-header-group; }
+  .capability-parameter-table tbody { display:table-row-group; }
+  .capability-parameter-table tr { display:table-row; }
+  .capability-parameter-table th,.capability-parameter-table td { display:table-cell; width:auto; padding:7px 6px; }
+  .capability-parameter-table td:before { display:none; }
+}
+.ringside-pdf-document .capability-direction-grid { display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:10px!important; }
+.ringside-pdf-document .capability-direction-card { padding:12px!important; border-radius:8px!important; }
+.ringside-pdf-document .capability-direction-card > section { margin:0!important; }
+.ringside-pdf-document .capability-direction-card h3 { font-size:12px!important; margin-bottom:9px!important; }
+.ringside-pdf-document .capability-direction-basis { font-size:10px!important; }
+.ringside-pdf-document .capability-direction-value { font-size:20px!important; }
+.ringside-pdf-document .capability-direction-value small { font-size:8px!important; }
+.ringside-pdf-document .capability-direction-context,.ringside-pdf-document .capability-direction-judgment { font-size:9px!important; line-height:1.7!important; }
+.ringside-pdf-document .capability-direction-judgment { margin-top:9px!important; padding-top:8px!important; }
+.ringside-pdf-document .capability-parameter-groups { display:grid!important; grid-template-columns:minmax(0,1fr)!important; gap:10px!important; }
+.ringside-pdf-document .capability-parameter-group { margin:0!important; padding:10px 12px!important; border-radius:8px!important; }
+.ringside-pdf-document .capability-parameter-group h3 { font-size:11px!important; }
+.ringside-pdf-document .capability-parameter-table { font-size:9px!important; }
+.ringside-pdf-document .capability-parameter-table th,.ringside-pdf-document .capability-parameter-table td { padding:5px 6px!important; }
+.ringside-pdf-document .capability-parameter-table .capability-value { font-size:13px!important; }
+.ringside-pdf-document .capability-parameter-judgment,.ringside-pdf-document .capability-parameter-target,.ringside-pdf-document .capability-parameter-notes,.ringside-pdf-document .capability-parameter-components dt { font-size:8px!important; }
 .iso-results.with-repeat-columns { table-layout:fixed; }
 .iso-results.with-repeat-columns th,.iso-results.with-repeat-columns th:nth-child(4) { width:auto; min-width:0; }
 .iso-results .iso-reference-evaluation { display:block; font-size:11px; line-height:1.65; color:var(--muted); }
@@ -3284,6 +3350,17 @@ body.sidebar-collapsed .workspace {
 .fvp-raw-trials summary { cursor:pointer; color:var(--muted); }
 .fvp-raw-trials table { min-width:530px; font-size:11px; }
 .fvp-empty-result { padding:15px 17px; color:var(--ink); background:var(--surface-soft); border-radius:var(--radius-control); line-height:1.7; font-size:13px; }
+.sprint-fvp-analysis { margin-bottom:20px; }
+.sprint-target-form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; margin:0 0 16px; }
+.sprint-target-form label { display:grid; gap:5px; margin:0; color:var(--muted); font-size:12px; }
+.sprint-target-form input { width:180px; max-width:100%; min-height:38px; padding:7px 9px; font:inherit; }
+.sprint-target-form button { min-height:38px; }
+.sprint-fvp-fit-table { table-layout:fixed; width:100%; font-size:11px; }
+.sprint-fvp-fit-table th,.sprint-fvp-fit-table td { padding:7px 5px; }
+@media(max-width:600px) {
+  .sprint-target-form label,.sprint-target-form input { width:100%; }
+  .sprint-target-form input,.sprint-target-form button { min-height:44px; }
+}
 .fvp-analysis-card .fvp-points .viz-point { cursor:pointer; }
 .fvp-analysis-card .viz-point.is-fvp-highlighted > circle,.fvp-analysis-card .viz-point.is-fvp-highlighted > polygon { stroke:#262a30; stroke-width:3; }
 .fvp-analysis-card .viz-point.is-fvp-pinned > circle,.fvp-analysis-card .viz-point.is-fvp-pinned > polygon { stroke:#262a30; stroke-width:3.5; }
@@ -4287,6 +4364,253 @@ body.sidebar-collapsed .workspace {
   }
   root.RingsideFVP = Object.freeze({ ids, G, LAMBDA, LI_LAMBDA, defaultsConfig, defaultsAnalysis, defaultsView, solve, read: solve,
     regression, forceAt, powerAt, curve, performance, optimum, imbalance, elasticity, scenario, confidence, equal });
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  // Samozino et al. 2016, doi:10.1111/sms.12490. All input times are
+  // retained; only the explicitly recorded fixed correction is applied.
+  const G = 9.81, METHOD_VERSION = "samozino-2016-splits-v1";
+  const num = value => root.Calc.num(value);
+  const positive = value => { const n = num(value); return n !== null && n > 0 ? n : null; };
+  const present = value => value !== "" && value !== null && value !== undefined;
+  const defaultsConfig = () => ({ heightCm: "", temperatureC: 20, pressureHpa: 1013.25, windMps: 0,
+    device: "", startConvention: "first_propulsive_action", timingStart: "first_propulsive_action",
+    inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0,
+    methodVersion: METHOD_VERSION, sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" });
+  const defaultsAnalysis = () => ({ targetDistanceM: "" });
+  const normalizeTrials = rows => (Array.isArray(rows) ? rows : []).map((row, index) => ({ ...row,
+    id: row.id || "row_sprint_fvp_" + index, splits: (Array.isArray(row.splits) ? row.splits : []).map(split =>
+      ({ ...split, distanceM: split.distanceM ?? "", timeS: split.timeS ?? "" })),
+    excluded: row.excluded ?? false, exclusionReason: row.exclusionReason ?? "", notes: row.notes ?? "" }));
+
+  // expm1 keeps short-time displacements accurate without cancellation.
+  function distanceAt(time, vmax, tau) { return vmax * (time + tau * Math.expm1(-time / tau)); }
+  function timeAtDistance(distance, vmax, tau) {
+    if (![distance, vmax, tau].every(value => Number.isFinite(value) && value > 0)) return null;
+    let low = 0, high = distance / vmax + tau;
+    for (let i = 0; i < 90; i++) {
+      const middle = (low + high) / 2;
+      if (distanceAt(middle, vmax, tau) < distance) low = middle; else high = middle;
+    }
+    return (low + high) / 2;
+  }
+  function goldenMin(fn, low, high) {
+    const ratio = (Math.sqrt(5) - 1) / 2;
+    let a = high - ratio * (high - low), b = low + ratio * (high - low), fa = fn(a), fb = fn(b);
+    for (let i = 0; i < 100 && high - low > 1e-11; i++) {
+      if (fa < fb) { high = b; b = a; fb = fa; a = high - ratio * (high - low); fa = fn(a); }
+      else { low = a; a = b; fa = fb; b = low + ratio * (high - low); fb = fn(b); }
+    }
+    return (low + high) / 2;
+  }
+  function fitSplits(splits) {
+    const empty = { valid: false, vmax: null, tau: null, rmseM: null, r2: null, points: [], n: splits.length,
+      reason: "至少需要 4 个有效累计分段" };
+    if (splits.length < 4) return empty;
+    // For each tau, Vmax has a closed-form least-squares solution. Searching
+    // log(tau) leaves only one well-scaled numerical degree of freedom.
+    const candidate = logTau => {
+      const tau = Math.exp(logTau), basis = splits.map(p => p.timeS + tau * Math.expm1(-p.timeS / tau));
+      const denominator = basis.reduce((sum, b) => sum + b * b, 0);
+      const vmax = basis.reduce((sum, b, i) => sum + b * splits[i].distanceM, 0) / denominator;
+      const sse = splits.reduce((sum, p, i) => sum + Math.pow(vmax * basis[i] - p.distanceM, 2), 0);
+      return { tau, vmax, sse };
+    };
+    const low = Math.log(.001), high = Math.log(1000), count = 160;
+    const grid = Array.from({ length: count + 1 }, (_, i) => low + (high - low) * i / count);
+    let best = 0;
+    grid.forEach((x, i) => { if (candidate(x).sse < candidate(grid[best]).sse) best = i; });
+    if (best === 0 || best === count) return { ...empty, reason: "分段数据未能确定有限的加速时间常数" };
+    const result = candidate(goldenMin(x => candidate(x).sse, grid[best - 1], grid[best + 1]));
+    if (![result.tau, result.vmax, result.sse].every(Number.isFinite) || !(result.vmax > 0))
+      return { ...empty, reason: "分段拟合超出数值范围" };
+    const mean = splits.reduce((sum, p) => sum + p.distanceM / splits.length, 0);
+    const total = splits.reduce((sum, p) => sum + Math.pow(p.distanceM - mean, 2), 0);
+    return { ...result, valid: true, reason: "", n: splits.length, rmseM: Math.sqrt(result.sse / splits.length),
+      r2: total > 0 ? Math.max(0, 1 - result.sse / total) : null,
+      points: splits.map(p => ({ ...p, predictedDistanceM: distanceAt(p.timeS, result.vmax, result.tau),
+        residualM: distanceAt(p.timeS, result.vmax, result.tau) - p.distanceM })) };
+  }
+  function airResistance(mass, heightM, temperatureC, pressureHpa) {
+    // 760 Torr = 1013.25 hPa. The author's 273 K convention is retained.
+    const density = 1.293 * (pressureHpa / 1013.25) * 273 / (273 + temperatureC);
+    const frontalArea = .2025 * Math.pow(heightM, .725) * Math.pow(mass, .425) * .266;
+    return { density, frontalArea, dragCoefficient: .9, K: .5 * density * frontalArea * .9 };
+  }
+  function regression(points, xKey, yKey) {
+    if (points.length < 2) return null;
+    const meanX = points.reduce((sum, p) => sum + p[xKey] / points.length, 0);
+    const meanY = points.reduce((sum, p) => sum + p[yKey] / points.length, 0);
+    let xx = 0, xy = 0, yy = 0;
+    points.forEach(p => { const x = p[xKey] - meanX, y = p[yKey] - meanY; xx += x * x; xy += x * y; yy += y * y; });
+    if (!(xx > 0)) return null;
+    const slope = xy / xx, intercept = meanY - slope * meanX;
+    const sse = points.reduce((sum, p) => sum + Math.pow(p[yKey] - intercept - slope * p[xKey], 2), 0);
+    return { slope, intercept, n: points.length, r2: yy > 0 ? Math.max(0, 1 - sse / yy) : null };
+  }
+  function mechanics(fit, mass, K, windMps, endTimeS, options = {}) {
+    const stepS = options.stepS || .1, rfAfterS = options.rfAfterS ?? .3;
+    const count = Math.floor((endTimeS + 1e-9) / stepS);
+    if (!Number.isFinite(count) || count < 4 || count > 6000 || ![mass, K, windMps, fit.vmax, fit.tau].every(Number.isFinite))
+      return { valid: false, samples: [], reason: "加速窗口或环境参数超出模型数值范围" };
+    const samples = Array.from({ length: count }, (_, i) => {
+      const timeS = (i + 1) * stepS, decay = Math.exp(-timeS / fit.tau);
+      const velocity = fit.vmax * (1 - decay), acceleration = fit.vmax / fit.tau * decay;
+      const forceAbsolute = mass * acceleration + K * Math.pow(velocity - windMps, 2);
+      const force = forceAbsolute / mass, RF = forceAbsolute / Math.hypot(forceAbsolute, mass * G);
+      return { timeS, distanceM: distanceAt(timeS, fit.vmax, fit.tau), velocity, acceleration,
+        force, forceRelative: force, forceAbsolute, power: force * velocity,
+        powerRelative: force * velocity, powerAbsolute: forceAbsolute * velocity, RF };
+    });
+    const fv = regression(samples, "velocity", "force");
+    const rfSamples = samples.filter(p => p.timeS > rfAfterS + 1e-9), rf = regression(rfSamples, "velocity", "RF");
+    if (!fv || ![fv.intercept, fv.slope].every(Number.isFinite) || !(fv.intercept > 0) || !(fv.slope < 0) || !rf) return { valid: false, samples,
+      reason: "加速窗口无法形成有效的 F–V 与 RF–V 回归" };
+    const F0 = fv.intercept, V0 = -F0 / fv.slope, Pmax = F0 * V0 / 4;
+    return { valid: true, reason: "", F0, F0Absolute: F0 * mass, V0, Pmax, PmaxAbsolute: Pmax * mass,
+      slope: fv.slope, r2: fv.r2, RFmax: Math.max(...rfSamples.map(p => p.RF)), DRF: rf.slope * 100,
+      rfIntercept: rf.intercept, rfR2: rf.r2, samples, mass, sampleStepS: stepS, rfAfterS, endTimeS,
+      sampleCount: samples.length, rfSampleCount: rfSamples.length,
+      units: { F0: "N/kg", F0Absolute: "N", V0: "m/s", Pmax: "W/kg", PmaxAbsolute: "W", slope: "(N/kg)/(m/s)", RFmax: "ratio", DRF: "百分点/(m/s)" } };
+  }
+  function curve(profile, count = 81) {
+    if (!profile?.valid || !(profile.V0 > 0)) return [];
+    return Array.from({ length: count }, (_, i) => {
+      const velocity = profile.V0 * i / (count - 1), force = profile.F0 + profile.slope * velocity;
+      return { velocity, force, forceRelative: force, forceAbsolute: profile.mass ? force * profile.mass : null,
+        power: force * velocity, powerRelative: force * velocity, powerAbsolute: profile.mass ? force * velocity * profile.mass : null };
+    });
+  }
+  function performance(Pmax, slope, relativeDrag, distanceM) {
+    if (![Pmax, slope, relativeDrag, distanceM].every(Number.isFinite) || !(Pmax > 0 && slope < 0 && relativeDrag >= 0 && distanceM > 0)) return null;
+    // Independent sprint optimum: Samozino et al. 2022, equations 11–21,
+    // doi:10.1111/sms.14097. No jump push-off distance or jump model is used.
+    const F0 = 2 * Math.sqrt(-Pmax * slope), V0 = 2 * Math.sqrt(-Pmax / slope);
+    const tau = V0 / (relativeDrag * V0 * V0 + F0), vmax = F0 * tau;
+    const timeS = timeAtDistance(distanceM, vmax, tau);
+    return timeS === null ? null : { valid: true, F0, V0, Pmax, slope, tau, vmax, timeS, distanceM };
+  }
+  function optimum(Pmax, distanceM, relativeDrag) {
+    if (![Pmax, distanceM, relativeDrag].every(Number.isFinite) || !(Pmax > 0 && distanceM > 0 && relativeDrag >= 0)) return null;
+    // Use the paper's slope search interval; a boundary result cannot establish
+    // an interior optimum and is never used to label the athlete's deficit.
+    const min = .03, max = 1.9, step = .006;
+    const slopes = Array.from({ length: Math.ceil((max - min) / step) + 1 }, (_, i) => Math.min(max, min + i * step));
+    const time = magnitude => performance(Pmax, -magnitude, relativeDrag, distanceM).timeS;
+    let best = 0;
+    slopes.forEach((s, i) => { if (time(s) < time(slopes[best])) best = i; });
+    if (best === 0 || best === slopes.length - 1) return { valid: false, reason: "最优斜率落在研究搜索边界，未判定发展方向", distanceM };
+    const magnitude = goldenMin(time, slopes[best - 1], slopes[best + 1]);
+    const result = performance(Pmax, -magnitude, relativeDrag, distanceM);
+    const delta = Math.min(.0001, (magnitude - min) / 2, (max - magnitude) / 2);
+    if (!result || !Number.isFinite(result.timeS) || time(magnitude - delta) < result.timeS - 1e-9 || time(magnitude + delta) < result.timeS - 1e-9)
+      return { valid: false, reason: "最优冲刺 F–V 数值解未收敛", distanceM };
+    return { ...result, reason: "", methodVersion: "samozino-2022-optimum-v1", relativeDrag,
+      searchSlope: { min: -max, max: -min }, withinStudySimulation: distanceM >= 5 && distanceM <= 30 && Pmax >= 10 && Pmax <= 30 };
+  }
+  function imbalance(slope, optimalSlope) {
+    const ratio = slope / optimalSlope, direction = Math.abs(ratio - 1) < 1e-6 ? "balanced" : ratio < 1 ? "force" : "velocity";
+    return { ratio, profilePct: 100 * ratio, magnitudePct: 100 * Math.abs(1 - ratio), signedPct: 100 * (1 - ratio), direction,
+      label: direction === "force" ? "发展方向：力量端" : direction === "velocity" ? "发展方向：速度端" : "剖面均衡，发展整体功率" };
+  }
+  function trialSplits(row, config) {
+    const supplied = (Array.isArray(row.splits) ? row.splits : []).filter(p => present(p.distanceM) || present(p.timeS));
+    let total = 0, lastDistance = 0, lastTime = 0;
+    const splits = [];
+    for (const p of supplied) {
+      const rawDistance = positive(p.distanceM), rawTime = positive(p.timeS);
+      if (rawDistance === null || rawTime === null) return { valid: false, present: true, splits, reason: "分段距离与计时须成对填写正数" };
+      const distanceM = rawDistance + num(config.positionStartM);
+      total = config.inputTimeMode === "interval" ? total + rawTime : rawTime;
+      const timeS = total + num(config.timeCorrectionS);
+      if (!(distanceM > lastDistance && timeS > lastTime)) return { valid: false, present: true, splits, reason: "累计距离与修正后的累计时间须严格递增" };
+      splits.push({ ...p, rawDistanceM: rawDistance, rawTimeS: rawTime, distanceM, timeS });
+      lastDistance = distanceM; lastTime = timeS;
+    }
+    const reason = splits.length < 4 ? "已验证的分段方法至少需要 4 个累计分段" : splits[0].distanceM > 10 || lastDistance < 30 ? "已验证的分段方法需要早期分段（≤10 m）及至少 30 m 的末段" : "";
+    return { valid: !reason, present: supplied.length > 0, splits, reason, endDistanceM: lastDistance, endTimeS: lastTime };
+  }
+  function solve(record) {
+    const config = { ...defaultsConfig(), ...record.sprintFvpConfig }, analysis = { ...defaultsAnalysis(), ...record.sprintFvpAnalysis };
+    if (record.sprintFvpConfig?.timingStart === undefined && record.sprintFvpConfig?.startConvention !== undefined)
+      config.timingStart = record.sprintFvpConfig.startConvention;
+    const mass = positive(record.athlete?.mass), heightCm = present(config.heightCm) ? positive(config.heightCm) : positive(record.athlete?.height);
+    const result = { id: "sprint_fvp", label: "分段计时冲刺 F–V/P–V", config, analysis, valid: false, status: "empty", reason: "未录入有效冲刺试次",
+      model: null, fit: null, trials: [], selected: null, selectedTrialId: null, points: [], curve: [], samples: [], optimum: null, optimal: null,
+      optimumReason: "", imbalance: null, imbalancePct: null, direction: null, targetDistanceM: null, issues: [], methodVersion: METHOD_VERSION };
+    const invalidConfig = mass === null ? "需要运动员体重" : heightCm === null ? "需要运动员身高" :
+      config.methodVersion !== METHOD_VERSION || num(config.sampleStepS) !== .1 || num(config.rfAfterS) !== .3 || config.samplingWindow !== "terminal_time" ? "此计算方法版本尚不可用；原始分段保留待核对" :
+      !["cumulative", "interval"].includes(config.inputTimeMode) ? "计时输入方式无效" :
+      num(config.temperatureC) === null || num(config.temperatureC) <= -273 ? "需要有效气温" :
+      positive(config.pressureHpa) === null ? "需要正气压（hPa）" :
+      num(config.windMps) === null || num(config.timeCorrectionS) === null || num(config.positionStartM) === null ? "风速、时间修正与空间起点须为有限数值" :
+      config.timingStart === "gate_crossing" && !(num(config.timeCorrectionS) > 0) ? "门架触发晚于首次推进，请记录已确定的正时间修正" :
+      ["start_signal", "signal"].includes(config.timingStart) && !(num(config.timeCorrectionS) < 0) ? "出发信号早于首次推进，请记录扣除反应时间的负修正" :
+      !["first_propulsive_action", "gate_crossing", "start_signal", "signal"].includes(config.timingStart) && num(config.timeCorrectionS) === 0 ? "计时起点未明确，请记录已确定的非零时间修正" : "";
+    result.trials = normalizeTrials(record.data?.sprint_fvp).map((row, index) => {
+      const split = trialSplits(row, config), fit = split.valid && !invalidConfig ? fitSplits(split.splits) : null;
+      const reason = row.excluded ? "已排除" : invalidConfig || split.reason || fit?.reason || "";
+      return { ...row, index, ...split, inputSplits: row.splits, fit, valid: !invalidConfig && split.valid && fit?.valid === true,
+        eligible: !invalidConfig && split.valid && fit?.valid === true && row.excluded !== true, selected: false, reason };
+    });
+    const eligible = result.trials.filter(t => t.eligible);
+    result.status = result.trials.some(t => t.present) ? "review" : "empty";
+    result.trials.filter(t => t.present && !t.excluded && !t.valid).forEach(t => result.issues.push({ id: "sprint_fvp_trial_" + t.index,
+      testId: "sprint_fvp", status: "amber", message: "第 " + (t.index + 1) + " 次：" + t.reason }));
+    if (!eligible.length) { result.reason = invalidConfig || result.trials.find(t => t.present && !t.excluded)?.reason || result.reason; return result; }
+    // Different terminal distances are not comparable by raw time. Select the
+    // longest measured protocol, then its fastest complete trial; never splice.
+    const terminal = Math.max(...eligible.map(t => t.endDistanceM));
+    const comparable = eligible.filter(t => Math.abs(t.endDistanceM - terminal) < 1e-8);
+    const selected = comparable.reduce((a, b) => b.endTimeS < a.endTimeS ? b : a);
+    selected.selected = true;
+    const atmosphere = airResistance(mass, heightCm / 100, num(config.temperatureC), num(config.pressureHpa));
+    const model = mechanics(selected.fit, mass, atmosphere.K, num(config.windMps), selected.endTimeS);
+    Object.assign(result, { valid: model.valid, status: model.valid ? "valid" : "review", reason: model.reason, selected,
+      selectedTrialId: selected.id, selectionBasis: "最长完整末段距离内的最快有效试次", fit: selected.fit, model, samples: model.samples,
+      points: selected.fit.points, atmosphere, heightCm, mass, curve: curve(model),
+      window: { startS: .1, endS: selected.endTimeS, stepS: .1, rfAfterS: .3, basis: "选中试次末段累计时间" } });
+    if (!model.valid) return result;
+    const target = present(analysis.targetDistanceM) ? positive(analysis.targetDistanceM) : selected.endDistanceM;
+    result.targetDistanceM = target;
+    if (target === null) { result.optimumReason = "目标距离须为正数"; return result; }
+    if (num(config.windMps) !== 0) { result.optimumReason = "最优冲刺 F–V 模型采用无风条件；当前风速下保留实测剖面"; return result; }
+    const optimal = optimum(model.Pmax, target, atmosphere.K / mass);
+    result.optimum = result.optimal = optimal;
+    if (!optimal?.valid) { result.optimumReason = optimal?.reason || "目标距离无法求得最优剖面"; return result; }
+    Object.assign(optimal, { mass, F0Absolute: optimal.F0 * mass, PmaxAbsolute: optimal.Pmax * mass });
+    const balance = imbalance(model.slope, optimal.slope);
+    Object.assign(result, { imbalance: balance, imbalancePct: balance.magnitudePct, direction: balance.direction,
+      optimalCurve: curve(optimal), judgments: { direction: balance.label } });
+    return result;
+  }
+  function validate(record, helpers) {
+    const { plainObject, safeId, optionalNumber } = helpers, rows = record.data?.sprint_fvp;
+    if (rows !== undefined && (!Array.isArray(rows) || rows.length > 1000)) throw Error("冲刺 F–V 试次须为数据行");
+    const ids = new Set();
+    (rows || []).forEach(row => {
+      if (!plainObject(row) || row.id !== undefined && (!safeId(row.id) || ids.has(row.id))) throw Error("冲刺 F–V 试次 ID 无效或重复");
+      if (row.id) ids.add(row.id);
+      if (!Array.isArray(row.splits) || row.splits.length > 100) throw Error("冲刺分段须为距离与时间数组");
+      row.splits.forEach(split => { if (!plainObject(split) || !optionalNumber(split.distanceM) || !optionalNumber(split.timeS)) throw Error("冲刺分段距离与计时须为有限数值或留空"); });
+      if (row.excluded !== undefined && typeof row.excluded !== "boolean") throw Error("冲刺排除选项无效");
+      ["notes", "exclusionReason"].forEach(key => { if (row[key] !== undefined && typeof row[key] !== "string") throw Error("冲刺 " + key + " 须为文字"); });
+    });
+    const config = record.sprintFvpConfig, analysis = record.sprintFvpAnalysis;
+    [config, analysis].forEach(value => { if (value !== undefined && !plainObject(value)) throw Error("冲刺 F–V 配置格式无效"); });
+    if (config) {
+      ["heightCm", "temperatureC", "pressureHpa", "windMps", "timeCorrectionS", "positionStartM", "sampleStepS", "rfAfterS"].forEach(key => { if (!optionalNumber(config[key])) throw Error("冲刺 " + key + " 须为有限数值或留空"); });
+      ["device", "startConvention", "timingStart", "methodVersion", "samplingWindow"].forEach(key => { if (config[key] !== undefined && typeof config[key] !== "string") throw Error("冲刺 " + key + " 须为文字"); });
+      if (config.inputTimeMode !== undefined && !["cumulative", "interval"].includes(config.inputTimeMode)) throw Error("冲刺计时输入方式无效");
+    }
+    if (analysis && !optionalNumber(analysis.targetDistanceM)) throw Error("冲刺目标距离须为有限数值或留空");
+    return true;
+  }
+  root.RingsideSprintFVP = Object.freeze({ G, METHOD_VERSION, defaultsConfig, defaultsAnalysis, normalizeTrials,
+    distanceAt, timeAtDistance, fitSplits, airResistance, mechanics, curve, performance, optimum, imbalance, solve, read: solve, validate });
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -5436,6 +5760,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     ["sj", "SJ", "performance", "jumps"],
     ["fvp_sj", "SJ F–V/P–V 剖面", "performance", "fvp"],
     ["fvp_cmj", "CMJ F–V/P–V 剖面", "performance", "fvp"],
+    ["sprint_fvp", "分段计时冲刺 F–V/P–V 剖面", "performance", "sprint-fvp"],
     ["dj", "DJ 下落跳", "performance", "jumps"],
     ["hop", "10/5 Hop Test 连续反应跳", "performance", "jumps"],
     ["cmrj", "CMRJ 反向反弹跳", "performance", "jumps"],
@@ -5512,6 +5837,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   const derivedDefinitions = () => JSON.parse(JSON.stringify(derivedRegistry));
   const derivedDefaults = () => Object.fromEntries(derivedRegistry.map((d) => [d.id, true]));
   const extraMetrics = [
+    ...[
+      ["f0", "冲刺 F₀", "N/kg"], ["v0", "冲刺 V₀", "m/s"], ["pmax", "冲刺 Pmax", "W/kg"],
+      ["rfmax", "冲刺 RF max", "%"], ["drf", "冲刺 DRF", "百分点/(m/s)"], ["imbalance", "冲刺 FVP 不平衡度", "%"],
+    ].map(([key, name, unit]) => ["sprint_fvp_" + key, "sprint_fvp", name, unit, "最大速度"]),
     ...["fvp_sj", "fvp_cmj"].flatMap(id => [
       [id + "_f0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " F₀", "N/kg", "爆发力"],
       [id + "_v0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " V₀", "m/s", "爆发力"],
@@ -5585,6 +5914,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       protocol: "使用实际测试协议与匹配评价标准",
       ...jumpReference(id),
       ...(testId.startsWith("fvp_") ? { scoring: false, source: "Morin & Samozino 2016；Samozino et al. 2008/2012", protocol: "各负荷选最高有效跳跃高度；以体重、附加负荷、跳跃高度及推进距离计算" } : {}),
+      ...(testId === "sprint_fvp" ? {scoring:false, source:"Samozino et al. 2016；Morin et al. 2022", protocol:"静止起跑分段计时；最佳完整试次；最佳 F–V 取决于 Pmax 和目标距离"} : {}),
       ...(id === "cpet_vo2_relative" ? { referenceEnabled: true, referenceMode: "grouped", referenceGroups: global.RingsideReferences?.cpetReferenceGroups?.() || [], source: "FRIEND 2022 · 实测摄氧量参考百分位", protocol: "CPET 实测摄氧量" } : {}),
     }));
   const isManualMetric = (definition) =>
@@ -5603,7 +5933,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       || (source.customTests || []).find((t) => t.id === testId);
     const primary = fields.find((d) => d.id === test?.primaryMetricId) || fields[0];
     return {
-      kind: ["fms", "lactate", "cpet", "fvp"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
+      kind: ["fms", "lactate", "cpet", "fvp", "sprint-fvp"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
       primaryMetricId: primary?.id || null,
       direction: primary?.direction || "higher",
       fields,
@@ -5697,6 +6027,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
               ["velocity", "速度 m/s"],
             ]
           : renderer === "fvp" ? [["load", "附加负荷 kg"], ["height", "垂直跳跃高度 cm"], ["distanceCm", "推进距离 cm"], ["excluded", "已排除"], ["exclusionReason", "排除原因"]]
+          : renderer === "sprint-fvp" ? [["splits", "累计距离 m / 时间 s"], ["excluded", "已排除"], ["exclusionReason", "排除原因"]]
           : nativeFields[testId] || [];
     return {
       shape: isNative(source,testId) && ["pushup", "ift", "mas", "mss", "hop", "cpet"].includes(testId)
@@ -5792,7 +6123,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
       return { id, name: prior?.name ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
-        ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
+        ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj", "sprint_fvp"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
         ...(primaryMetricId ? { primaryMetricId } : {}) };
     });
   }
@@ -5872,12 +6203,19 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   if (!Calc || !Def) throw new Error("RingsideModel requires Calc and Def.");
   const N = Calc.num;
   const FVP_IDS = ["fvp_sj", "fvp_cmj"];
+  const ADDED_FVP_IDS = [...FVP_IDS, "sprint_fvp"];
+  const sprintFvpConfigDefaults = () => root.RingsideSprintFVP?.defaultsConfig() || { heightCm: "", temperatureC: 20, pressureHpa: 1013.25, windMps: 0, device: "", startConvention: "first_propulsive_action", timingStart: "first_propulsive_action", inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0, methodVersion: "samozino-2016-splits-v1", sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" };
+  const sprintFvpAnalysisDefaults = () => root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" };
   const fvpConfigDefaults = () => root.RingsideFVP?.defaultsConfig() || { device: "", method: "", posture: "", distanceCm: "", distanceSource: "" };
   const fvpAnalysisDefaults = () => root.RingsideFVP?.defaultsAnalysis() || { angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 };
   const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null, responseForce: true, responseVelocity: true, responseBoth: true };
   function fvpAnalysis(record, id) {
     if (!FVP_IDS.includes(id) || !T.isNative(record, id)) return null;
     return root.RingsideFVP ? root.RingsideFVP.solve(record, id) : { id, valid: false, status: "empty", reason: "F–V 模型尚未载入", points: [], trials: [], groups: [], issues: [] };
+  }
+  function sprintFvpAnalysis(record) {
+    if (!T.isNative(record, "sprint_fvp")) return null;
+    return root.RingsideSprintFVP ? root.RingsideSprintFVP.solve(record) : { id: "sprint_fvp", valid: false, status: "empty", reason: "冲刺 F–V 模块尚未加载", points: [], trials: [], issues: [] };
   }
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const uid = () =>
@@ -6190,7 +6528,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const added = new Set(extraDefs().filter((d) =>
       source.derivedEnabled === undefined && (["dj","hop","cmrj"].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)) ||
       (source.capabilityVersion !== 1 || !T.isNative(source,d.testId)) && (d.testId === "cpet" || d.id === "rqr" || d.id.endsWith("_active_stiffness")) ||
-      (source.fvpVersion !== 1 || !T.isNative(source,d.testId)) && FVP_IDS.includes(d.testId)
+      (source.fvpVersion !== 1 || !T.isNative(source,d.testId)) && FVP_IDS.includes(d.testId) ||
+      (source.sprintFvpVersion !== 1 || !T.isNative(source,d.testId)) && d.testId === "sprint_fvp"
     ).map((d) => d.id));
     return definitions.map((d) => added.has(d.id) ? { ...d, legacyManual: true } : d);
   }
@@ -6282,6 +6621,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       schema: 2,
       capabilityVersion: 1,
       fvpVersion: 1,
+      sprintFvpVersion: 1,
       kind: "assessment-record",
       athleteId: uid(),
       recordId: uid(),
@@ -6304,7 +6644,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         cycle: "",
         notes: "",
       },
-      enabled: Object.fromEntries(TESTS.map((t) => [t[0], !FVP_IDS.includes(t[0])])),
+      enabled: Object.fromEntries(TESTS.map((t) => [t[0], !ADDED_FVP_IDS.includes(t[0])])),
       mode: "best",
       trainingContext: {
         experienceYears: "",
@@ -6349,6 +6689,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         cmrj: [newJumpAttempt("cmrj")],
         fvp_sj: [],
         fvp_cmj: [],
+        sprint_fvp: [],
         imtp: [
           normalizeIMTP({
             id: uid(),
@@ -6382,6 +6723,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         sj: "双手叉腰；静止起跳；测量方法与设备待记录",
         fvp_sj: "双手叉腰；静止 SJ；分负荷测量跳跃高度和推进距离；同负荷选最高有效试次",
         fvp_cmj: "双手叉腰；统一反向动作与起跳姿势；分负荷测量跳跃高度和推进距离；同负荷选最高有效试次",
+        sprint_fvp: "静止起跑；从首次推进动作计时；至少 4 个加速分段；同末段距离选最快完整有效试次",
         dj: "双手叉腰；记录跌落高度；落地后立即反弹；RSI 为垂直跳跃高度/触地时间。",
         hop: "垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按垂直跳跃高度/触地时间选最高5个；保留实际数量。",
         cmrj: "双手叉腰；最大 CMJ 后落地立即反弹；分别记录首跳和第二跳。",
@@ -6403,6 +6745,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       fvpConfig: Object.fromEntries(FVP_IDS.map(id => [id, fvpConfigDefaults()])),
       fvpAnalysis: Object.fromEntries(FVP_IDS.map(id => [id, fvpAnalysisDefaults()])),
       fvpView: Object.fromEntries(FVP_IDS.map(id => [id, fvpViewDefaults()])),
+      sprintFvpConfig: sprintFvpConfigDefaults(),
+      sprintFvpAnalysis: sprintFvpAnalysisDefaults(),
       lvp: {
         squat: { metric: "MV", mvt: "", zones: [] },
         bench: { metric: "MV", mvt: "", zones: [] },
@@ -6441,6 +6785,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       },
       views: {
         idsiWindow: "idsi_matched",
+        capabilitySelections: { strength: "fvp", reactive: "dj_rsi", speed: "sprint_fvp" },
         imtp: { yAxis: "percent" },
         redScope: "all",
         amberScope: "all",
@@ -6717,7 +7062,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const s = clone(input),
       d = defaults(),
       legacy = s.schema !== 2;
-    (s.projectSnapshots || []).forEach(test => { if (FVP_IDS.includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
+    (s.projectSnapshots || []).forEach(test => { if (ADDED_FVP_IDS.includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
     validateAbilityGroups(s.abilityGroupSnapshot);
     if (s.schema === 1 && !safeId(s.recordId))
       throw new Error("旧版报告缺少有效的测试记录 ID");
@@ -6727,7 +7072,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     out.athlete = { ...d.athlete, ...s.athlete };
     out.trainingContext = { ...d.trainingContext, ...s.trainingContext };
     out.enabled = { ...d.enabled, ...s.enabled };
-    ["dj", "hop", "cmrj", "cpet", ...FVP_IDS].forEach((id) => { if (!Object.hasOwn(s.enabled || {}, id)) out.enabled[id] = false; });
+    ["dj", "hop", "cmrj", "cpet", ...ADDED_FVP_IDS].forEach((id) => { if (!Object.hasOwn(s.enabled || {}, id)) out.enabled[id] = false; });
     out.data = { ...d.data, ...s.data };
     out.data.fms = (out.data.fms || []).map(row => {
       const next = {...row}, builtin = FM.find(([name]) => name === row.name);
@@ -6752,6 +7097,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       out.fvpView[id] = { ...fvpViewDefaults(), ...s.fvpView?.[id] };
     });
     out.fvpVersion = 1;
+    if (T.isNative(s, "sprint_fvp")) {
+      out.data.sprint_fvp = root.RingsideSprintFVP ? root.RingsideSprintFVP.normalizeTrials(s.data?.sprint_fvp) : (s.data?.sprint_fvp || []);
+      out.sprintFvpConfig = { ...sprintFvpConfigDefaults(), ...s.sprintFvpConfig };
+      if (s.sprintFvpConfig?.timingStart === undefined && s.sprintFvpConfig?.startConvention !== undefined)
+        out.sprintFvpConfig.timingStart = s.sprintFvpConfig.startConvention;
+      out.sprintFvpAnalysis = { ...sprintFvpAnalysisDefaults(), ...s.sprintFvpAnalysis };
+    }
+    out.sprintFvpVersion = 1;
     ["ift", "mas", "mss", "pushup"].forEach((t) => {
       out.data[t] = { ...d.data[t], ...s.data?.[t] };
     });
@@ -6802,6 +7155,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     out.views = {
       ...d.views,
       ...s.views,
+      capabilitySelections: { ...d.views.capabilitySelections, ...s.views?.capabilitySelections },
       imtp: { yAxis: s.views?.imtp?.yAxis === "force" ? "force" : "percent" },
       lvpUpper: { ...d.views.lvpUpper, ...s.views?.lvpUpper },
       lvpLower: { ...d.views.lvpLower, ...s.views?.lvpLower },
@@ -6866,7 +7220,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const existing = new Set(out.definitions.map((x) => x.id));
     extraDefs()
       .filter(
-        (x) => ["imtp", "cmj", "sj", "dj", "hop", "cmrj", "cpet", ...FVP_IDS].includes(x.testId) && T.isNative(out,x.testId) && !existing.has(x.id),
+        (x) => ["imtp", "cmj", "sj", "dj", "hop", "cmrj", "cpet", ...ADDED_FVP_IDS].includes(x.testId) && T.isNative(out,x.testId) && !existing.has(x.id),
       )
       .forEach((x) => out.definitions.push(x));
     out.projectSnapshots = T.snapshots(out);
@@ -8125,10 +8479,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       result.available = Number.isFinite(result.value);
       if (result.available) {
         const percent = (n) => Math.abs(n).toFixed(1) + "%";
-        if (["eur", "gain"].includes(result.id)) {
-          const eur = result.id === "eur" ? result.value : 1 + result.value / 100;
-          result.directionHint = eur < 1.1 ? "发展 SSC 能力" : eur > 1.1 ? "发展纯向心能力" : "SSC 与纯向心并行发展";
-        } else if (result.id === "fdsi") result.directionHint = result.value < .6 ? "发展弹道与快速力量" : result.value > .8 ? "发展最大力量" : "并行发展最大力量与快速力量";
+        if (result.id === "fdsi") result.directionHint = result.value < .6 ? "发展弹道与快速力量" : result.value > .8 ? "发展最大力量" : "并行发展最大力量与快速力量";
         else if (result.id === "rqr") result.directionHint = result.value === 1 ? "DJ 与 Hop 的腾空／触地时间比相同。" : `DJ 腾空／触地时间比较 Hop ${result.value > 1 ? "高" : "低"} ${percent((result.value - 1) * 100)}。`;
       }
       if (!result.available) { result.value = null; result.reason ||= "缺少可计算的数据或结果超出有效数值范围"; }
@@ -8255,6 +8606,17 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       raw = {},
       validTests = new Set();
     const fvp = {};
+    const sprintResult = sprintFvpAnalysis(state), sprintFvp = sprintResult ? { ...sprintResult, enabled: use("sprint_fvp") } : null;
+    if (sprintFvp?.enabled) {
+      raw.sprint_fvp = sprintFvp;
+      if (sprintFvp.valid) {
+        validTests.add("sprint_fvp");
+        ["f0", "v0", "pmax", "rfmax", "drf"].forEach((suffix, i) => {
+          values["sprint_fvp_" + suffix] = sprintFvp.model[["F0", "V0", "Pmax", "RFmax", "DRF"][i]] * (suffix === "rfmax" ? 100 : 1);
+        });
+        if (sprintFvp.imbalancePct !== null) values.sprint_fvp_imbalance = sprintFvp.imbalancePct;
+      }
+    }
     FVP_IDS.filter(id => T.isNative(state, id)).forEach(id => {
       const result = fvpAnalysis(state, id);
       fvp[id] = { ...result, enabled: use(id) };
@@ -8580,6 +8942,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       .forEach((x) => qualityIssues.push({ ...x, testId: "imtp" }));
     qualityIssues.push(...(raw.cpet?.issues || []));
     Object.values(fvp).filter(result => result.enabled).forEach(result => qualityIssues.push(...result.issues));
+    if (sprintFvp?.enabled) qualityIssues.push(...sprintFvp.issues);
     const groups = new Map(), axisValues = { ...values };
     const timeResultsById = new Map(imtpTimeResults.map(result => [result.id, result]));
     const replacedTimeIds = new Set((state.imtpTimeStandards || []).map(rule => "imtp_" + (rule.kind === "force_pct_peak" ? "f" : "rfd") + rule.timeMs));
@@ -8900,6 +9263,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const partial = [];
     Object.values(fvp).filter(result => result.enabled && result.status === "review").forEach(result =>
       partial.push({ id: result.id, label: projectNames.get(result.id) || result.label, reason: result.reason || "存在待核对的试次" }));
+    if (sprintFvp?.enabled && sprintFvp.status === "review") partial.push({ id: "sprint_fvp", label: sprintFvp.label, reason: sprintFvp.reason });
     if (use("fms") && raw.fms?.completed && !raw.fms.complete)
       partial.push({
         id: "fms",
@@ -8921,6 +9285,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         recordProgressDetail(state, id, {
           values,
           fvp,
+          sprintFvp,
           raw,
           validTests,
           qualityIssues,
@@ -8942,6 +9307,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return {
       values,
       fvp,
+      sprintFvp,
       derived,
       capabilityCards: cards,
       cardio: cards.find(card => card.id === "cardio") || null,
@@ -8979,6 +9345,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (FVP_IDS.includes(testId) && T.isNative(record, testId)) {
       const result = s.fvp?.[testId] || fvpAnalysis(record, testId);
       detail = result.points.length + " 个不同负荷；" + result.trials.filter(trial => trial.eligible).length + " 个有效试次";
+      review = result.status === "review";
+      if (review && result.reason) detail += "；" + result.reason;
+    } else if (testId === "sprint_fvp" && T.isNative(record, testId)) {
+      const result = s.sprintFvp || sprintFvpAnalysis(record);
+      detail = result.trials.filter(trial => trial.eligible).length + " 个有效完整试次";
+      if (result.selected) detail += "；选用 " + result.selected.endDistanceM + " m 末段";
       review = result.status === "review";
       if (review && result.reason) detail += "；" + result.reason;
     } else if (testId === "fms") {
@@ -9192,6 +9564,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (T.isNative(record,id) && !enabled[id] && !meaningful(data[id]) && (!protocol[id] || protocol[id] === defaultProtocol[id]) && sameFvpDefaults(fvpConfig[id], defaultFvpConfig) && sameFvpDefaults(fvpAnalysis[id], defaultFvpAnalysis)) invisible.add(id);
       if (invisible.has(id)) { delete fvpConfig[id]; delete fvpAnalysis[id]; }
     });
+    if (T.isNative(record,"sprint_fvp") && !enabled.sprint_fvp && !meaningful(data.sprint_fvp)
+      && (!protocol.sprint_fvp || protocol.sprint_fvp === defaultProtocol.sprint_fvp)
+      && sameFvpDefaults(record.sprintFvpConfig, sprintFvpConfigDefaults())
+      && sameFvpDefaults(record.sprintFvpAnalysis, sprintFvpAnalysisDefaults())) invisible.add("sprint_fvp");
     invisible.forEach((id) => { delete data[id]; delete enabled[id]; delete protocol[id]; });
     Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
     const projection = definition => {
@@ -9199,7 +9575,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
       return result;
     };
-    const extras = new Map(extraDefs().filter((d) => ["dj","hop","cmrj","cpet", ...FVP_IDS].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => [d.id,projection(d)]));
+    const extras = new Map(extraDefs().filter((d) => ["dj","hop","cmrj","cpet", ...ADDED_FVP_IDS].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => [d.id,projection(d)]));
     const same = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every((key) => JSON.stringify(a[key]) === JSON.stringify(b[key]));
     const definitions = withoutReplacedIMTPStandards(record).map(projection).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
     const derivedEnabled = Object.fromEntries(Object.entries(record.derivedEnabled || {}).filter(([,enabled]) => enabled === false));
@@ -9227,6 +9603,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       imtpConfig,
       ...(Object.keys(fvpConfig).length ? { fvpConfig } : {}),
       ...(Object.keys(fvpAnalysis).length ? { fvpAnalysis } : {}),
+      ...(!invisible.has("sprint_fvp") && T.isNative(record,"sprint_fvp") ? { sprintFvpConfig: record.sprintFvpConfig, sprintFvpAnalysis: record.sprintFvpAnalysis } : {}),
       ...(record.impulseConfig?.confirmed ? { impulseConfig: record.impulseConfig } : {}),
       ...(Object.keys(derivedEnabled).length ? { derivedEnabled } : {}),
       ...(record.imtpTimeStandards?.length ? { imtpTimeStandards: record.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
@@ -9300,6 +9677,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       revision: 1,
       capabilityVersion: 1,
       fvpVersion: 1,
+      sprintFvpVersion: 1,
       tests: T.snapshots(record),
       definitions: record.definitions,
       abilityGroups: T.abilityGroups(record),
@@ -9318,7 +9696,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         ? catalog.revision
         : 1;
     catalog.tests = Array.isArray(catalog.tests) ? catalog.tests : base.tests;
-    catalog.tests.forEach((test) => { if (["dj","hop","cmrj","cpet", ...FVP_IDS].includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
+    catalog.tests.forEach((test) => { if (["dj","hop","cmrj","cpet", ...ADDED_FVP_IDS].includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
     catalog.derivedEnabled = { ...T.derivedDefaults(), ...catalog.derivedEnabled };
     base.tests.forEach((test) => {
       if (!catalog.tests.some((t) => t.id === test.id))
@@ -9331,6 +9709,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     ), originalCatalog).map(convertDefinition);
     catalog.capabilityVersion = 1;
     catalog.fvpVersion = 1;
+    catalog.sprintFvpVersion = 1;
     base.definitions.forEach((definition) => {
       if (T.isNative(catalog,definition.testId) && !catalog.definitions.some((d) => d.id === definition.id))
         catalog.definitions.push(definition);
@@ -9679,6 +10058,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       return "";
     }
     if (path === "data.pushup.reps") return bounds(0, null, true);
+    if (T.isNative(record,"sprint_fvp")) {
+      if (/^data\.sprint_fvp\.\d+\.splits\.\d+\.(?:distanceM|timeS)$/.test(path)
+        || /^sprintFvpConfig\.(?:heightCm|pressureHpa)$/.test(path)
+        || path === "sprintFvpAnalysis.targetDistanceM") return bounds(0, null, false, true);
+      if (/^sprintFvpConfig\.(?:windMps|timeCorrectionS|positionStartM)$/.test(path)) return empty ? "" : requireNumber();
+      if (path === "sprintFvpConfig.temperatureC") return empty ? "" : requireNumber() || (number <= -273 ? "气温须高于 −273°C" : "");
+    }
     const fvpPath = path.match(/^(?:data|fvpConfig|fvpAnalysis)\.(fvp_(?:sj|cmj))\./);
     if (fvpPath && T.isNative(record, fvpPath[1])) {
       if (/^data\.fvp_(sj|cmj)\.\d+\.load$/.test(path)) return bounds(0, null);
@@ -9792,6 +10178,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       check("fvpConfig." + id + ".distanceCm", record.fvpConfig?.[id]?.distanceCm);
       ["deltaForcePct","deltaVelocityPct"].forEach(key => check("fvpAnalysis." + id + "." + key, record.fvpAnalysis?.[id]?.[key]));
     });
+    if (T.isNative(record,"sprint_fvp")) {
+      (record.data.sprint_fvp || []).forEach((row,i) => (row.splits || []).forEach((split,j) =>
+        ["distanceM","timeS"].forEach(key => check("data.sprint_fvp." + i + ".splits." + j + "." + key, split[key]))));
+      ["heightCm","temperatureC","pressureHpa","windMps","timeCorrectionS","positionStartM"].forEach(key => check("sprintFvpConfig." + key,record.sprintFvpConfig?.[key]));
+      check("sprintFvpAnalysis.targetDistanceM",record.sprintFvpAnalysis?.targetDistanceM);
+    }
     const fields = {
       fms: ["score", "left", "right"],
       iso: ["left", "right", "center", "target"],
@@ -10092,6 +10484,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     validateDataTree(input);
     validateDerivedOptions(input);
     if (input.views?.idsiWindow !== undefined && !["idsi_matched","idsi_fixed250"].includes(input.views.idsiWindow)) throw new Error("iDSI 积分时窗选项无效");
+    if (input.views?.capabilitySelections !== undefined) {
+      const selections = input.views.capabilitySelections;
+      if (!plainObject(selections)) throw new Error("能力结构指标选项格式无效");
+      const options = { strength: ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"], reactive: ["dj_rsi","hop_rsi","cmrj_rsi"], speed: ["sprint_fvp","srr"] };
+      Object.entries(options).forEach(([key, allowed]) => { if (selections[key] !== undefined && !allowed.includes(selections[key])) throw new Error("能力结构 " + key + " 指标选项无效"); });
+    }
     validateAbilityGroups(input.abilityGroupSnapshot);
     if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
     if (
@@ -10180,7 +10578,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         !plainObject(test) ||
         !safeId(test.id) ||
         customIds.has(test.id) ||
-        (TESTS.some((t) => t[0] === test.id) && !["dj","hop","cmrj","cpet", ...FVP_IDS].includes(test.id)) ||
+        (TESTS.some((t) => t[0] === test.id) && !["dj","hop","cmrj","cpet", ...ADDED_FVP_IDS].includes(test.id)) ||
         typeof test.name !== "string" ||
         !["screen", "performance"].includes(test.category)
       )
@@ -10330,6 +10728,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       value === "" ||
       ((typeof value === "number" || typeof value === "string") &&
         N(value) !== null);
+    if (T.isNative(input,"sprint_fvp")) root.RingsideSprintFVP?.validate(input, { plainObject, safeId, optionalNumber });
     FVP_IDS.filter(id => T.isNative(input,id)).forEach(id => {
       const rows = input.data[id];
       if (rows !== undefined && (!Array.isArray(rows) || rows.length > 1000 || rows.some(row => !plainObject(row)))) throw new Error("F–V 试次须为数据行");
@@ -10720,6 +11119,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     forceTime,
     stats,
     fvpAnalysis,
+    sprintFvpAnalysis,
     grade,
     attainment,
     unitFactor,
@@ -13918,7 +14318,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
 
   function jumpFvp(data, options = {}, layout = {}) {
     const w = Math.max(240, layout.width || 480), h = layout.height || 410;
-    if (!data?.valid) return layoutSVG(w, h, "跳跃力–速度剖面", text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
+    const sprint = data?.kind === "sprint", title = sprint ? "冲刺 F–V 与 P–V 剖面" : "跳跃 F–V 与 P–V 剖面";
+    if (!data?.valid) return layoutSVG(w, h, title, text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
     const fv = options.fv !== false, pv = options.pv !== false;
     if (!fv && !pv) return layoutSVG(w, h, "跳跃力–速度剖面", text(w / 2, h / 2, "勾选 F–V 或 P–V 查看曲线", 'text-anchor="middle" font-size="13"'), "当前未选择显示曲线", layout);
     const forceColor = C.blue, powerColor = C.green, small = w < 400;
@@ -13974,7 +14375,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const optionY=legendY+60;
     if(options.points!==false)out+=circle(left+11,optionY-4,3.6,mainColor)+text(left+29,optionY,"实测点",'font-size="10"');
     if(band.length){const bx=left+(options.points!==false?Math.min(112,(right-left)*.49):0);out+=`<rect x="${bx}" y="${optionY-12}" width="22" height="12" fill="${mainColor}" fill-opacity=".18"/>`+text(bx+29,optionY,"95%置信带",'font-size="10"');}
-    return layoutSVG(w,h,"跳跃 F–V 与 P–V 剖面",out,"F–V读取力坐标，P–V读取功率坐标；实线为当前剖面，虚线为目标最优剖面，点线为另一角度参照。置信带为实测速度范围内的拟合均值响应区间。",layout);
+    return layoutSVG(w,h,title,out,sprint ? "F–V读取力坐标，P–V读取功率坐标；实线为当前冲刺剖面，虚线为固定当前最大功率时的目标距离最优冲刺剖面。" : "F–V读取力坐标，P–V读取功率坐标；实线为当前剖面，虚线为目标最优剖面，点线为另一角度参照。置信带为实测速度范围内的拟合均值响应区间。",layout);
+  }
+  function sprintFvp(data, options = {}, layout = {}) {
+    return jumpFvp({ ...data, kind: "sprint" }, { ...options, points: false, comparison: false, confidence: false, range: "full" }, layout);
   }
   function jumpElasticity(data, layout = {}) {
     const w=Math.max(240,layout.width||480),h=layout.height||330;
@@ -14018,6 +14422,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     compare,
     empty,
     jumpFvp,
+    sprintFvp,
     jumpElasticity,
     C,
   };
@@ -14863,7 +15268,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const consumed = new Set(),
       grouped = new Map(),
       measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t));
-    for (const test of measured.filter((t) => !["lvp","fvp"].includes(t.renderer))) {
+    for (const test of measured.filter((t) => !["lvp","fvp","sprint-fvp"].includes(t.renderer))) {
       if (consumed.has(test.id)) continue;
       const peers =
         test.renderer === "speed"
@@ -14927,40 +15332,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     return `<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>动作表现 · 双侧差异 · 关节平衡</span></summary><div class="quality-group">${screening || '<div class="empty">尚无筛查结果</div>'}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>能力表现与测试结果</span></summary>${performance || '<div class="quality-group"><div class="empty">尚无运动表现结果</div></div>'}</details>${renderCapabilities()}`;
     function renderCapabilities() {
-      const digits=metric=>Number.isInteger(metric.digits)?metric.digits:metric.unit==="比值"||/rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id)?3:metric.unit==="%"?1:2;
-      const cards=(s.capabilityCards||[]).map(card=>({...card,metrics:(card.metrics||[]).filter(metric=>N(metric.value)!==null)})).filter(card=>card.metrics.length);
-      const fvp=renderFVPAnalysis(report);
-      if(!cards.length&&!fvp)return "";
-      const targetProgress=metric=>{
-        const definition=state.definitions.find(item=>item.id===metric.id);
-        const target=positive(metric.target)?N(metric.target):definition?.referenceEnabled===true&&definition.direction==="higher"&&definition.matched!==false&&positive(definition.target)?N(definition.target):null;
-        if(target===null||!positive(metric.value))return "";
-        const attainment=N(metric.value)/target*100;
-        return `<div class="capability-progress" data-capability-target="${E(metric.id)}"><div class="capability-progress-label"><span>参考目标 ${F(target,1)}${metric.unit&&metric.unit!=="比值"?` ${E(metric.unit)}`:""}</span><span>达成 ${F(attainment,1)}%</span></div><div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,attainment))}%"></span></div></div>`;
-      };
-      const renderMetric=(metric,cardId)=>{
-        const unit=metric.unit&&metric.unit!=="比值"?`<small>${E(metric.unit)}</small>`:"";
-        const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(assessmentLabel(metric.status, metric.judgment))}</p>`:"";
-        const hasSpeedEndpoints=cardId==="speed"&&cards.find(card=>card.id==="speed").metrics.some(item=>["mss_speed","mas_speed"].includes(item.id));
-        const components=(hasSpeedEndpoints?[]:metric.components||[]).filter(component=>N(component.value)!==null);
-        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(assessmentLabel(component.status, component.judgment))}</p>`:""}${cardId==="cardio"?targetProgress(component):""}</dd></div>`).join("");
-        const detail=components.length?(["cardio","speed"].includes(cardId)?`<div class="capability-components capability-observations"><dl>${rows}</dl></div>`:`<details class="capability-components"><summary>组成数据</summary><dl>${rows}</dl></details>`):"";
-        const windowName=choice=>choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 0–250 ms";
-        const variants=metric.id==="idsi"?(metric.variants||[]):[];
-        const selected=variants.find(choice=>choice.id===metric.selectedVariant);
-        const selector=variants.length?`<label class="idsi-window">IMTP 时窗<span class="idsi-print-window">${E(selected?windowName(selected):"")}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${variants.map(choice=>`<option value="${E(choice.id)}"${choice===selected?" selected":""}${choice.available===false?" disabled":""}>${E(windowName(choice))}</option>`).join("")}</select></label>`:"";
-        const progress=["speed","cardio"].includes(cardId)?targetProgress(metric):"";
-        return `<section class="capability-metric${metric.id==="srr"?" capability-primary":""}${metric.id==="asr"?" capability-secondary":""}" data-capability-metric="${E(metric.id)}"${metric.id==="idsi"?` data-derived-result="${E(metric.selectedVariant)}"`:""}><div class="capability-metric-head"><h4>${E(metric.label)}</h4><p class="capability-value">${F(metric.value,digits(metric))}${unit}</p></div>${cardId==="cardio"?detail+judgment+progress:judgment+progress+selector+detail}</section>`;
-      };
-      const renderCard=card=>{
-        const targets=(card.targets||[]).filter(target=>N(target.value)!==null);
-        const conclusion=["speed","cardio"].includes(card.id)&&card.conclusion?`<div class="capability-conclusion"><p class="capability-conclusion-text">${E(card.conclusion)}</p>${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(String(target.label || "").replace(/(?:参考)?目标$/, "参考目标"))} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}</div>`:"";
-        const metrics=card.id==="speed"?[...card.metrics].sort((a,b)=>["srr","mss_speed","mas_speed","asr"].indexOf(a.id)-["srr","mss_speed","mas_speed","asr"].indexOf(b.id)):card.metrics;
-        return `<article class="capability-card" data-capability-card="${E(card.id)}" data-pdf-atomic><h3 class="capability-title">${E(card.title)}</h3>${conclusion}<div class="capability-metrics">${metrics.map(metric=>renderMetric(metric,card.id)).join("")}</div></article>`;
-      };
-      const rows=[];
-      for(let index=0;index<cards.length;index+=2)rows.push(`<div class="capability-row" data-pdf-atomic>${cards.slice(index,index+2).map(renderCard).join("")}</div>`);
-      return `<details class="details-group" id="trainingAnalysisDetail" open><summary>${E(T.analysisLabel)}</summary><div class="quality-group">${fvp}<div class="capability-results">${rows.join("")}</div></div></details>`;
+      return renderCapabilityAnalysis(report);
     }
     // LVP is a shared comparison renderer across its explicitly registered projects.
     function renderLVP(limb, s) {
@@ -15034,6 +15406,143 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           : '<div class="empty">选择已有数据的动作</div>'
       }</div><div class="lvp-table detail-data">${rows.length ? table(["动作", "回归方程", "R²", "预估1RM", "体重比 kg/kg", "速度口径", ...(repeated ? ["速度均值 ± SD · m/s", "CV"] : [])], rows, [], repeated ? "lvp-results with-repeat-columns" : "") : ""}${zoneRows.length ? table(["动作", "素质区间", "速度 m/s", "负荷 kg", "范围"], zoneRows) : ""}</div></div>${report.projects.filter((test) => all.some((series) => series.testId === test.id)).map(repeatPanel).join("")}</article>`;
     }
+  }
+  function renderCapabilityAnalysis(report, { print = false } = {}) {
+    const { record, stats } = report;
+    const cards = (stats.capabilityCards || []).map(card => ({ ...card,
+      metrics: (card.metrics || []).filter(metric => N(metric.value) !== null),
+    })).filter(card => card.metrics.length);
+    const fvp = renderFVPAnalysis(report, { print }), sprint = renderSprintFVPAnalysis(report, { print });
+    if (!cards.length && !fvp && !sprint) return "";
+    const source = id => cards.find(card => card.id === id);
+    const byId = id => cards.flatMap(card => card.metrics).find(metric => metric.id === id);
+    const impulseName = id => id === "idsi_fixed250" ? "iDSI · 固定 0–250 ms" : "iDSI · 匹配 CMJ 推进期";
+    const impulse = id => {
+      const result = (stats.derived?.results || report.derived?.results || []).find(item => item.id === id);
+      return result && { ...result, label: impulseName(id), judgment: result.directionHint, status: "gray" };
+    };
+    const format = metric => F(metric?.value, Number.isInteger(metric?.digits) ? metric.digits
+      : metric?.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric?.id || "") ? 3 : metric?.unit === "%" ? 1 : 2);
+    const unit = metric => metric?.unit && metric.unit !== "比值" ? ` <small>${E(metric.unit)}</small>` : "";
+    const selectedFvp = record.views?.fvpProtocol;
+    const jumpEntries = Object.entries(stats.fvp || {}).filter(([id]) => record.enabled[id]
+      && (record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
+    const jumpId = jumpEntries.find(([id]) => id === selectedFvp)?.[0] || jumpEntries[0]?.[0] || selectedFvp || "fvp_sj";
+    const jump = stats.fvp?.[jumpId], sprintSolved = stats.sprintFvp;
+    const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
+      value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
+      judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
+    const sprintMetric = { id: "sprint_fvp", label: "冲刺 FVP 不平衡性", value: sprintSolved?.valid ? sprintSolved.imbalance?.magnitudePct : null,
+      unit: "%", digits: 2, judgment: sprintSolved?.imbalance?.label || "待计算", status: "gray" };
+    const options = {
+      strength: [["fvp", "FVP 不平衡性"], ["fdsi", "DSI"], ["idsi_matched", impulseName("idsi_matched")], ["idsi_fixed250", impulseName("idsi_fixed250")], ["eur", "EUR"]],
+      reactive: [["dj_rsi", "DJ RSI"], ["hop_rsi", "Hop RSI"], ["cmrj_rsi", "CMRJ RSI"]],
+      speed: [["sprint_fvp", "冲刺 FVP 不平衡性"], ["srr", "SRR"]],
+    };
+    const candidate = id => id === "fvp" ? jumpMetric : id === "sprint_fvp" ? sprintMetric
+      : id.startsWith("idsi_") ? impulse(id) : byId(id);
+    const choice = key => {
+      const saved = record.views?.capabilitySelections?.[key];
+      return options[key].some(([id]) => id === saved) ? saved
+        : options[key].find(([id]) => N(candidate(id)?.value) !== null)?.[0] || options[key][0][0];
+    };
+    const judgmentFor = (key, metric) => {
+      if (N(metric?.value) === null) return "待计算";
+      if (key === "reactive") return metric.judgment
+        ? (metric.status === "red" || metric.status === "amber" ? "优先提高反应力量 · " : metric.status === "green" ? "保持并巩固反应力量 · " : "当前 RSI 标准 · ") + assessmentLabel(metric.status, metric.judgment)
+        : "已测量；在评价标准中选择 RSI 参考。";
+      if (metric.id === "eur") {
+        const definition = record.definitions.find(item => item.id === "eur");
+        const grade = definition?.referenceEnabled ? M.evaluation(metric.value, definition, record) : null;
+        return grade?.range ? assessmentLabel(grade.status, grade.label) : "结合 CMJ 与 SJ 的绝对成绩和纵向变化判断发展方向。";
+      }
+      return metric.judgment ? assessmentLabel(metric.status, metric.judgment) : "待判断";
+    };
+    const directionCard = (key, title) => {
+      const selected = choice(key), metric = candidate(selected) || { id: selected, label: options[key].find(([id]) => id === selected)?.[1], value: null };
+      const selector = print ? "" : `<label class="capability-selector no-print">判断依据<select data-capability-selection="${key}" aria-label="${E(title)}判断依据">${options[key].map(([id, label]) => `<option value="${id}"${id === selected ? " selected" : ""}>${E(label)}</option>`).join("")}</select></label>`;
+      const basis = selected === "fvp" && jump?.valid ? `${jump.analysis?.angle || 90}° 目标方向`
+        : selected === "sprint_fvp" && positive(sprintSolved?.targetDistanceM) ? `目标距离 ${F(sprintSolved.targetDistanceM, 1)} m` : "";
+      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3>${selector}<section data-direction-metric="${E(selected)}"><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}<p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(judgmentFor(key, metric))}</p></section></article>`;
+    };
+    const cardio = source("cardio"), cardioPrimary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
+    const endurance = `<article class="capability-direction-card" data-capability-direction="endurance"><h3>耐力发展方向</h3><section data-direction-metric="${E(cardioPrimary?.id || "endurance")}"><p class="capability-direction-basis">${E(cardioPrimary?.label || "心肺与阈值表现")}</p><p class="capability-direction-value">${format(cardioPrimary)}${unit(cardioPrimary)}</p><p class="capability-direction-judgment">${E(cardio?.conclusion || (cardioPrimary?.judgment ? assessmentLabel(cardioPrimary.status, cardioPrimary.judgment) : cardioPrimary ? "已测量；按当前心肺与阈值目标判断。" : "待计算"))}</p></section></article>`;
+    const left = `<div class="capability-direction-grid">${directionCard("strength", "力量发展方向")}${directionCard("reactive", "反应力量水平")}${directionCard("speed", "速度发展方向")}${endurance}</div>`;
+    const target = metric => {
+      const definition = record.definitions.find(item => item.id === metric.id);
+      const value = positive(metric.target) ? N(metric.target) : definition?.referenceEnabled && definition.matched !== false && positive(definition.target) ? N(definition.target) : null;
+      return value === null ? "" : `参考目标 ${F(value, 1)}${metric.unit && metric.unit !== "比值" ? " " + E(metric.unit) : ""}${positive(metric.value) ? ` · 达成 ${F(metric.value / value * 100, 1)}%` : ""}`;
+    };
+    const parameterGroup = card => {
+      const rows = [];
+      const add = metric => {
+        const note = target(metric), components = card.id === "speed" ? [] : (metric.components || []).filter(component => N(component.value) !== null);
+        const assessment = metric.judgment ? `<p class="capability-parameter-judgment ${E(metric.status || "gray")}">${E(assessmentLabel(metric.status, metric.judgment))}</p>` : "";
+        const componentData = components.length ? `<dl class="capability-parameter-components">${components.map(component => `<div data-capability-component="${E(component.id || component.label)}"><dt>${E(component.label)}</dt><dd>${format(component)}${unit(component)}${component.judgment ? `<p class="capability-component-judgment ${E(component.status || "gray")}">${E(assessmentLabel(component.status, component.judgment))}</p>` : ""}${target(component) ? `<p class="capability-parameter-target">${target(component)}</p>` : ""}</dd></div>`).join("")}</dl>` : "";
+        const folded = components.length || (metric.judgment || "").length > 26;
+        const detail = folded ? `<details class="capability-parameter-notes"><summary>${components.length ? "组成数据与解读" : "参数解读"}</summary>${componentData}${assessment}</details>` : assessment;
+        const progress = positive(metric.target) && positive(metric.value) ? `<div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100, Math.max(0, metric.value / metric.target * 100))}%"></span></div>` : "";
+        rows.push(`<tr data-capability-metric="${E(metric.id)}"><td>${E(metric.label)}</td><td><span class="capability-value">${format(metric)}${unit(metric)}</span>${note ? `<p class="capability-parameter-target">${note}</p>${progress}` : ""}${detail}</td></tr>`);
+      };
+      const ordered = card.id === "speed" ? [...card.metrics].sort((a, b) => ["srr", "mss_speed", "mas_speed", "asr"].indexOf(a.id) - ["srr", "mss_speed", "mas_speed", "asr"].indexOf(b.id)) : card.metrics;
+      for (const metric of ordered) {
+        if (metric.id === "idsi") {
+          const variants = ["idsi_matched", "idsi_fixed250"].map(impulse).filter(item => N(item?.value) !== null);
+          if (variants.length) variants.forEach(add);
+          else add(metric);
+        } else {
+          add(metric);
+        }
+      }
+      const labels = { strength: "力量参数", reactive: "反应力量参数", speed: "速度与速度储备参数", cardio: "心肺与阈值参数" };
+      const targets = (card.targets || []).filter(item => N(item.value) !== null);
+      return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
+    };
+    const right = cards.length ? cards.map(parameterGroup).join("") : '<p class="empty">完成测试后显示能力参数。</p>';
+    return `<details class="details-group" id="trainingAnalysisDetail" open><summary>${E(T.analysisLabel)}</summary><div class="quality-group">${fvp}${sprint}<div class="detail-pair capability-structure-pair" data-capability-analysis data-pdf-pair data-pdf-title="能力结构分析"><div class="capability-directions">${left}</div><div class="detail-data capability-parameter-column"><div class="capability-parameter-groups">${right}</div></div></div></div></details>`;
+  }
+  function sprintFvpChartData(solved) {
+    const profiles = [], add = (profile, kind, label) => {
+      if (profile?.valid && positive(profile.F0) && positive(profile.V0)) profiles.push({ kind, label, F0: profile.F0, V0: profile.V0, Pmax: profile.Pmax });
+    };
+    add(solved.model, "current", "当前冲刺剖面");
+    add(solved.optimum, "optimum", `${F(solved.targetDistanceM, 1)} m 最优`);
+    return { kind: "sprint", id: "sprint_fvp", valid: !!solved.valid, reason: solved.reason, profiles, points: [], band: [] };
+  }
+  function renderSprintFVPAnalysis(report, { print = false } = {}) {
+    const { record, stats } = report, solved = stats.sprintFvp;
+    if (!record.enabled.sprint_fvp || !solved || !(record.data.sprint_fvp || []).some(row => (row.splits || []).some(split => N(split.distanceM) !== null || N(split.timeS) !== null))) return "";
+    const builtin = T.builtins.find(test => test.id === "sprint_fvp"), displayName = report.projects.find(test => test.id === "sprint_fvp")?.name;
+    const title = displayName && displayName !== builtin?.name ? displayName : "分段计时冲刺 F–V/P–V";
+    const model = solved.model || {}, optimal = solved.optimum?.valid ? solved.optimum : {}, graph = sprintFvpChartData(solved), rows = [];
+    const add = (label, current, best, unit, digits = 2) => rows.push([`${E(label)}<small class="fvp-unit">${E(unit)}</small>`, F(current, digits), F(best, digits)]);
+    if (solved.valid) {
+      add("力量端 F₀", model.F0, optimal.F0, "N/kg");
+      add("速度端 V₀", model.V0, optimal.V0, "m/s", 3);
+      add("最大功率 Pmax", model.Pmax, optimal.Pmax, "W/kg");
+      add("力量端 F₀ · 绝对", model.F0Absolute, optimal.F0Absolute, "N", 1);
+      add("最大功率 Pmax · 绝对", model.PmaxAbsolute, optimal.PmaxAbsolute, "W", 1);
+      add("剖面斜率 SFV", model.slope, optimal.slope, "(N/kg)/(m/s)", 3);
+      add("RF max", N(model.RFmax) === null ? null : model.RFmax * 100, null, "%", 1);
+      add("DRF", model.DRF, null, "百分点/(m/s)", 3);
+      add("速度模型渐近值 Vmax", solved.fit?.vmax, null, "m/s", 3);
+      const endVelocity = solved.fit?.vmax > 0 && solved.fit?.tau > 0 ? solved.fit.vmax * (1 - Math.exp(-solved.selected.endTimeS / solved.fit.tau)) : null;
+      add("终点速度", endVelocity, null, "m/s", 3);
+      add("峰值功率对应速度 Vopt", N(model.V0) === null ? null : model.V0 / 2, N(optimal.V0) === null ? null : optimal.V0 / 2, "m/s", 3);
+    }
+    const follows = N(record.sprintFvpAnalysis?.targetDistanceM) === null;
+    const distanceText = positive(solved.targetDistanceM) ? `目标冲刺距离 ${F(solved.targetDistanceM, 1)} m${follows ? " · 跟随当前测试末段" : " · 专项目标"}` : "目标冲刺距离待确定";
+    const controls = print ? "" : `<form class="sprint-target-form no-print" data-sprint-target-form><label>专项目标距离 · m<input type="number" min="0.1" step="any" data-sprint-target-distance aria-label="冲刺 FVP 目标距离" value="${E(record.sprintFvpAnalysis?.targetDistanceM ?? "")}" placeholder="跟随测试末段"></label><button class="btn small" type="submit">保存目标距离</button><button class="btn small" type="button" data-sprint-target-follow>跟随测试末段</button></form>`;
+    const imbalance = solved.imbalance;
+    const result = solved.valid ? table(["指标", "当前", "距离最优"], rows, [], "fvp-result-table sprint-fvp-result-table")
+      + (imbalance ? `<div class="fvp-core-judgment"><p><span>FVP 不平衡性</span><strong>${F(imbalance.magnitudePct, 2)}%</strong></p><p>相对最优剖面 ${F(imbalance.profilePct, 2)}% · 100% 为最优</p><p>${E(imbalance.label)}</p></div>` : `<p class="fvp-table-note">${E(solved.optimumReason || "距离最优剖面待计算")}</p>`)
+      : `<div class="fvp-empty-result">${E(solved.reason || "录入完整分段计时后计算冲刺剖面。")}</div>`;
+    const selected = solved.selected, splits = selected?.fit?.points || selected?.splits || [];
+    const fitRows = splits.map(split => [F(split.distanceM, 1), F(split.timeS, 3), F(split.predictedDistanceM, 3), F(split.residualM, 4)]);
+    const config = solved.config || record.sprintFvpConfig || {}, conditions = [`${F(solved.mass ?? record.athlete.mass, 1)} kg`, `身高 ${F(solved.heightCm ?? config.heightCm ?? record.athlete.height, 1)} cm`, `${F(config.temperatureC, 1)} °C`, `${F(config.pressureHpa, 1)} hPa`, `风速 ${F(config.windMps, 2)} m/s`].join(" · ");
+    const trials = (solved.trials || []).filter(trial => trial.present).flatMap(trial => (trial.inputSplits || trial.splits || []).filter(split => N(split.distanceM) !== null || N(split.timeS) !== null).map((split, index) => [String(trial.index + 1), F(split.distanceM, 1), F(split.timeS, 3), E(trial.excluded ? "已排除" : trial.selected ? "采用" : trial.eligible ? "保留" : trial.reason || "待复核"), index === 0 ? E([trial.notes, trial.exclusionReason].filter(Boolean).join("；")) : ""]));
+    const method = `<details class="fvp-method sprint-fvp-method"><summary>拟合残差、测试条件与方法</summary><p>${E(conditions)}</p><p>${E(solved.selectionBasis || "采用同一完整冲刺试次的分段计时")}${selected ? ` · 第 ${selected.index + 1} 次` : ""}。${config.inputTimeMode === "interval" ? "分段耗时累加为累计时间" : "累计时间输入"}；固定时间修正 ${F(config.timeCorrectionS, 3)} s，起始位置修正 ${F(config.positionStartM, 2)} m。</p>${fitRows.length ? table(["距离 m", "累计时间 s", "拟合距离 m", "残差 m"], fitRows, [], "sprint-fvp-fit-table") : ""}<p>V(t) = Vmax(1 − exp(−t/τ))，x(t) = Vmax[t + τ(exp(−t/τ) − 1)]。τ ${F(solved.fit?.tau, 3)} s；距离残差 RMSE ${F(solved.fit?.rmseM, 4)} m；F–V 回归 R² ${F(model.r2, 4)}。</p><p>水平力由体重×加速度与空气阻力求得，以 0.1 s 采样至当前试次末段时间；RF = F水平/√(F水平² + (mg)²)，RF max 为 t &gt; 0.3 s 样本中的最大值，DRF 为同一窗口 RF–V 回归斜率，以百分点/(m/s)显示。</p><p>V₀ 为 F–V 外推的零力速度；Vmax 为分段速度模型的渐近值；终点速度为测试末段时间的模型值；Vopt = V₀/2 为峰值功率对应速度。</p><p>距离最优剖面由独立冲刺模型在固定 Pmax、体重与空气阻力下求最短目标距离时间。相对最优剖面 = 100·SFV/SFVopt；FVP 不平衡性 = 100·|1 − SFV/SFVopt|。${solved.optimum?.valid && solved.optimum.withinStudySimulation === false ? "当前目标距离或功率超出原研究的模拟范围。" : ""}</p><p><a href="https://doi.org/10.1111/sms.12490" target="_blank" rel="noopener noreferrer">Samozino 等 · 分段计时冲刺力–速度–功率方法（2016）</a> · <a href="https://doi.org/10.1111/sms.14097" target="_blank" rel="noopener noreferrer">Samozino 等 · 距离最优冲刺 F–V（2022）</a></p></details>`;
+    return `<article class="fvp-analysis-card sprint-fvp-analysis" id="detail-sprint_fvp" data-test-ids="sprint_fvp" data-sprint-fvp-panel><div class="fvp-analysis-heading test-title"><div><h3>${E(title)}</h3><p class="sprint-target-summary">${E(distanceText)}</p></div></div>${controls}<div class="detail-pair sprint-fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="sprintFvp" data-chart-input="${E(JSON.stringify([graph, {}]))}">${V.sprintFvp(graph)}</div><div class="detail-data">${result}</div></div>${method}${trials.length ? `<details class="fvp-raw-trials" data-raw-trials="sprint_fvp" data-trial-title="冲刺 FVP · 原始录入分段"><summary>冲刺 FVP · 原始录入分段</summary>${table(["试次", "录入距离 m", "录入时间 s", "采用情况", "备注"], trials, [], "repeat-raw-table")}</details>` : ""}</article>`;
   }
   function fvpChartData(solved) {
     const current=solved.current||solved.model||{}, profiles=[];
@@ -15131,8 +15640,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }).join("")}</div>`;
   }
   function prepareFVPPrint(clone,snapshot) {
-    const mount=clone.querySelector("[data-fvp-analysis-stack]");
-    if(mount)mount.outerHTML=renderFVPAnalysis(build(snapshot),{print:true});
+    const analysis=clone.querySelector("#trainingAnalysisDetail");
+    if(analysis)analysis.outerHTML=renderCapabilityAnalysis(build(snapshot),{print:true});
   }
   function previewFVP(container,solved) {
     const panel=container.querySelector(`[data-fvp-elasticity="${solved.id}"]`);
@@ -15194,8 +15703,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     // A wrapped mean/SD must not push the right-side statistics below the
     // corresponding right-side result and evaluation in neighboring columns.
     alignIsometricSides(container);
-    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400] };
-    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330 };
+    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], sprintFvp:[390,450] };
+    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, sprintFvp:390 };
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);
@@ -15227,7 +15736,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     layoutCharts(container);
     bindFVPInteractions(container);
   }
-  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, prepareFVPPrint, previewFVP, bindFVPInteractions };
+  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderCapabilityAnalysis, prepareFVPPrint, previewFVP, bindFVPInteractions };
 })(window);
 
 </script>
@@ -16110,7 +16619,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function collectBlocks(source) {
     const blocks = [];
     const headingSelectors =
-      ".section-heading,.quality-heading,.test-title,.pdf-group-heading";
+      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading";
     const atomicSelectors =
       ".hero,.micro-cards,.summary-grid,.stat-row,.empty,.aux-metrics,.card-foot,[data-pdf-atomic]";
     function push(node, kind, keepWithNext) {
@@ -16127,7 +16636,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       copy.dataset.pdfBlockIndex = String(blocks.length);
       if (kind === "pair")
         copy.dataset.pdfTitle =
-          node.closest(".test-block,.lvp-card,.fvp-analysis-card")?.querySelector("h3")
+          node.dataset.pdfTitle || node.closest(".test-block,.lvp-card,.fvp-analysis-card")?.querySelector("h3")
             ?.textContent || "测试结果";
       blocks.push({
         element: copy,
@@ -16588,7 +17097,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (remainder.length) {
         // A subheading without its first data row belongs to the continuation.
         const trailing = column.lastElementChild;
-        if (trailing?.matches("h1,h2,h3,h4,h5,.pdf-group-heading")) {
+        if (trailing?.matches("h1,h2,h3,h4,h5,.pdf-group-heading,.capability-parameter-heading")) {
           trailing.remove();
           remainder.unshift({
             element: trailing,
@@ -16877,7 +17386,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const rows = annotateRows(source);
       const pairTexts = [
         ...source.querySelectorAll(
-          ".detail-data p,.detail-data h4,.detail-data summary",
+          ".detail-data p,.detail-data h3,.detail-data h4,.detail-data summary",
         ),
       ].map((node, index) => {
         node.dataset.pdfPairText = String(index);
@@ -17146,6 +17655,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const uid = () => "xlsx_" + root.crypto.randomUUID().replace(/-/g, "");
   const empty = value => value === "" || value === null || value === undefined;
   const isFVP = id => ["fvp_sj", "fvp_cmj"].includes(id);
+  const isSprint = (record, id) => id === "sprint_fvp" && T.isNative(record, id);
   const safe = value => typeof value === "string" && /^[A-Za-z0-9_-]{1,249}$/.test(value) && !["__proto__", "prototype", "constructor"].includes(value);
   const get = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
   function put(object, path, value) {
@@ -17175,6 +17685,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(key==="vo2Unit")return {"ml/kg/min":"mL·kg⁻¹·min⁻¹","l/min":"L/min"};
     if(key==="label")return {VO2peak:"VO₂peak",VO2max:"VO₂max"};
     if(key==="range")return {full:"完整剖面",measured:"实测范围"};
+    if(key==="inputTimeMode")return {cumulative:"累计计时",interval:"各段用时"};
+    if(key==="timingStart"||key==="startConvention")return {first_propulsive_action:"首次推进动作",gate_crossing:"通过计时门",start_signal:"出发信号",other:"其他"};
+    if(key==="strength")return {fvp:"跳跃 FVP 不平衡度",fdsi:"DSI",idsi_matched:"iDSI · 匹配 CMJ 推进期",idsi_fixed250:"iDSI · 固定 0–250 ms",eur:"EUR"};
+    if(key==="reactive")return {dj_rsi:"DJ RSI",hop_rsi:"10/5 Hop RSI",cmrj_rsi:"CMRJ RSI"};
+    if(key==="speed")return {sprint_fvp:"冲刺 FVP 不平衡度",srr:"SRR"};
     return {};
   }
   const displayChoice=(f,value)=>choiceLabels(f)[value]??value;
@@ -17193,6 +17708,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     let fields;
     if (!T.isNative(record, id)) fields = extra;
     else if (["cmj", "sj", "dj", "cmrj"].includes(id)) fields = T.attemptFields(record, id).filter(f => !f.computed && f.key !== "activeStiffness").map(f => field(f.key || "metrics." + f.id, f.label + " " + f.unit)).concat(["dj", "cmrj"].includes(id) ? stiffness() : []);
+    else if (isSprint(record, id)) fields = [field("distanceM", "累计距离 m"), field("timeS", "原始时间 s（依计时方式）"), text("excluded", "排除此试次", ["是", "否"]), text("exclusionReason", "排除原因（首段填写）")];
     else if (isFVP(id)) fields = [field("load", "附加负荷 kg"), field("height", "垂直跳跃高度 cm"), field("distanceCm", "本次蹬伸距离 cm（留空沿用统一值）"), bool("excluded", "排除本次"), text("exclusionReason", "排除原因"), ...extra];
     else if (id === "imtp") fields = [field("peakForce", "峰值力 N"), field("baselineForce", "起点力 N"), field("peakTimeMs", "峰值时间 ms"), field("impulse250", "0–250 ms 冲量 N·s"), field("matchedImpulse", "匹配时窗冲量 N·s"), field("matchedDurationMs", "匹配时窗 ms"), ...extra];
     else if (["landmine", "squat", "bench", "deadlift"].includes(id)) fields = [...(id === "landmine" ? [text("side", "侧别", ["L", "R"])] : []), field("load", "负荷 kg"), field("velocity", "速度 m/s"), ...extra];
@@ -17221,9 +17737,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       for (const [key, label] of [["fv", "显示 F–V 曲线"], ["pv", "显示 P–V 曲线"], ["points", "显示实测点"], ["optimum", "显示最优剖面"], ["comparison", "显示另一角度最优剖面"], ["confidence", "显示置信区间"], ["responseForce", "显示力量端单独变化"], ["responseVelocity", "显示速度端单独变化"], ["responseBoth", "显示力量与速度同步变化"]]) rows.push(bool(view + "." + key, label));
       rows.push(text(view + ".range", "图表范围", ["full", "measured"]), {...field(view + ".pinnedLoad", "固定查看负荷 kg（可留空）"), nullable:true});
     }
+    if (isSprint(record, id)) {
+      const config = "sprintFvpConfig.", analysis = "sprintFvpAnalysis.";
+      rows.push(text(config + "device", "冲刺计时设备"), field(config + "heightCm", "模型身高 cm（留空沿用运动员身高）"), field(config + "temperatureC", "温度 °C"), field(config + "pressureHpa", "气压 hPa"), field(config + "windMps", "风速 m/s（顺风为正）"));
+      rows.push(text(config + "inputTimeMode", "原始时间方式", ["cumulative", "interval"]), text(config + "timingStart", "计时起点", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), text(config + "startConvention", "原始计时起点标记", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), field(config + "timeCorrectionS", "确定的累计时间修正 s"), field(config + "positionStartM", "空间起点距出发线 m"), field(analysis + "targetDistanceM", "专项目标距离 m（留空跟随末段）"));
+      rows.push(text(config + "methodVersion", "计算方法版本"), field(config + "sampleStepS", "采样步长 s"), field(config + "rfAfterS", "RF 起始时间 s（严格大于）"), text(config + "samplingWindow", "采样终点依据"));
+    }
+    if (selectedTests(record)[0]?.id === id) rows.push(text("views.capabilitySelections.strength", "力量发展判定指标", ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"]), text("views.capabilitySelections.reactive", "反应力量判定指标", ["dj_rsi","hop_rsi","cmrj_rsi"]), text("views.capabilitySelections.speed", "速度发展判定指标", ["sprint_fvp","srr"]));
     return rows;
   }
-  const isSharedSetting = f => f.key.startsWith("dsi.");
+  const isSharedSetting = f => f.key.startsWith("dsi.") || f.key.startsWith("views.capabilitySelections.");
   const sharedSettings = record => [...new Map(selectedTests(record).flatMap(test=>settings(record,test.id)).filter(isSharedSetting).map(f=>[f.key,f])).values()];
   function change(f,before,after,extra={}) {
     return {field:f.key,label:f.label,before:before??"",after:after??"",displayBefore:displayChoice(f,before??""),displayAfter:displayChoice(f,after??""),...extra};
@@ -17271,6 +17794,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         add("hop", "", [field("attempt", "完整测试组"), text("inputMode", "录入方式", ["summary", "jumps"]), ...["rsi", "height", "contactTimeMs", "flightTimeMs", "flightTimeRatio", "suppliedCount", "validCount", "selectedCount"].map((key,i) => field("summary."+key,["设备平均 RSI m/s","平均跳高 cm","平均触地 ms","平均腾空 ms","平均腾空/触地比","设备录入跳数","设备有效跳数","设备采用跳数"][i])), text("summary.selectionBasis", "设备筛选依据", ["unknown","height_rsi","flight_ratio"]), ...stiffness().map(f => ({...f,key:"summary."+f.key})), text("summary.notes", "设备汇总备注"), notes]);
         add("hopJumps", "_逐跳", [field("attempt", "完整测试组"), field("jump", "跳次"), field("height", "垂直跳高 cm"), field("contactTimeMs", "触地 ms"), field("flightTimeMs", "腾空 ms"), notes]);
       } else if (id === "cpet" && T.isNative(source,id)) add("cpet", "", [text("phase", "阶段", ["peak", "first", "second"]), text("label", "原报告名称", ["VO2peak", "VO2max", "VT1", "LT1", "VT2", "LT2"]), field("vo2", "摄氧量"), text("vo2Unit", "摄氧量单位", ["ml/kg/min","l/min"]), field("hr", "心率 bpm"), field("rer", "峰值 RER"), field("speed", "阈值速度 m/s"), field("power", "阈值功率 W")]);
+      else if (isSprint(source, id)) add("sprintSplits", "", [field("attempt", "试次"), field("split", "分段序号"), ...attemptFields(source, id)]);
       else add("attempt", "", [field("attempt", id === "lactate" ? "阶段" : "试次"), ...attemptFields(source,id)]);
       if (id === "imtp") add("timePoints", "_时间点", [field("attempt", "试次"), field("timeMs", "时间 ms"), field("force", "实测力 N"), field("rfd", "0–t 平均 RFD N/s")]);
       const manual = source.definitions.filter(d => d.testId === id && T.isManualMetric(d) && !T.isAttemptMetric(d));
@@ -17280,7 +17804,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return specs;
   }
   const identity = record => ({recordId:record.recordId,athleteId:record.athleteId,name:record.athlete.name+" · "+(record.athlete.sport||"未填专项")+" · "+record.athleteId.slice(-6)});
-  const expandable = spec => ["attempt","iso","hop","hopJumps","timePoints"].includes(spec.kind);
+  const expandable = spec => ["attempt","iso","hop","hopJumps","timePoints","sprintSplits"].includes(spec.kind);
   const exportFields = (spec, schema) => schema === 1 || !expandable(spec) ? spec.fields : [text("recordRef", "运动员 / 测试"), ...spec.fields.slice(3).flatMap(f => f.key === "directionId" ? [text("directionRef", "关节 / 运动方向")] : f.key === "directionName" ? [] : [f])];
   const recordReferences = records => records.map((record, i) => ({recordId:record.recordId,label:String(i+1).padStart(3,"0")+" · "+record.athlete.name+" · "+(record.athlete.sport||"未填专项")+" · "+record.athlete.date}));
   function directionReferences(records) {
@@ -17316,6 +17840,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     } else if (spec.kind === "cpet") for (const phase of ["peak","first","second"]) {
       const data = phase === "peak" ? raw : raw.thresholds[phase];
       push({...fill(data),phase,label:phase === "peak" ? raw.oxygenLabel : data.label,vo2Unit:data.vo2Unit,hr:prefill ? (phase === "peak" ? raw.peakHr : data.hr) : ""});
+    } else if (spec.kind === "sprintSplits") {
+      const existing = prefill && Array.isArray(raw) ? raw : [];
+      const trials = existing.concat(Array.from({length:3}, () => ({splits:[5,10,20,30,40].map(distanceM => ({distanceM, timeS:""}))})));
+      trials.forEach((trial, index) => (trial.splits || []).forEach((split, splitIndex) => push({...clone(split), attempt:index + 1, split:splitIndex + 1,
+        ...(splitIndex === 0 ? {excluded:trial.excluded ? "是" : "否", exclusionReason:trial.exclusionReason || "", notes:trial.notes || ""} : {})})));
     } else if (spec.kind === "custom") for (const d of record.definitions.filter(d => d.testId === spec.id && T.isManualMetric(d) && !T.isAttemptMetric(d))) push({...fill(record.customValues[d.id] || {}),metricId:d.id,metricName:d.name,unit:d.unit});
     else if (spec.kind === "timePoints") {
       const attempts = prefill ? raw : Array.from({length:3},()=>({timePoints:[{timeMs:100},{timeMs:200}]}));
@@ -17361,6 +17890,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       ["公式", "填写数值或文字，不使用公式；如从计算表复制，请粘贴为值。"],
       ["工作表结构", "请保留工作表、表头和隐藏信息。整份文件通过校验后才会保存。"],
       ["导入版本", schema === 2 ? "本模板须使用 MotionBench 2.16 或更新版本导入。旧版模板仍可由新版软件导入。" : "历史格式模板，可由新版软件导入。"],
+      ["冲刺 FVP", "每行一段；同一试次使用相同试次编号、不同分段序号。距离始终为累计距离 m，时间 s 的累计/各段方式在测试条件页设置。建议静止起跑至少记录 5、10、20、30 m。试次备注、排除与原因在首段填写，其他段留空。原始时间保留，明确修正只对累计时间加一次；通过计时门补时为正，出发信号减反应时间为负。最佳剖面采用一条完整试次。"],
     ].forEach(row => guide.addRow(row));
     guide.getRow(1).font = {bold:true,size:16,color:{argb:"FF153B39"}};
     guide.eachRow(row => {row.alignment={vertical:"middle",wrapText:true};row.height=34;});
@@ -17452,7 +17982,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return value;
   }
   const meaningful = (row, keys) => keys.some(key => {const v=get(row,key);return !empty(v)&&v!==false;});
-  const hasMeasurement = (spec, row) => isFVP(spec.id) && spec.renderer === "fvp" && spec.kind === "attempt" ? !empty(row.height) : meaningful(row,rawKeys(spec));
+  const hasMeasurement = (spec, row) => spec.kind === "sprintSplits" ? !empty(row.timeS) || !empty(row.notes) || !empty(row.exclusionReason) || row.excluded === "是" : isFVP(spec.id) && spec.renderer === "fvp" && spec.kind === "attempt" ? !empty(row.height) : meaningful(row,rawKeys(spec));
   function rawKeys(spec) {
     const skip = new Set(["recordId","athleteId","name","attempt","action","actionName","directionId","directionName","unit","directionProtocol","side","inputMode","phase","label","vo2Unit","metricId","metricName","jump","timeMs","activeStiffnessInputUnit","summary.activeStiffnessInputUnit","summary.selectionBasis"]);
     return spec.fields.map(f=>f.key).filter(key=>!skip.has(key));
@@ -17512,7 +18042,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const excelRow=ws.getRow(i);if(!excelRow.values.some(v=>!empty(v)))continue;
         const templateEntry = columns.has("recordId")?byId.get(String(excelRow.getCell(columns.get("recordId")).value || "")):null;
         const row={};for(const f of fields)put(row,f.key,spec.kind === "metadata" && f.key === "age" && templateEntry?.record.athlete.birthDate ? templateEntry.record.athlete.age : cellValue(excelRow.getCell(columns.get(f.key)),f,errors));
-        if(expandable(spec)&&spec.kind!=="hop"&&!hasMeasurement(spec,row))continue;
+        if(expandable(spec)&&spec.kind!=="hop"&& !(spec.kind === "sprintSplits" ? !empty(row.distanceM) || hasMeasurement(spec,row) : hasMeasurement(spec,row)))continue;
         const resolved=resolveIdentity(row,spec,entries,manifest.schema,manifest.recordRefs||[]);if(!resolved.entry){issue(errors,ws,i,columns.get(resolved.key)||columns.get("recordRef")||columns.get("name"),resolved.message);continue;}
         const entry=resolved.entry,record=entry.record;Object.assign(row,identity(record));
         if(manifest.schema===2&&spec.kind==="iso"){
@@ -17547,8 +18077,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           continue;
         }
         const hasRaw=hasMeasurement(spec,row);
-        if(!hasRaw&&spec.kind!=="hop")continue;
-        if(hasRaw)entry.incoming.add(spec.id);
+        if(!hasRaw&&spec.kind!=="hop"&&spec.kind!=="sprintSplits")continue;
+        if(hasRaw && (spec.kind !== "sprintSplits" || !empty(row.timeS)))entry.incoming.add(spec.id);
         if(spec.kind==="custom"){
           const d=record.definitions.find(d=>d.id===row.metricId&&d.testId===spec.id&&T.isManualMetric(d)&&!T.isAttemptMetric(d));
           if(!d||d.unit!==row.unit){error("metricId","指标编号或单位与模板不符");continue;}if(seen("custom:"+d.id))continue;
@@ -17586,8 +18116,22 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         let holder=entry.groups.get(groupKey);
         if(!holder){
           if(spec.id==="hop"&&T.isNative(record,"hop"))holder={id:"excel_"+row.attempt,...M.newHopSet(),jumps:[],summary:{...M.newHopSet().summary},_attempt:row.attempt};
+          else if (spec.kind === "sprintSplits") holder={id:"excel_"+row.attempt,splits:[],excluded:false,exclusionReason:"",notes:"",_attempt:row.attempt};
           else holder={id:"excel_"+row.attempt,metrics:{},notes:"",...(spec.id==="imtp"?{timePoints:[]}:{}),_attempt:row.attempt};
           entry.groups.set(groupKey,holder);
+        }
+        if (spec.kind === "sprintSplits") {
+          if (!Number.isInteger(row.split) || row.split < 1 || row.split > 1000) {error("split", "分段序号须为 1–1000 的整数"); continue;}
+          const splitKey = groupKey + ":split:" + row.split;
+          if (entry.seen.has(splitKey)) {error("split", "同一试次的分段序号重复"); continue;}
+          entry.seen.add(splitKey);
+          for (const key of ["excluded", "exclusionReason", "notes"]) if (!empty(row[key])) {
+            const value = key === "excluded" ? row[key] === "是" : row[key], metadataKey = groupKey + ":metadata:" + key;
+            if (entry.groups.has(metadataKey) && entry.groups.get(metadataKey) !== value) error(key, "同一试次的备注、排除与原因须一致；建议仅首段填写");
+            entry.groups.set(metadataKey, value); holder[key] = value;
+          }
+          holder.splits.push({distanceM:row.distanceM, timeS:row.timeS, _split:row.split, _location:{sheet:ws,row:i,columns}});
+          continue;
         }
         if(spec.kind==="timePoints"){
           if(!(row.timeMs>0)){error("timeMs","时间点须大于 0 ms");continue;}if(seen(groupKey+":time:"+row.timeMs))continue;
@@ -17611,7 +18155,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(!entry.metadataSeen)issue(errors,null,0,0,record.athlete.name+" 缺少本次测试信息行");
       for(const test of selectedTests(record)){
         if(["fms","iso","cpet"].includes(test.id)&&T.isNative(record,test.id))continue;
-        const holders=[...entry.groups.entries()].filter(([key])=>key.startsWith(test.id+":")&&/^\d+$/.test(key.slice(test.id.length+1))).map(([,row])=>row).sort((a,b)=>a._attempt-b._attempt);
+        const holders=[...entry.groups.entries()].filter(([key])=>key.startsWith(test.id+":")&&/^\d+$/.test(key.slice(test.id.length+1))).map(([,row])=>row).filter(row => !isSprint(record,test.id) || row.splits.some(split => !empty(split.timeS))).sort((a,b)=>a._attempt-b._attempt);
         holders.forEach((row,index)=>{
           const location=row._location;
           if(test.id==="hop"&&T.isNative(record,"hop")){
@@ -17619,6 +18163,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
             row.jumps.sort((a,b)=>a._jump-b._jump).forEach((jump,j)=>{const cell=jump._location;for(const key of ["height","contactTimeMs","flightTimeMs"])entry.locations.set("data.hop.trials."+index+".jumps."+j+"."+key,{sheet:cell.sheet,row:cell.row,column:cell.columns.get(key)});delete jump._jump;delete jump._location;});
           }
           if(test.id==="imtp")row.timePoints.forEach((point,j)=>{const cell=point._location;for(const key of ["timeMs","force","rfd"])entry.locations.set("data.imtp."+index+".timePoints."+j+"."+key,{sheet:cell.sheet,row:cell.row,column:cell.columns.get(key)});delete point._location;});
+          if (isSprint(record, test.id)) row.splits.sort((a,b) => a._split - b._split).forEach((split, splitIndex) => {
+            const cell = split._location;
+            for (const key of ["distanceM", "timeS"]) entry.locations.set(`data.sprint_fvp.${index}.splits.${splitIndex}.${key}`, {sheet:cell.sheet,row:cell.row,column:cell.columns.get(key)});
+            delete split._split; delete split._location;
+          });
           if(location)for(const f of specs.find(s=>s.id===test.id&&["attempt","hop"].includes(s.kind))?.fields.slice(4)||[])entry.locations.set("data."+test.id+"."+(["hop","pushup","mas","mss","ift"].includes(test.id)?"trials.":"")+index+"."+f.key,{sheet:location.sheet,row:location.row,column:location.columns.get(f.key)});
           delete row._attempt;delete row._location;
         });
@@ -17647,6 +18196,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return comparable({data,custom,settings:settings(record,id).filter(f=>!isSharedSetting(f)).map(f=>[f.key,get(record,f.key)??""])});
   }
   function countProject(record,id,selection) {
+    if (isSprint(record, id)) return (record.data[id] || []).filter(trial => trial.splits?.some(split => !empty(split.timeS))).length;
     if(!record.enabled[id])record={...record,enabled:{...record.enabled,[id]:true}};
     const spec=makeSpecs([record]).find(s=>s.id===id&&!["custom","timePoints","hopJumps"].includes(s.kind));
     if(!spec)return 0;
@@ -18421,6 +18971,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     for (const id of ["fvp_sj", "fvp_cmj"]) if (Array.isArray(data[id]) && (root.RingsideTests?.isNative ? root.RingsideTests.isNative(record, id) : !!record.fvpConfig?.[id] && !record.customTests?.some(test => test.id === id))) {
       data[id] = data[id].filter(row => row && row.height !== undefined && row.height !== null && String(row.height).trim() !== "");
     }
+    if (Array.isArray(data.sprint_fvp) && root.RingsideTests?.isNative(record, "sprint_fvp")) {
+      data.sprint_fvp = data.sprint_fvp.filter(row => row?.splits?.some(split => split.timeS !== undefined && split.timeS !== null && String(split.timeS).trim() !== ""));
+    }
     return JSON.stringify({
       data: project(data, true),
       customValues: project(record?.customValues, true),
@@ -18602,6 +19155,60 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   root.RingsideFVPEntry = Object.freeze({ render, feedback, update, defaultTrial, read });
 })(window);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  const id = "sprint_fvp";
+  const present = value => value !== undefined && value !== null && String(value).trim() !== "";
+  const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
+  const number = (value, digits = 2) => Number.isFinite(value) ? value.toFixed(digits) : "—";
+  function defaultTrial(distances = [5, 10, 20, 30, 40]) {
+    return {id:"sprint_" + root.crypto.randomUUID().replace(/-/g, ""), splits:distances.map(distanceM => ({distanceM, timeS:""})), excluded:false, exclusionReason:"", notes:""};
+  }
+  function feedback(record) {
+    const rows = record.data?.[id] || [], measured = rows.filter(row => row.splits?.some(split => present(split.timeS)));
+    const result = root.RingsideSprintFVP?.solve(record) || {valid:false, reason:"请录入原始分段计时"};
+    const summary = `${measured.length} 次测试${measured.some(row => row.excluded) ? ` · 排除 ${measured.filter(row => row.excluded).length} 次` : ""}`;
+    if (!result.valid) return `<p class="note sprint-fvp-entry-status">${escape(summary)} · ${escape(result.reason || "请填写至少 4 个有效计时分段及体重、身高")}</p>`;
+    const fit = result.model || {}, selected = result.selected || {}, index = rows.findIndex(row => row.id === (result.selectedTrialId || selected.id));
+    const target = result.targetDistanceM ?? result.optimum?.distanceM;
+    return `<p class="note sprint-fvp-entry-status">${escape(summary)} · 采用${index >= 0 ? `试次 ${index + 1}` : "最佳完整试次"} · F₀ ${number(fit.F0Relative ?? fit.F0)} N/kg · V₀ ${number(fit.V0)} m/s · Pmax ${number(fit.PmaxRelative ?? fit.Pmax)} W/kg${Number.isFinite(target) ? ` · 目标 ${number(target, 0)} m` : ""}</p>`;
+  }
+  function render(record, helpers) {
+    const {input, select, check, field, table} = helpers;
+    const config = {...root.RingsideSprintFVP?.defaultsConfig?.(), ...record.sprintFvpConfig}, rows = record.data?.[id] || [];
+    const controls = [
+      field("计时方式", select("sprintFvpConfig.inputTimeMode", config.inputTimeMode || "cumulative", [["cumulative", "累计计时"], ["interval", "各段用时"]])),
+      field("计时设备", input("sprintFvpConfig.device", config.device, {type:"text", label:"冲刺计时设备"})),
+      field("身高 cm", input("sprintFvpConfig.heightCm", config.heightCm, {label:"冲刺模型身高 cm", placeholder:"留空沿用运动员身高"})),
+      field("温度 °C", input("sprintFvpConfig.temperatureC", config.temperatureC, {label:"温度 °C", allowNegative:true})),
+      field("气压 hPa", input("sprintFvpConfig.pressureHpa", config.pressureHpa, {label:"气压 hPa", min:0.000001})),
+      field("风速 m/s · 顺风为正", input("sprintFvpConfig.windMps", config.windMps, {label:"风速 m/s 顺风为正", allowNegative:true})),
+    ].join("");
+    const startControls = [
+      field("计时起点", select("sprintFvpConfig.timingStart", config.timingStart || config.startConvention || "first_propulsive_action", [["first_propulsive_action", "首次推进动作"], ["gate_crossing", "通过计时门"], ["start_signal", "出发信号"], ["other", "其他"]])),
+      field("累计时间修正 s · 加时为正，减时为负", input("sprintFvpConfig.timeCorrectionS", config.timeCorrectionS ?? 0, {label:"累计时间修正 s 加时为正减时为负", allowNegative:true})),
+      field("空间起点距出发线 m", input("sprintFvpConfig.positionStartM", config.positionStartM ?? 0, {label:"空间起点距出发线 m"})),
+      field("专项目标距离 m", input("sprintFvpAnalysis.targetDistanceM", record.sprintFvpAnalysis?.targetDistanceM ?? "", {label:"专项目标距离 m", min:0.000001, placeholder:"留空跟随最佳试次末段"})),
+    ].join("");
+    const trials = rows.map((row, index) => {
+      const path = `data.${id}.${index}`, interval = config.inputTimeMode === "interval";
+      const splits = (row.splits || []).map((split, splitIndex) => [String(splitIndex + 1),
+        input(`${path}.splits.${splitIndex}.distanceM`, split.distanceM, {label:`试次 ${index + 1} 第 ${splitIndex + 1} 段累计距离 m`, min:0.000001}),
+        input(`${path}.splits.${splitIndex}.timeS`, split.timeS, {label:`试次 ${index + 1} 第 ${splitIndex + 1} 段${interval ? "分段" : "累计"}时间 s`, min:0.000001}),
+        `<button type="button" class="remove" onclick="App.removeSprintSplit(${index},${splitIndex})" aria-label="删除试次 ${index + 1} 第 ${splitIndex + 1} 段">删除</button>`]);
+      return `<article class="imtp-attempt sprint-fvp-attempt"><div class="imtp-attempt-head"><h4>试次 ${index + 1}</h4><button type="button" class="remove" onclick="App.removeRow('${id}',${index})" aria-label="删除冲刺试次 ${index + 1}">删除试次</button></div>${table(["分段", "累计距离 m", interval ? "本段用时 s" : "累计时间 s", "操作"], splits)}<button type="button" class="btn small" onclick="App.addSprintSplit(${index})">＋ 增加分段</button><div class="form-grid">${field("试次备注", input(path + ".notes", row.notes, {type:"text", label:`冲刺试次 ${index + 1} 备注`}))}${check(path + ".excluded", row.excluded, "排除此试次")}${field("排除原因", input(path + ".exclusionReason", row.exclusionReason, {type:"text", label:`冲刺试次 ${index + 1} 排除原因`}))}</div></article>`;
+    }).join("");
+    return `<div class="sprint-fvp-entry"><div class="form-grid">${controls}</div><details class="supplement"><summary>计时起点与目标距离</summary><div class="form-grid">${startControls}</div><p class="note">原始时间始终保留。修正只对累计时间加一次；没有自动起跑补时。累计距离从所注明的空间起点测量，静止起跑建议至少记录 5、10、20、30 m 四段。最佳剖面采用一条完整有效试次。目标距离改变时，最佳 F–V 和发展方向同步更新。</p></details>${trials}<button type="button" class="btn small" onclick="App.addRow('${id}')">＋ 新增冲刺试次</button><div data-sprint-fvp-entry-feedback aria-live="polite">${feedback(record)}</div></div>`;
+  }
+  function update(record, container) {
+    const target = (container || root.document)?.querySelector?.("[data-sprint-fvp-entry-feedback]");
+    if (target) target.innerHTML = feedback(record);
+  }
+  root.RingsideSprintFVPEntry = Object.freeze({defaultTrial, render, feedback, update});
+})(typeof window !== "undefined" ? window : globalThis);
 
 </script>
 <script>
@@ -19757,6 +20364,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       updateJumpEntryResults();
       if (["fvp_sj", "fvp_cmj"].includes(entryTab))
         window.RingsideFVPEntry?.update?.(state, entryTab, $("entryContent"));
+      if (entryTab === "sprint_fvp") window.RingsideSprintFVPEntry?.update?.(state, $("entryContent"));
       refreshEntryChrome();
     }, 180);
   }
@@ -19893,6 +20501,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       "imtpConfig",
       "cmjConfig",
       "derivedEnabled",
+      "fvpConfig",
+      "fvpAnalysis",
+      "fvpView",
+      "sprintFvpConfig",
+      "sprintFvpAnalysis",
     ])
       if (source[k]) r[k] = copy(source[k]);
     r.dsi = { ...copy(source.dsi), force: "", confirmed: false };
@@ -20447,6 +21060,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     const contextChanged = obj[ps.at(-1)] !== value;
     obj[ps.at(-1)] = value;
+    if (path === "sprintFvpConfig.timingStart") state.sprintFvpConfig.startConvention = value;
     const dsiContextPaths = ["dsi.source", "dsi.cmjUnit", "cmjConfig.definition", "protocol.cmj", ...(state.dsi.source === "manual"
       ? ["dsi.unit", "dsi.definition", "dsi.protocol"] : ["imtpConfig.definition", "imtpConfig.unit", "protocol.imtp"])];
     if (contextChanged && dsiContextPaths.includes(path)) {
@@ -20475,6 +21089,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (ui.mode === "entry" && ["fvp_sj", "fvp_cmj"].includes(entryTab) &&
       (path.startsWith("data." + entryTab + ".") || path.startsWith("fvpConfig." + entryTab + ".") || path === "athlete.mass"))
       window.RingsideFVPEntry?.update?.(state, entryTab, $("entryContent"));
+    if (ui.mode === "entry" && entryTab === "sprint_fvp" &&
+      (/^(data\.sprint_fvp\.|sprintFvpConfig\.|sprintFvpAnalysis\.)/.test(path) || ["athlete.mass", "athlete.height"].includes(path)))
+      window.RingsideSprintFVPEntry?.update?.(state, $("entryContent"));
   }
   function athleteTag(a) {
     let length = 6;
@@ -20664,7 +21281,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const focused = document.activeElement?.dataset?.lvpId,
       focusedPath = document.activeElement?.dataset?.path;
     const active = document.activeElement;
-    const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol"].find(attribute => active?.hasAttribute(attribute));
+    const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol", "data-capability-selection", "data-sprint-target-distance"].find(attribute => active?.hasAttribute(attribute));
     const fvpFocusId = active?.dataset?.fvpId, fvpFocusValue = fvpFocus && active.getAttribute(fvpFocus);
     $("detailContent").innerHTML = window.RingsideReport.render(report);
     window.RingsideReport.observeCharts($("detailContent"));
@@ -20949,6 +21566,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     else if (entryTab === "review") h += entryReview();
     else if (["fvp_sj", "fvp_cmj"].includes(entryTab) && T.isNative(state, entryTab))
       h += window.RingsideFVPEntry.render(state, entryTab, { input, select, check, field, table });
+    else if (entryTab === "sprint_fvp" && T.isNative(state, entryTab))
+      h += window.RingsideSprintFVPEntry.render(state, { input, select, check, field, table });
     else if (entryTab === "fms") {
       h +=
         '<p class="intro">0疼痛、1无法完成、2有代偿完成、3按标准完成。</p>' +
@@ -21305,9 +21924,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function rememberDeletion(type, test, index) {
     const array =
-      type === "point" ? state.data.imtp[test].timePoints : state.data[test];
+      type === "point" ? state.data.imtp[test].timePoints : type === "sprint-split" ? state.data.sprint_fvp[test].splits : state.data[test];
     const prefix =
-      type === "point"
+      type === "sprint-split" ? stablePath(`data.sprint_fvp.${test}.splits.${index}.timeS`).replace(/\.timeS$/, ".") : type === "point"
         ? stablePath(`data.imtp.${test}.timePoints.${index}.force`).replace(
             /\.force$/,
             ".",
@@ -21337,7 +21956,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     renderEntry();
     reportDirty = true;
     rowFocus(
-      `data.${t}.${Math.min(i, state.data[t].length - 1)}.${t === "cmj" || t === "sj" ? "height" : "load"}`,
+      `data.${t}.${Math.min(i, state.data[t].length - 1)}.${t === "sprint_fvp" ? "splits.0.timeS" : t === "cmj" || t === "sj" ? "height" : "load"}`,
     );
     toast("已删除，可在底部撤销");
   }
@@ -21353,7 +21972,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       });
     } else {
       const array =
-        undo.type === "repeat" ? atPath(resolveDraftPath(undo.arrayPath) || "") : undo.type === "point"
+        undo.type === "repeat" ? atPath(resolveDraftPath(undo.arrayPath) || "") : undo.type === "sprint-split" ? state.data.sprint_fvp[undo.test]?.splits : undo.type === "point"
           ? state.data.imtp[undo.test]?.timePoints
           : state.data[undo.test];
       if (!array) return;
@@ -21376,6 +21995,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       rowFocus((resolveDraftPath(undo.arrayPath) || "") + "." + undo.index + "." + (Object.keys(undo.item).find((key) => !["id", "metrics", "notes"].includes(key)) || "notes"));
     else if (undo.type === "point")
       rowFocus(`data.imtp.${undo.test}.timePoints.${undo.index}.force`);
+    else if (undo.type === "sprint-split")
+      rowFocus(`data.sprint_fvp.${undo.test}.splits.${undo.index}.timeS`);
     else
       rowFocus(
         `data.${undo.test}.${undo.index}.${Object.keys(undo.item).find((k) => k !== "id") || "id"}`,
@@ -21576,6 +22197,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     );
   }
   function addRow(t, groupIndex = -1) {
+    if (t === "sprint_fvp" && T.isNative(state, t)) {
+      const distances = state.data[t]?.[groupIndex]?.splits?.map(split => split.distanceM);
+      (state.data[t] ||= []).push(window.RingsideSprintFVPEntry.defaultTrial(distances));
+      changed(false); renderEntry(); rowFocus(`data.${t}.${state.data[t].length - 1}.splits.0.timeS`); return;
+    }
     if (["fvp_sj", "fvp_cmj"].includes(t) && T.isNative(state, t)) {
       const group = state.data[t][groupIndex];
       state.data[t].push({ id: uid(), load: group?.load ?? "", height: "", distanceCm: "", notes: "", excluded: false, exclusionReason: "" });
@@ -22340,6 +22966,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       })),
       capabilityAnalysis: copy(s.capabilityCards || []),
       jumpFVP: copy(Object.fromEntries(Object.entries(s.fvp || {}).filter(([, profile]) => profile.enabled))),
+      sprintFVP: s.sprintFvp?.enabled ? {
+        valid:s.sprintFvp.valid, reason:s.sprintFvp.reason, methodVersion:s.sprintFvp.config?.methodVersion,
+        config:copy(s.sprintFvp.config), targetDistanceM:s.sprintFvp.targetDistanceM,
+        selectionBasis:s.sprintFvp.selectionBasis, selectedTrialId:s.sprintFvp.selectedTrialId,
+        model:s.sprintFvp.model ? Object.fromEntries(["F0","F0Absolute","V0","Pmax","PmaxAbsolute","RFmax","DRF","slope","r2","units"].map(key => [key,copy(s.sprintFvp.model[key] ?? null)])) : null,
+        optimum:copy(s.sprintFvp.optimum), optimumReason:s.sprintFvp.optimumReason,
+        imbalance:copy(s.sprintFvp.imbalance), judgments:copy(s.sprintFvp.judgments || null),
+      } : null,
       cpet: copy(s.raw.cpet || null),
       qualityIssues: s.qualityIssues || [],
       migrationReview: {
@@ -23206,6 +23840,18 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     selectRecord,
     selectReportGroup, openAthleteChooser, filterAthleteChooser, athleteChooserKey,
     addRow,
+    addSprintSplit(index) {
+      const trial = state?.data?.sprint_fvp?.[index];
+      if (!trial || !T.isNative(state, "sprint_fvp")) return;
+      trial.splits.push({distanceM:"", timeS:""}); changed(false); renderEntry();
+      rowFocus(`data.sprint_fvp.${index}.splits.${trial.splits.length - 1}.distanceM`);
+    },
+    removeSprintSplit(index, splitIndex) {
+      const trial = state?.data?.sprint_fvp?.[index];
+      if (!trial?.splits?.[splitIndex] || !T.isNative(state, "sprint_fvp")) return;
+      rememberDeletion("sprint-split", index, splitIndex); trial.splits.splice(splitIndex, 1);
+      changed(false); renderEntry(); toast("已删除分段，可在底部撤销");
+    },
     addHopJump, removeHopJump, addHopSet,
     removeRow,
     addRepeat,
@@ -23321,6 +23967,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     state.fvpView[id].pinnedLoad = load; changed(false);
   });
   document.addEventListener("submit", event => {
+    if (event.target.matches("[data-sprint-target-form]")) {
+      event.preventDefault(); if (!state) return;
+      const control = event.target.querySelector("[data-sprint-target-distance]"), value = control?.value.trim() || "";
+      const error = M.validateField(state, "sprintFvpAnalysis.targetDistanceM", value);
+      if (error || value && (!Number.isFinite(Number(value)) || Number(value) <= 0)) return toast(error || "目标距离须为正数");
+      (state.sprintFvpAnalysis ||= {}).targetDistanceM = value === "" ? "" : Number(value);
+      changed(false); renderReport(); return;
+    }
     if (!event.target.matches("[data-fvp-scenario-form]")) return;
     event.preventDefault();
     const id = fvpControlRecord(event.target);
@@ -23392,6 +24046,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
+    if (t.hasAttribute("data-capability-selection")) {
+      const key = t.dataset.capabilitySelection, choices = {strength:["fvp","fdsi","idsi_matched","idsi_fixed250","eur"], reactive:["dj_rsi","hop_rsi","cmrj_rsi"], speed:["sprint_fvp","srr"]};
+      if (!state || !choices[key]?.includes(t.value)) return;
+      (state.views.capabilitySelections ||= {})[key] = t.value; changed(false); renderReport(); return;
+    }
     if (t.hasAttribute("data-fvp-protocol")) {
       state.views.fvpProtocol = t.value; changed(false); renderReport(); return;
     }
@@ -23444,7 +24103,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       setPath(t.dataset.path, t.type === "checkbox" ? t.checked : t.value);
       if (/^views\.lvp(Upper|Lower)\.showBand$/.test(t.dataset.path))
         state.views[t.dataset.path.split(".")[1]].bandExplicit = true;
-      if (ui.mode === "entry" && (["dsi.source"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)||/\.activeStiffnessInputUnit$/.test(t.dataset.path)||/^data\.cpet.*(?:vo2Unit|oxygenLabel|label|modality)$/.test(t.dataset.path)))
+      if (ui.mode === "entry" && (["dsi.source", "sprintFvpConfig.inputTimeMode"].includes(t.dataset.path)||/^data\.hop(?:\.trials\.\d+)?\.inputMode$/.test(t.dataset.path)||/\.activeStiffnessInputUnit$/.test(t.dataset.path)||/^data\.cpet.*(?:vo2Unit|oxygenLabel|label|modality)$/.test(t.dataset.path)))
         renderEntry();
     }
     if (t.dataset.axis) {
@@ -23500,6 +24159,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     updateEditor();
   });
   document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-sprint-target-follow]")) {
+      if (!state) return; (state.sprintFvpAnalysis ||= {}).targetDistanceM = "";
+      changed(false); renderReport(); return;
+    }
     const shortcut = e.target.closest("[data-fvp-shortcut]");
     if (shortcut) {
       const id = fvpControlRecord(shortcut), kind = shortcut.dataset.fvpShortcut;

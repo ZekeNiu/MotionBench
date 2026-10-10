@@ -35,6 +35,9 @@
     for (const id of ["fvp_sj", "fvp_cmj"]) if (Array.isArray(data[id]) && (root.RingsideTests?.isNative ? root.RingsideTests.isNative(record, id) : !!record.fvpConfig?.[id] && !record.customTests?.some(test => test.id === id))) {
       data[id] = data[id].filter(row => row && row.height !== undefined && row.height !== null && String(row.height).trim() !== "");
     }
+    if (Array.isArray(data.sprint_fvp) && root.RingsideTests?.isNative(record, "sprint_fvp")) {
+      data.sprint_fvp = data.sprint_fvp.filter(row => row?.splits?.some(split => split.timeS !== undefined && split.timeS !== null && String(split.timeS).trim() !== ""));
+    }
     return JSON.stringify({
       data: project(data, true),
       customValues: project(record?.customValues, true),

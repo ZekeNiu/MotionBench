@@ -10,6 +10,7 @@
     ["sj", "SJ", "performance", "jumps"],
     ["fvp_sj", "SJ F–V/P–V 剖面", "performance", "fvp"],
     ["fvp_cmj", "CMJ F–V/P–V 剖面", "performance", "fvp"],
+    ["sprint_fvp", "分段计时冲刺 F–V/P–V 剖面", "performance", "sprint-fvp"],
     ["dj", "DJ 下落跳", "performance", "jumps"],
     ["hop", "10/5 Hop Test 连续反应跳", "performance", "jumps"],
     ["cmrj", "CMRJ 反向反弹跳", "performance", "jumps"],
@@ -86,6 +87,10 @@
   const derivedDefinitions = () => JSON.parse(JSON.stringify(derivedRegistry));
   const derivedDefaults = () => Object.fromEntries(derivedRegistry.map((d) => [d.id, true]));
   const extraMetrics = [
+    ...[
+      ["f0", "冲刺 F₀", "N/kg"], ["v0", "冲刺 V₀", "m/s"], ["pmax", "冲刺 Pmax", "W/kg"],
+      ["rfmax", "冲刺 RF max", "%"], ["drf", "冲刺 DRF", "百分点/(m/s)"], ["imbalance", "冲刺 FVP 不平衡度", "%"],
+    ].map(([key, name, unit]) => ["sprint_fvp_" + key, "sprint_fvp", name, unit, "最大速度"]),
     ...["fvp_sj", "fvp_cmj"].flatMap(id => [
       [id + "_f0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " F₀", "N/kg", "爆发力"],
       [id + "_v0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " V₀", "m/s", "爆发力"],
@@ -159,6 +164,7 @@
       protocol: "使用实际测试协议与匹配评价标准",
       ...jumpReference(id),
       ...(testId.startsWith("fvp_") ? { scoring: false, source: "Morin & Samozino 2016；Samozino et al. 2008/2012", protocol: "各负荷选最高有效跳跃高度；以体重、附加负荷、跳跃高度及推进距离计算" } : {}),
+      ...(testId === "sprint_fvp" ? {scoring:false, source:"Samozino et al. 2016；Morin et al. 2022", protocol:"静止起跑分段计时；最佳完整试次；最佳 F–V 取决于 Pmax 和目标距离"} : {}),
       ...(id === "cpet_vo2_relative" ? { referenceEnabled: true, referenceMode: "grouped", referenceGroups: global.RingsideReferences?.cpetReferenceGroups?.() || [], source: "FRIEND 2022 · 实测摄氧量参考百分位", protocol: "CPET 实测摄氧量" } : {}),
     }));
   const isManualMetric = (definition) =>
@@ -177,7 +183,7 @@
       || (source.customTests || []).find((t) => t.id === testId);
     const primary = fields.find((d) => d.id === test?.primaryMetricId) || fields[0];
     return {
-      kind: ["fms", "lactate", "cpet", "fvp"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
+      kind: ["fms", "lactate", "cpet", "fvp", "sprint-fvp"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
       primaryMetricId: primary?.id || null,
       direction: primary?.direction || "higher",
       fields,
@@ -271,6 +277,7 @@
               ["velocity", "速度 m/s"],
             ]
           : renderer === "fvp" ? [["load", "附加负荷 kg"], ["height", "垂直跳跃高度 cm"], ["distanceCm", "推进距离 cm"], ["excluded", "已排除"], ["exclusionReason", "排除原因"]]
+          : renderer === "sprint-fvp" ? [["splits", "累计距离 m / 时间 s"], ["excluded", "已排除"], ["exclusionReason", "排除原因"]]
           : nativeFields[testId] || [];
     return {
       shape: isNative(source,testId) && ["pushup", "ift", "mas", "mss", "hop", "cpet"].includes(testId)
@@ -366,7 +373,7 @@
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
       return { id, name: prior?.name ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
-        ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
+        ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj", "sprint_fvp"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
         ...(primaryMetricId ? { primaryMetricId } : {}) };
     });
   }

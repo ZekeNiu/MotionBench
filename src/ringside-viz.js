@@ -1865,7 +1865,8 @@
 
   function jumpFvp(data, options = {}, layout = {}) {
     const w = Math.max(240, layout.width || 480), h = layout.height || 410;
-    if (!data?.valid) return layoutSVG(w, h, "跳跃力–速度剖面", text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
+    const sprint = data?.kind === "sprint", title = sprint ? "冲刺 F–V 与 P–V 剖面" : "跳跃 F–V 与 P–V 剖面";
+    if (!data?.valid) return layoutSVG(w, h, title, text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
     const fv = options.fv !== false, pv = options.pv !== false;
     if (!fv && !pv) return layoutSVG(w, h, "跳跃力–速度剖面", text(w / 2, h / 2, "勾选 F–V 或 P–V 查看曲线", 'text-anchor="middle" font-size="13"'), "当前未选择显示曲线", layout);
     const forceColor = C.blue, powerColor = C.green, small = w < 400;
@@ -1921,7 +1922,10 @@
     const optionY=legendY+60;
     if(options.points!==false)out+=circle(left+11,optionY-4,3.6,mainColor)+text(left+29,optionY,"实测点",'font-size="10"');
     if(band.length){const bx=left+(options.points!==false?Math.min(112,(right-left)*.49):0);out+=`<rect x="${bx}" y="${optionY-12}" width="22" height="12" fill="${mainColor}" fill-opacity=".18"/>`+text(bx+29,optionY,"95%置信带",'font-size="10"');}
-    return layoutSVG(w,h,"跳跃 F–V 与 P–V 剖面",out,"F–V读取力坐标，P–V读取功率坐标；实线为当前剖面，虚线为目标最优剖面，点线为另一角度参照。置信带为实测速度范围内的拟合均值响应区间。",layout);
+    return layoutSVG(w,h,title,out,sprint ? "F–V读取力坐标，P–V读取功率坐标；实线为当前冲刺剖面，虚线为固定当前最大功率时的目标距离最优冲刺剖面。" : "F–V读取力坐标，P–V读取功率坐标；实线为当前剖面，虚线为目标最优剖面，点线为另一角度参照。置信带为实测速度范围内的拟合均值响应区间。",layout);
+  }
+  function sprintFvp(data, options = {}, layout = {}) {
+    return jumpFvp({ ...data, kind: "sprint" }, { ...options, points: false, comparison: false, confidence: false, range: "full" }, layout);
   }
   function jumpElasticity(data, layout = {}) {
     const w=Math.max(240,layout.width||480),h=layout.height||330;
@@ -1965,6 +1969,7 @@
     compare,
     empty,
     jumpFvp,
+    sprintFvp,
     jumpElasticity,
     C,
   };

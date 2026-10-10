@@ -1,6 +1,8 @@
 # MotionBench
 
-跨项目的运动表现评估与训练建议工作台。当前版本 **2.16.1**。录入、计算、图表、备份与 PDF 导出均可离线使用。
+跨项目的运动表现评估与训练建议工作台。本地审查版本 **2.17.0-local**，基于正式版 2.16.1。录入、计算、图表、备份与 PDF 导出均可离线使用。本轮尚未发布、合并或部署。
+
+本轮加入分段计时冲刺 F–V / P–V、Pmax、RFmax、DRF 与按目标距离计算的最佳冲刺剖面；能力结构分析采用左侧四张单指标方向卡、右侧分类参数表。方向依据和专项距离随记录保存，原始分段时间保留。详见[冲刺模型](docs/sprint-fvp-method.md)、[本地基线和回退](docs/local-baseline-20261010.md)、[Windows 应用实施计划](docs/windows-app-plan.md)。
 
 ![MotionBench](assets/motionbench-logo.svg)
 
@@ -21,7 +23,7 @@
 
 参考目标用于达成度与能力图；启用的评价区间决定颜色，没有区间时按原有目标达成阈值评价。关闭评价后保留配置和测量，不参与评级或能力达成计算。管理中心说明两者的优先关系。2.16.1 已修复扩展指标和旧 IMTP 时点关闭评价后仍按目标评级的问题。CMJ 与 IMTP 录入页均可确认 DSI 测量可比性，并显示未计算原因。
 
-2.16.1 的远程源码回退点为 `rollback-v2.16.0-20261010`。
+本轮本地源码回退点为 `rollback-v2.16.1-local-20261010`，指向 `bdbb92cc0d6d914c6bcf5721d6eb65c2296c7d02`。用户原目录与原浏览器资料库未改变。代码回退不会恢复用户数据；迁移前须从原版本导出完整 `.motionbench.jsonl`，另行保留并验证。具体步骤见[本地基线和回退](docs/local-baseline-20261010.md)。
 
 ### 两种建议有什么区别
 
@@ -95,7 +97,7 @@ Windows 本机启动入口使用当前账户的 DPAPI 加密，将地址、模�
 
 页面与 PDF 采用统一的银灰样式，数据行白底。低矮窗口的侧栏可整体滚动，顶部关闭按钮保持可见；重新打开时会显示当前导航项。
 
-方法说明：[速度参考](docs/speed-reference.md) · [软件结构](docs/architecture.md) · [本版说明与验收](docs/motionbench-2.16.1.md)。
+方法说明：[速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md) · [软件结构](docs/architecture.md) · [本地版验收](docs/local-acceptance-2.17.0.md)。正式版历史见 [2.16.1 说明](docs/motionbench-2.16.1.md)。
 
 ## 开发与验证
 
@@ -117,6 +119,10 @@ python tests/local-server-tests.py
 ```
 
 `src/` 是正式源码；修改后重新构建两个内容相同的 HTML。内部 `Ringside*` 模块名与旧文件名保留用于兼容，不代表仍以拳击作为产品定位。
+
+2.17.0-local 的本轮检查使用 `npm test`、`npm run test:sprint` 和两浏览器实际 PDF 导出。`npm run test:sprint-pdf` 导出 Chrome PDF；Edge 使用 `node tests/sprint-fvp-browser-tests.cjs --edge --pdf`。按 `scripts/review_sprint_pdf.py` 渲染并逐页审阅后，`npm run verify:delivery` 将证据绑定最终 HTML。原生用户工作簿物化阻塞与未运行项目见本地验收记录，不能借用历史版本的原生 Excel 通过结果。
+
+独立科学复核可运行 `python tests/sprint-fvp-independent-checks.py`。此项需要环境中已有 NumPy 和 SciPy，独立使用解析极限与 SciPy 数值方法核对模型，不纳入 `npm test`，也不会安装依赖。结果写入 `output/science-review-results.json`，记录实际脚本与计算模块 SHA256；交付验证器将这些模块证据与最终 HTML 浏览器验收分开核对。
 
 2.13.1 的统一录入验收使用 `npm run test:entry`，完整当轮结果通过 `python scripts/verify_v2131.py` 绑定最终成品。
 

@@ -46,6 +46,17 @@
 .fvp-raw-trials summary { cursor:pointer; color:var(--muted); }
 .fvp-raw-trials table { min-width:530px; font-size:11px; }
 .fvp-empty-result { padding:15px 17px; color:var(--ink); background:var(--surface-soft); border-radius:var(--radius-control); line-height:1.7; font-size:13px; }
+.sprint-fvp-analysis { margin-bottom:20px; }
+.sprint-target-form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; margin:0 0 16px; }
+.sprint-target-form label { display:grid; gap:5px; margin:0; color:var(--muted); font-size:12px; }
+.sprint-target-form input { width:180px; max-width:100%; min-height:38px; padding:7px 9px; font:inherit; }
+.sprint-target-form button { min-height:38px; }
+.sprint-fvp-fit-table { table-layout:fixed; width:100%; font-size:11px; }
+.sprint-fvp-fit-table th,.sprint-fvp-fit-table td { padding:7px 5px; }
+@media(max-width:600px) {
+  .sprint-target-form label,.sprint-target-form input { width:100%; }
+  .sprint-target-form input,.sprint-target-form button { min-height:44px; }
+}
 .fvp-analysis-card .fvp-points .viz-point { cursor:pointer; }
 .fvp-analysis-card .viz-point.is-fvp-highlighted > circle,.fvp-analysis-card .viz-point.is-fvp-highlighted > polygon { stroke:#262a30; stroke-width:3; }
 .fvp-analysis-card .viz-point.is-fvp-pinned > circle,.fvp-analysis-card .viz-point.is-fvp-pinned > polygon { stroke:#262a30; stroke-width:3.5; }

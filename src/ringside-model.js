@@ -6,12 +6,19 @@
   if (!Calc || !Def) throw new Error("RingsideModel requires Calc and Def.");
   const N = Calc.num;
   const FVP_IDS = ["fvp_sj", "fvp_cmj"];
+  const ADDED_FVP_IDS = [...FVP_IDS, "sprint_fvp"];
+  const sprintFvpConfigDefaults = () => root.RingsideSprintFVP?.defaultsConfig() || { heightCm: "", temperatureC: 20, pressureHpa: 1013.25, windMps: 0, device: "", startConvention: "first_propulsive_action", timingStart: "first_propulsive_action", inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0, methodVersion: "samozino-2016-splits-v1", sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" };
+  const sprintFvpAnalysisDefaults = () => root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" };
   const fvpConfigDefaults = () => root.RingsideFVP?.defaultsConfig() || { device: "", method: "", posture: "", distanceCm: "", distanceSource: "" };
   const fvpAnalysisDefaults = () => root.RingsideFVP?.defaultsAnalysis() || { angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 };
   const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null, responseForce: true, responseVelocity: true, responseBoth: true };
   function fvpAnalysis(record, id) {
     if (!FVP_IDS.includes(id) || !T.isNative(record, id)) return null;
     return root.RingsideFVP ? root.RingsideFVP.solve(record, id) : { id, valid: false, status: "empty", reason: "F–V 模型尚未载入", points: [], trials: [], groups: [], issues: [] };
+  }
+  function sprintFvpAnalysis(record) {
+    if (!T.isNative(record, "sprint_fvp")) return null;
+    return root.RingsideSprintFVP ? root.RingsideSprintFVP.solve(record) : { id: "sprint_fvp", valid: false, status: "empty", reason: "冲刺 F–V 模块尚未加载", points: [], trials: [], issues: [] };
   }
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const uid = () =>
@@ -324,7 +331,8 @@
     const added = new Set(extraDefs().filter((d) =>
       source.derivedEnabled === undefined && (["dj","hop","cmrj"].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)) ||
       (source.capabilityVersion !== 1 || !T.isNative(source,d.testId)) && (d.testId === "cpet" || d.id === "rqr" || d.id.endsWith("_active_stiffness")) ||
-      (source.fvpVersion !== 1 || !T.isNative(source,d.testId)) && FVP_IDS.includes(d.testId)
+      (source.fvpVersion !== 1 || !T.isNative(source,d.testId)) && FVP_IDS.includes(d.testId) ||
+      (source.sprintFvpVersion !== 1 || !T.isNative(source,d.testId)) && d.testId === "sprint_fvp"
     ).map((d) => d.id));
     return definitions.map((d) => added.has(d.id) ? { ...d, legacyManual: true } : d);
   }
@@ -416,6 +424,7 @@
       schema: 2,
       capabilityVersion: 1,
       fvpVersion: 1,
+      sprintFvpVersion: 1,
       kind: "assessment-record",
       athleteId: uid(),
       recordId: uid(),
@@ -438,7 +447,7 @@
         cycle: "",
         notes: "",
       },
-      enabled: Object.fromEntries(TESTS.map((t) => [t[0], !FVP_IDS.includes(t[0])])),
+      enabled: Object.fromEntries(TESTS.map((t) => [t[0], !ADDED_FVP_IDS.includes(t[0])])),
       mode: "best",
       trainingContext: {
         experienceYears: "",
@@ -483,6 +492,7 @@
         cmrj: [newJumpAttempt("cmrj")],
         fvp_sj: [],
         fvp_cmj: [],
+        sprint_fvp: [],
         imtp: [
           normalizeIMTP({
             id: uid(),
@@ -516,6 +526,7 @@
         sj: "双手叉腰；静止起跳；测量方法与设备待记录",
         fvp_sj: "双手叉腰；静止 SJ；分负荷测量跳跃高度和推进距离；同负荷选最高有效试次",
         fvp_cmj: "双手叉腰；统一反向动作与起跳姿势；分负荷测量跳跃高度和推进距离；同负荷选最高有效试次",
+        sprint_fvp: "静止起跑；从首次推进动作计时；至少 4 个加速分段；同末段距离选最快完整有效试次",
         dj: "双手叉腰；记录跌落高度；落地后立即反弹；RSI 为垂直跳跃高度/触地时间。",
         hop: "垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按垂直跳跃高度/触地时间选最高5个；保留实际数量。",
         cmrj: "双手叉腰；最大 CMJ 后落地立即反弹；分别记录首跳和第二跳。",
@@ -537,6 +548,8 @@
       fvpConfig: Object.fromEntries(FVP_IDS.map(id => [id, fvpConfigDefaults()])),
       fvpAnalysis: Object.fromEntries(FVP_IDS.map(id => [id, fvpAnalysisDefaults()])),
       fvpView: Object.fromEntries(FVP_IDS.map(id => [id, fvpViewDefaults()])),
+      sprintFvpConfig: sprintFvpConfigDefaults(),
+      sprintFvpAnalysis: sprintFvpAnalysisDefaults(),
       lvp: {
         squat: { metric: "MV", mvt: "", zones: [] },
         bench: { metric: "MV", mvt: "", zones: [] },
@@ -575,6 +588,7 @@
       },
       views: {
         idsiWindow: "idsi_matched",
+        capabilitySelections: { strength: "fvp", reactive: "dj_rsi", speed: "sprint_fvp" },
         imtp: { yAxis: "percent" },
         redScope: "all",
         amberScope: "all",
@@ -851,7 +865,7 @@
     const s = clone(input),
       d = defaults(),
       legacy = s.schema !== 2;
-    (s.projectSnapshots || []).forEach(test => { if (FVP_IDS.includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
+    (s.projectSnapshots || []).forEach(test => { if (ADDED_FVP_IDS.includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
     validateAbilityGroups(s.abilityGroupSnapshot);
     if (s.schema === 1 && !safeId(s.recordId))
       throw new Error("旧版报告缺少有效的测试记录 ID");
@@ -861,7 +875,7 @@
     out.athlete = { ...d.athlete, ...s.athlete };
     out.trainingContext = { ...d.trainingContext, ...s.trainingContext };
     out.enabled = { ...d.enabled, ...s.enabled };
-    ["dj", "hop", "cmrj", "cpet", ...FVP_IDS].forEach((id) => { if (!Object.hasOwn(s.enabled || {}, id)) out.enabled[id] = false; });
+    ["dj", "hop", "cmrj", "cpet", ...ADDED_FVP_IDS].forEach((id) => { if (!Object.hasOwn(s.enabled || {}, id)) out.enabled[id] = false; });
     out.data = { ...d.data, ...s.data };
     out.data.fms = (out.data.fms || []).map(row => {
       const next = {...row}, builtin = FM.find(([name]) => name === row.name);
@@ -886,6 +900,14 @@
       out.fvpView[id] = { ...fvpViewDefaults(), ...s.fvpView?.[id] };
     });
     out.fvpVersion = 1;
+    if (T.isNative(s, "sprint_fvp")) {
+      out.data.sprint_fvp = root.RingsideSprintFVP ? root.RingsideSprintFVP.normalizeTrials(s.data?.sprint_fvp) : (s.data?.sprint_fvp || []);
+      out.sprintFvpConfig = { ...sprintFvpConfigDefaults(), ...s.sprintFvpConfig };
+      if (s.sprintFvpConfig?.timingStart === undefined && s.sprintFvpConfig?.startConvention !== undefined)
+        out.sprintFvpConfig.timingStart = s.sprintFvpConfig.startConvention;
+      out.sprintFvpAnalysis = { ...sprintFvpAnalysisDefaults(), ...s.sprintFvpAnalysis };
+    }
+    out.sprintFvpVersion = 1;
     ["ift", "mas", "mss", "pushup"].forEach((t) => {
       out.data[t] = { ...d.data[t], ...s.data?.[t] };
     });
@@ -936,6 +958,7 @@
     out.views = {
       ...d.views,
       ...s.views,
+      capabilitySelections: { ...d.views.capabilitySelections, ...s.views?.capabilitySelections },
       imtp: { yAxis: s.views?.imtp?.yAxis === "force" ? "force" : "percent" },
       lvpUpper: { ...d.views.lvpUpper, ...s.views?.lvpUpper },
       lvpLower: { ...d.views.lvpLower, ...s.views?.lvpLower },
@@ -1000,7 +1023,7 @@
     const existing = new Set(out.definitions.map((x) => x.id));
     extraDefs()
       .filter(
-        (x) => ["imtp", "cmj", "sj", "dj", "hop", "cmrj", "cpet", ...FVP_IDS].includes(x.testId) && T.isNative(out,x.testId) && !existing.has(x.id),
+        (x) => ["imtp", "cmj", "sj", "dj", "hop", "cmrj", "cpet", ...ADDED_FVP_IDS].includes(x.testId) && T.isNative(out,x.testId) && !existing.has(x.id),
       )
       .forEach((x) => out.definitions.push(x));
     out.projectSnapshots = T.snapshots(out);
@@ -2259,10 +2282,7 @@
       result.available = Number.isFinite(result.value);
       if (result.available) {
         const percent = (n) => Math.abs(n).toFixed(1) + "%";
-        if (["eur", "gain"].includes(result.id)) {
-          const eur = result.id === "eur" ? result.value : 1 + result.value / 100;
-          result.directionHint = eur < 1.1 ? "发展 SSC 能力" : eur > 1.1 ? "发展纯向心能力" : "SSC 与纯向心并行发展";
-        } else if (result.id === "fdsi") result.directionHint = result.value < .6 ? "发展弹道与快速力量" : result.value > .8 ? "发展最大力量" : "并行发展最大力量与快速力量";
+        if (result.id === "fdsi") result.directionHint = result.value < .6 ? "发展弹道与快速力量" : result.value > .8 ? "发展最大力量" : "并行发展最大力量与快速力量";
         else if (result.id === "rqr") result.directionHint = result.value === 1 ? "DJ 与 Hop 的腾空／触地时间比相同。" : `DJ 腾空／触地时间比较 Hop ${result.value > 1 ? "高" : "低"} ${percent((result.value - 1) * 100)}。`;
       }
       if (!result.available) { result.value = null; result.reason ||= "缺少可计算的数据或结果超出有效数值范围"; }
@@ -2389,6 +2409,17 @@
       raw = {},
       validTests = new Set();
     const fvp = {};
+    const sprintResult = sprintFvpAnalysis(state), sprintFvp = sprintResult ? { ...sprintResult, enabled: use("sprint_fvp") } : null;
+    if (sprintFvp?.enabled) {
+      raw.sprint_fvp = sprintFvp;
+      if (sprintFvp.valid) {
+        validTests.add("sprint_fvp");
+        ["f0", "v0", "pmax", "rfmax", "drf"].forEach((suffix, i) => {
+          values["sprint_fvp_" + suffix] = sprintFvp.model[["F0", "V0", "Pmax", "RFmax", "DRF"][i]] * (suffix === "rfmax" ? 100 : 1);
+        });
+        if (sprintFvp.imbalancePct !== null) values.sprint_fvp_imbalance = sprintFvp.imbalancePct;
+      }
+    }
     FVP_IDS.filter(id => T.isNative(state, id)).forEach(id => {
       const result = fvpAnalysis(state, id);
       fvp[id] = { ...result, enabled: use(id) };
@@ -2714,6 +2745,7 @@
       .forEach((x) => qualityIssues.push({ ...x, testId: "imtp" }));
     qualityIssues.push(...(raw.cpet?.issues || []));
     Object.values(fvp).filter(result => result.enabled).forEach(result => qualityIssues.push(...result.issues));
+    if (sprintFvp?.enabled) qualityIssues.push(...sprintFvp.issues);
     const groups = new Map(), axisValues = { ...values };
     const timeResultsById = new Map(imtpTimeResults.map(result => [result.id, result]));
     const replacedTimeIds = new Set((state.imtpTimeStandards || []).map(rule => "imtp_" + (rule.kind === "force_pct_peak" ? "f" : "rfd") + rule.timeMs));
@@ -3034,6 +3066,7 @@
     const partial = [];
     Object.values(fvp).filter(result => result.enabled && result.status === "review").forEach(result =>
       partial.push({ id: result.id, label: projectNames.get(result.id) || result.label, reason: result.reason || "存在待核对的试次" }));
+    if (sprintFvp?.enabled && sprintFvp.status === "review") partial.push({ id: "sprint_fvp", label: sprintFvp.label, reason: sprintFvp.reason });
     if (use("fms") && raw.fms?.completed && !raw.fms.complete)
       partial.push({
         id: "fms",
@@ -3055,6 +3088,7 @@
         recordProgressDetail(state, id, {
           values,
           fvp,
+          sprintFvp,
           raw,
           validTests,
           qualityIssues,
@@ -3076,6 +3110,7 @@
     return {
       values,
       fvp,
+      sprintFvp,
       derived,
       capabilityCards: cards,
       cardio: cards.find(card => card.id === "cardio") || null,
@@ -3113,6 +3148,12 @@
     if (FVP_IDS.includes(testId) && T.isNative(record, testId)) {
       const result = s.fvp?.[testId] || fvpAnalysis(record, testId);
       detail = result.points.length + " 个不同负荷；" + result.trials.filter(trial => trial.eligible).length + " 个有效试次";
+      review = result.status === "review";
+      if (review && result.reason) detail += "；" + result.reason;
+    } else if (testId === "sprint_fvp" && T.isNative(record, testId)) {
+      const result = s.sprintFvp || sprintFvpAnalysis(record);
+      detail = result.trials.filter(trial => trial.eligible).length + " 个有效完整试次";
+      if (result.selected) detail += "；选用 " + result.selected.endDistanceM + " m 末段";
       review = result.status === "review";
       if (review && result.reason) detail += "；" + result.reason;
     } else if (testId === "fms") {
@@ -3326,6 +3367,10 @@
       if (T.isNative(record,id) && !enabled[id] && !meaningful(data[id]) && (!protocol[id] || protocol[id] === defaultProtocol[id]) && sameFvpDefaults(fvpConfig[id], defaultFvpConfig) && sameFvpDefaults(fvpAnalysis[id], defaultFvpAnalysis)) invisible.add(id);
       if (invisible.has(id)) { delete fvpConfig[id]; delete fvpAnalysis[id]; }
     });
+    if (T.isNative(record,"sprint_fvp") && !enabled.sprint_fvp && !meaningful(data.sprint_fvp)
+      && (!protocol.sprint_fvp || protocol.sprint_fvp === defaultProtocol.sprint_fvp)
+      && sameFvpDefaults(record.sprintFvpConfig, sprintFvpConfigDefaults())
+      && sameFvpDefaults(record.sprintFvpAnalysis, sprintFvpAnalysisDefaults())) invisible.add("sprint_fvp");
     invisible.forEach((id) => { delete data[id]; delete enabled[id]; delete protocol[id]; });
     Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
     const projection = definition => {
@@ -3333,7 +3378,7 @@
       if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
       return result;
     };
-    const extras = new Map(extraDefs().filter((d) => ["dj","hop","cmrj","cpet", ...FVP_IDS].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => [d.id,projection(d)]));
+    const extras = new Map(extraDefs().filter((d) => ["dj","hop","cmrj","cpet", ...ADDED_FVP_IDS].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => [d.id,projection(d)]));
     const same = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every((key) => JSON.stringify(a[key]) === JSON.stringify(b[key]));
     const definitions = withoutReplacedIMTPStandards(record).map(projection).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
     const derivedEnabled = Object.fromEntries(Object.entries(record.derivedEnabled || {}).filter(([,enabled]) => enabled === false));
@@ -3361,6 +3406,7 @@
       imtpConfig,
       ...(Object.keys(fvpConfig).length ? { fvpConfig } : {}),
       ...(Object.keys(fvpAnalysis).length ? { fvpAnalysis } : {}),
+      ...(!invisible.has("sprint_fvp") && T.isNative(record,"sprint_fvp") ? { sprintFvpConfig: record.sprintFvpConfig, sprintFvpAnalysis: record.sprintFvpAnalysis } : {}),
       ...(record.impulseConfig?.confirmed ? { impulseConfig: record.impulseConfig } : {}),
       ...(Object.keys(derivedEnabled).length ? { derivedEnabled } : {}),
       ...(record.imtpTimeStandards?.length ? { imtpTimeStandards: record.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
@@ -3434,6 +3480,7 @@
       revision: 1,
       capabilityVersion: 1,
       fvpVersion: 1,
+      sprintFvpVersion: 1,
       tests: T.snapshots(record),
       definitions: record.definitions,
       abilityGroups: T.abilityGroups(record),
@@ -3452,7 +3499,7 @@
         ? catalog.revision
         : 1;
     catalog.tests = Array.isArray(catalog.tests) ? catalog.tests : base.tests;
-    catalog.tests.forEach((test) => { if (["dj","hop","cmrj","cpet", ...FVP_IDS].includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
+    catalog.tests.forEach((test) => { if (["dj","hop","cmrj","cpet", ...ADDED_FVP_IDS].includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
     catalog.derivedEnabled = { ...T.derivedDefaults(), ...catalog.derivedEnabled };
     base.tests.forEach((test) => {
       if (!catalog.tests.some((t) => t.id === test.id))
@@ -3465,6 +3512,7 @@
     ), originalCatalog).map(convertDefinition);
     catalog.capabilityVersion = 1;
     catalog.fvpVersion = 1;
+    catalog.sprintFvpVersion = 1;
     base.definitions.forEach((definition) => {
       if (T.isNative(catalog,definition.testId) && !catalog.definitions.some((d) => d.id === definition.id))
         catalog.definitions.push(definition);
@@ -3813,6 +3861,13 @@
       return "";
     }
     if (path === "data.pushup.reps") return bounds(0, null, true);
+    if (T.isNative(record,"sprint_fvp")) {
+      if (/^data\.sprint_fvp\.\d+\.splits\.\d+\.(?:distanceM|timeS)$/.test(path)
+        || /^sprintFvpConfig\.(?:heightCm|pressureHpa)$/.test(path)
+        || path === "sprintFvpAnalysis.targetDistanceM") return bounds(0, null, false, true);
+      if (/^sprintFvpConfig\.(?:windMps|timeCorrectionS|positionStartM)$/.test(path)) return empty ? "" : requireNumber();
+      if (path === "sprintFvpConfig.temperatureC") return empty ? "" : requireNumber() || (number <= -273 ? "气温须高于 −273°C" : "");
+    }
     const fvpPath = path.match(/^(?:data|fvpConfig|fvpAnalysis)\.(fvp_(?:sj|cmj))\./);
     if (fvpPath && T.isNative(record, fvpPath[1])) {
       if (/^data\.fvp_(sj|cmj)\.\d+\.load$/.test(path)) return bounds(0, null);
@@ -3926,6 +3981,12 @@
       check("fvpConfig." + id + ".distanceCm", record.fvpConfig?.[id]?.distanceCm);
       ["deltaForcePct","deltaVelocityPct"].forEach(key => check("fvpAnalysis." + id + "." + key, record.fvpAnalysis?.[id]?.[key]));
     });
+    if (T.isNative(record,"sprint_fvp")) {
+      (record.data.sprint_fvp || []).forEach((row,i) => (row.splits || []).forEach((split,j) =>
+        ["distanceM","timeS"].forEach(key => check("data.sprint_fvp." + i + ".splits." + j + "." + key, split[key]))));
+      ["heightCm","temperatureC","pressureHpa","windMps","timeCorrectionS","positionStartM"].forEach(key => check("sprintFvpConfig." + key,record.sprintFvpConfig?.[key]));
+      check("sprintFvpAnalysis.targetDistanceM",record.sprintFvpAnalysis?.targetDistanceM);
+    }
     const fields = {
       fms: ["score", "left", "right"],
       iso: ["left", "right", "center", "target"],
@@ -4226,6 +4287,12 @@
     validateDataTree(input);
     validateDerivedOptions(input);
     if (input.views?.idsiWindow !== undefined && !["idsi_matched","idsi_fixed250"].includes(input.views.idsiWindow)) throw new Error("iDSI 积分时窗选项无效");
+    if (input.views?.capabilitySelections !== undefined) {
+      const selections = input.views.capabilitySelections;
+      if (!plainObject(selections)) throw new Error("能力结构指标选项格式无效");
+      const options = { strength: ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"], reactive: ["dj_rsi","hop_rsi","cmrj_rsi"], speed: ["sprint_fvp","srr"] };
+      Object.entries(options).forEach(([key, allowed]) => { if (selections[key] !== undefined && !allowed.includes(selections[key])) throw new Error("能力结构 " + key + " 指标选项无效"); });
+    }
     validateAbilityGroups(input.abilityGroupSnapshot);
     if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
     if (
@@ -4314,7 +4381,7 @@
         !plainObject(test) ||
         !safeId(test.id) ||
         customIds.has(test.id) ||
-        (TESTS.some((t) => t[0] === test.id) && !["dj","hop","cmrj","cpet", ...FVP_IDS].includes(test.id)) ||
+        (TESTS.some((t) => t[0] === test.id) && !["dj","hop","cmrj","cpet", ...ADDED_FVP_IDS].includes(test.id)) ||
         typeof test.name !== "string" ||
         !["screen", "performance"].includes(test.category)
       )
@@ -4464,6 +4531,7 @@
       value === "" ||
       ((typeof value === "number" || typeof value === "string") &&
         N(value) !== null);
+    if (T.isNative(input,"sprint_fvp")) root.RingsideSprintFVP?.validate(input, { plainObject, safeId, optionalNumber });
     FVP_IDS.filter(id => T.isNative(input,id)).forEach(id => {
       const rows = input.data[id];
       if (rows !== undefined && (!Array.isArray(rows) || rows.length > 1000 || rows.some(row => !plainObject(row)))) throw new Error("F–V 试次须为数据行");
@@ -4854,6 +4922,7 @@
     forceTime,
     stats,
     fvpAnalysis,
+    sprintFvpAnalysis,
     grade,
     attainment,
     unitFactor,

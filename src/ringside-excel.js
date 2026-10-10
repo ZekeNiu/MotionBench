@@ -5,6 +5,7 @@
   const uid = () => "xlsx_" + root.crypto.randomUUID().replace(/-/g, "");
   const empty = value => value === "" || value === null || value === undefined;
   const isFVP = id => ["fvp_sj", "fvp_cmj"].includes(id);
+  const isSprint = (record, id) => id === "sprint_fvp" && T.isNative(record, id);
   const safe = value => typeof value === "string" && /^[A-Za-z0-9_-]{1,249}$/.test(value) && !["__proto__", "prototype", "constructor"].includes(value);
   const get = (object, path) => path.split(".").reduce((value, key) => value?.[key], object);
   function put(object, path, value) {
@@ -34,6 +35,11 @@
     if(key==="vo2Unit")return {"ml/kg/min":"mL·kg⁻¹·min⁻¹","l/min":"L/min"};
     if(key==="label")return {VO2peak:"VO₂peak",VO2max:"VO₂max"};
     if(key==="range")return {full:"完整剖面",measured:"实测范围"};
+    if(key==="inputTimeMode")return {cumulative:"累计计时",interval:"各段用时"};
+    if(key==="timingStart"||key==="startConvention")return {first_propulsive_action:"首次推进动作",gate_crossing:"通过计时门",start_signal:"出发信号",other:"其他"};
+    if(key==="strength")return {fvp:"跳跃 FVP 不平衡度",fdsi:"DSI",idsi_matched:"iDSI · 匹配 CMJ 推进期",idsi_fixed250:"iDSI · 固定 0–250 ms",eur:"EUR"};
+    if(key==="reactive")return {dj_rsi:"DJ RSI",hop_rsi:"10/5 Hop RSI",cmrj_rsi:"CMRJ RSI"};
+    if(key==="speed")return {sprint_fvp:"冲刺 FVP 不平衡度",srr:"SRR"};
     return {};
   }
   const displayChoice=(f,value)=>choiceLabels(f)[value]??value;
@@ -52,6 +58,7 @@
     let fields;
     if (!T.isNative(record, id)) fields = extra;
     else if (["cmj", "sj", "dj", "cmrj"].includes(id)) fields = T.attemptFields(record, id).filter(f => !f.computed && f.key !== "activeStiffness").map(f => field(f.key || "metrics." + f.id, f.label + " " + f.unit)).concat(["dj", "cmrj"].includes(id) ? stiffness() : []);
+    else if (isSprint(record, id)) fields = [field("distanceM", "累计距离 m"), field("timeS", "原始时间 s（依计时方式）"), text("excluded", "排除此试次", ["是", "否"]), text("exclusionReason", "排除原因（首段填写）")];
     else if (isFVP(id)) fields = [field("load", "附加负荷 kg"), field("height", "垂直跳跃高度 cm"), field("distanceCm", "本次蹬伸距离 cm（留空沿用统一值）"), bool("excluded", "排除本次"), text("exclusionReason", "排除原因"), ...extra];
     else if (id === "imtp") fields = [field("peakForce", "峰值力 N"), field("baselineForce", "起点力 N"), field("peakTimeMs", "峰值时间 ms"), field("impulse250", "0–250 ms 冲量 N·s"), field("matchedImpulse", "匹配时窗冲量 N·s"), field("matchedDurationMs", "匹配时窗 ms"), ...extra];
     else if (["landmine", "squat", "bench", "deadlift"].includes(id)) fields = [...(id === "landmine" ? [text("side", "侧别", ["L", "R"])] : []), field("load", "负荷 kg"), field("velocity", "速度 m/s"), ...extra];
@@ -80,9 +87,16 @@
       for (const [key, label] of [["fv", "显示 F–V 曲线"], ["pv", "显示 P–V 曲线"], ["points", "显示实测点"], ["optimum", "显示最优剖面"], ["comparison", "显示另一角度最优剖面"], ["confidence", "显示置信区间"], ["responseForce", "显示力量端单独变化"], ["responseVelocity", "显示速度端单独变化"], ["responseBoth", "显示力量与速度同步变化"]]) rows.push(bool(view + "." + key, label));
       rows.push(text(view + ".range", "图表范围", ["full", "measured"]), {...field(view + ".pinnedLoad", "固定查看负荷 kg（可留空）"), nullable:true});
     }
+    if (isSprint(record, id)) {
+      const config = "sprintFvpConfig.", analysis = "sprintFvpAnalysis.";
+      rows.push(text(config + "device", "冲刺计时设备"), field(config + "heightCm", "模型身高 cm（留空沿用运动员身高）"), field(config + "temperatureC", "温度 °C"), field(config + "pressureHpa", "气压 hPa"), field(config + "windMps", "风速 m/s（顺风为正）"));
+      rows.push(text(config + "inputTimeMode", "原始时间方式", ["cumulative", "interval"]), text(config + "timingStart", "计时起点", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), text(config + "startConvention", "原始计时起点标记", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), field(config + "timeCorrectionS", "确定的累计时间修正 s"), field(config + "positionStartM", "空间起点距出发线 m"), field(analysis + "targetDistanceM", "专项目标距离 m（留空跟随末段）"));
+      rows.push(text(config + "methodVersion", "计算方法版本"), field(config + "sampleStepS", "采样步长 s"), field(config + "rfAfterS", "RF 起始时间 s（严格大于）"), text(config + "samplingWindow", "采样终点依据"));
+    }
+    if (selectedTests(record)[0]?.id === id) rows.push(text("views.capabilitySelections.strength", "力量发展判定指标", ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"]), text("views.capabilitySelections.reactive", "反应力量判定指标", ["dj_rsi","hop_rsi","cmrj_rsi"]), text("views.capabilitySelections.speed", "速度发展判定指标", ["sprint_fvp","srr"]));
     return rows;
   }
-  const isSharedSetting = f => f.key.startsWith("dsi.");
+  const isSharedSetting = f => f.key.startsWith("dsi.") || f.key.startsWith("views.capabilitySelections.");
   const sharedSettings = record => [...new Map(selectedTests(record).flatMap(test=>settings(record,test.id)).filter(isSharedSetting).map(f=>[f.key,f])).values()];
   function change(f,before,after,extra={}) {
     return {field:f.key,label:f.label,before:before??"",after:after??"",displayBefore:displayChoice(f,before??""),displayAfter:displayChoice(f,after??""),...extra};
@@ -130,6 +144,7 @@
         add("hop", "", [field("attempt", "完整测试组"), text("inputMode", "录入方式", ["summary", "jumps"]), ...["rsi", "height", "contactTimeMs", "flightTimeMs", "flightTimeRatio", "suppliedCount", "validCount", "selectedCount"].map((key,i) => field("summary."+key,["设备平均 RSI m/s","平均跳高 cm","平均触地 ms","平均腾空 ms","平均腾空/触地比","设备录入跳数","设备有效跳数","设备采用跳数"][i])), text("summary.selectionBasis", "设备筛选依据", ["unknown","height_rsi","flight_ratio"]), ...stiffness().map(f => ({...f,key:"summary."+f.key})), text("summary.notes", "设备汇总备注"), notes]);
         add("hopJumps", "_逐跳", [field("attempt", "完整测试组"), field("jump", "跳次"), field("height", "垂直跳高 cm"), field("contactTimeMs", "触地 ms"), field("flightTimeMs", "腾空 ms"), notes]);
       } else if (id === "cpet" && T.isNative(source,id)) add("cpet", "", [text("phase", "阶段", ["peak", "first", "second"]), text("label", "原报告名称", ["VO2peak", "VO2max", "VT1", "LT1", "VT2", "LT2"]), field("vo2", "摄氧量"), text("vo2Unit", "摄氧量单位", ["ml/kg/min","l/min"]), field("hr", "心率 bpm"), field("rer", "峰值 RER"), field("speed", "阈值速度 m/s"), field("power", "阈值功率 W")]);
+      else if (isSprint(source, id)) add("sprintSplits", "", [field("attempt", "试次"), field("split", "分段序号"), ...attemptFields(source, id)]);
       else add("attempt", "", [field("attempt", id === "lactate" ? "阶段" : "试次"), ...attemptFields(source,id)]);
       if (id === "imtp") add("timePoints", "_时间点", [field("attempt", "试次"), field("timeMs", "时间 ms"), field("force", "实测力 N"), field("rfd", "0–t 平均 RFD N/s")]);
       const manual = source.definitions.filter(d => d.testId === id && T.isManualMetric(d) && !T.isAttemptMetric(d));
@@ -139,7 +154,7 @@
     return specs;
   }
   const identity = record => ({recordId:record.recordId,athleteId:record.athleteId,name:record.athlete.name+" · "+(record.athlete.sport||"未填专项")+" · "+record.athleteId.slice(-6)});
-  const expandable = spec => ["attempt","iso","hop","hopJumps","timePoints"].includes(spec.kind);
+  const expandable = spec => ["attempt","iso","hop","hopJumps","timePoints","sprintSplits"].includes(spec.kind);
   const exportFields = (spec, schema) => schema === 1 || !expandable(spec) ? spec.fields : [text("recordRef", "运动员 / 测试"), ...spec.fields.slice(3).flatMap(f => f.key === "directionId" ? [text("directionRef", "关节 / 运动方向")] : f.key === "directionName" ? [] : [f])];
   const recordReferences = records => records.map((record, i) => ({recordId:record.recordId,label:String(i+1).padStart(3,"0")+" · "+record.athlete.name+" · "+(record.athlete.sport||"未填专项")+" · "+record.athlete.date}));
   function directionReferences(records) {
@@ -175,6 +190,11 @@
     } else if (spec.kind === "cpet") for (const phase of ["peak","first","second"]) {
       const data = phase === "peak" ? raw : raw.thresholds[phase];
       push({...fill(data),phase,label:phase === "peak" ? raw.oxygenLabel : data.label,vo2Unit:data.vo2Unit,hr:prefill ? (phase === "peak" ? raw.peakHr : data.hr) : ""});
+    } else if (spec.kind === "sprintSplits") {
+      const existing = prefill && Array.isArray(raw) ? raw : [];
+      const trials = existing.concat(Array.from({length:3}, () => ({splits:[5,10,20,30,40].map(distanceM => ({distanceM, timeS:""}))})));
+      trials.forEach((trial, index) => (trial.splits || []).forEach((split, splitIndex) => push({...clone(split), attempt:index + 1, split:splitIndex + 1,
+        ...(splitIndex === 0 ? {excluded:trial.excluded ? "是" : "否", exclusionReason:trial.exclusionReason || "", notes:trial.notes || ""} : {})})));
     } else if (spec.kind === "custom") for (const d of record.definitions.filter(d => d.testId === spec.id && T.isManualMetric(d) && !T.isAttemptMetric(d))) push({...fill(record.customValues[d.id] || {}),metricId:d.id,metricName:d.name,unit:d.unit});
     else if (spec.kind === "timePoints") {
       const attempts = prefill ? raw : Array.from({length:3},()=>({timePoints:[{timeMs:100},{timeMs:200}]}));
@@ -220,6 +240,7 @@
       ["公式", "填写数值或文字，不使用公式；如从计算表复制，请粘贴为值。"],
       ["工作表结构", "请保留工作表、表头和隐藏信息。整份文件通过校验后才会保存。"],
       ["导入版本", schema === 2 ? "本模板须使用 MotionBench 2.16 或更新版本导入。旧版模板仍可由新版软件导入。" : "历史格式模板，可由新版软件导入。"],
+      ["冲刺 FVP", "每行一段；同一试次使用相同试次编号、不同分段序号。距离始终为累计距离 m，时间 s 的累计/各段方式在测试条件页设置。建议静止起跑至少记录 5、10、20、30 m。试次备注、排除与原因在首段填写，其他段留空。原始时间保留，明确修正只对累计时间加一次；通过计时门补时为正，出发信号减反应时间为负。最佳剖面采用一条完整试次。"],
     ].forEach(row => guide.addRow(row));
     guide.getRow(1).font = {bold:true,size:16,color:{argb:"FF153B39"}};
     guide.eachRow(row => {row.alignment={vertical:"middle",wrapText:true};row.height=34;});
@@ -311,7 +332,7 @@
     return value;
   }
   const meaningful = (row, keys) => keys.some(key => {const v=get(row,key);return !empty(v)&&v!==false;});
-  const hasMeasurement = (spec, row) => isFVP(spec.id) && spec.renderer === "fvp" && spec.kind === "attempt" ? !empty(row.height) : meaningful(row,rawKeys(spec));
+  const hasMeasurement = (spec, row) => spec.kind === "sprintSplits" ? !empty(row.timeS) || !empty(row.notes) || !empty(row.exclusionReason) || row.excluded === "是" : isFVP(spec.id) && spec.renderer === "fvp" && spec.kind === "attempt" ? !empty(row.height) : meaningful(row,rawKeys(spec));
   function rawKeys(spec) {
     const skip = new Set(["recordId","athleteId","name","attempt","action","actionName","directionId","directionName","unit","directionProtocol","side","inputMode","phase","label","vo2Unit","metricId","metricName","jump","timeMs","activeStiffnessInputUnit","summary.activeStiffnessInputUnit","summary.selectionBasis"]);
     return spec.fields.map(f=>f.key).filter(key=>!skip.has(key));
@@ -371,7 +392,7 @@
         const excelRow=ws.getRow(i);if(!excelRow.values.some(v=>!empty(v)))continue;
         const templateEntry = columns.has("recordId")?byId.get(String(excelRow.getCell(columns.get("recordId")).value || "")):null;
         const row={};for(const f of fields)put(row,f.key,spec.kind === "metadata" && f.key === "age" && templateEntry?.record.athlete.birthDate ? templateEntry.record.athlete.age : cellValue(excelRow.getCell(columns.get(f.key)),f,errors));
-        if(expandable(spec)&&spec.kind!=="hop"&&!hasMeasurement(spec,row))continue;
+        if(expandable(spec)&&spec.kind!=="hop"&& !(spec.kind === "sprintSplits" ? !empty(row.distanceM) || hasMeasurement(spec,row) : hasMeasurement(spec,row)))continue;
         const resolved=resolveIdentity(row,spec,entries,manifest.schema,manifest.recordRefs||[]);if(!resolved.entry){issue(errors,ws,i,columns.get(resolved.key)||columns.get("recordRef")||columns.get("name"),resolved.message);continue;}
         const entry=resolved.entry,record=entry.record;Object.assign(row,identity(record));
         if(manifest.schema===2&&spec.kind==="iso"){
@@ -406,8 +427,8 @@
           continue;
         }
         const hasRaw=hasMeasurement(spec,row);
-        if(!hasRaw&&spec.kind!=="hop")continue;
-        if(hasRaw)entry.incoming.add(spec.id);
+        if(!hasRaw&&spec.kind!=="hop"&&spec.kind!=="sprintSplits")continue;
+        if(hasRaw && (spec.kind !== "sprintSplits" || !empty(row.timeS)))entry.incoming.add(spec.id);
         if(spec.kind==="custom"){
           const d=record.definitions.find(d=>d.id===row.metricId&&d.testId===spec.id&&T.isManualMetric(d)&&!T.isAttemptMetric(d));
           if(!d||d.unit!==row.unit){error("metricId","指标编号或单位与模板不符");continue;}if(seen("custom:"+d.id))continue;
@@ -445,8 +466,22 @@
         let holder=entry.groups.get(groupKey);
         if(!holder){
           if(spec.id==="hop"&&T.isNative(record,"hop"))holder={id:"excel_"+row.attempt,...M.newHopSet(),jumps:[],summary:{...M.newHopSet().summary},_attempt:row.attempt};
+          else if (spec.kind === "sprintSplits") holder={id:"excel_"+row.attempt,splits:[],excluded:false,exclusionReason:"",notes:"",_attempt:row.attempt};
           else holder={id:"excel_"+row.attempt,metrics:{},notes:"",...(spec.id==="imtp"?{timePoints:[]}:{}),_attempt:row.attempt};
           entry.groups.set(groupKey,holder);
+        }
+        if (spec.kind === "sprintSplits") {
+          if (!Number.isInteger(row.split) || row.split < 1 || row.split > 1000) {error("split", "分段序号须为 1–1000 的整数"); continue;}
+          const splitKey = groupKey + ":split:" + row.split;
+          if (entry.seen.has(splitKey)) {error("split", "同一试次的分段序号重复"); continue;}
+          entry.seen.add(splitKey);
+          for (const key of ["excluded", "exclusionReason", "notes"]) if (!empty(row[key])) {
+            const value = key === "excluded" ? row[key] === "是" : row[key], metadataKey = groupKey + ":metadata:" + key;
+            if (entry.groups.has(metadataKey) && entry.groups.get(metadataKey) !== value) error(key, "同一试次的备注、排除与原因须一致；建议仅首段填写");
+            entry.groups.set(metadataKey, value); holder[key] = value;
+          }
+          holder.splits.push({distanceM:row.distanceM, timeS:row.timeS, _split:row.split, _location:{sheet:ws,row:i,columns}});
+          continue;
         }
         if(spec.kind==="timePoints"){
           if(!(row.timeMs>0)){error("timeMs","时间点须大于 0 ms");continue;}if(seen(groupKey+":time:"+row.timeMs))continue;
@@ -470,7 +505,7 @@
       if(!entry.metadataSeen)issue(errors,null,0,0,record.athlete.name+" 缺少本次测试信息行");
       for(const test of selectedTests(record)){
         if(["fms","iso","cpet"].includes(test.id)&&T.isNative(record,test.id))continue;
-        const holders=[...entry.groups.entries()].filter(([key])=>key.startsWith(test.id+":")&&/^\d+$/.test(key.slice(test.id.length+1))).map(([,row])=>row).sort((a,b)=>a._attempt-b._attempt);
+        const holders=[...entry.groups.entries()].filter(([key])=>key.startsWith(test.id+":")&&/^\d+$/.test(key.slice(test.id.length+1))).map(([,row])=>row).filter(row => !isSprint(record,test.id) || row.splits.some(split => !empty(split.timeS))).sort((a,b)=>a._attempt-b._attempt);
         holders.forEach((row,index)=>{
           const location=row._location;
           if(test.id==="hop"&&T.isNative(record,"hop")){
@@ -478,6 +513,11 @@
             row.jumps.sort((a,b)=>a._jump-b._jump).forEach((jump,j)=>{const cell=jump._location;for(const key of ["height","contactTimeMs","flightTimeMs"])entry.locations.set("data.hop.trials."+index+".jumps."+j+"."+key,{sheet:cell.sheet,row:cell.row,column:cell.columns.get(key)});delete jump._jump;delete jump._location;});
           }
           if(test.id==="imtp")row.timePoints.forEach((point,j)=>{const cell=point._location;for(const key of ["timeMs","force","rfd"])entry.locations.set("data.imtp."+index+".timePoints."+j+"."+key,{sheet:cell.sheet,row:cell.row,column:cell.columns.get(key)});delete point._location;});
+          if (isSprint(record, test.id)) row.splits.sort((a,b) => a._split - b._split).forEach((split, splitIndex) => {
+            const cell = split._location;
+            for (const key of ["distanceM", "timeS"]) entry.locations.set(`data.sprint_fvp.${index}.splits.${splitIndex}.${key}`, {sheet:cell.sheet,row:cell.row,column:cell.columns.get(key)});
+            delete split._split; delete split._location;
+          });
           if(location)for(const f of specs.find(s=>s.id===test.id&&["attempt","hop"].includes(s.kind))?.fields.slice(4)||[])entry.locations.set("data."+test.id+"."+(["hop","pushup","mas","mss","ift"].includes(test.id)?"trials.":"")+index+"."+f.key,{sheet:location.sheet,row:location.row,column:location.columns.get(f.key)});
           delete row._attempt;delete row._location;
         });
@@ -506,6 +546,7 @@
     return comparable({data,custom,settings:settings(record,id).filter(f=>!isSharedSetting(f)).map(f=>[f.key,get(record,f.key)??""])});
   }
   function countProject(record,id,selection) {
+    if (isSprint(record, id)) return (record.data[id] || []).filter(trial => trial.splits?.some(split => !empty(split.timeS))).length;
     if(!record.enabled[id])record={...record,enabled:{...record.enabled,[id]:true}};
     const spec=makeSpecs([record]).find(s=>s.id===id&&!["custom","timePoints","hopJumps"].includes(s.kind));
     if(!spec)return 0;

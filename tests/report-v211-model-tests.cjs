@@ -3,6 +3,8 @@ const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/st
 const context=vm.createContext({console,Intl,crypto:require("node:crypto").webcrypto});context.window=context;
 for(const name of ["calc", "fvp","definitions","tests","model","evaluation","interventions","viz","report"])vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`,"utf8"),context);
 const M=context.RingsideModel,R=context.RingsideReport;
+const direction=(html,key)=>html.match(new RegExp(`<article[^>]*data-capability-direction="${key}"[^>]*>[\\s\\S]*?<\\/article>`))?.[0]||"";
+const parameter=(html,id)=>html.match(new RegExp(`<tr[^>]*data-capability-metric="${id}"[^>]*>[\\s\\S]*?<\\/tr>`))?.[0]||"";
 let passed=0;const test=(name,run)=>{run();passed++;console.log("PASS "+name);};
 function fixture(){
  const r=M.defaults();r.enabled=Object.fromEntries(Object.keys(r.enabled).map(id=>[id,["cmj","sj","dj","hop","cmrj"].includes(id)]));
@@ -28,21 +30,48 @@ test("three independent Hop sets enable statistics while preserving every set",(
  const report=R.build(r),html=R.render(report),group=report.stats.repetitions.find(g=>g.testId==="hop");
  assert.equal(group.statistics.find(metric=>metric.id==="hop_rsi").n,3);assert.match(html,/均值 ± SD/);assert.match(html,/完整测试结果 · 共 3 次/);assert.equal((html.match(/data-metric-id="hop-set-/g)||[]).length,3);
 });
-test("capability cards render measured data before judgments and hide invalid metrics and empty cards",()=>{
- const report=R.build(fixture());report.stats.capabilityCards=[{id:"strength",title:"力量发展方向",metrics:[{id:"fdsi",label:"DSI",unit:"比值",value:.6,judgment:"最大力量与快速力量结合",status:"gray",components:[{label:"CMJ 推进期峰值力",value:1500,unit:"N"},{label:"等长峰值力",value:2500,unit:"N"}]},{id:"eur",label:"EUR",value:null}]},{id:"reactive",title:"反应力量水平",metrics:[]}];
- const html=R.render(report),card=html.slice(html.indexOf('data-capability-card="strength"'));
- assert.match(card,/0\.600/);assert.match(card,/2,500\.0/);assert.ok(card.indexOf("0.600")<card.indexOf("最大力量与快速力量结合"));assert.ok(card.indexOf("最大力量与快速力量结合")<card.indexOf("组成数据"));
- assert.doesNotMatch(card,/data-capability-metric="eur"|data-capability-card="reactive"|录入 CMJ 冲量|录入 IMTP 冲量|derived-sources|derived-formula/);
+test("direction cards show one measured basis above judgment while right tables retain components and hide invalid rows",()=>{
+ const report=R.build(fixture());report.record.views.capabilitySelections={strength:"fdsi",reactive:"dj_rsi",speed:"srr"};
+ report.stats.capabilityCards=[{id:"strength",title:"力量发展方向",metrics:[{id:"fdsi",label:"DSI",unit:"比值",value:.6,judgment:"并行发展最大力量与爆发能力",status:"gray",components:[{label:"CMJ 推进期峰值力",value:1500,unit:"N"},{label:"等长峰值力",value:2500,unit:"N"}]},{id:"eur",label:"EUR",value:null}]},{id:"reactive",title:"反应力量水平",metrics:[]}];
+ const before=JSON.stringify(report.record),html=R.render(report),left=direction(html,"strength"),row=parameter(html,"fdsi");
+ assert.match(left,/data-direction-metric="fdsi"/);assert.equal((left.match(/data-direction-metric=/g)||[]).length,1);
+ assert.match(left,/0\.600/);assert.ok(left.indexOf("0.600")<left.indexOf("并行发展最大力量与爆发能力"));
+ assert.match(row,/0\.600/);assert.match(row,/1,500\.0/);assert.match(row,/2,500\.0/);
+ for(const label of ["CMJ 推进期峰值力","等长峰值力"])assert.ok(row.includes(label));
+ assert.ok(row.indexOf("0.600")<row.indexOf('class="capability-parameter-notes"'));
+ assert.match(row,/data-capability-component=/);assert.match(row,/并行发展最大力量与爆发能力/);
+ assert.doesNotMatch(html,/data-capability-metric="eur"|data-capability-card="reactive"|录入 CMJ 数据|录入 IMTP 数据|derived-sources|derived-formula/);
+ assert.match(direction(html,"reactive"),/待计算/);assert.equal(JSON.stringify(report.record),before);
 });
-test("iDSI retains the selected valid time window without missing-data entry actions",()=>{
- const report=R.build(fixture()),variants=[{id:"idsi_matched",available:true,value:.5},{id:"idsi_fixed250",available:true,value:2/3}];
- for(const selected of variants){report.stats.capabilityCards=[{id:"strength",title:"力量发展方向",metrics:[{id:"idsi",label:"iDSI 冲量比",value:selected.value,unit:"比值",selectedVariant:selected.id,variants}]}];const html=R.render(report);assert.match(html,new RegExp(`data-derived-result="${selected.id}"`));assert.match(html,new RegExp(`value="${selected.id}" selected`));assert.match(html,/aria-label="iDSI 时间窗口"/);assert.doesNotMatch(html,/录入 CMJ 冲量|录入 IMTP 冲量/);}
+
+test("both independent iDSI windows retain full names, values, components and the selected basis without entry actions",()=>{
+ const report=R.build(fixture()),variants=[{id:"idsi_matched",available:true,value:.5,unit:"比值",directionHint:"匹配窗口纵向监测",components:[{label:"CMJ 推进期冲量",value:200,unit:"N·s"},{label:"IMTP 匹配窗口冲量",value:400,unit:"N·s"}]},{id:"idsi_fixed250",available:true,value:2/3,unit:"比值",directionHint:"固定窗口纵向监测",components:[{label:"CMJ 推进期冲量",value:200,unit:"N·s"},{label:"IMTP 0–250 ms 冲量",value:300,unit:"N·s"}]}];
+ report.stats.derived.results=variants;report.stats.capabilityCards=[{id:"strength",title:"力量发展方向",metrics:[{id:"idsi",label:"iDSI 冲量比",value:.5,unit:"比值",selectedVariant:"idsi_matched",variants}]}];
+ for(const selected of variants){
+  report.record.views.capabilitySelections={strength:selected.id,reactive:"dj_rsi",speed:"srr"};const before=JSON.stringify(report.record),html=R.render(report),left=direction(html,"strength");
+  assert.match(left,new RegExp(`data-direction-metric="${selected.id}"`));assert.match(left,new RegExp(`value="${selected.id}" selected`));
+  assert.match(left,new RegExp(selected.value.toFixed(3).replace(".","\\.")));assert.match(left,/data-capability-selection="strength"/);
+  for(const [id,label,value]of [["idsi_matched","iDSI · 匹配 CMJ 推进期","0.500"],["idsi_fixed250","iDSI · 固定 0–250 ms","0.667"]]){const row=parameter(html,id);assert.ok(row.includes(label));assert.ok(row.includes(value));assert.match(row,/CMJ 推进期冲量/);assert.match(row,/200\.00/);}
+  assert.match(parameter(html,"idsi_matched"),/IMTP 匹配窗口冲量[\s\S]*400\.00/);assert.match(parameter(html,"idsi_fixed250"),/IMTP 0–250 ms 冲量[\s\S]*300\.00/);
+  assert.doesNotMatch(html,/录入 CMJ 数据|录入 IMTP 数据/);assert.equal(JSON.stringify(report.record),before);
+ }
+ report.stats.derived.results[0]={...variants[0],available:false,value:null};report.record.views.capabilitySelections.strength="idsi_matched";
+ const missing=R.render(report);assert.match(direction(missing,"strength"),/待计算/);assert.doesNotMatch(missing,/data-capability-metric="idsi_matched"/);assert.match(missing,/data-capability-metric="idsi_fixed250"/);
 });
-test("four capability groups render supported speed and cardio conclusions",()=>{
- const report=R.build(fixture());report.stats.capabilityCards=["strength","reactive","speed","cardio"].map((id,i)=>({id,title:["力量发展方向","反应力量水平","速度耐力类型","心肺发展方向"][i],metrics:[{id:id+"_metric",label:id,value:i+1,unit:"%"}],conclusion:id==="cardio"?"优先发展第二阈值":id==="speed"?"发展冲刺速度":"不应产生综合训练结论"}));
- const html=R.render(report);assert.equal((html.match(/data-capability-card=/g)||[]).length,4);assert.equal((html.match(/class="capability-row"/g)||[]).length,2);assert.match(html,/能力结构分析/);assert.match(html,/优先发展第二阈值/);assert.match(html,/发展冲刺速度/);assert.doesNotMatch(html,/不应产生综合训练结论/);
+
+test("four direction cards coexist with four parameter groups and preserve speed and cardio logic",()=>{
+ const report=R.build(fixture());report.record.views.capabilitySelections={strength:"fdsi",reactive:"dj_rsi",speed:"srr"};
+ report.stats.capabilityCards=["strength","reactive","speed","cardio"].map((id,i)=>({id,title:["力量发展方向","反应力量水平","速度与耐力方向","心肺发展方向"][i],metrics:[{id:id+"_metric",label:id,value:i+1,unit:"%"}],conclusion:id==="cardio"?"优先发展第二阈值":id==="speed"?"发展最大速度":"反应力量综合训练方向"}));
+ const html=R.render(report);assert.deepEqual([...html.matchAll(/data-capability-direction="([^"]+)"/g)].map(match=>match[1]),["strength","reactive","speed","endurance"]);
+ assert.deepEqual([...html.matchAll(/data-capability-card="([^"]+)"/g)].map(match=>match[1]),["strength","reactive","speed","cardio"]);
+ assert.match(html,/能力结构分析/);assert.match(html,/capability-structure-pair/);assert.match(html,/capability-parameter-groups/);
+ for(const [id,value]of [["strength",1],["reactive",2],["speed",3],["cardio",4]])assert.match(parameter(html,id+"_metric"),new RegExp(`${value}\\.0`));
+ assert.match(direction(html,"endurance"),/优先发展第二阈值/);assert.match(html,/发展最大速度/);
+ for(const key of ["strength","reactive","speed"]){const left=direction(html,key);assert.equal((left.match(/data-direction-metric=/g)||[]).length,1);assert.doesNotMatch(left,/反应力量综合训练方向/);}
+ assert.doesNotMatch(direction(html,"endurance"),/<select/);
  report.stats.capabilityCards=[];assert.doesNotMatch(R.render(report),/id="trainingAnalysisDetail"/);
 });
+
 test("native CPET renders original oxygen and threshold labels without a fallback",()=>{
  const r=fixture();r.enabled.cpet=true;r.athlete.mass=70;r.data.cpet={modality:"treadmill",oxygenLabel:"VO2max",vo2:50,vo2Unit:"ml/kg/min",peakHr:185,rer:1.12,thresholds:{first:{label:"GET",vo2:30,vo2Unit:"ml/kg/min",hr:140},second:{label:"RCP",vo2:40,vo2Unit:"ml/kg/min",hr:169}}};
  const report=R.build(r),html=R.render(report);assert.deepEqual(Array.from(report.diagnostics),[]);assert.match(html,/VO₂max · 相对摄氧量/);assert.match(html,/GET摄氧量占比|GET 摄氧量占比/);assert.match(html,/RCP摄氧量占比|RCP 摄氧量占比/);assert.match(html,/RER 1\.12/);assert.doesNotMatch(html,/图形暂不可用/);

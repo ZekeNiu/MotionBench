@@ -1,0 +1,36 @@
+{
+  "pass": true,
+  "version": "2.17.0-local",
+  "deliveryScope": "Local reviewable build; no release, merge or deployment",
+  "completedAtUTC": "2026-10-10T11:07:42.882508+00:00",
+  "html": "MotionBench.html",
+  "sha256": "6702aa6dbd30802715b3c772cb5296d17da0c838e836cd7ce979c4f68f8fa0c2",
+  "bytes": 4427224,
+  "reproducibleBuild": true,
+  "standaloneFilesEqual": true,
+  "unitSuites": 37,
+  "modelChecks": 528,
+  "browserWorkflowChecks": 24,
+  "pdfFilesReviewed": 2,
+  "pdfPagesVisuallyReviewed": 50,
+  "scientificModuleVerification": {
+    "scope": "Independent calculation modules; no direct final-HTML execution claim",
+    "tool": "SciPy 1.17.1",
+    "checks": 112,
+    "moduleSha256": {
+      "ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+      "ringside-sprint-fvp.js": "a42b09a56da9640bc6d77de1620f9cb8dd734b81a9abc74d9d4ff38b0ff0691e"
+    },
+    "scriptPath": "tests/sprint-fvp-independent-checks.py",
+    "scriptSha256": "8d62107eed552d827e5c8ab812c89385d469f85f26d9f0d0061107d64c98a140"
+  },
+  "verificationLimits": [
+    "All acceptance records are synthetic; browser contexts are isolated and offline.",
+    "Narrow screens use viewport emulation; physical devices and paper printing were not tested.",
+    "User sprint workbook was not materialized on Windows; cached Library values are not original-formula/chart verification.",
+    "Independent SciPy evidence verifies recorded calculation modules, not execution of the final standalone HTML.",
+    "No native Microsoft Excel, live AI-provider quality or clean Windows installation claim is made."
+  ],
+  "evidenceIndex": "output/acceptance-manifest.json",
+  "historicalEvidenceIncludedInCurrentAcceptance": false
+}

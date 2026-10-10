@@ -8,6 +8,10 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 HTML = ROOT / "Ringside_Boxing_Assessment.html"
+version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+if version == "2.17.0-local":
+    subprocess.run([sys.executable, str(ROOT / "scripts/verify_v217_local.py")], cwd=ROOT, check=True)
+    sys.exit(0)
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -36,7 +40,6 @@ def images(items):
     for item in items:
         assert item["sha256"] == digest(ROOT / item["path"]), item["path"]
 
-version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
 if version == "2.16.1":
     subprocess.run([sys.executable, str(ROOT / "scripts/verify_v2161.py")], cwd=ROOT, check=True)
     sys.exit(0)
