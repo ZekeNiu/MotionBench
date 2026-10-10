@@ -12,7 +12,7 @@ function harness(baseline){
   let stored=copy(baseline),loadHook=null,saveHook=null;const storage=new Map(),loads=[],saves=[],status={textContent:""},messages=[];
   const record=baseline||fixture();
   const c=vm.createContext({console,Intl,crypto:crypto.webcrypto,Map,Set,JSON,Promise,copy,now:()=>"2026-10-10T02:00:00.000Z",recordContent:content,
-    recordBaselines:new Map(),entryPersistQueue:Promise.resolve(),pendingSaves:0,storageFailed:false,entrySessionStorageFailed:false,
+    recordBaselines:new Map(),recordStorageBaselines:new Map(),entryPersistQueue:Promise.resolve(),pendingSaves:0,storageFailed:false,entrySessionStorageFailed:false,
     entrySession:null,state:null,entrySessionKey:"synthetic_session",T:model.RingsideTests,M,$:()=>status,toast:message=>messages.push(message),refreshEntryChrome:()=>{},ui:{},
     library:{athletes:[{id:record.athleteId,records:[{recordId:record.recordId}]}]},
     sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
@@ -28,7 +28,7 @@ function harness(baseline){
   });c.window=c;c.RingsideStore={summary:value=>({recordId:value.recordId,athleteId:value.athleteId})};
   for(const name of ["entry-session","sprint-fvp"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),c);
   // Execute production restore/save functions, replacing only storage and DOM boundaries.
-  for(const [startMarker,endMarker]of [["  function saveEntrySession() {","  async function leaveEntrySession() {"],["  function persistSessionRecord(record) {","  function changed(render = true) {"]]){
+  for(const [startMarker,endMarker]of [["  function recordContent(record) {","  function draftRecordKey("],["  function saveEntrySession() {","  async function leaveEntrySession() {"],["  function persistSessionRecord(record) {","  function changed(render = true) {"]]){
     const start=app.indexOf(startMarker),end=app.indexOf(endMarker,start+startMarker.length);assert.ok(start>=0&&end>start);vm.runInContext(app.slice(start,end),c);
   }
   return{c,storage,loads,saves,status,messages,getStored:()=>copy(stored),setStored:value=>{stored=copy(value);},setLoadHook:hook=>{loadHook=hook;},setSaveHook:hook=>{saveHook=hook;}};

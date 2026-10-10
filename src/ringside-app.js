@@ -84,7 +84,7 @@
     recovery = null,
     storageFailed = false,
     lastRestorePayload = null;
-  const recordBaselines = new Map(), queuedRecords = new Map(),
+  const recordBaselines = new Map(), recordStorageBaselines = new Map(), queuedRecords = new Map(),
     undoDeletes = new Map();
   const rawNumbers = new WeakMap();
   let bodyRegionAnchor = null, bodyRegionPinned = false, bodyRegionHideTimer, bodyTouchInteraction = false;
@@ -206,7 +206,8 @@
     const catalogChanged = JSON.stringify(library.catalog) !== catalogBefore;
     const profilesChanged = window.RingsideEvaluation.upgradeLibraryProfiles(library);
     const id = current || library.activeRecordId;
-    state = pending || (id ? await repository.loadRecord(id) : null);
+    const stored = pending || (id ? await repository.loadRecord(id) : null);
+    state = stored;
     const upgrade = state ? upgradeDemo(state) : {changed:false};
     if(state)state=M.normalizeRecord(upgrade.record || state);
     if (pending && state) entrySession.records[entrySession.records.findIndex(r => r.recordId === pending.recordId)] = state;
@@ -222,7 +223,7 @@
     if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
     if (state && (!entrySession || entrySession.savedIds.has(state.recordId))) {
       library.activeAthleteId = state.athleteId; library.activeRecordId = state.recordId;
-      if (!pending) recordBaselines.set(state.recordId, recordContent(state));
+      if (!pending) rememberRecordBaseline(state, upgrade.changed ? state : stored);
     } else { library.activeRecordId = ""; }
     reportDirty = true;
   }
@@ -285,7 +286,7 @@
         if (pendingOwner) { pendingOwner.profile = copy(target.profile); pendingOwner.name = target.name; pendingOwner.groupId = groupId; }
       }
       if (updates.has(state?.recordId)) state = entrySession?.records.find(record => record.recordId === state.recordId) || copy(updates.get(state.recordId));
-      for (const record of records) recordBaselines.set(record.recordId, recordContent(record));
+      for (const record of records) rememberRecordBaseline(record);
       if (birthChanged) cancelJob({preserveModalId:"managementModal"});
       saveEntrySession(); reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
       return target.id;
@@ -310,7 +311,7 @@
       library = next;
       if (entrySession) entrySession.records = entrySession.records.map(item => item.recordId === recordId ? copy(record) : item);
       if (state?.recordId === recordId) state = entrySession?.records.find(item => item.recordId === recordId) || copy(record);
-      recordBaselines.set(recordId,recordContent(record)); cancelJob({preserveModalId:"managementModal"}); saveEntrySession();
+      rememberRecordBaseline(record); cancelJob({preserveModalId:"managementModal"}); saveEntrySession();
       reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
     } finally { libraryTransferActive = false; }
   }
@@ -351,7 +352,10 @@
       if (!session.records.length) { sessionStorage.removeItem(entrySessionKey); return; }
       entrySession = session;
       for (const record of session.records) if (T.isNative(record, "sprint_fvp")) record.data.sprint_fvp = window.RingsideSprintFVP.normalizeTrials(record.data.sprint_fvp);
-      for (const r of session.records) if (session.savedIds.has(r.recordId)) recordBaselines.set(r.recordId, baselines.get(r.recordId));
+      for (const r of session.records) if (session.savedIds.has(r.recordId)) {
+        recordBaselines.set(r.recordId, baselines.get(r.recordId));
+        recordStorageBaselines.set(r.recordId, baselines.get(r.recordId));
+      }
       state = session.records.find(r => r.recordId === session.selectedRecordId) || session.records[0];
       ui.mode = "entry";
       if (session.conflictRecordIds?.length) toast("部分记录已在其他页面修改，已载入资料库中的最新内容，请核对");
@@ -366,7 +370,7 @@
     state = target ? await repository.loadRecord(target) : null;
     library.activeAthleteId = state?.athleteId || session.origin?.athleteId || "";
     library.activeRecordId = state?.recordId || "";
-    if (state) recordBaselines.set(state.recordId, recordContent(state));
+    if (state) rememberRecordBaseline(state);
     reportDirty = true;
   }
   async function selectEntryAthlete(recordId) {
@@ -394,6 +398,10 @@
     const content = copy(record);
     delete content.updated;
     return JSON.stringify(content);
+  }
+  function rememberRecordBaseline(record, stored = record) {
+    recordBaselines.set(record.recordId, recordContent(record));
+    recordStorageBaselines.set(record.recordId, recordContent(stored));
   }
   function draftRecordKey(record = state) {
     return record.athleteId + ":" + record.recordId;
@@ -1035,18 +1043,29 @@
     if (modified) library.updated = now();
     const sequence = ++saveSequence;
     if (modified) queuedRecords.set(record.recordId,{sequence,content});
+    const snapshot = record ? copy(record) : null, next = copy(library);
     $("saveStatus").textContent = "正在保存…";
     pendingSaves++;
-    let saving;
-    try { saving=repository.save(library, modified ? [record] : []); } catch(error) { saving=Promise.reject(error); }
-    return saving.then(() => {
-      if (record) recordBaselines.set(record.recordId, content);
+    const saving = entryPersistQueue.then(async () => {
+      const writeRecord = record && recordBaselines.get(record.recordId) !== content;
+      let checks = {};
+      if (writeRecord) {
+        const stored = await repository.loadRecord(record.recordId);
+        if (recordStorageBaselines.has(record.recordId) ? !stored || recordContent(stored) !== recordStorageBaselines.get(record.recordId) : !!stored)
+          throw Error("此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录");
+        checks = {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}};
+      }
+      await repository.save(next, writeRecord ? [snapshot] : [], {}, checks);
+      if (writeRecord) rememberRecordBaseline(snapshot);
+    });
+    const task = saving.then(() => {
       if (sequence === saveSequence) { storageFailed = false; $("saveStatus").textContent = "已保存到本机"; if (state) refreshEntryChrome(); }
       return true;
     }).catch(error => {
       storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message;
       if (state) refreshEntryChrome(); return false;
     }).finally(() => { pendingSaves--; if(record&&queuedRecords.get(record.recordId)?.sequence===sequence)queuedRecords.delete(record.recordId); });
+    entryPersistQueue = task; return task;
   }
   function persistSessionRecord(record) {
     saveEntrySession();
@@ -1077,7 +1096,7 @@
       try {
         await repository.save(next, [snapshot], {}, {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}});
         library = next; record.updated = snapshot.updated;
-        session.savedIds.add(record.recordId); recordBaselines.set(record.recordId, content);
+        session.savedIds.add(record.recordId); rememberRecordBaseline(snapshot);
         storageFailed = false; $("saveStatus").textContent = "已保存到本机"; saveEntrySession(); refreshEntryChrome(); return true;
       } finally { pendingSaves--; }
     }).catch(error => { storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message; saveEntrySession(); refreshEntryChrome(); return false; });
@@ -1188,7 +1207,7 @@
     if (sequence !== selectionSequence) return;
     cancelJob();
     state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
-    if (loaded) { recordBaselines.set(loaded.recordId, recordContent(loaded)); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
+    if (loaded) { rememberRecordBaseline(loaded, upgrade.changed ? loaded : stored); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
     entryTab = options.edit && state ? orderedEntryProjects()[0]?.id || "plan" : "athlete"; isoFilter = "all"; reportDirty = true;
     const saved = loaded && ui.records[loaded.recordId];
     ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
@@ -1713,14 +1732,14 @@
       await repository.save(next,result.records,{},checks);
       library=await repository.directory();storageFailed=false;
       const current=result.records.find(r=>r.recordId===state?.recordId);
-      if(current){cancelJob({preserveModalId:"excelModal"});state=copy(current);recordBaselines.set(state.recordId,recordContent(state));}
+      if(current){cancelJob({preserveModalId:"excelModal"});state=copy(current);rememberRecordBaseline(state);}
       if(entrySession){
         for(const record of result.records){
           let index=entrySession.records.findIndex(r=>r.recordId===record.recordId);
           if(index<0)index=entrySession.records.findIndex(r=>r.athleteId===record.athleteId&&!entrySession.savedIds.has(r.recordId));
           if(index>=0){const wasActive=entrySession.records[index].recordId===state?.recordId;entrySession.records[index]=copy(record);if(wasActive)state=entrySession.records[index];}
           else entrySession.records.push(copy(record));
-          entrySession.savedIds.add(record.recordId);recordBaselines.set(record.recordId,recordContent(record));
+          entrySession.savedIds.add(record.recordId);rememberRecordBaseline(record);
         }
         saveEntrySession();if(ui.mode==="entry"){renderEntry();renderWorkspace();}
       }
@@ -4299,7 +4318,7 @@
       state = M.normalizeRecord(upgrade.record || importedRecord);
       library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;
       if (upgrade.changed) await repository.save(library, [state]);
-      recordBaselines.set(state.recordId,recordContent(state));await persist({duringTransfer:true});
+      rememberRecordBaseline(state, upgrade.changed ? state : importedRecord);await persist({duringTransfer:true});
     }
     ui.mode="report"; renderReport(false);renderWorkspace();return result;
     });
