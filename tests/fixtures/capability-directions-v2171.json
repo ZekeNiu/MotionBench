@@ -1,0 +1,291 @@
+{
+  "synthetic": true,
+  "baselineSourceHash": "311246d447ebabc4e1e8033345d07e154e0694ebdf8ac07044484851053b17c8",
+  "cases": [
+    {
+      "name": "strength:fvp",
+      "screen": {
+        "strength": "97273dfeb466b92b618dbd4775e60099aca584a78fd86dd737f806cdb62a7791",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "e3bb630b6c7840576e23a3ab37aab6b3bb90d0ff61649200392e0a2f602af082",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "strength:fdsi",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "strength:idsi_matched",
+      "screen": {
+        "strength": "969ef01c41551d3f430450c4f151c4f73232602f37471059aca981662af00b16",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "2033e4604fe22e1bcb8cfbc62c19cbcdf5f01ac7c8fca14db232bcacf5529c92",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "strength:idsi_fixed250",
+      "screen": {
+        "strength": "8888fcc01bf4ffc49e52381058cd9d1c2e9fe313f3583a17463ec044e156dee6",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "d7978d8478f2d51dce4bcc6a3ff983baed080f81b1316203be924fcb79ab09e5",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "strength:eur",
+      "screen": {
+        "strength": "135dabf3f97b4020c44cad56b9629fe70ce68d017e2f3e443d85e2d1aca62b71",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "3ff9626ce559f5eec0aa25800ff179580bbabd24221ffea8df224dcd639a953e",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "reactive:dj_rsi",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "reactive:hop_rsi",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "0a92cc42ddbb95ab1f81849b7a93228e22eb32b06a14a4fa50bd437367243efb",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "0dd4c3dfb4cc6056de1bf70fff2217d2def9229fb4a5d3d075007c584faf17d2",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "reactive:cmrj_rsi",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "6f139733405cb04cd212a2007a4a13887e14ab02ffe1d62b5857501c0e04e0c3",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "01c5545e0bcc1884261ca5ea89cdffda34fc46b4b591b9fa904dc13302b1d707",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "speed:sprint_fvp",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "8d710e545d7a0a9afd7fbc1462b6dea61351976a70def05afea82647b614d150",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "6af0bcd8742b76a9faba6d9d2d1f41d1ee4adc46b283969af8336f382bcd14ea",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "speed:srr",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "implicit-fallback",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "reactive-grade:red",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "6055821361dc8e0fed416b2919a46398302718ebb9a91f6dc2fa650d64d4c57f",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "8e43a1e2a28887c15b7ce1a53bfda10f7bde71766f369e47dfce66f7aa930fa6",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "reactive-grade:amber",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "reactive-grade:green",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "1a6938f823eebc8aede284e83dc1264fb8bb12b4745f9d2ef5e949124a467357",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "d8239aca277ca0632b9a8d5da99b25c94cf5328246996884e9324bdc774b375e",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "reactive-grade:gray",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "7b071610c02786ade7cd41c7cc6e40c0f695aa608b3cb2d22aacc744d67dc8b9",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "73ba613b2f2a338d4c73813c701a0e2fbbc8cb866088b7df5efacf48a9a8fb23",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "fvp-cmj-valid",
+      "screen": {
+        "strength": "02a710e10c0758999381e6108488fac2fcca839b54535abd8c1cfadfc4b47ea7",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "f2431d5d1709d11d22d24995ad53a8ae2cc39faf336a5164325d1750ec5a6334",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "fvp-cmj-review",
+      "screen": {
+        "strength": "fda125823baaa217aec98ffd898b2a3b20491c19c5aec9aa34f41beef2f6d564",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "92e3e01861eb8fce9f7319fdd26a5991649f4f63d113e52e491bb1478d527d8e",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "a01819bffa7d10e048cadb679bb72e85bd495a43154e22ee09609cd2d85dc0e2",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "08f49a5fd0014e45e78eedd08b16fb5f3b8288589393e43c96d2ee0a31c529e0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "sprint-40m",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "c514ac6da0a943a0a59bf267957fd3ca9a5fee53e4b43cdc040f49fc3b7defb0",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "86e4b8d9c9eb744864e16d9df550c6170a690f7069428a4757a097d45aa1a91a",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    },
+    {
+      "name": "sprint-10m",
+      "screen": {
+        "strength": "548c18c2b6085de6f2296348a5609f3821695f234e201a77e1406a74b895f19e",
+        "reactive": "2469a09123b398331aba0459e3477017ac094fa5f871ac075d67d1edc5bf4d8d",
+        "speed": "83c762bb3f43c6a40727c2f65093ec802f514833f8601f0bebfa7e1303894cce",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      },
+      "print": {
+        "strength": "fb7eccaafd197e28bb7878d7ba5baab63b1c05b271dbe8040b999947d3377356",
+        "reactive": "fed0574d1525b560d48f6045a7f79f0389b78f239dc771b41969e67b139004be",
+        "speed": "154a92656cea5e39608cde8e675d65a5a3250607fc2661772a995053ed3ccadf",
+        "endurance": "00f1ee5885464a0f9ef9cee3ef261d9ea1397c80dcc8ce716dd566f49e452cae"
+      }
+    }
+  ]
+}

@@ -185,6 +185,10 @@
     return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
   }
   function recordBasis() { return state ? M.fingerprint(effectiveRecord()) : ""; }
+  function capabilityDirectionsBasis() { return state ? M.capabilityDirectionsBasis(effectiveRecord()) : ""; }
+  function capabilityDirectionsMatch(binding) {
+    return binding?.capabilityDirectionsBasis === undefined || binding.capabilityDirectionsBasis === capabilityDirectionsBasis();
+  }
   function upgradeDemo(record) {
     const linkedProfile = library.evaluationProfiles.find(profile => profile.id === record.evaluationProfileId);
     const upgraded = M.upgradeOriginalDemo(record, linkedProfile);
@@ -2057,11 +2061,14 @@
     if (!state) return;
     renderAIStatus();
     const n = state.narrative,
-      stale = n.text && n.basis !== recordBasis() && !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId));
+      directionsStale = n.text && !capabilityDirectionsMatch(n),
+      stale = directionsStale || n.text && n.basis !== recordBasis() && !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId));
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
           ? "尚未填写"
+          : directionsStale
+            ? "分析依据已更新 · 待复核"
           : stale
             ? "数据已更新 · 待复核"
             : n.origin === "AI"
@@ -2097,6 +2104,7 @@
       updated: now(),
       basis: recordBasis(),
       origin: "manual",
+      ...(state.narrative.capabilityDirectionsBasis !== undefined ? { capabilityDirectionsBasis: capabilityDirectionsBasis() } : {}),
       revision: (state.narrative.revision || 0) + 1,
     };
     changed(false);
@@ -3717,6 +3725,7 @@
         status: a.status,
       })),
       capabilityAnalysis: copy(s.capabilityCards || []),
+      selectedCapabilityDirections: copy(M.capabilityDirections(analysisRecord, s)),
       jumpFVP: copy(Object.fromEntries(Object.entries(s.fvp || {}).filter(([, profile]) => profile.enabled))),
       sprintFVP: s.sprintFvp?.enabled ? {
         valid:s.sprintFvp.valid, reason:s.sprintFvp.reason, methodVersion:s.sprintFvp.config?.methodVersion,
@@ -3766,6 +3775,12 @@
     if (open) showAIDraft();
   }
   function showAIDraft() {
+    if (!pendingAI || !currentMatches(pendingAI)) return false;
+    if (!capabilityDirectionsMatch(pendingAI)) {
+      pendingAI = null;
+      setAIStatus("error", "能力分析依据已更新", "请按当前选中的指标重新生成建议。");
+      return false;
+    }
     $("previewTitle").textContent = pendingAI.origin + "草稿预览";
     $("aiPreview").innerHTML = M.sanitizeHTML(pendingAI.html);
     $("aiPreview").contentEditable = "true";
@@ -3788,6 +3803,8 @@
     if (!p || !currentMatches(p)) return toast("草稿所属测试已切换", "ai");
     if (p.basis !== recordBasis())
       return toast("测试数据已更新，请重新生成", "ai");
+    if (!capabilityDirectionsMatch(p))
+      return toast("能力分析依据已更新，请重新生成", "ai");
     if (
       p.revision !== state.narrative.revision &&
       !confirm("生成后正文已有人工修改。应用草稿将替换当前文字，是否继续？")
@@ -3799,6 +3816,7 @@
       text: p.text,
       updated: now(),
       basis: p.basis,
+      ...(p.capabilityDirectionsBasis !== undefined ? { capabilityDirectionsBasis: p.capabilityDirectionsBasis } : {}),
       origin: p.origin,
       revision: (state.narrative.revision || 0) + 1,
     };
@@ -3868,6 +3886,10 @@
     if (pendingAI.basis !== recordBasis()) {
       pendingAI = null;
       return setAIStatus("error", "测试数据已更新", "请基于最新数据重新生成建议。");
+    }
+    if (!capabilityDirectionsMatch(pendingAI)) {
+      pendingAI = null;
+      return setAIStatus("error", "能力分析依据已更新", "请按当前选中的指标重新生成建议。");
     }
     showAIDraft();
   }
@@ -4035,7 +4057,7 @@
     }
     if(state.recordId!==requestedRecord)return;
     saveEditor();
-    const binding = snapshot(),
+    const binding = { ...snapshot(), capabilityDirectionsBasis: capabilityDirectionsBasis() },
       task = {
         ...binding,
         token: ++jobSequence,
@@ -4049,7 +4071,7 @@
     try {
       const messages = [
         { role: "system", content: window.RingsideInterventions.systemPrompt },
-        { role: "user", content: "生成解读与干预建议：\n" + JSON.stringify(facts()) },
+        { role: "user", content: "生成解读与干预建议：四个能力发展方向优先采用 selectedCapabilityDirections 中选定的指标、数值和判定，其余能力参数用于综合分析背景。\n" + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
       let validated, pages;
@@ -4057,6 +4079,7 @@
         const json = await request("/chat/completions", { model: selectedModel, messages, stream: false }, task.controller, 300000, connection);
         if (job !== task || !currentMatches(task)) return;
         if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
+        if (!capabilityDirectionsMatch(binding)) throw Error("生成期间能力分析依据已更新，请根据当前依据重新生成。");
         const result = json.choices?.[0]?.message?.content,
           text =
           typeof result === "string"
@@ -4069,6 +4092,7 @@
         validated = window.RingsideInterventions.validateAI(text);
         await document.fonts.ready;
         if (job !== task || !currentMatches(task)) return;
+        if (!capabilityDirectionsMatch(binding)) throw Error("生成期间能力分析依据已更新，请根据当前依据重新生成。");
         pages = window.RingsidePDF.measureNarrative(M.textToHTML(validated));
         if (pages <= 2) break;
         if (attempt === 0) {
@@ -4078,6 +4102,7 @@
       }
       if (pages > 2) throw Error("模型精简后仍超过两页，请重新生成或更换模型。");
       if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
+      if (!capabilityDirectionsMatch(binding)) throw Error("生成期间能力分析依据已更新，请根据当前依据重新生成。");
       preview(validated, "AI", binding, task.autoPreview && isNarrativeView()
         && !document.querySelector(".modal-backdrop.show"));
       setAIStatus("ready", "AI 新建议已生成，等待应用", "当前正文约 " + pages + " 页 A4。核对或编辑后点击“应用草稿”，下方正文才会更新。");
@@ -4799,8 +4824,8 @@
   document.addEventListener("change", (e) => {
     const t = e.target;
     if (t.hasAttribute("data-capability-selection")) {
-      const key = t.dataset.capabilitySelection, choices = {strength:["fvp","fdsi","idsi_matched","idsi_fixed250","eur"], reactive:["dj_rsi","hop_rsi","cmrj_rsi"], speed:["sprint_fvp","srr"]};
-      if (!state || !choices[key]?.includes(t.value)) return;
+      const key = t.dataset.capabilitySelection, choices = M.capabilityDirectionOptions;
+      if (!state || !choices[key]?.some(([id]) => id === t.value)) return;
       (state.views.capabilitySelections ||= {})[key] = t.value; changed(false); renderReport(); return;
     }
     if (t.hasAttribute("data-fvp-protocol")) {

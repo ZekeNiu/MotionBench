@@ -982,9 +982,9 @@
     })).filter(card => card.metrics.length);
     const fvp = renderFVPAnalysis(report, { print }), sprint = renderSprintFVPAnalysis(report, { print });
     if (!cards.length && !fvp && !sprint) return "";
-    const source = id => cards.find(card => card.id === id);
-    const byId = id => cards.flatMap(card => card.metrics).find(metric => metric.id === id);
-    const impulseName = id => id === "idsi_fixed250" ? "iDSI · 固定 0–250 ms" : "iDSI · 匹配 CMJ 推进期";
+    const options = M.capabilityDirectionOptions;
+    const directions = M.capabilityDirections(record, { ...stats, derived: stats.derived || report.derived });
+    const impulseName = id => options.strength.find(([key]) => key === id)?.[1];
     const impulse = id => {
       const result = (stats.derived?.results || report.derived?.results || []).find(item => item.id === id);
       return result && { ...result, label: impulseName(id), judgment: result.directionHint, status: "gray" };
@@ -992,50 +992,16 @@
     const format = metric => F(metric?.value, Number.isInteger(metric?.digits) ? metric.digits
       : metric?.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric?.id || "") ? 3 : metric?.unit === "%" ? 1 : 2);
     const unit = metric => metric?.unit && metric.unit !== "比值" ? ` <small>${E(metric.unit)}</small>` : "";
-    const selectedFvp = record.views?.fvpProtocol;
-    const jumpEntries = Object.entries(stats.fvp || {}).filter(([id]) => record.enabled[id]
-      && (record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
-    const jumpId = jumpEntries.find(([id]) => id === selectedFvp)?.[0] || jumpEntries[0]?.[0] || selectedFvp || "fvp_sj";
-    const jump = stats.fvp?.[jumpId], sprintSolved = stats.sprintFvp;
-    const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
-      value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
-      judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
-    const sprintMetric = { id: "sprint_fvp", label: "冲刺 FVP 不平衡性", value: sprintSolved?.valid ? sprintSolved.imbalance?.magnitudePct : null,
-      unit: "%", digits: 2, judgment: sprintSolved?.imbalance?.label || "待计算", status: "gray" };
-    const options = {
-      strength: [["fvp", "FVP 不平衡性"], ["fdsi", "DSI"], ["idsi_matched", impulseName("idsi_matched")], ["idsi_fixed250", impulseName("idsi_fixed250")], ["eur", "EUR"]],
-      reactive: [["dj_rsi", "DJ RSI"], ["hop_rsi", "Hop RSI"], ["cmrj_rsi", "CMRJ RSI"]],
-      speed: [["sprint_fvp", "冲刺 FVP 不平衡性"], ["srr", "SRR"]],
-    };
-    const candidate = id => id === "fvp" ? jumpMetric : id === "sprint_fvp" ? sprintMetric
-      : id.startsWith("idsi_") ? impulse(id) : byId(id);
-    const choice = key => {
-      const saved = record.views?.capabilitySelections?.[key];
-      return options[key].some(([id]) => id === saved) ? saved
-        : options[key].find(([id]) => N(candidate(id)?.value) !== null)?.[0] || options[key][0][0];
-    };
-    const judgmentFor = (key, metric) => {
-      if (N(metric?.value) === null) return "待计算";
-      if (key === "reactive") return metric.judgment
-        ? (metric.status === "red" || metric.status === "amber" ? "优先提高反应力量 · " : metric.status === "green" ? "保持并巩固反应力量 · " : "当前 RSI 标准 · ") + assessmentLabel(metric.status, metric.judgment)
-        : "已测量；在评价标准中选择 RSI 参考。";
-      if (metric.id === "eur") {
-        const definition = record.definitions.find(item => item.id === "eur");
-        const grade = definition?.referenceEnabled ? M.evaluation(metric.value, definition, record) : null;
-        return grade?.range ? assessmentLabel(grade.status, grade.label) : "结合 CMJ 与 SJ 的绝对成绩和纵向变化判断发展方向。";
-      }
-      return metric.judgment ? assessmentLabel(metric.status, metric.judgment) : "待判断";
-    };
-    const directionCard = (key, title) => {
-      const selected = choice(key), metric = candidate(selected) || { id: selected, label: options[key].find(([id]) => id === selected)?.[1], value: null };
+    const directionCard = metric => {
+      const key = metric.id, title = metric.title, selected = metric.metricId;
       const selector = print ? "" : `<label class="capability-selector no-print">判断依据<select data-capability-selection="${key}" aria-label="${E(title)}判断依据">${options[key].map(([id, label]) => `<option value="${id}"${id === selected ? " selected" : ""}>${E(label)}</option>`).join("")}</select></label>`;
-      const basis = selected === "fvp" && jump?.valid ? `${jump.analysis?.angle || 90}° 目标方向`
-        : selected === "sprint_fvp" && positive(sprintSolved?.targetDistanceM) ? `目标距离 ${F(sprintSolved.targetDistanceM, 1)} m` : "";
-      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3>${selector}<section data-direction-metric="${E(selected)}"><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}<p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(judgmentFor(key, metric))}</p></section></article>`;
+      const basis = selected === "fvp" && metric.context?.angle ? `${metric.context.angle}° 目标方向`
+        : selected === "sprint_fvp" && positive(metric.context?.targetDistanceM) ? `目标距离 ${F(metric.context.targetDistanceM, 1)} m` : "";
+      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3>${selector}<section data-direction-metric="${E(selected)}"><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}<p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p></section></article>`;
     };
-    const cardio = source("cardio"), cardioPrimary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
-    const endurance = `<article class="capability-direction-card" data-capability-direction="endurance"><h3>耐力发展方向</h3><section data-direction-metric="${E(cardioPrimary?.id || "endurance")}"><p class="capability-direction-basis">${E(cardioPrimary?.label || "心肺与阈值表现")}</p><p class="capability-direction-value">${format(cardioPrimary)}${unit(cardioPrimary)}</p><p class="capability-direction-judgment">${E(cardio?.conclusion || (cardioPrimary?.judgment ? assessmentLabel(cardioPrimary.status, cardioPrimary.judgment) : cardioPrimary ? "已测量；按当前心肺与阈值目标判断。" : "待计算"))}</p></section></article>`;
-    const left = `<div class="capability-direction-grid">${directionCard("strength", "力量发展方向")}${directionCard("reactive", "反应力量水平")}${directionCard("speed", "速度发展方向")}${endurance}</div>`;
+    const cardioPrimary = directions.find(direction => direction.id === "endurance");
+    const endurance = `<article class="capability-direction-card" data-capability-direction="endurance"><h3>耐力发展方向</h3><section data-direction-metric="${E(cardioPrimary.metricId)}"><p class="capability-direction-basis">${E(cardioPrimary.label)}</p><p class="capability-direction-value">${format(cardioPrimary)}${unit(cardioPrimary)}</p><p class="capability-direction-judgment">${E(cardioPrimary.judgment)}</p></section></article>`;
+    const left = `<div class="capability-direction-grid">${directions.filter(direction => direction.id !== "endurance").map(directionCard).join("")}${endurance}</div>`;
     const target = metric => {
       const definition = record.definitions.find(item => item.id === metric.id);
       const value = positive(metric.target) ? N(metric.target) : definition?.referenceEnabled && definition.matched !== false && positive(definition.target) ? N(definition.target) : null;

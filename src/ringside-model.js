@@ -7,6 +7,11 @@
   const N = Calc.num;
   const FVP_IDS = ["fvp_sj", "fvp_cmj"];
   const ADDED_FVP_IDS = [...FVP_IDS, "sprint_fvp"];
+  const capabilityDirectionOptions = Object.freeze(Object.fromEntries(Object.entries({
+    strength: [["fvp", "FVP 不平衡性"], ["fdsi", "DSI"], ["idsi_matched", "iDSI · 匹配 CMJ 推进期"], ["idsi_fixed250", "iDSI · 固定 0–250 ms"], ["eur", "EUR"]],
+    reactive: [["dj_rsi", "DJ RSI"], ["hop_rsi", "Hop RSI"], ["cmrj_rsi", "CMRJ RSI"]],
+    speed: [["sprint_fvp", "冲刺 FVP 不平衡性"], ["srr", "SRR"]],
+  }).map(([key, options]) => [key, Object.freeze(options.map(option => Object.freeze(option)))])));
   const sprintFvpConfigDefaults = () => root.RingsideSprintFVP?.defaultsConfig() || { heightCm: "", temperatureC: 20, pressureHpa: 1013.25, windMps: 0, device: "", startConvention: "first_propulsive_action", timingStart: "first_propulsive_action", inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0, methodVersion: "samozino-2016-splits-v1", sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" };
   const sprintFvpAnalysisDefaults = () => root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" };
   const fvpConfigDefaults = () => root.RingsideFVP?.defaultsConfig() || { device: "", method: "", posture: "", distanceCm: "", distanceSource: "" };
@@ -2378,6 +2383,68 @@
     if (cardioCard) cardioCard.targets = targets;
     return cards;
   }
+  function capabilityDirections(record, computed = stats(record)) {
+    const cards = (computed.capabilityCards || []).map(card => ({ ...card,
+      metrics: (card.metrics || []).filter(metric => N(metric.value) !== null),
+    })).filter(card => card.metrics.length);
+    const byId = id => cards.flatMap(card => card.metrics).find(metric => metric.id === id);
+    const impulse = id => {
+      const result = (computed.derived?.results || []).find(item => item.id === id);
+      return result && { ...result, label: capabilityDirectionOptions.strength.find(([key]) => key === id)?.[1], judgment: result.directionHint, status: "gray" };
+    };
+    const selectedFvp = record.views?.fvpProtocol;
+    const jumpEntries = Object.entries(computed.fvp || {}).filter(([id]) => record.enabled[id]
+      && (record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
+    const jumpId = jumpEntries.find(([id]) => id === selectedFvp)?.[0] || jumpEntries[0]?.[0] || selectedFvp || "fvp_sj";
+    const jump = computed.fvp?.[jumpId], sprint = computed.sprintFvp;
+    const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
+      value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
+      judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
+    const sprintMetric = { id: "sprint_fvp", label: "冲刺 FVP 不平衡性", value: sprint?.valid ? sprint.imbalance?.magnitudePct : null,
+      unit: "%", digits: 2, judgment: sprint?.imbalance?.label || "待计算", status: "gray" };
+    const candidate = id => id === "fvp" ? jumpMetric : id === "sprint_fvp" ? sprintMetric
+      : id.startsWith("idsi_") ? impulse(id) : byId(id);
+    const choice = key => {
+      const saved = record.views?.capabilitySelections?.[key], options = capabilityDirectionOptions[key];
+      return options.some(([id]) => id === saved) ? saved
+        : options.find(([id]) => N(candidate(id)?.value) !== null)?.[0] || options[0][0];
+    };
+    const judgmentFor = (key, metric) => {
+      if (N(metric?.value) === null) return "待计算";
+      if (key === "reactive") return metric.judgment
+        ? (metric.status === "red" || metric.status === "amber" ? "优先提高反应力量 · " : metric.status === "green" ? "保持并巩固反应力量 · " : "当前 RSI 标准 · ") + Def.assessmentLabel(metric.status, metric.judgment)
+        : "已测量；在评价标准中选择 RSI 参考。";
+      if (metric.id === "eur") {
+        const definition = record.definitions.find(item => item.id === "eur");
+        const grade = definition?.referenceEnabled ? evaluation(metric.value, definition, record) : null;
+        return grade?.range ? Def.assessmentLabel(grade.status, grade.label) : "结合 CMJ 与 SJ 的绝对成绩和纵向变化判断发展方向。";
+      }
+      return metric.judgment ? Def.assessmentLabel(metric.status, metric.judgment) : "待判断";
+    };
+    const direction = (key, title) => {
+      const metricId = choice(key), metric = candidate(metricId) || { id: metricId, label: capabilityDirectionOptions[key].find(([id]) => id === metricId)?.[1], value: null };
+      return { id: key, title, metricId, label: metric.label || "", value: N(metric.value), unit: metric.unit || "",
+        digits: Number.isInteger(metric.digits) ? metric.digits : metric.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id || "") ? 3 : metric.unit === "%" ? 1 : 2,
+        status: metric.status || "gray", judgment: judgmentFor(key, metric),
+        context: metricId === "fvp" ? { protocol: jumpId, angle: jump?.valid ? jump.analysis?.angle || 90 : null }
+          : metricId === "sprint_fvp" ? { targetDistanceM: positive(sprint?.targetDistanceM) } : null };
+    };
+    const cardio = cards.find(card => card.id === "cardio"), primary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
+    return [direction("strength", "力量发展方向"), direction("reactive", "反应力量水平"), direction("speed", "速度发展方向"),
+      { id: "endurance", title: "耐力发展方向", metricId: primary?.id || "endurance", label: primary?.label || "心肺与阈值表现",
+        value: N(primary?.value), unit: primary?.unit || "", digits: Number.isInteger(primary?.digits) ? primary.digits
+          : primary?.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(primary?.id || "") ? 3 : primary?.unit === "%" ? 1 : 2,
+        status: primary?.status || "gray", context: null,
+        judgment: cardio?.conclusion || (primary?.judgment ? Def.assessmentLabel(primary.status, primary.judgment) : primary ? "已测量；按当前心肺与阈值目标判断。" : "待计算") }];
+  }
+  function capabilityDirectionsBasis(record, computed = stats(record)) {
+    const directions = capabilityDirections(record, computed);
+    // Selection identity has its own AI binding. Measurement/reference changes
+    // remain covered by fingerprint, including the existing age-only exception.
+    return JSON.stringify({ selections: directions.filter(direction => direction.id !== "endurance").map(direction => ({
+      id: direction.id, metricId: direction.metricId, ...(direction.metricId === "fvp" ? { protocol: direction.context.protocol } : {}),
+    })), idsiWindow: computed.capabilityCards?.find(card => card.id === "strength")?.metrics.find(metric => metric.id === "idsi")?.selectedVariant || null });
+  }
   function stats(record) {
     let state = record || defaults();
     if (state.isoDirectionIds !== undefined) state = { ...state, data: { ...state.data, iso: selectedIsoRows(state) } };
@@ -4291,8 +4358,7 @@
     if (input.views?.capabilitySelections !== undefined) {
       const selections = input.views.capabilitySelections;
       if (!plainObject(selections)) throw new Error("能力结构指标选项格式无效");
-      const options = { strength: ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"], reactive: ["dj_rsi","hop_rsi","cmrj_rsi"], speed: ["sprint_fvp","srr"] };
-      Object.entries(options).forEach(([key, allowed]) => { if (selections[key] !== undefined && !allowed.includes(selections[key])) throw new Error("能力结构 " + key + " 指标选项无效"); });
+      Object.entries(capabilityDirectionOptions).forEach(([key, options]) => { if (selections[key] !== undefined && !options.some(([id]) => id === selections[key])) throw new Error("能力结构 " + key + " 指标选项无效"); });
     }
     validateAbilityGroups(input.abilityGroupSnapshot);
     if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
@@ -4922,6 +4988,9 @@
     imtpTimeContext,
     forceTime,
     stats,
+    capabilityDirectionOptions,
+    capabilityDirections,
+    capabilityDirectionsBasis,
     fvpAnalysis,
     sprintFvpAnalysis,
     grade,
