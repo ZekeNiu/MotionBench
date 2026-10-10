@@ -77,7 +77,7 @@
       const config = "fvpConfig." + id, analysis = "fvpAnalysis." + id, view = "fvpView." + id;
       rows.push(text(config + ".device", "测量设备"), text(config + ".method", "跳跃高度测量方法"), text(config + ".posture", "动作姿势 / 下蹲深度"), field(config + ".distanceCm", "统一蹬伸距离 cm"), text(config + ".distanceSource", "蹬伸距离来源"));
       rows.push(field(analysis + ".angle", "最优剖面角度 °", "number", [90, 30]), field(analysis + ".deltaForcePct", "力量端变化 %"), field(analysis + ".deltaVelocityPct", "速度端变化 %"));
-      for (const [key, label] of [["fv", "显示 F–V 曲线"], ["pv", "显示 P–V 曲线"], ["points", "显示实测点"], ["optimum", "显示最优剖面"], ["comparison", "显示另一角度最优剖面"], ["confidence", "显示置信区间"]]) rows.push(bool(view + "." + key, label));
+      for (const [key, label] of [["fv", "显示 F–V 曲线"], ["pv", "显示 P–V 曲线"], ["points", "显示实测点"], ["optimum", "显示最优剖面"], ["comparison", "显示另一角度最优剖面"], ["confidence", "显示置信区间"], ["responseForce", "显示力量端单独变化"], ["responseVelocity", "显示速度端单独变化"], ["responseBoth", "显示力量与速度同步变化"]]) rows.push(bool(view + "." + key, label));
       rows.push(text(view + ".range", "图表范围", ["full", "measured"]), {...field(view + ".pinnedLoad", "固定查看负荷 kg（可留空）"), nullable:true});
     }
     return rows;
@@ -139,6 +139,13 @@
     return specs;
   }
   const identity = record => ({recordId:record.recordId,athleteId:record.athleteId,name:record.athlete.name+" · "+(record.athlete.sport||"未填专项")+" · "+record.athleteId.slice(-6)});
+  const expandable = spec => ["attempt","iso","hop","hopJumps","timePoints"].includes(spec.kind);
+  const exportFields = (spec, schema) => schema === 1 || !expandable(spec) ? spec.fields : [text("recordRef", "运动员 / 测试"), ...spec.fields.slice(3).flatMap(f => f.key === "directionId" ? [text("directionRef", "关节 / 运动方向")] : f.key === "directionName" ? [] : [f])];
+  const recordReferences = records => records.map((record, i) => ({recordId:record.recordId,label:String(i+1).padStart(3,"0")+" · "+record.athlete.name+" · "+(record.athlete.sport||"未填专项")+" · "+record.athlete.date}));
+  function directionReferences(records) {
+    const directions = [...new Map(records.filter(r=>r.enabled.iso).flatMap(isoRows).map(row=>[row.id,row])).values()];
+    return directions.map((row,i)=>({directionId:row.id,label:String(i+1).padStart(2,"0")+" · "+(M.REG[row.region]||row.region)+" · "+row.direction}));
+  }
   function writeValue(value, descriptor) {
     if (descriptor.type === "boolean") return value ? "是" : "否";
     return empty(value) ? null : displayChoice(descriptor,value);
@@ -173,8 +180,10 @@
       const attempts = prefill ? raw : Array.from({length:3},()=>({timePoints:[{timeMs:100},{timeMs:200}]}));
       attempts.forEach((row,i) => (row.timePoints || []).forEach(point => push({...clone(point),attempt:i+1})));
     } else {
-      let rows = prefill ? M.repeatRows(record,spec.id) : Array.from({length:isFVP(spec.id) && spec.renderer === "fvp" ? 15 : spec.id === "lactate" ? 1 : 3},()=>({}));
-      if (!prefill && ["landmine","mb"].includes(spec.id)) rows = (spec.id === "landmine" ? ["L","R"] : ["D","ND"]).flatMap(side => Array.from({length:3},()=>({side})));
+      const reserve = isFVP(spec.id) && spec.renderer === "fvp" ? 30 : ["landmine","squat","bench","deadlift"].includes(spec.id) && spec.renderer === "lvp" ? 15 : 0;
+      let rows = prefill ? M.repeatRows(record,spec.id) : Array.from({length:reserve || (spec.id === "lactate" ? 1 : 3)},()=>({}));
+      if (prefill && reserve) rows = rows.concat(Array.from({length:reserve},()=>({})));
+      if (!prefill && ["landmine","mb"].includes(spec.id)) rows = (spec.id === "landmine" ? ["L","R"] : ["D","ND"]).flatMap(side => Array.from({length:reserve || 3},()=>({side})));
       rows.forEach((row,i) => {
         row = clone(row); if (row.activeStiffnessInputUnit === "N/m" && !empty(row.activeStiffness)) row.activeStiffness *= 1000;
         if (["dj","cmrj"].includes(spec.id)) row.activeStiffnessInputUnit ||= "kN/m";
@@ -184,8 +193,9 @@
     return result;
   }
   function requireExcel() { if (!root.ExcelJS?.Workbook) throw Error("Excel 离线组件尚未加载，请使用完整版本重新打开"); }
-  async function createTemplate({records, prefill = false}) {
+  async function createTemplate({records, prefill = false, schema = 2}) {
     requireExcel();
+    if (![1,2].includes(schema)) throw Error("不支持的 Excel 模板版本");
     if (!Array.isArray(records) || !records.length || records.length > 300) throw Error("请选择 1–300 名已有运动员");
     const ids = new Set(); records = records.map(input => {
       const record = M.normalizeRecord(clone(input)); M.applyAge(record); M.validateRecord(record);
@@ -200,7 +210,7 @@
       ["MotionBench 测试数据模板", "按工作表填写原始测试结果，然后回到软件导入。"],
       ["人员与日期", "只使用已预选的运动员；姓名和隐藏编号请勿改动。日期填写 YYYY-MM-DD。"],
       ["空白与零", "未知或未测留空；真实的零填写 0。空白项目不会清除现有结果。"],
-      ["增加测量", "复制本人的完整数据行（包含隐藏编号列），修改试次 / 阶段 / 跳次编号后填写；同一组编号不可重复。"],
+      ["增加测量", schema === 2 ? "在测量表下一行继续填写。多人模板须选择运动员 / 测试；普通试次编号可留空自动顺延。复制已测行时请修改试次编号。Hop 组、跳次及 IMTP 时间点须明确填写关联编号。" : "复制本人的完整数据行（包含隐藏编号列），修改试次 / 阶段 / 跳次编号后填写；同一组编号不可重复。"],
       ["补录", "导入时按项目选择保留现有或替换。替换采用本表完整试次，不自动追加。再次导入同一模板不会新建第二条记录。"],
       ["测试条件", "协议、单位及输入口径在对应项目页或测试条件页填写；评价标准由软件统一管理。"],
       ["等长力量", "只填写所选方向；双侧方向填写左 / 右，中线方向填写中线，保留疼痛。"],
@@ -209,40 +219,58 @@
       ["选项与单位", "录入方式、测试方式、力口径及侧别使用下拉菜单选择；数值单位见列标题或单位列。"],
       ["公式", "填写数值或文字，不使用公式；如从计算表复制，请粘贴为值。"],
       ["工作表结构", "请保留工作表、表头和隐藏信息。整份文件通过校验后才会保存。"],
+      ["导入版本", schema === 2 ? "本模板须使用 MotionBench 2.16 或更新版本导入。旧版模板仍可由新版软件导入。" : "历史格式模板，可由新版软件导入。"],
     ].forEach(row => guide.addRow(row));
     guide.getRow(1).font = {bold:true,size:16,color:{argb:"FF153B39"}};
     guide.eachRow(row => {row.alignment={vertical:"middle",wrapText:true};row.height=34;});
-    for (const spec of specs) {
+    const references = recordReferences(records), directionRefs = directionReferences(records), sheetManifest = [], listCache = new Map();
+    const lists = schema === 2 ? book.addWorksheet("_MotionBench_Lists", {state:"veryHidden"}) : null;
+    const listName = values => {
+      const key=JSON.stringify(values); if(listCache.has(key))return listCache.get(key);
+      const start=lists.rowCount+1, name="MB_LIST_"+String(listCache.size+1).padStart(4,"0");
+      values.forEach(value=>lists.addRow([value]));
+      book.definedNames.add("'_MotionBench_Lists'!$A$"+start+":$A$"+(start+values.length-1),name);listCache.set(key,name);return name;
+    };
+    for (const [specIndex,spec] of specs.entries()) {
       const ws = book.addWorksheet(spec.name);
-      ws.columns = spec.fields.map(f => ({width:f.key === "name" ? 36 : /notes|Protocol|value/.test(f.key) ? 28 : 19}));
-      ws.addRow(spec.fields.map(f => f.label)); ws.addRow(spec.fields.map(f => f.key)); ws.getRow(2).hidden = true;
-      ws.getColumn(1).hidden = true; ws.getColumn(2).hidden = true;
-      for (const key of ["directionId","metricId","testId","fieldId"]) {const i=spec.fields.findIndex(f=>f.key===key);if(i>=0)ws.getColumn(i+1).hidden=true;}
-      ws.views = [{state:"frozen",xSplit:3,ySplit:2}];
+      const fields=exportFields(spec,schema), usedHeaders=new Set(), headers=fields.map(f=>{let header=f.label,index=2;while(usedHeaders.has(header))header=f.label+" ("+(index++)+")";usedHeaders.add(header);return header;}), tableName="MB_TABLE_"+String(specIndex+1).padStart(3,"0");
+      ws.columns = fields.map(f => ({width:["name","recordRef"].includes(f.key) ? 40 : /notes|Protocol|value|directionRef/.test(f.key) ? 28 : 19}));
+      ws.addRow(headers); if(schema===1){ws.addRow(fields.map(f=>f.key));ws.getRow(2).hidden=true;}
+      for (const key of ["recordId","athleteId","directionId","metricId","testId","fieldId"]) {const i=fields.findIndex(f=>f.key===key);if(i>=0)ws.getColumn(i+1).hidden=true;}
+      ws.views = [{state:"frozen",xSplit:expandable(spec)&&schema===2?1:3,ySplit:schema===1?2:1}];
       for (const record of records) for (const data of dataRows(spec,record,prefill&&(!spec.id||countProject(record,spec.id)>0))) {
-        const effectiveFields=spec.fields.map(f=>spec.kind==="settings"&&f.key==="value"?{...settings(record,data.testId).find(setting=>setting.key===data.fieldId),key:"value",optionKey:data.fieldId}:f);
+        if(schema===2&&expandable(spec)){data.recordRef=references.find(ref=>ref.recordId===record.recordId).label;if(spec.kind==="iso")data.directionRef=directionRefs.find(ref=>ref.directionId===data.directionId).label;}
+        const effectiveFields=fields.map(f=>spec.kind==="settings"&&f.key==="value"?{...settings(record,data.testId).find(setting=>setting.key===data.fieldId),key:"value",optionKey:data.fieldId}:f);
         const forValue=f=>f.optionKey?{...f,key:f.optionKey}:f;
         const row = ws.addRow(effectiveFields.map(f => writeValue(get(data,f.key),forValue(f))));
         row.alignment = {vertical:"middle",wrapText:true}; row.height=28;
         effectiveFields.forEach((f,i) => {
           const ageReference = spec.kind === "metadata" && f.key === "age" && !!record.athlete.birthDate;
-          const cell=row.getCell(i+1); cell.protection={locked:i<3 || ageReference};
+          const cell=row.getCell(i+1); cell.protection={locked:["recordId","athleteId","name"].includes(f.key) || ageReference};
           if (ageReference) cell.note = "根据生日与测试日期自动计算；修改测试日期后，导入时会更新年龄。";
-          if (i<3) cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF0F3F2"}};
+          if (["recordId","athleteId","name","recordRef"].includes(f.key)) cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF0F3F2"}};
           else cell.fill={type:"pattern",pattern:"solid",fgColor:{argb:row.number%2?"FFF1F8F5":"FFFFFFFF"}};
           if (f.type === "date") cell.numFmt="@";
           if (f.type === "number") cell.numFmt="0.########";
-          if(f.choices)cell.dataValidation={type:"list",allowBlank:true,formulae:['"'+f.choices.map(value=>displayChoice(forValue(f),value)).join(",")+'"'],showErrorMessage:true,errorTitle:"请选择列表中的值",error:"请使用下拉菜单中的值。"};
+          if(f.choices)cell.dataValidation={type:"list",allowBlank:true,formulae:[schema===2?listName(f.choices.map(value=>displayChoice(forValue(f),value))):'"'+f.choices.map(value=>displayChoice(forValue(f),value)).join(",")+'"'],showErrorMessage:true,errorTitle:"请选择列表中的值",error:"请使用下拉菜单中的值。"};
         });
+      }
+      if(schema===2&&expandable(spec)){
+        const rows=Array.from({length:ws.rowCount-1},(_,i)=>fields.map((_,c)=>ws.getCell(i+2,c+1).value));
+        ws.addTable({name:tableName,ref:"A1",headerRow:true,totalsRow:false,columns:headers.map(name=>({name,filterButton:true})),rows:rows.length?rows:[fields.map(()=>null)],style:{theme:"TableStyleMedium2",showRowStripes:true}});
+        const allowed=references.filter(ref=>records.find(record=>record.recordId===ref.recordId).enabled[spec.id]).map(ref=>ref.label);
+        const selectors={recordRef:allowed,...(spec.kind==="iso"?{directionRef:directionRefs.map(ref=>ref.label)}:{})};
+        for(const [key,values]of Object.entries(selectors)){if(!values.length)continue;const column=fields.findIndex(f=>f.key===key)+1,letter=ws.getColumn(column).letter;ws.dataValidations.add(letter+"2:"+letter+Math.min(100000,ws.rowCount+1000),{type:"list",allowBlank:true,formulae:[listName(values)],showErrorMessage:true,errorTitle:"请选择本次测试",error:"请使用列表中的选项。"});}
       }
       ws.getRow(1).height=42;ws.getRow(1).font={bold:true,color:{argb:"FFFFFFFF"}};
       ws.getRow(1).alignment={vertical:"middle",wrapText:true};ws.getRow(1).fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF245C54"}};
-      ws.autoFilter={from:{row:1,column:3},to:{row:Math.max(3,ws.rowCount),column:spec.fields.length}};
+      if(!expandable(spec)||schema===1)ws.autoFilter={from:{row:1,column:3},to:{row:Math.max(schema===1?3:2,ws.rowCount),column:fields.length}};
       if (spec.kind === "metadata" && records.some(record => !!record.athlete.birthDate))
         await ws.protect("", {selectLockedCells:true,selectUnlockedCells:true,autoFilter:true});
+      if(schema===2)sheetManifest.push({name:spec.name,kind:spec.kind,testId:spec.id||null,columns:fields.map((f,i)=>({key:f.key,header:headers[i]})),tableName:expandable(spec)?tableName:null});
     }
     const info = book.addWorksheet("_MotionBench",{state:"veryHidden"});
-    const manifest = {format:"motionbench-test-template",schema:1,templateId,records:records.map(blankRecord)};
+    const manifest = {format:"motionbench-test-template",schema,templateId,records:records.map(blankRecord),...(schema===2?{sheets:sheetManifest,recordRefs:references,directionRefs,listsSheet:"_MotionBench_Lists"}:{})};
     const encoded = JSON.stringify(manifest);
     for(let i=0;i<encoded.length;i+=16000) info.addRow([i/16000,encoded.slice(i,i+16000)]);
     return {bytes:await book.xlsx.writeBuffer(),templateId,fileName:"MotionBench_测试录入_"+records[0].athlete.date+"_"+records.length+"人.xlsx"};
@@ -288,6 +316,34 @@
     const skip = new Set(["recordId","athleteId","name","attempt","action","actionName","directionId","directionName","unit","directionProtocol","side","inputMode","phase","label","vo2Unit","metricId","metricName","jump","timeMs","activeStiffnessInputUnit","summary.activeStiffnessInputUnit","summary.selectionBasis"]);
     return spec.fields.map(f=>f.key).filter(key=>!skip.has(key));
   }
+  function resolveIdentity(row, spec, entries, schema, references) {
+    const eligible=entries.filter(entry=>!spec.id||entry.record.enabled[spec.id]);
+    if(schema===2&&expandable(spec)){
+      if(empty(row.recordRef))return eligible.length===1?{entry:eligible[0]}:{key:"recordRef",message:"新增行未指定运动员 / 测试，请从列表选择"};
+      const reference=references.find(ref=>ref.label===row.recordRef), entry=eligible.find(entry=>entry.record.recordId===reference?.recordId);
+      return entry?{entry}:{key:"recordRef",message:"运动员 / 测试不属于本工作表，请从列表选择"};
+    }
+    const provided=prefix.filter(f=>!empty(row[f.key])),matches=eligible.filter(entry=>provided.every(f=>row[f.key]===identity(entry.record)[f.key]));
+    if(matches.length===1)return {entry:matches[0]};
+    if(!matches.length){
+      const target=eligible.find(entry=>entry.record.recordId===row.recordId),key=target?prefix.find(f=>!empty(row[f.key])&&row[f.key]!==identity(target.record)[f.key])?.key:provided.find(f=>!eligible.some(entry=>row[f.key]===identity(entry.record)[f.key]))?.key;
+      return {key:key||"name",message:"运动员 / 测试编号与模板不符；请勿改名或复制其他人的编号"};
+    }
+    return {key:"name",message:"新增行缺少可唯一识别的运动员 / 测试信息，请复制本人的完整数据行"};
+  }
+  function readColumns(ws,spec,manifest,errors) {
+    const fields=exportFields(spec,manifest.schema),columns=new Map(), metadata=manifest.schema===2?manifest.sheets.find(sheet=>sheet.name===spec.name):null;
+    if(manifest.schema===2){
+      if(!metadata||metadata.kind!==spec.kind||metadata.testId!==(spec.id||null)||!Array.isArray(metadata.columns)||metadata.columns.length!==fields.length||metadata.columns.some((column,i)=>column.key!==fields[i].key||typeof column.header!=="string")||new Set(metadata.columns.map(column=>column.header)).size!==fields.length){issue(errors,ws,1,1,"模板字段映射损坏，请重新下载模板");return null;}
+      const headers=new Map(metadata.columns.map(column=>[column.header,column.key]));
+      ws.getRow(1).eachCell((cell,i)=>{const key=headers.get(cell.value);if(!key){issue(errors,ws,1,i,"未知或已修改的表头，请保留模板表头");return;}if(columns.has(key))issue(errors,ws,1,i,"字段编号重复");columns.set(key,i);});
+      if(expandable(spec)&&(!safe(metadata.tableName)||!ws.getTable(metadata.tableName))){issue(errors,ws,1,1,"缺少测量表，请保留原 Excel 表结构");return null;}
+    }else ws.getRow(2).eachCell((cell,i)=>{if(typeof cell.value==="string"){if(columns.has(cell.value))issue(errors,ws,2,i,"字段编号重复");columns.set(cell.value,i);}});
+    if(fields.some(f=>!columns.has(f.key))){issue(errors,ws,manifest.schema===2?1:2,1,"字段结构不完整，请保留模板表头");return null;}
+    for(const [key,column]of columns)if(!fields.some(f=>f.key===key))issue(errors,ws,manifest.schema===2?1:2,column,"未知字段："+key);
+    if(manifest.schema===2&&spec.kind==="iso")columns.set("directionId",columns.get("directionRef"));
+    return {fields,columns,start:manifest.schema===2?2:3};
+  }
   async function readTemplate(bytes) {
     requireExcel();
     if((bytes?.byteLength || bytes?.length || 0)>25*1024*1024)throw Error("Excel 文件超过 25 MB，请拆分测试批次");
@@ -296,10 +352,11 @@
     const errors=[],info=book.getWorksheet("_MotionBench");if(!info)throw Error("缺少 MotionBench 模板信息，请重新下载模板");
     let encoded="";info.eachRow((row,i)=>{if(row.getCell(1).value!==i-1)throw Error("模板信息顺序不完整");const v=row.getCell(2).value;if(typeof v!=="string")throw Error("模板信息损坏");encoded+=v;});
     let manifest;try{manifest=JSON.parse(encoded);}catch(_){throw Error("模板信息损坏");}
-    if(manifest.format!=="motionbench-test-template"||manifest.schema!==1||!safe(manifest.templateId)||!Array.isArray(manifest.records)||!manifest.records.length||manifest.records.length>300)throw Error("模板版本或测试列表无效");
+    if(manifest.format!=="motionbench-test-template"||![1,2].includes(manifest.schema)||!safe(manifest.templateId)||!Array.isArray(manifest.records)||!manifest.records.length||manifest.records.length>300)throw Error("模板版本或测试列表无效");
+    if(manifest.schema===2&&(!Array.isArray(manifest.sheets)||manifest.listsSheet!=="_MotionBench_Lists"||JSON.stringify(manifest.recordRefs)!==JSON.stringify(recordReferences(manifest.records))||JSON.stringify(manifest.directionRefs)!==JSON.stringify(directionReferences(manifest.records))))throw Error("模板身份映射损坏，请重新下载模板");
     const targets=new Map(), entries=[];
     for(const raw of manifest.records){M.validateRecord(raw);if(targets.has(raw.recordId))throw Error("模板目标测试编号重复");const record=blankRecord(raw);targets.set(raw.recordId,record);entries.push({record,locations:new Map(),seen:new Set(),groups:new Map(),incoming:new Set(),metadataSeen:false});}
-    const byId=new Map(entries.map(e=>[e.record.recordId,e])),specs=makeSpecs(manifest.records),known=new Set(["填写说明","_MotionBench",...specs.map(s=>s.name)]);
+    const byId=new Map(entries.map(e=>[e.record.recordId,e])),specs=makeSpecs(manifest.records),known=new Set(["填写说明","_MotionBench",...(manifest.schema===2?["_MotionBench_Lists"]:[]),...specs.map(s=>s.name)]);
     let totalRows=0;
     book.eachSheet(ws=>{
       if(ws.rowCount>100000||ws.columnCount>400)throw Error("工作表超出支持的行列数量");totalRows+=ws.rowCount;
@@ -309,16 +366,25 @@
     });
     for(const spec of specs){
       const ws=book.getWorksheet(spec.name);if(!ws){issue(errors,null,0,0,"缺少工作表："+spec.name);continue;}
-      const columns=new Map();ws.getRow(2).eachCell((cell,i)=>{if(typeof cell.value==="string"){if(columns.has(cell.value))issue(errors,ws,2,i,"字段编号重复");columns.set(cell.value,i);}});
-      if(spec.fields.some(f=>!columns.has(f.key))){issue(errors,ws,2,1,"字段结构不完整，请保留模板表头");continue;}
-      for(const [key,col]of columns)if(!spec.fields.some(f=>f.key===key))issue(errors,ws,2,col,"未知字段："+key);
-      for(let i=3;i<=ws.rowCount;i++){
+      const layout=readColumns(ws,spec,manifest,errors);if(!layout)continue;const {columns,fields,start}=layout, parsedRows=[];
+      for(let i=start;i<=ws.rowCount;i++){
         const excelRow=ws.getRow(i);if(!excelRow.values.some(v=>!empty(v)))continue;
-        const templateEntry = byId.get(String(excelRow.getCell(columns.get("recordId")).value || ""));
-        const row={};for(const f of spec.fields)put(row,f.key,spec.kind === "metadata" && f.key === "age" && templateEntry?.record.athlete.birthDate ? templateEntry.record.athlete.age : cellValue(excelRow.getCell(columns.get(f.key)),f,errors));
-        const entry=byId.get(row.recordId),record=entry?.record;
-        if(!record||row.athleteId!==record.athleteId||row.name!==identity(record).name){issue(errors,ws,i,columns.get("name"),"运动员 / 测试编号与模板不符；请勿改名或复制其他人的编号");continue;}
-        if(spec.id&&!record.enabled[spec.id]){issue(errors,ws,i,columns.get("name"),"该运动员未选择此项目");continue;}
+        const templateEntry = columns.has("recordId")?byId.get(String(excelRow.getCell(columns.get("recordId")).value || "")):null;
+        const row={};for(const f of fields)put(row,f.key,spec.kind === "metadata" && f.key === "age" && templateEntry?.record.athlete.birthDate ? templateEntry.record.athlete.age : cellValue(excelRow.getCell(columns.get(f.key)),f,errors));
+        if(expandable(spec)&&spec.kind!=="hop"&&!hasMeasurement(spec,row))continue;
+        const resolved=resolveIdentity(row,spec,entries,manifest.schema,manifest.recordRefs||[]);if(!resolved.entry){issue(errors,ws,i,columns.get(resolved.key)||columns.get("recordRef")||columns.get("name"),resolved.message);continue;}
+        const entry=resolved.entry,record=entry.record;Object.assign(row,identity(record));
+        if(manifest.schema===2&&spec.kind==="iso"){
+          const reference=manifest.directionRefs.find(ref=>ref.label===row.directionRef),direction=isoRows(record).find(direction=>direction.id===reference?.directionId);
+          if(!direction){issue(errors,ws,i,columns.get("directionRef"),"请选择该运动员本次测试包含的方向");continue;}row.directionId=direction.id;
+        }
+        parsedRows.push({i,row,entry,record,excelRow});
+      }
+      const nextAttempt=new Map(),numberGroup=item=>item.record.recordId+":"+spec.id+(spec.kind==="iso"?":"+item.row.directionId:"");
+      if(["attempt","iso"].includes(spec.kind))for(const item of parsedRows)if(Number.isInteger(item.row.attempt)&&item.row.attempt>0&&item.row.attempt<=1000)nextAttempt.set(numberGroup(item),Math.max(nextAttempt.get(numberGroup(item))||0,item.row.attempt));
+      for(const item of parsedRows){
+        const {i,row,entry,record,excelRow}=item;
+        if(["attempt","iso"].includes(spec.kind)&&empty(row.attempt)){const number=(nextAttempt.get(numberGroup(item))||0)+1;row.attempt=number;nextAttempt.set(numberGroup(item),number);}
         const error=(key,message)=>issue(errors,ws,i,columns.get(key)||1,message);
         const set=(path,value,key)=>{put(record,path,value);entry.locations.set(path,{sheet:ws,row:i,column:columns.get(key)||1});};
         const seen=key=>{if(entry.seen.has(key)){error("attempt","同一测试内编号重复："+key);return true;}entry.seen.add(key);return false;};
@@ -350,7 +416,8 @@
         if(spec.kind==="fms"){
           const item=record.data.fms[row.action-1];if(!item||item.name!==row.actionName){error("action","动作编号或名称无效");continue;}if(seen("fms:"+row.action))continue;
           if(item.bilateral&&!empty(row.score)||!item.bilateral&&(!empty(row.left)||!empty(row.right))){error("score","请按动作填写左右分或单项分");continue;}
-          for(const f of spec.fields.slice(5))set("data.fms."+(row.action-1)+"."+f.key,row[f.key],f.key);continue;
+          const keys=(item.bilateral?["left","right"]:["score"]).concat(["pain","location","notes"]);
+          for(const key of keys)set("data.fms."+(row.action-1)+"."+key,row[key],key);continue;
         }
         if(spec.kind==="cpet"){
           if(!["peak","first","second"].includes(row.phase)||!row.vo2Unit){error("phase","请选择阶段及摄氧量单位");continue;}

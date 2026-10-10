@@ -42,7 +42,7 @@
     return {
       definitions: record.definitions.map(d => { const definition = { ...clone(d), context: measurementContext(record, d) }; normalizeFactoryText(definition); return definition; }).sort((a,b) => a.id.localeCompare(b.id)),
       rules: clone(record.rules), axes: clone(record.axes),
-      iso: record.data.iso.map(row => ({ id: row.id, direction: row.direction, ...isoContext(row, record), target: row.target ?? "" })).sort((a,b) => a.id.localeCompare(b.id)),
+      iso: record.data.iso.map(row => ({ id: row.id, direction: row.direction, ...isoContext(row, record), target: row.target ?? "", ...(row.reference !== undefined ? {reference:clone(row.reference)} : {}) })).sort((a,b) => a.id.localeCompare(b.id)),
       balance: record.balancePairs.map(pair => ({ ...clone(pair), contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; }) })).sort((a,b) => a.id.localeCompare(b.id)),
       lvp: Object.fromEntries(Object.entries(record.lvp).map(([id, p]) => [id, { ...clone(p), protocol: record.protocol?.[id.startsWith("landmine") ? "landmine" : id] || "" }])),
       imtpTimeStandards: timeStandards(record),
@@ -53,7 +53,12 @@
     return canonical({ ...criteria, imtpTimeStandards: criteria.imtpTimeStandards || [] });
   }
   function create(record, name = "评价方案") {
-    return { id: "evaluation_" + uid(), name, revision: 1, updated: now(), disabled: false, criteria: capture(record) };
+    const profile = { id: "evaluation_" + uid(), name, revision: 1, updated: now(), disabled: false, criteria: capture(record) };
+    if (root.RingsideIsoReferences) {
+      if (!record.demo) root.RingsideIsoReferences.seedCriteria(profile.criteria);
+      profile.isoReferencesVersion = 1;
+    }
+    return profile;
   }
   function resolve(record, profile) {
     const out = clone(record);
@@ -96,14 +101,19 @@
       const rule = c.iso.find(v => v.id === row.id);
       const matches = rule && canonical(isoContext(row, record)) === canonical({region:rule.region,directionCode:rule.directionCode,paired:rule.paired,unit:rule.unit,protocol:rule.protocol});
       row.target = matches ? rule.target : "";
+      if (matches && rule.reference !== undefined) row.reference = clone(rule.reference);
+      else delete row.reference;
       if (rule && !matches && record.enabled.iso && M.selectedIsoRows(record).some(item => item.id === row.id)) out.evaluationIssues.push({ id: row.id, reason: "等长目标的单位或协议不匹配" });
     }
     for (const pair of out.balancePairs) {
       const rule = c.balance.find(p => p.id === pair.id);
       const contexts = [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; });
       if (rule && canonical(contexts) === canonical(rule.contexts)) {
-        for (const key of ["ranges", "referenceEnabled", "source"]) pair[key] = clone(rule[key]);
-      } else { pair.referenceEnabled = false; pair.ranges = []; }
+        for (const key of ["ranges", "referenceEnabled", "source", "reference", "ratioMigrationIssue", "ratioMigrationOriginal"]) {
+          if (rule[key] !== undefined) pair[key] = clone(rule[key]);
+          else if (["reference", "ratioMigrationIssue", "ratioMigrationOriginal"].includes(key)) delete pair[key];
+        }
+      } else { pair.referenceEnabled = false; pair.ranges = []; delete pair.reference; }
     }
     for (const [id, p] of Object.entries(out.lvp)) {
       const rule = c.lvp[id];
@@ -182,29 +192,46 @@
       }
       return touched;
     };
+    const records = (library.athletes || []).flatMap(a => a.records || []);
     for (const profile of library.evaluationProfiles) {
-      for (const definition of profile.criteria?.definitions || []) if (normalizeFactoryText(definition)) changed = true;
-      if (profile.builtinStandardsVersion === 1) continue;
       const previous = {name:profile.name,criteria:clone(profile.criteria),revision:profile.revision,updated:profile.updated};
-      const touched = upgrade(profile.criteria);
+      let touched = upgradeIsoCriteria(profile.criteria);
+      for (const definition of profile.criteria?.definitions || []) if (normalizeFactoryText(definition)) changed = true;
+      if (profile.builtinStandardsVersion !== 1) {touched = upgrade(profile.criteria) || touched;profile.builtinStandardsVersion = 1;changed = true;}
+      if (root.RingsideIsoReferences && profile.isoReferencesVersion !== 1) {
+        const linked = records.filter(record => record.evaluationProfileId === profile.id);
+        const demo = profile.demo || linked.length > 0 && linked.every(record => record.demo);
+        if (!demo) touched = root.RingsideIsoReferences.seedCriteria(profile.criteria) || touched;
+        profile.isoReferencesVersion = 1;
+        changed = true;
+      }
       if (touched) { profile.previous = previous; profile.revision += 1; profile.updated = now(); }
-      // A deliberate later rollback must not be silently upgraded again on load.
-      profile.builtinStandardsVersion = 1;
-      changed = true;
+      if (touched) changed = true;
     }
     return changed;
   }
+  function upgradeIsoCriteria(criteria) {
+    if (!criteria) return false;
+    const before = canonical({iso:criteria.iso,balance:criteria.balance});
+    (criteria.iso || []).forEach(M.normalizeIsoDirection);
+    (criteria.balance || []).forEach(pair => M.migrateBalancePair(pair, criteria.iso || []));
+    return before !== canonical({iso:criteria.iso,balance:criteria.balance});
+  }
   function materialize(record, profile) {
     const out = profile ? resolve(record, profile) : clone(record);
-    for (const definition of out.definitions) {
-      delete definition.referenceGroups;
-      delete definition.referenceMode;
-    }
+    // Explicit absence survives a standalone export, whose new shared scheme must not seed it again.
+    for (const row of out.data.iso) if ((row.target === "" || row.target == null) && row.reference === undefined) row.reference = null;
+    for (const pair of out.balancePairs) if (!pair.source && !pair.ranges.length && !pair.referenceEnabled && pair.reference === undefined) pair.reference = null;
+    // Keep the descriptive mode in the narrative basis; resolved targets/ranges already freeze the matching group.
+    for (const definition of out.definitions) delete definition.referenceGroups;
     return out;
   }
   function migrate(input) {
     if (input?.schema === 3 && input.kind === "athlete-library") {
-      const lib = clone(input); lib.evaluationProfiles.forEach(p => { p.criteria.imtpTimeStandards ??= []; if (p.previous?.criteria) p.previous.criteria.imtpTimeStandards ??= []; validateProfile(p); }); return lib;
+      const lib = clone(input);
+      for (const athlete of lib.athletes || []) athlete.records = (athlete.records || []).map(M.normalizeRecord);
+      upgradeLibraryProfiles(lib);
+      lib.evaluationProfiles.forEach(p => { p.criteria.imtpTimeStandards ??= []; if (p.previous?.criteria) p.previous.criteria.imtpTimeStandards ??= []; validateProfile(p); }); return lib;
     }
     const legacy = M.normalizeLibrary(input), profiles = [], seen = new Map(), counts = new Map();
     for (const a of legacy.athletes) for (const r of a.records) {
@@ -218,5 +245,5 @@
     return { ...legacy, schema: 3, groups: [], evaluationProfiles: profiles, defaultEvaluationProfileId: defaultProfile.id,
       athletes: legacy.athletes.map(a => ({...a, groupId:"", archived:false, deletedAt:null, records:a.records.map(r=>({...r,archived:false,deletedAt:null}))})) };
   }
-  root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate, imtpTimeContext, imtpTimeMatches, upgradeLibraryProfiles, materialize, hasInstalledStandard };
+  root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate, imtpTimeContext, imtpTimeMatches, upgradeLibraryProfiles, upgradeIsoCriteria, materialize, hasInstalledStandard };
 })(typeof window !== "undefined" ? window : globalThis);

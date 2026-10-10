@@ -200,6 +200,7 @@
     const pending = preserve && entrySession?.records.find(r => r.recordId === state?.recordId);
     const current = preserve ? state?.recordId : null;
     library = await repository.directory();
+    const expectedProfiles = Object.fromEntries(library.evaluationProfiles.map(profile => [profile.id, JSON.stringify(profile)]));
     const catalogBefore = JSON.stringify(library.catalog);
     library.catalog = M.normalizeCatalog(library.catalog);
     const catalogChanged = JSON.stringify(library.catalog) !== catalogBefore;
@@ -210,7 +211,7 @@
     if(state)state=M.normalizeRecord(upgrade.record || state);
     if (pending && state) entrySession.records[entrySession.records.findIndex(r => r.recordId === pending.recordId)] = state;
     if (catalogChanged || profilesChanged || upgrade.changed) {
-      await repository.save(library, upgrade.changed ? [state] : []);
+      await repository.save(library, upgrade.changed ? [state] : [], {}, { expectedProfiles });
       if (upgrade.changed) {
         const athlete = library.athletes.find(a => a.id === state.athleteId);
         const index = athlete?.records.findIndex(r => r.recordId === state.recordId);
@@ -1959,12 +1960,7 @@
       : "待评价";
     $("radarLegend").innerHTML =
       '<span class="red">重点关注</span> · <span class="amber">关注</span> · <span class="green">良好／优秀</span>';
-    const capabilityMetrics = (s.capabilityCards || []).flatMap(card => card.metrics);
-    $("directionMetrics").innerHTML = ["eur", "fdsi", "srr"].map(id => {
-      const metric = capabilityMetrics.find(item => item.id === id);
-      if (!metric || !Number.isFinite(metric.value)) return "";
-      return `<div class="aux-metric" data-overview-metric="${id}"><strong class="aux-judgment">${E(metric.judgment || metric.label)}</strong><span class="aux-data">${E(id === "fdsi" ? "DSI" : id.toUpperCase())} ${F(metric.value, 3)}${metric.unit ? " " + E(metric.unit) : ""}</span></div>`;
-    }).join("");
+    $("directionMetrics").innerHTML = window.RingsideReport.overview(report);
     renderDetails(report);
     renderNarrativeStatus();
     reportDirty = false;
@@ -2297,7 +2293,7 @@
           .join("") +
         '</select><button class="btn small" onclick="App.entry(\'plan\')">调整本次方向</button><button class="btn small" onclick="App.addIso()">＋ 自定义方向</button></div>' +
         table(
-          ["部位／方向", "左侧／左向／单项", "右侧／右向", "单位", "评价标准", "疼痛"],
+          ["部位／方向", "L／单项", "R", "单位", "评价标准", "疼痛"],
           state.data.iso
             .map((x, i) => ({ x, i }))
             .filter(({ x }) => selectedIso.has(x.id) && (isoFilter === "all" || x.region === isoFilter))
@@ -2309,7 +2305,7 @@
               ),
               x.paired ? Array.isArray(x.trials) ? F(isoValues.get(x.id)?.right) : input("data.iso." + i + ".right", x.right) : "—",
               select("data.iso." + i + ".unit", x.unit, ["N", "kgf", "Nm"]),
-              `<span class="note">${E(effectiveRecord().data.iso[i].target || "未设目标")} ${E(x.unit)}</span>`,
+              `<span class="note">${(isoValues.get(x.id)?.sides || []).map(side => side.target === null ? E((side.side ? side.side + " " : "") + "未设目标") : E((side.side ? side.side + " " : "") + F(side.target) + " " + x.unit + (side.targetKind === "reference" ? " · 参考" : ""))).join(" / ") || "未设目标"}</span>`,
               Array.isArray(x.trials) ? isoValues.get(x.id)?.sides.map((s) => (s.sideLabel || s.side || "") + (s.pain ? " 疼痛" : " —")).join(" / ") : `<div class="row">${check("data.iso." + i + "." + (x.paired ? "painLeft" : "painCenter"), x.paired ? x.painLeft : x.painCenter, "")}${x.paired ? check("data.iso." + i + ".painRight", x.painRight, "") : ""}</div>`,
             ]),
         ) +
@@ -4062,6 +4058,7 @@
       "interpUpdated",
       "entryIdentity",
       "entryAthleteControls", "creationAthletes", "creationPeopleSummary", "creationAthleteCount", "creationGroupFilter",
+      "creationContextPerson", "creationBodyFields", "creationTrainingFields",
       "entryProjectTitle",
       "entryProblemSummary",
       "creationProjects",

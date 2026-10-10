@@ -57,12 +57,12 @@
       application: "应用要求至少 3 个不同负荷的有效结果，保留原始试次、代表点和拟合信息；计算时使用未舍入数值。",
     },
     {
-      id: "fvp-li-2026", authors: "Li Zhaoqian", year: 2026,
-      title: "Beyond Imbalance: An Elasticity Framework for Optimizing Jump Performance and Training Efficiency",
+      id: "fvp-li-2026", authors: "Li Z, Li M, Zhang X, Chen Z, Yang L, Li Q", year: 2026,
+      title: "Beyond Imbalance: An Elasticity Framework for the Distance-averaged Force-Velocity Relationship in Vertical Jump",
       publication: "bioRxiv 预印本，2026-09-02 v1. DOI 10.64898/2026.09.01.748530.",
       url: "https://doi.org/10.64898/2026.09.01.748530", topics: ["Fe", "ve", "ER", "EN", "训练情景"],
       method: "Fe、ve 分别为垂直跳跃高度对 F₀、V₀ 的局部比例敏感度；ER=Fe/ve，EN=√(Fe²+ve²)。",
-      data: "论文使用 λ=0.77 的速度参数化；应用统一换算后计算弹性，保留经典 λ=0.5 的 F₀、V₀ 与 Pmax 展示。",
+      data: "20 名受训者、1578 次跳跃及 108 个 F–V 剖面；论文使用 λ=0.77 的速度参数化。应用统一换算后计算弹性，保留经典 λ=0.5 的 F₀、V₀ 与 Pmax 展示。",
       application: "用单端响应曲线与用户设定的 F₀/V₀ 变化计算高度情景。弹性说明模型响应；实际训练收益需结合后续测试。",
     },
     {

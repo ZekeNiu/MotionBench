@@ -1,0 +1,1060 @@
+{
+  "pass": true,
+  "implementationComplete": true,
+  "approvedAcceptancePass": true,
+  "version": "2.16.0",
+  "approvedRevision": "MotionBench 2.16 调整计划",
+  "html": "MotionBench.html",
+  "approvedAmendment": "等长力量评价使用简短色标；单一力量目标仅黄色关注/绿色达标，疼痛和双侧差异沿用分级；人体图只显示有实际测试记录的部位圆圈。",
+  "sha256": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+  "bytes": 4355510,
+  "reproducibleBuild": true,
+  "modules": {
+    "ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "ringside-app.js": "5b0b8c353f0daa5dbb3088a44191974c1e6dc2d3d8477e9f6b64784fb75031f6",
+    "ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "ringside-context-ui.js": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+    "ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "ringside-definitions.js": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+    "ringside-entry-session.js": "8bfa128bfebd6bc105abb018eedf6134a34c6e7bfbe7aa8aef4be303c578b9d4",
+    "ringside-evaluation.js": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+    "ringside-excel-flow.js": "e5d71d006dee26a1c38d95a7fa1086864409d2c350e08ed14dbe85adfd279cf1",
+    "ringside-excel.js": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+    "ringside-fvp-entry.js": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+    "ringside-fvp.js": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+    "ringside-interventions.js": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+    "ringside-iso-reference.js": "03593f0e0e0f1443331f958d19eaae529781a797f5328a3cc7c2d01b0705aa63",
+    "ringside-management.js": "7bf1a487e656af6d4b82d4adfab0d84d5b65ec2c194ba55f41758a6f6007de0a",
+    "ringside-model.js": "1209779a0d8bde497227c1c119397c53c96c05aee33c4e83582de9c893a98619",
+    "ringside-pdf.js": "865d03ab7b6a3ed775f94b66466ffb80de8220a08d78a8014c4636d82dff79a5",
+    "ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "ringside-profile.js": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+    "ringside-report.js": "ee57067a9789043766f6e8da7f2e8642a9b34e6f30c437e01f2d4d909e3ee85b",
+    "ringside-settings.js": "e6fa91412feb26756609b9340f1e0406e1b4912161023d8e1d5b2709342e9a79",
+    "ringside-sources.js": "909277eeafede0663a125b7b8d56ff84567fb458fef525e19872042c16e06db4",
+    "ringside-store.js": "e49f759de73ad32840e5b1d0da3bc29d0ae527a1305285524844559bbb264505",
+    "ringside-tests.js": "31a1c042b0478ded0e7190ad9d864800ff64ab8952a5f09354a08c86e3806ba4",
+    "ringside-viz.js": "11a39f409c0b00e5f512bff141b2a9dc1b069d06f892c27d0a8c8a7b3ff4fd13"
+  },
+  "assets": {
+    "body-map-front.png": "79f7eb61a6d838e450de6afd2dcb07f32a6c1cf75d0b1fee896a7eb6954e6e20"
+  },
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "f514e017fa5df50d30c00d444509647113226cd1ed17c826efd1f8aebe19993c"
+    },
+    "chromeMigration": {
+      "path": "output/playwright/v216-migration/chrome-results.json",
+      "sha256": "d0fcddebc7fe8abea010b4513839a195cbc50aebd4e4fe94c0b7f39a70522fef"
+    },
+    "chromeReport": {
+      "path": "output/playwright/report-v216/chrome-results.json",
+      "sha256": "f976c76fb5b58cc92fd896d48f446d878b66fc5f3d78af7f20de2fc071253b5a"
+    },
+    "chromeIndependentHTML": {
+      "path": "output/playwright/report-v216/chrome-html-results.json",
+      "sha256": "923db3b3f0796ec4577353e1ebb5fa0d6e149c3fa8f9887487c6331f38af524e"
+    },
+    "chromeExcelWorkflow": {
+      "path": "output/playwright/v213-excel/chrome-results.json",
+      "sha256": "180ecd096772001eb699e34ea2978d1b4e022516c8cba4f8a47529806f00dfdd"
+    },
+    "msedgeMigration": {
+      "path": "output/playwright/v216-migration/msedge-results.json",
+      "sha256": "d11819bfa0a565cf3ed0c5659d5196cd4ccf68ba68715715c330c848fc05d807"
+    },
+    "msedgeReport": {
+      "path": "output/playwright/report-v216/msedge-results.json",
+      "sha256": "906f3205dfec3c7bc4f6ee473a86252d7a595d1ca983c678df538a163eb8324a"
+    },
+    "msedgeIndependentHTML": {
+      "path": "output/playwright/report-v216/msedge-html-results.json",
+      "sha256": "4031a868e0480a3ffd2c8053c57514ecf718df6e881269fcc49fb8289569ce15"
+    },
+    "msedgeExcelWorkflow": {
+      "path": "output/playwright/v213-excel/msedge-results.json",
+      "sha256": "e78421f7137dfed95c6128e3c30d2ddf17ca8a37158554ca729abde435613457"
+    },
+    "nativeExcel": {
+      "path": "output/tests/v216-excel-native-workflow-results.json",
+      "sha256": "ed278cd365da46e366e1ad1299928b88f2ac707c2f198efd262d988d113df402"
+    },
+    "genuine215Excel": {
+      "path": "output/tests/v216-excel-genuine-v215.json",
+      "sha256": "9cd7c16ac5de4677f1bc2cd793b29798360a7f3b2d825c788b66b6579eea40c4"
+    },
+    "renderedPDF": {
+      "path": "output/playwright/report-v216/pdf-render-results.json",
+      "sha256": "1987b421d500c03b702f93cb05fdc8fe614330168c551ccc9150db28e67b582a"
+    }
+  },
+  "unitSuites": 32,
+  "modelChecks": 462,
+  "browserWorkflowChecks": 88,
+  "nativeExcel": {
+    "pass": true,
+    "sourceHash": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+    "excelModuleSha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+    "nativeGenerationSourceHash": "31ed569219e2fd921086f7837c03d9bec6a157a6150b8b664bdb0afc084edc1d",
+    "actualMicrosoftExcel": true,
+    "uniqueNativeWorkbookScenarios": 9,
+    "productBrowserScenarios": 18,
+    "keyboardEntryAutoExpansionTested": false,
+    "methodBoundary": "Native COM next-row writes are recorded separately from Excel ListRows.Add, Table.Sort and Range.Value2. Both browser channels upload these same saved files, confirm through product UI, and verify persisted records after refresh.",
+    "native": {
+      "pass": true,
+      "sourceHash": "31ed569219e2fd921086f7837c03d9bec6a157a6150b8b664bdb0afc084edc1d",
+      "moduleSha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+      "actualMicrosoftExcel": true,
+      "checkedAt": "2026-10-09T15:19:29.965Z",
+      "native": {
+        "savedAll": true,
+        "actualMicrosoftExcel": true,
+        "excelVersion": "16.0",
+        "ownedProcessId": 35944,
+        "preexistingProcessIds": [
+          25652
+        ],
+        "sourceHash": "31ed569219e2fd921086f7837c03d9bec6a157a6150b8b664bdb0afc084edc1d",
+        "moduleSha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+        "checkedUtc": "2026-10-09T15:19:18.9748911Z",
+        "cases": [
+          {
+            "name": "single-lvp-next-row",
+            "operation": "nextRow",
+            "schema": 2,
+            "beforeTableRows": 15,
+            "afterTableRows": 16,
+            "nextRowComWriteExpanded": true,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-lvp-next-row-saved.xlsx",
+            "sha256": "9270f78f2af8eb35ba0afe01a9035879fb014c5355d0b98987c16ec6f1e81a68"
+          },
+          {
+            "name": "single-fvp-next-row",
+            "operation": "nextRow",
+            "schema": 2,
+            "beforeTableRows": 30,
+            "afterTableRows": 31,
+            "nextRowComWriteExpanded": true,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-fvp-next-row-saved.xlsx",
+            "sha256": "3f03269431ced952ae33e5d4af0ad43bc6192f1ef08546aac36abd660f7703b7"
+          },
+          {
+            "name": "single-lvp-insert-sort",
+            "operation": "insertSort",
+            "schema": 2,
+            "beforeTableRows": 15,
+            "afterTableRows": 17,
+            "nextRowComWriteExpanded": false,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-lvp-insert-sort-saved.xlsx",
+            "sha256": "6b98f6c9c96fcb52756aabe38d4e40edbb2c6a3c9985c0de1eb5adf89be9e963"
+          },
+          {
+            "name": "batch-lvp-add-sort",
+            "operation": "addSort",
+            "schema": 2,
+            "beforeTableRows": 30,
+            "afterTableRows": 32,
+            "nextRowComWriteExpanded": false,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-lvp-add-sort-saved.xlsx",
+            "sha256": "f2403758bc5d9115801fd9f183f651dbb3bb645a2b00ecfda7e562840d7357bd"
+          },
+          {
+            "name": "batch-lvp-paste-beyond-reserve",
+            "operation": "paste",
+            "schema": 2,
+            "beforeTableRows": 30,
+            "afterTableRows": 33,
+            "nextRowComWriteExpanded": false,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-lvp-paste-beyond-reserve-saved.xlsx",
+            "sha256": "44c4770be6025a8835f2e3e1395fa1ddd3a2219a3f6d8f574527294d5e3f2e6c"
+          },
+          {
+            "name": "legacy-single-lvp-next-row",
+            "operation": "nextRow",
+            "schema": 1,
+            "beforeTableRows": 15,
+            "afterTableRows": null,
+            "nextRowComWriteExpanded": false,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\legacy-single-lvp-next-row-saved.xlsx",
+            "sha256": "65855d558009f16af31f581b45f383ecbf72e0d98aa03d6ff3396891c2ca4f99"
+          },
+          {
+            "name": "batch-missing-identity",
+            "operation": "missingIdentity",
+            "schema": 2,
+            "beforeTableRows": 30,
+            "afterTableRows": 31,
+            "nextRowComWriteExpanded": false,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-missing-identity-saved.xlsx",
+            "sha256": "46cb7bb354cbe3c641230d6be841cb70ea4d515fd99bbad9a24bd17b31a02f76"
+          },
+          {
+            "name": "copied-measured-duplicate",
+            "operation": "duplicate",
+            "schema": 2,
+            "beforeTableRows": 15,
+            "afterTableRows": 16,
+            "nextRowComWriteExpanded": false,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\copied-measured-duplicate-saved.xlsx",
+            "sha256": "e3bef8403ef448d2b12cee5675e8609ed625b81936b0be9b9991795d9211de33"
+          },
+          {
+            "name": "seven-fms-actions",
+            "operation": "fms",
+            "schema": 2,
+            "beforeTableRows": 7,
+            "afterTableRows": null,
+            "nextRowComWriteExpanded": false,
+            "autoSaveOnAtOpen": true,
+            "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+            "saved": true,
+            "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\seven-fms-actions-saved.xlsx",
+            "sha256": "51c68e2214d9fbc31cf969483b5d85523d29bf43f182746c597c3ea364f9a13f"
+          }
+        ],
+        "keyboardEntryAutoExpansionTested": false
+      },
+      "checks": [
+        {
+          "name": "single-lvp-next-row",
+          "pass": true,
+          "recordCounts": [
+            {
+              "athleteId": "b42ddd74-ee8d-4246-a491-12545b02aca6",
+              "count": 1
+            }
+          ],
+          "workbookSha256": "9270f78f2af8eb35ba0afe01a9035879fb014c5355d0b98987c16ec6f1e81a68",
+          "inputSha256": "b11d4dfc0982261f516b55b92b3396f1997d3ed98483233a1cb97e3b2e5e9449",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-lvp-next-row-saved.xlsx"
+        },
+        {
+          "name": "single-fvp-next-row",
+          "pass": true,
+          "recordCounts": [
+            {
+              "athleteId": "f99cf5d5-e6ca-4222-8bf2-147c84416617",
+              "count": 1
+            }
+          ],
+          "workbookSha256": "3f03269431ced952ae33e5d4af0ad43bc6192f1ef08546aac36abd660f7703b7",
+          "inputSha256": "395f509457767415cf01e4d05ca3c0f14a9f89c396088d7d6cc82a141675dd7b",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-fvp-next-row-saved.xlsx"
+        },
+        {
+          "name": "single-lvp-insert-sort",
+          "pass": true,
+          "recordCounts": [
+            {
+              "athleteId": "3f4cad49-0f79-4a39-8958-7c3074c7f0a1",
+              "count": 2
+            }
+          ],
+          "workbookSha256": "6b98f6c9c96fcb52756aabe38d4e40edbb2c6a3c9985c0de1eb5adf89be9e963",
+          "inputSha256": "9c8a32847e33e4e7eb6b50b4e219546c7ca35b9e3a21d31cd3b77910efe5c5a8",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-lvp-insert-sort-saved.xlsx"
+        },
+        {
+          "name": "batch-lvp-add-sort",
+          "pass": true,
+          "recordCounts": [
+            {
+              "athleteId": "024357ad-9746-411f-be78-63788ebdc91f",
+              "count": 1
+            },
+            {
+              "athleteId": "db62349f-14e1-4b3c-9421-4456245b2bb3",
+              "count": 1
+            }
+          ],
+          "workbookSha256": "f2403758bc5d9115801fd9f183f651dbb3bb645a2b00ecfda7e562840d7357bd",
+          "inputSha256": "9fbe354d79d99582999df6fdc8aa5a8960daae44a6db3a336e41f16bd5207cf4",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-lvp-add-sort-saved.xlsx"
+        },
+        {
+          "name": "batch-lvp-paste-beyond-reserve",
+          "pass": true,
+          "recordCounts": [
+            {
+              "athleteId": "f19f9d2d-f2a2-4fff-b4e3-8fc9e6456b5d",
+              "count": 2
+            },
+            {
+              "athleteId": "2b7eea4b-637d-43f5-9c9f-500b3c8bfb64",
+              "count": 1
+            }
+          ],
+          "workbookSha256": "44c4770be6025a8835f2e3e1395fa1ddd3a2219a3f6d8f574527294d5e3f2e6c",
+          "inputSha256": "d4547e93b5e244dc173caef072c1fe0b6efa4aede52b0460a8d0f0b0b22f04cb",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-lvp-paste-beyond-reserve-saved.xlsx"
+        },
+        {
+          "name": "legacy-single-lvp-next-row",
+          "pass": true,
+          "recordCounts": [
+            {
+              "athleteId": "812fa4b5-4f0d-475f-abf5-70227c9b06ad",
+              "count": 1
+            }
+          ],
+          "workbookSha256": "65855d558009f16af31f581b45f383ecbf72e0d98aa03d6ff3396891c2ca4f99",
+          "inputSha256": "5d8c7fe31232da49ff208967a650736bd6a487f0d9238535c090c589d516d3bf",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\legacy-single-lvp-next-row-saved.xlsx"
+        },
+        {
+          "name": "batch-missing-identity",
+          "pass": true,
+          "expectedBlockingError": "未指定",
+          "errors": [
+            {
+              "sheet": "01_深蹲 LVP",
+              "row": 32,
+              "column": 1,
+              "address": "A32",
+              "message": "新增行未指定运动员 / 测试，请从列表选择"
+            }
+          ],
+          "workbookSha256": "46cb7bb354cbe3c641230d6be841cb70ea4d515fd99bbad9a24bd17b31a02f76",
+          "inputSha256": "4a8395e951ceafa317da44606e4ccd3949f5cfae25a4c90abb527a21d2064c45",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-missing-identity-saved.xlsx"
+        },
+        {
+          "name": "copied-measured-duplicate",
+          "pass": true,
+          "expectedBlockingError": "编号重复",
+          "errors": [
+            {
+              "sheet": "01_深蹲 LVP",
+              "row": 17,
+              "column": 2,
+              "address": "B17",
+              "message": "同一测试内编号重复：squat:1:main"
+            }
+          ],
+          "workbookSha256": "e3bef8403ef448d2b12cee5675e8609ed625b81936b0be9b9991795d9211de33",
+          "inputSha256": "7e7711be92a4a36931d3b455ababb81018562034875edd14a4c8197ee3f9d37e",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\copied-measured-duplicate-saved.xlsx"
+        },
+        {
+          "name": "seven-fms-actions",
+          "pass": true,
+          "recordCounts": [
+            {
+              "athleteId": "4ff566bf-4886-42f4-89c9-3e23d42f1913",
+              "count": 7
+            }
+          ],
+          "workbookSha256": "51c68e2214d9fbc31cf969483b5d85523d29bf43f182746c597c3ea364f9a13f",
+          "inputSha256": "9141acbe77062394a8b6cec50d5f38093cef4471843a30d7344566f6f37aaaf8",
+          "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\seven-fms-actions-saved.xlsx"
+        }
+      ]
+    },
+    "product": [
+      {
+        "pass": true,
+        "sourceHash": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+        "nativeGenerationSourceHash": "31ed569219e2fd921086f7837c03d9bec6a157a6150b8b664bdb0afc084edc1d",
+        "excelModuleSha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+        "channel": "chrome",
+        "actualNativeSavedWorkbooks": true,
+        "checks": [
+          {
+            "name": "single-lvp-next-row",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-lvp-next-row-saved.xlsx",
+            "workbookSha256": "9270f78f2af8eb35ba0afe01a9035879fb014c5355d0b98987c16ec6f1e81a68",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "single-fvp-next-row",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-fvp-next-row-saved.xlsx",
+            "workbookSha256": "3f03269431ced952ae33e5d4af0ad43bc6192f1ef08546aac36abd660f7703b7",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "single-lvp-insert-sort",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-lvp-insert-sort-saved.xlsx",
+            "workbookSha256": "6b98f6c9c96fcb52756aabe38d4e40edbb2c6a3c9985c0de1eb5adf89be9e963",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "batch-lvp-add-sort",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-lvp-add-sort-saved.xlsx",
+            "workbookSha256": "f2403758bc5d9115801fd9f183f651dbb3bb645a2b00ecfda7e562840d7357bd",
+            "savedRecordCount": 2,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "batch-lvp-paste-beyond-reserve",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-lvp-paste-beyond-reserve-saved.xlsx",
+            "workbookSha256": "44c4770be6025a8835f2e3e1395fa1ddd3a2219a3f6d8f574527294d5e3f2e6c",
+            "savedRecordCount": 2,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "legacy-single-lvp-next-row",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\legacy-single-lvp-next-row-saved.xlsx",
+            "workbookSha256": "65855d558009f16af31f581b45f383ecbf72e0d98aa03d6ff3396891c2ca4f99",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "batch-missing-identity",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-missing-identity-saved.xlsx",
+            "workbookSha256": "46cb7bb354cbe3c641230d6be841cb70ea4d515fd99bbad9a24bd17b31a02f76",
+            "savedRecordCount": 0,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": "未指定"
+          },
+          {
+            "name": "copied-measured-duplicate",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\copied-measured-duplicate-saved.xlsx",
+            "workbookSha256": "e3bef8403ef448d2b12cee5675e8609ed625b81936b0be9b9991795d9211de33",
+            "savedRecordCount": 0,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": "编号重复"
+          },
+          {
+            "name": "seven-fms-actions",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\seven-fms-actions-saved.xlsx",
+            "workbookSha256": "51c68e2214d9fbc31cf969483b5d85523d29bf43f182746c597c3ea364f9a13f",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          }
+        ],
+        "errors": [],
+        "network": [],
+        "embeddedSourceChecks": [
+          {
+            "file": "src\\ringside-calc.js",
+            "sha256": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-fvp.js",
+            "sha256": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-cpet-reference.js",
+            "sha256": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-definitions.js",
+            "sha256": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-tests.js",
+            "sha256": "31a1c042b0478ded0e7190ad9d864800ff64ab8952a5f09354a08c86e3806ba4",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-model.js",
+            "sha256": "1209779a0d8bde497227c1c119397c53c96c05aee33c4e83582de9c893a98619",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-evaluation.js",
+            "sha256": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-interventions.js",
+            "sha256": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-excel.js",
+            "sha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+            "embeddedExactly": true
+          }
+        ]
+      },
+      {
+        "pass": true,
+        "sourceHash": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+        "nativeGenerationSourceHash": "31ed569219e2fd921086f7837c03d9bec6a157a6150b8b664bdb0afc084edc1d",
+        "excelModuleSha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+        "channel": "msedge",
+        "actualNativeSavedWorkbooks": true,
+        "checks": [
+          {
+            "name": "single-lvp-next-row",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-lvp-next-row-saved.xlsx",
+            "workbookSha256": "9270f78f2af8eb35ba0afe01a9035879fb014c5355d0b98987c16ec6f1e81a68",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "single-fvp-next-row",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-fvp-next-row-saved.xlsx",
+            "workbookSha256": "3f03269431ced952ae33e5d4af0ad43bc6192f1ef08546aac36abd660f7703b7",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "single-lvp-insert-sort",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\single-lvp-insert-sort-saved.xlsx",
+            "workbookSha256": "6b98f6c9c96fcb52756aabe38d4e40edbb2c6a3c9985c0de1eb5adf89be9e963",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "batch-lvp-add-sort",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-lvp-add-sort-saved.xlsx",
+            "workbookSha256": "f2403758bc5d9115801fd9f183f651dbb3bb645a2b00ecfda7e562840d7357bd",
+            "savedRecordCount": 2,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "batch-lvp-paste-beyond-reserve",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-lvp-paste-beyond-reserve-saved.xlsx",
+            "workbookSha256": "44c4770be6025a8835f2e3e1395fa1ddd3a2219a3f6d8f574527294d5e3f2e6c",
+            "savedRecordCount": 2,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "legacy-single-lvp-next-row",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\legacy-single-lvp-next-row-saved.xlsx",
+            "workbookSha256": "65855d558009f16af31f581b45f383ecbf72e0d98aa03d6ff3396891c2ca4f99",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          },
+          {
+            "name": "batch-missing-identity",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\batch-missing-identity-saved.xlsx",
+            "workbookSha256": "46cb7bb354cbe3c641230d6be841cb70ea4d515fd99bbad9a24bd17b31a02f76",
+            "savedRecordCount": 0,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": "未指定"
+          },
+          {
+            "name": "copied-measured-duplicate",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\copied-measured-duplicate-saved.xlsx",
+            "workbookSha256": "e3bef8403ef448d2b12cee5675e8609ed625b81936b0be9b9991795d9211de33",
+            "savedRecordCount": 0,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": "编号重复"
+          },
+          {
+            "name": "seven-fms-actions",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-v216-native-final2\\seven-fms-actions-saved.xlsx",
+            "workbookSha256": "51c68e2214d9fbc31cf969483b5d85523d29bf43f182746c597c3ea364f9a13f",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          }
+        ],
+        "errors": [],
+        "network": [],
+        "embeddedSourceChecks": [
+          {
+            "file": "src\\ringside-calc.js",
+            "sha256": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-fvp.js",
+            "sha256": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-cpet-reference.js",
+            "sha256": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-definitions.js",
+            "sha256": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-tests.js",
+            "sha256": "31a1c042b0478ded0e7190ad9d864800ff64ab8952a5f09354a08c86e3806ba4",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-model.js",
+            "sha256": "1209779a0d8bde497227c1c119397c53c96c05aee33c4e83582de9c893a98619",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-evaluation.js",
+            "sha256": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-interventions.js",
+            "sha256": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-excel.js",
+            "sha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+            "embeddedExactly": true
+          }
+        ]
+      }
+    ],
+    "checkedAt": "2026-10-09T16:50:55.609Z"
+  },
+  "genuine215Excel": {
+    "pass": true,
+    "producerVersion": "2.15.0",
+    "producerTag": "rollback-v2.15.0-20261009",
+    "producerCommit": "206bf47cc558e1ca4c9c7aa86c561c2e711ab41d",
+    "producerHtmlSha256": "5415e9352d43be9f071ae8519a1f12ccd8e80e55b40f1e891d5c74e3b1fccff6",
+    "sourceHash": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+    "currentAppHash": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+    "nativeGenerationSourceHash": "d68b746d7ae9b8b6fc109e2b470fbc87df35c4b2eff511c6d91874cc10631030",
+    "moduleHashes": {
+      "producer": {
+        "src/ringside-calc.js": "927cc9072c5515484e0f89229e7a2b4d43a5320d26d4b0b81afa0a6c05c11154",
+        "src/ringside-fvp.js": "1f61f5619cc13e077cba163026987f2abe2c0dd50c06135e23f561497ae8e570",
+        "src/ringside-sources.js": "8ee70ec198e2d7f2070a778028d9b65b99aaf623d6e4ee2c625979e5c4a9c44e",
+        "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+        "src/ringside-definitions.js": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+        "src/ringside-tests.js": "a3ca232464cafbf0613f81445b1fcc1b47057413e204889e0886fcb04c133a67",
+        "src/ringside-model.js": "f2a1bf0b68f57f6908df47dae16542b50c36205f553769eb16ae23c3b91e4c9b",
+        "src/ringside-evaluation.js": "9cbcd73aa621cb1e69ba7d29cd50ce272472a6ad4ee787f92b5c1b9d07b4727c",
+        "src/ringside-store.js": "24734474bed9e629efe69eecfbbd730af2fa8fe285c5e6eaa4b5a64d479d82e1",
+        "src/ringside-interventions.js": "846978f0ecf98b78464730a9d9cc9ec23b51273e4bfd827850109de5fc5c2542",
+        "src/ringside-excel.js": "848792fb85449f2f15802da41a9afa8caf46c0ad934f0564b209fbf64323ea2b"
+      },
+      "current": {
+        "src/ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+        "src/ringside-fvp.js": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+        "src/ringside-sources.js": "909277eeafede0663a125b7b8d56ff84567fb458fef525e19872042c16e06db4",
+        "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+        "src/ringside-definitions.js": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+        "src/ringside-tests.js": "31a1c042b0478ded0e7190ad9d864800ff64ab8952a5f09354a08c86e3806ba4",
+        "src/ringside-model.js": "1209779a0d8bde497227c1c119397c53c96c05aee33c4e83582de9c893a98619",
+        "src/ringside-evaluation.js": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+        "src/ringside-store.js": "e49f759de73ad32840e5b1d0da3bc29d0ae527a1305285524844559bbb264505",
+        "src/ringside-interventions.js": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+        "src/ringside-excel.js": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338"
+      }
+    },
+    "vendorSha256": "7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9",
+    "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-genuine-v215-native\\genuine-v215-single-lvp-saved.xlsx",
+    "workbookSha256": "3b673d74f0bb32e1a231176b190a66d81ebf253a3579df3699b620b23388744b",
+    "inputSha256": "a35ce07e884071436b614824e8606a5e6377ca21ae57d01b8a9ecfc40682b1a1",
+    "actualMicrosoftExcel": true,
+    "nativeMethod": "Private Microsoft Excel 16.0 COM working copy, values written to row 6 below the three 2.15 preallocated rows; A6/B6/C6 identity fields left blank, then SaveAs XLSX. No Table or row copy.",
+    "native": {
+      "savedAll": true,
+      "actualMicrosoftExcel": true,
+      "excelVersion": "16.0",
+      "ownedProcessId": 43204,
+      "preexistingProcessIds": [
+        25652
+      ],
+      "sourceHash": "d68b746d7ae9b8b6fc109e2b470fbc87df35c4b2eff511c6d91874cc10631030",
+      "moduleSha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+      "checkedUtc": "2026-10-09T15:28:27.4538418Z",
+      "cases": [
+        {
+          "name": "genuine-v215-single-lvp-next-row",
+          "operation": "nextRow",
+          "schema": 1,
+          "beforeTableRows": 3,
+          "afterTableRows": null,
+          "nextRowComWriteExpanded": false,
+          "autoSaveOnAtOpen": true,
+          "method": "Private Microsoft Excel COM working copy. Next-row cell writes, native ListRows.Add, native Table.Sort and multi-cell Range.Value2 as stated.",
+          "saved": true,
+          "output": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-genuine-v215-native\\genuine-v215-single-lvp-saved.xlsx",
+          "sha256": "3b673d74f0bb32e1a231176b190a66d81ebf253a3579df3699b620b23388744b"
+        }
+      ],
+      "keyboardEntryAutoExpansionTested": false
+    },
+    "reproducedOldParserIdentityError": [
+      {
+        "sheet": "01_深蹲 LVP",
+        "row": 6,
+        "column": 3,
+        "address": "C6",
+        "message": "运动员 / 测试编号与模板不符；请勿改名或复制其他人的编号"
+      }
+    ],
+    "currentParserErrors": [],
+    "browserCases": [
+      {
+        "pass": true,
+        "sourceHash": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+        "nativeGenerationSourceHash": "d68b746d7ae9b8b6fc109e2b470fbc87df35c4b2eff511c6d91874cc10631030",
+        "excelModuleSha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+        "channel": "chrome",
+        "actualNativeSavedWorkbooks": true,
+        "checks": [
+          {
+            "name": "genuine-v215-single-lvp-next-row",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-genuine-v215-native\\genuine-v215-single-lvp-saved.xlsx",
+            "workbookSha256": "3b673d74f0bb32e1a231176b190a66d81ebf253a3579df3699b620b23388744b",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          }
+        ],
+        "errors": [],
+        "network": [],
+        "embeddedSourceChecks": [
+          {
+            "file": "src\\ringside-calc.js",
+            "sha256": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-fvp.js",
+            "sha256": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-cpet-reference.js",
+            "sha256": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-definitions.js",
+            "sha256": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-tests.js",
+            "sha256": "31a1c042b0478ded0e7190ad9d864800ff64ab8952a5f09354a08c86e3806ba4",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-model.js",
+            "sha256": "1209779a0d8bde497227c1c119397c53c96c05aee33c4e83582de9c893a98619",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-evaluation.js",
+            "sha256": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-interventions.js",
+            "sha256": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-excel.js",
+            "sha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+            "embeddedExactly": true
+          }
+        ]
+      },
+      {
+        "pass": true,
+        "sourceHash": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+        "nativeGenerationSourceHash": "d68b746d7ae9b8b6fc109e2b470fbc87df35c4b2eff511c6d91874cc10631030",
+        "excelModuleSha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+        "channel": "msedge",
+        "actualNativeSavedWorkbooks": true,
+        "checks": [
+          {
+            "name": "genuine-v215-single-lvp-next-row",
+            "pass": true,
+            "workbook": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\excel-genuine-v215-native\\genuine-v215-single-lvp-saved.xlsx",
+            "workbookSha256": "3b673d74f0bb32e1a231176b190a66d81ebf253a3579df3699b620b23388744b",
+            "savedRecordCount": 1,
+            "actualUIUploadAndConfirmation": true,
+            "refreshPersistence": true,
+            "expectedBlockingError": null
+          }
+        ],
+        "errors": [],
+        "network": [],
+        "embeddedSourceChecks": [
+          {
+            "file": "src\\ringside-calc.js",
+            "sha256": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-fvp.js",
+            "sha256": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-cpet-reference.js",
+            "sha256": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-definitions.js",
+            "sha256": "c8b75c90a1671efa0c02aa4eab4cd276694dfd78030f0091c3875917078f4a5e",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-tests.js",
+            "sha256": "31a1c042b0478ded0e7190ad9d864800ff64ab8952a5f09354a08c86e3806ba4",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-model.js",
+            "sha256": "1209779a0d8bde497227c1c119397c53c96c05aee33c4e83582de9c893a98619",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-evaluation.js",
+            "sha256": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-interventions.js",
+            "sha256": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+            "embeddedExactly": true
+          },
+          {
+            "file": "src\\ringside-excel.js",
+            "sha256": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+            "embeddedExactly": true
+          }
+        ]
+      }
+    ],
+    "productBrowserScenarios": 2,
+    "originalUserWorkbookAvailable": false,
+    "keyboardEntryAutoExpansionTested": false,
+    "checkedAt": "2026-10-09T16:50:31.887Z"
+  },
+  "nativeWorkbookScenarios": 10,
+  "layouts": [
+    {
+      "width": 1440,
+      "overflow": false,
+      "overviewColumns": 3,
+      "overviewOverflow": [],
+      "isoWidth": 596.953125,
+      "charts": [
+        {
+          "width": 447.03125,
+          "height": 390.015625
+        },
+        {
+          "width": 447.03125,
+          "height": 388.015625
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "overviewColumns": 3,
+      "overviewOverflow": [],
+      "isoWidth": 514.09375,
+      "charts": [
+        {
+          "width": 381.90625,
+          "height": 389.890625
+        },
+        {
+          "width": 381.90625,
+          "height": 387.890625
+        }
+      ]
+    },
+    {
+      "width": 900,
+      "overflow": false,
+      "overviewColumns": 1,
+      "overviewOverflow": [],
+      "isoWidth": 440.171875,
+      "charts": [
+        {
+          "width": 756,
+          "height": 390
+        },
+        {
+          "width": 756,
+          "height": 330
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "overviewColumns": 1,
+      "overviewOverflow": [],
+      "isoWidth": 334,
+      "charts": [
+        {
+          "width": 300,
+          "height": 390
+        },
+        {
+          "width": 300,
+          "height": 330
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "overviewColumns": 3,
+      "overviewOverflow": [],
+      "isoWidth": 596.953125,
+      "charts": [
+        {
+          "width": 447.03125,
+          "height": 390.015625
+        },
+        {
+          "width": 447.03125,
+          "height": 388.015625
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "overviewColumns": 3,
+      "overviewOverflow": [],
+      "isoWidth": 514.09375,
+      "charts": [
+        {
+          "width": 381.90625,
+          "height": 389.890625
+        },
+        {
+          "width": 381.90625,
+          "height": 387.890625
+        }
+      ]
+    },
+    {
+      "width": 900,
+      "overflow": false,
+      "overviewColumns": 1,
+      "overviewOverflow": [],
+      "isoWidth": 440.171875,
+      "charts": [
+        {
+          "width": 756,
+          "height": 390
+        },
+        {
+          "width": 756,
+          "height": 330
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "overviewColumns": 1,
+      "overviewOverflow": [],
+      "isoWidth": 334,
+      "charts": [
+        {
+          "width": 300,
+          "height": 390
+        },
+        {
+          "width": 300,
+          "height": 330
+        }
+      ]
+    }
+  ],
+  "pdfPagesVisuallyReviewed": 52,
+  "rollback": {
+    "tag": "rollback-v2.15.0-20261009",
+    "commit": "206bf47cc558e1ca4c9c7aa86c561c2e711ab41d",
+    "remoteVerified": true,
+    "htmlSHA256": "5415e9352d43be9f071ae8519a1f12ccd8e80e55b40f1e891d5c74e3b1fccff6"
+  },
+  "verificationLimits": [
+    "Excel operation methods and automatic expansion observations are recorded in the native Excel evidence; hidden COM cell writes do not substitute for keyboard input.",
+    "Browser checks use synthetic records in isolated installed Chrome/Edge contexts; narrow layouts are emulated.",
+    "No same-device study verifies comparability of the accepted published population means with the user's fixed dynamometry protocol.",
+    "Bohannon Table 7 male wrist-extension first age row is interpreted as 20–29 from its sample size and adjoining row; original numerical observations are retained.",
+    "No physical mobile, physical printing, new live AI content-quality, or clean Windows-machine installation check was run."
+  ]
+}

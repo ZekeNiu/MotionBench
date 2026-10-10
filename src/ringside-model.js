@@ -8,7 +8,7 @@
   const FVP_IDS = ["fvp_sj", "fvp_cmj"];
   const fvpConfigDefaults = () => root.RingsideFVP?.defaultsConfig() || { device: "", method: "", posture: "", distanceCm: "", distanceSource: "" };
   const fvpAnalysisDefaults = () => root.RingsideFVP?.defaultsAnalysis() || { angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 };
-  const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null };
+  const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null, responseForce: true, responseVelocity: true, responseBoth: true };
   function fvpAnalysis(record, id) {
     if (!FVP_IDS.includes(id) || !T.isNative(record, id)) return null;
     return root.RingsideFVP ? root.RingsideFVP.solve(record, id) : { id, valid: false, status: "empty", reason: "F–V 模型尚未载入", points: [], trials: [], groups: [], issues: [] };
@@ -122,14 +122,14 @@
     neck: [
       ["flexion", "屈曲（中线）", false],
       ["extension", "伸展（中线）", false],
-      ["lateralFlexion", "侧屈（左 / 右）", true],
-      ["rotation", "旋转（左 / 右）", true],
+      ["lateralFlexion", "侧屈", true],
+      ["rotation", "旋转", true],
     ],
     trunk: [
       ["flexion", "屈曲（中线）", false],
       ["extension", "伸展（中线）", false],
-      ["lateralFlexion", "侧屈（左向 / 右向）", true],
-      ["rotation", "旋转（左向 / 右向）", true],
+      ["lateralFlexion", "侧屈", true],
+      ["rotation", "旋转", true],
     ],
     shoulder: [
       ["flexion", "屈曲", true],
@@ -212,9 +212,9 @@
     [
       "shoulder_IR_ER",
       "shoulder",
-      "IR:ER",
-      "internalRotation",
+      "ER:IR",
       "externalRotation",
+      "internalRotation",
     ],
     ["shoulder_F_E", "shoulder", "屈:伸", "flexion", "extension"],
     ["shoulder_AD_AB", "shoulder", "内收:外展", "adduction", "abduction"],
@@ -222,7 +222,7 @@
     ["neck_F_E", "neck", "屈:伸", "flexion", "extension"],
     ["hip_F_E", "hip", "屈:伸", "flexion", "extension"],
     ["hip_AD_AB", "hip", "内收:外展", "adduction", "abduction"],
-    ["hip_IR_ER", "hip", "IR:ER", "internalRotation", "externalRotation"],
+    ["hip_IR_ER", "hip", "ER:IR", "externalRotation", "internalRotation"],
     ["ankle_DF_PF", "ankle", "背屈:跖屈", "dorsiflexion", "plantarflexion"],
     ["ankle_INV_EVE", "ankle", "内翻:外翻", "inversion", "eversion"],
   ];
@@ -251,8 +251,51 @@
   function directionCode(row) {
     if (row.directionCode) return row.directionCode;
     const entries = DIRS[row.region] || [];
-    const match = entries.find(([, label]) => label === row.direction);
+    const legacyLabel = String(row.direction || "").replace(/（(?:左\s*\/\s*右|左向\s*\/\s*右向)）$/, "");
+    const match = entries.find(([, label]) => label === legacyLabel);
     return match ? match[0] : "custom_" + row.id;
+  }
+  function normalizeIsoDirection(row) {
+    row.directionCode = directionCode(row);
+    const builtin = (DIRS[row.region] || []).find(([code]) => code === row.directionCode);
+    if (builtin && [builtin[1], builtin[1] + "（左 / 右）", builtin[1] + "（左向 / 右向）"].includes(row.direction)) row.direction = builtin[1];
+    return row;
+  }
+  function migrateBalancePair(pair, rows) {
+    if (!["shoulder_IR_ER", "hip_IR_ER"].includes(pair.id) || pair.ratioConvention === "ER:IR") return false;
+    const region = pair.id.startsWith("shoulder") ? "shoulder" : "hip";
+    const internal = rows.find(row => row.region === region && directionCode(row) === "internalRotation"), external = rows.find(row => row.region === region && directionCode(row) === "externalRotation");
+    if (!internal || !external) return false;
+    if (pair.numeratorId === external.id && pair.denominatorId === internal.id) {
+      pair.ratioConvention = "ER:IR";
+      if (pair.label === "IR:ER") pair.label = "ER:IR";
+      return true;
+    }
+    if (pair.numeratorId !== internal.id || pair.denominatorId !== external.id) return false;
+    const original = clone(pair), inverse = [];
+    let valid = true;
+    for (const range of pair.ranges || []) {
+      const min = range.min == null ? null : N(range.min), max = range.max == null ? null : N(range.max);
+      if (range.min != null && min === null || range.max != null && max === null || min !== null && min < 0 || max !== null && max <= 0 || min !== null && max !== null && min > max) {valid=false;break;}
+      inverse.push({...range,min:max === null ? 0 : 1/max,max:min === null || min === 0 ? null : 1/min,includeMin:max === null ? false : range.includeMax !== false,includeMax:min === null || min === 0 ? false : range.includeMin !== false});
+    }
+    pair.numeratorId = external.id; pair.denominatorId = internal.id;
+    pair.ratioConvention = "ER:IR";
+    if (pair.label === "IR:ER") pair.label = "ER:IR";
+    if (Array.isArray(pair.contexts)) pair.contexts.reverse();
+    if (valid) pair.ranges = inverse.sort((a,b) => (a.min ?? -Infinity)-(b.min ?? -Infinity));
+    else {
+      pair.ratioMigrationOriginal = original;
+      pair.ratioMigrationIssue = "原 IR:ER 区间含无法取倒数的边界，原配置已保留；请重新确认 ER:IR 区间";
+      pair.referenceEnabled = false; pair.ranges = [];
+    }
+    if (pair.reference) {
+      // A reciprocal of a sample mean is not the mean of the reciprocal ratios.
+      pair.ratioMigrationOriginal ||= original;
+      pair.reference.enabled = false;
+      pair.ratioMigrationIssue ||= "原 IR:ER 均值不能直接换算成 ER:IR 均值，原参考已保留并停用；请重新确认参考";
+    }
+    return true;
   }
   function balancePairs(rows) {
     return PAIRS.map(([id, region, label, numeratorCode, denominatorCode]) => {
@@ -272,6 +315,7 @@
         ranges: [],
         referenceEnabled: false,
         source: "",
+        ...(["shoulder_IR_ER", "hip_IR_ER"].includes(id) ? {ratioConvention:"ER:IR"} : {}),
       };
     });
   }
@@ -819,6 +863,12 @@
     out.enabled = { ...d.enabled, ...s.enabled };
     ["dj", "hop", "cmrj", "cpet", ...FVP_IDS].forEach((id) => { if (!Object.hasOwn(s.enabled || {}, id)) out.enabled[id] = false; });
     out.data = { ...d.data, ...s.data };
+    out.data.fms = (out.data.fms || []).map(row => {
+      const next = {...row}, builtin = FM.find(([name]) => name === row.name);
+      if (typeof next.bilateral !== "boolean" && builtin) next.bilateral = builtin[1];
+      if (next.bilateral === false) for (const key of ["left", "right", "l", "r"]) if (next[key] === "" || next[key] == null) delete next[key];
+      return next;
+    });
     if (T.isNative(s,"hop")) out.data.hop = normalizeHopSet(s.data?.hop);
     if (T.isNative(s,"cpet")) out.data.cpet = normalizeCPET(s.data?.cpet);
     out.derivedEnabled = { ...d.derivedEnabled, ...s.derivedEnabled };
@@ -931,7 +981,7 @@
     });
     out.data.iso = out.data.iso.map((r) => {
       const row = { ...r, id: r.id || uid() };
-      row.directionCode = directionCode(row);
+      normalizeIsoDirection(row);
       return { ...row, protocol: row.protocol || "", notes: row.notes || "" };
     });
     validateIsoDirectionIds(out.isoDirectionIds, out.data.iso);
@@ -943,6 +993,7 @@
           ),
         )
       : inferredPairs;
+    out.balancePairs.forEach(pair => migrateBalancePair(pair, out.data.iso));
     out.definitions = preserveAddedMetricCollisions((
       Array.isArray(s.definitions) ? s.definitions : d.definitions
     ), s).map((x) => convertDefinition(x, legacy));
@@ -1632,12 +1683,16 @@
       : region + (side ? "_" + side.toLowerCase() : "");
   }
 
+  function effectiveIsoTarget(record, row, side = "") {
+    if (root.RingsideIsoReferences) return root.RingsideIsoReferences.effectiveTarget(record, row, side);
+    const target = positive(row.target);
+    return {target,kind:target === null ? "none" : "manual",source:"",reason:"",matched:target !== null,basis:row.unit};
+  }
   function isoAnalysis(record) {
     return selectedIsoRows(record).map((row) => {
       const left = nonnegative(row.left),
         right = nonnegative(row.right),
-        center = nonnegative(row.center),
-        target = positive(row.target);
+        center = nonnegative(row.center);
       const asym =
         row.paired && left !== null && right !== null
           ? Calc.asym(left, right)
@@ -1660,19 +1715,17 @@
             ]
           : [["", center, row.painCenter]]
       ).map(([side, value, pain]) => {
-        let status = value === null ? "gray" : "green",
+        const resolved = effectiveIsoTarget(record,row,side), target = resolved.target;
+        const referenceComparison = root.RingsideIsoReferences?.comparison(value,resolved) || null;
+        let status = value === null || target === null ? "gray" : "green",
           reasons = [];
         if (pain) {
           status = "red";
           reasons.push("疼痛");
         }
-        if (target !== null && value !== null && value < target) {
-          const t =
-            (value / target) * 100 < N(record.rules.absoluteAmber)
-              ? "red"
-              : "amber";
-          if (rank[t] > rank[status]) status = t;
-          reasons.push("低于评价标准 " + fmt(target) + " " + row.unit);
+        if (target !== null && value !== null && (referenceComparison ? referenceComparison.status === "amber" : value < target)) {
+          if (rank.amber > rank[status]) status = "amber";
+          reasons.push((resolved.kind === "reference" ? "低于参考目标 " : "低于评价标准 ") + fmt(target) + " " + row.unit);
         }
         if (side === weakSide && ["red", "amber"].includes(asymStatus)) {
           if (rank[asymStatus] > rank[status]) status = asymStatus;
@@ -1680,20 +1733,30 @@
         }
         return {
           side,
-          sideLabel: isoSideLabels(row)[side === "L" ? "left" : side === "R" ? "right" : "center"],
+          sideLabel: side || "单项",
           value,
+          target,
+          targetKind: resolved.kind,
+          referenceComparison,
+          referenceSource: resolved.source,
+          referenceReason: resolved.reason,
           pain: !!pain,
           status,
+          label: status === "red" ? "严重" : status === "amber" ? "关注" : status === "green" ? "达标" : value === null ? "未测" : "已测",
           reasons,
           region: regionKey(row.region, side),
         };
       });
+      const targets = sides.map(side => side.target).filter(value => value !== null);
+      const target = targets.length === sides.length ? targets.reduce((a,b) => a+b,0)/targets.length : null;
       return {
         ...row,
         left,
         right,
         center,
         target,
+        targetKind: sides[0]?.targetKind || "none",
+        referenceSource: row.reference?.source || "",
         asym,
         asymmetry: asym,
         strongSide,
@@ -1728,10 +1791,9 @@
             ? row.left / 2 + row.right / 2
             : null
           : row.center;
-        const percent =
-          value !== null && positive(row.target) !== null
-            ? (value / row.target) * 100
-            : null;
+        const percent = row.sides?.every(side => side.value !== null && positive(side.target) !== null)
+          ? row.sides.reduce((sum,side) => sum + side.value / side.target * 100,0) / row.sides.length
+          : value !== null && positive(row.target) !== null && !row.sides ? value / row.target * 100 : null;
         if (percent !== null && Number.isFinite(percent))
           strengthSources.push({
             id: row.id,
@@ -1925,12 +1987,17 @@
                 : "分母缺测"
               : "");
         const gradeResult = grade(value, pair);
+        const reference = root.RingsideIsoReferences?.effectiveReference(record, {region:pair.region,paired:!!numerator?.paired}, side, pair.reference);
         result[key] = value;
         result.results.push({
           side,
           value,
           status: gradeResult.status,
           label: gradeResult.label,
+          referenceTarget: reference?.matched ? reference.target : null,
+          referenceComparison: root.RingsideIsoReferences?.comparison(value,reference) || null,
+          referenceSource: reference?.source || "",
+          referenceReason: reference?.reason || "",
           reason: missingReason,
           region: regionKey(pair.region, side),
           numeratorValue,
@@ -2105,6 +2172,23 @@
     });
     return { ...record, data };
   }
+  function speedDirection(record, values) {
+    const components = [["mss_speed", "MSS"], ["mas_speed", "MAS"]].map(([id, label]) => {
+      const definition = record.definitions.find(d => d.id === id);
+      const value = positive(values[id]);
+      const target = definition?.referenceEnabled === true && definition.direction === "higher" && definition.matched !== false ? positive(definition.target) : null;
+      return { id, label, value, unit: "m/s", target, attainment: value !== null && target !== null ? value / target * 100 : null };
+    });
+    const [mss, mas] = components;
+    if (mss.value !== null && mas.value !== null && mss.value < mas.value) return { components, conclusion: "MSS 低于 MAS，请核对单位、协议及测试结果。", hasTarget: false };
+    const comparable = components.filter(item => item.attainment !== null);
+    if (comparable.length) {
+      const below = comparable.filter(item => item.attainment < 100).map(item => item.id === "mss_speed" ? "冲刺速度（MSS）" : "有氧速度（MAS）");
+      return { components, hasTarget: true, conclusion: below.length ? (below.length > 1 ? "并行发展" : "优先发展") + below.join("与") + "。" : comparable.map(item => item.label).join(" 与 ") + " 已达到当前目标，保持并巩固。" };
+    }
+    const ratio = mss.value !== null && mas.value !== null ? mss.value / mas.value : null;
+    return { components, hasTarget: false, conclusion: ratio === null ? "" : ratio < 1.7 ? "耐力型结构 · 速度储备相对较小" : ratio > 1.8 ? "速度型结构 · 速度储备相对较大" : "混合型结构 · 速度储备居中" };
+  }
   function derivedResults(record, values, raw, repetitions) {
     const cmjRows = raw.cmj?.selectedRows || [];
     const imtpIds = repetitions.find((g) => g.testId === "imtp")?.selectedIds || [];
@@ -2136,7 +2220,6 @@
         result.value = raw.dsi;
         result.components = [component("CMJ 推进期峰值力",raw.cmj?.row?.force,record.dsi.cmjUnit || "N"),component("等长峰值力",raw.dsiForce,record.dsi.source === "manual" ? record.dsi.unit || "N" : record.imtpConfig.unit)];
         result.reason = raw.dsiReason;
-        if (result.value !== null) result.directionHint = result.value < .6 ? "文献启发：可优先检查动态力量表达与弹道训练需求；须结合最大力量和跳跃成绩。" : result.value > .8 ? "文献启发：可优先检查最大力量储备与力量训练需求；须结合最大力量和跳跃成绩。" : "文献启发：可考虑最大力量与动态力量表达并行发展；须结合专项与训练阶段。";
         result.protocol += " 默认参考区间：<0.60、0.60–0.80、>0.80；属训练方向假设，不是能力等级。";
       } else if (definition.id.startsWith("idsi_")) {
         const isMatched = definition.id === "idsi_matched", denominator = isMatched ? matched : fixed;
@@ -2161,7 +2244,9 @@
         result.protocol += original ? " 当前汇总符合以上主要取值条件。" : " 当前数据按所选汇总模式与 Hop 选跳规则计算，不等同原研究协议。";
       } else {
         const mas = positive(values.mas_speed), mss = positive(values.mss_speed);
-        result.components = [component("MSS",mss,"m/s"),component("MAS",mas,"m/s")];
+        const structure = speedDirection(record, values);
+        result.components = structure.components;
+        result.directionHint = structure.conclusion;
         result.value = mas !== null && mss !== null ? definition.id === "asr" ? mss-mas : mss/mas : null;
         result.reason = "需有效 MSS 与 MAS";
         if (mas !== null && mss !== null && mss < mas) result.directionHint = "MSS 低于 MAS：请先核对单位、协议及测试结果，再讨论训练方向。";
@@ -2170,10 +2255,9 @@
       if (result.available) {
         const percent = (n) => Math.abs(n).toFixed(1) + "%";
         if (["eur", "gain"].includes(result.id)) {
-          const change = result.id === "eur" ? (result.value - 1) * 100 : result.value;
-          result.directionHint = change === 0 ? "CMJ 与 SJ 垂直跳跃高度相同。" : `CMJ 垂直跳跃高度较 SJ ${change > 0 ? "高" : "低"} ${percent(change)}。`;
-        } else if (result.id === "fdsi") result.directionHint = result.value < .6 ? "训练侧重：弹道与快速力量。" : result.value > .8 ? "训练侧重：最大力量。" : "训练侧重：最大力量与快速力量结合。";
-        else if (result.id.startsWith("idsi_")) result.directionHint = `CMJ 推进期冲量为 IMTP ${result.id === "idsi_matched" ? "同期" : "前 250 ms"}冲量的 ${percent(result.value * 100)}。`;
+          const eur = result.id === "eur" ? result.value : 1 + result.value / 100;
+          result.directionHint = eur < 1.1 ? "发展 SSC 能力" : eur > 1.1 ? "发展纯向心能力" : "SSC 与纯向心并行发展";
+        } else if (result.id === "fdsi") result.directionHint = result.value < .6 ? "发展弹道与快速力量" : result.value > .8 ? "发展最大力量" : "并行发展最大力量与快速力量";
         else if (result.id === "rqr") result.directionHint = result.value === 1 ? "DJ 与 Hop 的腾空／触地时间比相同。" : `DJ 腾空／触地时间比较 Hop ${result.value > 1 ? "高" : "低"} ${percent((result.value - 1) * 100)}。`;
       }
       if (!result.available) { result.value = null; result.reason ||= "缺少可计算的数据或结果超出有效数值范围"; }
@@ -2214,10 +2298,11 @@
     const ratio = result("rqr");
     if (ratio) reactive.push({ ...rated("rqr", ratio.protocolMatch ? "RQR · DJ/Hop 反应比" : "DJ/Hop FT/CT 反应比", ratio.value, "比值"), components: ratio.components, protocolMatch: ratio.protocolMatch });
     add("reactive", "反应力量水平", reactive);
-    const speed = [], asr = result("asr"), srr = result("srr");
+    const speed = [], asr = result("asr"), srr = result("srr"), structure = speedDirection(record, values);
+    for (const item of structure.components) if (item.value !== null) speed.push({ ...rated(item.id, item.label, item.value, item.unit), target: item.target, attainment: item.attainment });
     if (asr && asr.value >= 0) speed.push(metric("asr", "ASR", asr.value, "m/s", "", { components: asr.components }));
     if (srr && srr.value >= 1) speed.push(metric("srr", "SRR", srr.value, "比值", srr.value < 1.7 ? "耐力型" : srr.value > 1.8 ? "速度型" : "混合型", { components: srr.components }));
-    add("speed", "速度耐力类型", speed);
+    add("speed", "速度耐力发展方向", speed, structure.conclusion);
     const cardio = [], targets = [], cpet = raw.cpet;
     let conclusion = "";
     if (cpet) {
@@ -2250,10 +2335,12 @@
       }
       const oxygenTarget = record.definitions.find(d => d.id === "cpet_vo2_relative"), thresholdTarget = record.definitions.find(d => d.id === "cpet_threshold2_pct");
       const p = cpet.thresholds.second.percentage;
-      if (oxygenTarget?.referenceEnabled && thresholdTarget?.referenceEnabled && positive(oxygenTarget.target) !== null && positive(thresholdTarget.target) !== null && peak.relative !== null && p !== null && !cpet.issues.length) {
-        const oxygenMet = peak.relative >= N(oxygenTarget.target), thresholdMet = p >= N(thresholdTarget.target), thresholdLabel = cpet.thresholds.second.label;
-        targets.push({label:label + " 目标",value:N(oxygenTarget.target),unit:"mL·kg⁻¹·min⁻¹"},{label:thresholdLabel + " 占比目标",value:N(thresholdTarget.target),unit:"%"});
-        conclusion = !oxygenMet && thresholdMet ? "优先提高 " + label + "。" : oxygenMet && !thresholdMet ? "优先提高 " + thresholdLabel + "。" : !oxygenMet && !thresholdMet ? "同步提高 " + label + " 与 " + thresholdLabel + "。" : label + " 与 " + thresholdLabel + " 均达到当前目标，保持并巩固。";
+      const compared = [[oxygenTarget, peak.relative, label, "mL·kg⁻¹·min⁻¹"], [thresholdTarget, p, cpet.thresholds.second.label, "%"]]
+        .filter(([definition, measured]) => definition?.referenceEnabled === true && definition.direction === "higher" && definition.matched !== false && positive(definition.target) !== null && measured !== null);
+      compared.forEach(([definition, measured, name, unit]) => targets.push({label:name + " 目标",value:N(definition.target),unit}));
+      if (compared.length) {
+        const below = compared.filter(([definition, measured]) => measured < N(definition.target)).map(item => item[2]);
+        conclusion = below.length ? (below.length > 1 ? "同步提高 " : "优先提高 ") + below.join(" 与 ") + "。" : compared.map(item => item[2]).join(" 与 ") + " 均达到当前目标，保持并巩固。";
       }
     }
     // Legacy lactate thresholds remain speed measurements with their original labels.
@@ -2730,7 +2817,7 @@
           (["neck", "trunk"].includes(row.region) ? "" : side.side === "L" ? "左" : side.side === "R" ? "右" : "") + bodyRegionLabel(row.region);
         const detail =
           row.direction +
-          (side.reasons.length ? "：" + side.reasons.join("；") : "：已测");
+          (side.reasons.length ? "：" + side.reasons.join("；") : "：" + side.label);
         mark(side.region, side.status, title, detail);
         finding("screen:" + side.region, "screen", side.status, title, detail, {
           region: side.region,
@@ -2885,28 +2972,33 @@
       if (!key || ["__proto__", "constructor", "prototype"].includes(key)) return;
       regions[key] ||= { status: "gray", label: "未测", detail: "", reasons: [] };
       regions[key].tests ||= [];
-      regions[key].tests.push({ ...test, testName: projectNames.get(test.testId) || test.testId });
+      regions[key].tests.push({ ...test, hasMeasured: test.hasMeasured === true || N(test.value) !== null || test.pain === true,
+        testName: projectNames.get(test.testId) || test.testId });
     };
     for (const row of isoAnalyses) for (const side of row.sides) {
       const value = side.value, sideKey = side.side === "L" ? "left" : side.side === "R" ? "right" : "center";
       const selected = repetitions.find(group => group.testId === "iso" && group.directionId === row.id && group.side === sideKey)?.selectedIds || [];
       const notes = [row.notes, ...(row.trials || []).filter(trial => selected.includes(trial.id)).map(trial => trial.notes)].filter(Boolean);
       addBodyTest(side.region, { id: row.id + "_" + (side.side || "C"), testId: "iso", name: row.direction,
-        side: side.side || "C", sideLabel: side.sideLabel, value, unit: row.unit, target: row.target, status: side.status,
-        label: side.reasons.join("；") || (value === null ? "未测" : "已测"), pain: side.pain,
+        side: side.side || "C", sideLabel: side.sideLabel, value, unit: row.unit, target: side.target, targetKind:side.targetKind, referenceComparison:side.referenceComparison, referenceSource:side.referenceSource, status: side.status,
+        label: side.label, reasons: [...side.reasons], pain: side.pain,
         missing: value === null, asym: row.asym, notes: [...new Set(notes)].join("；") });
     }
     for (const balance of balanceResults) for (const side of balance.results) {
       addBodyTest(side.region, { id: "balance_" + balance.id + "_" + (side.side || "C"), testId: "iso", name: balance.label,
-        side: side.side || "C", value: side.value, unit: balance.unit, target: null, label: side.label,
+        side: side.side || "C", value: side.value, unit: balance.unit, target: side.referenceTarget, targetKind:side.referenceTarget === null ? "none" : "reference", referenceComparison:side.referenceComparison, referenceSource:side.referenceSource, label: side.label,
         status: side.status, pain: false, missing: side.value === null, notes: side.reason || "" });
     }
     for (const [index, row] of (raw.fms?.items || []).entries()) if (row.location) {
       const notes = [row.bilateral ? "左侧 " + (N(row.left) === null ? "未测" : fmt(row.left)) + " / 右侧 " + (N(row.right) === null ? "未测" : fmt(row.right)) : "", row.notes].filter(Boolean);
+      const hasMeasured = row.value !== null || row.pain === true || row.bilateral &&
+        [row.left === undefined ? row.l : row.left, row.right === undefined ? row.r : row.right].some(value => {
+          const score = N(value); return score !== null && Number.isInteger(score) && score >= 0 && score <= 3;
+        });
       addBodyTest(row.location, { id: row.id || "fms_" + index, testId: "fms", name: row.name,
         side: detailSide(row.location), value: row.value, unit: "分", target: null,
         label: row.value === null ? "未测" : row.value === 0 ? "疼痛" : row.value === 1 ? "动作未完成" : row.value === 2 ? "代偿完成" : "完成",
-        status: row.status, pain: row.pain === true || row.value === 0, missing: row.value === null, notes: notes.join("；") });
+        status: row.status, pain: row.pain === true || row.value === 0, missing: row.value === null, hasMeasured, notes: notes.join("；") });
     }
     for (const d of state.definitions.filter(d => use(d.testId) && d.category === "screen" && d.region)) {
       const value = N(values[d.id]), result = evaluation(value, d, state);
@@ -2917,7 +3009,7 @@
         unit: d.unit, target: d.referenceEnabled ? positive(d.target) : null, label: value === null ? "未测" : result.label,
         status: result.status, pain: false, missing: value === null, notes });
     }
-    Object.values(regions).forEach(region => { region.tests ||= []; });
+    Object.values(regions).forEach(region => { region.tests ||= []; region.hasMeasured = region.tests.some(test => test.hasMeasured); });
     const allTests = T.describe(state).map((t) => [t.id, t.name, t.category]),
       plannedTests = allTests.filter((t) => use(t[0]));
     const partial = [];
@@ -3157,7 +3249,35 @@
     // Empty additive defaults must not invalidate existing 2.10 narratives.
     // Real measurements, changed protocols/standards and explicit switches remain inputs.
     const data = clone(record.data), enabled = { ...record.enabled }, protocol = { ...record.protocol };
+    for (const row of data.iso || []) if (row.reference === null) delete row.reference;
+    // Factory display-name cleanup alone keeps the original serialized narrative basis.
+    for (const row of data.iso || []) if (["neck","trunk"].includes(row.region) && ["lateralFlexion","rotation"].includes(row.directionCode)) {
+      const label = row.directionCode === "lateralFlexion" ? "侧屈" : "旋转";
+      if (row.direction === label) row.direction = label + (row.region === "neck" ? "（左 / 右）" : "（左向 / 右向）");
+    }
+    const fingerprintPairs = clone(record.balancePairs || []);
+    for (const pair of fingerprintPairs) {
+      if (pair.reference === null) delete pair.reference;
+      delete pair.ratioConvention;
+      if (!["shoulder_IR_ER","hip_IR_ER"].includes(pair.id) || pair.referenceEnabled || pair.ranges?.length || pair.reference || pair.ratioMigrationIssue) continue;
+      const numerator = data.iso.find(row => row.id === pair.numeratorId), denominator = data.iso.find(row => row.id === pair.denominatorId);
+      const has = (row,key,den) => [row?.[key],...(row?.trials || []).map(trial=>trial[key])].some(value => den ? positive(value) !== null : nonnegative(value) !== null);
+      const measured = (numerator?.paired ? ["left","right"] : ["center"]).some(key => has(numerator,key,false) && has(denominator,key,true));
+      if (!measured && numerator?.directionCode === "externalRotation" && denominator?.directionCode === "internalRotation") {
+        [pair.numeratorId,pair.denominatorId] = [pair.denominatorId,pair.numeratorId];
+        if (pair.label === "ER:IR") pair.label = "IR:ER";
+      }
+    }
     const cmjConfig = { ...record.cmjConfig }, imtpConfig = { ...record.imtpConfig };
+    // Only measurements whose single-target grade changed invalidate a previously generated interpretation.
+    const isoBasisRecord = { ...record, enabled: { iso: record.enabled.iso } };
+    const isoBasisState = record.enabled.iso ? repeatProjection(isoBasisRecord, repeatAnalysis(isoBasisRecord)) : record;
+    const changedIsoEvaluation = record.enabled.iso && selectedIsoRows(isoBasisState).some(row =>
+      (row.paired ? [["L",row.left],["R",row.right]] : [["",row.center]]).some(([side,input]) => {
+        const value = nonnegative(input), resolved = effectiveIsoTarget(isoBasisState,row,side);
+        return value !== null && resolved.target !== null && (resolved.kind === "reference"
+          || resolved.kind === "manual" && value < resolved.target && value/resolved.target*100 < N(record.rules.absoluteAmber));
+      }));
     if (cmjConfig.impulseDefinition === "gross") delete cmjConfig.impulseDefinition;
     if (imtpConfig.impulseDefinition === "gross") delete imtpConfig.impulseDefinition;
     const empty = (value) => value === "" || value === null || value === undefined;
@@ -3203,6 +3323,7 @@
       ...(record.isoDirectionIds !== undefined ? { isoDirectionIds: record.isoDirectionIds } : {}),
       mode: record.mode,
       data,
+      ...(changedIsoEvaluation ? { isoEvaluationBasis: "single-target-amber-green-v1" } : {}),
       definitions,
       custom: record.customValues,
       projects: record.projectSnapshots?.filter((t) => !invisible.has(t.id)),
@@ -3217,7 +3338,7 @@
       ...(record.impulseConfig?.confirmed ? { impulseConfig: record.impulseConfig } : {}),
       ...(Object.keys(derivedEnabled).length ? { derivedEnabled } : {}),
       ...(record.imtpTimeStandards?.length ? { imtpTimeStandards: record.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
-      balancePairs: record.balancePairs,
+      balancePairs: fingerprintPairs,
       axes: record.axes,
       protocol,
     });
@@ -4265,6 +4386,7 @@
       throw new Error("阈值速度单位仅支持 m/s 或 km/h");
     const isoIds = new Set();
     input.data.iso.forEach((row) => {
+      root.RingsideIsoReferences?.validateReference(row.reference);
       if (
         !safeId(row.id) ||
         isoIds.has(row.id) ||
@@ -4299,6 +4421,7 @@
         )
           throw new Error("关节配对 ID 或定义无效");
         pairIds.add(pair.id);
+        root.RingsideIsoReferences?.validateReference(pair.reference, true);
         Def.parseRanges(Def.rangeText(pair.ranges));
       });
     }
@@ -4337,7 +4460,7 @@
         ["deltaForcePct","deltaVelocityPct"].forEach(key => { if (!optionalNumber(analysis[key])) throw new Error("F–V 情景变化须为有限数值"); });
       }
       if (view) {
-        ["fv","pv","points","optimum","comparison","confidence"].forEach(key => { if (view[key] !== undefined && typeof view[key] !== "boolean") throw new Error("F–V 图层选项无效"); });
+        ["fv","pv","points","optimum","comparison","confidence","responseForce","responseVelocity","responseBoth"].forEach(key => { if (view[key] !== undefined && typeof view[key] !== "boolean") throw new Error("F–V 图层选项无效"); });
         if (view.range !== undefined && !["full","measured"].includes(view.range)) throw new Error("F–V 显示范围无效");
         if (view.pinnedLoad !== undefined && view.pinnedLoad !== null && (N(view.pinnedLoad) === null || N(view.pinnedLoad) < 0)) throw new Error("F–V 定位负荷无效");
       }
@@ -4712,6 +4835,9 @@
     targetStatus,
     evaluation,
     isoRows,
+    normalizeIsoDirection,
+    migrateBalancePair,
+    effectiveIsoTarget,
     legacyIsoDirectionIds,
     isoDirectionCatalog,
     selectedIsoRows,

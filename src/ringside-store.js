@@ -62,7 +62,7 @@
   function configuration(lib) {
     validateTestPlans(lib.testPlans, lib.catalog);
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
-      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.15.0"};
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.16.0"};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
@@ -122,15 +122,15 @@
         }
         for(const r of snapshots)writes.push(["records",r.recordId,r],["recordIndex",r.recordId,summary(r)]);
         for(const id of deletions.records||[])(deletions.recordIndex ||= []).push(id);
-        const guarded = expected.expectedConfig !== undefined || expected.expectedRecords || expected.expectedAthletes || expected.expectedOwnerRecordIds;
-        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions), ["meta"], guarded ? ["records","athletes","config"] : [], expected.expectedOwnerRecordIds ? ["recordIndex"] : [], snapshots.length ? ["athletes"] : []))];
+        const guarded = expected.expectedConfig !== undefined || expected.expectedRecords || expected.expectedAthletes || expected.expectedProfiles || expected.expectedOwnerRecordIds;
+        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions), ["meta"], guarded ? ["records","athletes","config"] : [], expected.expectedProfiles ? ["profiles"] : [], expected.expectedOwnerRecordIds ? ["recordIndex"] : [], snapshots.length ? ["athletes"] : []))];
         if(!writes.length&&!Object.keys(deletions).length&&!guarded)return;
         const tx=this.db.transaction(names,"readwrite"),done=completed(tx);
         try {
           const active = await request(tx.objectStore("meta").get("active"));
           if (active?.value !== generation) throw Error("资料库已在另一个页面切换，请重新打开并重新预览");
           const comparisons = [];
-          for (const [table, entries] of [["records", expected.expectedRecords], ["athletes", expected.expectedAthletes]])
+          for (const [table, entries] of [["records", expected.expectedRecords], ["athletes", expected.expectedAthletes], ["profiles", expected.expectedProfiles]])
             for (const [id, encoded] of Object.entries(entries || {})) comparisons.push(request(tx.objectStore(table).get([generation,id])).then(row => JSON.stringify(row?.value ?? null) === encoded));
           if (expected.expectedConfig !== undefined) comparisons.push(request(tx.objectStore("config").get([generation,"library"])).then(row => JSON.stringify(row?.value ?? null) === expected.expectedConfig));
           if ((await Promise.all(comparisons)).some(matches => !matches)) throw Error("导入预览已过期：资料已被其他页面修改，请重新预览后再导入");

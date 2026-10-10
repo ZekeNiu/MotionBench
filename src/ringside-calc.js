@@ -225,10 +225,9 @@
         if (item.pain === true || item.pain === 'true' || item.pain === 1) {
           value = 0; painCount += 1;
         } else {
-          var bilateral = Object.prototype.hasOwnProperty.call(item, 'left')
-            || Object.prototype.hasOwnProperty.call(item, 'right')
-            || Object.prototype.hasOwnProperty.call(item, 'l')
-            || Object.prototype.hasOwnProperty.call(item, 'r');
+          var bilateral = typeof item.bilateral === 'boolean' ? item.bilateral
+            : num(item.left === undefined ? item.l : item.left) !== null
+              || num(item.right === undefined ? item.r : item.right) !== null;
           if (bilateral) {
             var left = num(item.left === undefined ? item.l : item.left);
             var right = num(item.right === undefined ? item.r : item.right);

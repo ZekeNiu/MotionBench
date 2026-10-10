@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.15.0",
+  "version": "2.16.0",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -38,7 +38,9 @@
     "test:entry": "node tests/unified-entry-browser-tests.cjs && node tests/unified-entry-browser-tests.cjs --edge",
     "test:toolbar": "node tests/report-toolbar-browser-tests.cjs && node tests/report-toolbar-browser-tests.cjs --edge",
     "test:athlete-context": "node tests/athlete-context-browser-tests.cjs && node tests/athlete-context-browser-tests.cjs --edge",
-    "test:athlete-context-live": "node tests/athlete-context-live-ai-tests.cjs"
+    "test:athlete-context-live": "node tests/athlete-context-live-ai-tests.cjs",
+    "test:v216-migration": "node tests/v216-migration-browser-tests.cjs && node tests/v216-migration-browser-tests.cjs --edge",
+    "test:v216-report": "node tests/report-v216-browser-tests.cjs && node tests/report-v216-browser-tests.cjs --edge"
   },
   "devDependencies": {
     "playwright": "1.57.0"

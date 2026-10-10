@@ -199,15 +199,24 @@
     return { out, x, y };
   }
 
-  const bodyStatusLabels = { red: "重点关注", amber: "关注", green: "优秀", gray: "未测", neutral: "已测" };
-  const bodyStatusLabel = (region) => region.status === "green" ? "优秀" : region.label || bodyStatusLabels[region.status] || "未测";
+  const bodyHasMeasured = (region) => {
+    if (typeof region.hasMeasured === "boolean") return region.hasMeasured;
+    const measured = test => typeof test.hasMeasured === "boolean" ? test.hasMeasured
+      : test.pain === true || (!test.missing && num(test.value) !== null);
+    return Array.isArray(region.tests) ? region.tests.some(measured) : measured(region);
+  };
+  const bodyStatusLabels = { red: "重点关注", amber: "关注", green: "达标", gray: "未测", neutral: "已测" };
+  const bodyStatusLabel = (region) => region.status === "green" ? "达标"
+    : region.status === "gray" ? bodyHasMeasured(region) ? "已测" : "未测"
+      : region.label || bodyStatusLabels[region.status] || "未测";
   function bodyTestText(test) {
     const side = test.sideLabel || { L: "左侧", R: "右侧", C: "中线" }[test.side] || test.side || "",
       title = [test.testName && test.testName !== test.name ? test.testName : "", test.name || "测试", side].filter(Boolean).join(" · "),
       value = test.missing ? "未测" : num(test.value) !== null ? fmt(test.value, 2) + (test.unit ? " " + test.unit : "") : test.label || "已测",
       facts = [value];
-    if (num(test.target) !== null) facts.push("目标 " + fmt(test.target, 2) + (test.unit ? " " + test.unit : ""));
-    if (!test.missing && test.label && test.label !== value) facts.push(test.label);
+    if (num(test.target) !== null) facts.push((test.targetKind === "reference" ? "参考目标 " : "目标 ") + fmt(test.target, 2) + (test.unit ? " " + test.unit : ""));
+    const label=test.status === "gray" && test.referenceComparison ? test.referenceComparison.label : test.label;
+    if (!test.missing && label && label !== value) facts.push(label);
     if (num(test.asym) !== null) facts.push("双侧差异 " + fmt(test.asym, 1) + "%");
     if (test.pain) facts.push("疼痛");
     if (test.notes) facts.push(String(test.notes));
@@ -242,7 +251,7 @@
         typeof regions[name] === "object"
       )
         r = regions[name][full];
-      if (typeof r === "string") r = { status: r };
+      if (typeof r === "string") r = { status: r, hasMeasured: ["red", "amber", "green", "neutral"].includes(r) };
       return {
         ...(r || {}),
         status: ["red", "amber", "green", "gray", "neutral"].includes(
@@ -289,7 +298,9 @@
         `text-anchor="middle" fill="${C.neutral}" font-size="22" font-weight="600"`,
       );
     specs.forEach(([key, name, x, y]) => {
-      const r = { ...find(key), key, name }, c = color(r.status),
+      const r = { ...find(key), key, name };
+      if (!bodyHasMeasured(r)) return;
+      const c = color(r.status),
         tests = Array.isArray(r.tests) ? r.tests : [],
         details = tests.length ? tests.map(test => { const item = bodyTestText(test); return item.title + "：" + item.detail; }).join("；") : r.tooltip || r.detail || "",
         tooltip = `${name}：${bodyStatusLabel(r)}${details ? " · " + details : ""}`;
@@ -1913,19 +1924,26 @@
   }
   function jumpElasticity(data, layout = {}) {
     const w=Math.max(240,layout.width||480),h=layout.height||330;
-    const force=(data.force||[]).filter(p=>p.valid!==false&&num(p.deltaPct)!==null),velocity=(data.velocity||[]).filter(p=>p.valid!==false&&num(p.deltaPct)!==null),all=[...force,...velocity];
-    if(!all.length)return layoutSVG(w,h,"参数改变与垂直跳高响应",text(w/2,h/2,"完成有效剖面后显示敏感度",'text-anchor="middle" font-size="13"'),"尚无有效敏感度",layout);
-    const small=w<400,left=small?44:54,right=w-20,top=45,bottom=h-80;
+    const valid=points=>(points||[]).filter(p=>p.valid!==false&&num(p.deltaPct)!==null);
+    const series=[
+      {key:"force",view:"responseForce",color:C.blue,label:"仅 F₀ 改变",shape:"circle"},
+      {key:"velocity",view:"responseVelocity",color:C.green,label:"仅 V₀ 改变",shape:"diamond"},
+      {key:"both",view:"responseBoth",color:"#73548c",label:"F₀ 与 V₀ 各改变",shape:"triangle"},
+    ].map(item=>({...item,points:valid(data[item.key]),curve:valid(data[item.key+"Curve"]||data[item.key])}));
+    const all=series.flatMap(item=>item.curve),visible=series.filter(item=>data[item.view]!==false);
+    if(!all.length)return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",text(w/2,h/2,"完成有效剖面后显示敏感度",'text-anchor="middle" font-size="13"'),"尚无有效敏感度",layout);
+    if(!visible.length)return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",text(w/2,h/2,"勾选曲线查看表现响应",'text-anchor="middle" font-size="13"'),"未选择响应曲线",layout);
+    const small=w<400,left=small?44:54,right=w-20,top=45,bottom=h-110;
+    // Keep scales stable while series are toggled so their response remains comparable.
     const xMin=Math.min(0,...all.map(p=>p.changePct)),xMax=Math.max(10,...all.map(p=>p.changePct)),yMin=Math.min(0,...all.map(p=>p.deltaPct))*1.13,yMax=Math.max(.5,...all.map(p=>p.deltaPct))*1.13;
-    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin,xMax,yMin,yMax,xLabel:"参数改变 · %",yLabel:"垂直跳高改变 · %",solidGrid:true});
+    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin,xMax,yMin,yMax,xLabel:"参数改变 · %",yLabel:"垂直跳跃高度改变 · %",solidGrid:true});
     let out=grid+line(left,y(0),right,y(0),'stroke="#9aa4ae" stroke-dasharray="3 4"');
-    [[force,C.blue,"仅改变 F₀"],[velocity,C.green,"仅改变 V₀"]].forEach(([points,color,label],series)=>{
-      const curve=(series?data.velocityCurve:data.forceCurve)||points;
-      out+=`<polyline points="${polygonPoints(curve.filter(p=>p.valid!==false&&num(p.deltaPct)!==null).map(p=>[x(p.changePct),y(p.deltaPct)]))}" fill="none" stroke="${color}" stroke-width="2.5"/>`;
-      points.forEach(p=>{out+=point(x(p.changePct),y(p.deltaPct),4,color,`${label} ${fmt(p.changePct,1)}% · 垂直跳高 ${p.deltaPct>=0?'+':''}${fmt(p.deltaPct,2)}%`,"",series?"diamond":"circle");});
-      const lx=left+series*Math.min(135,(right-left)*.49);out+=line(lx,h-22,lx+22,h-22,`stroke="${color}" stroke-width="2.5"`)+text(lx+29,h-18,label,'font-size="11"');
+    visible.forEach(({key,points,curve,color,label,shape},index)=>{
+      out+=`<g data-response-series="${key}"><polyline points="${polygonPoints(curve.map(p=>[x(p.changePct),y(p.deltaPct)]))}" fill="none" stroke="${color}" stroke-width="2.5"/>`;
+      points.forEach(p=>{out+=point(x(p.changePct),y(p.deltaPct),4,color,`${label} ${fmt(p.changePct,1)}% · 垂直跳跃高度 ${p.deltaPct>=0?'+':''}${fmt(p.deltaPct,2)}%`,"",shape);});
+      const ly=h-48+index*18;out+=line(left,ly,left+22,ly,`stroke="${color}" stroke-width="2.5"`)+marker(left+11,ly,3.5,color,shape)+text(left+29,ly+4,label,'font-size="11"')+'</g>';
     });
-    return layoutSVG(w,h,"参数改变与垂直跳高响应",out,"两条曲线分别改变F₀或V₀，按垂直跳跃模型重新求解跳高；各点为情景计算结果。",layout);
+    return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",out,"单端曲线只改变F₀或V₀；联合曲线中F₀与V₀各改变横轴所示百分比。每条曲线均重新求解垂直跳跃高度。",layout);
   }
 
   global.RingsideViz = {

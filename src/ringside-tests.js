@@ -90,7 +90,7 @@
       [id + "_f0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " F₀", "N/kg", "爆发力"],
       [id + "_v0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " V₀", "m/s", "爆发力"],
       [id + "_pmax", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " Pmax", "W/kg", "爆发力"],
-      [id + "_imbalance", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " F–V 失衡幅度", "%", "爆发力"],
+      [id + "_imbalance", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " FVP的不平衡性", "%", "爆发力"],
     ]),
     ...["cmj", "sj"].flatMap((id) =>
       fieldsForTest(id)

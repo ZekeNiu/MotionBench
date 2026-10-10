@@ -84,7 +84,7 @@
       if(t.id==="fms")defaults.data.fms.forEach((r,i)=>add("fms_"+i,r.name,"分",r.bilateral?"双侧录入":"单项录入",'<span>固定 0–3 分；疼痛为 0 分</span>',button("查看评分","standard-fms")));
       if(t.id==="iso"){
         const iso=new Map(defaults.data.iso.map(r=>[r.id,r]));for(const r of profile?.criteria.iso||[])iso.set(r.id,r);
-        for(const r of iso.values()){const rule=profile?.criteria.iso.find(x=>x.id===r.id);add(r.id,isoName(r),r.unit,r.paired?"双侧测量":"单值测量",(rule?.target!==""&&rule?.target!=null?`目标 ${esc(rule.target)} ${esc(rule.unit)}`:'<span class="note">未配置目标</span>')+(issues.has(r.id)?`<small class="standard-mismatch">当前记录：${esc(issues.get(r.id))}</small>`:""),button("编辑目标","standard-iso",r.id));}
+        for(const r of iso.values()){const rule=profile?.criteria.iso.find(x=>x.id===r.id);add(r.id,isoName(r),r.unit,r.paired?"双侧测量":"单值测量",(rule?.target!==""&&rule?.target!=null?`目标 ${esc(rule.target)} ${esc(rule.unit)}`:rule?.reference?.enabled?`<span>文献均值参考 · ${esc(rule.reference.basis)}</span><small>${esc(rule.reference.source)}</small>`:'<span class="note">未配置目标</span>')+(issues.has(r.id)?`<small class="standard-mismatch">当前记录：${esc(issues.get(r.id))}</small>`:""),button("编辑目标 / 参考","standard-iso",r.id));}
         for(const p of profile?.criteria.balance||defaults.balancePairs){const actual=measurement?.balance.find(x=>x.id===p.id),mismatch=record?.enabled.iso&&actual&&Eval.canonical(actual.contexts)!==Eval.canonical(p.contexts);add("balance_"+p.id,p.label,"比值","关节平衡",standardSummary(p)+(mismatch?'<small class="standard-mismatch">当前记录：测量条件不匹配</small>':""),button("编辑标准","standard-balance",p.id));}
       }
       if(t.id==="imtp")for(const time of imtpTimes(profile,record))for(const kind of ["force_pct_peak","rfd"]){
@@ -143,7 +143,7 @@
       return `<article class="management-catalog-item"><div><h3>${esc(p.name)} ${p.id===lib().defaultEvaluationProfileId?'<span class="pill">默认</span>':""}${p.disabled?'<span class="pill">已停用</span>':""}</h3><p class="note">版本 ${p.revision} · 关联 ${count} 条记录</p></div><div class="row">${button("编辑","profile-edit",p.id)}${button("复制","profile-copy",p.id)}${button("设为默认","profile-default",p.id,p.disabled?"disabled":"")}${button("关联记录","profile-records",p.id)}${button(p.disabled?"启用":"停用","profile-toggle",p.id,p.id===lib().defaultEvaluationProfileId?"disabled":"")}${p.previous?button("恢复上一版","profile-revert",p.id):""}</div></article>`;
     }).join("");
   }
-  const ruleLabels={asymAmber:"不对称关注阈值 %",asymRed:"不对称重点关注阈值 %",absoluteAmber:"绝对力重点关注比例 %",scoreAmber:"目标达成关注下界 %",scoreGreen:"目标达成达标下界 %"};
+  const ruleLabels={asymAmber:"不对称关注阈值 %",asymRed:"不对称重点关注阈值 %",scoreAmber:"目标达成关注下界 %",scoreGreen:"目标达成达标下界 %"};
   const input=(path,value,type="number")=>`<input data-profile-path="${esc(path)}" type="${type}" ${type==="number"?'step="any"':""} value="${esc(value)}">`;
   const check=(path,value,label)=>`<label class="check-line"><input type="checkbox" data-profile-path="${esc(path)}" ${value?"checked":""}>${label}</label>`;
   const select=(path,value,options)=>`<select data-profile-path="${esc(path)}">${options.map(([v,n])=>option(v,n,value)).join("")}</select>`;
@@ -170,8 +170,8 @@
       if(d)h+=`<p class="note">${esc(T.metricProtocol(d)||"未记录协议")} · ${esc(d.unit)} · ${esc(T.abilityLabel(lib().catalog,d.ability))}</p><div class="form-grid">${field(d.testId==="cpet"?"通用训练目标":"评价目标",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用评价标准")}${Array.isArray(d.referenceGroups)?referenceGroupEditor(d,i):ranges("definitions."+i+".ranges",d.ranges)+`<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`+(d.testId==="cpet"?button("添加年龄 / 性别 / 测试方式标准","profile-group-add",String(i)):"")}`;
     } else if(tab==="imtp")h+=imtpStandardEditor();
     else if(tab==="rules")h+='<div class="form-grid">'+Object.entries(ruleLabels).map(([id,label])=>field(label,input("rules."+id,r.rules[id]))).join("")+'</div><p class="note">FMS 保留固定 0–3 分及疼痛判定。</p>';
-    else if(tab==="iso")h+=r.data.iso.map((row,i)=>`<div class="profile-rule-row" data-standard-key="${esc(row.id)}"><b>${esc(isoName(row))}</b>${field("目标 · "+esc(row.unit),input("data.iso."+i+".target",row.target))}<span class="note">${esc(row.protocol||"未记录协议")}</span></div>`).join("");
-    else if(tab==="balance")h+=r.balancePairs.map((p,i)=>`<div class="profile-rule-block" data-standard-key="${esc(p.id)}"><h3>${esc(p.label)}</h3><p class="note">${esc(r.data.iso.find(x=>x.id===p.numeratorId)?.direction||"未匹配方向")} / ${esc(r.data.iso.find(x=>x.id===p.denominatorId)?.direction||"未匹配方向")}</p>${check("balancePairs."+i+".referenceEnabled",p.referenceEnabled,"启用评价区间")}${field("依据",input("balancePairs."+i+".source",p.source,"text"))}${ranges("balancePairs."+i+".ranges",p.ranges)}</div>`).join("");
+    else if(tab==="iso")h+='<p class="note">手填目标优先；目标留空时使用已启用的参考均值。参考数值可编辑。</p>'+r.data.iso.map((row,i)=>`<article class="profile-rule-block" data-standard-key="${esc(row.id)}"><div class="profile-rule-row"><b>${esc(isoName(row))}</b>${field("目标 · "+esc(row.unit),input("data.iso."+i+".target",row.target))}<span class="note">${esc(row.protocol||"")}</span></div>${isoReferenceEditor(row.reference,"data.iso."+i+".reference",row)}</article>`).join("");
+    else if(tab==="balance")h+=r.balancePairs.map((p,i)=>`<div class="profile-rule-block" data-standard-key="${esc(p.id)}"><h3>${esc(p.label)}</h3><p class="note">${esc(r.data.iso.find(x=>x.id===p.numeratorId)?.direction||"未匹配方向")} / ${esc(r.data.iso.find(x=>x.id===p.denominatorId)?.direction||"未匹配方向")}</p>${p.ratioMigrationIssue?'<p class="notice">'+esc(p.ratioMigrationIssue)+'</p>':""}${check("balancePairs."+i+".referenceEnabled",p.referenceEnabled,"启用评价区间")}${field("依据",input("balancePairs."+i+".source",p.source,"text"))}${ranges("balancePairs."+i+".ranges",p.ranges)}${isoReferenceEditor(p.reference,"balancePairs."+i+".reference",{region:p.region,paired:true},true)}</div>`).join("");
     else if(tab==="axes")h+=[...new Set(r.definitions.filter(d=>d.category==="performance"&&d.ability).map(d=>d.ability))].map(ability=>{
       const id=T.axisKey(ability),defs=r.definitions.filter(d=>d.ability===ability),cfg=T.axisConfig(r,ability)||{method:"primary",primary:defs[0].id};r.axes[id]=cfg;
       return `<div class="profile-rule-row"><b>${esc(T.abilityLabel(lib().catalog,ability))}</b>${field("汇总方式",`<select data-profile-axis="${esc(id)}" data-axis-field="method">${[["primary","代表指标"],["mean","平均达成"],["min","最低达成"]].map(([v,n])=>option(v,n,cfg.method)).join("")}</select>`)}${field("代表指标",`<select data-profile-axis="${esc(id)}" data-axis-field="primary">${defs.map(d=>option(d.id,T.metricName(d),cfg.primary)).join("")}</select>`)}</div>`;
@@ -179,6 +179,14 @@
     else if(tab==="lvp")h+=Object.entries(r.lvp).map(([id,p])=>`<div class="profile-rule-block" data-standard-key="${esc(id)}"><h3>${esc({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠 L",landmineR:"地雷杠 R"}[id])}</h3><div class="form-grid">${field("适用速度口径",select("lvp."+id+".metric",p.metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))}${field("MVT m/s",input("lvp."+id+".mvt",p.mvt))}${field("依据 / 设备",input("lvp."+id+".source",p.source||"","text"))}</div>${field("素质区间：下限..上限 | 名称",`<textarea rows="4" data-profile-zones="${id}">${esc(editor.zoneDrafts[id]??p.zones.map(z=>z.min+".."+z.max+" | "+z.label).join("\n"))}</textarea>`)}</div>`).join("");
     h+='</div><p id="profileEditorError" class="field-error" role="alert"></p>';
     return h;
+  }
+  function isoReferenceEditor(ref,path,row,balance=false) {
+    if(!ref)return !balance?button("设置参考","profile-iso-reference-add",path):"";
+    const keys=ref.sideBasis==="dominance"?["DOM","ND"]:row.paired?["L","R"]:["C"];
+    const names={DOM:"优势手侧",ND:"非优势侧",L:"L",R:"R",C:"单项"};
+    let h=`<details class="iso-reference-editor"><summary>${esc(ref.enabled?"参考均值":"参考均值 · 已停用")} · ${esc(ref.source)}</summary><div class="form-grid">${check(path+".enabled",ref.enabled,"启用参考均值")}${field("数值单位",select(path+".basis",ref.basis,balance?[["ratio","比值"]]:[["N","N"],["N/kg","N/kg"],["%BW","体重百分比 %BW"]]))}${field("参考来源",input(path+".source",ref.source,"text"))}</div><div class="management-table-wrap"><table class="management-table"><thead><tr><th>性别</th><th>年龄下限</th><th>年龄上限（不含）</th><th>统计方式</th>${keys.map(key=>'<th>'+names[key]+'</th>').join("")}</tr></thead><tbody>`;
+    h+=ref.groups.map((g,j)=>{const p=path+".groups."+j;return `<tr><td data-label="性别">${g.sex==="male"?"男":"女"}</td><td data-label="年龄下限">${input(p+".ageMin",g.ageMin)}</td><td data-label="年龄上限">${input(p+".ageMax",g.ageMax)}</td><td data-label="统计方式">${{best:"最好值",mean:"均值",any:"通用参考"}[g.mode]}</td>${keys.map(key=>`<td data-label="${names[key]}">${input(p+".values."+key,g.values[key]??"")}</td>`).join("")}</tr>`;}).join("");
+    return h+`</tbody></table></div><div class="row">${button("清除参考","profile-iso-reference-clear",path)}</div></details>`;
   }
   function imtpStandardEditor(){
     const r=editor.record;r.imtpTimeStandards||=[];
@@ -305,8 +313,9 @@
     for(const d of next.definitions){const prior=old.definitions.find(x=>x.id===d.id),groups=d.referenceGroups||[],before=prior?.referenceGroups||[];for(const id of new Set([...before.map(g=>g.id),...groups.map(g=>g.id)]))add(T.metricName(d)+" · 分层标准 "+id,groupText(before.find(g=>g.id===id)),groupText(groups.find(g=>g.id===id)));}
     for(const rule of next.imtpTimeStandards||[]){const unit=rule.kind==="rfd"?"N/s":"%PF",prior=old.imtpTimeStandards?.find(x=>x.timeMs===rule.timeMs&&x.kind===rule.kind);add(`IMTP ${rule.timeMs} ms ${rule.kind==="rfd"?"RFD · N/s":"力占峰值力 · %PF"}`,metric(prior?{...prior,unit}:null),metric({...rule,unit}));}
     for(const[k,label]of Object.entries(ruleLabels))add(label,old.rules[k],next.rules[k]);
-    for(const row of next.iso)add(M.REG[row.region]+" · "+row.direction,old.iso.find(x=>x.id===row.id)?.target??"—",row.target);
-    const balance=p=>p?`${p.referenceEnabled?"启用":"未启用"} · ${Def.rangeText(p.ranges)} · ${p.source||"未注明依据"}`:"未包含";
+    const isoReference=ref=>!ref?"未配置参考":`${ref.enabled?"启用":"停用"} · ${ref.basis} · ${ref.source}\n${ref.groups.map(g=>`${g.sex==="male"?"男":"女"} [${g.ageMin},${g.ageMax}) ${g.mode}：${Object.entries(g.values).map(([k,v])=>k+" "+(v??"—")).join(" / ")}`).join("\n")}`;
+    for(const row of next.iso){const prior=old.iso.find(x=>x.id===row.id);add(M.REG[row.region]+" · "+row.direction,`目标 ${prior?.target??"—"}\n${isoReference(prior?.reference)}`,`目标 ${row.target??"—"}\n${isoReference(row.reference)}`);}
+    const balance=p=>p?`${p.referenceEnabled?"启用":"未启用"} · ${Def.rangeText(p.ranges)} · ${p.source||"未注明依据"}\n${isoReference(p.reference)}`:"未包含";
     for(const p of next.balance)add("关节平衡 "+p.label,balance(old.balance.find(x=>x.id===p.id)),balance(p));
     const lvp=p=>p?`${p.metric} · MVT ${p.mvt??"—"} m/s\n${(p.zones||[]).map(z=>z.min+"–"+z.max+" m/s："+z.label).join("\n")}\n${p.source||"未注明依据"}`:"未包含";
     for(const[id,p]of Object.entries(next.lvp))add("LVP "+({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠左侧",landmineR:"地雷杠右侧"}[id]||id),lvp(old.lvp[id]),lvp(p));
@@ -328,12 +337,23 @@
   function getPath(obj,path){return path.split(".").reduce((v,k)=>v?.[k],obj);}
   function setPath(obj,path,value){const keys=path.split(".");if(keys.some(k=>["__proto__","constructor","prototype"].includes(k)))throw Error("无效字段");let current=obj;for(const k of keys.slice(0,-1))current=current[k];current[keys.at(-1)]=value;}
   function markReferenceEdited(path){
+    const iso=path.match(/^((?:data\.iso|balancePairs)\.\d+\.reference)\.(.+)$/);
+    if(iso&&iso[2]!=="enabled"&&iso[2]!=="source"){const ref=getPath(editor.record,iso[1]);if(ref&&!ref.source.includes("用户调整"))ref.source+="（用户调整）";return;}
     const match=path.match(/^definitions\.(\d+)\.referenceGroups\.(\d+)\.(.+)$/);if(!match||match[3]==="target")return;
     const group=editor.record.definitions[Number(match[1])].referenceGroups[Number(match[2])];group.modified=true;
     if(group.sourceId==="friend-2022-rer110"&&match[3]!=="source"&&!group.source.includes("用户调整"))group.source+="（用户调整）";
   }
   function clearGroupInputErrors(index){if(editor.invalid)for(const path of [...editor.invalid])if(path.startsWith("definitions."+index+".referenceGroups"))editor.invalid.delete(path);}
   async function action(name,id) {
+    if(name==="profile-iso-reference-clear"){if(editor.readOnly)throw Error("请先复制为新方案");setPath(editor.record,id,null);return render();}
+    if(name==="profile-iso-reference-add"){
+      if(editor.readOnly)throw Error("请先复制为新方案");
+      const row=getPath(editor.record,id.replace(/\.reference$/,""));
+      const builtin=root.RingsideIsoReferences?.defaultReference(row);
+      const anatomical=["neck","trunk"].includes(row.region),keys=row.paired?anatomical?["L","R"]:["DOM","ND"]:["C"];
+      setPath(editor.record,id,builtin||{enabled:true,sourceId:"user",source:"用户编辑参考",statistic:"mean",basis:"N",sideBasis:row.paired&&!anatomical?"dominance":"anatomical",groups:["male","female"].map(sex=>({sex,ageMin:0,ageMax:120,mode:"any",values:Object.fromEntries(keys.map(key=>[key,""]))}))});
+      return render();
+    }
     if(name==="section")return App.openManagement(id);
     if(name==="page"){filter().page=Number(id);return render();}
     if(["archive","unarchive","trash","restore","purge"].includes(name))return cleanup(name,id);
@@ -511,7 +531,7 @@
     const rows=record.definitions.filter(d=>record.enabled[d.testId]&&!(record.imtpTimeStandards||[]).some(rule=>d.id==="imtp_"+(rule.kind==="force_pct_peak"?"f":"rfd")+rule.timeMs)).map(d=>`<article class="effective-standard"><h3>${esc(T.metricName(d))}</h3><p>目标：<b title="${esc(d.target)}">${number(d.target)}</b> ${esc(d.unit)} · ${d.direction==="lower"?"数值越低越好":"数值越高越好"}</p>${issues.has(d.id)?'<p class="notice">'+esc(issues.get(d.id))+'</p>':d.referenceEnabled?ranges(d.ranges):'<p class="note">未启用评价分级</p>'}${d.source?'<p class="note">依据：'+esc(d.source)+'</p>':""}</article>`).join("");
     const imtp=record.enabled.imtp?(record.imtpTimeStandards||[]).map(rule=>`<article class="effective-standard"><h3>IMTP ${rule.timeMs} ms ${rule.kind==="rfd"?"平均 RFD":"力占峰值力比例"}</h3>${rule.matched===false?'<p class="notice">时点标准与本次测量条件不匹配</p>':`<p>目标：<b>${number(rule.target)}</b> ${rule.kind==="rfd"?"N/s":"%PF"}</p>${rule.referenceEnabled?ranges(rule.ranges):'<p class="note">未启用评价分级</p>'}`}${rule.source?'<p class="note">依据：'+esc(rule.source)+'</p>':""}</article>`).join(""):"";
     const isoIds=new Set(M.selectedIsoRows(record).map(row=>row.id));
-    const iso=record.enabled.iso?'<h3>等长目标</h3>'+M.selectedIsoRows(record).map(r=>`<p>${esc(M.REG[r.region])} · ${esc(r.direction)}：<b>${number(r.target)}</b> ${esc(r.target?r.unit:"")}${issues.has(r.id)?' · '+esc(issues.get(r.id)):""}</p>`).join("")+'<h3>关节平衡</h3>'+record.balancePairs.filter(pair=>isoIds.has(pair.numeratorId)&&isoIds.has(pair.denominatorId)).map(p=>`<article class="effective-standard"><h4>${esc(p.label)}</h4>${p.referenceEnabled&&p.confirmed?ranges(p.ranges):'<p class="note">未启用分级或未确认测量条件可比</p>'}${p.source?'<p class="note">依据：'+esc(p.source)+'</p>':""}</article>`).join(""):"";
+    const iso=record.enabled.iso?'<h3>等长目标</h3>'+M.selectedIsoRows(record).map(r=>{const targets=(r.paired?["L","R"]:[""]).map(side=>{const t=M.effectiveIsoTarget(record,r,side);return `${side?side+" ":""}${t.kind==="reference"?"参考 ":"目标 "}${number(t.target)}${t.target===null?"":" "+r.unit}${t.reason?" · "+t.reason:""}`;});return `<p>${esc(M.REG[r.region])} · ${esc(r.direction)}：<b>${esc(targets.join(" / "))}</b>${issues.has(r.id)?' · '+esc(issues.get(r.id)):""}</p>`;}).join("")+'<h3>关节平衡</h3>'+record.balancePairs.filter(pair=>isoIds.has(pair.numeratorId)&&isoIds.has(pair.denominatorId)).map(p=>`<article class="effective-standard"><h4>${esc(p.label)}</h4>${p.ratioMigrationIssue?'<p class="notice">'+esc(p.ratioMigrationIssue)+'</p>':""}${p.referenceEnabled&&p.confirmed?ranges(p.ranges):'<p class="note">未启用分级或未确认测量条件可比</p>'}${p.source?'<p class="note">依据：'+esc(p.source)+'</p>':""}${p.reference?.enabled?'<p class="note">均值参考：'+esc(p.reference.source)+'</p>':""}</article>`).join(""):"";
     const lvp=Object.entries(record.lvp).filter(([id])=>record.enabled[id.startsWith("landmine")?"landmine":id]).map(([id,p])=>`<article class="effective-standard"><h4>${esc({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠左侧",landmineR:"地雷杠右侧"}[id])}</h4><p>${esc(p.metric)} · MVT ${number(p.mvt)} m/s</p>${p.zones.map(z=>'<p>'+esc(z.label)+'：'+number(z.min)+'–'+number(z.max)+' m/s</p>').join("")}${p.source?'<p class="note">依据：'+esc(p.source)+'</p>':""}</article>`).join("");
     const axes=Object.entries(record.axes).map(([id,a])=>{const ability=record.definitions.find(d=>T.axisKey(d.ability)===id)?.ability||"能力";return '<p>'+esc(T.abilityLabel(record,ability))+'：'+esc({primary:"代表指标",mean:"平均达成",min:"最低达成"}[a.method]||a.method)+(a.method==="primary"?' · '+esc(record.definitions.find(d=>d.id===a.primary)?.name||"未选代表指标"):"")+'</p>';}).join("");
     showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}${imtp}<h3>汇总与筛查阈值</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});

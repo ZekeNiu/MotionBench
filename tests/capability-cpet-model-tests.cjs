@@ -31,7 +31,7 @@ test("impossible threshold order and above-peak values do not yield percentage j
 test("cardio four branches use explicit targets and original threshold label",()=>{
  const r=cpet();r.definitions.find(d=>d.id==="cpet_vo2_relative").target=60;Object.assign(r.definitions.find(d=>d.id==="cpet_threshold2_pct"),{referenceEnabled:true,target:85});r.data.cpet.thresholds.second.label="LT2";
  for(const [peak,pct,expected] of [[50,90,"优先提高 VO₂peak。"],[65,80,"优先提高 LT2。"],[50,80,"同步提高 VO₂peak 与 LT2。"],[65,90,"均达到"]]){r.data.cpet.vo2=peak;r.data.cpet.thresholds.second.vo2=peak*pct/100;assert.ok(card(r,"cardio").conclusion.includes(expected));}
- r.data.cpet.rer=1;const resolved=E.resolve(r,E.create(r));assert.match(card(resolved,"cardio").conclusion,/均达到/);r.definitions.find(d=>d.id==="cpet_threshold2_pct").target=null;assert.equal(card(r,"cardio").conclusion,"");
+ r.data.cpet.rer=1;const resolved=E.resolve(r,E.create(r));assert.match(card(resolved,"cardio").conclusion,/均达到/);r.definitions.find(d=>d.id==="cpet_threshold2_pct").target=null;assert.equal(card(r,"cardio").conclusion,"VO₂peak 均达到当前目标，保持并巩固。");
 });
 test("partial CPET and percentage components retain their independent configured judgments",()=>{
  const r=cpet();r.data.cpet.vo2="";Object.assign(r.data.cpet.thresholds.first,{vo2:40,hr:145,speed:3.5});
@@ -56,7 +56,7 @@ test("independent RSI-modified can be reported without a rebound or optional hei
 });
 test("cards hide absent data, preserve lactate-only speeds and suppress inconsistent speed typing",()=>{
  const r=M.defaults();assert.equal(M.stats(r).capabilityCards.length,0);r.enabled.lactate=true;r.thresholds.lt1=3.5;r.thresholds.lt2=4.5;assert.equal(metric(r,"lt1").value,3.5);assert.equal(metric(r,"lt2").value,4.5);
- r.enabled.mas=r.enabled.mss=true;r.data.mas.speed=5;r.data.mss.speed=4;assert.equal(card(r,"speed"),undefined);assert.ok(M.stats(r).qualityIssues.some(i=>i.id==="asr_inconsistent"));
+ r.enabled.mas=r.enabled.mss=true;r.data.mas.speed=5;r.data.mss.speed=4;assert.equal(card(r,"speed").metrics.length,2);assert.match(card(r,"speed").conclusion,/核对/);assert.ok(M.stats(r).qualityIssues.some(i=>i.id==="asr_inconsistent"));
  for(const [ratio,label] of [[1.69,"耐力型"],[1.7,"混合型"],[1.8,"混合型"],[1.81,"速度型"]]){r.data.mss.speed=5*ratio;assert.equal(metric(r,"srr").judgment,label);}
 });
 test("iDSI displays an available window without mutating saved preference",()=>{

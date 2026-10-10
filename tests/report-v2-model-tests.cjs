@@ -155,7 +155,7 @@ test("partial heart-rate stages remain data and invalid balances remain visible"
   assert.equal((iso.match(/<table/g) || []).length, 1);
   assert.match(iso, /<th\b[^>]*>关节平衡<\/th>/);
   const pair = r.balancePairs.find(
-    (b) => b.region === "shoulder" && b.label === "IR:ER",
+    (b) => b.region === "shoulder" && b.label === "ER:IR",
   );
   assert.ok(pair);
   pair.confirmed = true;
@@ -345,21 +345,21 @@ test("isometric empty evaluations and balances are plain dashes while valid side
   assert.equal(text(evaluation), 'L · 达标R · 严重');
   Object.assign(er, { left: 100, right: '' });
   html = R.render(R.build(r));
-  const balance = reportCell(html, ir.id, '关节平衡');
-  assert.match(balance, /L · 2\.00/);
+  const balance = reportCell(html, er.id, '关节平衡');
+  assert.match(balance, /L · 0\.50/);
   assert.match(balance, /R · -/);
-  assert.match(balance, /class="pill gray iso-status"[^>]*aria-label="L · 2\.00 · 未启用评价标准"/);
+  assert.match(balance, /class="pill gray iso-status"[^>]*aria-label="L · 0\.50 · 未启用评价标准"/);
   assert.doesNotMatch(text(balance), /未启用|未设/);
   assert.doesNotMatch(balance, /缺测|待输入|尚未确认/);
   assert.equal((html.match(/data-balance-id="shoulder_IR_ER"/g) || []).length, 1);
   const pair = r.balancePairs.find(x => x.id === 'shoulder_IR_ER');
   pair.referenceEnabled = true;
-  pair.ranges = [{ min: 0, max: 1, label: '自定义正常范围', status: 'green' }];
-  const ungraded = reportCell(R.render(R.build(r)), ir.id, '关节平衡');
+  pair.ranges = [{ min: 0, max: .4, label: '自定义正常范围', status: 'green' }];
+  const ungraded = reportCell(R.render(R.build(r)), er.id, '关节平衡');
   assert.match(ungraded, /class="pill gray iso-status"/);
-  assert.match(text(ungraded), /L · 2\.00 未评/, 'configured but unclassified ratios remain distinct from disabled standards');
+  assert.match(text(ungraded), /L · 0\.50 未评/, 'configured but unclassified ratios remain distinct from disabled standards');
   pair.confirmed = false;
-  assert.equal(reportCell(R.render(R.build(r)), ir.id, '关节平衡'), '-');
+  assert.equal(reportCell(R.render(R.build(r)), er.id, '关节平衡'), '-');
 });
 test("isometric radar has neutral grid lines and retains point provenance without direction-count labels", () => {
   const r = M.sampleRecord();

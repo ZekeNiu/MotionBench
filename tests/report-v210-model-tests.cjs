@@ -123,9 +123,11 @@ test("body tooltip escapes untrusted fields and green display uses the approved 
   const html = V.bodyTooltip(region);
   assert.doesNotMatch(html, /<img|onclick="alert|onerror="alert/);
   assert.match(html, /&lt;img/); assert.match(html, /class="pill gray"/); assert.match(html, /0 &lt;img/);
-  const green = V.body({ neck: { status: "green", label: "已测" } });
-  assert.match(green, /aria-label="颈部：优秀"/);
-  assert.match(V.bodyTooltip({ status: "green", label: "已测" }), />优秀<\/span>/);
+  const green = V.body({ neck: { status: "green", label: "已测", hasMeasured: true } });
+  assert.match(green, /aria-label="颈部：达标"/);
+  assert.match(V.bodyTooltip({ status: "green", label: "已测" }), />达标<\/span>/);
+  assert.match(V.bodyTooltip({ status:"gray",label:"部位名",tests:[{value:0,missing:false}] }), />已测<\/span>/);
+  assert.match(V.bodyTooltip({ status:"gray",label:"部位名",tests:[{value:null,missing:true}] }), />未测<\/span>/);
 });
 
 test("report labels follow the record ability snapshot without changing stable group or metric keys", () => {

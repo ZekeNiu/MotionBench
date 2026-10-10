@@ -48,8 +48,8 @@ test("neck and trunk labels mean movement direction and body payloads use centra
   const r=isoOnly();M.setIsoDirectionSelection(r,["iso_trunk_rotation","iso_neck_lateralFlexion"]);
   Object.assign(row(r,"iso_trunk_rotation"),{left:80,right:100,target:100});Object.assign(row(r,"iso_neck_lateralFlexion"),{left:40,right:50});
   const s=M.stats(r),regions=s.signals.regions;assert.ok(regions.trunk);assert.ok(!regions.trunk_l);assert.ok(!regions.trunk_r);
-  assert.ok(regions.trunk.tests.some(t=>t.sideLabel==="左向"));assert.match(R.render(R.build(r)),/左向/);
-  assert.match(V.body(regions),/data-region="trunk"/);assert.match(V.bodyTooltip({...regions.trunk,name:"躯干"}),/左向/);
+  assert.ok(regions.trunk.tests.some(t=>t.sideLabel==="L"));assert.match(R.render(R.build(r)),/左侧更弱/);
+  assert.match(V.body(regions),/data-region="trunk"/);assert.match(V.bodyTooltip({...regions.trunk,name:"躯干"}),/L/);
 });
 test("plots use selected regions with sparse and ten-region horizontal fallback instead of direction axes",()=>{
   const r=isoOnly();for(const n of [0,1,2,3,8,9,10]){
@@ -59,7 +59,10 @@ test("plots use selected regions with sparse and ten-region horizontal fallback 
   }
 });
 test("new body hotspots preserve separate shoulder scapular forearm and wrist identities",()=>{
-  const html=V.body({});for(const key of ["trunk","scapula_l","scapula_r","elbow_l","elbow_r","forearm_l","forearm_r","wrist_l","wrist_r"])assert.ok(html.includes('data-region="'+key+'"'));
+  const keys=["trunk","scapula_l","scapula_r","elbow_l","elbow_r","forearm_l","forearm_r","wrist_l","wrist_r"];
+  assert.doesNotMatch(V.body({}),/data-region=/);
+  const html=V.body(Object.fromEntries(keys.map(key=>[key,{status:"gray",tests:[{value:1,missing:false}]}])));
+  for(const key of keys)assert.ok(html.includes('data-region="'+key+'"'));
 });
 test("selection survives record normalization snapshot and backup validation and rejects unknown duplicate IDs",()=>{
   const r=isoOnly();M.setIsoDirectionSelection(r,["iso_elbow_flexion"]);r.testPlanSnapshot={id:"plan_a",name:"上肢",testIds:["iso"],isoDirectionIds:["iso_elbow_flexion"]};

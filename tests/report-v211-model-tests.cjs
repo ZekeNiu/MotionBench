@@ -38,9 +38,9 @@ test("iDSI retains the selected valid time window without missing-data entry act
  const report=R.build(fixture()),variants=[{id:"idsi_matched",available:true,value:.5},{id:"idsi_fixed250",available:true,value:2/3}];
  for(const selected of variants){report.stats.capabilityCards=[{id:"strength",title:"力量发展方向",metrics:[{id:"idsi",label:"iDSI 冲量比",value:selected.value,unit:"比值",selectedVariant:selected.id,variants}]}];const html=R.render(report);assert.match(html,new RegExp(`data-derived-result="${selected.id}"`));assert.match(html,new RegExp(`value="${selected.id}" selected`));assert.match(html,/aria-label="iDSI 时间窗口"/);assert.doesNotMatch(html,/录入 CMJ 冲量|录入 IMTP 冲量/);}
 });
-test("four capability groups retain only the supported cardio synthesis",()=>{
- const report=R.build(fixture());report.stats.capabilityCards=["strength","reactive","speed","cardio"].map((id,i)=>({id,title:["力量发展方向","反应力量水平","速度耐力类型","心肺发展方向"][i],metrics:[{id:id+"_metric",label:id,value:i+1,unit:"%"}],conclusion:id==="cardio"?"优先发展第二阈值":"不应产生综合训练结论"}));
- const html=R.render(report);assert.equal((html.match(/data-capability-card=/g)||[]).length,4);assert.equal((html.match(/class="capability-row"/g)||[]).length,2);assert.match(html,/能力结构分析/);assert.match(html,/优先发展第二阈值/);assert.doesNotMatch(html,/不应产生综合训练结论/);
+test("four capability groups render supported speed and cardio conclusions",()=>{
+ const report=R.build(fixture());report.stats.capabilityCards=["strength","reactive","speed","cardio"].map((id,i)=>({id,title:["力量发展方向","反应力量水平","速度耐力类型","心肺发展方向"][i],metrics:[{id:id+"_metric",label:id,value:i+1,unit:"%"}],conclusion:id==="cardio"?"优先发展第二阈值":id==="speed"?"发展冲刺速度":"不应产生综合训练结论"}));
+ const html=R.render(report);assert.equal((html.match(/data-capability-card=/g)||[]).length,4);assert.equal((html.match(/class="capability-row"/g)||[]).length,2);assert.match(html,/能力结构分析/);assert.match(html,/优先发展第二阈值/);assert.match(html,/发展冲刺速度/);assert.doesNotMatch(html,/不应产生综合训练结论/);
  report.stats.capabilityCards=[];assert.doesNotMatch(R.render(report),/id="trainingAnalysisDetail"/);
 });
 test("native CPET renders original oxygen and threshold labels without a fallback",()=>{

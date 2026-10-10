@@ -238,10 +238,6 @@
           input("rules.asymRed", state.rules.asymRed, { max: 100 }),
         ) +
         field(
-          "绝对力重点关注比例 %",
-          input("rules.absoluteAmber", state.rules.absoluteAmber, { max: 100 }),
-        ) +
-        field(
           "目标达成黄灯下界 %",
           input("rules.scoreAmber", state.rules.scoreAmber, { max: 100 }),
         ) +

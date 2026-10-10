@@ -36,14 +36,16 @@
       : null;
     return label ? { ...result, label } : result;
   };
-  const table = (headers, rows, keys = [], className = "") => {
+  const table = (headers, rows, keys = [], className = "", widths = []) => {
     const evaluation = headers.indexOf("评价");
     if (evaluation >= 0 && rows.every((row) => !String(row[evaluation] || "").replace(/<[^>]*>/g, "").replace(/[—\s-]/g, ""))) {
       headers = headers.filter((_, i) => i !== evaluation);
       rows = rows.map((row) => row.filter((_, i) => i !== evaluation));
+      widths = widths.filter((_, i) => i !== evaluation);
     }
     const cell = (value) => /with-repeat-columns|repeat-raw-table/.test(className) ? `<div class="result-cell">${value || "—"}</div>` : value || "—";
-    return `<div class="table-wrap"><table${className ? ` class="${E(className)}"` : ""}><thead><tr>${headers.map((h) => `<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row, i) => `<tr${typeof keys[i] === "object" ? ` data-row-id="${E(keys[i].id)}" data-iso-region="${E(keys[i].region || "")}"` : keys[i] ? ` data-metric-id="${E(keys[i])}"` : ""}>${row.map((value, col) => `<td data-label="${E(headers[col])}">${cell(value)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    const columns = widths.length === headers.length ? `<colgroup>${widths.map(width => `<col style="width:${width}%">`).join("")}</colgroup>` : "";
+    return `<div class="table-wrap"><table${className ? ` class="${E(className)}"` : ""}>${columns}<thead><tr>${headers.map((h) => `<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row, i) => `<tr${typeof keys[i] === "object" ? ` data-row-id="${E(keys[i].id)}" data-iso-region="${E(keys[i].region || "")}"` : keys[i] ? ` data-metric-id="${E(keys[i])}"` : ""}>${row.map((value, col) => `<td data-label="${E(headers[col])}">${cell(value)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   };
   const check = (path, value, label) =>
     `<label class="row"><input type="checkbox" data-path="${E(path)}" aria-label="${E(label)}" ${value ? "checked" : ""}>${E(label)}</label>`;
@@ -203,6 +205,28 @@
     );
     return html;
   }
+  function overview(report) {
+    const cards = [], stats = report.stats;
+    const add = (id, label, judgment, detail) => cards.push(`<div class="aux-metric" data-overview-metric="${E(id)}"><span class="aux-label">${E(label)}</span><strong class="aux-judgment">${E(judgment)}</strong><span class="aux-data">${E(detail)}</span></div>`);
+    for (const id of ["fvp_sj", "fvp_cmj"]) {
+      const solved = stats.fvp?.[id];
+      if (!report.record.enabled[id] || !solved?.valid) continue;
+      const label = id === "fvp_sj" ? "SJ" : "CMJ", angle = solved.analysis.angle;
+      const direction = { force:"发展力量端", velocity:"发展速度端", balanced:"发展整体功率" }[solved.imbalance.direction];
+      add(id, `${label} FVP · ${angle}°`, direction, `FVP的不平衡性 ${F(solved.imbalance.magnitudePct,2)}%`);
+      const elastic = solved.elasticity;
+      if (elastic) add(id + "_elasticity", `${label} 弹性响应`, elastic.judgments.ER,
+        `F₀ 与 V₀ 各提高 1%，垂直跳跃高度局部约增加 ${F(elastic.Fe + elastic.ve,2)}%`);
+    }
+    for (const id of ["eur", "fdsi", "srr"]) {
+      const card = (stats.capabilityCards || []).find(card => card.metrics.some(metric => metric.id === id));
+      const metric = card?.metrics.find(metric => metric.id === id);
+      if (!metric || !Number.isFinite(metric.value)) continue;
+      add(id, id === "fdsi" ? "DSI" : id.toUpperCase(), id === "srr" && card.conclusion ? card.conclusion : metric.judgment || metric.label,
+        `${id === "fdsi" ? "DSI" : id.toUpperCase()} ${F(metric.value,3)}${metric.unit && metric.unit !== "比值" ? " " + metric.unit : ""}`);
+    }
+    return cards.join("");
+  }
   function render(report) {
     const { record: state, stats: s, projects } = report,
       r = s.raw,
@@ -293,7 +317,8 @@
         const fields = group.fields.filter((field) => group.attempts.some((row) => row.values[field.id] !== "" && row.values[field.id] != null));
         if (!fields.length) return "";
         const cell = (value) => N(value) === null ? E(value || "—") : F(value, 2);
-        const label = test.id === "iso" ? directionLabel(group.label).replace(/ · 中线$/, "") : group.label;
+        const isoRow=test.id==="iso"?state.data.iso.find(row=>row.id===group.directionId):null;
+        const label = isoRow ? `${M.REG[isoRow.region]||isoRow.region} · ${directionLabel(isoRow.direction)}${group.side==="left"?" · L":group.side==="right"?" · R":""}` : group.label;
         const heading = groups.length > 1 ? `<h4>${E(label)}</h4>` : "";
         const rows = fields.length > 4 ? group.attempts.flatMap((row) => fields.map((field) => [row.index, E(field.label), cell(row.values[field.id]), E(field.unit), E([row.pain ? "疼痛" : "", row.notes].filter(Boolean).join(" · "))]))
           : group.attempts.map((row) => [row.index, ...fields.map((field) => cell(row.values[field.id])), E([row.pain ? "疼痛" : "", row.notes].filter(Boolean).join(" · "))]);
@@ -470,7 +495,7 @@
         );
       },
       iso: (tests) => {
-        const sideText = (row, side) => ["neck", "trunk"].includes(row.region) ? side.sideLabel || (side.side === "L" ? "左向" : side.side === "R" ? "右向" : "") : side.side;
+        const sideText = (row, side) => side.side;
         const radar = { ...report.isoRadar, axes: report.isoRadar.axes.map((axis) => ({
           ...axis,
           strengthSources: axis.strengthSources.map((source) => ({ ...source, label: directionLabel(source.label) })),
@@ -513,7 +538,7 @@
                     result.status,
                     side + F(result.value, 2) + " · " + result.label,
                     balance.referenceEnabled && balance.ranges?.length ? "未评" : "",
-                  )}</div>`;
+                  )}${positive(result.referenceTarget) ? `<small class="metric-meta iso-reference">参考目标 ${F(result.referenceTarget,2)}</small>` : ""}</div>`;
                 })
                 .join("");
               return `<div class="joint-balance-item" data-balance-id="${E(balance.id)}"><strong>${E(balance.label)}</strong>${values}${standard}</div>`;
@@ -521,15 +546,17 @@
             .join("") || "-";
         const evaluationCell = (row, repeated) => {
           const available = row.sides.some((side) =>
-            side.pain || (side.value !== null && positive(row.target)),
+            side.pain || ["amber", "red"].includes(side.status) || (side.value !== null && positive(side.target)),
           );
           if (!available) return "-";
           return row.sides.map((side) => {
             const label = side.side ? sideText(row, side) + " · " : "";
             const description = label + (side.reasons.length ? side.reasons.join("；") : "达到目标");
             const value = side.pain ? statusPill(label.trim(), "red", description)
-              : side.value === null || !positive(row.target) ? E(label) + "-"
-              : statusPill(label.trim(), side.status, description);
+              : side.value === null || (!positive(side.target) && !["amber", "red"].includes(side.status)) ? E(label) + "-"
+              : side.referenceComparison && side.status === "gray"
+                ? `<span class="iso-reference-evaluation">${E(label)}${E(side.referenceComparison.label)}</span>`
+                : statusPill(label.trim(), side.status, description);
             return repeated ? `<div class="stat-side">${value}</div>` : value;
           }).join(repeated ? "" : "<br>");
         };
@@ -545,10 +572,10 @@
           E((M.REG[row.region] || row.region) + " · " + directionLabel(row.direction)),
           row.sides
             .map(
-              (side, index) => {
+              (side) => {
                 const value = `${side.side ? E(sideText(row, side)) + " " : ""}${F(side.value)} ${E(row.unit)}${side.pain ? " · 疼痛" : ""}`;
-                const target = index === row.sides.length - 1 && positive(row.target)
-                  ? `<small class="metric-meta">目标 ${F(row.target)} ${E(row.unit)}</small>` : "";
+                const target = positive(side.target)
+                  ? `<small class="metric-meta">${side.targetKind === "reference" ? "参考目标" : "目标"} ${F(side.target)} ${E(row.unit)}</small>` : "";
                 return repeated ? `<div class="stat-side">${value}${target}</div>` : value + target;
               },
             )
@@ -556,7 +583,7 @@
           ...(repeated ? sideCells(row) : []),
           row.asym === null
             ? "—"
-            : `<span class="pill ${E(row.asymStatus)}"><i class="dot"></i><span class="asym-value">${F(row.asym)}% ·</span> <span class="asym-side">${row.weakSide ? E(M.isoSideLabels(row)[row.weakSide === "L" ? "left" : "right"] + "较弱") : "一致"}</span></span>`,
+            : `<span class="pill ${E(row.asymStatus)}"><i class="dot"></i><span class="asym-value">${F(row.asym)}% ·</span> <span class="asym-side">${row.weakSide ? E((row.weakSide === "L" ? "左" : "右") + "侧更弱") : "一致"}</span></span>`,
           evaluationCell(row, repeated),
           balanceCell(row),
         ]);
@@ -565,6 +592,7 @@
           rows,
           measured.map((row) => ({ id: row.id, region: row.region })),
           "iso-results" + (repeated ? " with-repeat-columns" : ""),
+          repeated ? [14,20,23,7,12,9,15] : [],
         );
         return block(
           tests,
@@ -885,22 +913,32 @@
       const cards=(s.capabilityCards||[]).map(card=>({...card,metrics:(card.metrics||[]).filter(metric=>N(metric.value)!==null)})).filter(card=>card.metrics.length);
       const fvp=renderFVPAnalysis(report);
       if(!cards.length&&!fvp)return "";
+      const targetProgress=metric=>{
+        const definition=state.definitions.find(item=>item.id===metric.id);
+        const target=positive(metric.target)?N(metric.target):definition?.referenceEnabled===true&&definition.direction==="higher"&&definition.matched!==false&&positive(definition.target)?N(definition.target):null;
+        if(target===null||!positive(metric.value))return "";
+        const attainment=N(metric.value)/target*100;
+        return `<div class="capability-progress" data-capability-target="${E(metric.id)}"><div class="capability-progress-label"><span>目标 ${F(target,1)}${metric.unit&&metric.unit!=="比值"?` ${E(metric.unit)}`:""}</span><span>达成 ${F(attainment,1)}%</span></div><div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,attainment))}%"></span></div></div>`;
+      };
       const renderMetric=(metric,cardId)=>{
         const unit=metric.unit&&metric.unit!=="比值"?`<small>${E(metric.unit)}</small>`:"";
         const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(metric.judgment)}</p>`:"";
-        const components=(metric.components||[]).filter(component=>N(component.value)!==null);
-        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(component.judgment)}</p>`:""}</dd></div>`).join("");
-        const detail=components.length?(cardId==="cardio"?`<div class="capability-components capability-observations"><dl>${rows}</dl></div>`:`<details class="capability-components"><summary>组成数据</summary><dl>${rows}</dl></details>`):"";
+        const hasSpeedEndpoints=cardId==="speed"&&cards.find(card=>card.id==="speed").metrics.some(item=>["mss_speed","mas_speed"].includes(item.id));
+        const components=(hasSpeedEndpoints?[]:metric.components||[]).filter(component=>N(component.value)!==null);
+        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(component.judgment)}</p>`:""}${cardId==="cardio"?targetProgress(component):""}</dd></div>`).join("");
+        const detail=components.length?(["cardio","speed"].includes(cardId)?`<div class="capability-components capability-observations"><dl>${rows}</dl></div>`:`<details class="capability-components"><summary>组成数据</summary><dl>${rows}</dl></details>`):"";
         const windowName=choice=>choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 0–250 ms";
         const variants=metric.id==="idsi"?(metric.variants||[]):[];
         const selected=variants.find(choice=>choice.id===metric.selectedVariant);
         const selector=variants.length?`<label class="idsi-window">IMTP 时窗<span class="idsi-print-window">${E(selected?windowName(selected):"")}</span><select aria-label="iDSI 时间窗口" onchange="App.setIDSIWindow(this.value)">${variants.map(choice=>`<option value="${E(choice.id)}"${choice===selected?" selected":""}${choice.available===false?" disabled":""}>${E(windowName(choice))}</option>`).join("")}</select></label>`:"";
-        return `<section class="capability-metric" data-capability-metric="${E(metric.id)}"${metric.id==="idsi"?` data-derived-result="${E(metric.selectedVariant)}"`:""}><div class="capability-metric-head"><h4>${E(metric.label)}</h4><p class="capability-value">${F(metric.value,digits(metric))}${unit}</p></div>${cardId==="cardio"?detail+judgment:judgment+selector+detail}</section>`;
+        const progress=["speed","cardio"].includes(cardId)?targetProgress(metric):"";
+        return `<section class="capability-metric${metric.id==="srr"?" capability-primary":""}${metric.id==="asr"?" capability-secondary":""}" data-capability-metric="${E(metric.id)}"${metric.id==="idsi"?` data-derived-result="${E(metric.selectedVariant)}"`:""}><div class="capability-metric-head"><h4>${E(metric.label)}</h4><p class="capability-value">${F(metric.value,digits(metric))}${unit}</p></div>${cardId==="cardio"?detail+judgment+progress:judgment+progress+selector+detail}</section>`;
       };
       const renderCard=card=>{
         const targets=(card.targets||[]).filter(target=>N(target.value)!==null);
-        const conclusion=card.id==="cardio"&&card.conclusion?`<div class="capability-conclusion">${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(target.label)} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}<p class="capability-conclusion-text">${E(card.conclusion)}</p></div>`:"";
-        return `<article class="capability-card" data-capability-card="${E(card.id)}" data-pdf-atomic><h3 class="capability-title">${E(card.title)}</h3><div class="capability-metrics">${card.metrics.map(metric=>renderMetric(metric,card.id)).join("")}</div>${conclusion}</article>`;
+        const conclusion=["speed","cardio"].includes(card.id)&&card.conclusion?`<div class="capability-conclusion"><p class="capability-conclusion-text">${E(card.conclusion)}</p>${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(target.label)} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}</div>`:"";
+        const metrics=card.id==="speed"?[...card.metrics].sort((a,b)=>["srr","mss_speed","mas_speed","asr"].indexOf(a.id)-["srr","mss_speed","mas_speed","asr"].indexOf(b.id)):card.metrics;
+        return `<article class="capability-card" data-capability-card="${E(card.id)}" data-pdf-atomic><h3 class="capability-title">${E(card.title)}</h3>${conclusion}<div class="capability-metrics">${metrics.map(metric=>renderMetric(metric,card.id)).join("")}</div></article>`;
       };
       const rows=[];
       for(let index=0;index<cards.length;index+=2)rows.push(`<div class="capability-row" data-pdf-atomic>${cards.slice(index,index+2).map(renderCard).join("")}</div>`);
@@ -993,16 +1031,17 @@
     }
     return{id:solved.id,valid:!!solved.valid,reason:solved.reason,profiles,points,band};
   }
-  function fvpElasticityData(solved) {
+  function fvpElasticityData(solved, view = {}) {
     const sensitivity=solved.sensitivity||{};
-    const model=solved.fit||solved.model,force=sensitivity.force||[],velocity=sensitivity.velocity||[];
-    const dense=(points,isForce)=>{
+    const model=solved.fit||solved.model,force=sensitivity.force||[],velocity=sensitivity.velocity||[],both=sensitivity.both||[];
+    const dense=(points,kind)=>{
       if(!solved.valid||!model?.distance||!global.RingsideFVP?.scenario||!points.length)return points;
       const min=Math.min(...points.map(p=>p.changePct)),max=Math.max(...points.map(p=>p.changePct));
-      return Array.from({length:121},(_,i)=>{const changePct=min+(max-min)*i/120;return{changePct,...global.RingsideFVP.scenario(model,model.distance,isForce?changePct:0,isForce?0:changePct)};});
+      return Array.from({length:121},(_,i)=>{const changePct=min+(max-min)*i/120;return{changePct,...global.RingsideFVP.scenario(model,model.distance,kind!=="velocity"?changePct:0,kind!=="force"?changePct:0)};});
     };
     const compact=points=>points.map(({changePct,valid,deltaPct})=>({changePct,valid,deltaPct}));
-    return{id:solved.id,force:compact(force),velocity:compact(velocity),forceCurve:compact(dense(force,true)),velocityCurve:compact(dense(velocity,false))};
+    return{id:solved.id,force:compact(force),velocity:compact(velocity),both:compact(both),forceCurve:compact(dense(force,"force")),velocityCurve:compact(dense(velocity,"velocity")),bothCurve:compact(dense(both,"both")),
+      responseForce:view.responseForce!==false,responseVelocity:view.responseVelocity!==false,responseBoth:view.responseBoth!==false};
   }
   function fvpResultTable(solved) {
     if(!solved.valid)return `<div class="fvp-empty-result">${E(solved.reason||"录入至少3个不同负荷的有效跳跃，并填写蹬伸距离。")}</div>`;
@@ -1015,7 +1054,7 @@
     add("拟合 R²",fit.r2,null,"",3);
     const imbalanceValue=imbalance.magnitudePct??solved.imbalancePct;
     const imbalanceText=imbalanceValue>0&&imbalanceValue<.01?"＜0.01%":`${F(imbalanceValue,2)}%`;
-    return table(["指标","当前","目标最优"],rows,[],"fvp-result-table")+`<div class="fvp-core-judgment"><p><span>Imbalance</span><strong>${imbalanceText}</strong></p><p>${E(imbalance.label||"发展方向待确定")}</p></div>`;
+    return table(["指标","当前","目标最优"],rows,[],"fvp-result-table")+`<div class="fvp-core-judgment"><p><span>FVP的不平衡性</span><strong>${imbalanceText}</strong></p><p>${E(imbalance.label||"发展方向待确定")}</p></div>`;
   }
   function fvpScenarioTable(solved) {
     if(!solved.valid)return `<div class="fvp-empty-result">${E(solved.reason||"完成有效剖面后可比较参数改变。")}</div>`;
@@ -1025,11 +1064,12 @@
     add("力量端 F₀",current.F0,scenario.F0,"N/kg",`参数改变 ${change(scenario.deltaForcePct??0)}`);
     add("速度端 V₀",current.V0,scenario.V0,"m/s",`参数改变 ${change(scenario.deltaVelocityPct??0)}`,3);
     add("最大功率 Pmax",current.Pmax,scenario.Pmax,"W/kg",N(scenario.Pmax)!==null?`改变 ${change((scenario.Pmax/current.Pmax-1)*100)}`:"待计算");
-    add("垂直跳高",current.heightCm,scenario.heightCm,"cm",N(scenario.deltaCm)!==null?`${scenario.deltaCm>=0?"+":"−"}${F(Math.abs(scenario.deltaCm),2)} cm（${change(scenario.deltaPct)}）`:"情景无法计算");
+    add("垂直跳跃高度",current.heightCm,scenario.heightCm,"cm",N(scenario.deltaCm)!==null?`${scenario.deltaCm>=0?"+":"−"}${F(Math.abs(scenario.deltaCm),2)} cm（${change(scenario.deltaPct)}）`:"情景无法计算");
     add("力量弹性 Fₑ",elasticity.Fe,nextElasticity.Fe,"",nextJudgments.Fe||"待判断",3);
     add("速度弹性 vₑ",elasticity.ve,nextElasticity.ve,"",nextJudgments.ve||"待判断",3);
     add("弹性比 ER",elasticity.ER,nextElasticity.ER,"",nextJudgments.ER||"待判断",3);
-    add("归一弹性 EN",elasticity.EN,nextElasticity.EN,"",nextJudgments.EN||"待比较情景与当前敏感度",3);
+    add("弹性范数 EN",elasticity.EN,nextElasticity.EN,"","两端局部响应的合成强度",3);
+    add("双端各提高 1%",elasticity.Fe + elasticity.ve,N(nextElasticity.Fe)!==null&&N(nextElasticity.ve)!==null?nextElasticity.Fe+nextElasticity.ve:null,"%","垂直跳跃高度的局部增益",2);
     return table(["指标","当前","情景","情景判定"],rows,[],"fvp-scenario-table")+(scenario.valid===false?`<p class="fvp-table-note" role="status">${E(scenario.reason||scenario.message||"情景无法计算，请核对输入。")}</p>`:"");
   }
   function fvpLoadTable(solved) {
@@ -1049,7 +1089,7 @@
     const config=record.fvpConfig?.[solved.id]||{},fit=solved.fit||{},mode="每负荷最高有效跳跃";
     const details=[config.device,config.method,config.posture,positive(config.distanceCm)?`蹬伸距离 ${F(config.distanceCm,1)} cm`:"",config.distanceSource].filter(Boolean).map(E).join(" · ");
     const sources=(global.RingsideSources?.entries||[]).filter(source=>source.id?.startsWith("fvp-"));
-    return `<details class="fvp-method"><summary>测试条件、计算与来源</summary><p>${details||E(record.protocol?.[solved.id]||"测试条件待记录")}</p><p>${mode}。以 m 为运动员体重、L 为附加负荷、h 为腾空高度、d 为蹬伸距离（长度换算为 m）：F = (m + L)g(1 + h/d)，V = √(gh/2)；力与功率除以 m 后分别以 N/kg、W/kg 表示。</p><p>拟合 F/m = F₀ + SFV·V；V₀ = −F₀/SFV，Pmax = F₀V₀/4。固定 Pmax 与 d 时，最优峰值功率速度 v 满足 v³/(2λ²d) + g·sinθ·v = Pmax（λ = 0.5），最优 F₀ = 2Pmax/v、V₀ = 2v；Imbalance = |1 − SFV/SFVopt| × 100%。</p><p>弹性与情景始终计算垂直跳高：起跳速度 u 满足 u²/(2d) = F₀(1 − λu/V₀) − g，h = u²/(2g)。Fe = ∂lnh/∂lnF₀，ve = ∂lnh/∂lnV₀，ER = Fe/ve，EN = √(Fe² + ve²)；改变 F₀、V₀ 后重新求解跳高。Li 的速度参数化使用 λ = 0.77，换算后保持同一物理剖面。</p><p>${fit.n||0} 个负荷代表点${fit.n>=3?`，残差自由度 ${fit.n-2}`:""}；95%置信带为 F(V) 拟合均值的 Student t 区间，仅显示实测速度范围，P(V) 区间由对应力区间乘 V 得到。未包含测量方法与蹬伸距离的系统误差。</p>${sources.map(source=>`<p><a href="${E(source.url)}" target="_blank" rel="noopener noreferrer">${E(source.title)}</a></p>`).join("")}</details>`;
+    return `<details class="fvp-method"><summary>测试条件、计算与来源</summary><p>${details||E(record.protocol?.[solved.id]||"测试条件待记录")}</p><p>${mode}。以 m 为运动员体重、L 为附加负荷、h 为腾空高度、d 为蹬伸距离（长度换算为 m）：F = (m + L)g(1 + h/d)，V = √(gh/2)；力与功率除以 m 后分别以 N/kg、W/kg 表示。</p><p>拟合 F/m = F₀ + SFV·V；V₀ = −F₀/SFV，Pmax = F₀V₀/4。固定 Pmax 与 d 时，最优峰值功率速度 v 满足 v³/(2λ²d) + g·sinθ·v = Pmax（λ = 0.5），最优 F₀ = 2Pmax/v、V₀ = 2v；FVP的不平衡性 = |1 − SFV/SFVopt| × 100%。</p><p>弹性与情景始终计算垂直跳高：起跳速度 u 满足 u²/(2d) = F₀(1 − λu/V₀) − g，h = u²/(2g)。Fe = ∂lnh/∂lnF₀，ve = ∂lnh/∂lnV₀，ER = Fe/ve，EN = √(Fe² + ve²)；F₀ 与 V₀ 各提高 1% 的局部高度增益约为 (Fe + ve)%。改变 F₀、V₀ 后重新求解垂直跳跃高度。Li 的速度参数化使用 λ = 0.77，换算后保持同一物理剖面。</p><p>${fit.n||0} 个负荷代表点${fit.n>=3?`，残差自由度 ${fit.n-2}`:""}；95%置信带为 F(V) 拟合均值的 Student t 区间，仅显示实测速度范围，P(V) 区间由对应力区间乘 V 得到。未包含测量方法与蹬伸距离的系统误差。</p>${sources.map(source=>`<p><a href="${E(source.url)}" target="_blank" rel="noopener noreferrer">${E(source.title)}</a></p>`).join("")}</details>`;
   }
   function renderFVPAnalysis(report,{print=false}={}) {
     const record=report.record,all=Object.entries(report.stats.fvp||{}).filter(([id])=>record.enabled[id]&&(record.data[id]||[]).some(row=>N(row.height)!==null||N(row.load)!==null||row.notes));
@@ -1063,13 +1103,13 @@
       const analysis=record.fvpAnalysis?.[id]||{},angle=analysis.angle===30?30:90,view={fv:true,pv:true,points:true,optimum:true,comparison:false,confidence:true,range:"full",pinnedLoad:null,...record.fvpView?.[id]},label=id==="fvp_cmj"?"CMJ":"SJ";
       const builtin=T.builtins.find(test=>test.id===id),displayName=report.projects.find(test=>test.id===id)?.name||builtin?.name;
       const profileTitle=displayName&&displayName!==builtin?.name?displayName:`跳跃力–速度剖面 · ${label}`;
-      const graph=fvpChartData({...solved,id}),elasticity=fvpElasticityData({...solved,id});
+      const graph=fvpChartData({...solved,id}),elasticity=fvpElasticityData({...solved,id},view);
       const toggle=(key,text)=>`<label><input type="checkbox" data-action="fvp-view" data-fvp-view="${key}" data-fvp-id="${id}" aria-label="${E(text)}"${view[key]?" checked":""}>${E(text)}</label>`;
       const common=print?"":`<div class="fvp-controls fvp-shared-controls no-print"><label>跳跃协议 <select data-fvp-protocol aria-label="FVP 跳跃协议">${profileOptions}</select></label><label>目标方向 <select data-action="fvp-angle" data-fvp-angle data-fvp-id="${id}" aria-label="FVP 目标方向"><option value="90"${angle===90?" selected":""}>90° 垂直</option><option value="30"${angle===30?" selected":""}>30° 倾斜目标</option></select></label></div>`;
       const controls=print?"":`<div class="fvp-controls no-print">${toggle("fv","F–V")}${toggle("pv","P–V")}${toggle("points","实测点")}${toggle("optimum","目标最优曲线")}${toggle("comparison","另一角度参照")}${toggle("confidence","95%置信带")}<label>显示范围 <select data-action="fvp-range" data-fvp-view="range" data-fvp-id="${id}" aria-label="FVP 显示范围"><option value="full"${view.range!=="measured"?" selected":""}>完整剖面</option><option value="measured"${view.range==="measured"?" selected":""}>实测范围</option></select></label></div>`;
       const input=(key,text)=>`<label>${text}<input type="number" data-fvp-scenario="${key}" data-fvp-id="${id}" value="${E(analysis[key]??0)}" step="any" aria-label="${text}"></label>`;
       const scenario=print?`<p class="fvp-table-note">情景参数改变：F₀ ${F(analysis.deltaForcePct??0,2)}% · V₀ ${F(analysis.deltaVelocityPct??0,2)}%。</p>`:`<form class="fvp-scenario-form no-print" data-fvp-scenario-form data-fvp-id="${id}">${input("deltaForcePct","F₀ 改变 · %")}${input("deltaVelocityPct","V₀ 改变 · %")}<button class="btn small" type="submit">保存情景</button></form><div class="fvp-scenario-shortcuts no-print">${[["force","仅 F₀ +5%"],["velocity","仅 V₀ +5%"],["both","两者 +5%"]].map(([key,text])=>`<button type="button" class="btn small" data-fvp-shortcut="${key}" data-fvp-id="${id}">${text}</button>`).join("")}</div>`;
-      return `<article class="fvp-analysis-card" data-fvp-panel="${id}" data-fvp-pinned-load="${view.pinnedLoad===null?"":E(view.pinnedLoad)}"><div class="fvp-analysis-heading test-title"><div><h3>${E(profileTitle)}</h3><p>${angle===90?"90° 垂直":"30° 倾斜目标"} · ${solved.points?.length||0} 个负荷代表点</p></div></div>${common}${controls}<div class="detail-pair fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="jumpFvp" data-chart-input="${E(JSON.stringify([graph,view]))}">${V.jumpFvp(graph,view)}</div><div class="detail-data">${fvpResultTable(solved)}</div></div><p class="fvp-load-legend no-print" data-fvp-selection-summary>选择负荷点可对应查看两条曲线中的结果。</p>${fvpLoadTable({...solved,id})}${fvpMethod(record,{...solved,id})}${fvpRawTrials(record,id,solved,displayName)}</article><article class="fvp-analysis-card" data-fvp-elasticity="${id}"><div class="fvp-analysis-heading test-title"><div><h3>垂直跳表现响应 · ${label}</h3><p>力量端与速度端的垂直跳高响应</p></div></div>${scenario}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="jumpElasticity" data-chart-input="${E(JSON.stringify([elasticity]))}">${V.jumpElasticity(elasticity)}</div><div class="detail-data" data-fvp-scenario-results>${fvpScenarioTable(solved)}</div></div></article>`;
+      return `<article class="fvp-analysis-card" data-fvp-panel="${id}" data-fvp-pinned-load="${view.pinnedLoad===null?"":E(view.pinnedLoad)}"><div class="fvp-analysis-heading test-title"><div><h3>${E(profileTitle)}</h3><p>${angle===90?"90° 垂直":"30° 倾斜目标"} · ${solved.points?.length||0} 个负荷代表点</p></div></div>${common}${controls}<div class="detail-pair fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="jumpFvp" data-chart-input="${E(JSON.stringify([graph,view]))}">${V.jumpFvp(graph,view)}</div><div class="detail-data">${fvpResultTable(solved)}</div></div><p class="fvp-load-legend no-print" data-fvp-selection-summary hidden></p>${fvpLoadTable({...solved,id})}${fvpMethod(record,{...solved,id})}${fvpRawTrials(record,id,solved,displayName)}</article><article class="fvp-analysis-card" data-fvp-elasticity="${id}"><div class="fvp-analysis-heading test-title"><div><h3>垂直跳表现响应 · ${label}</h3><p>力量端与速度端的垂直跳高响应</p></div></div>${scenario}${print?"":`<div class="fvp-controls fvp-response-controls no-print">${toggle("responseForce","仅 F₀")}${toggle("responseVelocity","仅 V₀")}${toggle("responseBoth","F₀ 与 V₀ 同时")}</div>`}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="jumpElasticity" data-chart-input="${E(JSON.stringify([elasticity]))}">${V.jumpElasticity(elasticity)}</div><div class="detail-data" data-fvp-scenario-results>${fvpScenarioTable(solved)}</div></div></article>`;
     }).join("")}</div>`;
   }
   function prepareFVPPrint(clone,snapshot) {
@@ -1079,7 +1119,8 @@
   function previewFVP(container,solved) {
     const panel=container.querySelector(`[data-fvp-elasticity="${solved.id}"]`);
     if(!panel)return;
-    const chart=panel.querySelector('[data-chart-kind="jumpElasticity"]'),data=fvpElasticityData(solved);
+    const view=Object.fromEntries([...panel.querySelectorAll("[data-fvp-view]")].map(control=>[control.dataset.fvpView,control.checked]));
+    const chart=panel.querySelector('[data-chart-kind="jumpElasticity"]'),data=fvpElasticityData(solved,view);
     chart.dataset.chartInput=JSON.stringify([data]);
     delete chart.dataset.chartLayout;
     chart.innerHTML=V.jumpElasticity(data,{width:Math.round(chart.getBoundingClientRect().width)||480,height:330});
@@ -1095,7 +1136,7 @@
       node.setAttribute("aria-pressed",String(selected&&pinned));
     });
     const point=panel.querySelector(`[data-fvp-load="${load}"]`),summary=panel.querySelector("[data-fvp-selection-summary]");
-    if(summary)summary.textContent=point?`${pinned?"已固定":"当前"}负荷 ${F(load,1)} kg；图中 F–V、P–V 与负荷表对应同一组测试。`:"选择负荷点可对应查看两条曲线中的结果。";
+    if(summary){summary.hidden=!point;summary.textContent=point?`${pinned?"已固定":"当前"}负荷 ${F(load,1)} kg；图中 F–V、P–V 与负荷表对应同一组测试。`:"";}
     return id;
   }
   const fvpBound=new WeakSet();
@@ -1168,5 +1209,5 @@
     layoutCharts(container);
     bindFVPInteractions(container);
   }
-  global.RingsideReport = { build, summary, render, layoutCharts, observeCharts, renderFVPAnalysis, prepareFVPPrint, previewFVP, bindFVPInteractions };
+  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, prepareFVPPrint, previewFVP, bindFVPInteractions };
 })(window);

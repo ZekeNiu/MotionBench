@@ -37,6 +37,9 @@ def images(items):
         assert item["sha256"] == digest(ROOT / item["path"]), item["path"]
 
 version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+if version == "2.16.0":
+    subprocess.run([sys.executable, str(ROOT / "scripts/verify_v216.py")], cwd=ROOT, check=True)
+    sys.exit(0)
 if version == "2.15.0":
     subprocess.run([sys.executable, str(ROOT / "scripts/verify_v215.py")], cwd=ROOT, check=True)
     sys.exit(0)

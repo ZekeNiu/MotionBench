@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 $taskDirectory = [IO.Path]::GetFullPath($Directory)
 $fixturePath = Join-Path $taskDirectory 'fixture.json'
 $fixture = Get-Content -LiteralPath $fixturePath -Raw -Encoding UTF8 | ConvertFrom-Json
+. (Join-Path $PSScriptRoot 'excel-native-helpers.ps1')
 $inputArtifact = [IO.Path]::GetFullPath($fixture.input)
 $outputArtifact = [IO.Path]::GetFullPath($fixture.output)
 if (-not (Test-Path -LiteralPath $inputArtifact -PathType Leaf)) { throw 'Native Excel input fixture is missing.' }
@@ -24,16 +25,12 @@ function Write-Cell($Sheet, [int]$Row, [int]$Column, $Value) {
   } finally { Release-OwnedCom $cell }
 }
 function Get-Columns($Sheet) {
-  $columns = @{}
-  $range = $Sheet.UsedRange
-  try { $count = $range.Columns.Count } finally { Release-OwnedCom $range }
-  for ($column = 1; $column -le $count; $column++) { $key = Read-Cell $Sheet 2 $column; if ($key) { $columns[[string]$key] = $column } }
-  return $columns
+  return (Get-ExcelTemplateColumns $Sheet $templateManifest)
 }
 
 $application = $null; $books = $null; $book = $null; $owned = $false; $saved = $false; $excelVersion = $null
 try {
-  $application = New-Object -ComObject Excel.Application
+  $application = (New-PrivateExcelApplication).Application
   $books = $application.Workbooks
   if ($books.Count -ne 0) { throw 'An isolated empty Excel instance could not be established.' }
   $owned = $true
@@ -42,7 +39,12 @@ try {
   $application.AskToUpdateLinks = $false
   $application.AutomationSecurity = 3
   $excelVersion = [string]$application.Version
-  $book = $books.Open($inputArtifact, 0, $false)
+  $workingArtifact = Join-Path ([IO.Path]::GetDirectoryName($outputArtifact)) ('fvp-working-' + [Guid]::NewGuid().ToString('N') + '.xlsx')
+  Copy-Item -LiteralPath $inputArtifact -Destination $workingArtifact
+  $book = $books.Open($workingArtifact, 0, $false)
+  try { if ($book.AutoSaveOn) { $book.AutoSaveOn = $false } } catch { }
+  $templateManifest = Get-ExcelTemplateManifest $book
+  $firstDataRow = Get-ExcelTemplateFirstRow $templateManifest
   foreach ($testId in @('fvp_sj', 'fvp_cmj', 'cmj')) {
     $sheet = $book.Worksheets.Item([string]$fixture.sheetNames.$testId)
     try {
@@ -50,7 +52,7 @@ try {
       $trials = @($fixture.expected.data.$testId)
       for ($index = 0; $index -lt $trials.Count; $index++) {
         foreach ($property in $trials[$index].PSObject.Properties) {
-          if ($columns.ContainsKey($property.Name)) { Write-Cell $sheet ($index + 3) $columns[$property.Name] $property.Value }
+          if ($columns.ContainsKey($property.Name)) { Write-Cell $sheet ($index + $firstDataRow) $columns[$property.Name] $property.Value }
         }
       }
     } finally { Release-OwnedCom $sheet }
@@ -59,7 +61,7 @@ try {
   try {
     $columns = Get-Columns $conditions; $range = $conditions.UsedRange
     try { $count = $range.Rows.Count } finally { Release-OwnedCom $range }
-    for ($row = 3; $row -le $count; $row++) {
+    for ($row = $firstDataRow; $row -le $count; $row++) {
       $key = [string](Read-Cell $conditions $row $columns['fieldId'])
       $parts = $key.Split('.')
       if ($parts.Count -eq 3 -and $parts[0] -in @('fvpConfig', 'fvpAnalysis', 'fvpView')) {

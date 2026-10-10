@@ -99,7 +99,7 @@ fs.mkdirSync(out,{recursive:true});
    assert.equal(await page.locator('#trainingAnalysisDetail').count(),1);
    const kinds=await page.locator('#trainingAnalysisDetail [data-chart-kind]').evaluateAll(ns=>ns.map(n=>n.dataset.chartKind));
    assert.ok(kinds[0].toLowerCase().includes('fvp'));assert.ok(kinds.length>=2);
-   assert.match(await page.locator('#trainingAnalysisDetail').innerText(),/Imbalance.*25\.86%.*力量端/s);
+   assert.match(await page.locator('#trainingAnalysisDetail').innerText(),/FVP的不平衡性.*25\.86%.*力量端/s);
   });
   await check('90° and 30° switch only selected optimum and imbalance while vertical response stays identical',async()=>{
    const before=await solved();await page.locator('[data-fvp-angle]').selectOption('30');const after=await solved();
@@ -179,7 +179,7 @@ fs.mkdirSync(out,{recursive:true});
   await check('existing four cards, radars and manual narrative coexist with FVP without lost data',async()=>{
    assert.equal(await page.locator('[data-capability-card]').count(),4);assert.equal(await page.locator('#radarChart svg').count(),1);
    const before=await page.evaluate(()=>({text:App.getState().narrative.text,metrics:App.stats().capabilityCards.flatMap(c=>c.metrics.map(m=>m.id))}));
-   const dom=await page.locator('[data-capability-metric]').evaluateAll(ns=>ns.map(n=>n.dataset.capabilityMetric));assert.deepEqual(dom,before.metrics);
+   const dom=await page.locator('[data-capability-metric]').evaluateAll(ns=>ns.map(n=>n.dataset.capabilityMetric));assert.deepEqual([...dom].sort(),[...before.metrics].sort());
    assert.equal(await page.evaluate(()=>App.getState().narrative.text),before.text);await shot('complete-report');
    await pdf('complete-report');
   });

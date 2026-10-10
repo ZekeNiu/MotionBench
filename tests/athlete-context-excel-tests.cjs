@@ -6,8 +6,8 @@ const M=RingsideModel,X=RingsideExcel,copy=value=>JSON.parse(JSON.stringify(valu
 const catalog=M.normalizeCatalog();
 function record(profile={}){const r=M.recordFromCatalog(catalog,{name:"生日测试运动员",...profile},{cmj:true},"2026-10-09");r.evaluationProfileId="evaluation_context";r.data.cmj[0].height=30;return r;}
 const owner=r=>({id:r.athleteId,name:r.athlete.name,profile:M.profileFromRecord(r),records:[]});
-function column(ws,key){let index;ws.getRow(2).eachCell((cell,i)=>{if(cell.value===key)index=i;});return index;}
-const set=(ws,key,value,row=3)=>{ws.getCell(row,column(ws,key)).value=value;};
+const {column}=require("./helpers/excel-template.cjs");
+const set=(ws,key,value,row=2)=>{ws.getCell(row,column(ws,key)).value=value;};
 async function workbook(records){const exported=await X.createTemplate({records,prefill:true}),book=new ExcelJS.Workbook();await book.xlsx.load(exported.bytes);return{book,exported};}
 const parse=book=>book.xlsx.writeBuffer().then(bytes=>X.readTemplate(bytes));
 const preview=(parsed,owners,records=[])=>X.preview(parsed,{athletes:owners,catalog,records});
@@ -16,9 +16,9 @@ async function test(name,run){await run();passed++;console.log("PASS "+name);}
  await test("known birthday age is locked while date and missing birthday age remain editable",async()=>{
   const known=record({birthDate:"2000-10-10"}),manual=record();manual.athlete.age=20;
   const {book,exported}=await workbook([known,manual]),ws=book.getWorksheet("本次测试");
-  assert.equal(ws.sheetProtection.sheet,true);assert.equal(ws.getCell(3,column(ws,"age")).protection?.locked ?? true,true);
-  assert.equal(ws.getCell(3,column(ws,"date")).protection.locked,false);assert.equal(ws.getCell(4,column(ws,"age")).protection.locked,false);
-  assert.equal(ws.getCell(3,column(ws,"age")).value,25);assert.match(JSON.stringify(ws.getCell(3,column(ws,"age")).note),/自动计算/);
+  assert.equal(ws.sheetProtection.sheet,true);assert.equal(ws.getCell(2,column(ws,"age")).protection?.locked ?? true,true);
+  assert.equal(ws.getCell(2,column(ws,"date")).protection.locked,false);assert.equal(ws.getCell(3,column(ws,"age")).protection.locked,false);
+  assert.equal(ws.getCell(2,column(ws,"age")).value,25);assert.match(JSON.stringify(ws.getCell(2,column(ws,"age")).note),/自动计算/);
   if(process.argv.includes("--prepare-native")){const target=path.join(__dirname,"../output/athlete-context-native-test.xlsx");fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,Buffer.from(exported.bytes));console.log("Native fixture: "+target);}
  });
  await test("changed test date recalculates birthday age and ignores edited reference age",async()=>{
@@ -58,8 +58,8 @@ async function test(name,run){await run();passed++;console.log("PASS "+name);}
  });
  if(process.argv.includes("--verify-native"))await test("native Excel edited and saved workbook returns calculated and manual ages with measurements",async()=>{
   const nativeIndex=process.argv.indexOf("--native-workbook"),target=nativeIndex>=0?path.resolve(process.argv[nativeIndex+1]):path.join(__dirname,"../output/athlete-context-native-filled.xlsx"),bytes=fs.readFileSync(target),book=new ExcelJS.Workbook();await book.xlsx.load(bytes);
-  const ws=book.getWorksheet("本次测试");assert.equal(ws.getCell(3,column(ws,"date")).value,"2026-10-10");assert.equal(ws.getCell(3,column(ws,"age")).value,25);
-  assert.equal(ws.getCell(3,column(ws,"age")).protection?.locked ?? true,true);assert.equal(ws.getCell(4,column(ws,"age")).protection.locked,false);
+  const ws=book.getWorksheet("本次测试");assert.equal(ws.getCell(2,column(ws,"date")).value,"2026-10-10");assert.equal(ws.getCell(2,column(ws,"age")).value,25);
+  assert.equal(ws.getCell(2,column(ws,"age")).protection?.locked ?? true,true);assert.equal(ws.getCell(3,column(ws,"age")).protection.locked,false);
   const parsed=await X.readTemplate(bytes);assert.deepEqual(parsed.errors,[]);const reviewed=preview(parsed,parsed.entries.map(entry=>owner(entry.record))),saved=X.apply(reviewed).records;
   assert.deepEqual(reviewed.errors,[]);assert.equal(saved.length,2);
   const known=saved.find(r=>r.athlete.birthDate),manual=saved.find(r=>!r.athlete.birthDate);

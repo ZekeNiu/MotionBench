@@ -72,7 +72,7 @@
     .ringside-pdf-document .screen-item p{font-size:11px!important;line-height:1.6!important;margin:0!important;}
     .ringside-pdf-document .performance-layout{display:block!important;min-height:0!important;height:auto!important;padding:5px 9px 8px!important;}
     .ringside-pdf-document .radar svg,.ringside-pdf-document .radar img{width:100%!important;height:auto!important;max-height:none!important;}
-    .ringside-pdf-document .aux-metrics{display:flex!important;gap:8px!important;padding-top:9px!important;margin:8px 0 0!important;}
+    .ringside-pdf-document .aux-metrics{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px 14px!important;padding-top:0!important;margin:8px 0 0!important;}
     .ringside-pdf-document .aux-metric{flex:1!important;min-width:0!important;font-size:10px!important;padding-left:6px!important;}
     .ringside-pdf-document .aux-metric strong{font-size:16px!important;}
     .ringside-pdf-document .aux-metric .aux-judgment{font-size:10px!important;line-height:1.65!important;}
@@ -80,7 +80,7 @@
     .ringside-pdf-document .card-foot{padding:8px 9px!important;font-size:10px!important;line-height:1.6!important;}
     .ringside-pdf-document .legend{gap:6px!important;font-size:10px!important;}
     .ringside-pdf-document .pill{font-size:11px!important;line-height:1.5!important;padding:2px 5px!important;white-space:normal!important;}
-    .ringside-pdf-document .iso-status{white-space:nowrap!important;}
+    .ringside-pdf-document .iso-status{max-width:100%!important;white-space:normal!important;}
     .ringside-pdf-document .chart-wrap{display:block!important;padding:7px 0!important;margin:0!important;max-width:none!important;min-width:0!important;}
     .ringside-pdf-document svg{max-width:100%!important;max-height:none!important;width:100%!important;height:auto!important;}
     .ringside-pdf-document .chart-wrap>img,.ringside-pdf-document .iso-charts>img{display:block!important;margin:0 auto!important;max-width:100%!important;height:auto!important;}
@@ -113,10 +113,14 @@
     .ringside-pdf-document .capability-components>summary{font-size:10px!important;}
     .ringside-pdf-document .capability-components>summary::after{content:none!important;}
     .ringside-pdf-document .capability-components dd small{font-size:9px!important;}
-    .ringside-pdf-document .capability-targets{margin:0 0 8px!important;font-size:10px!important;line-height:1.7!important;}
+    .ringside-pdf-document .capability-targets{margin:8px 0 0!important;font-size:10px!important;line-height:1.7!important;}
     .ringside-pdf-document .capability-targets p{margin:3px 0 0!important;}
     .ringside-pdf-document .capability-conclusion-text{margin:0!important;}
-    .ringside-pdf-document .capability-conclusion{font-size:12px!important;margin:14px 0 0!important;padding:10px 12px!important;}
+    .ringside-pdf-document .capability-conclusion{font-size:12px!important;margin:0 0 14px!important;padding:10px 12px!important;}
+    .ringside-pdf-document .capability-progress{font-size:9px!important;margin-top:6px!important;line-height:1.6!important;}
+    .ringside-pdf-document .capability-progress-track{height:3px!important;margin-top:4px!important;}
+    .ringside-pdf-document .capability-primary .capability-value{font-size:23px!important;}
+    .ringside-pdf-document .capability-secondary .capability-value{font-size:17px!important;}
     .ringside-pdf-document .idsi-window{font-size:10px!important;margin-top:7px!important;}
     .ringside-pdf-document .idsi-print-window{display:inline!important;}
     .ringside-pdf-document .hop-summary-table th,.ringside-pdf-document .hop-summary-table td{font-size:10px!important;padding:6px 4px!important;}
@@ -124,12 +128,18 @@
     .ringside-pdf-document .hop-summary-table th:last-child{width:16%!important;}
     .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail){display:block!important;}
     .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail)>.chart-wrap{margin-bottom:12px!important;}
-    .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:auto!important;min-width:0!important;}
+    .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:fixed!important;min-width:0!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th{width:auto!important;}
-    .ringside-pdf-document .iso-results.with-repeat-columns th:nth-child(4){width:1%!important;min-width:38px!important;}
+    .ringside-pdf-document .iso-results.with-repeat-columns th:nth-child(4){width:auto!important;min-width:0!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th,.ringside-pdf-document .iso-results.with-repeat-columns td{padding-inline:4px!important;overflow-wrap:normal!important;word-break:normal!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns td:first-child{overflow-wrap:anywhere!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type{white-space:normal!important;}
+    .ringside-pdf-document .iso-results .iso-reference-evaluation{font-size:9px!important;line-height:1.65!important;}
+    .ringside-pdf-document .iso-results .pill{max-width:100%!important;font-size:9px!important;padding:2px 1px!important;}
+    .ringside-pdf-document .iso-results .asym-value,.ringside-pdf-document .iso-results .asym-side,.ringside-pdf-document .iso-results .iso-status-value,.ringside-pdf-document .iso-results .iso-status-label{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .iso-results .pill .dot{margin-right:2px!important;}
+    .ringside-pdf-document .iso-results .repeat-stat-cv{font-size:9px!important;}
+    .ringside-pdf-document .iso-results .repeat-stat-cv>span{white-space:normal!important;overflow-wrap:anywhere!important;}
     .ringside-pdf-document .imtp-results{table-layout:auto!important;min-width:0!important;}
     .ringside-pdf-document .imtp-results th{width:auto!important;}
     .ringside-pdf-document .imtp-results th,.ringside-pdf-document .imtp-results td{padding-inline:3px!important;overflow-wrap:normal!important;word-break:normal!important;}
@@ -463,6 +473,7 @@
         col.style.width = width + "px";
         columns.append(col);
       });
+      table.querySelectorAll(":scope > colgroup").forEach(group => group.remove());
       table.prepend(columns);
       // Preserve the content-driven widths on every continuation page. Otherwise
       // each page's subset of rows would size its columns independently.
@@ -1008,7 +1019,7 @@
         const conclusion=node.querySelector(":scope>.capability-conclusion");
         // Preserve full metric rows and their judgments when a populated card
         // exceeds one page. Repeated titles identify each continuation.
-        const chunks=[...metrics,...(conclusion?[conclusion]:[])];
+        const chunks=[...(conclusion?[conclusion]:[]),...metrics];
         let fragment=null;
         for(const chunk of chunks){
           if(!fragment){

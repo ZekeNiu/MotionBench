@@ -10,10 +10,12 @@ if (-not (Test-Path -LiteralPath $inputFile)) { throw 'Run node tests/excel-mode
 if ($inputFile -eq $outputFile) { throw 'Native verification must save to a separate output file.' }
 $excel = $null
 $workbook = $null
+. (Join-Path $PSScriptRoot 'excel-native-helpers.ps1')
 function Set-TestCell($worksheet, [string]$key, [int]$row, $value) {
-    $limit = $worksheet.UsedRange.Columns.Count
-    for ($column = 1; $column -le $limit; $column++) {
-        if ([string]$worksheet.Cells.Item(2, $column).Value2 -eq $key) {
+    $columns = Get-ExcelTemplateColumns $worksheet $templateManifest
+    foreach ($column in @($columns[$key])) {
+        if ($column) {
+            $row = $row - 3 + (Get-ExcelTemplateFirstRow $templateManifest)
             if ($value -is [string]) {
                 # PowerShell's COM Value2 binder can reuse the preceding numeric setter.
                 # These controlled fixture strings are literal text, never Excel formulas.
@@ -27,12 +29,16 @@ function Set-TestCell($worksheet, [string]$key, [int]$row, $value) {
 }
 try {
     # A new COM application instance is owned by this check; no active Excel session is attached.
-    $excel = New-Object -ComObject Excel.Application
+    $excel = (New-PrivateExcelApplication).Application
     $excel.Visible = $false
     $excel.DisplayAlerts = $false
     $excel.EnableEvents = $false
     $excel.AutomationSecurity = 3
-    $workbook = $excel.Workbooks.Open($inputFile, 0, $false)
+    $workingFile = Join-Path $outputFolder ('native-working-' + [Guid]::NewGuid().ToString('N') + '.xlsx')
+    Copy-Item -LiteralPath $inputFile -Destination $workingFile
+    $workbook = $excel.Workbooks.Open($workingFile, 0, $false)
+    try { if ($workbook.AutoSaveOn) { $workbook.AutoSaveOn = $false } } catch { }
+    $templateManifest = Get-ExcelTemplateManifest $workbook
     $metadata = $workbook.Worksheets.Item('本次测试')
     Set-TestCell $metadata 'mass' 3 ([double]72.5)
     $sheetNames = @()

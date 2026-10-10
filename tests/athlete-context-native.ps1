@@ -10,38 +10,43 @@ if ([System.IO.Path]::GetDirectoryName($taskOutput) -ne $taskOutputDirectory) { 
 if (Test-Path -LiteralPath $taskOutput) { throw 'Unique synthetic output already exists' }
 $taskExcel = $null
 $taskBook = $null
+. (Join-Path $PSScriptRoot 'excel-native-helpers.ps1')
 function Find-ContextColumn($taskSheet, $taskKey) {
-    for ($taskColumn = 1; $taskColumn -le $taskSheet.UsedRange.Columns.Count; $taskColumn++) {
-        if ($taskSheet.Cells.Item(2, $taskColumn).Value2 -eq $taskKey) { return $taskColumn }
-    }
+    $columns = Get-ExcelTemplateColumns $taskSheet $templateManifest
+    if ($columns.ContainsKey($taskKey)) { return $columns[$taskKey] }
     throw "Missing synthetic template field: $taskKey"
 }
 try {
-    $taskExcel = New-Object -ComObject Excel.Application
+    $taskExcel = (New-PrivateExcelApplication).Application
     $taskExcel.Visible = $false
     $taskExcel.DisplayAlerts = $false
     $taskExcel.AutomationSecurity = 3
-    $taskBook = $taskExcel.Workbooks.Open($taskInput, 0, $false)
-    $taskSheet = $taskBook.Worksheets.Item(2)
+    $taskWorking = Join-Path $taskOutputDirectory ('context-working-' + [Guid]::NewGuid().ToString('N') + '.xlsx')
+    Copy-Item -LiteralPath $taskInput -Destination $taskWorking
+    $taskBook = $taskExcel.Workbooks.Open($taskWorking, 0, $false)
+    try { if ($taskBook.AutoSaveOn) { $taskBook.AutoSaveOn = $false } } catch { }
+    $templateManifest = Get-ExcelTemplateManifest $taskBook
+    $firstDataRow = Get-ExcelTemplateFirstRow $templateManifest
+    $taskSheet = $taskBook.Worksheets.Item('本次测试')
     $taskDateColumn = Find-ContextColumn $taskSheet 'date'
     $taskAgeColumn = Find-ContextColumn $taskSheet 'age'
     if (-not $taskSheet.ProtectContents) { throw 'Age reference sheet protection was lost' }
-    if (-not $taskSheet.Cells.Item(3, $taskAgeColumn).Locked) { throw 'Known birthday age is not locked' }
-    if ($taskSheet.Cells.Item(3, $taskDateColumn).Locked -or $taskSheet.Cells.Item(4, $taskAgeColumn).Locked) { throw 'Editable date or manual fallback age is locked' }
+    if (-not $taskSheet.Cells.Item($firstDataRow, $taskAgeColumn).Locked) { throw 'Known birthday age is not locked' }
+    if ($taskSheet.Cells.Item($firstDataRow, $taskDateColumn).Locked -or $taskSheet.Cells.Item(($firstDataRow + 1), $taskAgeColumn).Locked) { throw 'Editable date or manual fallback age is locked' }
     $taskAgeBlocked = $false
-    try { $taskSheet.Cells.Item(3, $taskAgeColumn).Value2 = [double]99 } catch { $taskAgeBlocked = $true }
+    try { $taskSheet.Cells.Item($firstDataRow, $taskAgeColumn).Value2 = [double]99 } catch { $taskAgeBlocked = $true }
     if (-not $taskAgeBlocked) { throw 'Native Excel allowed editing the known birthday age reference' }
-    $taskSheet.Cells.Item(3, $taskDateColumn).Value2 = '2026-10-10'
-    $taskSheet.Cells.Item(4, $taskDateColumn).Value2 = '2026-10-10'
-    $taskSheet.Cells.Item(4, $taskAgeColumn).Value2 = [double]21.5
+    $taskSheet.Cells.Item($firstDataRow, $taskDateColumn).Value2 = '2026-10-10'
+    $taskSheet.Cells.Item(($firstDataRow + 1), $taskDateColumn).Value2 = '2026-10-10'
+    $taskSheet.Cells.Item(($firstDataRow + 1), $taskAgeColumn).Value2 = [double]21.5
     $taskMeasurements = $null
     foreach ($taskCandidate in $taskBook.Worksheets) {
         if ($taskCandidate.Name.EndsWith('_CMJ')) { $taskMeasurements = $taskCandidate; break }
     }
     if ($null -eq $taskMeasurements) { throw 'Synthetic CMJ worksheet is missing' }
     $taskHeightColumn = Find-ContextColumn $taskMeasurements 'height'
-    $taskMeasurements.Cells.Item(3, $taskHeightColumn).Value2 = [double]33.5
-    $taskMeasurements.Cells.Item(4, $taskHeightColumn).Value2 = [double]34.5
+    $taskMeasurements.Cells.Item($firstDataRow, $taskHeightColumn).Value2 = [double]33.5
+    $taskMeasurements.Cells.Item(($firstDataRow + 1), $taskHeightColumn).Value2 = [double]34.5
     $taskBook.SaveAs($taskOutput, 51)
     [pscustomobject]@{ ExcelVersion = $taskExcel.Version; Saved = $true; AgeReferenceEditBlocked = $taskAgeBlocked; Output = $taskOutput } | ConvertTo-Json -Compress
 } finally {

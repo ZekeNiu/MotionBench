@@ -166,7 +166,7 @@ test('combined scenario responds to independent end changes without requiring fi
   const s=F.solve(r,'fvp_sj'), n=s.scenario;
   near(n.Pmax,s.model.Pmax*1.1*1.05); assert.ok(n.heightCm>s.current.heightCm);
   near(n.deltaCm,n.heightCm-s.current.heightCm); near(n.deltaPct,(n.heightCm/s.current.heightCm-1)*100);
-  assert.match(n.elasticity.judgments.EN,/情景后整体敏感度/);
+  assert.match(n.elasticity.judgments.EN,/情景后弹性范数/);
   assert.equal(F.scenario(s.model,.33,-90,0).valid,false);
 });
 
@@ -174,6 +174,18 @@ test('direction is continuous with tolerant equality and has no five-band catego
   assert.equal(F.imbalance(-10,-10).direction,'balanced'); assert.equal(F.imbalance(-10*(1+1e-10),-10).direction,'balanced');
   assert.equal(F.imbalance(-6,-10).direction,'force'); assert.equal(F.imbalance(-14,-10).direction,'velocity');
   assert.equal(F.imbalance(-14,-10).className,undefined); assert.equal(F.solve(fixture(),'fvp_sj').judgments.F0,undefined);
+});
+
+test('joint response is recalculated and local joint gain stays distinct from the elasticity norm', () => {
+  const solved=F.solve(fixture(),'fvp_sj'),elasticity=solved.elasticity;
+  near(elasticity.EN,1.399316517032993);near(elasticity.Fe+elasticity.ve,1.9575382858659407);
+  const both=solved.sensitivity.both.find(point=>point.changePct===5);
+  near(both.deltaPct,9.884770691771871);
+  near(both.deltaPct,F.scenario(solved.model,.33,5,5).deltaPct);
+  const singleSum=solved.sensitivity.force.find(point=>point.changePct===5).deltaPct+solved.sensitivity.velocity.find(point=>point.changePct===5).deltaPct;
+  assert.ok(Math.abs(both.deltaPct-singleSum)>.2);
+  near(F.scenario(solved.model,.33,.0001,.0001).deltaPct/.0001,elasticity.Fe+elasticity.ve,2e-6);
+  assert.equal(F.defaultsView().responseForce,true);assert.equal(F.defaultsView().responseVelocity,true);assert.equal(F.defaultsView().responseBoth,true);
 });
 
 test('protocols are separate, default disabled and computed parameters cannot create radar scores', () => {

@@ -89,7 +89,7 @@ async function download(action, id, extension) {
         greenLabels: [...body.querySelectorAll('[data-body-detail]')].filter(n => JSON.parse(n.dataset.bodyDetail).status === "green").map(n => n.getAttribute("aria-label")) };
     });
     assert.equal(initial.height, 390); assert.equal(initial.radius, 24); assert.equal(initial.markers, 9); assert.equal(initial.nativeTitles, 0);
-    assert.equal(initial.amber, initial.unit); assert.ok(initial.greenLabels.every(text => text.includes("优秀")));
+    assert.equal(initial.amber, initial.unit); assert.ok(initial.greenLabels.every(text => text.includes("达标")));
     await image(".summary-grid", "summary-1440");
     const region = page.locator('[data-body-detail][data-region="neck"]');
     await region.evaluate(node => { const item = JSON.parse(node.dataset.bodyDetail); item.tests = Array.from({ length: 28 }, (_, i) => ({ name: "完整测试条目" + i, side: "C", value: i, unit: "N", target: 30, label: "关注", notes: i === 27 ? "最后条目完整保留" : "" })); node.dataset.bodyDetail = JSON.stringify(item); });

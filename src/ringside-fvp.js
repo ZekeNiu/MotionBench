@@ -9,7 +9,8 @@
   const equal = (a, b) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
   const defaultsConfig = () => ({ device: "", method: "", posture: "", distanceCm: "", distanceSource: "" });
   const defaultsAnalysis = () => ({ angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 });
-  const defaultsView = () => ({ fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null });
+  const defaultsView = () => ({ fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null,
+    responseForce: true, responseVelocity: true, responseBoth: true });
 
   function regression(points) {
     const n = points.length, result = { valid: false, a: null, b: null, n, r2: null, meanX: null, sxx: null, s: null, tcrit: null, minX: null, maxX: null, reason: "至少需要 3 个不同负荷的有效结果" };
@@ -106,7 +107,7 @@
       deltaVelocityMps: next.valid ? next.takeoffVelocity - current.takeoffVelocity : null,
       deltaPct: next.valid ? (value / baseValue - 1) * 100 : null, elasticity: next.valid ? elasticity(F0, V0, distance) : null };
     const previous = elasticity(profile.F0, profile.V0, distance);
-    if (result.elasticity && previous) result.elasticity.judgments.EN = equal(result.elasticity.EN, previous.EN) ? "情景后整体敏感度不变" : result.elasticity.EN > previous.EN ? "情景后整体敏感度上升" : "情景后整体敏感度下降";
+    if (result.elasticity && previous) result.elasticity.judgments.EN = equal(result.elasticity.EN, previous.EN) ? "情景后弹性范数不变" : result.elasticity.EN > previous.EN ? "情景后弹性范数上升" : "情景后弹性范数下降";
     return result;
   }
 
@@ -150,7 +151,7 @@
     const result = { id, label, config, analysis: { ...analysis, angle }, valid: fit.valid, status: fit.valid ? "valid" : presentCount ? "review" : "empty", reason: fit.reason,
       points, selectedPoints: points, trials, groups, model: fit, fit, current: null, optimum: null, optimal: null, comparison: null,
       imbalance: null, imbalancePct: null, direction: null, potentialGainPct: null, elasticity: null, scenario: null,
-      sensitivity: { force: [], velocity: [] }, ci: (v, measuredOnly) => confidence(fit, v, measuredOnly), issues: [] };
+      sensitivity: { force: [], velocity: [], both: [] }, ci: (v, measuredOnly) => confidence(fit, v, measuredOnly), issues: [] };
     trials.filter(t => t.present && !t.excluded && !t.valid).forEach(t => result.issues.push({ id: "fvp_trial_" + t.index, testId: id, status: "amber", message: "第 " + (t.index + 1) + " 次：" + t.reason }));
     if (!fit.valid) return result;
     // The selected unloaded trial defines the reference push-off posture.
@@ -173,6 +174,7 @@
     result.sensitivity = {
       force: [-20,-15,-10,-5,0,5,10,15,20].map(changePct => ({ changePct, ...scenario(fit, distance, changePct, 0) })),
       velocity: [-20,-15,-10,-5,0,5,10,15,20].map(changePct => ({ changePct, ...scenario(fit, distance, 0, changePct) })),
+      both: [-20,-15,-10,-5,0,5,10,15,20].map(changePct => ({ changePct, ...scenario(fit, distance, changePct, changePct) })),
     };
     return result;
   }
