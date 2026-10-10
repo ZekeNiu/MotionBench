@@ -345,6 +345,7 @@
       session.records = session.records.filter(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived) || session.pendingAthletes.some(a => a.id === r.athleteId));
       if (!session.records.length) { sessionStorage.removeItem(entrySessionKey); return; }
       entrySession = session;
+      for (const record of session.records) if (T.isNative(record, "sprint_fvp")) record.data.sprint_fvp = window.RingsideSprintFVP.normalizeTrials(record.data.sprint_fvp);
       for (const r of session.records) if (session.savedIds.has(r.recordId)) recordBaselines.set(r.recordId, recordContent(await repository.loadRecord(r.recordId)));
       state = session.records.find(r => r.recordId === session.selectedRecordId) || session.records[0];
       ui.mode = "entry";
@@ -427,7 +428,17 @@
     return parts.join(".");
   }
   function draftsFor(record = state) {
-    return inputDrafts[draftRecordKey(record)] || {};
+    const entries = inputDrafts[draftRecordKey(record)] || {};
+    let migrated = false;
+    for (const key of Object.keys(entries)) {
+      if (!/^data\.sprint_fvp\.[^.]+\.splits\.\d+\.(?:distanceM|timeS)$/.test(key)) continue;
+      const path = resolveDraftPath(key, record), stable = path && stablePath(path, record);
+      if (!stable || stable === key) continue;
+      if (!Object.hasOwn(entries, stable)) entries[stable] = entries[key];
+      delete entries[key]; migrated = true;
+    }
+    if (migrated) saveDrafts();
+    return entries;
   }
   function saveDrafts() {
     try {
@@ -4556,7 +4567,7 @@
     addSprintSplit(index) {
       const trial = state?.data?.sprint_fvp?.[index];
       if (!trial || !T.isNative(state, "sprint_fvp")) return;
-      trial.splits.push({distanceM:"", timeS:""}); changed(false); renderEntry();
+      trial.splits.push({id:uid(), distanceM:"", timeS:""}); changed(false); renderEntry();
       rowFocus(`data.sprint_fvp.${index}.splits.${trial.splits.length - 1}.distanceM`);
     },
     removeSprintSplit(index, splitIndex) {

@@ -7,13 +7,21 @@ const { chromium } = require("./helpers/playwright.cjs");
 const ExcelJS = require("../vendor/exceljs.min.js");
 const { manifest, columns, firstRow } = require("./helpers/excel-template.cjs");
 const root = path.resolve(__dirname, ".."), source = path.join(root, "MotionBench.html");
+const packageVersion = JSON.parse(fs.readFileSync(path.join(root,"package.json"),"utf8")).version;
 const channel = process.argv.includes("--edge") ? "msedge" : "chrome";
 const entryOnly = process.argv.includes("--entry-only");
 const outputName = process.argv.find(value => value.startsWith("--out="))?.slice(6);
-if (outputName && !/^[a-zA-Z0-9-]+$/.test(outputName)) throw new Error("--out must name a directory within output/playwright");
-const out = path.join(root, "output/playwright", outputName || (entryOnly ? "sprint-fvp-entry-smoke" : "sprint-fvp"));
+if (outputName && (!/^[a-zA-Z0-9.-]+$/.test(outputName) || /^\.+$/.test(outputName))) throw new Error("--out must name a directory within output/playwright");
+const artifactArg = process.argv.find(value => value.startsWith("--artifact-dir="))?.slice(15);
+const artifactIndex = process.argv.indexOf("--artifact-dir");
+const artifactDir = artifactArg || (artifactIndex>=0 ? process.argv[artifactIndex+1] : "");
+if (artifactIndex>=0 && (!artifactDir || artifactDir.startsWith("--"))) throw new Error("--artifact-dir requires a directory");
+const artifactRoot = path.join(root,"output/playwright");
+const out = artifactDir ? path.resolve(root,artifactDir) : path.join(artifactRoot, outputName || (entryOnly ? "sprint-fvp-entry-smoke" : "sprint-fvp"));
+const outputRelative = path.relative(artifactRoot,out);
+if (!outputRelative || outputRelative.startsWith("..") || path.isAbsolute(outputRelative)) throw new Error("Artifacts must stay in a subdirectory of output/playwright");
 const hash = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
-const result = { channel, sourceHash: hash(source), synthetic: true, checks: [], errors: [], network: [], artifacts: [], layouts: [], pass: false };
+const result = { channel, packageVersion, sourceHash: hash(source), synthetic: true, checks: [], errors: [], network: [], artifacts: [], layouts: [], pass: false };
 fs.mkdirSync(out, { recursive: true });
 const subset = r => ({ raw:r.data.sprint_fvp, config:r.sprintFvpConfig, analysis:r.sprintFvpAnalysis,
   selections:r.views.capabilitySelections });
@@ -69,7 +77,7 @@ function legacyFixture() {
       assert.equal(await page.evaluate(() => RingsideSprintFVP.solve(App.getState()).valid),false);
       await save(); await page.reload(); await ready(page); assert.equal(await page.evaluate(() => App.getState().enabled.sprint_fvp),false);
     });
-    await check("manual sprint entry stores four cumulative split times and explicit atmosphere units", async () => {
+    await check("the default four sprint splits fit directly after timing entry and retain explicit atmosphere units", async () => {
       rawTimes = await page.evaluate(async () => {
         await App.importPayload(RingsideModel.libraryDefaults(),"replace-library");
         const r = RingsideModel.sampleRecord(); r.demo = false; r.recordId = "sprint-browser-synthetic"; r.athleteId = "sprint-browser-athlete";
@@ -86,7 +94,13 @@ function legacyFixture() {
         await App.importPayload(RingsideModel.recordEnvelope(r)); await App.openEntry("sprint_fvp"); App.addRow("sprint_fvp");
         return [5,10,20,30].map(x => RingsideSprintFVP.timeAtDistance(x,9,1.2));
       });
-      await page.locator('[onclick="App.removeSprintSplit(0,4)"]').click();
+      const defaultSplits = await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits);
+      assert.equal(defaultSplits.length,4,"new sprint trials should require exactly four default split times");
+      assert.deepEqual(defaultSplits.map(split=>Number(split.distanceM)),[5,10,20,30]);
+      assert.ok(defaultSplits.every(split=>split.timeS===""));
+      assert.equal(new Set(defaultSplits.map(split=>split.id)).size,4,"default split identities must be stable and distinct");
+      assert.ok(defaultSplits.every(split=>typeof split.id==="string"&&split.id.length>0));
+      assert.equal(await page.locator('.sprint-fvp-entry [data-path$=".timeS"]').count(),4);
       await page.locator('.sprint-fvp-entry details.supplement').evaluate(node=>node.open=true);
       for (const [i, distance] of [5,10,20,30].entries()) {
         await input(`data.sprint_fvp.0.splits.${i}.distanceM`).fill(String(distance));
@@ -102,6 +116,66 @@ function legacyFixture() {
       const feedback = await page.locator('[data-sprint-fvp-entry-feedback]').innerText();
       assert.ok(feedback.includes(measured.model.F0.toFixed(2)),"entry F0 feedback must show calculated numeric output");
       assert.ok(feedback.includes(measured.model.Pmax.toFixed(2)),"entry Pmax feedback must show calculated numeric output");
+    });
+    await check("invalid split drafts stay on the same split through preceding deletion, own deletion, undo and reopen", async () => {
+      const before = await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits);
+      const readInputs = () => page.locator('.sprint-fvp-entry [data-path$=".timeS"]').evaluateAll(nodes=>nodes.map(node=>({path:node.dataset.path,value:node.value,invalid:node.getAttribute("aria-invalid")})));
+      await input("data.sprint_fvp.0.splits.1.timeS").fill("-1");
+      assert.equal(await input("data.sprint_fvp.0.splits.1.timeS").getAttribute("aria-invalid"),"true");
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before,"an invalid draft must never replace a stored raw time");
+      await page.locator('[onclick="App.removeSprintSplit(0,0)"]').click();
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before.slice(1));
+      const shifted = await readInputs();
+      assert.equal(shifted[0].value,"-1");assert.equal(shifted[0].invalid,"true");
+      assert.equal(shifted[1].value,String(before[2].timeS));assert.notEqual(shifted[1].invalid,"true");
+      assert.equal(shifted[2].value,String(before[3].timeS));assert.notEqual(shifted[2].invalid,"true");
+      await page.locator('[onclick="App.undoDelete()"]').click();
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before);
+      assert.equal(await input("data.sprint_fvp.0.splits.1.timeS").inputValue(),"-1");
+      assert.equal(await page.locator('.sprint-fvp-entry [aria-invalid="true"]').count(),1);
+      await page.locator('[onclick="App.removeSprintSplit(0,1)"]').click();
+      assert.equal(await page.locator('.sprint-fvp-entry [aria-invalid="true"]').count(),0,"deleting the invalid split must not move its draft to a neighbor");
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before.filter((_,i)=>i!==1));
+      await page.locator('[onclick="App.undoDelete()"]').click();
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before);
+      assert.equal(await input("data.sprint_fvp.0.splits.1.timeS").inputValue(),"-1");
+      assert.equal(await input("data.sprint_fvp.0.splits.1.timeS").getAttribute("aria-invalid"),"true");
+      await save();await page.reload();await ready(page);await page.evaluate(()=>App.openEntry("sprint_fvp"));
+      assert.equal(await input("data.sprint_fvp.0.splits.1.timeS").inputValue(),"-1");
+      assert.equal(await page.locator('.sprint-fvp-entry [aria-invalid="true"]').count(),1);
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before);
+      result.draftStability = {splitId:before[1].id,storedRawUnchanged:true,afterPrecedingDeletion:shifted,reopenedDraftValue:"-1"};
+      await input("data.sprint_fvp.0.splits.1.timeS").fill(String(before[1].timeS));await save();
+      assert.equal(await page.locator('.sprint-fvp-entry [aria-invalid="true"]').count(),0);
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before);assert.equal((await solve()).valid,true);
+    });
+    await check("legacy index-based pending drafts migrate to split identities without changing raw times", async () => {
+      const before = await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits);
+      const legacy = await page.evaluate(() => {
+        const r=App.getState(),trial=r.data.sprint_fvp[0],key=`data.sprint_fvp.@${trial.id}.splits.2.timeS`;
+        const storageKey="ringside-input-drafts-v1:"+location.pathname,recordKey=r.athleteId+":"+r.recordId;
+        const drafts=JSON.parse(sessionStorage.getItem(storageKey)||"{}");
+        drafts[recordKey]={[key]:{value:"-2",message:"synthetic invalid split",badInput:false,mode:"entry",tab:"sprint_fvp",label:"synthetic timing draft"}};
+        sessionStorage.setItem(storageKey,JSON.stringify(drafts));
+        return {storageKey,recordKey,key,stableKey:`data.sprint_fvp.@${trial.id}.splits.@${trial.splits[2].id}.timeS`};
+      });
+      await page.reload();await ready(page);await page.evaluate(()=>App.openEntry("sprint_fvp"));
+      assert.equal(await input("data.sprint_fvp.0.splits.2.timeS").inputValue(),"-2");
+      assert.equal(await input("data.sprint_fvp.0.splits.2.timeS").getAttribute("aria-invalid"),"true");
+      const migrated=await page.evaluate(({storageKey,recordKey})=>JSON.parse(sessionStorage.getItem(storageKey))[recordKey],legacy);
+      assert.equal(Object.hasOwn(migrated,legacy.key),false);assert.equal(migrated[legacy.stableKey].value,"-2");
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before);
+      await page.locator('[onclick="App.removeSprintSplit(0,0)"]').click();
+      assert.equal(await input("data.sprint_fvp.0.splits.1.timeS").inputValue(),"-2");
+      assert.equal(await input("data.sprint_fvp.0.splits.1.timeS").getAttribute("aria-invalid"),"true");
+      assert.equal(await input("data.sprint_fvp.0.splits.0.timeS").inputValue(),String(before[1].timeS));
+      assert.equal(await input("data.sprint_fvp.0.splits.2.timeS").inputValue(),String(before[3].timeS));
+      await page.locator('[onclick="App.undoDelete()"]').click();
+      assert.equal(await input("data.sprint_fvp.0.splits.2.timeS").inputValue(),"-2");
+      result.legacyDraftMigration={legacyKey:legacy.key,stableKey:legacy.stableKey,storedRawUnchanged:true};
+      await input("data.sprint_fvp.0.splits.2.timeS").fill(String(before[2].timeS));await save();
+      assert.equal(await page.locator('.sprint-fvp-entry [aria-invalid="true"]').count(),0);
+      assert.deepEqual(await page.evaluate(()=>App.getState().data.sprint_fvp[0].splits),before);assert.equal((await solve()).valid,true);
     });
     await check("interval/cumulative mode and fixed correction preserve original inputs without hidden time offsets", async () => {
       await input("sprintFvpConfig.inputTimeMode").selectOption("interval");
@@ -165,6 +239,21 @@ function legacyFixture() {
       assert.equal((await solve()).optimal.slope,distance10.optimal.slope);
       await page.locator("[data-sprint-target-follow]").click(); assert.equal((await solve()).targetDistanceM,30);
       await page.locator("[data-sprint-target-distance]").fill("10"); await page.locator("[data-sprint-target-form]").evaluate(form=>form.requestSubmit()); await save();
+    });
+    await check("a 10.5 m target keeps the same precise value in entry feedback, report, model and reopened storage", async () => {
+      const before=await solve();
+      await page.locator("[data-sprint-target-distance]").fill("10.5");await page.locator("[data-sprint-target-form]").evaluate(form=>form.requestSubmit());await save();
+      const solved=await solve();assert.equal(solved.targetDistanceM,10.5);assert.equal(solved.model.Pmax,before.model.Pmax);assert.equal(solved.optimal.valid,true);
+      const reportLabel=await page.locator("[data-sprint-fvp-panel] .sprint-target-summary").innerText();assert.ok(reportLabel.includes("10.5 m"));
+      await page.evaluate(()=>App.openEntry("sprint_fvp"));
+      await page.locator('.sprint-fvp-entry details.supplement').evaluate(node=>node.open=true);
+      assert.equal(Number(await input("sprintFvpAnalysis.targetDistanceM").inputValue()),10.5);
+      const feedback=await page.locator("[data-sprint-fvp-entry-feedback]").innerText();assert.ok(/目标\s+10\.5\s*m/.test(feedback),"entry feedback must not round 10.5 m to 11 m");
+      await save();await page.reload();await ready(page);await page.evaluate(()=>App.openEntry("sprint_fvp"));
+      assert.ok(/目标\s+10\.5\s*m/.test(await page.locator("[data-sprint-fvp-entry-feedback]").innerText()));assert.equal((await solve()).targetDistanceM,10.5);
+      await page.evaluate(()=>App.showReport());assert.equal(Number(await page.locator("[data-sprint-target-distance]").inputValue()),10.5);
+      result.targetPrecision={distanceM:10.5,entryFeedback:feedback,reportLabel,modelDistanceM:solved.targetDistanceM,reopened:true};
+      await page.locator("[data-sprint-target-distance]").fill("10");await page.locator("[data-sprint-target-form]").evaluate(form=>form.requestSubmit());await save();
     });
     await check("four direction cards use one selected metric each and keep every parameter in category tables", async () => {
       const cards = page.locator("[data-capability-direction]"); assert.deepEqual(await cards.evaluateAll(ns=>ns.map(n=>n.dataset.capabilityDirection)),["strength","reactive","speed","endurance"]);
@@ -231,6 +320,9 @@ function legacyFixture() {
       assert.deepEqual(subset(JSON.parse(fs.readFileSync(json,"utf8")).record),expected);
       backup = await download("backup.motionbench.jsonl",()=>page.evaluate(()=>App.downloadLibrary()));
       const rows = fs.readFileSync(backup,"utf8").trim().split(/\r?\n/).map(JSON.parse);
+      const header=rows.find(row=>row.type==="header"),config=rows.find(row=>row.type==="config").value;
+      assert.equal(header.schema,3);assert.equal(config.schema,3);assert.equal(config.version,packageVersion,"JSONL producer version must identify this build");
+      result.jsonlProducer={version:config.version,expectedVersion:packageVersion,schema:header.schema};
       assert.deepEqual(subset(rows.find(r=>r.type==="record").value),expected);
       for (const file of [json,backup]) {
         const restored = await browser.newContext({offline:true,acceptDownloads:true}), p = await restored.newPage(); observe(p);

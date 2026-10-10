@@ -13,7 +13,11 @@ for dependency in manifest["dependencies"]:
         path = ROOT / "vendor" / dependency[file_key]
         if hashlib.sha256(path.read_bytes()).hexdigest() != dependency[hash_key]:
             raise SystemExit("Pinned dependency checksum mismatch: " + str(path))
-pieces = []
+package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+version = package["version"]
+if not isinstance(version, str) or not version.strip():
+    raise SystemExit("Missing application version in package.json")
+pieces = ["window.RingsideBuild=Object.freeze(" + json.dumps({"version": version}) + ");"]
 for name in ["ringside-calc.js", "ringside-fvp.js", "ringside-sprint-fvp.js", "ringside-sources.js", "ringside-cpet-reference.js", "ringside-iso-reference.js", "ringside-definitions.js"]:
     path = SRC / name
     subprocess.run(["node", "--check", str(path)], check=True)

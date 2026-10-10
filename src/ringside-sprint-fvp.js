@@ -11,9 +11,20 @@
     inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0,
     methodVersion: METHOD_VERSION, sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" });
   const defaultsAnalysis = () => ({ targetDistanceM: "" });
+  function normalizeSplits(input) {
+    const splits = Array.isArray(input) ? input : [], used = new Set(splits.map(split => split.id).filter(Boolean));
+    return splits.map((split, index) => {
+      let id = split.id;
+      if (!id) {
+        id = "sprint_split_" + index;
+        while (used.has(id)) id += "_";
+        used.add(id);
+      }
+      return {...split, id, distanceM:split.distanceM ?? "", timeS:split.timeS ?? ""};
+    });
+  }
   const normalizeTrials = rows => (Array.isArray(rows) ? rows : []).map((row, index) => ({ ...row,
-    id: row.id || "row_sprint_fvp_" + index, splits: (Array.isArray(row.splits) ? row.splits : []).map(split =>
-      ({ ...split, distanceM: split.distanceM ?? "", timeS: split.timeS ?? "" })),
+    id: row.id || "row_sprint_fvp_" + index, splits: normalizeSplits(row.splits),
     excluded: row.excluded ?? false, exclusionReason: row.exclusionReason ?? "", notes: row.notes ?? "" }));
 
   // expm1 keeps short-time displacements accurate without cancellation.

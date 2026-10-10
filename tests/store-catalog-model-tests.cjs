@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), vm = require("node:vm"), assert = require("node:assert/strict");
-const ctx = vm.createContext({console, Intl, crypto: require("node:crypto").webcrypto}); ctx.window = ctx;
-for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation"])
+const ctx = vm.createContext({console, Intl, Blob, TextDecoder, crypto: require("node:crypto").webcrypto}); ctx.window = ctx;
+for (const name of ["calc", "fvp", "sprint-fvp", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "model", "evaluation", "interventions"])
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"), ctx);
 // Exercise the real synchronous merge without opening IndexedDB or adding a
 // production API solely for the tests.
@@ -66,4 +66,85 @@ test("empty historical screen categories match their defaults while custom choic
     merge(local, incoming); assert.deepEqual(copy(local.conflicts.map(c => c.testId)), [id]);
   }
 });
-console.log(passed + " store catalog model checks passed");
+const S = ctx.RingsideStore, E = ctx.RingsideEvaluation;
+const buildVersion = JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json"), "utf8")).version;
+
+function syntheticLibrary() {
+  const record = M.sampleRecord(); record.athlete.name = "Synthetic backup fixture";
+  record.enabled.sprint_fvp = true;
+  record.data.sprint_fvp = [{id:"synthetic-sprint",splits:[{distanceM:10,timeS:1.9},{distanceM:20,timeS:3.1},{distanceM:40,timeS:5.3}],sourceMetadata:{fixture:true}}];
+  const lib = E.migrate(M.recordEnvelope(record)); lib.version = "2.16.0";
+  return lib;
+}
+
+// Only the database transaction boundary is replaced. The production import
+// validation, generation switch, backup serialization and JSONL parser all run.
+function memoryRepository() {
+  const tables = new Map();
+  const table = name => { if (!tables.has(name)) tables.set(name,new Map()); return tables.get(name); };
+  const key = (name,row) => name === "meta" ? row.id : JSON.stringify([row.generation,row.id]);
+  const repo = new S.Repository({transaction() {
+    const tx = {objectStore(name) { return {put(row) { table(name).set(key(name,row),copy(row)); }}; }};
+    queueMicrotask(() => tx.oncomplete?.()); return tx;
+  }});
+  repo.meta = async id => table("meta").get(id);
+  repo.get = async (name,id,generation=repo.generation) => table(name).get(JSON.stringify([generation,id]))?.value;
+  repo.values = async (name,generation=repo.generation) => [...table(name).values()].filter(row=>row.generation===generation).map(row=>row.value);
+  repo.batches = async function *(name,generation=repo.generation) { yield await repo.values(name,generation); };
+  return repo;
+}
+
+async function decodedRows(blob) {
+  const rows = []; for await (const row of S.fileRows(blob)) rows.push(row); return rows;
+}
+async function libraryBackup(lib) {
+  const rows = []; for await (const row of S.libraryRows(lib)) rows.push(row);
+  return new Blob([rows.map(row=>JSON.stringify(row)).join("\n")+"\n"],{type:"application/x-ndjson"});
+}
+async function backupTests() {
+  ctx.RingsideBuild = Object.freeze({version:buildVersion});
+  const lib = syntheticLibrary(), before = copy(lib), record = copy(lib.athletes[0].records[0]);
+  const repo = memoryRepository(); await repo.importRows(S.fileRows(await libraryBackup(lib)));
+  const rows = await decodedRows(await repo.backupBlob());
+  const config = rows.find(row=>row.type==="config").value;
+  assert.equal(config.version,buildVersion);
+  assert.equal(rows[0].schema,3); assert.equal(config.schema,3);
+  const expectedConfig = {schema:3,kind:"athlete-library",catalog:copy(before.catalog),testPlans:copy(before.testPlans||[]),
+    defaultEvaluationProfileId:before.defaultEvaluationProfileId,activeAthleteId:before.activeAthleteId||"",activeRecordId:before.activeRecordId||"",updated:before.updated};
+  const actualConfig = copy(config); delete actualConfig.version;
+  assert.deepEqual(actualConfig,expectedConfig);
+  assert.deepEqual(copy(rows.find(row=>row.type==="record").value),record);
+  assert.deepEqual(copy(lib),before);
+  assert.equal(record.sprintFvpVersion,1);
+  assert.equal(rows.find(row=>row.type==="record").value.sprintFvpConfig.methodVersion,record.sprintFvpConfig.methodVersion);
+  passed++; console.log("PASS JSONL backup uses the build producer version and preserves schemas, methods and all record fields");
+
+  delete ctx.RingsideBuild;
+  const future = syntheticLibrary(); future.version = "9.0.0-future";
+  const futureRows = await decodedRows(await libraryBackup(future));
+  assert.equal(futureRows.find(row=>row.type==="config").value.version,"9.0.0-future");
+  delete future.version;
+  const unknownRows = await decodedRows(await libraryBackup(future));
+  assert.equal(Object.hasOwn(unknownRows.find(row=>row.type==="config").value,"version"),false);
+  passed++; console.log("PASS source-only export preserves an existing future producer and leaves an unknown producer unspecified");
+
+  const old = syntheticLibrary(), oldRecord = old.athletes[0].records[0];
+  delete oldRecord.sprintFvpVersion; delete oldRecord.enabled.sprint_fvp; delete oldRecord.data.sprint_fvp;
+  delete oldRecord.sprintFvpConfig; delete oldRecord.sprintFvpAnalysis; delete oldRecord.protocol.sprint_fvp;
+  oldRecord.projectSnapshots = oldRecord.projectSnapshots.filter(test=>test.id!=="sprint_fvp");
+  oldRecord.definitions = oldRecord.definitions.filter(definition=>definition.testId!=="sprint_fvp");
+  const legacyBlob = await libraryBackup(old), legacyRecord = copy(oldRecord);
+  ctx.RingsideBuild = Object.freeze({version:buildVersion});
+  const restoredRepo = memoryRepository(), result = await restoredRepo.importRows(S.fileRows(legacyBlob));
+  assert.equal(result.added,1); assert.equal(result.skipped,0);
+  const restored = await restoredRepo.exportLibrary();
+  assert.equal(restored.version,"2.16.0");
+  assert.deepEqual(copy(restored.athletes[0].records[0]),legacyRecord);
+  const currentRows = await decodedRows(await libraryBackup(restored));
+  assert.equal(currentRows.find(row=>row.type==="config").value.version,buildVersion);
+  assert.deepEqual(copy(currentRows.find(row=>row.type==="record").value),legacyRecord);
+  assert.deepEqual(rows.at(-1).counts,currentRows.at(-1).counts);
+  passed++; console.log("PASS a schema-3 legacy producer backup imports without rewriting records and its next export records the current producer");
+  console.log(passed + " store catalog model checks passed");
+}
+backupTests().catch(error=>{console.error(error);process.exitCode=1;});

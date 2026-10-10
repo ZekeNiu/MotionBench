@@ -35,7 +35,7 @@ function review(parsed, record, catalog, existing = []) {
   return X.preview(parsed, {athletes:[{id:record.athleteId,name:record.athlete.name,profile:M.profileFromRecord(record),records:[]}],records:existing,catalog});
 }
 function decisions(preview) {return Object.fromEntries(preview.entries.map(entry => [entry.recordId,{metadata:"replace",settings:"replace",projects:Object.fromEntries(entry.projects.map(project => [project.id,"replace"]))}]));}
-const trialData = rows => rows.map(({splits,excluded,exclusionReason,notes}) => ({splits,excluded,exclusionReason,notes}));
+const trialData = rows => rows.map(({splits,excluded,exclusionReason,notes}) => ({splits:splits.map(({id,...raw})=>raw),excluded,exclusionReason,notes}));
 function verify(actual, expected) {
   assert.deepEqual(trialData(actual.data.sprint_fvp),trialData(expected.data.sprint_fvp));
   assert.deepEqual(actual.sprintFvpConfig,expected.sprintFvpConfig); assert.deepEqual(actual.sprintFvpAnalysis,expected.sprintFvpAnalysis);
@@ -49,8 +49,15 @@ function verify(actual, expected) {
     for(const interval of [false,true]) {const {record,catalog}=seed();fill(record,interval);const {exported}=await workbook(record);const parsed=await X.readTemplate(exported.bytes);assert.deepEqual(parsed.errors,[]);const preview=review(parsed,record,catalog),actual=X.apply(preview,decisions(preview)).records[0];verify(actual,record);}
   });
   await test("blank distance scaffold and protocol settings create no measured record",async()=>{
-    const {record,catalog}=seed(),{book}=await workbook(record,false),ws=sprintSheet(book);assert.equal(ws.rowCount-1,15);
+    const {record,catalog}=seed(),{book}=await workbook(record,false),ws=sprintSheet(book);assert.equal(ws.rowCount-1,12);
     const parsed=await parse(book);assert.deepEqual(parsed.errors,[]);const preview=review(parsed,record,catalog);assert.equal(preview.entries[0].projects.find(project=>project.id==="sprint_fvp").newCount,0);assert.equal(X.apply(preview).records.length,0);
+  });
+  await test("default four-split workbook imports a valid profile without deleting a scaffold row",async()=>{
+    const {record,catalog}=seed(),{book}=await workbook(record,false),ws=sprintSheet(book);
+    for(let index=0;index<4;index++) {const distance=ws.getCell(index+2,column(ws,"distanceM")).value;set(ws,index+2,"timeS",F.timeAtDistance(distance,9.5,1.15));}
+    const parsed=await parse(book);assert.deepEqual(parsed.errors,[]);const preview=review(parsed,record,catalog),actual=X.apply(preview).records[0];
+    assert.deepEqual(actual.data.sprint_fvp[0].splits.map(split=>split.distanceM),[5,10,20,30]);assert.equal(F.solve(actual).valid,true);
+    assert.ok(actual.data.sprint_fvp[0].splits.every(split=>split.id));
   });
   await test("explicit negative reaction-time correction survives XLSX without changing raw cumulative times",async()=>{
     const {record,catalog}=seed();fill(record);record.sprintFvpConfig.timingStart="start_signal";record.sprintFvpConfig.startConvention="start_signal";record.sprintFvpConfig.timeCorrectionS=-.2;

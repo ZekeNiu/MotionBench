@@ -1,8 +1,10 @@
 # MotionBench
 
-跨项目的运动表现评估与训练建议工作台。本地审查版本 **2.17.0-local**，基于正式版 2.16.1。录入、计算、图表、备份与 PDF 导出均可离线使用。本轮尚未发布、合并或部署。
+跨项目的运动表现评估与训练建议工作台。本地审查版本 **2.17.1-local**，基于正式版 2.16.1。录入、计算、图表、备份与 PDF 导出均可离线使用。本轮尚未发布、合并或部署。
 
 本轮加入分段计时冲刺 F–V / P–V、Pmax、RFmax、DRF 与按目标距离计算的最佳冲刺剖面；能力结构分析采用左侧四张单指标方向卡、右侧分类参数表。方向依据和专项距离随记录保存，原始分段时间保留。详见[冲刺模型](docs/sprint-fvp-method.md)、[本地基线和回退](docs/local-baseline-20261010.md)、[Windows 应用实施计划](docs/windows-app-plan.md)。
+
+2.17.1-local 修正默认四段录入、分段草稿删除后的定位与备份来源版本，并统一小数目标距离显示。详见[小修复与回退说明](docs/local-usability-2.17.1.md)。
 
 ![MotionBench](assets/motionbench-logo.svg)
 
@@ -120,7 +122,7 @@ python tests/local-server-tests.py
 
 `src/` 是正式源码；修改后重新构建两个内容相同的 HTML。内部 `Ringside*` 模块名与旧文件名保留用于兼容，不代表仍以拳击作为产品定位。
 
-2.17.0-local 的本轮检查使用 `npm test`、`npm run test:sprint` 和两浏览器实际 PDF 导出。`npm run test:sprint-pdf` 导出 Chrome PDF；Edge 使用 `node tests/sprint-fvp-browser-tests.cjs --edge --pdf`。按 `scripts/review_sprint_pdf.py` 渲染并逐页审阅后，`npm run verify:delivery` 将证据绑定最终 HTML。原生用户工作簿物化阻塞与未运行项目见本地验收记录，不能借用历史版本的原生 Excel 通过结果。
+2.17.1-local 的本轮检查使用 `npm test`、`npm run test:sprint` 和两浏览器实际 PDF 导出。`npm run test:sprint-pdf` 导出 Chrome PDF；Edge 使用 `node tests/sprint-fvp-browser-tests.cjs --edge --pdf --artifact-dir output/playwright/sprint-fvp-2.17.1-local`。按 `scripts/review_sprint_pdf.py` 渲染并逐页审阅后，`npm run verify:delivery` 将证据绑定最终 HTML。新浏览器证据使用独立版本目录。原生用户工作簿物化阻塞与未运行项目见本地验收记录，不能借用历史版本的原生 Excel 通过结果。
 
 独立科学复核可运行 `python tests/sprint-fvp-independent-checks.py`。此项需要环境中已有 NumPy 和 SciPy，独立使用解析极限与 SciPy 数值方法核对模型，不纳入 `npm test`，也不会安装依赖。结果写入 `output/science-review-results.json`，记录实际脚本与计算模块 SHA256；交付验证器将这些模块证据与最终 HTML 浏览器验收分开核对。
 

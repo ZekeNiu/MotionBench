@@ -1,4 +1,4 @@
-"""Verify exact 2.17.0-local artifacts; never reuse an older candidate's pass."""
+"""Verify exact 2.17 local artifacts; never reuse an older candidate's pass."""
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -11,7 +11,11 @@ import sys
 import zipfile
 
 ROOT = Path(__file__).absolute().parents[1]
-VERSION = "2.17.0-local"
+VERSION = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+ACCEPTANCE = {
+    "2.17.0-local": {"browserDir": "output/playwright/sprint-fvp", "browserChecks": 12, "unitSuites": 37},
+    "2.17.1-local": {"browserDir": "output/playwright/sprint-fvp-2.17.1-local", "browserChecks": 15, "unitSuites": 38},
+}
 CHANNELS = ("chrome", "msedge")
 DIRECTIONS = ["strength", "reactive", "speed", "endurance"]
 
@@ -89,6 +93,12 @@ def verify_exports(data, channel):
     require(subset(load(record_path)["record"]) == saved, "Downloaded record differs from saved settings")
     backup_path = verify_item(items[channel + "-backup.motionbench.jsonl"])
     rows = [json.loads(line) for line in backup_path.read_text(encoding="utf-8-sig").splitlines() if line.strip()]
+    if VERSION == "2.17.1-local":
+        require(data.get("packageVersion") == VERSION, "Browser evidence has a different producer version")
+        header = next(row for row in rows if row.get("type") == "header")
+        config = next(row["value"] for row in rows if row.get("type") == "config")
+        require(header["schema"] == config["schema"] == 3 and config.get("version") == VERSION,
+                "Downloaded JSONL producer identity or schema differs")
     records = [row["value"] for row in rows if row.get("type") == "record"]
     require(any(subset(record) == saved for record in records), "JSONL does not retain the saved sprint record")
     editable = verify_item(items[channel + "-report.html"]).read_text(encoding="utf-8")
@@ -105,8 +115,9 @@ def verify_browser(data, channel):
     require(data.get("pass") is True and data.get("synthetic") is True
             and data.get("sourceUnchanged") is True and data.get("channel") == channel,
             "Sprint browser suite is incomplete: " + channel)
-    require(len(data["checks"]) == 12 and len(set(data["checks"])) == 12,
-            "Expected 12 complete sprint scenarios: " + channel)
+    expected = ACCEPTANCE[VERSION]["browserChecks"]
+    require(len(data["checks"]) == expected and len(set(data["checks"])) == expected,
+            f"Expected {expected} complete sprint scenarios: " + channel)
     require(data["errors"] == [] and data["network"] == [], "Browser errors or external requests: " + channel)
     require({row["width"] for row in data["layouts"]} == {1440, 900, 390}, "Missing tested screen widths")
     for row in data["layouts"]:
@@ -193,8 +204,35 @@ def verify_science(modules, evidence):
             "moduleSha256": data["moduleSha256"], "scriptPath": data["scriptPath"], "scriptSha256": data["scriptSha256"]}
 
 
+def verify_pdf_module(sha, evidence):
+    directory = "output/pdf/v2.17.1-" + sha[:8]
+    manifest = read_current(directory + "/evidence-manifest.json", sha, evidence, "pdfModuleManifest")
+    require(manifest["version"] == VERSION and manifest["exitCode"] == 0 and manifest["passCount"] == 6,
+            "Additional PDF module run did not complete all six checks")
+    require(manifest["runnerSha256"] == digest(local_path("tests/pdf-module-tests.cjs"))
+            and manifest["pdfSourceSha256"] == digest(local_path("src/ringside-pdf.js")),
+            "PDF module run used different code")
+    for item in manifest["files"]:
+        path = verify_item({"path": directory + "/" + item["name"], "sha256": item["sha256"]})
+        require(path.stat().st_size == item["bytes"], "PDF module artifact size changed")
+    data = read_current(directory + "/module-test-results.json", sha, evidence, "pdfModule")
+    require(data["browserErrors"] == [] and data["externalRequestsDuringExport"] == [],
+            "PDF module run reported browser errors or external requests")
+    for name in ("sample", "stress"):
+        case = data[name]
+        require(case["pages"] == manifest[name + "Pages"] and all(not row["overflow"] for row in case["captures"]),
+                "PDF module page count differs or a page overflows")
+        diagnostics = case["diagnostics"]
+        require(diagnostics["status"] == "complete", "PDF module export was incomplete")
+        for key in ("missingRows", "duplicateRows", "changedRows", "missingCharts", "duplicateCharts"):
+            require(diagnostics[key] == [], "PDF module diagnostic failed: " + key)
+        require(all(row["exact"] for row in diagnostics["textChecks"]), "PDF module text changed")
+    return {"checks": 6, "samplePages": manifest["samplePages"], "stressPages": manifest["stressPages"],
+            "scope": "Automated module checks; separate from visually reviewed sprint PDFs"}
+
+
 def main():
-    require(load("package.json")["version"] == VERSION, "Wrong version for the local verifier")
+    require(VERSION in ACCEPTANCE, "Unsupported version for the local verifier")
     html_path = local_path("MotionBench.html")
     sha = digest(html_path)
     require(digest(local_path("Ringside_Boxing_Assessment.html")) == sha, "The two standalone HTML files differ")
@@ -203,13 +241,18 @@ def main():
             "Rebuild changed the tested artifact; rerun acceptance against the new candidate")
     html = html_path.read_text(encoding="utf-8")
     modules = inline_modules(html)
+    if VERSION == "2.17.1-local":
+        require('window.RingsideBuild=Object.freeze(' + json.dumps({"version": VERSION}) + ');' in html,
+                "Standalone producer identity differs from package.json")
     require(re.search(r'<script id="embedded-data" type="application/json">\s*null\s*</script>', html),
             "Standalone delivery unexpectedly contains a saved record")
     require(not re.search(r"sk-[A-Za-z0-9_-]{32,}", html), "Unexpected API-key-like value in delivery")
     evidence = {}
     unit = read_current("output/tests/unit-results.json", sha, evidence, "unit")
     suites = unit["suites"]
-    require(len(suites) == 37 and len({suite["name"] for suite in suites}) == 37, "Expected 37 unique unit suites")
+    expected = ACCEPTANCE[VERSION]["unitSuites"]
+    require(len(suites) == expected and len({suite["name"] for suite in suites}) == expected,
+            f"Expected {expected} unique unit suites")
     require(all(suite["exitCode"] == 0 and isinstance(suite["checksPassed"], int)
                 and suite["checksPassed"] > 0 for suite in suites), "A unit suite did not pass")
     runner = local_path("tests/run-unit-tests.cjs").read_text(encoding="utf-8")
@@ -219,11 +262,12 @@ def main():
     evidence["unitRunner"] = artifact("tests/run-unit-tests.cjs")
     browsers = []
     for channel in CHANNELS:
-        data = read_current(f"output/playwright/sprint-fvp/{channel}-results.json", sha, evidence, channel + "Sprint")
+        data = read_current(f"{ACCEPTANCE[VERSION]['browserDir']}/{channel}-results.json", sha, evidence, channel + "Sprint")
         browsers.append(verify_browser(data, channel))
-    visual = read_current("output/playwright/sprint-fvp/visual-review.json", sha, evidence, "visualReview")
+    visual = read_current(ACCEPTANCE[VERSION]["browserDir"] + "/visual-review.json", sha, evidence, "visualReview")
     pages = verify_visual(visual, browsers, evidence)
     science = verify_science(modules, evidence)
+    pdf_module = verify_pdf_module(sha, evidence) if VERSION == "2.17.1-local" else None
     historical = []
     legacy = ROOT / "output/tests/v217-legacy-browser-summary.json"
     if legacy.is_file():
@@ -238,7 +282,7 @@ def main():
         "modelChecks": sum(suite["checksPassed"] for suite in suites),
         "browserWorkflowChecks": sum(browser["checks"] for browser in browsers), "browsers": browsers,
         "pdfFilesReviewed": len(visual["pdfs"]), "pdfPagesVisuallyReviewed": pages,
-        "scientificModuleVerification": science, "historicalEvidence": historical,
+        "scientificModuleVerification": science, "additionalPdfModuleVerification": pdf_module, "historicalEvidence": historical,
         "verificationLimits": ["All acceptance records are synthetic; browser contexts are isolated and offline.",
             "Narrow screens use viewport emulation; physical devices and paper printing were not tested.",
             "User sprint workbook was not materialized on Windows; cached Library values are not original-formula/chart verification.",
@@ -248,10 +292,10 @@ def main():
     (ROOT / "output/acceptance-manifest.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     public = {key: result[key] for key in ["pass", "version", "deliveryScope", "completedAtUTC", "html", "sha256", "bytes",
         "reproducibleBuild", "standaloneFilesEqual", "unitSuites", "modelChecks", "browserWorkflowChecks",
-        "pdfFilesReviewed", "pdfPagesVisuallyReviewed", "scientificModuleVerification", "verificationLimits"]}
+        "pdfFilesReviewed", "pdfPagesVisuallyReviewed", "scientificModuleVerification", "additionalPdfModuleVerification", "verificationLimits"]}
     public["evidenceIndex"] = "output/acceptance-manifest.json"
     public["historicalEvidenceIncludedInCurrentAcceptance"] = False
-    (ROOT / "docs/acceptance-2.17.0-local.json").write_text(json.dumps(public, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (ROOT / f"docs/acceptance-{VERSION}.json").write_text(json.dumps(public, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"PASS {VERSION}: {len(suites)} unit suites, {result['modelChecks']} model checks, "
           f"{result['browserWorkflowChecks']} Chrome/Edge scenarios, {pages} visually reviewed PDF pages")
     print(sha)

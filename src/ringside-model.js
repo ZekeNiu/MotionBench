@@ -3309,6 +3309,7 @@
     // Empty additive defaults must not invalidate existing 2.10 narratives.
     // Real measurements, changed protocols/standards and explicit switches remain inputs.
     const data = clone(record.data), enabled = { ...record.enabled }, protocol = { ...record.protocol };
+    if (T.isNative(record, "sprint_fvp")) for (const trial of data.sprint_fvp || []) for (const split of trial.splits || []) delete split.id;
     for (const row of data.iso || []) if (row.reference === null) delete row.reference;
     // Factory display-name cleanup alone keeps the original serialized narrative basis.
     for (const row of data.iso || []) if (["neck","trunk"].includes(row.region) && ["lateralFlexion","rotation"].includes(row.directionCode)) {

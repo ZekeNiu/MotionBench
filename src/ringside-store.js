@@ -61,8 +61,11 @@
   }
   function configuration(lib) {
     validateTestPlans(lib.testPlans, lib.catalog);
+    // Producer identity is separate from data schemas and calculation methods.
+    // Source-only consumers retain the existing producer, including future versions.
+    const version = root.RingsideBuild?.version || lib.version;
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
-      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version:"2.16.0"};
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);

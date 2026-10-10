@@ -4,8 +4,8 @@
   const present = value => value !== undefined && value !== null && String(value).trim() !== "";
   const escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   const number = (value, digits = 2) => Number.isFinite(value) ? value.toFixed(digits) : "—";
-  function defaultTrial(distances = [5, 10, 20, 30, 40]) {
-    return {id:"sprint_" + root.crypto.randomUUID().replace(/-/g, ""), splits:distances.map(distanceM => ({distanceM, timeS:""})), excluded:false, exclusionReason:"", notes:""};
+  function defaultTrial(distances = [5, 10, 20, 30]) {
+    return {id:"sprint_" + root.crypto.randomUUID().replace(/-/g, ""), splits:distances.map(distanceM => ({id:"sprint_split_" + root.crypto.randomUUID().replace(/-/g, ""), distanceM, timeS:""})), excluded:false, exclusionReason:"", notes:""};
   }
   function feedback(record) {
     const rows = record.data?.[id] || [], measured = rows.filter(row => row.splits?.some(split => present(split.timeS)));
@@ -14,7 +14,7 @@
     if (!result.valid) return `<p class="note sprint-fvp-entry-status">${escape(summary)} · ${escape(result.reason || "请填写至少 4 个有效计时分段及体重、身高")}</p>`;
     const fit = result.model || {}, selected = result.selected || {}, index = rows.findIndex(row => row.id === (result.selectedTrialId || selected.id));
     const target = result.targetDistanceM ?? result.optimum?.distanceM;
-    return `<p class="note sprint-fvp-entry-status">${escape(summary)} · 采用${index >= 0 ? `试次 ${index + 1}` : "最佳完整试次"} · F₀ ${number(fit.F0Relative ?? fit.F0)} N/kg · V₀ ${number(fit.V0)} m/s · Pmax ${number(fit.PmaxRelative ?? fit.Pmax)} W/kg${Number.isFinite(target) ? ` · 目标 ${number(target, 0)} m` : ""}</p>`;
+    return `<p class="note sprint-fvp-entry-status">${escape(summary)} · 采用${index >= 0 ? `试次 ${index + 1}` : "最佳完整试次"} · F₀ ${number(fit.F0Relative ?? fit.F0)} N/kg · V₀ ${number(fit.V0)} m/s · Pmax ${number(fit.PmaxRelative ?? fit.Pmax)} W/kg${Number.isFinite(target) ? ` · 目标 ${number(target, 1)} m` : ""}</p>`;
   }
   function render(record, helpers) {
     const {input, select, check, field, table} = helpers;

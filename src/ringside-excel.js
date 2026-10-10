@@ -192,7 +192,7 @@
       push({...fill(data),phase,label:phase === "peak" ? raw.oxygenLabel : data.label,vo2Unit:data.vo2Unit,hr:prefill ? (phase === "peak" ? raw.peakHr : data.hr) : ""});
     } else if (spec.kind === "sprintSplits") {
       const existing = prefill && Array.isArray(raw) ? raw : [];
-      const trials = existing.concat(Array.from({length:3}, () => ({splits:[5,10,20,30,40].map(distanceM => ({distanceM, timeS:""}))})));
+      const trials = existing.concat(Array.from({length:3}, () => ({splits:[5,10,20,30].map(distanceM => ({distanceM, timeS:""}))})));
       trials.forEach((trial, index) => (trial.splits || []).forEach((split, splitIndex) => push({...clone(split), attempt:index + 1, split:splitIndex + 1,
         ...(splitIndex === 0 ? {excluded:trial.excluded ? "是" : "否", exclusionReason:trial.exclusionReason || "", notes:trial.notes || ""} : {})})));
     } else if (spec.kind === "custom") for (const d of record.definitions.filter(d => d.testId === spec.id && T.isManualMetric(d) && !T.isAttemptMetric(d))) push({...fill(record.customValues[d.id] || {}),metricId:d.id,metricName:d.name,unit:d.unit});
@@ -480,7 +480,7 @@
             if (entry.groups.has(metadataKey) && entry.groups.get(metadataKey) !== value) error(key, "同一试次的备注、排除与原因须一致；建议仅首段填写");
             entry.groups.set(metadataKey, value); holder[key] = value;
           }
-          holder.splits.push({distanceM:row.distanceM, timeS:row.timeS, _split:row.split, _location:{sheet:ws,row:i,columns}});
+          holder.splits.push({id:"sprint_split_" + (row.split - 1), distanceM:row.distanceM, timeS:row.timeS, _split:row.split, _location:{sheet:ws,row:i,columns}});
           continue;
         }
         if(spec.kind==="timePoints"){

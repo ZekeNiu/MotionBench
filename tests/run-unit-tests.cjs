@@ -14,6 +14,7 @@ for (const name of [
   "athlete-context-report-tests.cjs",
   "fvp-model-tests.cjs",
   "sprint-fvp-model-tests.cjs",
+  "sprint-fvp-usability-model-tests.cjs",
   "sprint-capability-report-model-tests.cjs",
   "sprint-fvp-excel-model-tests.cjs",
   "fvp-report-model-tests.cjs",

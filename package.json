@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.17.0-local",
+  "version": "2.17.1-local",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -41,8 +41,8 @@
     "test:athlete-context-live": "node tests/athlete-context-live-ai-tests.cjs",
     "test:v216-migration": "node tests/v216-migration-browser-tests.cjs && node tests/v216-migration-browser-tests.cjs --edge",
     "test:v216-report": "node tests/report-v216-browser-tests.cjs && node tests/report-v216-browser-tests.cjs --edge",
-    "test:sprint": "node tests/sprint-fvp-browser-tests.cjs && node tests/sprint-fvp-browser-tests.cjs --edge",
-    "test:sprint-pdf": "node tests/sprint-fvp-browser-tests.cjs --pdf"
+    "test:sprint": "node tests/sprint-fvp-browser-tests.cjs --artifact-dir output/playwright/sprint-fvp-2.17.1-local && node tests/sprint-fvp-browser-tests.cjs --edge --artifact-dir output/playwright/sprint-fvp-2.17.1-local",
+    "test:sprint-pdf": "node tests/sprint-fvp-browser-tests.cjs --pdf --artifact-dir output/playwright/sprint-fvp-2.17.1-local"
   },
   "devDependencies": {
     "playwright": "1.57.0"
