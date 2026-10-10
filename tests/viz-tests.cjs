@@ -3,6 +3,7 @@ const vm = require('node:vm');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const context = vm.createContext({});
+vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/ringside-definitions.js'), 'utf8'), context);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/ringside-viz.js'), 'utf8'), context);
 const V = context.RingsideViz;
 let passed = 0;
@@ -50,7 +51,7 @@ test('asymmetry splits into small panels and uses the same configured threshold 
   const html = V.iso(Array.from({ length: 6 }, (_, i) => ({ label: '方向 ' + i, asym: i === 5 ? 50 : 5, stronger: 'R', status: i === 5 ? 'red' : 'green' })), [], { asymAmber: 15, asymRed: 25 });
   assert.equal((html.match(/<svg /g) || []).length, 2);
   assert.equal((html.match(/data-tooltip="关注阈值 15%"/g) || []).length, 2);
-  assert.equal((html.match(/data-tooltip="重点关注阈值 25%"/g) || []).length, 2);
+  assert.equal((html.match(/data-tooltip="预警阈值 25%"/g) || []).length, 2);
   const thresholds = [...html.matchAll(/data-tooltip="关注阈值 15%"[^]*?<line x1="([^"]+)"/g)].map(m => m[1]);
   assert.equal(thresholds[0], thresholds[1]);
   assert.ok(html.includes('50% R'));

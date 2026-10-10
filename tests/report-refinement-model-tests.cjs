@@ -23,7 +23,7 @@ test("first summary card uses the test snapshot and preserves three assessment c
   const record = M.defaults(); Object.assign(record.athlete, { name: "王<明>", sport: "拳击", age: 21, mass: 72.5, sex: "男" });
   const before = JSON.stringify(record), html = R.summary(R.build(record));
   assert.match(html, /^<article class="micro-card athlete-summary">/);
-  for (const text of ["运动员信息", "王&lt;明&gt;", "拳击", "21 岁", "72.5 kg", "重点关注", "关注", "优势"]) assert.ok(html.includes(text), text);
+  for (const text of ["运动员信息", "王&lt;明&gt;", "拳击", "21 岁", "72.5 kg", "预警", "关注", "优势"]) assert.ok(html.includes(text), text);
   assert.equal((html.match(/<article /g) || []).length, 4);
   assert.doesNotMatch(html, /测试情况概述/);
   assert.equal(JSON.stringify(record), before);

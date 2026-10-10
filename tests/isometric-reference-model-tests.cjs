@@ -58,7 +58,7 @@ test("manual single targets never invent a red cutoff but pain and severe asymme
  for(const value of [0,1,100,199.99]){x.left=x.right=value;const a=M.stats(r).isoAnalyses.find(v=>v.id===x.id);assert.equal(a.sides[0].status,"amber");assert.equal(a.sides[0].label,"关注");assert.equal(a.sides[0].targetKind,"manual");}
  for(const value of [200,201]){x.left=x.right=value;const a=M.stats(r).isoAnalyses.find(v=>v.id===x.id);assert.equal(a.sides[0].status,"green");assert.equal(a.sides[0].label,"达标");}
  x.left=x.right="";assert.equal(M.stats(r).isoAnalyses.find(v=>v.id===x.id).sides[0].status,"gray");x.left=x.right=200;x.painLeft=true;assert.equal(M.stats(r).isoAnalyses.find(v=>v.id===x.id).sides[0].status,"red");
- x.painLeft=false;x.left=10;x.right=100;const s=M.stats(r),a=s.isoAnalyses.find(v=>v.id===x.id);assert.equal(a.sides[0].status,"red");assert.equal(a.sides[1].status,"amber");assert.ok(a.sides[0].reasons.some(v=>v.includes("双侧差异")));assert.equal(s.signals.regions.shoulder_l.tests.find(v=>v.id===x.id+"_L").label,"严重");
+ x.painLeft=false;x.left=10;x.right=100;const s=M.stats(r),a=s.isoAnalyses.find(v=>v.id===x.id);assert.equal(a.sides[0].status,"red");assert.equal(a.sides[0].label,"预警");assert.equal(a.sides[1].status,"amber");assert.ok(a.sides[0].reasons.some(v=>v.includes("双侧差异")));assert.equal(s.signals.regions.shoulder_l.tests.find(v=>v.id===x.id+"_L").label,"预警");
 });
 test("only measured targets whose grades changed add the new interpretation basis",()=>{
  const r=M.normalizeRecord(athlete()),x=row(r,"shoulder","abduction");r.isoDirectionIds=[x.id];x.target=200;
@@ -109,6 +109,12 @@ test("Bradley shoulder balance averages remain descriptive without inventing cut
  row(r,"shoulder","externalRotation").left=86;let next=M.stats(r).balanceResults.find(v=>v.id===p.id);assert.equal(next.results[0].referenceComparison.relation,"equal");assert.equal(next.results[0].status,"gray");row(r,"shoulder","externalRotation").left=100;next=M.stats(r).balanceResults.find(v=>v.id===p.id);assert.equal(next.results[0].referenceComparison.relation,"above");assert.equal(next.results[0].status,"gray");
  r.athlete.age=30;near(M.stats(r).balanceResults.find(v=>v.id===p.id).results[0].referenceTarget,.81);
 });
+test("ungraded joint balance tooltips explain mean references while enabled intervals remain authoritative",()=>{
+ const r=athlete(),p=r.balancePairs.find(v=>v.id==="shoulder_IR_ER");p.reference=I.defaultBalanceReference(p);const ir=row(r,"shoulder","internalRotation"),er=row(r,"shoulder","externalRotation");ir.left=200;er.left=160;
+ const before=JSON.stringify(r),basis=M.fingerprint(r);let s=M.stats(r),q=s.balanceResults.find(v=>v.id===p.id).results[0],body=s.signals.regions.shoulder_l.tests.find(t=>t.id==="balance_"+p.id+"_L");assert.equal(q.value,.8);assert.equal(q.status,"gray");assert.match(q.evaluationReason,/文献均值仅作参考/);assert.match(body.notes,/尚未设置分级区间/);assert.equal(JSON.stringify(r),before);assert.equal(M.fingerprint(r),basis);
+ p.referenceEnabled=true;p.ranges=[{min:.7,max:.9,includeMin:true,includeMax:true,status:"green",label:"原方案范围"}];s=M.stats(r);q=s.balanceResults.find(v=>v.id===p.id).results[0];assert.equal(q.status,"green");assert.equal(q.label,"原方案范围");assert.equal(q.evaluationReason,"");assert.equal(s.signals.regions.shoulder_l.status,"green");assert.equal(s.signals.regions.shoulder_l.label,"达标");assert.equal(p.ranges[0].label,"原方案范围");
+ p.referenceEnabled=false;ir.protocol="A";er.protocol="B";s=M.stats(r);q=s.balanceResults.find(v=>v.id===p.id).results[0];assert.equal(q.value,null);assert.equal(q.status,"gray");assert.equal(q.reason,"测量协议不同");assert.equal(q.evaluationReason,"");
+});
 test("a one-time shared scheme seed fills only blanks and excludes demo-only profiles",()=>{
  const r=athlete(),p={id:"p",name:"现方案",revision:1,updated:"old",criteria:E.capture(r),builtinStandardsVersion:1},demo=copy(p);demo.id="demo";demo.name="示例";
  p.criteria.iso.find(v=>v.id==="iso_shoulder_abduction").target=321;
@@ -149,6 +155,13 @@ test("legacy scalar FMS pollution is removed without losing zero score pain note
 test("factory direction aliases migrate code and text while custom labels stay authored",()=>{
  const r=athlete(),x=row(r,"trunk","rotation");delete x.directionCode;x.direction="旋转（左向 / 右向）";let n=M.normalizeRecord(r);assert.equal(row(n,"trunk","rotation").direction,"旋转");
  const authored=row(n,"trunk","rotation");authored.direction="个人旋转方向";assert.equal(row(M.normalizeRecord(n),"trunk","rotation").direction,"个人旋转方向");assert.deepEqual(copy(M.normalizeRecord(n)),copy(n));
+});
+test("body region grades include FMS and ignore measured ungraded results when a grade exists",()=>{
+ const r=athlete();Object.keys(r.enabled).forEach(id=>r.enabled[id]=["iso","fms"].includes(id));const f=r.data.fms[5];f.location="trunk";f.score=3;
+ const before=JSON.stringify(r),basis=M.fingerprint(r);let s=M.stats(r);assert.equal(s.signals.regions.trunk.tests.find(t=>t.testId==="fms").status,"green");assert.equal(s.signals.regions.trunk.tests.find(t=>t.testId==="fms").label,"完成");assert.equal(s.signals.regions.trunk.status,"green");assert.equal(s.signals.regions.trunk.label,"达标");assert.equal(JSON.stringify(r),before);assert.equal(M.fingerprint(r),basis);
+ const trunk=row(r,"trunk","flexion");trunk.target=100;trunk.center=120;f.score=2;s=M.stats(r);assert.equal(s.signals.regions.trunk.status,"amber");f.pain=true;s=M.stats(r);assert.equal(s.signals.regions.trunk.status,"red");
+ const partial=r.data.fms[1],hip=row(r,"hip","abduction");partial.location="hip_l";partial.left=3;partial.right="";hip.target=400;hip.left=hip.right=450;s=M.stats(r);assert.equal(s.signals.regions.hip_l.status,"green");assert.equal(s.signals.regions.hip_l.tests.find(t=>t.testId==="fms").value,null);
+ hip.target="";hip.reference=null;s=M.stats(r);assert.equal(s.signals.regions.hip_l.hasMeasured,true);assert.equal(s.signals.regions.hip_l.status,"gray");partial.left="";hip.left=hip.right="";s=M.stats(r);assert.equal(s.signals.regions.hip_l.hasMeasured,false);assert.equal(s.signals.regions.hip_l.status,"gray");
 });
 test("body measurement presence distinguishes zero pain and trial results from configured placeholders",()=>{
  const r=athlete(),x=row(r,"shoulder","abduction");r.isoDirectionIds=[x.id];x.target=200;x.notes="仅配置说明";

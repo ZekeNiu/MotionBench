@@ -109,12 +109,12 @@ test("body region payload and accessible text retain every test, side, target an
   const decoded = JSON.parse(payload);
   assert.equal(decoded.tests.length, 24); assert.equal(decoded.name, "颈部"); assert.equal(decoded.key, "neck");
   assert.match(group, /方向23[^]*最后一条备注完整保留/); assert.match(group, /中线：未测/);
-  assert.match(group, /左侧：101 N · 目标 150 N · 关注 · 双侧差异 18\.5% · 疼痛/);
+  assert.match(group, /左侧：101 N · 参考目标 150 N · 关注 · 双侧差异 18\.5% · 疼痛/);
   assert.doesNotMatch(group, /<title>/);
   assert.match(group, /r="24"[^>]*class="viz-hotspot"/);
   const popover = V.bodyTooltip(decoded);
   assert.equal((popover.match(/<li>/g) || []).length, 24); assert.match(popover, /最后一条备注完整保留/);
-  assert.match(popover, /未测/); assert.match(popover, /目标 150 N/);
+  assert.match(popover, /未测/); assert.match(popover, /参考目标 150 N/);
 });
 
 test("body tooltip escapes untrusted fields and green display uses the approved label", () => {

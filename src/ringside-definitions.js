@@ -157,7 +157,12 @@
     var converted = '跑台改良版：2.222222 m/s 起，每级 +0.138889 m/s，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。';
     return id === 'ift_treadmill' && [legacy, converted, '30-15VIFT'].indexOf(text) !== -1 ? '30-15VIFT' : text;
   }
+  // Shared report wording; preserve the original reference intervals and labels.
+  function assessmentLabel(status, fallback) {
+    var labels = { red: '预警', amber: '关注', green: '达标' };
+    return Object.prototype.hasOwnProperty.call(labels, status) ? labels[status] : fallback === undefined ? '' : String(fallback);
+  }
   root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies, viftProtocol: viftProtocol, factoryText: factoryText,
     defaultDefinitions: function () { return JSON.parse(JSON.stringify(builtins)); },
-    parseRanges: parseRanges, rangeText: rangeText, grade: grade };
+    parseRanges: parseRanges, rangeText: rangeText, grade: grade, assessmentLabel: assessmentLabel };
 })(typeof window !== 'undefined' ? window : globalThis);

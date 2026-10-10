@@ -1,6 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm"),crypto=require("node:crypto");
 const root=path.resolve(__dirname,".."),mode=process.argv[2],directory=path.resolve(process.argv[3]||path.join(root,"output/excel-v216-native"));
+const resultsOption=process.argv.indexOf("--results-dir"),resultsDir=resultsOption>=0?path.resolve(process.argv[resultsOption+1]):path.join(root,"output/tests");fs.mkdirSync(resultsDir,{recursive:true});
 global.window=global;global.ExcelJS=require("../vendor/exceljs.min.js");
 for(const name of ["calc","fvp","cpet-reference","definitions","tests","model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(root,"src/ringside-"+name+".js"),"utf8"));
 const M=RingsideModel,X=RingsideExcel,{manifest}=require("./helpers/excel-template.cjs"),hash=file=>crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
@@ -32,13 +33,13 @@ async function verify(){
    checks.push({name:test.name,pass:true,recordCounts:actual.map(r=>({athleteId:r.athleteId,count:test.testId==="fms"?7:r.data[test.testId].length}))});}
   const check=checks[checks.length-1];check.workbookSha256=hash(test.output);check.inputSha256=hash(test.input);check.workbook=test.output;console.log("PASS "+test.name);
  }
- const evidence={pass:true,sourceHash:fixture.sourceHash,moduleSha256:fixture.moduleSha256,actualMicrosoftExcel:true,checkedAt:new Date().toISOString(),native,checks};fs.mkdirSync(path.join(root,"output/tests"),{recursive:true});fs.writeFileSync(path.join(root,"output/tests/v216-excel-native-results.json"),JSON.stringify(evidence,null,2));console.log("Verified "+checks.length+" native Excel scenarios");
+ const evidence={pass:true,sourceHash:fixture.sourceHash,moduleSha256:fixture.moduleSha256,actualMicrosoftExcel:true,checkedAt:new Date().toISOString(),native,checks};fs.writeFileSync(path.join(resultsDir,"v216-excel-native-results.json"),JSON.stringify(evidence,null,2));console.log("Verified "+checks.length+" native Excel scenarios");
 }
 function combine(){
- const sourceHash=hash(path.join(root,"MotionBench.html")),native=JSON.parse(fs.readFileSync(path.join(root,"output/tests/v216-excel-native-results.json"))),product=["chrome","msedge"].map(channel=>JSON.parse(fs.readFileSync(path.join(root,"output/tests/v216-excel-native-"+channel+".json"))));
+ const sourceHash=hash(path.join(root,"MotionBench.html")),native=JSON.parse(fs.readFileSync(path.join(resultsDir,"v216-excel-native-results.json"))),product=["chrome","msedge"].map(channel=>JSON.parse(fs.readFileSync(path.join(resultsDir,"v216-excel-native-"+channel+".json"))));
  assert.equal(native.pass,true);assert.equal(native.moduleSha256,hash(path.join(root,"src/ringside-excel.js")));assert.ok(product.every(check=>check.pass&&check.sourceHash===sourceHash&&check.excelModuleSha256===native.moduleSha256));
  for(const check of native.checks)for(const browser of product)assert.equal(browser.checks.find(item=>item.name===check.name).workbookSha256,check.workbookSha256);
  const evidence={pass:true,sourceHash,excelModuleSha256:native.moduleSha256,nativeGenerationSourceHash:native.sourceHash,actualMicrosoftExcel:true,uniqueNativeWorkbookScenarios:native.checks.length,productBrowserScenarios:product.reduce((count,item)=>count+item.checks.length,0),keyboardEntryAutoExpansionTested:false,methodBoundary:"Native COM next-row writes are recorded separately from Excel ListRows.Add, Table.Sort and Range.Value2. Both browser channels upload these same saved files, confirm through product UI, and verify persisted records after refresh.",native,product,checkedAt:new Date().toISOString()};
- fs.writeFileSync(path.join(root,"output/tests/v216-excel-native-workflow-results.json"),JSON.stringify(evidence,null,2));console.log(JSON.stringify({pass:true,sourceHash,nativeScenarios:evidence.uniqueNativeWorkbookScenarios,productScenarios:evidence.productBrowserScenarios}));
+ fs.writeFileSync(path.join(resultsDir,"v216-excel-native-workflow-results.json"),JSON.stringify(evidence,null,2));console.log(JSON.stringify({pass:true,sourceHash,nativeScenarios:evidence.uniqueNativeWorkbookScenarios,productScenarios:evidence.productBrowserScenarios}));
 }
 (mode==="--prepare"?prepare():mode==="--verify"?verify():mode==="--combine"?Promise.resolve().then(combine):Promise.reject(Error("Use --prepare, --verify or --combine followed by the synthetic fixture directory"))).catch(error=>{console.error(error);process.exitCode=1;});

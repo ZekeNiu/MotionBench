@@ -80,7 +80,7 @@
     .ringside-pdf-document .card-foot{padding:8px 9px!important;font-size:10px!important;line-height:1.6!important;}
     .ringside-pdf-document .legend{gap:6px!important;font-size:10px!important;}
     .ringside-pdf-document .pill{font-size:11px!important;line-height:1.5!important;padding:2px 5px!important;white-space:normal!important;}
-    .ringside-pdf-document .iso-status{max-width:100%!important;white-space:normal!important;}
+    .ringside-pdf-document .iso-status{max-width:100%!important;white-space:nowrap!important;}
     .ringside-pdf-document .chart-wrap{display:block!important;padding:7px 0!important;margin:0!important;max-width:none!important;min-width:0!important;}
     .ringside-pdf-document svg{max-width:100%!important;max-height:none!important;width:100%!important;height:auto!important;}
     .ringside-pdf-document .chart-wrap>img,.ringside-pdf-document .iso-charts>img{display:block!important;margin:0 auto!important;max-width:100%!important;height:auto!important;}
@@ -136,13 +136,16 @@
     .ringside-pdf-document .iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type{white-space:normal!important;}
     .ringside-pdf-document .iso-results .iso-reference-evaluation{font-size:9px!important;line-height:1.65!important;}
     .ringside-pdf-document .iso-results .pill{max-width:100%!important;font-size:9px!important;padding:2px 1px!important;}
-    .ringside-pdf-document .iso-results .asym-value,.ringside-pdf-document .iso-results .asym-side,.ringside-pdf-document .iso-results .iso-status-value,.ringside-pdf-document .iso-results .iso-status-label{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .iso-results .asym-value,.ringside-pdf-document .iso-results .asym-side{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .iso-results .iso-status-value,.ringside-pdf-document .iso-results .iso-status-label{white-space:nowrap!important;overflow-wrap:normal!important;}
     .ringside-pdf-document .iso-results .pill .dot{margin-right:2px!important;}
     .ringside-pdf-document .iso-results .repeat-stat-cv{font-size:9px!important;}
     .ringside-pdf-document .iso-results .repeat-stat-cv>span{white-space:normal!important;overflow-wrap:anywhere!important;}
     .ringside-pdf-document .imtp-results{table-layout:auto!important;min-width:0!important;}
     .ringside-pdf-document .imtp-results th{width:auto!important;}
     .ringside-pdf-document .imtp-results th,.ringside-pdf-document .imtp-results td{padding-inline:3px!important;overflow-wrap:normal!important;word-break:normal!important;}
+    .ringside-pdf-document .imtp-results td[data-label="评价"]{min-width:48px!important;}
+    .ringside-pdf-document .imtp-results td[data-label="评价"] .pill{white-space:nowrap!important;}
     .ringside-pdf-document [data-pdf-pair]>*{min-width:0!important;}
     .ringside-pdf-document [data-pdf-pair] .chart-wrap{width:100%!important;padding:0!important;}
     .ringside-pdf-document [data-pdf-pair] svg{max-height:340px!important;}

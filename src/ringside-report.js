@@ -27,18 +27,15 @@
   const directionLabel = (value) => String(value || "").replace(/[（(]中线[）)]/g, "");
   const pill = (label, status = "gray") =>
     `<span class="pill ${E(status)}"><i class="dot"></i>${E(label)}</span>`;
+  const assessmentLabel = (status, fallback) => global.Def.assessmentLabel(status, fallback);
   // Display wording is independent of the stored reference labels and cutoffs.
   const reportEvaluation = (value, definition, record) => {
     const result = M.evaluation(value, definition, record);
-    const label = definition.category === "performance" &&
-      T.abilityName(definition.ability) === "力量耐力"
-      ? { red: "重点关注", amber: "关注", green: "正常" }[result.status]
-      : null;
-    return label ? { ...result, label } : result;
+    return { ...result, label: assessmentLabel(result.status, result.label) };
   };
   const table = (headers, rows, keys = [], className = "", widths = []) => {
     const evaluation = headers.indexOf("评价");
-    if (evaluation >= 0 && rows.every((row) => !String(row[evaluation] || "").replace(/<[^>]*>/g, "").replace(/[—\s-]/g, ""))) {
+    if (evaluation >= 0 && !className.split(/\s+/).includes("jump-results") && rows.every((row) => !String(row[evaluation] || "").replace(/<[^>]*>/g, "").replace(/[—\s-]/g, ""))) {
       headers = headers.filter((_, i) => i !== evaluation);
       rows = rows.map((row) => row.filter((_, i) => i !== evaluation));
       widths = widths.filter((_, i) => i !== evaluation);
@@ -160,7 +157,7 @@
     ];
     let html = `<article class="micro-card athlete-summary"><div class="micro-head"><h3>运动员信息</h3></div><div class="micro-value text">${E(athlete.name || "未命名运动员")}</div><dl>${details.map(([label, value]) => `<div><dt>${E(label)}</dt><dd>${E(value)}</dd></div>`).join("")}</dl></article>`;
     for (const [status, title] of [
-      ["red", "重点关注"],
+      ["red", assessmentLabel("red")],
       ["amber", "关注"],
     ]) {
       const items = s.findings.filter((item) => item.status === status);
@@ -215,10 +212,10 @@
       const direction = { force:"发展力量端", velocity:"发展速度端", balanced:"发展整体功率" }[solved.imbalance.direction];
       add(id, `${label} FVP · ${angle}°`, direction, `FVP的不平衡性 ${F(solved.imbalance.magnitudePct,2)}%`);
       const elastic = solved.elasticity;
-      if (elastic) add(id + "_elasticity", `${label} 弹性响应`, elastic.judgments.ER,
+      if (id === "fvp_sj" && elastic) add(id + "_elasticity", `${label} 弹性响应`, elastic.judgments.ER,
         `F₀ 与 V₀ 各提高 1%，垂直跳跃高度局部约增加 ${F(elastic.Fe + elastic.ve,2)}%`);
     }
-    for (const id of ["eur", "fdsi", "srr"]) {
+    for (const id of ["fdsi", "eur", "srr"]) {
       const card = (stats.capabilityCards || []).find(card => card.metrics.some(metric => metric.id === id));
       const metric = card?.metrics.find(metric => metric.id === id);
       if (!metric || !Number.isFinite(metric.value)) continue;
@@ -262,7 +259,7 @@
     const metricTable = (metrics, target = false) => {
       const repeated = hasStatistics(metrics.map((d) => repeatedMetric(d.id)));
       return table(
-        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["目标"] : [])],
+        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["参考目标"] : [])],
         consume(metrics).map((d) => [
           E(d.name) + (repeated && d.unit ? `<small class="metric-meta">${E(d.unit)}</small>` : ""),
           F(d.value, 2),
@@ -441,10 +438,10 @@
             gap === null
               ? ""
               : gap > 0
-                ? "距目标 " + F(gap) + " " + E(d.unit)
+                ? "距参考目标 " + F(gap) + " " + E(d.unit)
                 : gap === 0
-                  ? "达到目标"
-                  : "超过目标 " + F(-gap) + " " + E(d.unit);
+                  ? "达到参考目标"
+                  : "超过参考目标 " + F(-gap) + " " + E(d.unit);
           return `<div class="comparison-result" data-metric-id="${E(d.id)}" data-pdf-atomic><div class="comparison-heading"><strong>${E(d.name)}</strong>${evaluationPill(d)}</div>${chart(V.compare([{ label: d.name, value: d.value, unit: d.unit, target, status: d.evaluation.status }], { title: "", compact: true }))}${note ? `<p class="comparison-note">${rate === null ? "" : "达成比例 " + F(rate) + "% · "}${note}</p>` : ""}</div>`;
         })
         .join("")}</div>`;
@@ -518,7 +515,7 @@
         }
         // Compact wording is a display choice; keep the original assessment accessible.
         const statusPill = (prefix, status, description, ungraded = "") => {
-          const label = { green: "达标", amber: "关注", red: "严重" }[status] || ungraded;
+          const label = assessmentLabel(status, ungraded);
           return `<span class="pill ${E(status)} iso-status" role="img" aria-label="${E(description)}" title="${E(description)}"><i class="dot"></i>${prefix ? `<span class="iso-status-value">${E(prefix)}</span>` : ""}${label ? ` <span class="iso-status-label">${label}</span>` : ""}</span>`;
         };
         const balanceCell = (row) =>
@@ -536,7 +533,7 @@
                   return `<div>${statusPill(
                     side + F(result.value, 2),
                     result.status,
-                    side + F(result.value, 2) + " · " + result.label,
+                    side + F(result.value, 2) + " · " + assessmentLabel(result.status, result.label),
                     balance.referenceEnabled && balance.ranges?.length ? "未评" : "",
                   )}${positive(result.referenceTarget) ? `<small class="metric-meta iso-reference">参考目标 ${F(result.referenceTarget,2)}</small>` : ""}</div>`;
                 })
@@ -575,7 +572,7 @@
               (side) => {
                 const value = `${side.side ? E(sideText(row, side)) + " " : ""}${F(side.value)} ${E(row.unit)}${side.pain ? " · 疼痛" : ""}`;
                 const target = positive(side.target)
-                  ? `<small class="metric-meta">${side.targetKind === "reference" ? "参考目标" : "目标"} ${F(side.target)} ${E(row.unit)}</small>` : "";
+                  ? `<small class="metric-meta">参考目标 ${F(side.target)} ${E(row.unit)}</small>` : "";
                 return repeated ? `<div class="stat-side">${value}${target}</div>` : value + target;
               },
             )
@@ -588,11 +585,11 @@
           balanceCell(row),
         ]);
         const data = table(
-          ["部位与方向", "实测力量／目标", ...(repeated ? ["均值 ± SD", "CV"] : []), "双侧差异", "评价", "关节平衡"],
+          ["部位与方向", "实测力量／参考目标", ...(repeated ? ["均值 ± SD", "CV"] : []), "双侧差异", "评价", "关节平衡"],
           rows,
           measured.map((row) => ({ id: row.id, region: row.region })),
           "iso-results" + (repeated ? " with-repeat-columns" : ""),
-          repeated ? [14,20,23,7,12,9,15] : [],
+          repeated ? [14,20,21,7,12,13,13] : [],
         );
         return block(
           tests,
@@ -625,34 +622,28 @@
             ),
           );
         const repeated = hasStatistics(activeFields.flatMap((field) => field.ids.map(repeatedMetric)));
-        const byTest = repeated || tests.length > 2;
         const jumpCell = (test, data, field) => {
           const metric = data?.metrics.find((m) => field.ids.includes(m.id));
           if (!metric) return "—";
           consumedMetrics.add(metric.id);
           const d = test.metrics.find((m) => m.id === metric.id);
           return `<span data-metric-id="${E(metric.id)}">${F(metric.value, 2)}${metric.unit !== field.unit ? " " + E(metric.unit) : ""}</span>` +
-            (metric.value === null ? "" : (d && positive(d.target) ? `<small class="metric-meta">目标 ${F(d.target)}</small>` : "") + (d ? evaluationPill(d) : ""));
+            (metric.value === null ? "" : (d && positive(d.target) ? `<small class="metric-meta">参考目标 ${F(d.target)}</small>` : ""));
         };
-        const metricRows = byTest ? summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
+        const metricRows = summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
           field.ids.some((id) => data?.metrics.some((metric) => metric.id === id&&metric.value!==null)||data?.attempts?.some(attempt=>attempt.values.some(value=>value.id===id&&value.value!==null)))).map((field) => {
             const metric = data.metrics.find((m) => field.ids.includes(m.id));
             return [E(test.name + " · " + field.label) + `<small class="metric-meta">${E(field.unit || metric.unit)}</small>`,
-              jumpCell(test, data, field), ...(repeated ? statisticCells(repeatedMetric(metric.id)) : [])];
-          })) : activeFields.map((field) => [
-            E(field.label) +
-              '<small class="muted"> ' +
-              E(field.unit) +
-              "</small>",
-            ...summaries.map(({ test, data }) => jumpCell(test, data, field)),
-          ]);
+              jumpCell(test, data, field), ...(repeated ? statisticCells(repeatedMetric(metric.id)) : []),
+              test.metrics.find(item => item.id === metric.id) ? evaluationPill(test.metrics.find(item => item.id === metric.id)) : "—"];
+          }));
         return block(
           tests,
           tests.map((t) => t.name).join(" / "),
           "",
           pair(
             V.jumpBars(chartItems),
-            table(repeated ? ["指标", "结果", "均值 ± SD", "CV"] : byTest ? ["指标", "结果"] : ["指标", ...tests.map((t) => t.name)], metricRows, [], repeated ? "with-repeat-columns" : "") +
+            table(["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : []), "评价"], metricRows, [], "jump-results" + (repeated ? " with-repeat-columns" : "")) +
               supplemental(tests),
             "jump-detail",
             {kind:"jumpBars",args:[chartItems]},
@@ -723,13 +714,13 @@
         resultRows.push(...metrics.filter((metric) => T.isManualMetric(metric)));
         const repeated = hasStatistics(resultRows.map((metric) => repeatedMetric(metric.id)));
         const data = resultRows.length ? table(
-          ["指标", "结果", "单位", ...(repeated ? ["均值 ± SD", "CV"] : []), "评价", "目标"],
+          ["指标", "结果", "单位", ...(repeated ? ["均值 ± SD", "CV"] : []), "评价", "参考目标"],
           resultRows.map((metric) => {
             const evaluation = metric.evaluation;
             const classified = evaluation && !["未启用评价标准", "未设等级区间", "未启用标准"].includes(evaluation.label);
             return [E(metric.name), F(metric.value, 2) + (N(metric.forcePercent) !== null ? `<small class="metric-meta">占峰值力 ${F(metric.forcePercent, 1)}%</small>` : ""), E(metric.unit),
               ...(repeated ? statisticCells(repeatedMetric(metric.id)) : []),
-              classified ? pill(evaluation.label, evaluation.status) : "—",
+              classified ? pill(assessmentLabel(evaluation.status, evaluation.label), evaluation.status) : "—",
               metric.referenceEnabled && positive(metric.target) ? F(metric.target, 2) + " " + E(metric.targetUnit || metric.unit) : "—"];
           }), resultRows.map((metric) => metric.id), "imtp-results" + (repeated ? " with-repeat-columns" : ""),
         ) : "";
@@ -795,7 +786,7 @@
         const speedChart = { mas: v.mas_speed, mss: v.mss_speed, ift: v.ift_speed, statuses,
           labels: Object.fromEntries(tests.map(test => [test.id, projectName(test.id, test.id === "ift" ? "30-15VIFT" : test.id.toUpperCase())])) };
         let body = metrics.length ? pair(V.speed(speedChart),
-          table(["指标／测试方法", "目标", ...(repeated ? ["均值 ± SD · m/s", "CV"] : []), "评价"], rows, metrics.map((d) => d.id), "speed-test-info" + (repeated ? " with-repeat-columns" : "")) + ratioTable,
+          table(["指标／测试方法", "参考目标", ...(repeated ? ["均值 ± SD · m/s", "CV"] : []), "评价"], rows, metrics.map((d) => d.id), "speed-test-info" + (repeated ? " with-repeat-columns" : "")) + ratioTable,
           "speed-detail", { kind: "speed", args: [speedChart] }) : "";
         const issues = s.qualityIssues.filter(
           (x) => x.id === "asr_inconsistent",
@@ -918,14 +909,14 @@
         const target=positive(metric.target)?N(metric.target):definition?.referenceEnabled===true&&definition.direction==="higher"&&definition.matched!==false&&positive(definition.target)?N(definition.target):null;
         if(target===null||!positive(metric.value))return "";
         const attainment=N(metric.value)/target*100;
-        return `<div class="capability-progress" data-capability-target="${E(metric.id)}"><div class="capability-progress-label"><span>目标 ${F(target,1)}${metric.unit&&metric.unit!=="比值"?` ${E(metric.unit)}`:""}</span><span>达成 ${F(attainment,1)}%</span></div><div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,attainment))}%"></span></div></div>`;
+        return `<div class="capability-progress" data-capability-target="${E(metric.id)}"><div class="capability-progress-label"><span>参考目标 ${F(target,1)}${metric.unit&&metric.unit!=="比值"?` ${E(metric.unit)}`:""}</span><span>达成 ${F(attainment,1)}%</span></div><div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,attainment))}%"></span></div></div>`;
       };
       const renderMetric=(metric,cardId)=>{
         const unit=metric.unit&&metric.unit!=="比值"?`<small>${E(metric.unit)}</small>`:"";
-        const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(metric.judgment)}</p>`:"";
+        const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(assessmentLabel(metric.status, metric.judgment))}</p>`:"";
         const hasSpeedEndpoints=cardId==="speed"&&cards.find(card=>card.id==="speed").metrics.some(item=>["mss_speed","mas_speed"].includes(item.id));
         const components=(hasSpeedEndpoints?[]:metric.components||[]).filter(component=>N(component.value)!==null);
-        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(component.judgment)}</p>`:""}${cardId==="cardio"?targetProgress(component):""}</dd></div>`).join("");
+        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(assessmentLabel(component.status, component.judgment))}</p>`:""}${cardId==="cardio"?targetProgress(component):""}</dd></div>`).join("");
         const detail=components.length?(["cardio","speed"].includes(cardId)?`<div class="capability-components capability-observations"><dl>${rows}</dl></div>`:`<details class="capability-components"><summary>组成数据</summary><dl>${rows}</dl></details>`):"";
         const windowName=choice=>choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 0–250 ms";
         const variants=metric.id==="idsi"?(metric.variants||[]):[];
@@ -936,7 +927,7 @@
       };
       const renderCard=card=>{
         const targets=(card.targets||[]).filter(target=>N(target.value)!==null);
-        const conclusion=["speed","cardio"].includes(card.id)&&card.conclusion?`<div class="capability-conclusion"><p class="capability-conclusion-text">${E(card.conclusion)}</p>${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(target.label)} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}</div>`:"";
+        const conclusion=["speed","cardio"].includes(card.id)&&card.conclusion?`<div class="capability-conclusion"><p class="capability-conclusion-text">${E(card.conclusion)}</p>${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(String(target.label || "").replace(/(?:参考)?目标$/, "参考目标"))} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}</div>`:"";
         const metrics=card.id==="speed"?[...card.metrics].sort((a,b)=>["srr","mss_speed","mas_speed","asr"].indexOf(a.id)-["srr","mss_speed","mas_speed","asr"].indexOf(b.id)):card.metrics;
         return `<article class="capability-card" data-capability-card="${E(card.id)}" data-pdf-atomic><h3 class="capability-title">${E(card.title)}</h3>${conclusion}<div class="capability-metrics">${metrics.map(metric=>renderMetric(metric,card.id)).join("")}</div></article>`;
       };

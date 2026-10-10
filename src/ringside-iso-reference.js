@@ -103,7 +103,8 @@
     const delta = Number(value)-resolved.target, tolerance = Number.EPSILON*Math.max(1,Math.abs(Number(value)),Math.abs(resolved.target))*8;
     const below = delta < -tolerance;
     if (resolved.basis === "ratio") return {kind:"literature-mean",relation:below?"below":delta>tolerance?"above":"equal",label:"参考",status:"gray"};
-    return {kind:"literature-mean",relation:below?"below":"met",label:below?"关注":"达标",status:below?"amber":"green"};
+    const status = below ? "amber" : "green";
+    return {kind:"literature-mean",relation:below?"below":"met",label:root.Def?.assessmentLabel?.(status) || (below?"关注":"达标"),status};
   }
   function validateReference(ref, balance = false) {
     if (ref == null) return true;

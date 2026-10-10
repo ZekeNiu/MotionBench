@@ -342,7 +342,7 @@ test("isometric empty evaluations and balances are plain dashes while valid side
   assert.match(evaluation, /class="pill green iso-status"[^>]*aria-label="L · 达到目标"/);
   assert.match(evaluation, /class="pill red iso-status"[^>]*aria-label="R · 疼痛"/);
   const text = value => value.replace(/<[^>]*>/g, '');
-  assert.equal(text(evaluation), 'L · 达标R · 严重');
+  assert.equal(text(evaluation), 'L · 达标R · 预警');
   Object.assign(er, { left: 100, right: '' });
   html = R.render(R.build(r));
   const balance = reportCell(html, er.id, '关节平衡');
@@ -430,7 +430,7 @@ test("speed units and IFT protocols remain independent; invalid or zero ASR neve
 test("strength endurance uses traffic-light wording while retaining reference colors, boundaries and other labels", () => {
   const r = M.sampleRecord(), def = r.definitions.find(x => x.id === 'pushup_reps');
   const originalRanges = JSON.stringify(def.ranges);
-  for (const [value, status, label] of [[59,'red','重点关注'],[60,'amber','关注'],[66,'amber','关注'],[70,'gray','未分级'],[75,'green','正常'],[80,'green','正常'],[81,'green','正常']]) {
+  for (const [value, status, label] of [[59,'red','预警'],[60,'amber','关注'],[66,'amber','关注'],[70,'gray','未分级'],[75,'green','达标'],[80,'green','达标'],[81,'green','达标']]) {
     r.data.pushup.reps = value;
     const report = R.build(r), metric = report.projects.find(x => x.id === 'pushup').metrics[0];
     assert.equal(metric.evaluation.status, status);

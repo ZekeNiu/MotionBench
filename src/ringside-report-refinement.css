@@ -55,9 +55,12 @@
 .iso-results.with-repeat-columns th,.iso-results.with-repeat-columns th:nth-child(4) { width:auto; min-width:0; }
 .iso-results .iso-reference-evaluation { display:block; font-size:11px; line-height:1.65; color:var(--muted); }
 .iso-results .iso-reference { font-size:10px; line-height:1.6; }
-.iso-results .iso-status { max-width:100%; white-space:normal; }
-.iso-results .iso-status-label { white-space:nowrap; }
+.iso-results .iso-status { max-width:100%; white-space:nowrap; }
+.iso-results .iso-status-label,.iso-results .iso-status-value { white-space:nowrap; }
+.iso-results [data-label="关节平衡"] .iso-status,.iso-results [data-label="关节平衡"] .iso-status-value { white-space:normal; }
 .iso-results .asym-value,.iso-results .asym-side { white-space:nowrap; }
+.iso-results [data-label="双侧差异"] .pill { padding-inline:2px; }
+@container(max-width:919px){.iso-detail{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:1000px){.aux-metrics{grid-template-columns:minmax(0,1fr);gap:10px}.aux-metric{padding-top:10px}}
 @media(max-width:800px){.capability-row{grid-template-columns:minmax(0,1fr)}.capability-results,.capability-row{gap:16px}.capability-card{padding:20px}.capability-value{font-size:21px}}
 .athlete-summary .micro-value { overflow-wrap: anywhere; line-height: 1.35; }

@@ -15,6 +15,8 @@ for (const name of [
   "fvp-model-tests.cjs",
   "fvp-report-model-tests.cjs",
   "report-v216-model-tests.cjs",
+  "report-v2161-model-tests.cjs",
+  "dsi-v2161-model-tests.cjs",
   "fvp-excel-model-tests.cjs",
   "entry-session-model-tests.cjs",
   "isometric-selection-model-tests.cjs",

@@ -52,8 +52,9 @@ test("CPET independent oxygen and HR standards survive missing peak and percenta
   const r=M.defaults();r.enabled.cpet=true;r.athlete.mass=70;r.data.cpet={modality:"treadmill",oxygenLabel:"VO2peak",vo2:withPeak?50:"",vo2Unit:"ml/kg/min",thresholds:{first:{label:"VT1",vo2:30,vo2Unit:"ml/kg/min",hr:140}}};
   for(const [id,label]of [["cpet_threshold1_vo2_relative","摄氧量自定义等级"],["cpet_threshold1_hr","心率自定义等级"]])Object.assign(r.definitions.find(d=>d.id===id),{referenceEnabled:true,target:null,ranges:[{min:0,max:null,includeMin:true,includeMax:true,status:"green",label}]});
   const report=R.build(r),card=report.stats.capabilityCards.find(c=>c.id==="cardio"),primary=card.metrics.find(m=>m.id===(withPeak?"cpet_threshold1_pct":"cpet_threshold1_vo2_relative")),html=R.render(report).split('data-capability-card="cardio"')[1];
-  assert.ok(primary);assert.match(html,/摄氧量自定义等级/);assert.match(html,/心率自定义等级/);assert.match(html,/140\.0[\s\S]*capability-component-judgment green[\s\S]*心率自定义等级/);
-  if(withPeak){assert.equal(primary.components.find(c=>c.id==="cpet_threshold1_vo2_relative").judgment,"摄氧量自定义等级");assert.match(html,/30\.0[\s\S]*capability-component-judgment green[\s\S]*摄氧量自定义等级/);}
+  assert.ok(primary);assert.match(html,/140\.0[\s\S]*capability-component-judgment green[\s\S]*达标/);assert.doesNotMatch(html,/摄氧量自定义等级|心率自定义等级/);
+  for(const [id,label] of [["cpet_threshold1_vo2_relative","摄氧量自定义等级"],["cpet_threshold1_hr","心率自定义等级"]])assert.equal(r.definitions.find(d=>d.id===id).ranges[0].label,label);
+  if(withPeak){assert.equal(primary.components.find(c=>c.id==="cpet_threshold1_vo2_relative").judgment,"摄氧量自定义等级");assert.match(html,/30\.0[\s\S]*capability-component-judgment green[\s\S]*达标/);}
   else{assert.equal(primary.judgment,"摄氧量自定义等级");assert.equal(primary.value,30);assert.equal(card.metrics.some(m=>m.id==="cpet_vo2_relative"),false);}
   for(const d of r.definitions)if(d.id.startsWith("cpet_")){d.referenceEnabled=false;d.ranges=[];d.target=null;}
   const ungraded=R.render(R.build(r)).split('data-capability-card="cardio"')[1];assert.doesNotMatch(ungraded,/capability-component-judgment|capability-judgment|自定义等级/);

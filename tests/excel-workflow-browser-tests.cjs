@@ -1,7 +1,8 @@
 "use strict";
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict"),{pathToFileURL}=require("node:url"),{createHash}=require("node:crypto");
 const {chromium}=require("./helpers/playwright.cjs"),ExcelJS=require("../vendor/exceljs.min.js");
-const root=path.resolve(__dirname,".."),file=path.join(root,"MotionBench.html"),channel=process.argv.includes("--edge")?"msedge":"chrome",out=path.join(root,"output/playwright/v213-excel");fs.mkdirSync(out,{recursive:true});
+const outputOption=process.argv.indexOf("--output-dir");
+const root=path.resolve(__dirname,".."),file=path.join(root,"MotionBench.html"),channel=process.argv.includes("--edge")?"msedge":"chrome",out=outputOption>=0?path.resolve(process.argv[outputOption+1]):path.join(root,"output/playwright/v213-excel");fs.mkdirSync(out,{recursive:true});
 const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).digest("hex"),channel,checks:[],errors:[],network:[],layouts:[],pass:false};
 const {columns,directionId}=require("./helpers/excel-template.cjs");
 async function workbook(bytes){const book=new ExcelJS.Workbook();await book.xlsx.load(bytes);return book;}

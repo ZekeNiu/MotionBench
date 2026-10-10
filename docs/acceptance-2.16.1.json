@@ -1,0 +1,650 @@
+{
+  "pass": true,
+  "implementationComplete": true,
+  "approvedAcceptancePass": true,
+  "version": "2.16.1",
+  "approvedRevision": "MotionBench 2.16.1 report and evaluation follow-up",
+  "approvedAmendment": "IMTP shares short assessment labels; clarify target/range precedence and fix disabled extension grading.",
+  "html": "MotionBench.html",
+  "sha256": "a97c903c243246df6a6cb569d28a17c7bc3d35f9380bd3885d973f00d931edff",
+  "bytes": 4362194,
+  "reproducibleBuild": true,
+  "modules": {
+    "ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "ringside-app.js": "9b7ebcb94fedd619c1059d68863e3c5e819bba799f4b223ed51347c8a2181f50",
+    "ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "ringside-context-ui.js": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+    "ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "ringside-definitions.js": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+    "ringside-entry-session.js": "8bfa128bfebd6bc105abb018eedf6134a34c6e7bfbe7aa8aef4be303c578b9d4",
+    "ringside-evaluation.js": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+    "ringside-excel-flow.js": "e5d71d006dee26a1c38d95a7fa1086864409d2c350e08ed14dbe85adfd279cf1",
+    "ringside-excel.js": "de91a3c072d70163f3b2102deff7402b3d19eaea79147b14dd8a07b84452c338",
+    "ringside-fvp-entry.js": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+    "ringside-fvp.js": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+    "ringside-interventions.js": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db",
+    "ringside-iso-reference.js": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+    "ringside-management.js": "94bf5e2905d6ecc7d70c00edd388939b6aed79fa82a1002ace189cc2312b4047",
+    "ringside-model.js": "e3bf3d68d59294e87390c4a09cd6678cf9ac1ece05a690842fe8e9e08f218570",
+    "ringside-pdf.js": "10d056b062ac72acb42e1fdaddb2eb50b825676d7256e3f2cc6af8e3af30c5e3",
+    "ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "ringside-profile.js": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+    "ringside-report.js": "1b01105f4aeca3e10dc4ccfa824ac1395f8300ff84186308d3cc2d23f6c256fc",
+    "ringside-settings.js": "e6fa91412feb26756609b9340f1e0406e1b4912161023d8e1d5b2709342e9a79",
+    "ringside-sources.js": "909277eeafede0663a125b7b8d56ff84567fb458fef525e19872042c16e06db4",
+    "ringside-store.js": "e49f759de73ad32840e5b1d0da3bc29d0ae527a1305285524844559bbb264505",
+    "ringside-tests.js": "31a1c042b0478ded0e7190ad9d864800ff64ab8952a5f09354a08c86e3806ba4",
+    "ringside-viz.js": "8be84737db4dab2ba155be4005e1b48bb301ddc04c22d4184993373c3e3e52c0"
+  },
+  "assets": {
+    "body-map-front.png": "79f7eb61a6d838e450de6afd2dcb07f32a6c1cf75d0b1fee896a7eb6954e6e20"
+  },
+  "evidence": {
+    "unit": {
+      "path": "output/tests/unit-results.json",
+      "sha256": "6df2c85daa8ee111aa8b80ba81a12cabc923ebe8747eb71bdfb3e6281072e992"
+    },
+    "chromeMigration": {
+      "path": "output/playwright/v2161-migration/chrome-results.json",
+      "sha256": "f4c23fdecd0ceeb39d0284e8f29d120187717d1fd7bc6afb3e14d85a20b78ef5"
+    },
+    "chromeDSI": {
+      "path": "output/v2161-dsi/chrome-results.json",
+      "sha256": "6e99c4ad025a0f36a9d75c7dafc637b47751745a5edb73575f6159ee67c59741"
+    },
+    "chromeEvaluation": {
+      "path": "output/playwright/v2161-evaluation/chrome-results.json",
+      "sha256": "a2f203850d9f8d44cb33ed71be1d4c3b32bffb47f25cb598312db6cf9d6bfbff"
+    },
+    "chromeReport": {
+      "path": "output/playwright/report-v2161/chrome-results.json",
+      "sha256": "e69ab8de4c9b84ba6345737df2492b1eed8eac3820c8397d514bec5df146dd85"
+    },
+    "chromeIndependentHTML": {
+      "path": "output/playwright/report-v2161/chrome-html-results.json",
+      "sha256": "b06f2749081a8b0ab7b2df0b88b8bc5d6795ee50b58507167c8afcf5d52bee76"
+    },
+    "msedgeMigration": {
+      "path": "output/playwright/v2161-migration/msedge-results.json",
+      "sha256": "8fe1a8122a176c47218584e2a0419e81e9ae7b240df6cc88167f330a29903994"
+    },
+    "msedgeDSI": {
+      "path": "output/v2161-dsi/msedge-results.json",
+      "sha256": "47bafe7a16d2041054b5f4f2fbefc766b933078c2137085ad75bf01e9428eeb3"
+    },
+    "msedgeEvaluation": {
+      "path": "output/playwright/v2161-evaluation/msedge-results.json",
+      "sha256": "10854a93a25462fc688445663119cf15d0a8557538360713c31b8a0aa3e8b639"
+    },
+    "msedgeReport": {
+      "path": "output/playwright/report-v2161/msedge-results.json",
+      "sha256": "6eecde96732a4fe873671ffe50e044a9e7195476d38a47de3ac96e79e4498996"
+    },
+    "msedgeIndependentHTML": {
+      "path": "output/playwright/report-v2161/msedge-html-results.json",
+      "sha256": "c3349f0a6955f3c20e26a5dcb410d33d0f11cef6197a889620315492af1bb9e1"
+    },
+    "renderedPDF": {
+      "path": "output/playwright/report-v2161/pdf-render-results.json",
+      "sha256": "5c6936369c83d7dadb20225892c255e02c596191b101f014cbab622a609c7352"
+    },
+    "retained2160Acceptance": {
+      "path": "docs/acceptance-2.16.0.json",
+      "sha256": "4753b7ccce28d3a98326faeaed2a55fc4f86cd31b8a7ed98d418bb8585687aaf"
+    },
+    "ExcelReusePreflight": {
+      "path": "output/tests/v2161-excel/v216-excel-reuse-preflight.json",
+      "sha256": "567ff9d1697c2c1ec4a03aba3d724801ab6be833c73c49b19366b8ee44ae545f"
+    },
+    "nativeExcelReplay": {
+      "path": "output/tests/v2161-excel/v216-excel-native-workflow-results.json",
+      "sha256": "b29307431233edd4aa6caab34ab456c422f7c8acea78ac8554a643ea1b783a76"
+    },
+    "genuine215ExcelReplay": {
+      "path": "output/tests/v2161-excel/v216-excel-genuine-v215.json",
+      "sha256": "3331140779f97bd7c452e62abebf2ebe485f59d844acf57da1df381c19f84e83"
+    },
+    "chromeExcelWorkflow": {
+      "path": "output/playwright/v2161-excel/chrome-results.json",
+      "sha256": "6e9d7a5cb7872f1b10e553a1548c5698d167daf444b3a333fd774fb18e12b859"
+    },
+    "msedgeExcelWorkflow": {
+      "path": "output/playwright/v2161-excel/msedge-results.json",
+      "sha256": "f03a9d84df4cf0130e6bbf8bf47a7ff74f57f7d0095059915d86184d542c9d39"
+    }
+  },
+  "unitSuites": 34,
+  "modelChecks": 483,
+  "browserWorkflowChecks": 124,
+  "layouts": [
+    {
+      "width": 1440,
+      "overflow": false,
+      "overviewColumns": 3,
+      "overviewOverflow": [],
+      "isoWidth": 596.953125,
+      "assessmentWrap": [
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 预警",
+          "offset": 0
+        },
+        {
+          "text": "L · 预警",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "R · 关注",
+          "offset": 0
+        }
+      ],
+      "charts": [
+        {
+          "width": 447.03125,
+          "height": 390.015625
+        },
+        {
+          "width": 447.03125,
+          "height": 388.015625
+        }
+      ],
+      "isoCellOverflow": []
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "overviewColumns": 3,
+      "overviewOverflow": [],
+      "isoWidth": 514.09375,
+      "assessmentWrap": [
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 预警",
+          "offset": 0
+        },
+        {
+          "text": "L · 预警",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "R · 关注",
+          "offset": 0
+        }
+      ],
+      "charts": [
+        {
+          "width": 381.90625,
+          "height": 389.890625
+        },
+        {
+          "width": 381.90625,
+          "height": 387.890625
+        }
+      ],
+      "isoCellOverflow": []
+    },
+    {
+      "width": 900,
+      "overflow": false,
+      "overviewColumns": 1,
+      "overviewOverflow": [],
+      "isoWidth": 806,
+      "assessmentWrap": [
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 预警",
+          "offset": 0
+        },
+        {
+          "text": "L · 预警",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "R · 关注",
+          "offset": 0
+        }
+      ],
+      "charts": [
+        {
+          "width": 756,
+          "height": 390
+        },
+        {
+          "width": 756,
+          "height": 330
+        }
+      ],
+      "isoCellOverflow": []
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "overviewColumns": 1,
+      "overviewOverflow": [],
+      "isoWidth": 334,
+      "assessmentWrap": [
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 预警",
+          "offset": 0
+        },
+        {
+          "text": "L · 预警",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "R · 关注",
+          "offset": 0
+        }
+      ],
+      "charts": [
+        {
+          "width": 300,
+          "height": 390
+        },
+        {
+          "width": 300,
+          "height": 330
+        }
+      ],
+      "isoCellOverflow": []
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "overviewColumns": 3,
+      "overviewOverflow": [],
+      "isoWidth": 596.953125,
+      "assessmentWrap": [
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 预警",
+          "offset": 0
+        },
+        {
+          "text": "L · 预警",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "R · 关注",
+          "offset": 0
+        }
+      ],
+      "charts": [
+        {
+          "width": 447.03125,
+          "height": 390.015625
+        },
+        {
+          "width": 447.03125,
+          "height": 388.015625
+        }
+      ],
+      "isoCellOverflow": []
+    },
+    {
+      "width": 1280,
+      "overflow": false,
+      "overviewColumns": 3,
+      "overviewOverflow": [],
+      "isoWidth": 514.09375,
+      "assessmentWrap": [
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 预警",
+          "offset": 0
+        },
+        {
+          "text": "L · 预警",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "R · 关注",
+          "offset": 0
+        }
+      ],
+      "charts": [
+        {
+          "width": 381.90625,
+          "height": 389.890625
+        },
+        {
+          "width": 381.90625,
+          "height": 387.890625
+        }
+      ],
+      "isoCellOverflow": []
+    },
+    {
+      "width": 900,
+      "overflow": false,
+      "overviewColumns": 1,
+      "overviewOverflow": [],
+      "isoWidth": 806,
+      "assessmentWrap": [
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 预警",
+          "offset": 0
+        },
+        {
+          "text": "L · 预警",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "R · 关注",
+          "offset": 0
+        }
+      ],
+      "charts": [
+        {
+          "width": 756,
+          "height": 390
+        },
+        {
+          "width": 756,
+          "height": 330
+        }
+      ],
+      "isoCellOverflow": []
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "overviewColumns": 1,
+      "overviewOverflow": [],
+      "isoWidth": 334,
+      "assessmentWrap": [
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 预警",
+          "offset": 0
+        },
+        {
+          "text": "L · 预警",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "L · 达标",
+          "offset": 0
+        },
+        {
+          "text": "R · 达标",
+          "offset": 0
+        },
+        {
+          "text": "L · 关注",
+          "offset": 0
+        },
+        {
+          "text": "R · 关注",
+          "offset": 0
+        }
+      ],
+      "charts": [
+        {
+          "width": 300,
+          "height": 390
+        },
+        {
+          "width": 300,
+          "height": 330
+        }
+      ],
+      "isoCellOverflow": []
+    }
+  ],
+  "pdfPagesVisuallyReviewed": 52,
+  "retainedNativeExcelWorkbooks": 10,
+  "newNativeExcelOperations": 0,
+  "rollback": {
+    "tag": "rollback-v2.16.0-20261010",
+    "commit": "190ea641873c839d52679b6201b73c1c231a0479",
+    "remoteVerified": true,
+    "htmlSHA256": "2638d9669e153c2e2d3c55a8f879003da06ac962cb8b765b44d3bf26e3606690",
+    "sourceArchiveSHA256": "139e25c362b6b9ffbb5b696cf1fc9b2e94a8d006a61fd8dedcaa6102d4e48e0b"
+  },
+  "verificationLimits": [
+    "Synthetic records in isolated installed Chrome/Edge contexts; narrow screens are emulated.",
+    "Replayed existing native Excel files through this release; no new native Excel operation was performed because the Excel and calculation modules are unchanged.",
+    "ER:IR population means alone do not define individual assessment intervals; no new ratio cutoff was invented.",
+    "Literature reference comparability with the user's fixed dynamometry protocol remains unverified.",
+    "No physical mobile, physical printing, new live AI content-quality, or clean Windows-machine installation test was run."
+  ]
+}

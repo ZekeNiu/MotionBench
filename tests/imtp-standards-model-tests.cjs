@@ -166,4 +166,66 @@ test("test-plan snapshots normalize without mutating history and validate stable
   r.testPlanSnapshot.id = ""; assert.throws(() => M.validateRecord(r));
   delete r.testPlanSnapshot; M.validateRecord(r);
 });
+test("a shared custom scalar enable switch gates interval and target grades without deleting either setting", () => {
+  const r = record(); r.enabled.imtp = false; r.customTests.push({ id: "gate_scalar", name: "自定义测试", category: "performance" }); r.enabled.gate_scalar = true;
+  r.definitions.push({ id: "gate_value", testId: "gate_scalar", name: "数值", category: "performance", ability: "自定义能力", direction: "higher", unit: "次", target: 90, referenceEnabled: true, ranges: D.parseRanges("<60 | 预警 | red\n>=60 | 达标 | green"), source: "配置测试", protocol: "" });
+  r.customValues.gate_value = { value: 70 }; const p = E.create(r), cfg = p.criteria.definitions.find(d => d.id === "gate_value");
+  let rr = E.resolve(r, p), d = rr.definitions.find(d => d.id === cfg.id), s = M.stats(rr); assert.equal(M.evaluation(70, d, rr).status, "green"); near(M.attainment(70, d), 70 / 90 * 100); assert.equal(s.axes[0].status, "green");
+  cfg.referenceEnabled = false; const settings = copy(cfg); rr = E.resolve(r, p); d = rr.definitions.find(d => d.id === cfg.id); s = M.stats(rr);
+  assert.equal(M.evaluation(70, d, rr).status, "gray"); assert.equal(M.attainment(70, d), null); assert.equal(s.axes.length, 0); assert.equal(s.values.gate_value, 70); assert.equal(d.target, 90); assert.deepEqual(copy(d.ranges), settings.ranges); assert.deepEqual(copy(cfg), settings);
+  cfg.referenceEnabled = true; cfg.ranges = []; rr = E.resolve(r, p); d = rr.definitions.find(d => d.id === cfg.id); assert.equal(M.evaluation(70, d, rr).status, "red"); assert.equal(M.stats(rr).axes[0].status, "red");
+  cfg.referenceEnabled = false; rr = E.resolve(r, p); d = rr.definitions.find(d => d.id === cfg.id); assert.equal(M.evaluation(70, d, rr).status, "gray"); assert.equal(M.attainment(70, d), null); assert.equal(M.stats(rr).axes.length, 0); assert.equal(d.target, 90);
+});
+
+test("IMTP peak force extensions retain raw force and standards while a disabled target contributes no grade or axis", () => {
+  const r = record(); r.data.imtp = [trial("a", 1000, 700)]; const p = E.create(r), cfg = p.criteria.definitions.find(d => d.id === "imtp_peak_force"); assert.equal(D.builtins.some(d => d.id === cfg.id), false);
+  Object.assign(cfg, { target: 1500, referenceEnabled: true, ranges: D.parseRanges("<900 | 预警 | red\n>=900 | 达标 | green") });
+  let rr = E.resolve(r, p), d = rr.definitions.find(d => d.id === cfg.id), s = M.stats(rr); assert.equal(M.evaluation(s.values.imtp_peak_force, d, rr).status, "green"); near(M.attainment(1000, d), 1000 / 1500 * 100); assert.equal(s.axes[0].status, "green");
+  cfg.referenceEnabled = false; const settings = copy(cfg); rr = E.resolve(r, p); d = rr.definitions.find(d => d.id === cfg.id); s = M.stats(rr); assert.equal(M.evaluation(1000, d, rr).status, "gray"); assert.equal(M.attainment(1000, d), null); assert.equal(s.axes.length, 0); assert.equal(s.values.imtp_peak_force, 1000); assert.equal(s.raw.forceTime.timeRows[0].forcePercent, 70); assert.equal(d.target, 1500); assert.deepEqual(copy(d.ranges), settings.ranges); assert.deepEqual(copy(cfg), settings);
+  cfg.referenceEnabled = true; cfg.ranges = []; rr = E.resolve(r, p); d = rr.definitions.find(d => d.id === cfg.id); assert.equal(M.evaluation(1000, d, rr).status, "red"); assert.equal(M.stats(rr).axes[0].status, "red");
+});
+
+test("legacy IMTP disabled time targets keep the table and ability radar consistently ungraded", () => {
+  const r = record(); r.data.imtp = [trial("a", 1000, 500, "", 100)]; const p = E.create(r), cfg = p.criteria.definitions.find(d => d.id === "imtp_f100"); Object.assign(cfg, { target: 400, referenceEnabled: true, ranges: [] });
+  let s = M.stats(E.resolve(r, p)); assert.equal(s.raw.forceTime.timeRows[0].forceEvaluation.status, "green"); assert.equal(s.axes.find(a => a.key === "早期发力").status, "green");
+  cfg.referenceEnabled = false; s = M.stats(E.resolve(r, p)); assert.equal(s.raw.forceTime.timeRows[0].forceEvaluation.status, "gray"); assert.equal(s.axes.some(a => a.key === "早期发力"), false); assert.equal(s.values.imtp_f100, 500); assert.equal(s.raw.forceTime.timeRows[0].forcePercent, 50); assert.equal(cfg.target, 400);
+  cfg.referenceEnabled = true; s = M.stats(E.resolve(r, p)); assert.equal(s.raw.forceTime.timeRows[0].forceEvaluation.status, "green"); assert.equal(s.axes.find(a => a.key === "早期发力").value, 100);
+});
+
+test("new percent of peak force standards retain their strict enable guard and physical percentages", () => {
+  const r = record(); r.data.imtp = [trial("a", 1000, 450, "", 100)]; const cfg = rule(r, "force_pct_peak", 100), p = profile(r, [cfg]);
+  let rr = E.resolve(r, p), s = M.stats(rr); assert.equal(s.raw.forceTime.timeRows[0].forceEvaluation.status, "red"); assert.equal(s.axes.find(a => a.key === "早期发力").status, "red");
+  cfg.referenceEnabled = false; rr = E.resolve(r, p); s = M.stats(rr); const row = s.raw.forceTime.timeRows[0]; assert.equal(row.forceEvaluation.status, "gray"); assert.equal(row.forcePercent, 45); assert.equal(row.force, 450); assert.equal(M.evaluation(45, row.forceStandard, rr).status, "gray"); assert.equal(M.attainment(45, row.forceStandard), null); assert.equal(s.axes.some(a => a.key === "早期发力"), false); assert.equal(cfg.target, 90);
+  cfg.referenceEnabled = true; s = M.stats(E.resolve(r, p)); assert.equal(s.raw.forceTime.timeRows[0].forceEvaluation.status, "red"); near(s.axes.find(a => a.key === "早期发力").value, 50);
+});
+
+test("measured disabled extension targets invalidate only the obsolete grading basis and preserve handwritten advice", () => {
+  const r = record(); r.data.imtp = [trial("measured", 1000, 450, "", 100)];
+  const p = E.create(r), cfg = p.criteria.definitions.find(d => d.id === "imtp_peak_force"); Object.assign(cfg, { referenceEnabled: false, target: 1500, ranges: [] });
+  const effective = E.resolve(r, p), current = M.fingerprint(effective), legacy = JSON.parse(current);
+  assert.equal(legacy.evaluationSwitchBasis, "disabled-extension-standards-v1"); delete legacy.evaluationSwitchBasis;
+  r.narrative = { html: "<p>教练手写建议原文</p>", text: "教练手写建议原文", origin: "手写", revision: 3, basis: JSON.stringify(legacy) };
+  const resolved = E.resolve(r, p), normalized = M.normalizeRecord(resolved);
+  assert.notEqual(M.fingerprint(resolved), r.narrative.basis);
+  for (const field of ["html", "text", "origin", "revision", "basis"]) assert.equal(normalized.narrative[field], r.narrative[field], field);
+  assert.deepEqual(copy(resolved.data), copy(r.data));
+  const now = JSON.parse(M.fingerprint(resolved)); delete now.evaluationSwitchBasis; assert.deepEqual(now, legacy);
+});
+
+test("unmeasured disabled or already enabled extension targets retain their historical grading basis", () => {
+  const r = record(), p = E.create(r), cfg = p.criteria.definitions.find(d => d.id === "imtp_peak_force");
+  Object.assign(cfg, { referenceEnabled: false, target: 1500 }); assert.equal(Object.hasOwn(JSON.parse(M.fingerprint(E.resolve(r, p))), "evaluationSwitchBasis"), false);
+  r.data.imtp = [trial("measured", 1000, 450)]; cfg.referenceEnabled = true;
+  assert.equal(Object.hasOwn(JSON.parse(M.fingerprint(E.resolve(r, p))), "evaluationSwitchBasis"), false);
+  cfg.referenceEnabled = false; cfg.target = null; assert.equal(Object.hasOwn(JSON.parse(M.fingerprint(E.resolve(r, p))), "evaluationSwitchBasis"), false);
+  r.enabled.imtp = false; cfg.target = 1500; assert.equal(Object.hasOwn(JSON.parse(M.fingerprint(E.resolve(r, p))), "evaluationSwitchBasis"), false);
+});
+
+test("a disabled percent replacement with its existing strict guard does not acquire an unrelated extension basis", () => {
+  const r = record(); r.data.imtp = [trial("measured", 1000, 450, "", 100)];
+  const cfg = { ...rule(r, "force_pct_peak", 100), referenceEnabled: false }, p = profile(r, [cfg]);
+  assert.equal(Object.hasOwn(JSON.parse(M.fingerprint(E.resolve(r, p))), "evaluationSwitchBasis"), false);
+  assert.equal(point(r, p, 100).forceEvaluation.status, "gray");
+});
+
 console.log(passed + " IMTP standards model checks passed");

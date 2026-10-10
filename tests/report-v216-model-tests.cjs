@@ -14,7 +14,8 @@ function fixture(){
 test("overview preserves both protocols ahead of all directional ratios and excludes invalid or disabled profiles",()=>{
   const r=fixture(),report=R.build(r),html=R.overview(report);
   const ids=[...html.matchAll(/data-overview-metric="([^"]+)"/g)].map(match=>match[1]);
-  assert.deepEqual(ids.slice(0,4),["fvp_sj","fvp_sj_elasticity","fvp_cmj","fvp_cmj_elasticity"]);
+  assert.deepEqual(ids.slice(0,3),["fvp_sj","fvp_sj_elasticity","fvp_cmj"]);
+  assert.ok(!ids.includes("fvp_cmj_elasticity"));
   assert.ok(ids.includes("eur"));assert.ok(html.includes("各提高 1%"));assert.doesNotMatch(html,/CMJ 垂直跳跃高度较 SJ|1\.1 标准|待录入|未测/);
   r.views.fvpProtocol="fvp_cmj";assert.equal(R.overview(R.build(r)),html);
   r.enabled.fvp_sj=false;r.data.fvp_cmj=r.data.fvp_cmj.slice(0,2);
@@ -55,13 +56,13 @@ test("isometric report keeps L and R naming and explicit fixed column proportion
   const r=fixture();r.enabled.iso=true;
   const row=r.data.iso.find(item=>item.paired);assert.ok(row);row.trials=[0,1,2].map(index=>({id:`iso-trial-${index}`,left:30+index,right:35+index,painLeft:false,painRight:false}));
   const before=JSON.stringify(r),report=R.build(r),html=R.render(report);
-  assert.match(html,/<colgroup><col style="width:14%"><col style="width:20%"><col style="width:23%"><col style="width:7%"><col style="width:12%"><col style="width:9%"><col style="width:15%"><\/colgroup>/);
+  assert.match(html,/<colgroup><col style="width:14%"><col style="width:20%"><col style="width:21%"><col style="width:7%"><col style="width:12%"><col style="width:13%"><col style="width:13%"><\/colgroup>/);
   const iso=html.split('class="iso-results with-repeat-columns"')[1].split('</table>')[0];
   assert.doesNotMatch(iso,/左向|右向|向较弱|L较弱|R较弱/);assert.match(iso,/左侧更弱|右侧更弱/);
   assert.equal(JSON.stringify(r),before);
 });
 test("untargeted isometric measurements retain pain and asymmetry grades without inventing a pass",()=>{
-  for(const sample of [{left:26,status:"amber",label:"关注"},{left:20,status:"red",label:"严重"},{left:30,status:"gray",label:""},{left:30,pain:true,status:"red",label:"严重"}]){
+  for(const sample of [{left:26,status:"amber",label:"关注"},{left:20,status:"red",label:"预警"},{left:30,status:"gray",label:""},{left:30,pain:true,status:"red",label:"预警"}]){
     const r=M.defaults();Object.keys(r.enabled).forEach(id=>r.enabled[id]=id==="iso");
     const row=r.data.iso.find(item=>item.region==="hip"&&item.directionCode==="externalRotation");
     Object.assign(row,{target:null,reference:null,left:sample.left,right:30,painLeft:!!sample.pain,painRight:false});r.isoDirectionIds=[row.id];

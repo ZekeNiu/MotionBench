@@ -3132,9 +3132,12 @@ body.sidebar-collapsed .workspace {
 .iso-results.with-repeat-columns th,.iso-results.with-repeat-columns th:nth-child(4) { width:auto; min-width:0; }
 .iso-results .iso-reference-evaluation { display:block; font-size:11px; line-height:1.65; color:var(--muted); }
 .iso-results .iso-reference { font-size:10px; line-height:1.6; }
-.iso-results .iso-status { max-width:100%; white-space:normal; }
-.iso-results .iso-status-label { white-space:nowrap; }
+.iso-results .iso-status { max-width:100%; white-space:nowrap; }
+.iso-results .iso-status-label,.iso-results .iso-status-value { white-space:nowrap; }
+.iso-results [data-label="关节平衡"] .iso-status,.iso-results [data-label="关节平衡"] .iso-status-value { white-space:normal; }
 .iso-results .asym-value,.iso-results .asym-side { white-space:nowrap; }
+.iso-results [data-label="双侧差异"] .pill { padding-inline:2px; }
+@container(max-width:919px){.iso-detail{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:1000px){.aux-metrics{grid-template-columns:minmax(0,1fr);gap:10px}.aux-metric{padding-top:10px}}
 @media(max-width:800px){.capability-row{grid-template-columns:minmax(0,1fr)}.capability-results,.capability-row{gap:16px}.capability-card{padding:20px}.capability-value{font-size:21px}}
 .athlete-summary .micro-value { overflow-wrap: anywhere; line-height: 1.35; }
@@ -3438,7 +3441,7 @@ body.sidebar-collapsed .workspace {
               </div>
               <div class="card-foot">
                 <div class="legend">
-                  <span><i class="dot red"></i>重点关注</span
+                  <span><i class="dot red"></i>预警</span
                   ><span><i class="dot amber"></i>关注</span
                   ><span><i class="dot green"></i>达标</span
                   ><span><i class="dot gray"></i>已测未评</span>
@@ -4765,7 +4768,8 @@ body.sidebar-collapsed .workspace {
     const delta = Number(value)-resolved.target, tolerance = Number.EPSILON*Math.max(1,Math.abs(Number(value)),Math.abs(resolved.target))*8;
     const below = delta < -tolerance;
     if (resolved.basis === "ratio") return {kind:"literature-mean",relation:below?"below":delta>tolerance?"above":"equal",label:"参考",status:"gray"};
-    return {kind:"literature-mean",relation:below?"below":"met",label:below?"关注":"达标",status:below?"amber":"green"};
+    const status = below ? "amber" : "green";
+    return {kind:"literature-mean",relation:below?"below":"met",label:root.Def?.assessmentLabel?.(status) || (below?"关注":"达标"),status};
   }
   function validateReference(ref, balance = false) {
     if (ref == null) return true;
@@ -4960,9 +4964,14 @@ body.sidebar-collapsed .workspace {
     var converted = '跑台改良版：2.222222 m/s 起，每级 +0.138889 m/s，30 秒跑 / 15 秒被动恢复；记录最终完整级与未完成级持续时间。不得套用至折返版。';
     return id === 'ift_treadmill' && [legacy, converted, '30-15VIFT'].indexOf(text) !== -1 ? '30-15VIFT' : text;
   }
+  // Shared report wording; preserve the original reference intervals and labels.
+  function assessmentLabel(status, fallback) {
+    var labels = { red: '预警', amber: '关注', green: '达标' };
+    return Object.prototype.hasOwnProperty.call(labels, status) ? labels[status] : fallback === undefined ? '' : String(fallback);
+  }
   root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies, viftProtocol: viftProtocol, factoryText: factoryText,
     defaultDefinitions: function () { return JSON.parse(JSON.stringify(builtins)); },
-    parseRanges: parseRanges, rangeText: rangeText, grade: grade };
+    parseRanges: parseRanges, rangeText: rangeText, grade: grade, assessmentLabel: assessmentLabel };
 })(typeof window !== 'undefined' ? window : globalThis);
 
 </script>
@@ -7385,8 +7394,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       !definition ||
       N(value) === null ||
       positive(definition.target) === null ||
-      (Def.builtins.some((d) => d.id === definition.id) &&
-        !definition.referenceEnabled)
+      !definition.referenceEnabled
     )
       return null;
     if (definition.direction === "lower")
@@ -7599,7 +7607,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           referenceReason: resolved.reason,
           pain: !!pain,
           status,
-          label: status === "red" ? "严重" : status === "amber" ? "关注" : status === "green" ? "达标" : value === null ? "未测" : "已测",
+          label: Def.assessmentLabel(status, value === null ? "未测" : "已测"),
           reasons,
           region: regionKey(row.region, side),
         };
@@ -7845,6 +7853,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
               : "");
         const gradeResult = grade(value, pair);
         const reference = root.RingsideIsoReferences?.effectiveReference(record, {region:pair.region,paired:!!numerator?.paired}, side, pair.reference);
+        const evaluationReason = value !== null && gradeResult.status === "gray"
+          ? !pair.referenceEnabled || !pair.ranges?.length
+            ? reference?.matched ? "文献均值仅作参考，尚未设置分级区间" : "尚未设置关节平衡分级区间"
+            : gradeResult.label
+          : "";
         result[key] = value;
         result.results.push({
           side,
@@ -7855,6 +7868,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           referenceComparison: root.RingsideIsoReferences?.comparison(value,reference) || null,
           referenceSource: reference?.source || "",
           referenceReason: reference?.reason || "",
+          evaluationReason,
           reason: missingReason,
           region: regionKey(pair.region, side),
           numeratorValue,
@@ -8521,25 +8535,31 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       state.dsi.source === "manual"
         ? state.dsi.definition
         : state.imtpConfig.definition;
+    const cmjUnit = state.dsi.cmjUnit || "N";
+    const cmjDefinition = state.cmjConfig?.definition || state.dsi.cmjDefinition || state.dsi.definition || "gross";
+    const cmjForce = positive(raw.cmj?.row?.force);
     const comparable =
       state.dsi.confirmed === true &&
-      unit === (state.dsi.cmjUnit || "N") &&
-      forceDefinition ===
-        (state.cmjConfig?.definition ||
-          state.dsi.cmjDefinition ||
-          state.dsi.definition ||
-          "gross");
+      unit === cmjUnit && forceDefinition === cmjDefinition;
     raw.dsi =
-      comparable && positive(raw.cmj?.row?.force) !== null && source !== null
-        ? N(raw.cmj.row.force) / source
+      comparable && cmjForce !== null && source !== null
+        ? cmjForce / source
         : null;
     raw.dsiForce = source;
-    raw.dsiReason =
-      raw.dsi !== null
-        ? ""
-        : !comparable
-          ? "需确认相同力单位、力口径与可比测试协议"
-          : "需 CMJ 力与有效等长峰值力";
+    const dsiIssues = [];
+    if (!use("cmj")) dsiIssues.push("请启用 CMJ 测试");
+    else if (!raw.cmj?.row) dsiIssues.push("需有效 CMJ 垂直跳跃高度以确定本次采用的试次");
+    else if (cmjForce === null) dsiIssues.push("本次采用的 CMJ 试次缺少有效推进期峰值力");
+    if (state.dsi.source !== "manual" && !use("imtp")) dsiIssues.push("请启用 IMTP 测试作为等长来源");
+    else if (source === null) dsiIssues.push(state.dsi.source === "manual" ? "需有效全身等长峰值力" : "需有效 IMTP 峰值力");
+    if (unit !== cmjUnit) dsiIssues.push("力单位不一致：CMJ " + cmjUnit + "／等长 " + unit);
+    const forceName = definition => definition === "net" ? "净力" : definition === "gross" ? "总力" : definition;
+    if (forceDefinition !== cmjDefinition) dsiIssues.push("力口径不一致：CMJ " + forceName(cmjDefinition) + "／等长 " + forceName(forceDefinition));
+    if (state.dsi.confirmed !== true) dsiIssues.push("尚未确认 CMJ 与等长测试的力定义、单位及协议可比较");
+    raw.dsiReason = raw.dsi === null ? dsiIssues.join("；") : "";
+    raw.dsiContext = { cmjForce, isometricForce: source, cmjUnit, isometricUnit: unit,
+      cmjDefinition, isometricDefinition: forceDefinition, source: state.dsi.source,
+      confirmed: state.dsi.confirmed === true, comparable, issues: dsiIssues, ready: raw.dsi !== null };
     raw.asr =
       positive(values.mas_speed) !== null && positive(values.mss_speed) !== null
         ? values.mss_speed - values.mas_speed
@@ -8822,7 +8842,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         };
     }
     // Body details are a read model of the same representative results. They
-    // never add findings or change the existing body grading rules.
+    // never add findings or change the individual scoring rules.
     const projectNames = new Map(T.describe(state).map(test => [test.id, test.name]));
     const detailSide = key => /_l$/.test(key) ? "L" : /_r$/.test(key) ? "R" : "C";
     const addBodyTest = (key, test) => {
@@ -8844,7 +8864,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     for (const balance of balanceResults) for (const side of balance.results) {
       addBodyTest(side.region, { id: "balance_" + balance.id + "_" + (side.side || "C"), testId: "iso", name: balance.label,
         side: side.side || "C", value: side.value, unit: balance.unit, target: side.referenceTarget, targetKind:side.referenceTarget === null ? "none" : "reference", referenceComparison:side.referenceComparison, referenceSource:side.referenceSource, label: side.label,
-        status: side.status, pain: false, missing: side.value === null, notes: side.reason || "" });
+        status: side.status, pain: false, missing: side.value === null,
+        notes: [...new Set([side.reason, side.evaluationReason, side.referenceReason].filter(Boolean))].join("；") });
     }
     for (const [index, row] of (raw.fms?.items || []).entries()) if (row.location) {
       const notes = [row.bilateral ? "左侧 " + (N(row.left) === null ? "未测" : fmt(row.left)) + " / 右侧 " + (N(row.right) === null ? "未测" : fmt(row.right)) : "", row.notes].filter(Boolean);
@@ -8866,7 +8887,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         unit: d.unit, target: d.referenceEnabled ? positive(d.target) : null, label: value === null ? "未测" : result.label,
         status: result.status, pain: false, missing: value === null, notes });
     }
-    Object.values(regions).forEach(region => { region.tests ||= []; region.hasMeasured = region.tests.some(test => test.hasMeasured); });
+    Object.values(regions).forEach(region => {
+      region.tests ||= [];
+      region.hasMeasured = region.tests.some(test => test.hasMeasured);
+      const graded = region.tests.filter(test => test.hasMeasured && ["red", "amber", "green"].includes(test.status));
+      const worst = graded.reduce((selected, test) => !selected || rank[test.status] > rank[selected.status] ? test : selected, null);
+      region.status = worst?.status || "gray";
+      region.label = Def.assessmentLabel(region.status, region.hasMeasured ? "已测" : "未测");
+    });
     const allTests = T.describe(state).map((t) => [t.id, t.name, t.category]),
       plannedTests = allTests.filter((t) => use(t[0]));
     const partial = [];
@@ -9135,6 +9163,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         return value !== null && resolved.target !== null && (resolved.kind === "reference"
           || resolved.kind === "manual" && value < resolved.target && value/resolved.target*100 < N(record.rules.absoluteAmber));
       }));
+    // Old interpretations of disabled extension standards used an active target by mistake.
+    const disabledExtensions = record.definitions.filter(definition => definition.referenceEnabled === false
+      && record.enabled[definition.testId] && positive(definition.target) !== null
+      && !Def.builtins.some(builtin => builtin.id === definition.id));
+    const disabledValues = disabledExtensions.length ? stats(record).values : {};
+    const changedDisabledEvaluation = disabledExtensions.some(definition => N(disabledValues[definition.id]) !== null);
     if (cmjConfig.impulseDefinition === "gross") delete cmjConfig.impulseDefinition;
     if (imtpConfig.impulseDefinition === "gross") delete imtpConfig.impulseDefinition;
     const empty = (value) => value === "" || value === null || value === undefined;
@@ -9181,6 +9215,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       mode: record.mode,
       data,
       ...(changedIsoEvaluation ? { isoEvaluationBasis: "single-target-amber-green-v1" } : {}),
+      ...(changedDisabledEvaluation ? { evaluationSwitchBasis: "disabled-extension-standards-v1" } : {}),
       definitions,
       custom: record.customValues,
       projects: record.projectSnapshots?.filter((t) => !invisible.has(t.id)),
@@ -12223,17 +12258,18 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       : test.pain === true || (!test.missing && num(test.value) !== null);
     return Array.isArray(region.tests) ? region.tests.some(measured) : measured(region);
   };
-  const bodyStatusLabels = { red: "重点关注", amber: "关注", green: "达标", gray: "未测", neutral: "已测" };
-  const bodyStatusLabel = (region) => region.status === "green" ? "达标"
-    : region.status === "gray" ? bodyHasMeasured(region) ? "已测" : "未测"
-      : region.label || bodyStatusLabels[region.status] || "未测";
+  const bodyStatusLabels = { red: "预警", amber: "关注", green: "达标", gray: "未测", neutral: "已测" };
+  const bodyStatusLabel = (region) => global.Def.assessmentLabel(region.status,
+    region.status === "gray" ? bodyHasMeasured(region) ? "已测" : "未测"
+      : region.label || bodyStatusLabels[region.status] || "未测");
   function bodyTestText(test) {
     const side = test.sideLabel || { L: "左侧", R: "右侧", C: "中线" }[test.side] || test.side || "",
       title = [test.testName && test.testName !== test.name ? test.testName : "", test.name || "测试", side].filter(Boolean).join(" · "),
       value = test.missing ? "未测" : num(test.value) !== null ? fmt(test.value, 2) + (test.unit ? " " + test.unit : "") : test.label || "已测",
       facts = [value];
-    if (num(test.target) !== null) facts.push((test.targetKind === "reference" ? "参考目标 " : "目标 ") + fmt(test.target, 2) + (test.unit ? " " + test.unit : ""));
-    const label=test.status === "gray" && test.referenceComparison ? test.referenceComparison.label : test.label;
+    if (num(test.target) !== null) facts.push("参考目标 " + fmt(test.target, 2) + (test.unit ? " " + test.unit : ""));
+    const rawLabel=test.status === "gray" && test.referenceComparison ? test.referenceComparison.label : test.label;
+    const label=test.testId === "fms" ? rawLabel : global.Def.assessmentLabel(test.status, rawLabel);
     if (!test.missing && label && label !== value) facts.push(label);
     if (num(test.asym) !== null) facts.push("双侧差异 " + fmt(test.asym, 1) + "%");
     if (test.pain) facts.push("疼痛");
@@ -12323,7 +12359,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         details = tests.length ? tests.map(test => { const item = bodyTestText(test); return item.title + "：" + item.detail; }).join("；") : r.tooltip || r.detail || "",
         tooltip = `${name}：${bodyStatusLabel(r)}${details ? " · " + details : ""}`;
       if (key.startsWith("scapula")) out += line(key.endsWith("_r") ? 377 : 647, 368, x, y, `stroke="${c}" stroke-width="2" stroke-dasharray="4 3"`);
-      out += `<g class="viz-region" data-region="${key}" data-body-detail="${esc(JSON.stringify(r))}" data-tooltip="${esc(tooltip)}" role="button" tabindex="0" aria-label="${esc(tooltip)}">${circle(x, y, 32, c, 'opacity=".16"')}${circle(x, y, 24, c, 'class="viz-hotspot" stroke="white" stroke-width="3"')}</g>`;
+      out += `<g class="viz-region" data-region="${key}" data-body-detail="${esc(JSON.stringify(r))}" data-tooltip="${esc(tooltip)}" role="button" tabindex="0" aria-label="${esc(tooltip)}">${circle(x, y, 32, c, r.status === "amber" ? 'opacity="0"' : 'opacity=".16"')}${circle(x, y, 24, c, 'class="viz-hotspot" stroke="white" stroke-width="3"')}</g>`;
     });
     const id = `ringside-body-${++serial}`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="250 90 530 1260" role="img" aria-label="身体区域筛查" aria-describedby="${id}" style="display:block"><desc id="${id}">图左为运动员右侧，图右为运动员左侧</desc><style>.viz-region{cursor:pointer;outline:none}.viz-region:focus .viz-hotspot,.viz-region:hover .viz-hotspot{stroke:#dbe6ff;stroke-width:5}</style>${out}</svg>`;
@@ -12793,7 +12829,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           text(
             x(target),
             65,
-            "目标 " + fmt(target) + " " + (item.unit || ""),
+            "参考目标 " + fmt(target) + " " + (item.unit || ""),
             'text-anchor="middle" font-size="12"',
           );
       }
@@ -12854,7 +12890,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         out += text(
           x(target),
           cy + 28,
-          `${item.targetLabel || "目标"} ${fmt(target)} ${unit}`,
+          `${item.targetLabel || "参考目标"} ${fmt(target)} ${unit}`,
           'text-anchor="middle" font-size="10"',
         );
       }
@@ -12864,7 +12900,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           cy - 2,
           5.5,
           color(item.status),
-          `${label}：${fmt(value)} ${unit}${target !== null ? " · " + (item.targetLabel || "目标") + " " + fmt(target) + " " + unit : ""}${item.tooltip ? " · " + item.tooltip : ""}`,
+          `${label}：${fmt(value)} ${unit}${target !== null ? " · " + (item.targetLabel || "参考目标") + " " + fmt(target) + " " + unit : ""}${item.tooltip ? " · " + item.tooltip : ""}`,
         );
       out += text(
         603,
@@ -12984,7 +13020,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       let legendX = 18;
       [
         [num(opts.asymAmber), C.amber, "关注阈值"],
-        [num(opts.asymRed), C.red, "重点关注阈值"],
+        [num(opts.asymRed), C.red, "预警阈值"],
       ].forEach(([value, c, label]) => {
         if (value === null || value < 0 || value > max) return;
         const tooltip = `${label} ${fmt(value)}%`;
@@ -13199,7 +13235,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           text(
             cx,
             labelY,
-            `目标 ${fmt(item.target)}`,
+            `参考目标 ${fmt(item.target)}`,
             'text-anchor="middle" font-size="10"',
           );
       }
@@ -14018,18 +14054,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const directionLabel = (value) => String(value || "").replace(/[（(]中线[）)]/g, "");
   const pill = (label, status = "gray") =>
     `<span class="pill ${E(status)}"><i class="dot"></i>${E(label)}</span>`;
+  const assessmentLabel = (status, fallback) => global.Def.assessmentLabel(status, fallback);
   // Display wording is independent of the stored reference labels and cutoffs.
   const reportEvaluation = (value, definition, record) => {
     const result = M.evaluation(value, definition, record);
-    const label = definition.category === "performance" &&
-      T.abilityName(definition.ability) === "力量耐力"
-      ? { red: "重点关注", amber: "关注", green: "正常" }[result.status]
-      : null;
-    return label ? { ...result, label } : result;
+    return { ...result, label: assessmentLabel(result.status, result.label) };
   };
   const table = (headers, rows, keys = [], className = "", widths = []) => {
     const evaluation = headers.indexOf("评价");
-    if (evaluation >= 0 && rows.every((row) => !String(row[evaluation] || "").replace(/<[^>]*>/g, "").replace(/[—\s-]/g, ""))) {
+    if (evaluation >= 0 && !className.split(/\s+/).includes("jump-results") && rows.every((row) => !String(row[evaluation] || "").replace(/<[^>]*>/g, "").replace(/[—\s-]/g, ""))) {
       headers = headers.filter((_, i) => i !== evaluation);
       rows = rows.map((row) => row.filter((_, i) => i !== evaluation));
       widths = widths.filter((_, i) => i !== evaluation);
@@ -14151,7 +14184,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     ];
     let html = `<article class="micro-card athlete-summary"><div class="micro-head"><h3>运动员信息</h3></div><div class="micro-value text">${E(athlete.name || "未命名运动员")}</div><dl>${details.map(([label, value]) => `<div><dt>${E(label)}</dt><dd>${E(value)}</dd></div>`).join("")}</dl></article>`;
     for (const [status, title] of [
-      ["red", "重点关注"],
+      ["red", assessmentLabel("red")],
       ["amber", "关注"],
     ]) {
       const items = s.findings.filter((item) => item.status === status);
@@ -14206,10 +14239,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const direction = { force:"发展力量端", velocity:"发展速度端", balanced:"发展整体功率" }[solved.imbalance.direction];
       add(id, `${label} FVP · ${angle}°`, direction, `FVP的不平衡性 ${F(solved.imbalance.magnitudePct,2)}%`);
       const elastic = solved.elasticity;
-      if (elastic) add(id + "_elasticity", `${label} 弹性响应`, elastic.judgments.ER,
+      if (id === "fvp_sj" && elastic) add(id + "_elasticity", `${label} 弹性响应`, elastic.judgments.ER,
         `F₀ 与 V₀ 各提高 1%，垂直跳跃高度局部约增加 ${F(elastic.Fe + elastic.ve,2)}%`);
     }
-    for (const id of ["eur", "fdsi", "srr"]) {
+    for (const id of ["fdsi", "eur", "srr"]) {
       const card = (stats.capabilityCards || []).find(card => card.metrics.some(metric => metric.id === id));
       const metric = card?.metrics.find(metric => metric.id === id);
       if (!metric || !Number.isFinite(metric.value)) continue;
@@ -14253,7 +14286,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const metricTable = (metrics, target = false) => {
       const repeated = hasStatistics(metrics.map((d) => repeatedMetric(d.id)));
       return table(
-        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["目标"] : [])],
+        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["参考目标"] : [])],
         consume(metrics).map((d) => [
           E(d.name) + (repeated && d.unit ? `<small class="metric-meta">${E(d.unit)}</small>` : ""),
           F(d.value, 2),
@@ -14432,10 +14465,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
             gap === null
               ? ""
               : gap > 0
-                ? "距目标 " + F(gap) + " " + E(d.unit)
+                ? "距参考目标 " + F(gap) + " " + E(d.unit)
                 : gap === 0
-                  ? "达到目标"
-                  : "超过目标 " + F(-gap) + " " + E(d.unit);
+                  ? "达到参考目标"
+                  : "超过参考目标 " + F(-gap) + " " + E(d.unit);
           return `<div class="comparison-result" data-metric-id="${E(d.id)}" data-pdf-atomic><div class="comparison-heading"><strong>${E(d.name)}</strong>${evaluationPill(d)}</div>${chart(V.compare([{ label: d.name, value: d.value, unit: d.unit, target, status: d.evaluation.status }], { title: "", compact: true }))}${note ? `<p class="comparison-note">${rate === null ? "" : "达成比例 " + F(rate) + "% · "}${note}</p>` : ""}</div>`;
         })
         .join("")}</div>`;
@@ -14509,7 +14542,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         }
         // Compact wording is a display choice; keep the original assessment accessible.
         const statusPill = (prefix, status, description, ungraded = "") => {
-          const label = { green: "达标", amber: "关注", red: "严重" }[status] || ungraded;
+          const label = assessmentLabel(status, ungraded);
           return `<span class="pill ${E(status)} iso-status" role="img" aria-label="${E(description)}" title="${E(description)}"><i class="dot"></i>${prefix ? `<span class="iso-status-value">${E(prefix)}</span>` : ""}${label ? ` <span class="iso-status-label">${label}</span>` : ""}</span>`;
         };
         const balanceCell = (row) =>
@@ -14527,7 +14560,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
                   return `<div>${statusPill(
                     side + F(result.value, 2),
                     result.status,
-                    side + F(result.value, 2) + " · " + result.label,
+                    side + F(result.value, 2) + " · " + assessmentLabel(result.status, result.label),
                     balance.referenceEnabled && balance.ranges?.length ? "未评" : "",
                   )}${positive(result.referenceTarget) ? `<small class="metric-meta iso-reference">参考目标 ${F(result.referenceTarget,2)}</small>` : ""}</div>`;
                 })
@@ -14566,7 +14599,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
               (side) => {
                 const value = `${side.side ? E(sideText(row, side)) + " " : ""}${F(side.value)} ${E(row.unit)}${side.pain ? " · 疼痛" : ""}`;
                 const target = positive(side.target)
-                  ? `<small class="metric-meta">${side.targetKind === "reference" ? "参考目标" : "目标"} ${F(side.target)} ${E(row.unit)}</small>` : "";
+                  ? `<small class="metric-meta">参考目标 ${F(side.target)} ${E(row.unit)}</small>` : "";
                 return repeated ? `<div class="stat-side">${value}${target}</div>` : value + target;
               },
             )
@@ -14579,11 +14612,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           balanceCell(row),
         ]);
         const data = table(
-          ["部位与方向", "实测力量／目标", ...(repeated ? ["均值 ± SD", "CV"] : []), "双侧差异", "评价", "关节平衡"],
+          ["部位与方向", "实测力量／参考目标", ...(repeated ? ["均值 ± SD", "CV"] : []), "双侧差异", "评价", "关节平衡"],
           rows,
           measured.map((row) => ({ id: row.id, region: row.region })),
           "iso-results" + (repeated ? " with-repeat-columns" : ""),
-          repeated ? [14,20,23,7,12,9,15] : [],
+          repeated ? [14,20,21,7,12,13,13] : [],
         );
         return block(
           tests,
@@ -14616,34 +14649,28 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
             ),
           );
         const repeated = hasStatistics(activeFields.flatMap((field) => field.ids.map(repeatedMetric)));
-        const byTest = repeated || tests.length > 2;
         const jumpCell = (test, data, field) => {
           const metric = data?.metrics.find((m) => field.ids.includes(m.id));
           if (!metric) return "—";
           consumedMetrics.add(metric.id);
           const d = test.metrics.find((m) => m.id === metric.id);
           return `<span data-metric-id="${E(metric.id)}">${F(metric.value, 2)}${metric.unit !== field.unit ? " " + E(metric.unit) : ""}</span>` +
-            (metric.value === null ? "" : (d && positive(d.target) ? `<small class="metric-meta">目标 ${F(d.target)}</small>` : "") + (d ? evaluationPill(d) : ""));
+            (metric.value === null ? "" : (d && positive(d.target) ? `<small class="metric-meta">参考目标 ${F(d.target)}</small>` : ""));
         };
-        const metricRows = byTest ? summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
+        const metricRows = summaries.flatMap(({ test, data }) => activeFields.filter((field) =>
           field.ids.some((id) => data?.metrics.some((metric) => metric.id === id&&metric.value!==null)||data?.attempts?.some(attempt=>attempt.values.some(value=>value.id===id&&value.value!==null)))).map((field) => {
             const metric = data.metrics.find((m) => field.ids.includes(m.id));
             return [E(test.name + " · " + field.label) + `<small class="metric-meta">${E(field.unit || metric.unit)}</small>`,
-              jumpCell(test, data, field), ...(repeated ? statisticCells(repeatedMetric(metric.id)) : [])];
-          })) : activeFields.map((field) => [
-            E(field.label) +
-              '<small class="muted"> ' +
-              E(field.unit) +
-              "</small>",
-            ...summaries.map(({ test, data }) => jumpCell(test, data, field)),
-          ]);
+              jumpCell(test, data, field), ...(repeated ? statisticCells(repeatedMetric(metric.id)) : []),
+              test.metrics.find(item => item.id === metric.id) ? evaluationPill(test.metrics.find(item => item.id === metric.id)) : "—"];
+          }));
         return block(
           tests,
           tests.map((t) => t.name).join(" / "),
           "",
           pair(
             V.jumpBars(chartItems),
-            table(repeated ? ["指标", "结果", "均值 ± SD", "CV"] : byTest ? ["指标", "结果"] : ["指标", ...tests.map((t) => t.name)], metricRows, [], repeated ? "with-repeat-columns" : "") +
+            table(["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : []), "评价"], metricRows, [], "jump-results" + (repeated ? " with-repeat-columns" : "")) +
               supplemental(tests),
             "jump-detail",
             {kind:"jumpBars",args:[chartItems]},
@@ -14714,13 +14741,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         resultRows.push(...metrics.filter((metric) => T.isManualMetric(metric)));
         const repeated = hasStatistics(resultRows.map((metric) => repeatedMetric(metric.id)));
         const data = resultRows.length ? table(
-          ["指标", "结果", "单位", ...(repeated ? ["均值 ± SD", "CV"] : []), "评价", "目标"],
+          ["指标", "结果", "单位", ...(repeated ? ["均值 ± SD", "CV"] : []), "评价", "参考目标"],
           resultRows.map((metric) => {
             const evaluation = metric.evaluation;
             const classified = evaluation && !["未启用评价标准", "未设等级区间", "未启用标准"].includes(evaluation.label);
             return [E(metric.name), F(metric.value, 2) + (N(metric.forcePercent) !== null ? `<small class="metric-meta">占峰值力 ${F(metric.forcePercent, 1)}%</small>` : ""), E(metric.unit),
               ...(repeated ? statisticCells(repeatedMetric(metric.id)) : []),
-              classified ? pill(evaluation.label, evaluation.status) : "—",
+              classified ? pill(assessmentLabel(evaluation.status, evaluation.label), evaluation.status) : "—",
               metric.referenceEnabled && positive(metric.target) ? F(metric.target, 2) + " " + E(metric.targetUnit || metric.unit) : "—"];
           }), resultRows.map((metric) => metric.id), "imtp-results" + (repeated ? " with-repeat-columns" : ""),
         ) : "";
@@ -14786,7 +14813,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const speedChart = { mas: v.mas_speed, mss: v.mss_speed, ift: v.ift_speed, statuses,
           labels: Object.fromEntries(tests.map(test => [test.id, projectName(test.id, test.id === "ift" ? "30-15VIFT" : test.id.toUpperCase())])) };
         let body = metrics.length ? pair(V.speed(speedChart),
-          table(["指标／测试方法", "目标", ...(repeated ? ["均值 ± SD · m/s", "CV"] : []), "评价"], rows, metrics.map((d) => d.id), "speed-test-info" + (repeated ? " with-repeat-columns" : "")) + ratioTable,
+          table(["指标／测试方法", "参考目标", ...(repeated ? ["均值 ± SD · m/s", "CV"] : []), "评价"], rows, metrics.map((d) => d.id), "speed-test-info" + (repeated ? " with-repeat-columns" : "")) + ratioTable,
           "speed-detail", { kind: "speed", args: [speedChart] }) : "";
         const issues = s.qualityIssues.filter(
           (x) => x.id === "asr_inconsistent",
@@ -14909,14 +14936,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const target=positive(metric.target)?N(metric.target):definition?.referenceEnabled===true&&definition.direction==="higher"&&definition.matched!==false&&positive(definition.target)?N(definition.target):null;
         if(target===null||!positive(metric.value))return "";
         const attainment=N(metric.value)/target*100;
-        return `<div class="capability-progress" data-capability-target="${E(metric.id)}"><div class="capability-progress-label"><span>目标 ${F(target,1)}${metric.unit&&metric.unit!=="比值"?` ${E(metric.unit)}`:""}</span><span>达成 ${F(attainment,1)}%</span></div><div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,attainment))}%"></span></div></div>`;
+        return `<div class="capability-progress" data-capability-target="${E(metric.id)}"><div class="capability-progress-label"><span>参考目标 ${F(target,1)}${metric.unit&&metric.unit!=="比值"?` ${E(metric.unit)}`:""}</span><span>达成 ${F(attainment,1)}%</span></div><div class="capability-progress-track" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,attainment))}%"></span></div></div>`;
       };
       const renderMetric=(metric,cardId)=>{
         const unit=metric.unit&&metric.unit!=="比值"?`<small>${E(metric.unit)}</small>`:"";
-        const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(metric.judgment)}</p>`:"";
+        const judgment=metric.judgment?`<p class="capability-judgment ${E(["red","amber","green"].includes(metric.status)?metric.status:"gray")}">${E(assessmentLabel(metric.status, metric.judgment))}</p>`:"";
         const hasSpeedEndpoints=cardId==="speed"&&cards.find(card=>card.id==="speed").metrics.some(item=>["mss_speed","mas_speed"].includes(item.id));
         const components=(hasSpeedEndpoints?[]:metric.components||[]).filter(component=>N(component.value)!==null);
-        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(component.judgment)}</p>`:""}${cardId==="cardio"?targetProgress(component):""}</dd></div>`).join("");
+        const rows=components.map(component=>`<div><dt>${E(component.label)}</dt><dd>${F(component.value,component.unit==="比值"?3:1)}${component.unit&&component.unit!=="比值"?` <small>${E(component.unit)}</small>`:""}${component.judgment?`<p class="capability-component-judgment ${E(["red","amber","green"].includes(component.status)?component.status:"gray")}">${E(assessmentLabel(component.status, component.judgment))}</p>`:""}${cardId==="cardio"?targetProgress(component):""}</dd></div>`).join("");
         const detail=components.length?(["cardio","speed"].includes(cardId)?`<div class="capability-components capability-observations"><dl>${rows}</dl></div>`:`<details class="capability-components"><summary>组成数据</summary><dl>${rows}</dl></details>`):"";
         const windowName=choice=>choice.id==="idsi_matched"?"匹配 CMJ 推进期":"固定 0–250 ms";
         const variants=metric.id==="idsi"?(metric.variants||[]):[];
@@ -14927,7 +14954,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       };
       const renderCard=card=>{
         const targets=(card.targets||[]).filter(target=>N(target.value)!==null);
-        const conclusion=["speed","cardio"].includes(card.id)&&card.conclusion?`<div class="capability-conclusion"><p class="capability-conclusion-text">${E(card.conclusion)}</p>${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(target.label)} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}</div>`:"";
+        const conclusion=["speed","cardio"].includes(card.id)&&card.conclusion?`<div class="capability-conclusion"><p class="capability-conclusion-text">${E(card.conclusion)}</p>${targets.length?`<div class="capability-targets">${targets.map(target=>`<p>${E(String(target.label || "").replace(/(?:参考)?目标$/, "参考目标"))} ${F(target.value,1)} ${E(target.unit)}</p>`).join("")}</div>`:""}</div>`:"";
         const metrics=card.id==="speed"?[...card.metrics].sort((a,b)=>["srr","mss_speed","mas_speed","asr"].indexOf(a.id)-["srr","mss_speed","mas_speed","asr"].indexOf(b.id)):card.metrics;
         return `<article class="capability-card" data-capability-card="${E(card.id)}" data-pdf-atomic><h3 class="capability-title">${E(card.title)}</h3>${conclusion}<div class="capability-metrics">${metrics.map(metric=>renderMetric(metric,card.id)).join("")}</div></article>`;
       };
@@ -15676,7 +15703,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     .ringside-pdf-document .card-foot{padding:8px 9px!important;font-size:10px!important;line-height:1.6!important;}
     .ringside-pdf-document .legend{gap:6px!important;font-size:10px!important;}
     .ringside-pdf-document .pill{font-size:11px!important;line-height:1.5!important;padding:2px 5px!important;white-space:normal!important;}
-    .ringside-pdf-document .iso-status{max-width:100%!important;white-space:normal!important;}
+    .ringside-pdf-document .iso-status{max-width:100%!important;white-space:nowrap!important;}
     .ringside-pdf-document .chart-wrap{display:block!important;padding:7px 0!important;margin:0!important;max-width:none!important;min-width:0!important;}
     .ringside-pdf-document svg{max-width:100%!important;max-height:none!important;width:100%!important;height:auto!important;}
     .ringside-pdf-document .chart-wrap>img,.ringside-pdf-document .iso-charts>img{display:block!important;margin:0 auto!important;max-width:100%!important;height:auto!important;}
@@ -15732,13 +15759,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     .ringside-pdf-document .iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type{white-space:normal!important;}
     .ringside-pdf-document .iso-results .iso-reference-evaluation{font-size:9px!important;line-height:1.65!important;}
     .ringside-pdf-document .iso-results .pill{max-width:100%!important;font-size:9px!important;padding:2px 1px!important;}
-    .ringside-pdf-document .iso-results .asym-value,.ringside-pdf-document .iso-results .asym-side,.ringside-pdf-document .iso-results .iso-status-value,.ringside-pdf-document .iso-results .iso-status-label{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .iso-results .asym-value,.ringside-pdf-document .iso-results .asym-side{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .iso-results .iso-status-value,.ringside-pdf-document .iso-results .iso-status-label{white-space:nowrap!important;overflow-wrap:normal!important;}
     .ringside-pdf-document .iso-results .pill .dot{margin-right:2px!important;}
     .ringside-pdf-document .iso-results .repeat-stat-cv{font-size:9px!important;}
     .ringside-pdf-document .iso-results .repeat-stat-cv>span{white-space:normal!important;overflow-wrap:anywhere!important;}
     .ringside-pdf-document .imtp-results{table-layout:auto!important;min-width:0!important;}
     .ringside-pdf-document .imtp-results th{width:auto!important;}
     .ringside-pdf-document .imtp-results th,.ringside-pdf-document .imtp-results td{padding-inline:3px!important;overflow-wrap:normal!important;word-break:normal!important;}
+    .ringside-pdf-document .imtp-results td[data-label="评价"]{min-width:48px!important;}
+    .ringside-pdf-document .imtp-results td[data-label="评价"] .pill{white-space:nowrap!important;}
     .ringside-pdf-document [data-pdf-pair]>*{min-width:0!important;}
     .ringside-pdf-document [data-pdf-pair] .chart-wrap{width:100%!important;padding:0!important;}
     .ringside-pdf-document [data-pdf-pair] svg{max-height:340px!important;}
@@ -17951,11 +17981,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       return `<article class="management-catalog-item"><div><h3>${esc(p.name)} ${p.id===lib().defaultEvaluationProfileId?'<span class="pill">默认</span>':""}${p.disabled?'<span class="pill">已停用</span>':""}</h3><p class="note">版本 ${p.revision} · 关联 ${count} 条记录</p></div><div class="row">${button("编辑","profile-edit",p.id)}${button("复制","profile-copy",p.id)}${button("设为默认","profile-default",p.id,p.disabled?"disabled":"")}${button("关联记录","profile-records",p.id)}${button(p.disabled?"启用":"停用","profile-toggle",p.id,p.id===lib().defaultEvaluationProfileId?"disabled":"")}${p.previous?button("恢复上一版","profile-revert",p.id):""}</div></article>`;
     }).join("");
   }
-  const ruleLabels={asymAmber:"不对称关注阈值 %",asymRed:"不对称重点关注阈值 %",scoreAmber:"目标达成关注下界 %",scoreGreen:"目标达成达标下界 %"};
+  const ruleLabels={asymAmber:"不对称关注阈值 %",asymRed:"不对称预警阈值 %",scoreAmber:"目标达成关注下界 %",scoreGreen:"目标达成达标下界 %"};
   const input=(path,value,type="number")=>`<input data-profile-path="${esc(path)}" type="${type}" ${type==="number"?'step="any"':""} value="${esc(value)}">`;
   const check=(path,value,label)=>`<label class="check-line"><input type="checkbox" data-profile-path="${esc(path)}" ${value?"checked":""}>${label}</label>`;
   const select=(path,value,options)=>`<select data-profile-path="${esc(path)}">${options.map(([v,n])=>option(v,n,value)).join("")}</select>`;
-  function ranges(path,value,label="评价区间：范围 | 名称 | red / amber / green") {return field(label,`<textarea rows="4" data-profile-ranges="${esc(path)}">${esc(editor.rangeDrafts[path]??Def.rangeText(value))}</textarea>`);}
+  function ranges(path,value,label="评价分级区间：范围 | 名称 | red / amber / green") {return field(label,`<textarea rows="4" data-profile-ranges="${esc(path)}">${esc(editor.rangeDrafts[path]??Def.rangeText(value))}</textarea>`);}
   function referenceGroupEditor(d,index) {
     const groups=d.referenceGroups||[],base="definitions."+index+".referenceGroups";
     let html=`<section class="profile-rule-block"><h3>年龄、性别与测试方式标准</h3><p class="note">年龄按下限含、上限不含匹配；空白表示不限。分层目标留空时沿用上方目标。峰值 RER 只限制本行分级区间。</p><div class="row">${button("添加分层","profile-group-add",String(index))}</div>`;
@@ -17969,17 +17999,21 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     html+=g.ranges.map((r,k)=>{const rangePath=path+".ranges."+k;return `<tr><td data-label="下限">${input(rangePath+".min",r.min)}</td><td data-label="含下限">${check(rangePath+".includeMin",r.includeMin!==false,"包含")}</td><td data-label="上限">${input(rangePath+".max",r.max)}</td><td data-label="含上限">${check(rangePath+".includeMax",r.includeMax!==false,"包含")}</td><td data-label="名称">${input(rangePath+".label",r.label,"text")}</td><td data-label="显示颜色">${select(rangePath+".status",r.status,[["gray","中性"],["red","红色"],["amber","黄色"],["green","绿色"]])}</td><td>${button("删除","profile-group-range-delete",index+":"+j+":"+k)}</td></tr>`;}).join("");
     return html+`</tbody></table></div><p class="note">区间端点留空表示无上限或无下限。</p>${button("添加区间","profile-group-range-add",index+":"+j)}</section>`;
   }
+  function evaluationHelp() {
+    return '<p class="note" data-evaluation-help>参考目标用于目标达成度与能力图；启用分级区间时，评价色标以区间为准，达标不一定表示达到参考目标。未设区间时，按参考目标及目标达成阈值评价。关闭本指标评价后，保留配置，但不参与评级或能力达成计算。</p>';
+  }
   function profileEditor() {
     const r=editor.record,tab=editor.tab, tabs=[["definitions","指标标准"],["imtp","IMTP 时点"],["rules","筛查阈值"],["axes","能力汇总"],["iso","等长目标"],["balance","关节平衡"],["lvp","LVP 参数"]];
     let h=`<div class="profile-editor-header">${field("方案名称",`<input id="profileName" value="${esc(editor.profile.name)}" maxlength="120" ${editor.readOnly?"readonly":""}>`)}<div class="row">${button(editor.origin==="metrics"?"返回指标库":"返回方案列表","profile-close")}${editor.readOnly?button("复制为新方案","profile-copy",editor.profile.id):button("补充新增指标","profile-extend")+button("查看变更并保存","profile-review","",'class="btn primary"')}</div></div><div class="profile-tabs">${tabs.map(([id,label])=>button(label,"profile-tab",id,tab===id?'aria-current="page"':"")).join("")}</div><div id="profileEditorFields">`;
     if(tab==="definitions"){
+      h+=evaluationHelp();
       const i=Math.max(0,r.definitions.findIndex(d=>d.id===editor.metricId)),d=r.definitions[i];
       h+=field("指标",`<select id="profileMetricSelect">${r.definitions.map(d=>option(d.id,T.metricName(d)+" · "+d.unit,editor.metricId)).join("")}</select>`);
-      if(d)h+=`<p class="note">${esc(T.metricProtocol(d)||"未记录协议")} · ${esc(d.unit)} · ${esc(T.abilityLabel(lib().catalog,d.ability))}</p><div class="form-grid">${field(d.testId==="cpet"?"通用训练目标":"评价目标",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用评价标准")}${Array.isArray(d.referenceGroups)?referenceGroupEditor(d,i):ranges("definitions."+i+".ranges",d.ranges)+`<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`+(d.testId==="cpet"?button("添加年龄 / 性别 / 测试方式标准","profile-group-add",String(i)):"")}`;
+      if(d)h+=`<p class="note">${esc(T.metricProtocol(d)||"未记录协议")} · ${esc(d.unit)} · ${esc(T.abilityLabel(lib().catalog,d.ability))}</p><div class="form-grid">${field(d.testId==="cpet"?"通用训练目标":"参考目标（用于达成度）",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用本指标评价")}${Array.isArray(d.referenceGroups)?referenceGroupEditor(d,i):ranges("definitions."+i+".ranges",d.ranges)+`<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`+(d.testId==="cpet"?button("添加年龄 / 性别 / 测试方式标准","profile-group-add",String(i)):"")}`;
     } else if(tab==="imtp")h+=imtpStandardEditor();
     else if(tab==="rules")h+='<div class="form-grid">'+Object.entries(ruleLabels).map(([id,label])=>field(label,input("rules."+id,r.rules[id]))).join("")+'</div><p class="note">FMS 保留固定 0–3 分及疼痛判定。</p>';
     else if(tab==="iso")h+='<p class="note">手填目标优先；目标留空时使用已启用的参考均值。参考数值可编辑。</p>'+r.data.iso.map((row,i)=>`<article class="profile-rule-block" data-standard-key="${esc(row.id)}"><div class="profile-rule-row"><b>${esc(isoName(row))}</b>${field("目标 · "+esc(row.unit),input("data.iso."+i+".target",row.target))}<span class="note">${esc(row.protocol||"")}</span></div>${isoReferenceEditor(row.reference,"data.iso."+i+".reference",row)}</article>`).join("");
-    else if(tab==="balance")h+=r.balancePairs.map((p,i)=>`<div class="profile-rule-block" data-standard-key="${esc(p.id)}"><h3>${esc(p.label)}</h3><p class="note">${esc(r.data.iso.find(x=>x.id===p.numeratorId)?.direction||"未匹配方向")} / ${esc(r.data.iso.find(x=>x.id===p.denominatorId)?.direction||"未匹配方向")}</p>${p.ratioMigrationIssue?'<p class="notice">'+esc(p.ratioMigrationIssue)+'</p>':""}${check("balancePairs."+i+".referenceEnabled",p.referenceEnabled,"启用评价区间")}${field("依据",input("balancePairs."+i+".source",p.source,"text"))}${ranges("balancePairs."+i+".ranges",p.ranges)}${isoReferenceEditor(p.reference,"balancePairs."+i+".reference",{region:p.region,paired:true},true)}</div>`).join("");
+    else if(tab==="balance")h+='<p class="note">参考均值用于数值比较，不等同于评价区间；仅有均值时保留中性显示。</p>'+r.balancePairs.map((p,i)=>`<div class="profile-rule-block" data-standard-key="${esc(p.id)}"><h3>${esc(p.label)}</h3><p class="note">${esc(r.data.iso.find(x=>x.id===p.numeratorId)?.direction||"未匹配方向")} / ${esc(r.data.iso.find(x=>x.id===p.denominatorId)?.direction||"未匹配方向")}</p>${p.ratioMigrationIssue?'<p class="notice">'+esc(p.ratioMigrationIssue)+'</p>':""}${check("balancePairs."+i+".referenceEnabled",p.referenceEnabled,"启用评价区间")}${field("依据",input("balancePairs."+i+".source",p.source,"text"))}${ranges("balancePairs."+i+".ranges",p.ranges)}${isoReferenceEditor(p.reference,"balancePairs."+i+".reference",{region:p.region,paired:true},true)}</div>`).join("");
     else if(tab==="axes")h+=[...new Set(r.definitions.filter(d=>d.category==="performance"&&d.ability).map(d=>d.ability))].map(ability=>{
       const id=T.axisKey(ability),defs=r.definitions.filter(d=>d.ability===ability),cfg=T.axisConfig(r,ability)||{method:"primary",primary:defs[0].id};r.axes[id]=cfg;
       return `<div class="profile-rule-row"><b>${esc(T.abilityLabel(lib().catalog,ability))}</b>${field("汇总方式",`<select data-profile-axis="${esc(id)}" data-axis-field="method">${[["primary","代表指标"],["mean","平均达成"],["min","最低达成"]].map(([v,n])=>option(v,n,cfg.method)).join("")}</select>`)}${field("代表指标",`<select data-profile-axis="${esc(id)}" data-axis-field="primary">${defs.map(d=>option(d.id,T.metricName(d),cfg.primary)).join("")}</select>`)}</div>`;
@@ -18001,7 +18035,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const choices=new Set(imtpTimes(editor.profile,App.getState()).flatMap(time=>["force_pct_peak:"+time,"rfd:"+time]));for(const rule of r.imtpTimeStandards)choices.add(rule.kind+":"+rule.timeMs);if(editor.timeKey)choices.add(editor.timeKey);
     const keys=[...choices].sort((a,b)=>Number(a.split(":")[1])-Number(b.split(":")[1])||a.localeCompare(b));editor.timeKey ||= keys[0];
     const label=key=>{const[kind,time]=key.split(":");return kind==="rfd"?`0–${time} ms 平均 RFD · N/s`:`${time} ms 力占峰值力比例 · %PF`;};
-    let h=`<div class="row">${field("时点指标",`<select id="imtpStandardSelect">${keys.map(key=>option(key,label(key),editor.timeKey)).join("")}</select>`)}${button("添加时点","profile-time-new")}</div>`;
+    let h=evaluationHelp()+`<div class="row">${field("时点指标",`<select id="imtpStandardSelect">${keys.map(key=>option(key,label(key),editor.timeKey)).join("")}</select>`)}${button("添加时点","profile-time-new")}</div>`;
     if(!editor.timeKey)return h+'<p class="empty">尚未配置时点标准。</p>';
     const[kind,time]=editor.timeKey.split(":"),timeMs=Number(time),i=r.imtpTimeStandards.findIndex(x=>x.kind===kind&&x.timeMs===timeMs),rule=r.imtpTimeStandards[i];
     if(!rule){const legacy=r.definitions.find(d=>d.id===(kind==="rfd"?"imtp_rfd":"imtp_f")+time);
@@ -18009,7 +18043,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       return h+`<p class="note">尚未配置此时点标准。</p>${button("配置此时点标准","profile-time-create",editor.timeKey)}`;
     }
     const path="imtpTimeStandards."+i,unit=kind==="rfd"?"N/s":"%PF",context=rule.context;
-    h+=`<p class="note">${esc(context.protocol||"未记录协议")} · ${context.force.definition==="net"?"净力":"总力"} · ${unit}</p><div class="form-grid">${field("评价目标 · "+unit,input(path+".target",rule.target))}${field("评价方向",select(path+".direction",rule.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input(path+".source",rule.source,"text"))}</div>${check(path+".referenceEnabled",rule.referenceEnabled,"启用评价标准")}${ranges(path+".ranges",rule.ranges)}`;
+    h+=`<p class="note">${esc(context.protocol||"未记录协议")} · ${context.force.definition==="net"?"净力":"总力"} · ${unit}</p><div class="form-grid">${field("参考目标 · "+unit,input(path+".target",rule.target))}${field("评价方向",select(path+".direction",rule.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input(path+".source",rule.source,"text"))}</div>${check(path+".referenceEnabled",rule.referenceEnabled,"启用本指标评价")}${ranges(path+".ranges",rule.ranges)}`;
     return h;
   }
   function createTimeRule(key){
@@ -20411,7 +20445,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (!obj[part] || typeof obj[part] !== "object") obj[part] = {};
       obj = obj[part];
     }
+    const contextChanged = obj[ps.at(-1)] !== value;
     obj[ps.at(-1)] = value;
+    const dsiContextPaths = ["dsi.source", "dsi.cmjUnit", "cmjConfig.definition", "protocol.cmj", ...(state.dsi.source === "manual"
+      ? ["dsi.unit", "dsi.definition", "dsi.protocol"] : ["imtpConfig.definition", "imtpConfig.unit", "protocol.imtp"])];
+    if (contextChanged && dsiContextPaths.includes(path)) {
+      state.dsi.confirmed = false;
+      const confirmation = $("entryContent")?.querySelector('[data-path="dsi.confirmed"]');
+      if (confirmation) confirmation.checked = false;
+    }
     if (path === "athlete.date") M.applyAge(state);
     if (path === "athlete.date" || /CompetitionDate$/.test(path)) window.RingsideContextUI.refresh(state,$("entryContent"));
     if (/^definitions\.\d+\.category$/.test(path)) {
@@ -20587,7 +20629,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           .slice(0, 3)
           .map(
             (x) =>
-              `<div class="screen-item">${pill(x.status === "red" ? "重点关注" : "关注", x.status)}<h4>${E(x.title || x.label)}</h4><p>${E(screeningSummary(x))}</p></div>`,
+              `<div class="screen-item">${pill(Def.assessmentLabel(x.status, "关注"), x.status)}<h4>${E(x.title || x.label)}</h4><p>${E(screeningSummary(x))}</p></div>`,
           )
           .join("") +
         (sig.length > 3
@@ -20605,7 +20647,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       ? s.axes.length + " 个能力维度"
       : "待评价";
     $("radarLegend").innerHTML =
-      '<span class="red">重点关注</span> · <span class="amber">关注</span> · <span class="green">良好／优秀</span>';
+      `<span class="red">${E(Def.assessmentLabel("red"))}</span> · <span class="amber">${E(Def.assessmentLabel("amber"))}</span> · <span class="green">${E(Def.assessmentLabel("green"))}</span>`;
     $("directionMetrics").innerHTML = window.RingsideReport.overview(report);
     renderDetails(report);
     renderNarrativeStatus();
@@ -20781,6 +20823,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function updateJumpEntryResults() {
     if(ui.mode!=="entry")return;
+    if (["cmj", "imtp"].includes(entryTab)) updateDSIEntryResult();
     if (entryTab === "cpet" && T.isNative(state, entryTab)) {
       const s = M.stats(effectiveRecord()), result = $("entryContent").querySelector("[data-cpet-result]");
       const card = s.capabilityCards?.find(item => item.id === "cardio");
@@ -20801,6 +20844,25 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         if(chosen)chosen.textContent=(result.selectedIds||result.selectedJumpIds||[]).includes(jump.id)?"采用":"—";
       });
     });
+  }
+  function dsiEntryForm() {
+    return '<section data-dsi-entry><div class="subheading">DSI · 力比值</div><p class="note" data-dsi-status role="status" aria-live="polite"></p><p class="note" data-dsi-components></p>' +
+      (state.dsi.source === "manual" ? '<div class="form-grid">' + field("其他等长力定义", select("dsi.definition", state.dsi.definition, [["gross", "总力"], ["net", "净力"]])) + '</div>' : "") +
+      check("dsi.confirmed", state.dsi.confirmed, "确认 CMJ 与等长测试的力定义、单位及协议可比较") + '</section>';
+  }
+  function updateDSIEntryResult() {
+    const panel = $("entryContent")?.querySelector("[data-dsi-entry]");
+    if (!panel) return;
+    const record = effectiveRecord(), computed = M.stats(record), raw = computed.raw, context = raw.dsiContext;
+    const status = panel.querySelector("[data-dsi-status]"), components = panel.querySelector("[data-dsi-components]");
+    const enabled = record.derivedEnabled?.fdsi !== false, available = enabled && Number.isFinite(raw.dsi);
+    status.dataset.dsiAvailable = String(available);
+    status.textContent = !enabled ? "DSI 未启用；请在本次训练方向分析中启用。" : available
+      ? `DSI ${F(raw.dsi, 3)} · ${computed.derived.results.find(result => result.id === "fdsi")?.directionHint || ""}`
+      : "DSI 暂无法计算：" + (raw.dsiReason || "缺少有效 CMJ 力与等长峰值力");
+    const definition = value => value === "net" ? "净力" : value === "gross" ? "总力" : value || "未记录力定义";
+    const isometricName = context.source === "manual" ? record.dsi.protocol || "其他全身等长测试" : "IMTP";
+    components.textContent = `CMJ 采用的推进期峰值力：${F(context.cmjForce, 1)} ${context.cmjUnit}（${definition(context.cmjDefinition)}）；${isometricName} 采用的峰值力：${F(context.isometricForce, 1)} ${context.isometricUnit}（${definition(context.isometricDefinition)}）。`;
   }
   function repeatArrayPath(t, isoIndex = -1) {
     return t === "iso" ? `data.iso.${isoIndex}.trials` : (["pushup", "mas", "mss", "ift"].includes(t)||(t==="hop"&&T.isNative(state,t))) ? `data.${t}.trials` : `data.${t}`;
@@ -21162,7 +21224,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (["cmj","imtp"].includes(entryTab)) {
       const key=entryTab==="cmj"?"cmjConfig":"imtpConfig";
       h='<div class="form-grid">'+field("设备输出力定义",select(key+".definition",state[key].definition,[["gross","总力"],["net","净力"]]))+'</div>'+h;
-      if(entryTab==="cmj")h+=check("dsi.confirmed",state.dsi.confirmed,"确认 CMJ 与等长测试的力定义、单位及协议可比较")+(state.dsi.source==="manual"?field("其他等长力定义",select("dsi.definition",state.dsi.definition,[["gross","总力"],["net","净力"]])):"");
+      h+=dsiEntryForm();
       h+='<div class="subheading">冲量计算口径</div><div class="form-grid">'+field("设备冲量口径",select(key+".impulseDefinition",state[key].impulseDefinition,[["gross","总力积分"],["net","净力积分（扣除体重）"]]))+'</div>'+check("impulseConfig.confirmed",state.impulseConfig.confirmed,"确认 CMJ 与 IMTP 冲量口径及发力起点可比较");
     }
     if (["landmine","squat","bench","deadlift"].includes(entryTab)) {

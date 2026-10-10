@@ -1528,8 +1528,7 @@
       !definition ||
       N(value) === null ||
       positive(definition.target) === null ||
-      (Def.builtins.some((d) => d.id === definition.id) &&
-        !definition.referenceEnabled)
+      !definition.referenceEnabled
     )
       return null;
     if (definition.direction === "lower")
@@ -1742,7 +1741,7 @@
           referenceReason: resolved.reason,
           pain: !!pain,
           status,
-          label: status === "red" ? "严重" : status === "amber" ? "关注" : status === "green" ? "达标" : value === null ? "未测" : "已测",
+          label: Def.assessmentLabel(status, value === null ? "未测" : "已测"),
           reasons,
           region: regionKey(row.region, side),
         };
@@ -1988,6 +1987,11 @@
               : "");
         const gradeResult = grade(value, pair);
         const reference = root.RingsideIsoReferences?.effectiveReference(record, {region:pair.region,paired:!!numerator?.paired}, side, pair.reference);
+        const evaluationReason = value !== null && gradeResult.status === "gray"
+          ? !pair.referenceEnabled || !pair.ranges?.length
+            ? reference?.matched ? "文献均值仅作参考，尚未设置分级区间" : "尚未设置关节平衡分级区间"
+            : gradeResult.label
+          : "";
         result[key] = value;
         result.results.push({
           side,
@@ -1998,6 +2002,7 @@
           referenceComparison: root.RingsideIsoReferences?.comparison(value,reference) || null,
           referenceSource: reference?.source || "",
           referenceReason: reference?.reason || "",
+          evaluationReason,
           reason: missingReason,
           region: regionKey(pair.region, side),
           numeratorValue,
@@ -2664,25 +2669,31 @@
       state.dsi.source === "manual"
         ? state.dsi.definition
         : state.imtpConfig.definition;
+    const cmjUnit = state.dsi.cmjUnit || "N";
+    const cmjDefinition = state.cmjConfig?.definition || state.dsi.cmjDefinition || state.dsi.definition || "gross";
+    const cmjForce = positive(raw.cmj?.row?.force);
     const comparable =
       state.dsi.confirmed === true &&
-      unit === (state.dsi.cmjUnit || "N") &&
-      forceDefinition ===
-        (state.cmjConfig?.definition ||
-          state.dsi.cmjDefinition ||
-          state.dsi.definition ||
-          "gross");
+      unit === cmjUnit && forceDefinition === cmjDefinition;
     raw.dsi =
-      comparable && positive(raw.cmj?.row?.force) !== null && source !== null
-        ? N(raw.cmj.row.force) / source
+      comparable && cmjForce !== null && source !== null
+        ? cmjForce / source
         : null;
     raw.dsiForce = source;
-    raw.dsiReason =
-      raw.dsi !== null
-        ? ""
-        : !comparable
-          ? "需确认相同力单位、力口径与可比测试协议"
-          : "需 CMJ 力与有效等长峰值力";
+    const dsiIssues = [];
+    if (!use("cmj")) dsiIssues.push("请启用 CMJ 测试");
+    else if (!raw.cmj?.row) dsiIssues.push("需有效 CMJ 垂直跳跃高度以确定本次采用的试次");
+    else if (cmjForce === null) dsiIssues.push("本次采用的 CMJ 试次缺少有效推进期峰值力");
+    if (state.dsi.source !== "manual" && !use("imtp")) dsiIssues.push("请启用 IMTP 测试作为等长来源");
+    else if (source === null) dsiIssues.push(state.dsi.source === "manual" ? "需有效全身等长峰值力" : "需有效 IMTP 峰值力");
+    if (unit !== cmjUnit) dsiIssues.push("力单位不一致：CMJ " + cmjUnit + "／等长 " + unit);
+    const forceName = definition => definition === "net" ? "净力" : definition === "gross" ? "总力" : definition;
+    if (forceDefinition !== cmjDefinition) dsiIssues.push("力口径不一致：CMJ " + forceName(cmjDefinition) + "／等长 " + forceName(forceDefinition));
+    if (state.dsi.confirmed !== true) dsiIssues.push("尚未确认 CMJ 与等长测试的力定义、单位及协议可比较");
+    raw.dsiReason = raw.dsi === null ? dsiIssues.join("；") : "";
+    raw.dsiContext = { cmjForce, isometricForce: source, cmjUnit, isometricUnit: unit,
+      cmjDefinition, isometricDefinition: forceDefinition, source: state.dsi.source,
+      confirmed: state.dsi.confirmed === true, comparable, issues: dsiIssues, ready: raw.dsi !== null };
     raw.asr =
       positive(values.mas_speed) !== null && positive(values.mss_speed) !== null
         ? values.mss_speed - values.mas_speed
@@ -2965,7 +2976,7 @@
         };
     }
     // Body details are a read model of the same representative results. They
-    // never add findings or change the existing body grading rules.
+    // never add findings or change the individual scoring rules.
     const projectNames = new Map(T.describe(state).map(test => [test.id, test.name]));
     const detailSide = key => /_l$/.test(key) ? "L" : /_r$/.test(key) ? "R" : "C";
     const addBodyTest = (key, test) => {
@@ -2987,7 +2998,8 @@
     for (const balance of balanceResults) for (const side of balance.results) {
       addBodyTest(side.region, { id: "balance_" + balance.id + "_" + (side.side || "C"), testId: "iso", name: balance.label,
         side: side.side || "C", value: side.value, unit: balance.unit, target: side.referenceTarget, targetKind:side.referenceTarget === null ? "none" : "reference", referenceComparison:side.referenceComparison, referenceSource:side.referenceSource, label: side.label,
-        status: side.status, pain: false, missing: side.value === null, notes: side.reason || "" });
+        status: side.status, pain: false, missing: side.value === null,
+        notes: [...new Set([side.reason, side.evaluationReason, side.referenceReason].filter(Boolean))].join("；") });
     }
     for (const [index, row] of (raw.fms?.items || []).entries()) if (row.location) {
       const notes = [row.bilateral ? "左侧 " + (N(row.left) === null ? "未测" : fmt(row.left)) + " / 右侧 " + (N(row.right) === null ? "未测" : fmt(row.right)) : "", row.notes].filter(Boolean);
@@ -3009,7 +3021,14 @@
         unit: d.unit, target: d.referenceEnabled ? positive(d.target) : null, label: value === null ? "未测" : result.label,
         status: result.status, pain: false, missing: value === null, notes });
     }
-    Object.values(regions).forEach(region => { region.tests ||= []; region.hasMeasured = region.tests.some(test => test.hasMeasured); });
+    Object.values(regions).forEach(region => {
+      region.tests ||= [];
+      region.hasMeasured = region.tests.some(test => test.hasMeasured);
+      const graded = region.tests.filter(test => test.hasMeasured && ["red", "amber", "green"].includes(test.status));
+      const worst = graded.reduce((selected, test) => !selected || rank[test.status] > rank[selected.status] ? test : selected, null);
+      region.status = worst?.status || "gray";
+      region.label = Def.assessmentLabel(region.status, region.hasMeasured ? "已测" : "未测");
+    });
     const allTests = T.describe(state).map((t) => [t.id, t.name, t.category]),
       plannedTests = allTests.filter((t) => use(t[0]));
     const partial = [];
@@ -3278,6 +3297,12 @@
         return value !== null && resolved.target !== null && (resolved.kind === "reference"
           || resolved.kind === "manual" && value < resolved.target && value/resolved.target*100 < N(record.rules.absoluteAmber));
       }));
+    // Old interpretations of disabled extension standards used an active target by mistake.
+    const disabledExtensions = record.definitions.filter(definition => definition.referenceEnabled === false
+      && record.enabled[definition.testId] && positive(definition.target) !== null
+      && !Def.builtins.some(builtin => builtin.id === definition.id));
+    const disabledValues = disabledExtensions.length ? stats(record).values : {};
+    const changedDisabledEvaluation = disabledExtensions.some(definition => N(disabledValues[definition.id]) !== null);
     if (cmjConfig.impulseDefinition === "gross") delete cmjConfig.impulseDefinition;
     if (imtpConfig.impulseDefinition === "gross") delete imtpConfig.impulseDefinition;
     const empty = (value) => value === "" || value === null || value === undefined;
@@ -3324,6 +3349,7 @@
       mode: record.mode,
       data,
       ...(changedIsoEvaluation ? { isoEvaluationBasis: "single-target-amber-green-v1" } : {}),
+      ...(changedDisabledEvaluation ? { evaluationSwitchBasis: "disabled-extension-standards-v1" } : {}),
       definitions,
       custom: record.customValues,
       projects: record.projectSnapshots?.filter((t) => !invisible.has(t.id)),

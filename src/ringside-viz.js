@@ -205,17 +205,18 @@
       : test.pain === true || (!test.missing && num(test.value) !== null);
     return Array.isArray(region.tests) ? region.tests.some(measured) : measured(region);
   };
-  const bodyStatusLabels = { red: "重点关注", amber: "关注", green: "达标", gray: "未测", neutral: "已测" };
-  const bodyStatusLabel = (region) => region.status === "green" ? "达标"
-    : region.status === "gray" ? bodyHasMeasured(region) ? "已测" : "未测"
-      : region.label || bodyStatusLabels[region.status] || "未测";
+  const bodyStatusLabels = { red: "预警", amber: "关注", green: "达标", gray: "未测", neutral: "已测" };
+  const bodyStatusLabel = (region) => global.Def.assessmentLabel(region.status,
+    region.status === "gray" ? bodyHasMeasured(region) ? "已测" : "未测"
+      : region.label || bodyStatusLabels[region.status] || "未测");
   function bodyTestText(test) {
     const side = test.sideLabel || { L: "左侧", R: "右侧", C: "中线" }[test.side] || test.side || "",
       title = [test.testName && test.testName !== test.name ? test.testName : "", test.name || "测试", side].filter(Boolean).join(" · "),
       value = test.missing ? "未测" : num(test.value) !== null ? fmt(test.value, 2) + (test.unit ? " " + test.unit : "") : test.label || "已测",
       facts = [value];
-    if (num(test.target) !== null) facts.push((test.targetKind === "reference" ? "参考目标 " : "目标 ") + fmt(test.target, 2) + (test.unit ? " " + test.unit : ""));
-    const label=test.status === "gray" && test.referenceComparison ? test.referenceComparison.label : test.label;
+    if (num(test.target) !== null) facts.push("参考目标 " + fmt(test.target, 2) + (test.unit ? " " + test.unit : ""));
+    const rawLabel=test.status === "gray" && test.referenceComparison ? test.referenceComparison.label : test.label;
+    const label=test.testId === "fms" ? rawLabel : global.Def.assessmentLabel(test.status, rawLabel);
     if (!test.missing && label && label !== value) facts.push(label);
     if (num(test.asym) !== null) facts.push("双侧差异 " + fmt(test.asym, 1) + "%");
     if (test.pain) facts.push("疼痛");
@@ -305,7 +306,7 @@
         details = tests.length ? tests.map(test => { const item = bodyTestText(test); return item.title + "：" + item.detail; }).join("；") : r.tooltip || r.detail || "",
         tooltip = `${name}：${bodyStatusLabel(r)}${details ? " · " + details : ""}`;
       if (key.startsWith("scapula")) out += line(key.endsWith("_r") ? 377 : 647, 368, x, y, `stroke="${c}" stroke-width="2" stroke-dasharray="4 3"`);
-      out += `<g class="viz-region" data-region="${key}" data-body-detail="${esc(JSON.stringify(r))}" data-tooltip="${esc(tooltip)}" role="button" tabindex="0" aria-label="${esc(tooltip)}">${circle(x, y, 32, c, 'opacity=".16"')}${circle(x, y, 24, c, 'class="viz-hotspot" stroke="white" stroke-width="3"')}</g>`;
+      out += `<g class="viz-region" data-region="${key}" data-body-detail="${esc(JSON.stringify(r))}" data-tooltip="${esc(tooltip)}" role="button" tabindex="0" aria-label="${esc(tooltip)}">${circle(x, y, 32, c, r.status === "amber" ? 'opacity="0"' : 'opacity=".16"')}${circle(x, y, 24, c, 'class="viz-hotspot" stroke="white" stroke-width="3"')}</g>`;
     });
     const id = `ringside-body-${++serial}`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="250 90 530 1260" role="img" aria-label="身体区域筛查" aria-describedby="${id}" style="display:block"><desc id="${id}">图左为运动员右侧，图右为运动员左侧</desc><style>.viz-region{cursor:pointer;outline:none}.viz-region:focus .viz-hotspot,.viz-region:hover .viz-hotspot{stroke:#dbe6ff;stroke-width:5}</style>${out}</svg>`;
@@ -775,7 +776,7 @@
           text(
             x(target),
             65,
-            "目标 " + fmt(target) + " " + (item.unit || ""),
+            "参考目标 " + fmt(target) + " " + (item.unit || ""),
             'text-anchor="middle" font-size="12"',
           );
       }
@@ -836,7 +837,7 @@
         out += text(
           x(target),
           cy + 28,
-          `${item.targetLabel || "目标"} ${fmt(target)} ${unit}`,
+          `${item.targetLabel || "参考目标"} ${fmt(target)} ${unit}`,
           'text-anchor="middle" font-size="10"',
         );
       }
@@ -846,7 +847,7 @@
           cy - 2,
           5.5,
           color(item.status),
-          `${label}：${fmt(value)} ${unit}${target !== null ? " · " + (item.targetLabel || "目标") + " " + fmt(target) + " " + unit : ""}${item.tooltip ? " · " + item.tooltip : ""}`,
+          `${label}：${fmt(value)} ${unit}${target !== null ? " · " + (item.targetLabel || "参考目标") + " " + fmt(target) + " " + unit : ""}${item.tooltip ? " · " + item.tooltip : ""}`,
         );
       out += text(
         603,
@@ -966,7 +967,7 @@
       let legendX = 18;
       [
         [num(opts.asymAmber), C.amber, "关注阈值"],
-        [num(opts.asymRed), C.red, "重点关注阈值"],
+        [num(opts.asymRed), C.red, "预警阈值"],
       ].forEach(([value, c, label]) => {
         if (value === null || value < 0 || value > max) return;
         const tooltip = `${label} ${fmt(value)}%`;
@@ -1181,7 +1182,7 @@
           text(
             cx,
             labelY,
-            `目标 ${fmt(item.target)}`,
+            `参考目标 ${fmt(item.target)}`,
             'text-anchor="middle" font-size="10"',
           );
       }

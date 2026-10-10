@@ -1765,7 +1765,15 @@
       if (!obj[part] || typeof obj[part] !== "object") obj[part] = {};
       obj = obj[part];
     }
+    const contextChanged = obj[ps.at(-1)] !== value;
     obj[ps.at(-1)] = value;
+    const dsiContextPaths = ["dsi.source", "dsi.cmjUnit", "cmjConfig.definition", "protocol.cmj", ...(state.dsi.source === "manual"
+      ? ["dsi.unit", "dsi.definition", "dsi.protocol"] : ["imtpConfig.definition", "imtpConfig.unit", "protocol.imtp"])];
+    if (contextChanged && dsiContextPaths.includes(path)) {
+      state.dsi.confirmed = false;
+      const confirmation = $("entryContent")?.querySelector('[data-path="dsi.confirmed"]');
+      if (confirmation) confirmation.checked = false;
+    }
     if (path === "athlete.date") M.applyAge(state);
     if (path === "athlete.date" || /CompetitionDate$/.test(path)) window.RingsideContextUI.refresh(state,$("entryContent"));
     if (/^definitions\.\d+\.category$/.test(path)) {
@@ -1941,7 +1949,7 @@
           .slice(0, 3)
           .map(
             (x) =>
-              `<div class="screen-item">${pill(x.status === "red" ? "重点关注" : "关注", x.status)}<h4>${E(x.title || x.label)}</h4><p>${E(screeningSummary(x))}</p></div>`,
+              `<div class="screen-item">${pill(Def.assessmentLabel(x.status, "关注"), x.status)}<h4>${E(x.title || x.label)}</h4><p>${E(screeningSummary(x))}</p></div>`,
           )
           .join("") +
         (sig.length > 3
@@ -1959,7 +1967,7 @@
       ? s.axes.length + " 个能力维度"
       : "待评价";
     $("radarLegend").innerHTML =
-      '<span class="red">重点关注</span> · <span class="amber">关注</span> · <span class="green">良好／优秀</span>';
+      `<span class="red">${E(Def.assessmentLabel("red"))}</span> · <span class="amber">${E(Def.assessmentLabel("amber"))}</span> · <span class="green">${E(Def.assessmentLabel("green"))}</span>`;
     $("directionMetrics").innerHTML = window.RingsideReport.overview(report);
     renderDetails(report);
     renderNarrativeStatus();
@@ -2135,6 +2143,7 @@
   }
   function updateJumpEntryResults() {
     if(ui.mode!=="entry")return;
+    if (["cmj", "imtp"].includes(entryTab)) updateDSIEntryResult();
     if (entryTab === "cpet" && T.isNative(state, entryTab)) {
       const s = M.stats(effectiveRecord()), result = $("entryContent").querySelector("[data-cpet-result]");
       const card = s.capabilityCards?.find(item => item.id === "cardio");
@@ -2155,6 +2164,25 @@
         if(chosen)chosen.textContent=(result.selectedIds||result.selectedJumpIds||[]).includes(jump.id)?"采用":"—";
       });
     });
+  }
+  function dsiEntryForm() {
+    return '<section data-dsi-entry><div class="subheading">DSI · 力比值</div><p class="note" data-dsi-status role="status" aria-live="polite"></p><p class="note" data-dsi-components></p>' +
+      (state.dsi.source === "manual" ? '<div class="form-grid">' + field("其他等长力定义", select("dsi.definition", state.dsi.definition, [["gross", "总力"], ["net", "净力"]])) + '</div>' : "") +
+      check("dsi.confirmed", state.dsi.confirmed, "确认 CMJ 与等长测试的力定义、单位及协议可比较") + '</section>';
+  }
+  function updateDSIEntryResult() {
+    const panel = $("entryContent")?.querySelector("[data-dsi-entry]");
+    if (!panel) return;
+    const record = effectiveRecord(), computed = M.stats(record), raw = computed.raw, context = raw.dsiContext;
+    const status = panel.querySelector("[data-dsi-status]"), components = panel.querySelector("[data-dsi-components]");
+    const enabled = record.derivedEnabled?.fdsi !== false, available = enabled && Number.isFinite(raw.dsi);
+    status.dataset.dsiAvailable = String(available);
+    status.textContent = !enabled ? "DSI 未启用；请在本次训练方向分析中启用。" : available
+      ? `DSI ${F(raw.dsi, 3)} · ${computed.derived.results.find(result => result.id === "fdsi")?.directionHint || ""}`
+      : "DSI 暂无法计算：" + (raw.dsiReason || "缺少有效 CMJ 力与等长峰值力");
+    const definition = value => value === "net" ? "净力" : value === "gross" ? "总力" : value || "未记录力定义";
+    const isometricName = context.source === "manual" ? record.dsi.protocol || "其他全身等长测试" : "IMTP";
+    components.textContent = `CMJ 采用的推进期峰值力：${F(context.cmjForce, 1)} ${context.cmjUnit}（${definition(context.cmjDefinition)}）；${isometricName} 采用的峰值力：${F(context.isometricForce, 1)} ${context.isometricUnit}（${definition(context.isometricDefinition)}）。`;
   }
   function repeatArrayPath(t, isoIndex = -1) {
     return t === "iso" ? `data.iso.${isoIndex}.trials` : (["pushup", "mas", "mss", "ift"].includes(t)||(t==="hop"&&T.isNative(state,t))) ? `data.${t}.trials` : `data.${t}`;
@@ -2516,7 +2544,7 @@
     if (["cmj","imtp"].includes(entryTab)) {
       const key=entryTab==="cmj"?"cmjConfig":"imtpConfig";
       h='<div class="form-grid">'+field("设备输出力定义",select(key+".definition",state[key].definition,[["gross","总力"],["net","净力"]]))+'</div>'+h;
-      if(entryTab==="cmj")h+=check("dsi.confirmed",state.dsi.confirmed,"确认 CMJ 与等长测试的力定义、单位及协议可比较")+(state.dsi.source==="manual"?field("其他等长力定义",select("dsi.definition",state.dsi.definition,[["gross","总力"],["net","净力"]])):"");
+      h+=dsiEntryForm();
       h+='<div class="subheading">冲量计算口径</div><div class="form-grid">'+field("设备冲量口径",select(key+".impulseDefinition",state[key].impulseDefinition,[["gross","总力积分"],["net","净力积分（扣除体重）"]]))+'</div>'+check("impulseConfig.confirmed",state.impulseConfig.confirmed,"确认 CMJ 与 IMTP 冲量口径及发力起点可比较");
     }
     if (["landmine","squat","bench","deadlift"].includes(entryTab)) {
