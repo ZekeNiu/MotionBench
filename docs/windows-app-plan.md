@@ -82,4 +82,4 @@
 
 当前轮次交付源代码、可审查的本地提交、代码备份、合成数据验证结果及本方案。下一轮先完成阶段一合同并选择阶段二原型；同一阶段通过相应验收后才进入下一阶段。阶段三真实迁移依赖用户本机完整数据备份，阶段四发行依赖明确发布授权。
 
-代码基线和当前回退方法见 [本地基线记录](local-baseline-20261010.md)，现有模块结构见 [架构说明](architecture.md)。本文的验收条件是后续进入下一阶段的标准，不表示已完成 Windows 应用、真实数据备份或迁移。
+代码基线和当前回退方法见 [本地基线记录](https://github.com/ZekeNiu/MotionBench/blob/review-v2.17.2-local-20261010-r2/docs/local-baseline-20261010.md)，现有模块结构见 [架构说明](https://github.com/ZekeNiu/MotionBench/blob/review-v2.17.2-local-20261010-r2/docs/architecture.md)。本文的验收条件是后续进入下一阶段的标准，不表示已完成 Windows 应用、真实数据备份或迁移。

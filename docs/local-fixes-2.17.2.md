@@ -51,7 +51,7 @@ Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $recoveryDirectory 'Motio
 
 ## GitHub 下载与代码回退
 
-本轮上传到独立 [审查分支](https://github.com/ZekeNiu/MotionBench/tree/codex/motionbench-2.17.2-review-20261010)，固定版本标签为 `review-v2.17.2-local-20261010`。[试用 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010/downloads/MotionBench-v2.17.2-local-preview.zip)包含成品 HTML、版本说明、验收记录与四张合成数据截图；源代码和测试位于同一分支。上传不改变 main，也不创建正式 Release。
+本轮上传到独立 [审查分支](https://github.com/ZekeNiu/MotionBench/tree/codex/motionbench-2.17.2-review-20261010)，固定版本标签为 `review-v2.17.2-local-20261010-r2`。[试用 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010-r2/downloads/MotionBench-v2.17.2-local-preview.zip)包含成品 HTML、版本说明、验收记录与四张合成数据截图；源代码和测试位于同一分支。上传不改变 main，也不创建正式 Release。
 
 回退代码时，在新目录克隆上一版标签，保留当前目录和数据：
 

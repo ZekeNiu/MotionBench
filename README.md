@@ -2,7 +2,7 @@
 
 跨项目的运动表现评估与训练建议工作台。本地审查版本 **2.17.2-local**，基于正式版 2.16.1。录入、计算、图表、备份与 PDF 导出均可离线使用。本轮尚未合并、正式发布或部署。
 
-本轮 GitHub 审查分支：[2.17.2 源代码](https://github.com/ZekeNiu/MotionBench/tree/codex/motionbench-2.17.2-review-20261010)。下载 [试用 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010/downloads/MotionBench-v2.17.2-local-preview.zip)，解压后打开 `MotionBench.html`；也可[单独下载 HTML](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010/MotionBench.html)。[下载校验与回退说明](downloads/README.md)记录完整 SHA256 和版本标签。此版本仍是本地 HTML/服务器工作台，Windows 应用按实施计划逐步推进。
+本轮 GitHub 审查分支：[2.17.2 源代码](https://github.com/ZekeNiu/MotionBench/tree/codex/motionbench-2.17.2-review-20261010)。下载 [试用 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010-r2/downloads/MotionBench-v2.17.2-local-preview.zip)，解压后打开 `MotionBench.html`；也可[单独下载 HTML](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010-r2/MotionBench.html)。[下载校验与回退说明](downloads/README.md)记录完整 SHA256 和版本标签。此版本仍是本地 HTML/服务器工作台，Windows 应用按实施计划逐步推进。
 
 
 本轮加入分段计时冲刺 F–V / P–V、Pmax、RFmax、DRF 与按目标距离计算的最佳冲刺剖面；能力结构分析采用左侧四张单指标方向卡、右侧分类参数表。方向依据和专项距离随记录保存，原始分段时间保留。详见[冲刺模型](docs/sprint-fvp-method.md)、[本地基线和回退](docs/local-baseline-20261010.md)、[Windows 应用实施计划](docs/windows-app-plan.md)。
