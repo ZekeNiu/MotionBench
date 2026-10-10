@@ -28,7 +28,9 @@ function sampled(distances){const r=record();r.sprintFvpAnalysis.targetDistanceM
   });
   await test("historical records gain display defaults without changing raw measurement or timing settings",()=>{
     assert.equal(Object.hasOwn(legacy,"sprintFvpView"),false);const r=record();assert.deepEqual(r.sprintFvpView,M.sprintFvpViewDefaults());assert.deepEqual(trialData(r.data.sprint_fvp),trialData(legacy.data.sprint_fvp));
-    for(const key of ["recordId","athleteId","enabled","sprintFvpConfig","sprintFvpAnalysis","projectSnapshots"])assert.deepEqual(r[key],legacy[key],key);
+    for(const key of ["recordId","athleteId","enabled","sprintFvpConfig","projectSnapshots"])assert.deepEqual(r[key],legacy[key],key);
+    assert.deepEqual(r.sprintFvpAnalysis,{...legacy.sprintFvpAnalysis,deltaForcePct:0,deltaVelocityPct:0,elasticityMethodVersion:"li-2026-sprint-elasticity-forward1-v1"});
+    assert.equal(M.fingerprint(r),M.fingerprint(legacy));
   });
   await test("false-only normalization preserves unknown fields and future CI declarations idempotently",()=>{
     const raw={fv:false,pv:0,optimum:null,confidence:true,confidenceMethodVersion:"future-v9",confidenceLevel:.9,metrics:{F0:false,V0:null,extra:{keep:1}},extra:{keep:2}};

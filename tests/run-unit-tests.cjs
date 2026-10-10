@@ -6,7 +6,7 @@ const { createHash } = require("node:crypto");
 const root = path.resolve(__dirname, '..');
 const artifactIndex = process.argv.indexOf('--artifact-dir');
 const artifactArg = process.argv.find(arg => arg.startsWith('--artifact-dir='))?.slice(15);
-const artifactDir = artifactArg || (artifactIndex >= 0 ? process.argv[artifactIndex + 1] : 'output/tests/v2.17.5-sprint-display-final');
+const artifactDir = artifactArg || (artifactIndex >= 0 ? process.argv[artifactIndex + 1] : 'output/tests/v2.18.0-dual-elasticity-final');
 if (!artifactDir || artifactDir.startsWith('--')) throw Error('--artifact-dir requires a directory');
 const resultDir = path.resolve(root, artifactDir);
 const outputRelative = path.relative(path.join(root, 'output'), resultDir);
@@ -22,6 +22,9 @@ for (const name of [
   "athlete-context-excel-tests.cjs",
   "athlete-context-report-tests.cjs",
   "fvp-model-tests.cjs",
+  "dual-elasticity-model-tests.cjs",
+  "dual-elasticity-report-model-tests.cjs",
+  "sprint-elasticity-model-tests.cjs",
   "sprint-fvp-model-tests.cjs",
   "sprint-fvp-display-model-tests.cjs",
   "sprint-fvp-display-report-model-tests.cjs",

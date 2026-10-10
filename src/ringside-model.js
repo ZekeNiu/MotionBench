@@ -8,17 +8,18 @@
   const FVP_IDS = ["fvp_sj", "fvp_cmj"];
   const ADDED_FVP_IDS = [...FVP_IDS, "sprint_fvp"];
   const capabilityDirectionOptions = Object.freeze(Object.fromEntries(Object.entries({
-    strength: [["fvp", "FVP 不平衡性"], ["fdsi", "DSI"], ["idsi_matched", "iDSI · 匹配 CMJ 推进期"], ["idsi_fixed250", "iDSI · 固定 0–250 ms"], ["eur", "EUR"]],
+    strength: [["fvp", "跳跃FVP 不平衡性"], ["jump_elasticity", "跳跃FVP弹性框架"], ["fdsi", "DSI"], ["idsi_matched", "iDSI · 匹配 CMJ 推进期"], ["idsi_fixed250", "iDSI · 固定 0–250 ms"], ["eur", "EUR"]],
     reactive: [["dj_rsi", "DJ RSI"], ["hop_rsi", "Hop RSI"], ["cmrj_rsi", "CMRJ RSI"]],
-    speed: [["sprint_fvp", "冲刺 FVP 不平衡性"], ["srr", "SRR"]],
+    speed: [["sprint_fvp", "冲刺FVP 不平衡性"], ["sprint_elasticity", "冲刺FVP弹性框架"], ["srr", "SRR"]],
   }).map(([key, options]) => [key, Object.freeze(options.map(option => Object.freeze(option)))])));
   const sprintFvpConfigDefaults = () => root.RingsideSprintFVP?.defaultsConfig() || { heightCm: "", temperatureC: 20, pressureHpa: 1013.25, windMps: 0, device: "", startConvention: "first_propulsive_action", timingStart: "first_propulsive_action", inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0, methodVersion: "samozino-2016-splits-v1", sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" };
-  const sprintFvpAnalysisDefaults = () => root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" };
+  const sprintElasticityDefaults = () => root.RingsideSprintElasticity?.defaultsAnalysis() || { deltaForcePct: 0, deltaVelocityPct: 0, elasticityMethodVersion: "li-2026-sprint-elasticity-forward1-v1" };
+  const sprintFvpAnalysisDefaults = () => ({ ...(root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" }), ...sprintElasticityDefaults() });
   const sprintFvpMetricKeys = Object.freeze(["F0","V0","Pmax","F0Absolute","PmaxAbsolute","slope","RFmax","DRF","Vmax","endVelocity","Vopt"]);
-  const sprintFvpViewDefaults = () => ({fv:true,pv:true,optimum:true,confidence:false,confidenceMethodVersion:"sprint-fvp-pointwise-delta-v1",confidenceLevel:.95,metrics:Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,true]))});
+  const sprintFvpViewDefaults = () => ({fv:true,pv:true,optimum:true,confidence:false,confidenceMethodVersion:"sprint-fvp-pointwise-delta-v1",confidenceLevel:.95,responseForce:true,responseVelocity:true,responseBoth:true,elasticityView:"response",metrics:Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,true]))});
   function normalizeSprintFvpView(input) {
     const source=input&&typeof input==="object"&&!Array.isArray(input)?input:{},metrics=source.metrics&&typeof source.metrics==="object"&&!Array.isArray(source.metrics)?source.metrics:{};
-    return {...sprintFvpViewDefaults(),...source,...Object.fromEntries(["fv","pv","optimum"].map(key=>[key,source[key]!==false])),confidence:source.confidence===true,metrics:{...metrics,...Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,metrics[key]!==false]))}};
+    return {...sprintFvpViewDefaults(),...source,...Object.fromEntries(["fv","pv","optimum","responseForce","responseVelocity","responseBoth"].map(key=>[key,source[key]!==false])),confidence:source.confidence===true,metrics:{...metrics,...Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,metrics[key]!==false]))}};
   }
   function convertSprintTimeMode(record,nextMode) {
     const modes=["cumulative","interval"],mode=record?.sprintFvpConfig?.inputTimeMode??"cumulative",rows=record?.data?.sprint_fvp;
@@ -50,7 +51,7 @@
   }
   const fvpConfigDefaults = () => root.RingsideFVP?.defaultsConfig() || { device: "", method: "", posture: "", distanceCm: "", distanceSource: "" };
   const fvpAnalysisDefaults = () => root.RingsideFVP?.defaultsAnalysis() || { angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 };
-  const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null, responseForce: true, responseVelocity: true, responseBoth: true };
+  const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null, responseForce: true, responseVelocity: true, responseBoth: true, elasticityView: "response" };
   function fvpAnalysis(record, id) {
     if (!FVP_IDS.includes(id) || !T.isNative(record, id)) return null;
     return root.RingsideFVP ? root.RingsideFVP.solve(record, id) : { id, valid: false, status: "empty", reason: "F–V 模型尚未载入", points: [], trials: [], groups: [], issues: [] };
@@ -60,6 +61,20 @@
     if (!root.RingsideSprintFVP) return { id: "sprint_fvp", valid: false, status: "empty", reason: "冲刺 F–V 模块尚未加载", points: [], trials: [], issues: [] };
     const solved=root.RingsideSprintFVP.solve(record);
     return {...solved,label:T.displayName({id:"sprint_fvp",name:solved.label},record)};
+  }
+  function resolveJumpFvpProtocol(record, computed) {
+    const entries = FVP_IDS.filter(id => record.enabled?.[id] && T.isNative(record,id)
+      && (record.data?.[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
+    const explicit = record.views?.fvpProtocol;
+    if (entries.includes(explicit)) return explicit;
+    return entries.find(id => (computed?.fvp?.[id] || fvpAnalysis(record,id))?.valid) || entries[0] || null;
+  }
+  function sprintElasticityAnalysis(record, sprintSolved) {
+    if (!T.isNative(record,"sprint_fvp")) return null;
+    const solved = sprintSolved || sprintFvpAnalysis(record);
+    return root.RingsideSprintElasticity ? root.RingsideSprintElasticity.solve(solved,record.sprintFvpAnalysis || sprintFvpAnalysisDefaults())
+      : { valid: false, reason: "冲刺FVP弹性模块尚未加载", methodVersion: sprintElasticityDefaults().elasticityMethodVersion,
+        current: null, elasticity: null, scenario: { valid: false, reason: "冲刺FVP弹性模块尚未加载" } };
   }
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const uid = () =>
@@ -631,6 +646,7 @@
       views: {
         idsiWindow: "idsi_matched",
         capabilitySelections: { strength: "fvp", reactive: "dj_rsi", speed: "sprint_fvp" },
+        capabilityExpanded: { strength: false, reactive: false, speed: false, endurance: false },
         imtp: { yAxis: "percent" },
         redScope: "all",
         amberScope: "all",
@@ -1002,6 +1018,7 @@
       ...d.views,
       ...s.views,
       capabilitySelections: { ...d.views.capabilitySelections, ...s.views?.capabilitySelections },
+      capabilityExpanded: { ...d.views.capabilityExpanded, ...s.views?.capabilityExpanded },
       imtp: { yAxis: s.views?.imtp?.yAxis === "force" ? "force" : "percent" },
       lvpUpper: { ...d.views.lvpUpper, ...s.views?.lvpUpper },
       lvpLower: { ...d.views.lvpLower, ...s.views?.lvpLower },
@@ -2334,7 +2351,7 @@
     });
     return { results, enabledCount: results.length };
   }
-  function capabilityCards(record, values, raw, derived) {
+  function capabilityCards(record, values, raw, derived, fvpResults = {}) {
     const cards = [], result = id => derived.results.find(item => item.id === id && item.available);
     const metric = (id, label, value, unit, judgment = "", extra = {}) => ({ id, label, value: N(value), unit, judgment, status: "gray", ...extra });
     const rated = (id, label, value, unit) => {
@@ -2356,6 +2373,11 @@
     if (impulse) strength.splice(1, 0, metric("idsi", "iDSI 冲量比", impulse.value, impulse.unit, impulse.directionHint, { components: impulse.components, selectedVariant: impulse.id, variants }));
     for (const [id, label] of [["cmj_rsi_modified", "CMJ RSI-modified"], ["sj_rsi_modified", "SJ RSI-modified"], ["cmrj_first_rsi_modified", "CMRJ 首跳 RSI-modified"]])
       if (positive(values[id]) !== null) strength.push(rated(id, label, values[id], "m/s"));
+    for (const id of FVP_IDS) {
+      const solved = fvpResults.fvp?.[id], response = solved?.valid && record.enabled[id] ? solved.elasticity : null;
+      if (!response) continue;
+      for (const [key,label] of [["Fe","Fₑ"],["ve","vₑ"],["ER","ER"],["EN","EN"]]) strength.push(metric(id + "_" + key.toLowerCase(), `${id === "fvp_cmj" ? "CMJ" : "SJ"} ${label}`, response[key], "", response.judgments?.[key] || "", {digits:3}));
+    }
     add("strength", "力量发展方向", strength);
     const reactive = [];
     for (const id of ["dj", "hop", "cmrj"]) {
@@ -2370,6 +2392,8 @@
     for (const item of structure.components) if (item.value !== null) speed.push({ ...rated(item.id, item.label, item.value, item.unit), target: item.target, attainment: item.attainment });
     if (asr && asr.value >= 0) speed.push(metric("asr", "ASR", asr.value, "m/s", "", { components: asr.components }));
     if (srr && srr.value >= 1) speed.push(metric("srr", "SRR", srr.value, "比值", srr.value < 1.7 ? "耐力型" : srr.value > 1.8 ? "速度型" : "混合型", { components: srr.components }));
+    const sprintElasticity = fvpResults.sprintElasticity;
+    if (sprintElasticity?.valid) for (const [key,label] of [["Fe","Fₑ"],["ve","vₑ"],["ER","ER"],["EN","EN"]]) speed.push(metric("sprint_elasticity_" + key.toLowerCase(), "冲刺 " + label, sprintElasticity.elasticity[key], "", sprintElasticity.elasticity.judgments?.[key] || "", {digits:3}));
     add("speed", "速度耐力发展方向", speed, structure.conclusion);
     const cardio = [], targets = [], cpet = raw.cpet;
     let conclusion = "";
@@ -2430,17 +2454,19 @@
       const result = (computed.derived?.results || []).find(item => item.id === id);
       return result && { ...result, label: capabilityDirectionOptions.strength.find(([key]) => key === id)?.[1], judgment: result.directionHint, status: "gray" };
     };
-    const selectedFvp = record.views?.fvpProtocol;
-    const jumpEntries = Object.entries(computed.fvp || {}).filter(([id]) => record.enabled[id]
-      && (record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
-    const jumpId = jumpEntries.find(([id]) => id === selectedFvp)?.[0] || jumpEntries[0]?.[0] || selectedFvp || "fvp_sj";
+    const jumpId = resolveJumpFvpProtocol(record, computed);
     const jump = computed.fvp?.[jumpId], sprint = computed.sprintFvp;
     const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
       value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
       judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
     const sprintMetric = { id: "sprint_fvp", label: "冲刺 FVP 不平衡性", value: sprint?.valid ? sprint.imbalance?.magnitudePct : null,
       unit: "%", digits: 2, judgment: sprint?.imbalance?.label || "待计算", status: "gray" };
+    const jumpElasticityMetric = { id: "jump_elasticity", label: `跳跃FVP弹性框架${jumpId ? ` · ${jumpId === "fvp_cmj" ? "CMJ" : "SJ"}` : ""}`,
+      value: jump?.valid ? jump.elasticity?.ER : null, unit: "", digits: 3, judgment: jump?.valid ? jump.elasticity?.judgments?.ER : "待计算", status: "gray" };
+    const sprintElasticityMetric = { id: "sprint_elasticity", label: "冲刺FVP弹性框架", value: computed.sprintElasticity?.valid ? computed.sprintElasticity.elasticity?.ER : null,
+      unit: "", digits: 3, judgment: computed.sprintElasticity?.valid ? computed.sprintElasticity.elasticity?.judgments?.ER : "待计算", status: "gray" };
     const candidate = id => id === "fvp" ? jumpMetric : id === "sprint_fvp" ? sprintMetric
+      : id === "jump_elasticity" ? jumpElasticityMetric : id === "sprint_elasticity" ? sprintElasticityMetric
       : id.startsWith("idsi_") ? impulse(id) : byId(id);
     const choice = key => {
       const saved = record.views?.capabilitySelections?.[key], options = capabilityDirectionOptions[key];
@@ -2464,8 +2490,8 @@
       return { id: key, title, metricId, label: metric.label || "", value: N(metric.value), unit: metric.unit || "",
         digits: Number.isInteger(metric.digits) ? metric.digits : metric.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id || "") ? 3 : metric.unit === "%" ? 1 : 2,
         status: metric.status || "gray", judgment: judgmentFor(key, metric),
-        context: metricId === "fvp" ? { protocol: jumpId, angle: jump?.valid ? jump.analysis?.angle || 90 : null }
-          : metricId === "sprint_fvp" ? { targetDistanceM: positive(sprint?.targetDistanceM) } : null };
+        context: ["fvp","jump_elasticity"].includes(metricId) ? { protocol: jumpId, angle: metricId === "jump_elasticity" ? 90 : jump?.valid ? jump.analysis?.angle || 90 : null }
+          : ["sprint_fvp","sprint_elasticity"].includes(metricId) ? { targetDistanceM: positive(sprint?.targetDistanceM) } : null };
     };
     const cardio = cards.find(card => card.id === "cardio"), primary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
     return [direction("strength", "力量发展方向"), direction("reactive", "反应力量水平"), direction("speed", "速度发展方向"),
@@ -2480,7 +2506,7 @@
     // Selection identity has its own AI binding. Measurement/reference changes
     // remain covered by fingerprint, including the existing age-only exception.
     return JSON.stringify({ selections: directions.filter(direction => direction.id !== "endurance").map(direction => ({
-      id: direction.id, metricId: direction.metricId, ...(direction.metricId === "fvp" ? { protocol: direction.context.protocol } : {}),
+      id: direction.id, metricId: direction.metricId, ...(["fvp","jump_elasticity"].includes(direction.metricId) ? { protocol: direction.context.protocol } : {}),
     })), idsiWindow: computed.capabilityCards?.find(card => card.id === "strength")?.metrics.find(metric => metric.id === "idsi")?.selectedVariant || null });
   }
   function stats(record) {
@@ -2515,6 +2541,7 @@
       validTests = new Set();
     const fvp = {};
     const sprintResult = sprintFvpAnalysis(state), sprintFvp = sprintResult ? { ...sprintResult, enabled: use("sprint_fvp") } : null;
+    const sprintElasticity = sprintFvp?.enabled ? sprintElasticityAnalysis(state,sprintFvp) : null;
     if (sprintFvp?.enabled) {
       raw.sprint_fvp = sprintFvp;
       if (sprintFvp.valid) {
@@ -3211,11 +3238,12 @@
       details,
       date: state.athlete.date,
     };
-    const cards = capabilityCards(state, values, raw, derived);
+    const cards = capabilityCards(state, values, raw, derived, {fvp,sprintElasticity});
     return {
       values,
       fvp,
       sprintFvp,
+      sprintElasticity,
       derived,
       capabilityCards: cards,
       cardio: cards.find(card => card.id === "cardio") || null,
@@ -3465,6 +3493,9 @@
     };
     const defaultProtocol = defaults().protocol;
     const fvpConfig = clone(record.fvpConfig || {}), fvpAnalysis = clone(record.fvpAnalysis || {});
+    const sprintFvpScenario = clone(record.sprintFvpAnalysis || {}), defaultSprintElasticity = sprintElasticityDefaults();
+    // Additive default scenario/method fields preserve historical AI evidence.
+    for (const key of Object.keys(defaultSprintElasticity)) if (sprintFvpScenario[key] === undefined || JSON.stringify(sprintFvpScenario[key]) === JSON.stringify(defaultSprintElasticity[key])) delete sprintFvpScenario[key];
     const defaultFvpConfig = fvpConfigDefaults(), defaultFvpAnalysis = fvpAnalysisDefaults();
     const sameFvpDefaults = (value, base) => Object.keys({ ...base, ...value }).every(key => JSON.stringify(value?.[key] ?? base[key]) === JSON.stringify(base[key]));
     const cpetMeasured = data.cpet && [data.cpet.vo2,data.cpet.peakHr,data.cpet.rer,...["first","second"].flatMap(side => ["vo2","hr","speed","power"].map(key => data.cpet.thresholds?.[side]?.[key]))].some(value => !empty(value));
@@ -3512,7 +3543,7 @@
       imtpConfig,
       ...(Object.keys(fvpConfig).length ? { fvpConfig } : {}),
       ...(Object.keys(fvpAnalysis).length ? { fvpAnalysis } : {}),
-      ...(!invisible.has("sprint_fvp") && T.isNative(record,"sprint_fvp") ? { sprintFvpConfig: record.sprintFvpConfig, sprintFvpAnalysis: record.sprintFvpAnalysis } : {}),
+      ...(!invisible.has("sprint_fvp") && T.isNative(record,"sprint_fvp") ? { sprintFvpConfig: record.sprintFvpConfig, ...(record.sprintFvpAnalysis !== undefined || Object.keys(sprintFvpScenario).length ? { sprintFvpAnalysis: sprintFvpScenario } : {}) } : {}),
       ...(record.impulseConfig?.confirmed ? { impulseConfig: record.impulseConfig } : {}),
       ...(Object.keys(derivedEnabled).length ? { derivedEnabled } : {}),
       ...(record.imtpTimeStandards?.length ? { imtpTimeStandards: record.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
@@ -3973,12 +4004,13 @@
         || path === "sprintFvpAnalysis.targetDistanceM") return bounds(0, null, false, true);
       if (/^sprintFvpConfig\.(?:windMps|timeCorrectionS|positionStartM)$/.test(path)) return empty ? "" : requireNumber();
       if (path === "sprintFvpConfig.temperatureC") return empty ? "" : requireNumber() || (number <= -273 ? "气温须高于 −273°C" : "");
+      if (/^sprintFvpAnalysis\.delta(?:Force|Velocity)Pct$/.test(path)) return value === undefined ? "" : empty ? "请输入变化百分比（不变填写 0）" : requireNumber() || (number <= -100 ? "变化须大于 −100%" : "");
     }
     const fvpPath = path.match(/^(?:data|fvpConfig|fvpAnalysis)\.(fvp_(?:sj|cmj))\./);
     if (fvpPath && T.isNative(record, fvpPath[1])) {
       if (/^data\.fvp_(sj|cmj)\.\d+\.load$/.test(path)) return bounds(0, null);
       if (/^(?:data\.fvp_(?:sj|cmj)\.\d+\.(?:height|distanceCm)|fvpConfig\.fvp_(?:sj|cmj)\.distanceCm)$/.test(path)) return bounds(0, null, false, true);
-      if (/^fvpAnalysis\.fvp_(sj|cmj)\.delta(?:Force|Velocity)Pct$/.test(path)) return empty ? "" : requireNumber() || (number <= -100 ? "变化须大于 −100%" : "");
+      if (/^fvpAnalysis\.fvp_(sj|cmj)\.delta(?:Force|Velocity)Pct$/.test(path)) return value === undefined ? "" : empty ? "请输入变化百分比（不变填写 0）" : requireNumber() || (number <= -100 ? "变化须大于 −100%" : "");
     }
     if (/^athlete\.(age|mass|height)$/.test(path))
       return bounds(
@@ -4092,6 +4124,7 @@
         ["distanceM","timeS"].forEach(key => check("data.sprint_fvp." + i + ".splits." + j + "." + key, split[key]))));
       ["heightCm","temperatureC","pressureHpa","windMps","timeCorrectionS","positionStartM"].forEach(key => check("sprintFvpConfig." + key,record.sprintFvpConfig?.[key]));
       check("sprintFvpAnalysis.targetDistanceM",record.sprintFvpAnalysis?.targetDistanceM);
+      ["deltaForcePct","deltaVelocityPct"].forEach(key => check("sprintFvpAnalysis." + key,record.sprintFvpAnalysis?.[key]));
     }
     const fields = {
       fms: ["score", "left", "right"],
@@ -4398,6 +4431,10 @@
       if (!plainObject(selections)) throw new Error("能力结构指标选项格式无效");
       Object.entries(capabilityDirectionOptions).forEach(([key, options]) => { if (selections[key] !== undefined && !options.some(([id]) => id === selections[key])) throw new Error("能力结构 " + key + " 指标选项无效"); });
     }
+    if (input.views?.capabilityExpanded !== undefined) {
+      if (!plainObject(input.views.capabilityExpanded)) throw Error("能力结构参数展开设置格式无效");
+      for (const key of ["strength","reactive","speed","endurance"]) if (input.views.capabilityExpanded[key] !== undefined && typeof input.views.capabilityExpanded[key] !== "boolean") throw Error("能力结构参数展开选项无效");
+    }
     validateAbilityGroups(input.abilityGroupSnapshot);
     if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
     if (
@@ -4638,10 +4675,17 @@
         N(value) !== null);
     if (T.isNative(input,"sprint_fvp")) {
       root.RingsideSprintFVP?.validate(input, { plainObject, safeId, optionalNumber });
+      const analysis=input.sprintFvpAnalysis;
+      if (analysis !== undefined && !plainObject(analysis)) throw Error("冲刺FVP情景设置须为数据字典");
+      if (analysis) {
+        for (const key of ["deltaForcePct","deltaVelocityPct"]) if (analysis[key] !== undefined && (N(analysis[key]) === null || Number(analysis[key]) <= -100)) throw Error("冲刺FVP情景变化须为大于 −100% 的有限数值");
+        if (analysis.elasticityMethodVersion !== undefined && typeof analysis.elasticityMethodVersion !== "string") throw Error("冲刺FVP弹性方法版本须为文字");
+      }
       const view=input.sprintFvpView;
       if(view!==undefined&&!plainObject(view))throw Error("冲刺FVP显示设置须为数据字典");
       if(view){
-        ["fv","pv","optimum","confidence"].forEach(key=>{if(view[key]!==undefined&&typeof view[key]!=="boolean")throw Error("冲刺FVP曲线显示选项无效");});
+        ["fv","pv","optimum","confidence","responseForce","responseVelocity","responseBoth"].forEach(key=>{if(view[key]!==undefined&&typeof view[key]!=="boolean")throw Error("冲刺FVP曲线显示选项无效");});
+        if(view.elasticityView!==undefined&&!["response","distance"].includes(view.elasticityView))throw Error("冲刺FVP弹性视图无效");
         if(view.confidenceMethodVersion!==undefined&&typeof view.confidenceMethodVersion!=="string")throw Error("冲刺FVP区间方法版本须为文字");
         if(view.confidenceLevel!==undefined&&(!optionalNumber(view.confidenceLevel)||N(view.confidenceLevel)===null||N(view.confidenceLevel)<=0||N(view.confidenceLevel)>=1))throw Error("冲刺FVP区间水平须在 0 与 1 之间");
         if(view.metrics!==undefined&&!plainObject(view.metrics))throw Error("冲刺FVP参数显示设置须为数据字典");
@@ -4667,15 +4711,16 @@
       }
       if (analysis) {
         if (analysis.angle !== undefined && ![90,30].includes(analysis.angle)) throw new Error("F–V 目标角度须为 90° 或 30°");
-        ["deltaForcePct","deltaVelocityPct"].forEach(key => { if (!optionalNumber(analysis[key])) throw new Error("F–V 情景变化须为有限数值"); });
+        ["deltaForcePct","deltaVelocityPct"].forEach(key => { if (analysis[key] !== undefined && (N(analysis[key]) === null || Number(analysis[key]) <= -100)) throw new Error("F–V 情景变化须为大于 −100% 的有限数值"); });
       }
       if (view) {
         ["fv","pv","points","optimum","comparison","confidence","responseForce","responseVelocity","responseBoth"].forEach(key => { if (view[key] !== undefined && typeof view[key] !== "boolean") throw new Error("F–V 图层选项无效"); });
+        if (view.elasticityView !== undefined && !["response","constraint"].includes(view.elasticityView)) throw new Error("跳跃FVP弹性视图无效");
         if (view.range !== undefined && !["full","measured"].includes(view.range)) throw new Error("F–V 显示范围无效");
         if (view.pinnedLoad !== undefined && view.pinnedLoad !== null && (N(view.pinnedLoad) === null || N(view.pinnedLoad) < 0)) throw new Error("F–V 定位负荷无效");
       }
     });
-    if (input.views?.fvpProtocol !== undefined && !FVP_IDS.includes(input.views.fvpProtocol)) throw new Error("F–V 剖面选项无效");
+    if (input.views?.fvpProtocol !== undefined && !["auto",...FVP_IDS].includes(input.views.fvpProtocol)) throw new Error("F–V 剖面选项无效");
     (input.data.imtp || []).forEach((row) => {
       [
         "peakForce",
@@ -5041,7 +5086,9 @@
     capabilityDirections,
     capabilityDirectionsBasis,
     fvpAnalysis,
+    resolveJumpFvpProtocol,
     sprintFvpAnalysis,
+    sprintElasticityAnalysis,
     sprintFvpMetricKeys,
     sprintFvpViewDefaults,
     normalizeSprintFvpView,

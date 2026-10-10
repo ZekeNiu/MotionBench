@@ -37,6 +37,10 @@
   }
   function displayName(test, source) {
     const name=test?.name??"";
+    if(["fvp_sj","fvp_cmj"].includes(test?.id)&&!test.legacyCustom&&(!source||isNative(source,test.id))) {
+      const protocol=test.id==="fvp_sj"?"SJ":"CMJ";
+      if([`${protocol} F–V/P–V 剖面`,`${protocol} F–V/P–V`,`跳跃力–速度剖面 · ${protocol}`].includes(name))return `跳跃FVP · ${protocol}`;
+    }
     if(test?.id==="sprint_fvp"&&!test.legacyCustom&&(!source||isNative(source,test.id))&&["分段计时冲刺 F–V/P–V 剖面","分段计时冲刺 F–V/P–V"].includes(name))return "冲刺FVP";
     return test?.id==="ift"&&name==="30–15 IFT"?"30-15VIFT":name;
   }
@@ -377,8 +381,8 @@
     return describe(source).map(({ id, name, category, primaryAbility, primaryMetricId }) => {
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
       // Display aliases must not rewrite measurement snapshots or catalog names.
-      const rawSprintName=id==="sprint_fvp"&&isNative(source,id)?(source.tests||source.projectSnapshots||builtins).find(test=>test.id===id)?.name:undefined;
-      return { id, name: prior?.name ?? rawSprintName ?? name, category,
+      const rawFvpName=["fvp_sj","fvp_cmj","sprint_fvp"].includes(id)&&isNative(source,id)?(source.tests||source.projectSnapshots||builtins).find(test=>test.id===id)?.name:undefined;
+      return { id, name: prior?.name ?? rawFvpName ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
         ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj", "sprint_fvp"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
         ...(primaryMetricId ? { primaryMetricId } : {}) };

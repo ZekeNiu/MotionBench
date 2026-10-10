@@ -1865,7 +1865,7 @@
 
   function jumpFvp(data, options = {}, layout = {}) {
     const w = Math.max(240, layout.width || 480), h = layout.height || 410;
-    const sprint = data?.kind === "sprint", title = sprint ? "冲刺FVP" : "跳跃 F–V 与 P–V 剖面";
+    const sprint = data?.kind === "sprint", title = sprint ? "冲刺FVP" : `跳跃FVP${data?.id ? " · " + (data.id === "fvp_cmj" ? "CMJ" : "SJ") : ""}`;
     if (!data?.valid) return layoutSVG(w, h, title, text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
     const fv = options.fv !== false, pv = options.pv !== false;
     if (!fv && !pv) return layoutSVG(w, h, sprint ? title : "跳跃力–速度剖面", text(w / 2, h / 2, "勾选 F–V 或 P–V 查看曲线", 'text-anchor="middle" font-size="13"'), "当前未选择显示曲线", layout);
@@ -1930,6 +1930,7 @@
   }
   function jumpElasticity(data, layout = {}) {
     const w=Math.max(240,layout.width||480),h=layout.height||330;
+    const sprint=data?.kind==="sprint",title=sprint?"参数改变与预测冲刺时间响应":"参数改变与预测跳跃高度响应",outcome=sprint?"预测冲刺时间改善":"预测跳跃高度改变";
     const valid=points=>(points||[]).filter(p=>p.valid!==false&&num(p.deltaPct)!==null);
     const series=[
       {key:"force",view:"responseForce",color:C.blue,label:"仅 F₀ 改变",shape:"circle"},
@@ -1937,19 +1938,49 @@
       {key:"both",view:"responseBoth",color:"#73548c",label:"F₀ 与 V₀ 各改变",shape:"triangle"},
     ].map(item=>({...item,points:valid(data[item.key]),curve:valid(data[item.key+"Curve"]||data[item.key])}));
     const all=series.flatMap(item=>item.curve),visible=series.filter(item=>data[item.view]!==false);
-    if(!all.length)return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",text(w/2,h/2,"完成有效剖面后显示敏感度",'text-anchor="middle" font-size="13"'),"尚无有效敏感度",layout);
-    if(!visible.length)return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",text(w/2,h/2,"勾选曲线查看表现响应",'text-anchor="middle" font-size="13"'),"未选择响应曲线",layout);
+    if(!all.length)return layoutSVG(w,h,title,text(w/2,h/2,"完成有效剖面后显示敏感度",'text-anchor="middle" font-size="13"'),"尚无有效敏感度",layout);
+    if(!visible.length)return layoutSVG(w,h,title,text(w/2,h/2,"勾选曲线查看表现响应",'text-anchor="middle" font-size="13"'),"未选择响应曲线",layout);
     const small=w<400,left=small?44:54,right=w-20,top=45,bottom=h-110;
     // Keep scales stable while series are toggled so their response remains comparable.
     const xMin=Math.min(0,...all.map(p=>p.changePct)),xMax=Math.max(10,...all.map(p=>p.changePct)),yMin=Math.min(0,...all.map(p=>p.deltaPct))*1.13,yMax=Math.max(.5,...all.map(p=>p.deltaPct))*1.13;
-    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin,xMax,yMin,yMax,xLabel:"参数改变 · %",yLabel:"垂直跳跃高度改变 · %",solidGrid:true});
+    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin,xMax,yMin,yMax,xLabel:"参数改变 · %",yLabel:outcome+" · %",solidGrid:true});
     let out=grid+line(left,y(0),right,y(0),'stroke="#9aa4ae" stroke-dasharray="3 4"');
     visible.forEach(({key,points,curve,color,label,shape},index)=>{
       out+=`<g data-response-series="${key}"><polyline points="${polygonPoints(curve.map(p=>[x(p.changePct),y(p.deltaPct)]))}" fill="none" stroke="${color}" stroke-width="2.5"/>`;
-      points.forEach(p=>{out+=point(x(p.changePct),y(p.deltaPct),4,color,`${label} ${fmt(p.changePct,1)}% · 垂直跳跃高度 ${p.deltaPct>=0?'+':''}${fmt(p.deltaPct,2)}%`,"",shape);});
+      points.forEach(p=>{out+=point(x(p.changePct),y(p.deltaPct),4,color,`${label} ${fmt(p.changePct,1)}% · ${outcome} ${p.deltaPct>=0?'+':''}${fmt(p.deltaPct,2)}%`,"",shape);});
       const ly=h-48+index*18;out+=line(left,ly,left+22,ly,`stroke="${color}" stroke-width="2.5"`)+marker(left+11,ly,3.5,color,shape)+text(left+29,ly+4,label,'font-size="11"')+'</g>';
     });
-    return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",out,"单端曲线只改变F₀或V₀；联合曲线中F₀与V₀各改变横轴所示百分比。每条曲线均重新求解垂直跳跃高度。",layout);
+    return layoutSVG(w,h,title,out,`单端曲线只改变F₀或V₀；联合曲线中F₀与V₀各改变横轴所示百分比。每条曲线均重新求解${sprint?"到达目标距离的冲刺时间，正值表示时间缩短":"垂直跳跃高度"}。`,layout);
+  }
+  function sprintElasticity(data, layout = {}) { return jumpElasticity({ ...data, kind: "sprint" }, layout); }
+  function jumpElasticityConstraint(data, layout = {}) {
+    const w=Math.max(240,layout.width||480),h=layout.height||330,title="固定预测跳跃高度 · ER–EN";
+    const points=(data?.points||[]).filter(p=>num(p.ER)!==null&&num(p.EN)!==null);
+    if(!data?.valid||!points.length)return layoutSVG(w,h,title,text(w/2,h/2,"完成有效剖面后显示固定高度曲线",'text-anchor="middle" font-size="13"'),data?.reason||"尚无有效固定高度曲线",layout);
+    const left=w<400?44:54,right=w-20,top=48,bottom=h-100;
+    const xMax=Math.max(1,...points.map(p=>p.ER))*1.06,yMin=Math.max(0,Math.min(...points.map(p=>p.EN))*.9),yMax=Math.max(.1,...points.map(p=>p.EN))*1.08;
+    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin:0,xMax,yMin,yMax,xLabel:"弹性比 ER",yLabel:"弹性范数 EN",solidGrid:true});
+    let out=grid+`<polyline data-elasticity-constraint-curve points="${polygonPoints([...points].sort((a,b)=>a.ER-b.ER).map(p=>[x(p.ER),y(p.EN)]))}" fill="none" stroke="${C.blue}" stroke-width="2.5"/>`;
+    const landmarks=[{key:"current",label:"当前剖面",color:C.blue,shape:"circle"},{key:"valley",label:"EN 最低点",color:C.green,shape:"diamond"},{key:"balance",label:"ER = 1",color:"#73548c",shape:"triangle"}];
+    landmarks.forEach(({key,label,color,shape},i)=>{const p=data[key];if(num(p?.ER)===null||num(p?.EN)===null)return;out+=point(x(p.ER),y(p.EN),5,color,`${label} · ER ${fmt(p.ER,3)} · EN ${fmt(p.EN,3)}`,`data-elasticity-landmark="${key}"`,shape);const ly=h-54+i*18;out+=marker(left+5,ly,4,color,shape)+text(left+18,ly+4,label,'font-size="11"');});
+    return layoutSVG(w,h,title,out,`固定模型预测垂直跳跃高度 ${fmt(data.heightCm,2)} cm 与蹬伸距离，改变剖面分配并重新计算 ER 与 EN。EN 最低点与 ER = 1 的平衡点分别标记；采样范围不表示生理阈值。`,layout);
+  }
+  function sprintElasticityDistance(data, layout = {}) {
+    const w=Math.max(240,layout.width||480),h=layout.height||330,title="冲刺弹性随距离变化";
+    const points=(data?.points||[]).filter(p=>p.valid!==false&&num(p.distanceM)!==null&&[p.Fe,p.ve,p.EN,p.ER].every(value=>num(value)!==null));
+    if(!data?.valid||!points.length)return layoutSVG(w,h,title,text(w/2,h/2,"完成有效剖面后显示距离曲线",'text-anchor="middle" font-size="13"'),data?.reason||"尚无有效距离曲线",layout);
+    const landmarks=[data.current,data.valley,data.balance].filter(p=>p?.valid!==false&&num(p?.distanceM)!==null&&[p.Fe,p.ve,p.EN,p.ER].every(value=>num(value)!==null)),all=points.concat(landmarks);
+    const small=w<400,left=small?44:54,right=w-(small?45:54),top=48,bottom=h-125,xMax=Math.max(1,...all.map(p=>p.distanceM))*1.04,yMax=Math.max(.1,...all.flatMap(p=>[p.Fe,p.ve,p.EN]))*1.12,erMax=Math.max(1,...all.map(p=>p.ER))*1.1;
+    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin:0,xMax,yMin:0,yMax,xLabel:"目标距离 · m",yLabel:"Fₑ / vₑ / EN",solidGrid:true});
+    const yER=value=>bottom-value/erMax*(bottom-top),erColor=C.neutral,purple="#73548c";
+    let out=grid+line(right,top,right,bottom,`stroke="${erColor}"`)+text(right,top-14,"ER · 右轴",`text-anchor="end" font-size="11" fill="${erColor}"`);
+    ticks(0,erMax).forEach(value=>{out+=text(right+7,yER(value)+4,fmt(value,1),`font-size="11" fill="${erColor}"`);});
+    const series=[{key:"Fe",label:"Fₑ · 左轴",color:C.blue},{key:"ve",label:"vₑ · 左轴",color:C.green},{key:"EN",label:"EN · 左轴",color:purple},{key:"ER",label:"ER · 右轴",color:erColor,dash:true}];
+    series.forEach(({key,label,color,dash},i)=>{const scale=key==="ER"?yER:y;out+=`<polyline data-distance-series="${key}" data-distance-axis="${key==="ER"?"right":"left"}" points="${polygonPoints([...points].sort((a,b)=>a.distanceM-b.distanceM).map(p=>[x(p.distanceM),scale(p[key])]))}" fill="none" stroke="${color}" stroke-width="${dash?1.7:2.4}"${dash?' stroke-dasharray="5 4"':""}/>`;const ly=h-73+Math.floor(i/2)*20,lx=left+(i%2?Math.min(112,(right-left)*.54):0);out+=line(lx,ly,lx+18,ly,`stroke="${color}" stroke-width="${dash?1.7:2.4}"${dash?' stroke-dasharray="5 4"':""}`)+text(lx+24,ly+4,label,'font-size="10"');});
+    const current=data.current;if(num(current?.distanceM)!==null){out+=line(x(current.distanceM),top,x(current.distanceM),bottom,'stroke="#9aa4ae" stroke-dasharray="3 4"');for(const{key,color}of series)if(num(current[key])!==null)out+=point(x(current.distanceM),(key==="ER"?yER:y)(current[key]),4.3,color,`当前目标 ${fmt(current.distanceM,1)} m · ${key} ${fmt(current[key],3)}`,`data-distance-current="${key}"`);}
+    for(const[key,label,color,shape]of[["valley","EN 最低点",purple,"diamond"],["balance","ER = 1",erColor,"triangle"]]){const p=data[key],metric=key==="valley"?"EN":"ER";if(p?.valid!==false&&num(p?.distanceM)!==null&&num(p?.[metric])!==null)out+=point(x(p.distanceM),(metric==="ER"?yER:y)(p[metric]),5,color,`${label} · ${fmt(p.distanceM,2)} m`, `data-elasticity-landmark="${key}"`,shape);}
+    out+=text(left,h-17,"菱形：EN 最低点 · 三角：ER = 1",'font-size="10"');
+    return layoutSVG(w,h,title,out,"Fₑ、vₑ、EN 读取左轴，ER 读取右轴；各指标均为无量纲。当前剖面保持不变，分别求解各目标距离的冲刺时间与弹性。竖虚线标记当前目标距离；EN 最低点与 ER = 1 的平衡点分别求解。",layout);
   }
 
   global.RingsideViz = {
@@ -1972,6 +2003,9 @@
     jumpFvp,
     sprintFvp,
     jumpElasticity,
+    jumpElasticityConstraint,
+    sprintElasticity,
+    sprintElasticityDistance,
     C,
   };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -10,7 +10,7 @@
   const defaultsConfig = () => ({ device: "", method: "", posture: "", distanceCm: "", distanceSource: "" });
   const defaultsAnalysis = () => ({ angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 });
   const defaultsView = () => ({ fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null,
-    responseForce: true, responseVelocity: true, responseBoth: true });
+    responseForce: true, responseVelocity: true, responseBoth: true, elasticityView: "response" });
 
   function regression(points) {
     const n = points.length, result = { valid: false, a: null, b: null, n, r2: null, meanX: null, sxx: null, s: null, tcrit: null, minX: null, maxX: null, reason: "至少需要 3 个不同负荷的有效结果" };
@@ -111,6 +111,31 @@
     return result;
   }
 
+  // Li's fixed-height constraint: F0(1 - lambda*u/V0) = g(1 + h/d).
+  // Sampling ER changes the force/velocity allocation while retaining h and d.
+  function elasticityConstraint(profile, distance, count = 121) {
+    const predicted = performance(profile?.F0, profile?.V0, distance), base = elasticity(profile?.F0, profile?.V0, distance);
+    const result = { valid: false, methodVersion: "li-2026-jump-constant-height-v1", heightCm: predicted.heightCm, current: null, balance: null, valley: null, points: [] };
+    if (!predicted.valid || !base) return result;
+    const vd = LAMBDA * predicted.takeoffVelocity, force = G * (1 + predicted.heightCm / 100 / distance);
+    const low = Math.min(.1, base.ER / 2), high = Math.max(8, base.ER * 2);
+    count = Math.max(3, Math.min(401, Math.round(count)));
+    const ratios = Array.from({ length: count }, (_, i) => Math.exp(Math.log(low) + (Math.log(high) - Math.log(low)) * i / (count - 1)));
+    const valleyER = predicted.takeoffVelocity * predicted.takeoffVelocity / distance / force;
+    ratios.push(base.ER,1,valleyER);
+    const point = ER => {
+      const F0 = force * (1 + ER) / ER, V0 = vd * (1 + ER), response = elasticity(F0, V0, distance);
+      return response ? { F0, V0, heightCm: predicted.heightCm, Fe: response.Fe, ve: response.ve, ER: response.ER, EN: response.EN } : null;
+    };
+    result.points = [...new Set(ratios)].sort((a,b) => a-b).map(point).filter(Boolean);
+    result.balance = point(1);
+    // On this same-height curve EN = 2*Fb*sqrt(ER²+1)/(u²*ER/d + Fb).
+    result.valley = point(valleyER);
+    result.current = { F0: profile.F0, V0: profile.V0, heightCm: predicted.heightCm, ...base };
+    result.valid = result.points.length >= 3;
+    return result;
+  }
+
   function confidence(fit, velocity, measuredOnly = true) {
     const x = num(velocity);
     if (x === null || !fit.valid || fit.n < 3 || fit.s === null || fit.tcrit === null || !(fit.sxx > 0)) return null;
@@ -150,7 +175,7 @@
     const fit = regression(points), presentCount = trials.filter(t => t.present).length;
     const result = { id, label, config, analysis: { ...analysis, angle }, valid: fit.valid, status: fit.valid ? "valid" : presentCount ? "review" : "empty", reason: fit.reason,
       points, selectedPoints: points, trials, groups, model: fit, fit, current: null, optimum: null, optimal: null, comparison: null,
-      imbalance: null, imbalancePct: null, direction: null, potentialGainPct: null, elasticity: null, scenario: null,
+      imbalance: null, imbalancePct: null, direction: null, potentialGainPct: null, elasticity: null, scenario: null, elasticityConstraint: null,
       sensitivity: { force: [], velocity: [], both: [] }, ci: (v, measuredOnly) => confidence(fit, v, measuredOnly), issues: [] };
     trials.filter(t => t.present && !t.excluded && !t.valid).forEach(t => result.issues.push({ id: "fvp_trial_" + t.index, testId: id, status: "amber", message: "第 " + (t.index + 1) + " 次：" + t.reason }));
     if (!fit.valid) return result;
@@ -169,7 +194,7 @@
     const deltaForcePct = num(analysis.deltaForcePct) ?? 0, deltaVelocityPct = num(analysis.deltaVelocityPct) ?? 0;
     const elastic = elasticity(fit.F0, fit.V0, distance), next = scenario(fit, distance, deltaForcePct, deltaVelocityPct);
     Object.assign(result, { current, verticalCurrent: current, optimum: optimal, optimal, comparison, imbalance: balance, imbalancePct: balance.magnitudePct, direction: balance.direction,
-      potentialGainPct: angle === 90 ? (optimal.heightCm / current.heightCm - 1) * 100 : null, elasticity: elastic, scenario: next,
+      potentialGainPct: angle === 90 ? (optimal.heightCm / current.heightCm - 1) * 100 : null, elasticity: elastic, scenario: next, elasticityConstraint: elasticityConstraint(fit, distance),
       judgments: { direction: balance.label } });
     result.sensitivity = {
       force: [-20,-15,-10,-5,0,5,10,15,20].map(changePct => ({ changePct, ...scenario(fit, distance, changePct, 0) })),
@@ -179,5 +204,5 @@
     return result;
   }
   root.RingsideFVP = Object.freeze({ ids, G, LAMBDA, LI_LAMBDA, defaultsConfig, defaultsAnalysis, defaultsView, solve, read: solve,
-    regression, forceAt, powerAt, curve, performance, optimum, imbalance, elasticity, scenario, confidence, equal });
+    regression, forceAt, powerAt, curve, performance, optimum, imbalance, elasticity, scenario, elasticityConstraint, confidence, equal });
 })(typeof window !== "undefined" ? window : globalThis);

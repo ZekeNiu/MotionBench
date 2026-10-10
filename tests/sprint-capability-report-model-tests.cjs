@@ -31,14 +31,14 @@ test("one snapshot yields four single-basis cards and retains the category param
   assert.deepEqual(Array.from(report.diagnostics), []); assert.doesNotMatch(html, /NaN|Infinity|未注册图表渲染器/);
 });
 
-test("switching a basis changes one card while all right-side parameters stay intact", () => {
+test("switching a basis changes one summary while all in-card parameters stay intact", () => {
   const r = fixture(), a = R.renderCapabilityAnalysis(R.build(r));
   r.views.capabilitySelections.strength = "eur"; r.views.capabilitySelections.speed = "srr";
   const b = R.renderCapabilityAnalysis(R.build(r));
   assert.match(section(a, "strength"), /data-direction-metric="fdsi"/); assert.match(section(b, "strength"), /data-direction-metric="eur"/);
   assert.match(section(b, "speed"), /data-direction-metric="srr"/);
-  const params = html => html.slice(html.indexOf('<div class="detail-data capability-parameter-column">'));
-  assert.equal(params(a), params(b));
+  const params = html => [...html.matchAll(/<div data-report-patch="parameters-[^"]+">[\s\S]*?<\/details><\/article>/g)].map(match => match[0]);
+  assert.equal(params(a).length, 4); assert.deepEqual(params(a), params(b));
   assert.doesNotMatch(section(b, "strength"), /1\.1|发展 SSC 能力|发展纯向心能力/);
 });
 
@@ -105,7 +105,7 @@ test("parameter group titles and conclusions remain one heading unit before thei
   assert.match(html, /capability-parameter-judgment green/); assert.ok(html.includes(c.Def.assessmentLabel("green"))); assert.doesNotMatch(html, /原始自定义等级/);
   assert.equal(JSON.stringify(report), before);
 });
-test("the complete FVP and sprint regions precede the independent direction fold", () => {
+test("four independently folded cards precede both FVP and elasticity regions", () => {
   const r = fixture();
   for (const id of ["fvp_sj", "fvp_cmj"]) {
     r.enabled[id] = true; r.fvpConfig[id].distanceCm = 33;
@@ -114,20 +114,20 @@ test("the complete FVP and sprint regions precede the independent direction fold
   r.views.fvpProtocol = "fvp_cmj";
   const report = R.build(r), before = JSON.stringify(r), html = R.renderCapabilityAnalysis(report);
   assert.equal((html.match(/data-capability-region/g) || []).length, 1);
-  const fold = html.indexOf('<details class="details-group" id="trainingAnalysisDetail"');
+  const cards = html.indexOf('data-capability-analysis');
   const profile = html.indexOf('data-fvp-panel="fvp_cmj"'), elasticity = html.indexOf('data-fvp-elasticity="fvp_cmj"'), sprint = html.indexOf('data-sprint-fvp-panel');
-  assert.ok(profile >= 0 && profile < elasticity && elasticity < sprint && sprint < fold);
-  assert.match(html.slice(0, fold), /class="capability-plot-region"><div class="capability-region-heading pdf-group-heading">能力结构分析<\/div><div class="quality-group">/);
-  assert.match(html.slice(fold), /<summary>能力发展方向与参数<\/summary>/);
+  assert.ok(cards >= 0 && cards < profile && profile < elasticity && elasticity < sprint && sprint < html.indexOf('data-sprint-elasticity-panel'));
+  assert.doesNotMatch(html, /trainingAnalysisDetail|能力发展方向与参数|data-pdf-title="能力发展方向/);
+  assert.deepEqual([...html.matchAll(/data-capability-parameters="([^"]+)"/g)].map(m => m[1]), ["strength", "reactive", "speed", "endurance"]);
+  assert.doesNotMatch(html, /data-capability-parameters="[^"]+" open/);
   assert.equal((html.match(/class="capability-region-heading pdf-group-heading"/g) || []).length, 1);
-  assert.doesNotMatch(html.slice(fold), /data-fvp-panel=|data-fvp-elasticity=|data-chart-kind="sprintFvp"/);
-  for (const key of ["strength", "reactive", "speed", "endurance"]) assert.match(html.slice(fold), new RegExp(`data-capability-direction="${key}"`));
-  assert.match(html.slice(0, fold), /data-fvp-protocol/); assert.match(html.slice(0, fold), /data-fvp-scenario-form/);
-  assert.match(html.slice(0, fold), /data-raw-trials="fvp_cmj"/); assert.match(html.slice(0, fold), /data-raw-trials="sprint_fvp"/);
+  for (const key of ["strength", "reactive", "speed", "endurance"]) assert.match(html.slice(cards, profile), new RegExp(`data-capability-direction="${key}"`));
+  assert.match(html, /data-fvp-protocol/); assert.match(html, /data-fvp-scenario-form/);
+  assert.match(html, /data-raw-trials="fvp_cmj"/); assert.match(html, /data-raw-trials="sprint_fvp"/);
   assert.equal(JSON.stringify(r), before);
 });
 
-test("print preparation replaces one full region, preserves all valid protocols and the direction fold", () => {
+test("print preparation preserves each card's live fold and both valid jump protocols", () => {
   const r = fixture();
   for (const id of ["fvp_sj", "fvp_cmj"]) {
     r.enabled[id] = true; r.fvpConfig[id].distanceCm = 33;
@@ -135,18 +135,17 @@ test("print preparation replaces one full region, preserves all valid protocols 
   }
   r.views.fvpProtocol = "fvp_cmj";
   const before = JSON.stringify(r); let html = "", replacements = 0;
-  const printedDirections = { open: true };
-  const region = { querySelector: selector => selector === "#trainingAnalysisDetail" ? { open: false } : null,
-    set outerHTML(value) { html = value; replacements++; printedDirections.open = true; } };
-  const clone = { querySelector: selector => selector === "[data-capability-region]" ? region : selector === "[data-capability-region] #trainingAnalysisDetail" ? printedDirections : null };
+  const cards = ["strength", "reactive", "speed", "endurance"].map((key, i) => ({ dataset: { capabilityParameters: key }, open: i === 1 }));
+  const printed = cards.map(card => ({ dataset: card.dataset, open: false }));
+  const region = { querySelectorAll: () => cards,
+    set outerHTML(value) { html = value; replacements++; printed.forEach(card => { card.open = false; }); } };
+  const clone = { querySelector: selector => selector === "[data-capability-region]" ? region : null, querySelectorAll: () => printed };
   for (let i = 0; i < 2; i++) {
     R.prepareFVPPrint(clone, r);
-    assert.equal(printedDirections.open, false);
+    assert.deepEqual(printed.map(card => card.open), [false, true, false, false]);
     assert.equal((html.match(/data-capability-region/g) || []).length, 1);
-    assert.equal((html.match(/id="trainingAnalysisDetail"/g) || []).length, 1);
-    assert.deepEqual([...html.matchAll(/data-chart-kind="([^"]+)"/g)].map(match => match[1]), ["jumpFvp", "jumpElasticity", "jumpFvp", "jumpElasticity", "sprintFvp"]);
-    const fold = html.indexOf('id="trainingAnalysisDetail"');
-    assert.doesNotMatch(html.slice(fold), /data-fvp-panel=|data-fvp-elasticity=|data-chart-kind="sprintFvp"/);
+    assert.doesNotMatch(html, /trainingAnalysisDetail/);
+    assert.deepEqual([...html.matchAll(/data-chart-kind="([^"]+)"/g)].map(match => match[1]), ["jumpFvp", "jumpElasticity", "jumpFvp", "jumpElasticity", "sprintFvp", "sprintElasticity"]);
     assert.doesNotMatch(html, /<select|<input|<button|data-sprint-target-form/);
   }
   assert.equal(replacements, 2); assert.equal(JSON.stringify(r), before);
@@ -156,7 +155,7 @@ test("print preparation replaces one full region, preserves all valid protocols 
 test("independent regions keep existing empty and disabled measurement gates", () => {
   const r = fixture(); r.enabled.sprint_fvp = false; r.enabled.fvp_sj = true; r.data.fvp_sj = [];
   const html = R.renderCapabilityAnalysis(R.build(r));
-  assert.match(html, /data-capability-region/); assert.match(html, /id="trainingAnalysisDetail"/);
+  assert.match(html, /data-capability-region/); assert.match(html, /data-capability-analysis/);
   assert.doesNotMatch(html, /class="capability-plot-region"|data-fvp-panel=|data-fvp-elasticity=|data-sprint-fvp-panel/);
 });
 console.log(`${passed} sprint and capability report checks passed`);

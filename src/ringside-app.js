@@ -689,6 +689,12 @@
   function gotoInputError(key) {
     const draft = draftsFor()[key];
     if (!draft) return;
+    if (draft.mode === "report") {
+      if (["fvp_sj","fvp_cmj"].includes(draft.id)) state.views.fvpProtocol=draft.id;
+      ui.mode = "report"; renderReport(false); renderWorkspace();
+      reportEditControls().find(control => reportEditInfo(control)?.path === key)?.focus();
+      return;
+    }
     if (draft.mode === "settings") openSettings(draft.tab);
     else openEntry(draft.tab);
     const path = resolveDraftPath(key);
@@ -700,6 +706,7 @@
   }
   function ensureExportable(records = [state]) {
     saveEditor();
+    flushReportEdits(records);
     const pending = records.filter((r) =>
       Object.keys(draftsFor(r)).some((key) => resolveDraftPath(key, r)),
     );
@@ -1195,6 +1202,7 @@
   }
   async function switchRecord(a, r, options = {}) {
     const sequence = ++selectionSequence;
+    if(reportEditInfo(document.activeElement))commitReportControl(document.activeElement);
     if (state) { captureReportUI(); saveEditor(); }
     if (!await persist()) return;
     if (sequence !== selectionSequence) return;
@@ -1706,6 +1714,7 @@
     if(libraryTransferActive||creation?.submitting||window.RingsideExcelFlow.isBusy())return null;
     saveEditor();
     const records=entryRecords();
+    flushReportEdits(records);
     if(!records.length)throw Error("请先选择本次测试记录");
     if(records.some(r=>!library.athletes.some(a=>a.id===r.athleteId&&!a.deletedAt&&!a.archived)))throw Error("请先录入并保存测量，完成运动员建档");
     if(Object.keys(draftsFor()).some(key=>resolveDraftPath(key)))throw Error("请先核对当前运动员的标红输入");
@@ -2042,6 +2051,8 @@
     const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol", "data-capability-selection", "data-sprint-target-distance", "data-sprint-fvp-view", "data-sprint-fvp-metric"].find(attribute => active?.hasAttribute(attribute));
     const fvpFocusId = active?.dataset?.fvpId, fvpFocusValue = fvpFocus && active.getAttribute(fvpFocus);
     $("detailContent").innerHTML = window.RingsideReport.render(report);
+    reportEditControls().forEach(control=>control.dataset.reportRecordId=state.recordId);
+    restoreReportEdits();
     window.RingsideReport.observeCharts($("detailContent"));
     window.RingsideReport.bindFVPInteractions?.($("detailContent"));
     document.querySelectorAll("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings]").forEach((el) => {
@@ -3685,6 +3696,7 @@
   function facts() {
     // Suppress inactive custom targets in AI-derived scores/findings as well as
     // metric rows, without changing the saved record or local report formulas.
+    flushReportEdits();
     const analysisRecord = effectiveRecord();
     analysisRecord.definitions.forEach((d) => { if (!d.referenceEnabled) { d.target = ""; d.ranges = []; } });
     const report = window.RingsideReport.build(analysisRecord),
@@ -3741,6 +3753,7 @@
         optimum:copy(s.sprintFvp.optimum), optimumReason:s.sprintFvp.optimumReason,
         imbalance:copy(s.sprintFvp.imbalance), judgments:copy(s.sprintFvp.judgments || null),
       } : null,
+      sprintFVPElasticity: copy(s.sprintElasticity || null),
       cpet: copy(s.raw.cpet || null),
       qualityIssues: s.qualityIssues || [],
       migrationReview: {
@@ -4077,7 +4090,7 @@
     try {
       const messages = [
         { role: "system", content: window.RingsideInterventions.systemPrompt },
-        { role: "user", content: "生成解读与干预建议：四个能力发展方向优先采用 selectedCapabilityDirections 中选定的指标、数值和判定，其余能力参数用于综合分析背景。\n" + JSON.stringify(facts()) },
+        { role: "user", content: "生成解读与干预建议：四个能力发展方向优先采用 selectedCapabilityDirections 中选定的指标、数值和判定，其余能力参数用于综合分析背景。跳跃 FVP 弹性须绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性须绑定目标距离，并遵守有效性与静止起跑、静风条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小，不当作通用能力评分或训练比例。情景为模型预测：跳高增加表示改善，冲刺用时减少表示改善；不得替代实测或声称训练后必然达到。\n" + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
       let validated, pages;
@@ -4141,7 +4154,6 @@
   }
   function reportPayload() {
     ensureExportable();
-    persist();
     const profile=library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId);
     return {
       schema: 2,
@@ -4151,12 +4163,12 @@
     };
   }
   async function libraryPayload() {
+    ensureExportable(); assertLibraryReportEdits();
     if (!await persist()) throw Error("请先完成保存");
     return repository.exportLibrary();
   }
-  function exportHTMLString() {
-    const payload = reportPayload(),
-      clone = document.documentElement.cloneNode(true);
+  function exportHTMLString(payload = reportPayload()) {
+    const clone = document.documentElement.cloneNode(true);
     clone.querySelector("#embedded-data").textContent = JSON.stringify(
       payload,
     ).replace(/</g, "\\u003c");
@@ -4271,21 +4283,25 @@
       ext
     );
   }
-  function downloadHTML() {
+  async function downloadHTML() {
     $("reportExportMenu").open=false;
     try {
-      download(exportHTMLString(), filename("html"), "text/html;charset=utf-8");
+      const payload=reportPayload(),name=filename("html");
+      if (!await persist()) throw Error("保存失败，请先重试");
+      download(exportHTMLString(payload), name, "text/html;charset=utf-8");
     } catch (e) {
       return toast(e.message);
     }
     toast("当前HTML报告已保存");
   }
-  function downloadJSON() {
+  async function downloadJSON() {
     $("reportExportMenu").open=false;
     try {
+      const payload=reportPayload(),name=filename("json");
+      if (!await persist()) throw Error("保存失败，请先重试");
       download(
-        JSON.stringify(reportPayload(), null, 2),
-        filename("json"),
+        JSON.stringify(payload, null, 2),
+        name,
         "application/json;charset=utf-8",
       );
     } catch (e) {
@@ -4294,6 +4310,7 @@
   }
   async function downloadLibrary() {
     try {
+      ensureExportable(); assertLibraryReportEdits();
       if (!await persist()) throw Error("保存失败，请先重试");
       const blob = await repository.backupBlob(count => toast("正在备份 " + count + " 条测试"));
       download(blob, "MotionBench_完整备份_" + today() + ".motionbench.jsonl", "application/x-ndjson");
@@ -4496,7 +4513,6 @@
     } catch (e) {
       return toast(e.message);
     }
-    persist();
     renderReport();
     const record = effectiveRecord(),
       name = filename("pdf"),
@@ -4505,6 +4521,7 @@
     setPDFStatus(true, "生成 PDF…");
     $("pdfProgress").hidden = false;
     try {
+      if (!await persist()) throw Error("保存失败，请先重试");
       const blob = await window.RingsidePDF.build(record, report, {
         onProgress: (p) => {
           $("pdfProgress").textContent =
@@ -4528,13 +4545,13 @@
     }
   }
 
-  function print() {
+  async function print() {
     try {
       ensureExportable();
     } catch (e) {
       return toast(e.message);
     }
-    persist();
+    if (!await persist()) return toast("保存失败，请先重试");
     cancelJob();
     const groups = [...document.querySelectorAll(".details-group")],
       old = groups.map((g) => g.open);
@@ -4708,41 +4725,131 @@
       control.after(feedback);
     }
     feedback.textContent = message + "，此值未保存";
-    $("entrySave").textContent = "部分输入未保存，请核对标红字段";
+    if (control.closest("#entryView")) $("entrySave").textContent = "部分输入未保存，请核对标红字段";
   }
   function fvpControlRecord(control) {
     const id = control.dataset.fvpId || control.closest("[data-fvp-id]")?.dataset.fvpId;
     return state && ["fvp_sj", "fvp_cmj"].includes(id) && T.isNative(state, id) ? id : null;
   }
-  function fvpScenarioValues(id) {
-    const values = { ...state.fvpAnalysis[id] };
-    for (const control of $("detailContent").querySelectorAll(`[data-fvp-scenario][data-fvp-id="${id}"]`)) {
-      const key = control.dataset.fvpScenario;
-      if (!["deltaForcePct", "deltaVelocityPct"].includes(key)) continue;
-      if (control.value === "" || !control.validity.valid || !Number.isFinite(Number(control.value))) return null;
-      values[key] = Number(control.value);
-    }
-    return values;
+  const reportEditSelector = "[data-fvp-scenario],[data-sprint-scenario],[data-sprint-target-distance]";
+  let reportPointerDown = false, reportPatchQueued = false;
+  document.addEventListener("pointerdown",event=>{reportPointerDown=!!event.target.closest?.("#reportView");},true);
+  const finishReportPointer=()=>setTimeout(()=>{reportPointerDown=false;if(reportPatchQueued){reportPatchQueued=false;refreshCapabilityAnalysis();}},0);
+  document.addEventListener("pointerup",finishReportPointer,true);
+  document.addEventListener("pointercancel",finishReportPointer,true);
+  function reportEditControls() {
+    return [...($("detailContent")?.querySelectorAll(reportEditSelector) || [])];
   }
-  function previewFVPScenario(id) {
-    const values = fvpScenarioValues(id);
-    if (!values) return;
-    const previewRecord = effectiveRecord();
-    previewRecord.fvpAnalysis[id] = values;
-    const solved = window.RingsideFVP.solve(previewRecord, id);
-    window.RingsideReport.previewFVP?.($("detailContent"), solved);
+  function reportEditInfo(control) {
+    if (!state || !control?.matches?.(reportEditSelector)) return null;
+    if(!control.isConnected || control.dataset.reportRecordId && control.dataset.reportRecordId!==state.recordId)return null;
+    if (control.hasAttribute("data-sprint-target-distance")) return {id:"sprint_fvp", path:"sprintFvpAnalysis.targetDistanceM", target:true};
+    const key = control.dataset.fvpScenario || control.dataset.sprintScenario;
+    if (!["deltaForcePct", "deltaVelocityPct"].includes(key)) return null;
+    const id = control.hasAttribute("data-sprint-scenario") ? "sprint_fvp" : fvpControlRecord(control);
+    if (!id) return null;
+    return {id, path:id === "sprint_fvp" ? `sprintFvpAnalysis.${key}` : `fvpAnalysis.${id}.${key}`, target:false};
   }
-  function saveFVPScenario(id, values = fvpScenarioValues(id)) {
-    if (!values) return toast("请填写有效的参数改变百分比");
-    for (const key of ["deltaForcePct", "deltaVelocityPct"]) {
-      const error = M.validateField(state, `fvpAnalysis.${id}.${key}`, values[key]);
-      if (error) return toast(error);
+  function reportEditError(record, info, raw, badInput = false) {
+    if (info.target && raw.trim() === "" && !badInput) return "";
+    if (badInput || raw.trim() === "" || !Number.isFinite(Number(raw))) return info.target ? "目标距离须为有限正数，留空可跟随试次末段" : "请输入有限的变化百分比；无变化请填写 0";
+    return M.validateField(record, info.path, Number(raw)) || "";
+  }
+  function rememberReportEdit(control) {
+    const info = reportEditInfo(control); if (!info) return;
+    const raw = control.value || (control.validity?.badInput ? rawNumbers.get(control)?.value || "" : "");
+    if(!control.validity?.badInput)rawNumbers.set(control,{value:control.value,selected:false});
+    const message = reportEditError(state, info, raw, control.validity?.badInput);
+    (inputDrafts[draftRecordKey()] ||= {})[info.path] = {value:raw,message,badInput:!!control.validity?.badInput,mode:"report",label:control.getAttribute("aria-label") || info.path,id:info.id,target:info.target};
+    saveDrafts(); inputIssue(control, message); updateReportDraftStatus();
+  }
+  function restoreReportEdits() {
+    if (!state) return;
+    reportEditControls().forEach(control => {
+      const info = reportEditInfo(control), draft = info && draftsFor()[info.path];
+      if (!draft || draft.mode !== "report") return;
+      if (draft.badInput && control.type === "number") {control.type="text";control.inputMode="decimal";}
+      control.value = draft.value; inputIssue(control, draft.message);
+    });
+    updateReportDraftStatus();
+  }
+  function updateReportDraftStatus() {
+    if (!state) return;
+    for (const id of ["fvp_sj","fvp_cmj","sprint_fvp"]) {
+      const pending = Object.values(draftsFor()).filter(draft => draft.mode === "report" && draft.id === id);
+      const invalid = pending.some(draft => draft.message);
+      $("detailContent")?.querySelectorAll(`[data-elasticity-id="${id}"][data-elasticity-scenario-output]`).forEach(node=>node.hidden=invalid);
+      $("detailContent")?.querySelectorAll(`[data-elasticity-id="${id}"][data-elasticity-draft-status]`).forEach(node=>{
+        node.textContent = invalid ? "请修正标红字段后查看情景结果。" : pending.length ? "编辑完成后自动保存并更新结果。" : "";
+        node.hidden = !pending.length;
+      });
     }
-    const record = effectiveRecord(); record.fvpAnalysis[id] = values;
-    const solved = window.RingsideFVP.solve(record, id);
-    if (solved.scenario?.valid === false) return toast(solved.scenario.message || "此情景无法计算跳跃高度，请调整参数");
-    state.fvpAnalysis[id] = values;
-    changed(false); renderReport();
+  }
+  function setRecordPath(record, path, value) {
+    const parts=path.split("."), key=parts.pop();let node=record;
+    for(const part of parts) node=node[part] ||= {};
+    node[key]=value;
+  }
+  function commitReportDraft(record, path) {
+    const entries = draftsFor(record), draft = entries[path];
+    if (!draft || draft.mode !== "report") return true;
+    const info={id:draft.id,path,target:draft.target};
+    let message=reportEditError(record,info,String(draft.value),draft.badInput);
+    const value=info.target && String(draft.value).trim()==="" ? "" : Number(draft.value);
+    if(!message) {
+      const candidate=effectiveRecord(record);setRecordPath(candidate,path,value);
+      const result=info.id==="sprint_fvp" ? M.stats(candidate).sprintElasticity : window.RingsideFVP.solve(candidate,info.id);
+      if(result?.valid && result.scenario?.valid===false) message=result.scenario.message || result.scenario.reason || "此情景无法计算，请调整参数";
+    }
+    if(message) {draft.message=message;saveDrafts();if(record.recordId===state.recordId)restoreReportEdits();return false;}
+    setRecordPath(record,path,value);delete entries[path];saveDrafts();
+    if(record.recordId===state.recordId) changed(false);
+    return true;
+  }
+  function refreshCapabilityAnalysis() {
+    if (!state || ui.mode !== "report") return;
+    // A blur can run between pointer-down and click. Defer layout changes until
+    // that click finishes, while committing the valid value immediately.
+    if(reportPointerDown){reportPatchQueued=true;return;}
+    const report=window.RingsideReport.build(effectiveRecord());
+    window.RingsideReport.patchCapabilityAnalysis?.($("detailContent"),report);
+    restoreReportEdits();renderNarrativeStatus();
+  }
+  function commitReportControl(control) {
+    const info=reportEditInfo(control);if(!info)return false;
+    rememberReportEdit(control);
+    if(!commitReportDraft(state,info.path)) return false;
+    inputIssue(control);refreshCapabilityAnalysis();return true;
+  }
+  function flushReportEdits(records = [state]) {
+    if(!state)return;
+    const active=document.activeElement;
+    if(reportEditInfo(active)) rememberReportEdit(active);
+    let updated=false;
+    for(const record of records.filter(Boolean)) {
+      for(const [path,draft] of Object.entries(draftsFor(record))) {
+        if(draft.mode!=="report")continue;
+        if(!commitReportDraft(record,path)) {
+          if(record.recordId===state.recordId)gotoInputError(path);
+          throw Error("请先修正弹性情景或目标距离的标红字段");
+        }
+        updated=true;
+      }
+    }
+    if(updated)refreshCapabilityAnalysis();
+  }
+  function assertLibraryReportEdits() {
+    if(Object.values(inputDrafts).some(entries=>Object.values(entries).some(draft=>draft.mode==="report"))) throw Error("其他记录仍有未完成的弹性输入，请返回对应记录修正后备份");
+  }
+  function saveFVPScenario(id, values) {
+    if(!state || !values)return;
+    const record=effectiveRecord();record.fvpAnalysis[id]={...record.fvpAnalysis[id],...values};
+    const solved=window.RingsideFVP.solve(record,id);
+    if(solved.valid && solved.scenario?.valid===false)return toast(solved.scenario.message || "此情景无法计算");
+    state.fvpAnalysis[id]=record.fvpAnalysis[id];
+    for(const key of ["deltaForcePct","deltaVelocityPct"])delete draftsFor()[`fvpAnalysis.${id}.${key}`];
+    saveDrafts();changed(false);refreshCapabilityAnalysis();
+    reportEditControls().filter(control=>reportEditInfo(control)?.id===id).forEach(control=>control.value=state.fvpAnalysis[id][control.dataset.fvpScenario]);
   }
   document.addEventListener("fvp-selection", event => {
     const { id, load } = event.detail || {};
@@ -4750,23 +4857,15 @@
     state.fvpView[id].pinnedLoad = load; changed(false);
   });
   document.addEventListener("submit", event => {
-    if (event.target.matches("[data-sprint-target-form]")) {
-      event.preventDefault(); if (!state) return;
-      const control = event.target.querySelector("[data-sprint-target-distance]"), value = control?.value.trim() || "";
-      const error = M.validateField(state, "sprintFvpAnalysis.targetDistanceM", value);
-      if (error || value && (!Number.isFinite(Number(value)) || Number(value) <= 0)) return toast(error || "目标距离须为正数");
-      (state.sprintFvpAnalysis ||= {}).targetDistanceM = value === "" ? "" : Number(value);
-      changed(false); renderReport(); return;
-    }
-    if (!event.target.matches("[data-fvp-scenario-form]")) return;
+    if (!event.target.matches("[data-sprint-target-form],[data-fvp-scenario-form],[data-sprint-scenario-form]")) return;
     event.preventDefault();
-    const id = fvpControlRecord(event.target);
-    if (id) saveFVPScenario(id);
+    event.target.querySelectorAll(reportEditSelector).forEach(control=>commitReportControl(control));
   });
+  document.addEventListener("focusout",event=>{if(reportEditInfo(event.target))commitReportControl(event.target);});
   document.addEventListener("input", (e) => {
     const t = e.target;
-    if (t.dataset.fvpScenario) {
-      const id = fvpControlRecord(t); if (id) previewFVPScenario(id);
+    if (reportEditInfo(t)) {
+      rememberReportEdit(t);
       return;
     }
     if (t.id === "aiPreview" && pendingAI) {
@@ -4829,6 +4928,11 @@
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
+    if (reportEditInfo(t)) {commitReportControl(t);return;}
+    if (t.hasAttribute("data-sprint-elasticity-view")) {
+      if(!state || !["response","distance"].includes(t.value))return;
+      state.sprintFvpView.elasticityView=t.value;changed(false);refreshCapabilityAnalysis();return;
+    }
     if (t.hasAttribute("data-sprint-fvp-view") || t.hasAttribute("data-sprint-fvp-metric")) {
       if (!state || !T.isNative(state, "sprint_fvp") || t.type !== "checkbox") return;
       const view = M.normalizeSprintFvpView(state.sprintFvpView), defaults = M.sprintFvpViewDefaults();
@@ -4838,15 +4942,15 @@
         view.metrics[key] = t.checked;
       } else {
         const key = t.dataset.sprintFvpView;
-        if (!["fv", "pv", "optimum", "confidence"].includes(key)) return;
+        if (!["fv", "pv", "optimum", "confidence", "responseForce", "responseVelocity", "responseBoth"].includes(key)) return;
         view[key] = t.checked;
       }
-      state.sprintFvpView = view; changed(false); renderReport(); return;
+      state.sprintFvpView = view; changed(false); refreshCapabilityAnalysis(); return;
     }
     if (t.hasAttribute("data-capability-selection")) {
       const key = t.dataset.capabilitySelection, choices = M.capabilityDirectionOptions;
       if (!state || !choices[key]?.some(([id]) => id === t.value)) return;
-      (state.views.capabilitySelections ||= {})[key] = t.value; changed(false); renderReport(); return;
+      (state.views.capabilitySelections ||= {})[key] = t.value; changed(false); refreshCapabilityAnalysis(); return;
     }
     if (t.hasAttribute("data-fvp-protocol")) {
       state.views.fvpProtocol = t.value; changed(false); renderReport(); return;
@@ -4855,7 +4959,7 @@
       const id = fvpControlRecord(t); if (!id) return;
       if (t.hasAttribute("data-fvp-angle")) state.fvpAnalysis[id].angle = Number(t.value);
       else state.fvpView[id][t.dataset.fvpView] = t.type === "checkbox" ? t.checked : t.value;
-      changed(false); renderReport(); return;
+      changed(false); refreshCapabilityAnalysis(); return;
     }
     if (t.dataset.metricUnit) return requestMetricUnit(t, t.dataset.metricUnit);
     if (t.dataset.creationProject && creation) {
@@ -4979,7 +5083,9 @@
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-sprint-target-follow]")) {
       if (!state) return; (state.sprintFvpAnalysis ||= {}).targetDistanceM = "";
-      changed(false); renderReport(); return;
+      delete draftsFor()["sprintFvpAnalysis.targetDistanceM"];saveDrafts();
+      const control=reportEditControls().find(node=>node.hasAttribute("data-sprint-target-distance"));if(control){control.value="";inputIssue(control);}
+      changed(false); refreshCapabilityAnalysis(); return;
     }
     const shortcut = e.target.closest("[data-fvp-shortcut]");
     if (shortcut) {
@@ -5000,13 +5106,14 @@
     } else if (!e.target.closest("#bodyRegionTooltip")) hideBodyRegionTooltip();
   });
   document.addEventListener("keydown", (e) => {
+    if(e.key==="Enter" && reportEditInfo(e.target)) {e.preventDefault();commitReportControl(e.target);return;}
     if (e.key === "Escape" && tooltipAnchor) {
       tooltipDismissed=tooltipAnchor;hideTooltip();e.preventDefault();return;
     }
     bodyTouchInteraction = false;
     if (
       e.target.type === "number" &&
-      e.target.dataset.path &&
+      (e.target.dataset.path || reportEditInfo(e.target)) &&
       (e.ctrlKey || e.metaKey) &&
       e.key.toLowerCase() === "a"
     )
@@ -5105,7 +5212,7 @@
   window.addEventListener("scroll", positionBodyRegionTooltip, {passive:true});
   document.addEventListener("beforeinput", (e) => {
     const t = e.target;
-    if (t.type !== "number" || !t.dataset.path) return;
+    if (t.type !== "number" || (!t.dataset.path && !reportEditInfo(t))) return;
     const prior = rawNumbers.get(t) || { value: t.value, selected: false };
     let value = prior.selected ? "" : prior.value;
     if (e.inputType?.startsWith("insert"))
@@ -5171,6 +5278,13 @@
   document.addEventListener(
     "toggle",
     (e) => {
+      if(state && e.target.isConnected && e.target.matches("#reportView [data-capability-parameters]")) {
+        const key=e.target.dataset.capabilityParameters;
+        if(["strength","reactive","speed","endurance"].includes(key) && state.views.capabilityExpanded?.[key]!==e.target.open) {
+          (state.views.capabilityExpanded ||= {})[key]=e.target.open;changed(false);
+        }
+        return;
+      }
       if (
         e.target.isConnected &&
         e.target.matches("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings]")

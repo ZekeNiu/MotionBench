@@ -1,0 +1,798 @@
+{
+  "synthetic": true,
+  "baselineRef": "955d3914ad0a85c34f553ce935af54cabd77131f",
+  "baselineSourceHashes": {
+    "src/ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "src/ringside-fvp.js": "285a86d8c3ffb88ac98794dc4943d83f589340bea0c5f66bad3b25abf5a93ae5",
+    "src/ringside-sprint-fvp.js": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+    "src/ringside-sources.js": "909277eeafede0663a125b7b8d56ff84567fb458fef525e19872042c16e06db4",
+    "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "src/ringside-iso-reference.js": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+    "src/ringside-definitions.js": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+    "src/ringside-tests.js": "d0e49476a7a29d1abd3b1ac5f35196f4df10e5e17da50afbd91c9f35d9af9f0a",
+    "src/ringside-model.js": "b2b48880054a66afd50d8188c51b7e7502a5d6ad8f4da363b0cc2a5333203711",
+    "src/ringside-evaluation.js": "dfce949e4d76f76b9a45a64a9afca2b73c9acac620a67985753a0b793fddb238",
+    "src/ringside-interventions.js": "f84fd9efe7dcec466b217127ae8c1b10858275bcf7a321f69a4dc4175c9913db"
+  },
+  "cases": [
+    {
+      "name": "strength:fvp",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fvp",
+          "value": null,
+          "unit": "%",
+          "status": "gray",
+          "judgment": "待计算",
+          "digits": 2
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "strength:fdsi",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "strength:idsi_matched",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "idsi_matched",
+          "value": 0.600357249181304,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "与同口径历史测试比较，结合最大力量、CMJ 成绩和力时曲线判断；目前不使用通用训练界值。",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "strength:idsi_fixed250",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "idsi_fixed250",
+          "value": 0.7566269580714755,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "用于固定时窗下的纵向监测；与匹配时窗 iDSI 分开解释，不套用 fDSI 界值。",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "strength:eur",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "eur",
+          "value": 1.0833333333333335,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "结合 CMJ 与 SJ 的绝对成绩和纵向变化判断发展方向。",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "reactive:dj_rsi",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "reactive:hop_rsi",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "hop_rsi",
+          "value": 1.8559197483688201,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "reactive:cmrj_rsi",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "cmrj_rsi",
+          "value": 1.7647058823529413,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "speed:sprint_fvp",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "sprint_fvp",
+          "value": null,
+          "unit": "%",
+          "status": "gray",
+          "judgment": "待计算",
+          "digits": 2
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "speed:srr",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "implicit-fallback",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "reactive-grade:red",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "red",
+          "judgment": "优先提高反应力量 · 预警",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "reactive-grade:amber",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "reactive-grade:green",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "green",
+          "judgment": "保持并巩固反应力量 · 达标",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "reactive-grade:gray",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "gray",
+          "judgment": "已测量；在评价标准中选择 RSI 参考。",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "fvp-cmj-valid",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fvp",
+          "value": 18.109019649881898,
+          "unit": "%",
+          "status": "gray",
+          "judgment": "发展方向：力量端",
+          "digits": 2
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "fvp-cmj-review",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fvp",
+          "value": null,
+          "unit": "%",
+          "status": "gray",
+          "judgment": "待计算",
+          "digits": 2
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "srr",
+          "value": 1.6758620689655173,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "耐力型",
+          "digits": 3
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "sprint-40m",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "sprint_fvp",
+          "value": 72.85762889966954,
+          "unit": "%",
+          "status": "gray",
+          "judgment": "发展方向：速度端",
+          "digits": 2
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    },
+    {
+      "name": "sprint-10m",
+      "directions": [
+        {
+          "id": "strength",
+          "metricId": "fdsi",
+          "value": 0.6232142857142857,
+          "unit": "比值",
+          "status": "gray",
+          "judgment": "并行发展最大力量与快速力量",
+          "digits": 3
+        },
+        {
+          "id": "reactive",
+          "metricId": "dj_rsi",
+          "value": 1.7894736842105263,
+          "unit": "m/s",
+          "status": "amber",
+          "judgment": "优先提高反应力量 · 关注",
+          "digits": 3
+        },
+        {
+          "id": "speed",
+          "metricId": "sprint_fvp",
+          "value": 25.728232723399625,
+          "unit": "%",
+          "status": "gray",
+          "judgment": "发展方向：力量端",
+          "digits": 2
+        },
+        {
+          "id": "endurance",
+          "metricId": "cpet_vo2_relative",
+          "value": 62,
+          "unit": "mL·kg⁻¹·min⁻¹",
+          "status": "green",
+          "judgment": "优先提高 VT2。",
+          "digits": 2
+        }
+      ]
+    }
+  ]
+}

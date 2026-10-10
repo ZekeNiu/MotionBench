@@ -4,8 +4,8 @@ const { createHash } = require("node:crypto");
 const root = path.resolve(__dirname, ".."), out = path.join(root, "output/capability-directions-2172");
 fs.mkdirSync(out, { recursive: true });
 const appSource = fs.readFileSync(path.join(root, "src/ringside-app.js"), "utf8");
-const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto }); c.window = c;
-for (const name of ["calc", "fvp", "sprint-fvp", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "model", "evaluation", "interventions", "viz", "report"])
+const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto, flushReportEdits:()=>{} }); c.window = c;
+for (const name of ["calc", "fvp", "sprint-fvp", "sprint-elasticity", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "model", "evaluation", "interventions", "viz", "report"])
   vm.runInContext(fs.readFileSync(path.join(root, `src/ringside-${name}.js`), "utf8"), c, { filename: name });
 const M = c.RingsideModel, R = c.RingsideReport;
 const json = value => JSON.parse(JSON.stringify(value));
@@ -64,21 +64,29 @@ test("actual App.facts changes its selected basis when strength switches DSI to 
   assert.equal(beforeBasis, afterBasis, "selection remains separate from the measurement fingerprint");
   assert.deepEqual(json(before.capabilityAnalysis), json(after.capabilityAnalysis), "full original AI capability analysis must remain intact");
 });
-const baseline = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/capability-directions-v2171.json"), "utf8"));
-test("all 19 pre-change screen and PDF direction scenarios preserve exact values, units and judgments", () => {
+const baseline = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/capability-direction-values-v2175.json"), "utf8"));
+test("all 19 pre-change direction scenarios preserve scientific values in redesigned screen and PDF cards", () => {
   const results = [];
+  const escape=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   for (const example of directionScenarios()) {
     const expected = baseline.cases.find(item => item.name === example.name);
     assert.ok(expected, `captured pre-change scenario ${example.name}`);
     const report = R.build(example.record);
+    const actual=M.capabilityDirections(report.record,report.stats).map(({id,metricId,value,unit,status,judgment,digits})=>({id,metricId,value,unit,status,judgment,digits}));
+    assert.deepEqual(json(actual),expected.directions,example.name+" independent baseline values");
     for (const [mode, options] of [["screen", {}], ["print", { print: true }]]) {
       const html = R.renderCapabilityAnalysis(report, options);
-      for (const key of ["strength", "reactive", "speed", "endurance"])
-        assert.equal(hash(section(html, key)), expected[mode][key], `${example.name}/${mode}/${key}`);
+      for (const metric of expected.directions) {
+        const block=section(html,metric.id),formatted=metric.value===null?"—":Number(metric.value).toLocaleString("zh-CN",{minimumFractionDigits:metric.digits,maximumFractionDigits:metric.digits});
+        assert.ok(block.includes(`data-direction-metric="${metric.metricId}"`),`${example.name}/${mode}/${metric.id} selected basis`);
+        assert.equal(block.match(/class="capability-direction-judgment [^"]*">([\s\S]*?)<\/p>/)?.[1],escape(metric.judgment),`${example.name}/${mode}/${metric.id} judgment`);
+        assert.equal(block.match(/class="capability-direction-value">([\s\S]*?)<\/p>/)?.[1],formatted+(metric.unit&&metric.unit!=="比值"?` <small>${escape(metric.unit)}</small>`:""),`${example.name}/${mode}/${metric.id} value and unit`);
+        assert.ok(block.includes(`data-capability-parameters="${metric.id}"`),`${example.name}/${mode}/${metric.id} parameter disclosure`);
+      }
     }
     results.push({ name: example.name, screen: true, print: true });
   }
-  fs.writeFileSync(path.join(out, "screen-print-equivalence.json"), JSON.stringify({ synthetic: true, baselineSourceHash: baseline.baselineSourceHash, scenarios: results }, null, 2));
+  fs.writeFileSync(path.join(out, "screen-print-equivalence.json"), JSON.stringify({ synthetic: true, baselineRef:baseline.baselineRef,baselineSourceHashes:baseline.baselineSourceHashes, scenarios: results }, null, 2));
 });
 function freeze(value) { if (value && typeof value === "object" && !Object.isFrozen(value)) { Object.freeze(value); Object.values(value).forEach(freeze); } return value; }
 test("shared projection and registry are pure and all selected metrics match actual App.facts", () => {
@@ -114,6 +122,7 @@ test("narrow direction basis binds effective metric identities and selected jump
   record.views.fvpProtocol = "fvp_cmj";
   assert.equal(M.capabilityDirectionsBasis(record), M.capabilityDirectionsBasis({ ...record, views: { ...record.views, fvpProtocol: "fvp_sj" } }));
   record.views.capabilitySelections.strength = "fvp";
+  for(const id of ["fvp_sj","fvp_cmj"]){record.enabled[id]=true;record.fvpConfig[id].distanceCm=33;record.data[id]=[0,20,40].map((load,i)=>({id:id+i,load,height:[33,27,22][i]}));}
   assert.notEqual(M.capabilityDirectionsBasis(record), M.capabilityDirectionsBasis({ ...record, views: { ...record.views, fvpProtocol: "fvp_sj" } }));
   const before = M.capabilityDirectionsBasis(record), beforeMeasurement = M.fingerprint(record);
   Object.assign(record.views, { fvp:false, radar:false, forceTime:false });

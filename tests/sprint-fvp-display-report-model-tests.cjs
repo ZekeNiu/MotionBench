@@ -124,7 +124,7 @@ test("hiding all parameters leaves explicit empty state, fit details, target and
   assert.equal((svg(html).match(/<polyline /g) || []).length, 4);
 });
 
-test("sprint display changes leave both original jump renderers unchanged and keep three regions outside the direction fold", () => {
+test("sprint display changes preserve jump geometry and keep cards before the four analysis regions", () => {
   const record = fixture(); record.enabled.fvp_sj = true; record.fvpConfig.fvp_sj.distanceCm = 33;
   record.data.fvp_sj = [0, 20, 40, 60, 80].map((load, i) => ({ id: "synthetic_display_jump_" + i, load, height: [33, 27, 22, 14, 10][i] }));
   const original = R.renderFVPAnalysis(R.build(record));
@@ -132,9 +132,10 @@ test("sprint display changes leave both original jump renderers unchanged and ke
   // SVG and clip identifiers are unique per call; geometry and content must match.
   const withoutClipIds = html => html.replace(/ringside-fvp-clip-\d+/g, "ringside-fvp-clip").replace(/ringside-viz-\d+/g, "ringside-viz");
   assert.equal(withoutClipIds(R.renderFVPAnalysis(R.build(record))), withoutClipIds(original));
-  const html = R.renderCapabilityAnalysis(R.build(record)), fold = html.indexOf('id="trainingAnalysisDetail"');
+  const html = R.renderCapabilityAnalysis(R.build(record)), cards = html.indexOf('data-capability-analysis');
   const indices = ["jumpFvp", "jumpElasticity", "sprintFvp"].map(kind => html.indexOf(`data-chart-kind="${kind}"`));
-  assert.ok(indices.every(index => index >= 0 && index < fold)); assert.ok(indices[0] < indices[1] && indices[1] < indices[2]);
+  assert.ok(indices.every(index => index > cards)); assert.ok(indices[0] < indices[1] && indices[1] < indices[2]);
+  assert.ok(indices[2] < html.indexOf('data-chart-kind="sprintElasticity"')); assert.doesNotMatch(html, /trainingAnalysisDetail/);
 });
 
 function noisyFixture() {

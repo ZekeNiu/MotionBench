@@ -91,6 +91,27 @@
 .capability-parameter-components dt { color:var(--muted); font-size:10px; }
 .capability-parameter-components dd { margin:0; color:var(--ink); font-variant-numeric:tabular-nums; }
 .capability-parameter-group .capability-targets { font-size:10px; }
+.capability-analysis-region > .quality-group { display:grid; gap:20px; padding:20px 0 0; }
+.capability-direction-grid { align-items:start; gap:16px; }
+.capability-direction-card { padding:22px; background:var(--surface); box-shadow:var(--shadow-panel); }
+.capability-direction-card h3 { margin:0 0 14px; font-size:15px; letter-spacing:.01em; }
+.capability-direction-judgment { margin:0 0 15px; padding:0; border:0; font-size:17px; font-weight:600; line-height:1.6; }
+.capability-direction-basis { margin:0 0 3px; font-size:11px; }
+.capability-direction-value { font-size:23px; }
+.capability-selector { margin:16px 0 0; padding-top:14px; border-top:1px solid var(--line); }
+.capability-card-parameters { margin-top:16px; border-top:1px solid var(--line); }
+.capability-card-parameters > summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:42px; padding:10px 0 0; color:var(--ink); font-size:12px; cursor:pointer; list-style:none; }
+.capability-card-parameters > summary::-webkit-details-marker { display:none; }
+.capability-card-parameters > summary::after { content:"+"; width:20px; text-align:center; color:var(--muted); font-size:18px; }
+.capability-card-parameters[open] > summary::after { content:"−"; }
+.capability-card-parameters > summary small { margin-left:auto; color:var(--muted); font-size:10px; }
+.capability-card-parameters > summary:focus-visible { outline:2px solid var(--blue); outline-offset:4px; border-radius:4px; }
+.capability-card-parameters .capability-parameter-group { margin-top:12px; padding:0; border:0; border-radius:0; box-shadow:none; }
+.capability-card-parameters .capability-parameter-heading h3 { font-size:12px; margin-bottom:7px; }
+.capability-card-parameters .capability-parameter-table { font-size:12px; }
+.capability-card-parameters .capability-parameter-table th:first-child { width:39%; }
+.capability-card-parameters .capability-value { font-size:17px; }
+.capability-card-parameters .capability-parameter-judgment,.capability-card-parameters .capability-parameter-target,.capability-card-parameters .capability-parameter-notes { font-size:11px; }
 @media (max-width:1050px) {
   .capability-structure-pair { grid-template-columns:minmax(0,1fr); }
 }
@@ -124,6 +145,12 @@
 .ringside-pdf-document .capability-parameter-table th,.ringside-pdf-document .capability-parameter-table td { padding:5px 6px!important; }
 .ringside-pdf-document .capability-parameter-table .capability-value { font-size:13px!important; }
 .ringside-pdf-document .capability-parameter-judgment,.ringside-pdf-document .capability-parameter-target,.ringside-pdf-document .capability-parameter-notes,.ringside-pdf-document .capability-parameter-components dt { font-size:8px!important; }
+.ringside-pdf-document .capability-direction-judgment { margin:0 0 10px!important; padding:0!important; border:0!important; font-size:11px!important; font-weight:600!important; }
+.ringside-pdf-document .capability-direction-grid-expanded-pdf { display:block!important; }
+.ringside-pdf-document .capability-direction-grid-expanded-pdf > .capability-direction-card { padding:0!important; margin:0 0 14px!important; border:0!important; box-shadow:none!important; }
+.ringside-pdf-document .capability-direction-print-summary { padding:12px!important; border:1px solid var(--line)!important; border-radius:8px!important; background:var(--surface)!important; }
+.ringside-pdf-document .capability-parameters-static { margin:10px 0 16px!important; }
+.ringside-pdf-document .capability-parameters-static .capability-parameter-group { border:0!important; padding:0!important; }
 .iso-results.with-repeat-columns { table-layout:fixed; }
 .iso-results.with-repeat-columns th,.iso-results.with-repeat-columns th:nth-child(4) { width:auto; min-width:0; }
 .iso-results .iso-reference-evaluation { display:block; font-size:11px; line-height:1.65; color:var(--muted); }

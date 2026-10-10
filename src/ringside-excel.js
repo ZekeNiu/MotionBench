@@ -22,7 +22,7 @@
   const field = (key, label, type = "number", choices) => ({key, label, type, ...(choices ? {choices} : {})});
   const text = (key, label, choices) => field(key, label, "text", choices);
   const bool = (key, label) => field(key, label, "boolean", ["否", "是"]);
-  const settingValue=(record,f)=>f.key.startsWith("sprintFvpView.")?get(M.normalizeSprintFvpView(record.sprintFvpView),f.key.slice("sprintFvpView.".length)):get(record,f.key);
+  const settingValue=(record,f)=>f.key==="views.fvpProtocol"?(record.views?.fvpProtocol??"auto"):f.key.startsWith("sprintFvpView.")?get(M.normalizeSprintFvpView(record.sprintFvpView),f.key.slice("sprintFvpView.".length)):get(record,f.key);
   function choiceLabels(f) {
     const key=f.key.split(".").at(-1);
     if(key==="inputMode")return {summary:"设备汇总",jumps:"逐跳"};
@@ -36,14 +36,17 @@
     if(key==="vo2Unit")return {"ml/kg/min":"mL·kg⁻¹·min⁻¹","l/min":"L/min"};
     if(key==="label")return {VO2peak:"VO₂peak",VO2max:"VO₂max"};
     if(key==="range")return {full:"完整剖面",measured:"实测范围"};
+    if(key==="elasticityView")return f.key.startsWith("sprintFvpView.")?{response:"参数响应",distance:"不同目标距离"}:{response:"参数响应",constraint:"固定跳高 ER–EN"};
+    if(key==="fvpProtocol")return {auto:"自动选择有效协议",fvp_sj:"SJ",fvp_cmj:"CMJ"};
     if(key==="inputTimeMode")return {cumulative:"累计计时",interval:"各段用时"};
     if(key==="timingStart"||key==="startConvention")return {first_propulsive_action:"首次推进动作",gate_crossing:"通过计时门",start_signal:"出发信号",other:"其他"};
-    if(key==="strength")return {fvp:"跳跃 FVP 不平衡度",fdsi:"DSI",idsi_matched:"iDSI · 匹配 CMJ 推进期",idsi_fixed250:"iDSI · 固定 0–250 ms",eur:"EUR"};
-    if(key==="reactive")return {dj_rsi:"DJ RSI",hop_rsi:"10/5 Hop RSI",cmrj_rsi:"CMRJ RSI"};
-    if(key==="speed")return {sprint_fvp:"冲刺 FVP 不平衡度",srr:"SRR"};
+    if(f.key.startsWith("views.capabilitySelections.")&&M.capabilityDirectionOptions[key])return Object.fromEntries(M.capabilityDirectionOptions[key]);
     return {};
   }
   const displayChoice=(f,value)=>choiceLabels(f)[value]??value;
+  const legacyChoice = (f,value) => f.key === "views.capabilitySelections.strength" ? {"跳跃 FVP 不平衡度":"fvp","FVP 不平衡性":"fvp"}[value]
+    : f.key === "views.capabilitySelections.speed" ? {"冲刺 FVP 不平衡度":"sprint_fvp","冲刺 FVP 不平衡性":"sprint_fvp"}[value]
+    : f.key === "views.capabilitySelections.reactive" ? {"10/5 Hop RSI":"hop_rsi"}[value] : undefined;
   const metaFields = [field("date", "测试日期 YYYY-MM-DD", "date"), field("age", "本次年龄 岁"), field("mass", "本次体重 kg"), field("height", "本次身高 cm")];
   const prefix = [text("recordId", "测试编号"), text("athleteId", "运动员编号"), text("name", "运动员")];
   const notes = text("notes", "备注");
@@ -87,28 +90,39 @@
       rows.push(field(analysis + ".angle", "最优剖面角度 °", "number", [90, 30]), field(analysis + ".deltaForcePct", "力量端变化 %"), field(analysis + ".deltaVelocityPct", "速度端变化 %"));
       for (const [key, label] of [["fv", "显示 F–V 曲线"], ["pv", "显示 P–V 曲线"], ["points", "显示实测点"], ["optimum", "显示最优剖面"], ["comparison", "显示另一角度最优剖面"], ["confidence", "显示置信区间"], ["responseForce", "显示力量端单独变化"], ["responseVelocity", "显示速度端单独变化"], ["responseBoth", "显示力量与速度同步变化"]]) rows.push(bool(view + "." + key, label));
       rows.push(text(view + ".range", "图表范围", ["full", "measured"]), {...field(view + ".pinnedLoad", "固定查看负荷 kg（可留空）"), nullable:true});
+      rows.push(text(view + ".elasticityView", "跳跃弹性视图", ["response","constraint"]));
     }
     if (isSprint(record, id)) {
       const config = "sprintFvpConfig.", analysis = "sprintFvpAnalysis.";
       rows.push(text(config + "device", "冲刺计时设备"), field(config + "heightCm", "模型身高 cm（留空沿用运动员身高）"), field(config + "temperatureC", "温度 °C"), field(config + "pressureHpa", "气压 hPa"), field(config + "windMps", "风速 m/s（顺风为正）"));
       rows.push(text(config + "inputTimeMode", "原始时间方式", ["cumulative", "interval"]), text(config + "timingStart", "计时起点", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), text(config + "startConvention", "原始计时起点标记", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), field(config + "timeCorrectionS", "确定的累计时间修正 s"), field(config + "positionStartM", "空间起点距出发线 m"), field(analysis + "targetDistanceM", "专项目标距离 m（留空跟随末段）"));
       rows.push(text(config + "methodVersion", "计算方法版本"), field(config + "sampleStepS", "采样步长 s"), field(config + "rfAfterS", "RF 起始时间 s（严格大于）"), text(config + "samplingWindow", "采样终点依据"));
+      rows.push(field(analysis + "deltaForcePct", "弹性情景 F₀ 变化 %"),field(analysis + "deltaVelocityPct", "弹性情景 V₀ 变化 %"),text(analysis + "elasticityMethodVersion", "冲刺弹性方法版本"));
       for(const [key,label] of [["fv","显示 F–V 曲线"],["pv","显示 P–V 曲线"],["optimum","显示目标距离最优曲线"]])rows.push(bool("sprintFvpView."+key,label));
       rows.push(bool("sprintFvpView.confidence","显示近似 95% 拟合均值区间"));
       rows.push(text("sprintFvpView.confidenceMethodVersion","近似区间方法版本"),field("sprintFvpView.confidenceLevel","近似区间水平"));
+      rows.push(text("sprintFvpView.elasticityView","冲刺弹性视图",["response","distance"]));
+      for(const [key,label]of [["responseForce","显示力量端单独变化"],["responseVelocity","显示速度端单独变化"],["responseBoth","显示力量与速度同步变化"]])rows.push(bool("sprintFvpView."+key,label));
       for(const [key,label] of [["F0","力量端 F₀"],["V0","速度端 V₀"],["Pmax","最大功率 Pmax"],["F0Absolute","力量端 F₀ · 绝对"],["PmaxAbsolute","最大功率 Pmax · 绝对"],["slope","剖面斜率 SFV"],["RFmax","RF max"],["DRF","DRF"],["Vmax","速度模型渐近值 Vmax"],["endVelocity","终点速度"],["Vopt","峰值功率对应速度 Vopt"]])rows.push(bool("sprintFvpView.metrics."+key,"显示参数 · "+label));
     }
-    if (selectedTests(record)[0]?.id === id) rows.push(text("views.capabilitySelections.strength", "力量发展判定指标", ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"]), text("views.capabilitySelections.reactive", "反应力量判定指标", ["dj_rsi","hop_rsi","cmrj_rsi"]), text("views.capabilitySelections.speed", "速度发展判定指标", ["sprint_fvp","srr"]));
+    if (selectedTests(record)[0]?.id === id) {
+      for(const [key,label]of [["strength","力量发展判定指标"],["reactive","反应力量判定指标"],["speed","速度发展判定指标"]])rows.push(text("views.capabilitySelections."+key,label,M.capabilityDirectionOptions[key].map(([value])=>value)));
+      for(const [key,label]of [["strength","力量"],["reactive","反应力量"],["speed","速度"],["endurance","耐力"]])rows.push(bool("views.capabilityExpanded."+key,label+"卡片参数默认展开"));
+      if(selectedTests(record).some(test=>isFVP(test.id)&&T.isNative(record,test.id)))rows.push(text("views.fvpProtocol","当前跳跃 FVP 协议",["auto","fvp_sj","fvp_cmj"]));
+    }
     return rows;
   }
-  const isSharedSetting = f => f.key.startsWith("dsi.") || f.key.startsWith("views.capabilitySelections.");
+  const isSharedSetting = f => f.key.startsWith("dsi.") || f.key.startsWith("views.capabilitySelections.") || f.key.startsWith("views.capabilityExpanded.") || f.key === "views.fvpProtocol";
+  const additiveSetting = f => /^sprintFvpAnalysis\.(?:deltaForcePct|deltaVelocityPct|elasticityMethodVersion)$/.test(f.key)
+    || /^sprintFvpView\.(?:elasticityView|responseForce|responseVelocity|responseBoth)$/.test(f.key)
+    || /^fvpView\.fvp_(?:sj|cmj)\.elasticityView$/.test(f.key);
   const sharedSettings = record => [...new Map(selectedTests(record).flatMap(test=>settings(record,test.id)).filter(isSharedSetting).map(f=>[f.key,f])).values()];
   function change(f,before,after,extra={}) {
     return {field:f.key,label:f.label,before:before??"",after:after??"",displayBefore:displayChoice(f,before??""),displayAfter:displayChoice(f,after??""),...extra};
   }
   function projectConditions(previous,incoming,id) {
     if(!previous)return [];
-    const changes=settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)&&String(settingValue(previous,f)??"")!==String(settingValue(incoming,f)??"")).map(f=>change(f,settingValue(previous,f),settingValue(incoming,f)));
+    const changes=settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!additiveSetting(f)||get(incoming,f.key)!==undefined)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)&&String(settingValue(previous,f)??"")!==String(settingValue(incoming,f)??"")).map(f=>change(f,settingValue(previous,f),settingValue(incoming,f)));
     if(id==="iso")for(const direction of isoRows(incoming)){
       const prior=previous.data.iso.find(row=>row.id===direction.id);if(!prior)continue;
       const label=(M.REG[direction.region]||direction.region)+" · "+direction.direction;
@@ -125,6 +139,13 @@
     // A legacy workbook with no display namespace supplies no replacement choices.
     // Explicit new setting rows may create it later during parsing.
     if(isSprint(input,"sprint_fvp")&&input.sprintFvpView===undefined)delete record.sprintFvpView;
+    if(isSprint(input,"sprint_fvp")) {
+      for(const key of ["deltaForcePct","deltaVelocityPct","elasticityMethodVersion"])if(input.sprintFvpAnalysis?.[key]===undefined)delete record.sprintFvpAnalysis[key];
+      for(const key of ["elasticityView","responseForce","responseVelocity","responseBoth"])if(record.sprintFvpView&&input.sprintFvpView?.[key]===undefined)delete record.sprintFvpView[key];
+    }
+    for(const id of ["fvp_sj","fvp_cmj"])if(record.fvpView?.[id]&&input.fvpView?.[id]?.elasticityView===undefined)delete record.fvpView[id].elasticityView;
+    if(input.views?.capabilityExpanded===undefined)delete record.views.capabilityExpanded;
+    else for(const key of ["strength","reactive","speed","endurance"])if(input.views.capabilityExpanded[key]===undefined)delete record.views.capabilityExpanded[key];
     record.narrative = M.defaults().narrative;
     record.customValues = {};
     const defaults = M.defaults();
@@ -337,7 +358,7 @@
       issue(errors,cell.worksheet,cell.row,cell.col,"请填是 / 否");return false;
     }
     value=String(value).trim();
-    value=Object.entries(choiceLabels(f)).find(([,label])=>label===value)?.[0]??value;
+    value=Object.entries(choiceLabels(f)).find(([,label])=>label===value)?.[0]??legacyChoice(f,value)??value;
     if(f.choices&&!f.choices.includes(value))issue(errors,cell.worksheet,cell.row,cell.col,"可选值："+f.choices.join(" / "));
     return value;
   }
@@ -548,7 +569,11 @@
         else record.data[test.id]=holders;
       }
       try {
-        if(isSprint(record,"sprint_fvp")&&record.sprintFvpView!==undefined)record.sprintFvpView=M.normalizeSprintFvpView(record.sprintFvpView);
+        if(isSprint(record,"sprint_fvp")&&record.sprintFvpView!==undefined){
+          const supplied=new Set(["elasticityView","responseForce","responseVelocity","responseBoth"].filter(key=>record.sprintFvpView[key]!==undefined));
+          record.sprintFvpView=M.normalizeSprintFvpView(record.sprintFvpView);
+          for(const key of ["elasticityView","responseForce","responseVelocity","responseBoth"])if(!supplied.has(key))delete record.sprintFvpView[key];
+        }
         M.applyAge(record);
         const walk=(value,path="")=>{if(value&&typeof value==="object"){for(const [key,child]of Object.entries(value))walk(child,path?path+"."+key:key);return;}const message=M.validateField(record,path,value);if(message){const location=entry.locations.get(path);issue(errors,location?.sheet,location?.row,location?.column,record.athlete.name+"："+message+"（"+path+"）");}};
         walk(record);
@@ -624,7 +649,7 @@
         }else record.data[id]=clone(incoming.data[id]);
         if(isSprint(incoming,id)&&incoming.sprintFvpView!==undefined)record.sprintFvpView=M.normalizeSprintFvpView({...record.sprintFvpView,...incoming.sprintFvpView,metrics:{...record.sprintFvpView?.metrics,...incoming.sprintFvpView?.metrics}});
         for(const d of incoming.definitions.filter(d=>d.testId===id&&T.isManualMetric(d)&&!T.isAttemptMetric(d)))record.customValues[d.id]=clone(incoming.customValues[d.id]||{value:"",notes:""});
-        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)))put(record,f.key,clone(f.nullable && empty(settingValue(incoming,f)) ? null : settingValue(incoming,f)??""));
+        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!additiveSetting(f)||get(incoming,f.key)!==undefined)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)))put(record,f.key,clone(f.nullable && empty(settingValue(incoming,f)) ? null : settingValue(incoming,f)??""));
         if(id==="cmj"){record.cmjConfig=clone(incoming.cmjConfig);record.dsi.cmjUnit=incoming.dsi.cmjUnit;}
         if(id==="imtp")record.imtpConfig=clone(incoming.imtpConfig);
         const nextContext=JSON.stringify([record.protocol[id],record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);

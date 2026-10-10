@@ -31,7 +31,7 @@ test("target direction changes FVP comparison while elasticity stays vertical",(
   const r=fixture();Object.assign(r.fvpAnalysis.fvp_sj,{deltaForcePct:5,deltaVelocityPct:3});
   const a=R.renderFVPAnalysis(R.build(r));r.fvpAnalysis.fvp_sj.angle=30;const b=R.renderFVPAnalysis(R.build(r));
   const elasticity=html=>html.slice(html.indexOf('<article class="fvp-analysis-card" data-fvp-elasticity=')).replace(/ringside-viz-\d+/g,"ringside-viz-id");assert.equal(elasticity(a),elasticity(b));
-  assert.match(b,/FVP的不平衡性[\s\S]*7\.22%/);assert.match(b,/垂直跳跃高度改变/);assert.match(b,/情景判定/);assert.match(b,/力量弹性 Fₑ/);
+  assert.match(b,/FVP的不平衡性[\s\S]*7\.22%/);assert.match(b,/预测跳跃高度改变/);assert.match(b,/情景判定/);assert.match(b,/力量弹性 Fₑ/);
 });
 test("load tables preserve repeat statistics, selected attempts and exclusions",()=>{
   const r=fixture();r.data.fvp_sj.push({id:"low1",load:0,height:31},{id:"low2",load:0,height:32},{id:"excluded",load:20,height:45,excluded:true,exclusionReason:"手臂摆动",notes:"<原始备注>"});

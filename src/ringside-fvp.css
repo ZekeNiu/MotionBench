@@ -30,6 +30,12 @@
 .fvp-scenario-form { display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; margin:0 0 12px; }
 .fvp-scenario-form label { display:grid; gap:5px; color:var(--muted); font-size:12px; flex:1; min-width:110px; }
 .fvp-scenario-form input { width:100%; min-height:37px; padding:7px 9px; font:inherit; }
+.fvp-form-help { flex-basis:100%; margin:0; color:var(--muted); font-size:11px; line-height:1.65; }
+.fvp-draft-status { margin:0 0 12px; padding:9px 12px; border-radius:var(--radius-control); background:var(--surface-soft); color:var(--ink); font-size:12px; line-height:1.6; }
+.fvp-response-toggles { display:inline-flex; flex-wrap:wrap; gap:10px 16px; }
+.fvp-response-toggles[hidden] { display:none; }
+.fvp-scenario-table:has([data-elasticity-scenario-output][hidden]) th:first-child { width:55%; }
+.fvp-scenario-table:has([data-elasticity-scenario-output][hidden]) th:nth-child(2) { width:45%; }
 .fvp-scenario-shortcuts { display:flex; flex-wrap:wrap; gap:7px; margin:0 0 14px; }
 .fvp-scenario-shortcuts button { font-size:11px; min-height:32px; }
 .fvp-method { margin-top:14px; color:var(--muted); font-size:12px; line-height:1.7; }
@@ -46,7 +52,7 @@
 .fvp-raw-trials summary { cursor:pointer; color:var(--muted); }
 .fvp-raw-trials table { min-width:530px; font-size:11px; }
 .fvp-empty-result { padding:15px 17px; color:var(--ink); background:var(--surface-soft); border-radius:var(--radius-control); line-height:1.7; font-size:13px; }
-.sprint-fvp-analysis { margin-bottom:20px; }
+.sprint-fvp-analysis { margin-bottom:0; }
 .sprint-target-form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; margin:0 0 16px; }
 .sprint-target-form label { display:grid; gap:5px; margin:0; color:var(--muted); font-size:12px; }
 .sprint-target-form input { width:180px; max-width:100%; min-height:38px; padding:7px 9px; font:inherit; }

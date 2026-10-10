@@ -18,7 +18,7 @@ version = package["version"]
 if not isinstance(version, str) or not version.strip():
     raise SystemExit("Missing application version in package.json")
 pieces = ["window.RingsideBuild=Object.freeze(" + json.dumps({"version": version}) + ");"]
-for name in ["ringside-calc.js", "ringside-fvp.js", "ringside-sprint-fvp.js", "ringside-sprint-fvp-confidence.js", "ringside-sources.js", "ringside-cpet-reference.js", "ringside-iso-reference.js", "ringside-definitions.js"]:
+for name in ["ringside-calc.js", "ringside-fvp.js", "ringside-sprint-fvp.js", "ringside-sprint-elasticity.js", "ringside-sprint-fvp-confidence.js", "ringside-sources.js", "ringside-cpet-reference.js", "ringside-iso-reference.js", "ringside-definitions.js"]:
     path = SRC / name
     subprocess.run(["node", "--check", str(path)], check=True)
     pieces.append(path.read_text(encoding="utf-8"))

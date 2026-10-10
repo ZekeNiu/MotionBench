@@ -30,12 +30,12 @@ test("three independent Hop sets enable statistics while preserving every set",(
  const report=R.build(r),html=R.render(report),group=report.stats.repetitions.find(g=>g.testId==="hop");
  assert.equal(group.statistics.find(metric=>metric.id==="hop_rsi").n,3);assert.match(html,/均值 ± SD/);assert.match(html,/完整测试结果 · 共 3 次/);assert.equal((html.match(/data-metric-id="hop-set-/g)||[]).length,3);
 });
-test("direction cards show one measured basis above judgment while right tables retain components and hide invalid rows",()=>{
+test("direction cards lead with judgment while in-card parameter tables retain components and hide invalid rows",()=>{
  const report=R.build(fixture());report.record.views.capabilitySelections={strength:"fdsi",reactive:"dj_rsi",speed:"srr"};
  report.stats.capabilityCards=[{id:"strength",title:"力量发展方向",metrics:[{id:"fdsi",label:"DSI",unit:"比值",value:.6,judgment:"并行发展最大力量与爆发能力",status:"gray",components:[{label:"CMJ 推进期峰值力",value:1500,unit:"N"},{label:"等长峰值力",value:2500,unit:"N"}]},{id:"eur",label:"EUR",value:null}]},{id:"reactive",title:"反应力量水平",metrics:[]}];
  const before=JSON.stringify(report.record),html=R.render(report),left=direction(html,"strength"),row=parameter(html,"fdsi");
  assert.match(left,/data-direction-metric="fdsi"/);assert.equal((left.match(/data-direction-metric=/g)||[]).length,1);
- assert.match(left,/0\.600/);assert.ok(left.indexOf("0.600")<left.indexOf("并行发展最大力量与爆发能力"));
+ assert.match(left,/0\.600/);assert.ok(left.indexOf("并行发展最大力量与爆发能力")<left.indexOf("0.600"));
  assert.match(row,/0\.600/);assert.match(row,/1,500\.0/);assert.match(row,/2,500\.0/);
  for(const label of ["CMJ 推进期峰值力","等长峰值力"])assert.ok(row.includes(label));
  assert.ok(row.indexOf("0.600")<row.indexOf('class="capability-parameter-notes"'));
@@ -64,10 +64,12 @@ test("four direction cards coexist with four parameter groups and preserve speed
  report.stats.capabilityCards=["strength","reactive","speed","cardio"].map((id,i)=>({id,title:["力量发展方向","反应力量水平","速度与耐力方向","心肺发展方向"][i],metrics:[{id:id+"_metric",label:id,value:i+1,unit:"%"}],conclusion:id==="cardio"?"优先发展第二阈值":id==="speed"?"发展最大速度":"反应力量综合训练方向"}));
  const html=R.render(report);assert.deepEqual([...html.matchAll(/data-capability-direction="([^"]+)"/g)].map(match=>match[1]),["strength","reactive","speed","endurance"]);
  assert.deepEqual([...html.matchAll(/data-capability-card="([^"]+)"/g)].map(match=>match[1]),["strength","reactive","speed","cardio"]);
- assert.match(html,/能力结构分析/);assert.match(html,/capability-structure-pair/);assert.match(html,/capability-parameter-groups/);
+ assert.match(html,/能力结构分析/);assert.match(html,/data-capability-analysis/);
+ assert.deepEqual([...html.matchAll(/data-capability-parameters="([^"]+)"/g)].map(match=>match[1]),["strength","reactive","speed","endurance"]);
+ assert.deepEqual([...html.matchAll(/data-capability-parameter-table="([^"]+)"/g)].map(match=>match[1]),["strength","reactive","speed","endurance"]);
  for(const [id,value]of [["strength",1],["reactive",2],["speed",3],["cardio",4]])assert.match(parameter(html,id+"_metric"),new RegExp(`${value}\\.0`));
  assert.match(direction(html,"endurance"),/优先发展第二阈值/);assert.match(html,/发展最大速度/);
- for(const key of ["strength","reactive","speed"]){const left=direction(html,key);assert.equal((left.match(/data-direction-metric=/g)||[]).length,1);assert.doesNotMatch(left,/反应力量综合训练方向/);}
+ for(const key of ["strength","reactive","speed"]){const left=direction(html,key),summary=left.match(/<section[^>]*data-direction-metric="[^"]+"[\s\S]*?<\/section>/)?.[0];assert.equal((left.match(/data-direction-metric=/g)||[]).length,1);assert.ok(summary);assert.doesNotMatch(summary,/反应力量综合训练方向/);}
  assert.doesNotMatch(direction(html,"endurance"),/<select/);
  report.stats.capabilityCards=[];assert.doesNotMatch(R.render(report),/id="trainingAnalysisDetail"/);
 });

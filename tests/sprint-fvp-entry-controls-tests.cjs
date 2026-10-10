@@ -32,6 +32,7 @@ function harness(record = fixture()) {
     ui:{mode:"entry"}, entryTab:"sprint_fvp", inputDrafts:{}, draftStorageKey:"synthetic_drafts", undoDeletes:new Map(),
     sessionStorage:{setItem:(key, value) => storage.set(key, value)}, document:{addEventListener:(name, handler) => {if (name === "change") change = handler;}},
     changed:() => {counts.changes++;}, renderEntry:() => {counts.entry++;}, renderReport:() => {counts.report++;},
+    reportEditInfo:() => null, refreshCapabilityAnalysis:() => {counts.report++;},
     toast:message => messages.push(message), inputIssue:() => {}, rowFocus:() => {}, forgetInputError:() => {},
     $:() => ({querySelector:() => mode}), uid:() => crypto.randomUUID(),
     setPath:(key, value) => {const parts = key.split("."); let target = record; for (const part of parts.slice(0, -1)) target = target[part] ||= {}; target[parts.at(-1)] = value; counts.changes++;},

@@ -222,6 +222,31 @@
     clone.querySelectorAll(".details-group").forEach((node) => {
       if (node.querySelector(".empty") && !node.querySelector(".test-block,.lvp-card,.fvp-analysis-card")) node.remove();
     });
+    // Capability parameters alone follow the screen's disclosure state. Flatten
+    // open disclosures before row annotation; closed rows never enter the PDF
+    // paginator or its expected-row diagnostics.
+    clone.querySelectorAll("details[data-capability-parameters]").forEach((node) => {
+      if (!node.open) { node.remove(); return; }
+      const content = document.createElement("div");
+      content.className = "capability-parameters-static";
+      content.dataset.capabilityParameters = node.dataset.capabilityParameters;
+      [...node.childNodes].filter(child => child.tagName !== "SUMMARY").forEach(child => content.append(child));
+      node.replaceWith(content);
+    });
+    clone.querySelectorAll(".capability-direction-grid").forEach(grid => {
+      if (!grid.querySelector(".capability-parameters-static")) {
+        grid.dataset.pdfAtomic = "";
+        return;
+      }
+      grid.classList.add("capability-direction-grid-expanded-pdf");
+      for (const card of grid.querySelectorAll(":scope > .capability-direction-card")) {
+        const summary = document.createElement("div");
+        summary.className = "capability-direction-print-summary";
+        summary.dataset.pdfAtomic = "";
+        [...card.children].filter(child => !child.matches(".capability-parameters-static")).forEach(child => summary.append(child));
+        card.prepend(summary);
+      }
+    });
     const rawTrials = [...clone.querySelectorAll("[data-raw-trials]")];
     if (rawTrials.length) {
       const appendix = document.createElement("section");
@@ -468,7 +493,7 @@
   }
 
   function freezePrimaryColumns(source) {
-    for (const table of source.querySelectorAll(".iso-results.with-repeat-columns,.imtp-results,.fvp-result-table,.fvp-scenario-table,.fvp-load-table")) {
+    for (const table of source.querySelectorAll(".iso-results.with-repeat-columns,.imtp-results,.fvp-result-table,.fvp-scenario-table,.fvp-load-table,.capability-parameter-table")) {
       const widths = [...table.tHead.rows[0].cells].map(cell => cell.getBoundingClientRect().width);
       const columns = element("colgroup");
       widths.forEach(width => {

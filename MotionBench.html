@@ -3168,6 +3168,27 @@ body.sidebar-collapsed .workspace {
 .capability-parameter-components dt { color:var(--muted); font-size:10px; }
 .capability-parameter-components dd { margin:0; color:var(--ink); font-variant-numeric:tabular-nums; }
 .capability-parameter-group .capability-targets { font-size:10px; }
+.capability-analysis-region > .quality-group { display:grid; gap:20px; padding:20px 0 0; }
+.capability-direction-grid { align-items:start; gap:16px; }
+.capability-direction-card { padding:22px; background:var(--surface); box-shadow:var(--shadow-panel); }
+.capability-direction-card h3 { margin:0 0 14px; font-size:15px; letter-spacing:.01em; }
+.capability-direction-judgment { margin:0 0 15px; padding:0; border:0; font-size:17px; font-weight:600; line-height:1.6; }
+.capability-direction-basis { margin:0 0 3px; font-size:11px; }
+.capability-direction-value { font-size:23px; }
+.capability-selector { margin:16px 0 0; padding-top:14px; border-top:1px solid var(--line); }
+.capability-card-parameters { margin-top:16px; border-top:1px solid var(--line); }
+.capability-card-parameters > summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:42px; padding:10px 0 0; color:var(--ink); font-size:12px; cursor:pointer; list-style:none; }
+.capability-card-parameters > summary::-webkit-details-marker { display:none; }
+.capability-card-parameters > summary::after { content:"+"; width:20px; text-align:center; color:var(--muted); font-size:18px; }
+.capability-card-parameters[open] > summary::after { content:"−"; }
+.capability-card-parameters > summary small { margin-left:auto; color:var(--muted); font-size:10px; }
+.capability-card-parameters > summary:focus-visible { outline:2px solid var(--blue); outline-offset:4px; border-radius:4px; }
+.capability-card-parameters .capability-parameter-group { margin-top:12px; padding:0; border:0; border-radius:0; box-shadow:none; }
+.capability-card-parameters .capability-parameter-heading h3 { font-size:12px; margin-bottom:7px; }
+.capability-card-parameters .capability-parameter-table { font-size:12px; }
+.capability-card-parameters .capability-parameter-table th:first-child { width:39%; }
+.capability-card-parameters .capability-value { font-size:17px; }
+.capability-card-parameters .capability-parameter-judgment,.capability-card-parameters .capability-parameter-target,.capability-card-parameters .capability-parameter-notes { font-size:11px; }
 @media (max-width:1050px) {
   .capability-structure-pair { grid-template-columns:minmax(0,1fr); }
 }
@@ -3201,6 +3222,12 @@ body.sidebar-collapsed .workspace {
 .ringside-pdf-document .capability-parameter-table th,.ringside-pdf-document .capability-parameter-table td { padding:5px 6px!important; }
 .ringside-pdf-document .capability-parameter-table .capability-value { font-size:13px!important; }
 .ringside-pdf-document .capability-parameter-judgment,.ringside-pdf-document .capability-parameter-target,.ringside-pdf-document .capability-parameter-notes,.ringside-pdf-document .capability-parameter-components dt { font-size:8px!important; }
+.ringside-pdf-document .capability-direction-judgment { margin:0 0 10px!important; padding:0!important; border:0!important; font-size:11px!important; font-weight:600!important; }
+.ringside-pdf-document .capability-direction-grid-expanded-pdf { display:block!important; }
+.ringside-pdf-document .capability-direction-grid-expanded-pdf > .capability-direction-card { padding:0!important; margin:0 0 14px!important; border:0!important; box-shadow:none!important; }
+.ringside-pdf-document .capability-direction-print-summary { padding:12px!important; border:1px solid var(--line)!important; border-radius:8px!important; background:var(--surface)!important; }
+.ringside-pdf-document .capability-parameters-static { margin:10px 0 16px!important; }
+.ringside-pdf-document .capability-parameters-static .capability-parameter-group { border:0!important; padding:0!important; }
 .iso-results.with-repeat-columns { table-layout:fixed; }
 .iso-results.with-repeat-columns th,.iso-results.with-repeat-columns th:nth-child(4) { width:auto; min-width:0; }
 .iso-results .iso-reference-evaluation { display:block; font-size:11px; line-height:1.65; color:var(--muted); }
@@ -3341,6 +3368,12 @@ body.sidebar-collapsed .workspace {
 .fvp-scenario-form { display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; margin:0 0 12px; }
 .fvp-scenario-form label { display:grid; gap:5px; color:var(--muted); font-size:12px; flex:1; min-width:110px; }
 .fvp-scenario-form input { width:100%; min-height:37px; padding:7px 9px; font:inherit; }
+.fvp-form-help { flex-basis:100%; margin:0; color:var(--muted); font-size:11px; line-height:1.65; }
+.fvp-draft-status { margin:0 0 12px; padding:9px 12px; border-radius:var(--radius-control); background:var(--surface-soft); color:var(--ink); font-size:12px; line-height:1.6; }
+.fvp-response-toggles { display:inline-flex; flex-wrap:wrap; gap:10px 16px; }
+.fvp-response-toggles[hidden] { display:none; }
+.fvp-scenario-table:has([data-elasticity-scenario-output][hidden]) th:first-child { width:55%; }
+.fvp-scenario-table:has([data-elasticity-scenario-output][hidden]) th:nth-child(2) { width:45%; }
 .fvp-scenario-shortcuts { display:flex; flex-wrap:wrap; gap:7px; margin:0 0 14px; }
 .fvp-scenario-shortcuts button { font-size:11px; min-height:32px; }
 .fvp-method { margin-top:14px; color:var(--muted); font-size:12px; line-height:1.7; }
@@ -3357,7 +3390,7 @@ body.sidebar-collapsed .workspace {
 .fvp-raw-trials summary { cursor:pointer; color:var(--muted); }
 .fvp-raw-trials table { min-width:530px; font-size:11px; }
 .fvp-empty-result { padding:15px 17px; color:var(--ink); background:var(--surface-soft); border-radius:var(--radius-control); line-height:1.7; font-size:13px; }
-.sprint-fvp-analysis { margin-bottom:20px; }
+.sprint-fvp-analysis { margin-bottom:0; }
 .sprint-target-form { display:flex; flex-wrap:wrap; align-items:flex-end; gap:10px; margin:0 0 16px; }
 .sprint-target-form label { display:grid; gap:5px; margin:0; color:var(--muted); font-size:12px; }
 .sprint-target-form input { width:180px; max-width:100%; min-height:38px; padding:7px 9px; font:inherit; }
@@ -3892,7 +3925,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.17.5-local"});
+window.RingsideBuild=Object.freeze({"version": "2.18.0-local"});
 </script>
 <script>
 (function (root) {
@@ -4204,7 +4237,7 @@ window.RingsideBuild=Object.freeze({"version": "2.17.5-local"});
   const defaultsConfig = () => ({ device: "", method: "", posture: "", distanceCm: "", distanceSource: "" });
   const defaultsAnalysis = () => ({ angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 });
   const defaultsView = () => ({ fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null,
-    responseForce: true, responseVelocity: true, responseBoth: true });
+    responseForce: true, responseVelocity: true, responseBoth: true, elasticityView: "response" });
 
   function regression(points) {
     const n = points.length, result = { valid: false, a: null, b: null, n, r2: null, meanX: null, sxx: null, s: null, tcrit: null, minX: null, maxX: null, reason: "至少需要 3 个不同负荷的有效结果" };
@@ -4305,6 +4338,31 @@ window.RingsideBuild=Object.freeze({"version": "2.17.5-local"});
     return result;
   }
 
+  // Li's fixed-height constraint: F0(1 - lambda*u/V0) = g(1 + h/d).
+  // Sampling ER changes the force/velocity allocation while retaining h and d.
+  function elasticityConstraint(profile, distance, count = 121) {
+    const predicted = performance(profile?.F0, profile?.V0, distance), base = elasticity(profile?.F0, profile?.V0, distance);
+    const result = { valid: false, methodVersion: "li-2026-jump-constant-height-v1", heightCm: predicted.heightCm, current: null, balance: null, valley: null, points: [] };
+    if (!predicted.valid || !base) return result;
+    const vd = LAMBDA * predicted.takeoffVelocity, force = G * (1 + predicted.heightCm / 100 / distance);
+    const low = Math.min(.1, base.ER / 2), high = Math.max(8, base.ER * 2);
+    count = Math.max(3, Math.min(401, Math.round(count)));
+    const ratios = Array.from({ length: count }, (_, i) => Math.exp(Math.log(low) + (Math.log(high) - Math.log(low)) * i / (count - 1)));
+    const valleyER = predicted.takeoffVelocity * predicted.takeoffVelocity / distance / force;
+    ratios.push(base.ER,1,valleyER);
+    const point = ER => {
+      const F0 = force * (1 + ER) / ER, V0 = vd * (1 + ER), response = elasticity(F0, V0, distance);
+      return response ? { F0, V0, heightCm: predicted.heightCm, Fe: response.Fe, ve: response.ve, ER: response.ER, EN: response.EN } : null;
+    };
+    result.points = [...new Set(ratios)].sort((a,b) => a-b).map(point).filter(Boolean);
+    result.balance = point(1);
+    // On this same-height curve EN = 2*Fb*sqrt(ER²+1)/(u²*ER/d + Fb).
+    result.valley = point(valleyER);
+    result.current = { F0: profile.F0, V0: profile.V0, heightCm: predicted.heightCm, ...base };
+    result.valid = result.points.length >= 3;
+    return result;
+  }
+
   function confidence(fit, velocity, measuredOnly = true) {
     const x = num(velocity);
     if (x === null || !fit.valid || fit.n < 3 || fit.s === null || fit.tcrit === null || !(fit.sxx > 0)) return null;
@@ -4344,7 +4402,7 @@ window.RingsideBuild=Object.freeze({"version": "2.17.5-local"});
     const fit = regression(points), presentCount = trials.filter(t => t.present).length;
     const result = { id, label, config, analysis: { ...analysis, angle }, valid: fit.valid, status: fit.valid ? "valid" : presentCount ? "review" : "empty", reason: fit.reason,
       points, selectedPoints: points, trials, groups, model: fit, fit, current: null, optimum: null, optimal: null, comparison: null,
-      imbalance: null, imbalancePct: null, direction: null, potentialGainPct: null, elasticity: null, scenario: null,
+      imbalance: null, imbalancePct: null, direction: null, potentialGainPct: null, elasticity: null, scenario: null, elasticityConstraint: null,
       sensitivity: { force: [], velocity: [], both: [] }, ci: (v, measuredOnly) => confidence(fit, v, measuredOnly), issues: [] };
     trials.filter(t => t.present && !t.excluded && !t.valid).forEach(t => result.issues.push({ id: "fvp_trial_" + t.index, testId: id, status: "amber", message: "第 " + (t.index + 1) + " 次：" + t.reason }));
     if (!fit.valid) return result;
@@ -4363,7 +4421,7 @@ window.RingsideBuild=Object.freeze({"version": "2.17.5-local"});
     const deltaForcePct = num(analysis.deltaForcePct) ?? 0, deltaVelocityPct = num(analysis.deltaVelocityPct) ?? 0;
     const elastic = elasticity(fit.F0, fit.V0, distance), next = scenario(fit, distance, deltaForcePct, deltaVelocityPct);
     Object.assign(result, { current, verticalCurrent: current, optimum: optimal, optimal, comparison, imbalance: balance, imbalancePct: balance.magnitudePct, direction: balance.direction,
-      potentialGainPct: angle === 90 ? (optimal.heightCm / current.heightCm - 1) * 100 : null, elasticity: elastic, scenario: next,
+      potentialGainPct: angle === 90 ? (optimal.heightCm / current.heightCm - 1) * 100 : null, elasticity: elastic, scenario: next, elasticityConstraint: elasticityConstraint(fit, distance),
       judgments: { direction: balance.label } });
     result.sensitivity = {
       force: [-20,-15,-10,-5,0,5,10,15,20].map(changePct => ({ changePct, ...scenario(fit, distance, changePct, 0) })),
@@ -4373,7 +4431,7 @@ window.RingsideBuild=Object.freeze({"version": "2.17.5-local"});
     return result;
   }
   root.RingsideFVP = Object.freeze({ ids, G, LAMBDA, LI_LAMBDA, defaultsConfig, defaultsAnalysis, defaultsView, solve, read: solve,
-    regression, forceAt, powerAt, curve, performance, optimum, imbalance, elasticity, scenario, confidence, equal });
+    regression, forceAt, powerAt, curve, performance, optimum, imbalance, elasticity, scenario, elasticityConstraint, confidence, equal });
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -4651,6 +4709,251 @@ window.RingsideBuild=Object.freeze({"version": "2.17.5-local"});
   }
   root.RingsideSprintFVP = Object.freeze({ G, METHOD_VERSION, defaultsConfig, defaultsAnalysis, normalizeTrials,
     distanceAt, timeAtDistance, fitSplits, airResistance, mechanics, curve, performance, optimum, imbalance, solve, read: solve, validate });
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  // Li et al., bioRxiv 10.64898/2026.08.29.748040 v1. This independent
+  // rest-start ODE does not replace the Samozino 2022 optimal-profile model.
+  const METHOD_VERSION = "li-2026-sprint-elasticity-forward1-v1", PERTURBATION = .01;
+  const defaultsAnalysis = () => ({ deltaForcePct: 0, deltaVelocityPct: 0, elasticityMethodVersion: METHOD_VERSION });
+  const num = value => {
+    if (typeof value !== "number" && (typeof value !== "string" || !value.trim())) return null;
+    const n = Number(value); return Number.isFinite(n) ? n : null;
+  };
+  const positive = value => { const n = num(value); return n !== null && n > 0 ? n : null; };
+  const invalid = reason => ({ valid: false, reason });
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const cache = new Map();
+  function airResistance(massKg, heightCm, temperatureC, pressureHpa) {
+    if (!(massKg > 0 && heightCm > 0 && temperatureC > -273 && pressureHpa > 0) ||
+        ![massKg, heightCm, temperatureC, pressureHpa].every(Number.isFinite)) return null;
+    const density = 1.293 * (pressureHpa / 1013.25) * 273 / (273 + temperatureC);
+    const frontalArea = .2025 * Math.pow(heightCm / 100, .725) * Math.pow(massKg, .425) * .266;
+    const K = .5 * density * frontalArea * .9, k = K / massKg;
+    return [density, frontalArea, K, k].every(Number.isFinite) ? { density, frontalArea, dragCoefficient: .9, K, k } : null;
+  }
+  function coefficients(F0, V0, k) {
+    if (![F0, V0, k].every(Number.isFinite) || !(F0 > 0 && V0 > 0 && k >= 0)) return null;
+    const b = F0 / V0, lambda = Math.hypot(b, 2 * Math.sqrt(k) * Math.sqrt(F0));
+    const vmax = 2 * (F0 / (lambda + b)), q = k * vmax / lambda;
+    return [b, lambda, vmax, q].every(Number.isFinite) && lambda > 0 && vmax > 0 ? { b, lambda, vmax, q } : null;
+  }
+  // Accurate residuals avoid subtracting the O(t) terms of a short sprint.
+  function exponentialResidual(u) {
+    return u < .01 ? u * u * (.5 + u * (-1 / 6 + u * (1 / 24 + u * (-1 / 120 + u * (1 / 720 - u / 5040))))) : u + Math.expm1(-u);
+  }
+  function logarithmicResidual(x) {
+    return Math.abs(x) < .01 ? x * x * (-.5 + x * (1 / 3 + x * (-.25 + x * (.2 + x * (-1 / 6 + x / 7))))) : Math.log1p(x) - x;
+  }
+  function distanceAt(timeS, F0, V0, k) {
+    const c = coefficients(F0, V0, k);
+    if (!c || !Number.isFinite(timeS) || timeS < 0) return null;
+    const u = c.lambda * timeS;
+    // d=(vmax/lambda)[u+log(1+q*(exp(-u)-1))/q]. Its q=0
+    // limit is the ordinary mono-exponential displacement without resistance.
+    const correction = c.q > 0 ? logarithmicResidual(c.q * Math.expm1(-u)) / c.q : 0;
+    const distanceM = c.vmax / c.lambda * (exponentialResidual(u) + correction);
+    return Number.isFinite(distanceM) && distanceM >= 0 ? distanceM : null;
+  }
+  function velocityAt(timeS, F0, V0, k) {
+    const c = coefficients(F0, V0, k);
+    if (!c || !Number.isFinite(timeS) || timeS < 0) return null;
+    const w = Math.expm1(-c.lambda * timeS);
+    return c.vmax * (-w) * (1 - c.q) / (1 + c.q * w);
+  }
+  function performance(F0, V0, k, distanceM) {
+    const c = coefficients(F0, V0, k), Pmax = F0 * (V0 / 4), slope = -F0 / V0;
+    if (!c || !Number.isFinite(distanceM) || distanceM <= 0) return invalid("冲刺模型需要正 F₀、V₀、距离与非负空气阻力");
+    if (![Pmax, slope].every(Number.isFinite) || !(Pmax > 0 && slope < 0)) return invalid("冲刺剖面超出模型数值范围");
+    let low = 0, high = distanceM / c.vmax + 1 / c.lambda;
+    let upper = distanceAt(high, F0, V0, k);
+    for (let i = 0; upper !== null && upper < distanceM && i < 60; i++) {
+      high *= 2; upper = distanceAt(high, F0, V0, k);
+    }
+    if (upper === null || upper < distanceM) return invalid("冲刺时间求根超出数值范围");
+    for (let i = 0; i < 90; i++) {
+      const middle = (low + high) / 2, x = distanceAt(middle, F0, V0, k);
+      if (x === null) return invalid("冲刺位移超出数值范围");
+      if (x < distanceM) low = middle; else high = middle;
+    }
+    const timeS = (low + high) / 2, predictedDistanceM = distanceAt(timeS, F0, V0, k);
+    const tolerance = 1e-9 * Math.max(distanceM, 1e-9);
+    if (!(timeS > 0) || !Number.isFinite(timeS) || Math.abs(predictedDistanceM - distanceM) > tolerance)
+      return invalid("冲刺时间求根未收敛");
+    return { valid: true, reason: "", F0, V0, Pmax, slope, k, distanceM, timeS,
+      velocityMps: velocityAt(timeS, F0, V0, k), vmax: c.vmax, predictedDistanceM, methodVersion: METHOD_VERSION };
+  }
+  function elasticity(F0, V0, k, distanceM) {
+    const current = performance(F0, V0, k, distanceM);
+    if (!current.valid) return { ...current, Fe: null, ve: null, EN: null, ER: null };
+    let Fe, ve;
+    if (k === 0) {
+      const tau = F0 * current.timeS / V0, xi = F0 * distanceM / (V0 * V0);
+      const A = xi / (tau * -Math.expm1(-tau));
+      Fe = 1 - A; ve = 2 * A - 1;
+    } else {
+      // The author's public calculator uses single-end +1%, rather than a
+      // logarithmic/central difference. Each perturbed time is solved anew.
+      const tF = performance(F0 * (1 + PERTURBATION), V0, k, distanceM);
+      const tV = performance(F0, V0 * (1 + PERTURBATION), k, distanceM);
+      if (!tF.valid || !tV.valid) return { ...invalid("1% 扰动后的冲刺时间无法计算"), Fe: null, ve: null, EN: null, ER: null };
+      Fe = -(tF.timeS - current.timeS) / current.timeS / PERTURBATION;
+      ve = -(tV.timeS - current.timeS) / current.timeS / PERTURBATION;
+    }
+    const EN = Math.hypot(Fe, ve), ER = ve !== 0 ? Fe / Math.abs(ve) : null;
+    if (![Fe, ve, EN].every(Number.isFinite) || Fe < 0 || ve < 0 || ER === null || !Number.isFinite(ER))
+      return { ...invalid("此距离的时间敏感性超出数值分辨率"), Fe: null, ve: null, EN: null, ER: null };
+    return { ...current, Fe, ve, EN, ER, force: Fe, velocity: ve, outcome: "冲刺时间", conservation: 2 * Fe + ve,
+      differenceMethod: k === 0 ? "analytic-no-drag" : "forward-relative-1pct", perturbationPct: k === 0 ? null : 1,
+      judgments: { Fe: "力量端时间敏感性", ve: "速度端时间敏感性", EN: "综合时间敏感性",
+        ER: Math.abs(ER - 1) < 1e-6 ? "两端时间响应相当" : ER > 1 ? "力量端时间响应更大" : "速度端时间响应更大" } };
+  }
+  function scenario(profile, k, distanceM, deltaForcePct, deltaVelocityPct) {
+    const dF = num(deltaForcePct), dV = num(deltaVelocityPct);
+    if (dF === null || dV === null || dF <= -100 || dV <= -100)
+      return { ...invalid("情景变化须为有限百分比，且大于 −100%"), deltaForcePct: dF, deltaVelocityPct: dV, timeS: null,
+        deltaTimeS: null, deltaPct: null, timeGainS: null, timeGainPct: null, elasticity: null };
+    const F0 = profile.F0 * (1 + dF / 100), V0 = profile.V0 * (1 + dV / 100);
+    const current = performance(profile.F0, profile.V0, k, distanceM), next = performance(F0, V0, k, distanceM);
+    const elastic = next.valid ? elasticity(F0, V0, k, distanceM) : null;
+    const valid = current.valid && next.valid && elastic?.valid === true;
+    const deltaTimeS = valid ? next.timeS - current.timeS : null;
+    const deltaPct = valid ? (next.timeS / current.timeS - 1) * 100 : null;
+    return { ...next, valid, timeS: valid ? next.timeS : null, reason: valid ? "" : next.reason || elastic?.reason || current.reason,
+      F0, V0, deltaForcePct: dF, deltaVelocityPct: dV, deltaTimeS, deltaPct,
+      timeGainS: valid ? -deltaTimeS : null, timeGainPct: valid ? -deltaPct : null, elasticity: valid ? elastic : null };
+  }
+  function normalize(params) {
+    const p = { ...params }, F0 = positive(p.F0), V0 = positive(p.V0), massKg = positive(p.massKg), heightCm = positive(p.heightCm);
+    const temperatureC = num(p.temperatureC === undefined ? 20 : p.temperatureC);
+    const pressureHpa = positive(p.pressureHpa === undefined ? 1013.25 : p.pressureHpa);
+    const windMs = num(p.windMs === undefined ? 0 : p.windMs), targetDistanceM = positive(p.targetDistanceM);
+    if (F0 === null || V0 === null) return invalid("需要有效的冲刺 F–V 剖面");
+    if (targetDistanceM === null) return invalid("目标距离须为正数");
+    const atmosphere = airResistance(massKg, heightCm, temperatureC, pressureHpa);
+    if (!atmosphere || massKg === null || heightCm === null || temperatureC === null || pressureHpa === null)
+      return invalid("需要有效的体重、身高、气温与气压");
+    if (windMs === null) return invalid("风速须为有限数值");
+    if (windMs !== 0) return invalid("冲刺弹性模型采用静止起跑与静风条件；当前风速下保留原有实测剖面");
+    const k = p.k === undefined ? atmosphere.k : num(p.k);
+    if (k === null || k < 0) return invalid("空气阻力系数须为非负有限数值");
+    return { valid: true, reason: "", F0, V0, massKg, heightCm, temperatureC, pressureHpa, windMs, targetDistanceM, k, atmosphere,
+      deltaForcePct: p.deltaForcePct === undefined ? 0 : p.deltaForcePct,
+      deltaVelocityPct: p.deltaVelocityPct === undefined ? 0 : p.deltaVelocityPct };
+  }
+  function distanceSamples(targetDistanceM, markers = []) {
+    const xs = Array.from({ length: 101 }, (_, i) => .5 + 29.5 * i / 100).concat(targetDistanceM, markers);
+    const maximum = Math.max(30, targetDistanceM, ...markers);
+    if (maximum > 30) {
+      // Keep the study interval dense even when a displayed model marker is
+      // outside it; logarithmic samples avoid one long straight chart segment.
+      const span = Math.log(maximum) - Math.log(30);
+      for (let i = 1; i < 40; i++) xs.push(Math.exp(Math.log(30) + span * i / 40));
+    }
+    return xs;
+  }
+  function distanceSeries(params, distances) {
+    const p = normalize(params);
+    if (!p.valid) return [];
+    const xs = distances || distanceSamples(p.targetDistanceM);
+    return [...new Set(xs.map(num).filter(x => x !== null && x > 0))].sort((a, b) => a - b)
+      .map(distanceM => ({ distanceM, ...elasticity(p.F0, p.V0, p.k, distanceM) }));
+  }
+  function responseSeries(params, changes = [-20, -15, -10, -5, 0, 5, 10, 15, 20]) {
+    const p = normalize(params);
+    if (!p.valid) return { force: [], velocity: [], both: [] };
+    const make = (dF, dV, changePct) => ({ changePct, ...scenario(p, p.k, p.targetDistanceM, dF, dV) });
+    return { force: changes.map(x => make(x, 0, x)), velocity: changes.map(x => make(0, x, x)), both: changes.map(x => make(x, x, x)) };
+  }
+  function goldenMin(fn, low, high) {
+    const ratio = (Math.sqrt(5) - 1) / 2;
+    let a = high - ratio * (high - low), b = low + ratio * (high - low), fa = fn(a), fb = fn(b);
+    // Distance resolution is numerical, not a scientific ER classification cutoff.
+    for (let i = 0; i < 80 && high - low > 1e-7 * Math.max(1, high); i++) {
+      if (fa < fb) { high = b; b = a; fb = fa; a = high - ratio * (high - low); fa = fn(a); }
+      else { low = a; a = b; fa = fb; b = low + ratio * (high - low); fb = fn(b); }
+    }
+    return (low + high) / 2;
+  }
+  function characteristicDistances(p) {
+    const scale = p.V0 * p.V0 / p.F0;
+    if (!(scale > 0) || !Number.isFinite(scale)) return { valley: invalid("特征距离超出数值范围"), balance: invalid("特征距离超出数值范围") };
+    if (p.k === 0) {
+      const valley = elasticity(p.F0, p.V0, 0, scale * .5222453037474273);
+      const balance = elasticity(p.F0, p.V0, 0, scale * 1.2657118326651715);
+      return { valley, balance };
+    }
+    // Scan the dimensionless distance, bracket its lowest EN, then refine.
+    // With a finite 1% difference, the EN minimum need not coincide with ER=2.
+    const grid = Array.from({ length: 65 }, (_, i) => scale * Math.exp(Math.log(1e-4) + Math.log(1e8) * i / 64));
+    const values = grid.map(x => elasticity(p.F0, p.V0, p.k, x));
+    const usable = values.map((v, i) => v.valid ? i : -1).filter(i => i >= 0);
+    const best = usable.reduce((a, i) => a === null || values[i].EN < values[a].EN ? i : a, null);
+    let valley = invalid("未能在有限距离内定位 EN 最低点");
+    if (best !== null && best > 0 && best < grid.length - 1 && values[best - 1].valid && values[best + 1].valid) {
+      const x = goldenMin(d => { const e = elasticity(p.F0, p.V0, p.k, d); return e.valid ? e.EN : Infinity; }, grid[best - 1], grid[best + 1]);
+      valley = elasticity(p.F0, p.V0, p.k, x);
+    }
+    let balance = invalid("未能在有限距离内定位 ER=1 的平衡距离");
+    for (let i = 1; i < grid.length; i++) {
+      if (!values[i - 1].valid || !values[i].valid || !(values[i - 1].ER >= 1 && values[i].ER <= 1)) continue;
+      let low = grid[i - 1], high = grid[i];
+      for (let j = 0; j < 60; j++) {
+        const mid = (low + high) / 2, value = elasticity(p.F0, p.V0, p.k, mid);
+        if (!value.valid) break;
+        if (value.ER > 1) low = mid; else high = mid;
+      }
+      balance = elasticity(p.F0, p.V0, p.k, (low + high) / 2); break;
+    }
+    return { valley, balance };
+  }
+  function compute(params = {}) {
+    const p = normalize(params), requestedMethodVersion = params.elasticityMethodVersion === undefined ? METHOD_VERSION : params.elasticityMethodVersion;
+    const empty = { ...invalid(p.reason), methodVersion: METHOD_VERSION, requestedMethodVersion,
+      targetDistanceM: p.targetDistanceM ?? num(params.targetDistanceM), current: null, elasticity: null,
+      scenario: { ...invalid(p.reason), timeS: null, elasticity: null }, sensitivity: { force: [], velocity: [], both: [] },
+      constraint: { ...invalid(p.reason), points: [], current: null, valley: null, balance: null, methodVersion: METHOD_VERSION } };
+    if (requestedMethodVersion !== METHOD_VERSION) {
+      const reason = "此冲刺弹性方法版本尚不可用；原始参数保留待核对";
+      return { ...empty, reason, scenario: { ...empty.scenario, reason }, constraint: { ...empty.constraint, reason } };
+    }
+    if (!p.valid) return empty;
+    const key = JSON.stringify([p.F0, p.V0, p.massKg, p.heightCm, p.temperatureC, p.pressureHpa, p.k, p.targetDistanceM, p.deltaForcePct, p.deltaVelocityPct]);
+    if (cache.has(key)) return copy(cache.get(key));
+    const elastic = elasticity(p.F0, p.V0, p.k, p.targetDistanceM);
+    if (!elastic.valid) return { ...empty, reason: elastic.reason, scenario: { ...empty.scenario, reason: elastic.reason } };
+    const current = performance(p.F0, p.V0, p.k, p.targetDistanceM);
+    const next = scenario(p, p.k, p.targetDistanceM, p.deltaForcePct, p.deltaVelocityPct);
+    const characteristics = characteristicDistances(p);
+    const markers = [characteristics.valley, characteristics.balance].filter(value => value.valid).map(value => value.distanceM);
+    const result = { valid: true, reason: "", methodVersion: METHOD_VERSION, requestedMethodVersion,
+      targetDistanceM: p.targetDistanceM, k: p.k, atmosphere: p.atmosphere, current, elasticity: elastic, scenario: next,
+      sensitivity: responseSeries(p), constraint: { valid: true, reason: "", points: distanceSeries(p, distanceSamples(p.targetDistanceM, markers)), current: elastic,
+        ...characteristics, methodVersion: METHOD_VERSION, referenceRangeM: [0, 30] },
+      withinStudyDistance: p.targetDistanceM <= 30, startConvention: "rest", windMs: 0 };
+    if (cache.size >= 16) cache.delete(cache.keys().next().value);
+    cache.set(key, copy(result)); return result;
+  }
+  function solve(sprint, analysis = {}) {
+    const config = sprint?.config || {}, saved = { ...sprint?.analysis, ...analysis };
+    if (!sprint?.valid || !sprint.model?.valid) {
+      const reason = sprint?.reason || "需要有效的冲刺 F–V 剖面";
+      const result = compute({ ...saved });
+      return { ...result, reason, scenario: { ...result.scenario, reason }, constraint: { ...result.constraint, reason } };
+    }
+    return compute({ F0: sprint.model.F0, V0: sprint.model.V0, massKg: sprint.mass ?? sprint.model.mass,
+      heightCm: sprint.heightCm ?? config.heightCm, temperatureC: config.temperatureC,
+      pressureHpa: config.pressureHpa, windMs: config.windMps, targetDistanceM: sprint.targetDistanceM,
+      ...(sprint.atmosphere?.K !== undefined ? { k: sprint.atmosphere.K / (sprint.mass ?? sprint.model.mass) } : {}),
+      deltaForcePct: saved.deltaForcePct === undefined ? 0 : saved.deltaForcePct,
+      deltaVelocityPct: saved.deltaVelocityPct === undefined ? 0 : saved.deltaVelocityPct,
+      elasticityMethodVersion: saved.elasticityMethodVersion === undefined ? METHOD_VERSION : saved.elasticityMethodVersion });
+  }
+  root.RingsideSprintElasticity = Object.freeze({ METHOD_VERSION, defaultsAnalysis, airResistance,
+    distanceAt, velocityAt, performance, elasticity, scenario, compute, solve, read: solve, distanceSeries, responseSeries });
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -5955,6 +6258,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   }
   function displayName(test, source) {
     const name=test?.name??"";
+    if(["fvp_sj","fvp_cmj"].includes(test?.id)&&!test.legacyCustom&&(!source||isNative(source,test.id))) {
+      const protocol=test.id==="fvp_sj"?"SJ":"CMJ";
+      if([`${protocol} F–V/P–V 剖面`,`${protocol} F–V/P–V`,`跳跃力–速度剖面 · ${protocol}`].includes(name))return `跳跃FVP · ${protocol}`;
+    }
     if(test?.id==="sprint_fvp"&&!test.legacyCustom&&(!source||isNative(source,test.id))&&["分段计时冲刺 F–V/P–V 剖面","分段计时冲刺 F–V/P–V"].includes(name))return "冲刺FVP";
     return test?.id==="ift"&&name==="30–15 IFT"?"30-15VIFT":name;
   }
@@ -6295,8 +6602,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return describe(source).map(({ id, name, category, primaryAbility, primaryMetricId }) => {
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
       // Display aliases must not rewrite measurement snapshots or catalog names.
-      const rawSprintName=id==="sprint_fvp"&&isNative(source,id)?(source.tests||source.projectSnapshots||builtins).find(test=>test.id===id)?.name:undefined;
-      return { id, name: prior?.name ?? rawSprintName ?? name, category,
+      const rawFvpName=["fvp_sj","fvp_cmj","sprint_fvp"].includes(id)&&isNative(source,id)?(source.tests||source.projectSnapshots||builtins).find(test=>test.id===id)?.name:undefined;
+      return { id, name: prior?.name ?? rawFvpName ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
         ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj", "sprint_fvp"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
         ...(primaryMetricId ? { primaryMetricId } : {}) };
@@ -6381,17 +6688,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   const FVP_IDS = ["fvp_sj", "fvp_cmj"];
   const ADDED_FVP_IDS = [...FVP_IDS, "sprint_fvp"];
   const capabilityDirectionOptions = Object.freeze(Object.fromEntries(Object.entries({
-    strength: [["fvp", "FVP 不平衡性"], ["fdsi", "DSI"], ["idsi_matched", "iDSI · 匹配 CMJ 推进期"], ["idsi_fixed250", "iDSI · 固定 0–250 ms"], ["eur", "EUR"]],
+    strength: [["fvp", "跳跃FVP 不平衡性"], ["jump_elasticity", "跳跃FVP弹性框架"], ["fdsi", "DSI"], ["idsi_matched", "iDSI · 匹配 CMJ 推进期"], ["idsi_fixed250", "iDSI · 固定 0–250 ms"], ["eur", "EUR"]],
     reactive: [["dj_rsi", "DJ RSI"], ["hop_rsi", "Hop RSI"], ["cmrj_rsi", "CMRJ RSI"]],
-    speed: [["sprint_fvp", "冲刺 FVP 不平衡性"], ["srr", "SRR"]],
+    speed: [["sprint_fvp", "冲刺FVP 不平衡性"], ["sprint_elasticity", "冲刺FVP弹性框架"], ["srr", "SRR"]],
   }).map(([key, options]) => [key, Object.freeze(options.map(option => Object.freeze(option)))])));
   const sprintFvpConfigDefaults = () => root.RingsideSprintFVP?.defaultsConfig() || { heightCm: "", temperatureC: 20, pressureHpa: 1013.25, windMps: 0, device: "", startConvention: "first_propulsive_action", timingStart: "first_propulsive_action", inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0, methodVersion: "samozino-2016-splits-v1", sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" };
-  const sprintFvpAnalysisDefaults = () => root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" };
+  const sprintElasticityDefaults = () => root.RingsideSprintElasticity?.defaultsAnalysis() || { deltaForcePct: 0, deltaVelocityPct: 0, elasticityMethodVersion: "li-2026-sprint-elasticity-forward1-v1" };
+  const sprintFvpAnalysisDefaults = () => ({ ...(root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" }), ...sprintElasticityDefaults() });
   const sprintFvpMetricKeys = Object.freeze(["F0","V0","Pmax","F0Absolute","PmaxAbsolute","slope","RFmax","DRF","Vmax","endVelocity","Vopt"]);
-  const sprintFvpViewDefaults = () => ({fv:true,pv:true,optimum:true,confidence:false,confidenceMethodVersion:"sprint-fvp-pointwise-delta-v1",confidenceLevel:.95,metrics:Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,true]))});
+  const sprintFvpViewDefaults = () => ({fv:true,pv:true,optimum:true,confidence:false,confidenceMethodVersion:"sprint-fvp-pointwise-delta-v1",confidenceLevel:.95,responseForce:true,responseVelocity:true,responseBoth:true,elasticityView:"response",metrics:Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,true]))});
   function normalizeSprintFvpView(input) {
     const source=input&&typeof input==="object"&&!Array.isArray(input)?input:{},metrics=source.metrics&&typeof source.metrics==="object"&&!Array.isArray(source.metrics)?source.metrics:{};
-    return {...sprintFvpViewDefaults(),...source,...Object.fromEntries(["fv","pv","optimum"].map(key=>[key,source[key]!==false])),confidence:source.confidence===true,metrics:{...metrics,...Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,metrics[key]!==false]))}};
+    return {...sprintFvpViewDefaults(),...source,...Object.fromEntries(["fv","pv","optimum","responseForce","responseVelocity","responseBoth"].map(key=>[key,source[key]!==false])),confidence:source.confidence===true,metrics:{...metrics,...Object.fromEntries(sprintFvpMetricKeys.map(key=>[key,metrics[key]!==false]))}};
   }
   function convertSprintTimeMode(record,nextMode) {
     const modes=["cumulative","interval"],mode=record?.sprintFvpConfig?.inputTimeMode??"cumulative",rows=record?.data?.sprint_fvp;
@@ -6423,7 +6731,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   }
   const fvpConfigDefaults = () => root.RingsideFVP?.defaultsConfig() || { device: "", method: "", posture: "", distanceCm: "", distanceSource: "" };
   const fvpAnalysisDefaults = () => root.RingsideFVP?.defaultsAnalysis() || { angle: 90, deltaForcePct: 0, deltaVelocityPct: 0 };
-  const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null, responseForce: true, responseVelocity: true, responseBoth: true };
+  const fvpViewDefaults = () => root.RingsideFVP?.defaultsView() || { fv: true, pv: true, points: true, optimum: true, comparison: false, confidence: true, range: "full", pinnedLoad: null, responseForce: true, responseVelocity: true, responseBoth: true, elasticityView: "response" };
   function fvpAnalysis(record, id) {
     if (!FVP_IDS.includes(id) || !T.isNative(record, id)) return null;
     return root.RingsideFVP ? root.RingsideFVP.solve(record, id) : { id, valid: false, status: "empty", reason: "F–V 模型尚未载入", points: [], trials: [], groups: [], issues: [] };
@@ -6433,6 +6741,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (!root.RingsideSprintFVP) return { id: "sprint_fvp", valid: false, status: "empty", reason: "冲刺 F–V 模块尚未加载", points: [], trials: [], issues: [] };
     const solved=root.RingsideSprintFVP.solve(record);
     return {...solved,label:T.displayName({id:"sprint_fvp",name:solved.label},record)};
+  }
+  function resolveJumpFvpProtocol(record, computed) {
+    const entries = FVP_IDS.filter(id => record.enabled?.[id] && T.isNative(record,id)
+      && (record.data?.[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
+    const explicit = record.views?.fvpProtocol;
+    if (entries.includes(explicit)) return explicit;
+    return entries.find(id => (computed?.fvp?.[id] || fvpAnalysis(record,id))?.valid) || entries[0] || null;
+  }
+  function sprintElasticityAnalysis(record, sprintSolved) {
+    if (!T.isNative(record,"sprint_fvp")) return null;
+    const solved = sprintSolved || sprintFvpAnalysis(record);
+    return root.RingsideSprintElasticity ? root.RingsideSprintElasticity.solve(solved,record.sprintFvpAnalysis || sprintFvpAnalysisDefaults())
+      : { valid: false, reason: "冲刺FVP弹性模块尚未加载", methodVersion: sprintElasticityDefaults().elasticityMethodVersion,
+        current: null, elasticity: null, scenario: { valid: false, reason: "冲刺FVP弹性模块尚未加载" } };
   }
   const clone = (value) => JSON.parse(JSON.stringify(value));
   const uid = () =>
@@ -7004,6 +7326,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       views: {
         idsiWindow: "idsi_matched",
         capabilitySelections: { strength: "fvp", reactive: "dj_rsi", speed: "sprint_fvp" },
+        capabilityExpanded: { strength: false, reactive: false, speed: false, endurance: false },
         imtp: { yAxis: "percent" },
         redScope: "all",
         amberScope: "all",
@@ -7375,6 +7698,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       ...d.views,
       ...s.views,
       capabilitySelections: { ...d.views.capabilitySelections, ...s.views?.capabilitySelections },
+      capabilityExpanded: { ...d.views.capabilityExpanded, ...s.views?.capabilityExpanded },
       imtp: { yAxis: s.views?.imtp?.yAxis === "force" ? "force" : "percent" },
       lvpUpper: { ...d.views.lvpUpper, ...s.views?.lvpUpper },
       lvpLower: { ...d.views.lvpLower, ...s.views?.lvpLower },
@@ -8707,7 +9031,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     });
     return { results, enabledCount: results.length };
   }
-  function capabilityCards(record, values, raw, derived) {
+  function capabilityCards(record, values, raw, derived, fvpResults = {}) {
     const cards = [], result = id => derived.results.find(item => item.id === id && item.available);
     const metric = (id, label, value, unit, judgment = "", extra = {}) => ({ id, label, value: N(value), unit, judgment, status: "gray", ...extra });
     const rated = (id, label, value, unit) => {
@@ -8729,6 +9053,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (impulse) strength.splice(1, 0, metric("idsi", "iDSI 冲量比", impulse.value, impulse.unit, impulse.directionHint, { components: impulse.components, selectedVariant: impulse.id, variants }));
     for (const [id, label] of [["cmj_rsi_modified", "CMJ RSI-modified"], ["sj_rsi_modified", "SJ RSI-modified"], ["cmrj_first_rsi_modified", "CMRJ 首跳 RSI-modified"]])
       if (positive(values[id]) !== null) strength.push(rated(id, label, values[id], "m/s"));
+    for (const id of FVP_IDS) {
+      const solved = fvpResults.fvp?.[id], response = solved?.valid && record.enabled[id] ? solved.elasticity : null;
+      if (!response) continue;
+      for (const [key,label] of [["Fe","Fₑ"],["ve","vₑ"],["ER","ER"],["EN","EN"]]) strength.push(metric(id + "_" + key.toLowerCase(), `${id === "fvp_cmj" ? "CMJ" : "SJ"} ${label}`, response[key], "", response.judgments?.[key] || "", {digits:3}));
+    }
     add("strength", "力量发展方向", strength);
     const reactive = [];
     for (const id of ["dj", "hop", "cmrj"]) {
@@ -8743,6 +9072,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     for (const item of structure.components) if (item.value !== null) speed.push({ ...rated(item.id, item.label, item.value, item.unit), target: item.target, attainment: item.attainment });
     if (asr && asr.value >= 0) speed.push(metric("asr", "ASR", asr.value, "m/s", "", { components: asr.components }));
     if (srr && srr.value >= 1) speed.push(metric("srr", "SRR", srr.value, "比值", srr.value < 1.7 ? "耐力型" : srr.value > 1.8 ? "速度型" : "混合型", { components: srr.components }));
+    const sprintElasticity = fvpResults.sprintElasticity;
+    if (sprintElasticity?.valid) for (const [key,label] of [["Fe","Fₑ"],["ve","vₑ"],["ER","ER"],["EN","EN"]]) speed.push(metric("sprint_elasticity_" + key.toLowerCase(), "冲刺 " + label, sprintElasticity.elasticity[key], "", sprintElasticity.elasticity.judgments?.[key] || "", {digits:3}));
     add("speed", "速度耐力发展方向", speed, structure.conclusion);
     const cardio = [], targets = [], cpet = raw.cpet;
     let conclusion = "";
@@ -8803,17 +9134,19 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const result = (computed.derived?.results || []).find(item => item.id === id);
       return result && { ...result, label: capabilityDirectionOptions.strength.find(([key]) => key === id)?.[1], judgment: result.directionHint, status: "gray" };
     };
-    const selectedFvp = record.views?.fvpProtocol;
-    const jumpEntries = Object.entries(computed.fvp || {}).filter(([id]) => record.enabled[id]
-      && (record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
-    const jumpId = jumpEntries.find(([id]) => id === selectedFvp)?.[0] || jumpEntries[0]?.[0] || selectedFvp || "fvp_sj";
+    const jumpId = resolveJumpFvpProtocol(record, computed);
     const jump = computed.fvp?.[jumpId], sprint = computed.sprintFvp;
     const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
       value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
       judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
     const sprintMetric = { id: "sprint_fvp", label: "冲刺 FVP 不平衡性", value: sprint?.valid ? sprint.imbalance?.magnitudePct : null,
       unit: "%", digits: 2, judgment: sprint?.imbalance?.label || "待计算", status: "gray" };
+    const jumpElasticityMetric = { id: "jump_elasticity", label: `跳跃FVP弹性框架${jumpId ? ` · ${jumpId === "fvp_cmj" ? "CMJ" : "SJ"}` : ""}`,
+      value: jump?.valid ? jump.elasticity?.ER : null, unit: "", digits: 3, judgment: jump?.valid ? jump.elasticity?.judgments?.ER : "待计算", status: "gray" };
+    const sprintElasticityMetric = { id: "sprint_elasticity", label: "冲刺FVP弹性框架", value: computed.sprintElasticity?.valid ? computed.sprintElasticity.elasticity?.ER : null,
+      unit: "", digits: 3, judgment: computed.sprintElasticity?.valid ? computed.sprintElasticity.elasticity?.judgments?.ER : "待计算", status: "gray" };
     const candidate = id => id === "fvp" ? jumpMetric : id === "sprint_fvp" ? sprintMetric
+      : id === "jump_elasticity" ? jumpElasticityMetric : id === "sprint_elasticity" ? sprintElasticityMetric
       : id.startsWith("idsi_") ? impulse(id) : byId(id);
     const choice = key => {
       const saved = record.views?.capabilitySelections?.[key], options = capabilityDirectionOptions[key];
@@ -8837,8 +9170,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       return { id: key, title, metricId, label: metric.label || "", value: N(metric.value), unit: metric.unit || "",
         digits: Number.isInteger(metric.digits) ? metric.digits : metric.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id || "") ? 3 : metric.unit === "%" ? 1 : 2,
         status: metric.status || "gray", judgment: judgmentFor(key, metric),
-        context: metricId === "fvp" ? { protocol: jumpId, angle: jump?.valid ? jump.analysis?.angle || 90 : null }
-          : metricId === "sprint_fvp" ? { targetDistanceM: positive(sprint?.targetDistanceM) } : null };
+        context: ["fvp","jump_elasticity"].includes(metricId) ? { protocol: jumpId, angle: metricId === "jump_elasticity" ? 90 : jump?.valid ? jump.analysis?.angle || 90 : null }
+          : ["sprint_fvp","sprint_elasticity"].includes(metricId) ? { targetDistanceM: positive(sprint?.targetDistanceM) } : null };
     };
     const cardio = cards.find(card => card.id === "cardio"), primary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
     return [direction("strength", "力量发展方向"), direction("reactive", "反应力量水平"), direction("speed", "速度发展方向"),
@@ -8853,7 +9186,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     // Selection identity has its own AI binding. Measurement/reference changes
     // remain covered by fingerprint, including the existing age-only exception.
     return JSON.stringify({ selections: directions.filter(direction => direction.id !== "endurance").map(direction => ({
-      id: direction.id, metricId: direction.metricId, ...(direction.metricId === "fvp" ? { protocol: direction.context.protocol } : {}),
+      id: direction.id, metricId: direction.metricId, ...(["fvp","jump_elasticity"].includes(direction.metricId) ? { protocol: direction.context.protocol } : {}),
     })), idsiWindow: computed.capabilityCards?.find(card => card.id === "strength")?.metrics.find(metric => metric.id === "idsi")?.selectedVariant || null });
   }
   function stats(record) {
@@ -8888,6 +9221,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       validTests = new Set();
     const fvp = {};
     const sprintResult = sprintFvpAnalysis(state), sprintFvp = sprintResult ? { ...sprintResult, enabled: use("sprint_fvp") } : null;
+    const sprintElasticity = sprintFvp?.enabled ? sprintElasticityAnalysis(state,sprintFvp) : null;
     if (sprintFvp?.enabled) {
       raw.sprint_fvp = sprintFvp;
       if (sprintFvp.valid) {
@@ -9584,11 +9918,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       details,
       date: state.athlete.date,
     };
-    const cards = capabilityCards(state, values, raw, derived);
+    const cards = capabilityCards(state, values, raw, derived, {fvp,sprintElasticity});
     return {
       values,
       fvp,
       sprintFvp,
+      sprintElasticity,
       derived,
       capabilityCards: cards,
       cardio: cards.find(card => card.id === "cardio") || null,
@@ -9838,6 +10173,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     };
     const defaultProtocol = defaults().protocol;
     const fvpConfig = clone(record.fvpConfig || {}), fvpAnalysis = clone(record.fvpAnalysis || {});
+    const sprintFvpScenario = clone(record.sprintFvpAnalysis || {}), defaultSprintElasticity = sprintElasticityDefaults();
+    // Additive default scenario/method fields preserve historical AI evidence.
+    for (const key of Object.keys(defaultSprintElasticity)) if (sprintFvpScenario[key] === undefined || JSON.stringify(sprintFvpScenario[key]) === JSON.stringify(defaultSprintElasticity[key])) delete sprintFvpScenario[key];
     const defaultFvpConfig = fvpConfigDefaults(), defaultFvpAnalysis = fvpAnalysisDefaults();
     const sameFvpDefaults = (value, base) => Object.keys({ ...base, ...value }).every(key => JSON.stringify(value?.[key] ?? base[key]) === JSON.stringify(base[key]));
     const cpetMeasured = data.cpet && [data.cpet.vo2,data.cpet.peakHr,data.cpet.rer,...["first","second"].flatMap(side => ["vo2","hr","speed","power"].map(key => data.cpet.thresholds?.[side]?.[key]))].some(value => !empty(value));
@@ -9885,7 +10223,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       imtpConfig,
       ...(Object.keys(fvpConfig).length ? { fvpConfig } : {}),
       ...(Object.keys(fvpAnalysis).length ? { fvpAnalysis } : {}),
-      ...(!invisible.has("sprint_fvp") && T.isNative(record,"sprint_fvp") ? { sprintFvpConfig: record.sprintFvpConfig, sprintFvpAnalysis: record.sprintFvpAnalysis } : {}),
+      ...(!invisible.has("sprint_fvp") && T.isNative(record,"sprint_fvp") ? { sprintFvpConfig: record.sprintFvpConfig, ...(record.sprintFvpAnalysis !== undefined || Object.keys(sprintFvpScenario).length ? { sprintFvpAnalysis: sprintFvpScenario } : {}) } : {}),
       ...(record.impulseConfig?.confirmed ? { impulseConfig: record.impulseConfig } : {}),
       ...(Object.keys(derivedEnabled).length ? { derivedEnabled } : {}),
       ...(record.imtpTimeStandards?.length ? { imtpTimeStandards: record.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
@@ -10346,12 +10684,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         || path === "sprintFvpAnalysis.targetDistanceM") return bounds(0, null, false, true);
       if (/^sprintFvpConfig\.(?:windMps|timeCorrectionS|positionStartM)$/.test(path)) return empty ? "" : requireNumber();
       if (path === "sprintFvpConfig.temperatureC") return empty ? "" : requireNumber() || (number <= -273 ? "气温须高于 −273°C" : "");
+      if (/^sprintFvpAnalysis\.delta(?:Force|Velocity)Pct$/.test(path)) return value === undefined ? "" : empty ? "请输入变化百分比（不变填写 0）" : requireNumber() || (number <= -100 ? "变化须大于 −100%" : "");
     }
     const fvpPath = path.match(/^(?:data|fvpConfig|fvpAnalysis)\.(fvp_(?:sj|cmj))\./);
     if (fvpPath && T.isNative(record, fvpPath[1])) {
       if (/^data\.fvp_(sj|cmj)\.\d+\.load$/.test(path)) return bounds(0, null);
       if (/^(?:data\.fvp_(?:sj|cmj)\.\d+\.(?:height|distanceCm)|fvpConfig\.fvp_(?:sj|cmj)\.distanceCm)$/.test(path)) return bounds(0, null, false, true);
-      if (/^fvpAnalysis\.fvp_(sj|cmj)\.delta(?:Force|Velocity)Pct$/.test(path)) return empty ? "" : requireNumber() || (number <= -100 ? "变化须大于 −100%" : "");
+      if (/^fvpAnalysis\.fvp_(sj|cmj)\.delta(?:Force|Velocity)Pct$/.test(path)) return value === undefined ? "" : empty ? "请输入变化百分比（不变填写 0）" : requireNumber() || (number <= -100 ? "变化须大于 −100%" : "");
     }
     if (/^athlete\.(age|mass|height)$/.test(path))
       return bounds(
@@ -10465,6 +10804,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         ["distanceM","timeS"].forEach(key => check("data.sprint_fvp." + i + ".splits." + j + "." + key, split[key]))));
       ["heightCm","temperatureC","pressureHpa","windMps","timeCorrectionS","positionStartM"].forEach(key => check("sprintFvpConfig." + key,record.sprintFvpConfig?.[key]));
       check("sprintFvpAnalysis.targetDistanceM",record.sprintFvpAnalysis?.targetDistanceM);
+      ["deltaForcePct","deltaVelocityPct"].forEach(key => check("sprintFvpAnalysis." + key,record.sprintFvpAnalysis?.[key]));
     }
     const fields = {
       fms: ["score", "left", "right"],
@@ -10771,6 +11111,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (!plainObject(selections)) throw new Error("能力结构指标选项格式无效");
       Object.entries(capabilityDirectionOptions).forEach(([key, options]) => { if (selections[key] !== undefined && !options.some(([id]) => id === selections[key])) throw new Error("能力结构 " + key + " 指标选项无效"); });
     }
+    if (input.views?.capabilityExpanded !== undefined) {
+      if (!plainObject(input.views.capabilityExpanded)) throw Error("能力结构参数展开设置格式无效");
+      for (const key of ["strength","reactive","speed","endurance"]) if (input.views.capabilityExpanded[key] !== undefined && typeof input.views.capabilityExpanded[key] !== "boolean") throw Error("能力结构参数展开选项无效");
+    }
     validateAbilityGroups(input.abilityGroupSnapshot);
     if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
     if (
@@ -11011,10 +11355,17 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         N(value) !== null);
     if (T.isNative(input,"sprint_fvp")) {
       root.RingsideSprintFVP?.validate(input, { plainObject, safeId, optionalNumber });
+      const analysis=input.sprintFvpAnalysis;
+      if (analysis !== undefined && !plainObject(analysis)) throw Error("冲刺FVP情景设置须为数据字典");
+      if (analysis) {
+        for (const key of ["deltaForcePct","deltaVelocityPct"]) if (analysis[key] !== undefined && (N(analysis[key]) === null || Number(analysis[key]) <= -100)) throw Error("冲刺FVP情景变化须为大于 −100% 的有限数值");
+        if (analysis.elasticityMethodVersion !== undefined && typeof analysis.elasticityMethodVersion !== "string") throw Error("冲刺FVP弹性方法版本须为文字");
+      }
       const view=input.sprintFvpView;
       if(view!==undefined&&!plainObject(view))throw Error("冲刺FVP显示设置须为数据字典");
       if(view){
-        ["fv","pv","optimum","confidence"].forEach(key=>{if(view[key]!==undefined&&typeof view[key]!=="boolean")throw Error("冲刺FVP曲线显示选项无效");});
+        ["fv","pv","optimum","confidence","responseForce","responseVelocity","responseBoth"].forEach(key=>{if(view[key]!==undefined&&typeof view[key]!=="boolean")throw Error("冲刺FVP曲线显示选项无效");});
+        if(view.elasticityView!==undefined&&!["response","distance"].includes(view.elasticityView))throw Error("冲刺FVP弹性视图无效");
         if(view.confidenceMethodVersion!==undefined&&typeof view.confidenceMethodVersion!=="string")throw Error("冲刺FVP区间方法版本须为文字");
         if(view.confidenceLevel!==undefined&&(!optionalNumber(view.confidenceLevel)||N(view.confidenceLevel)===null||N(view.confidenceLevel)<=0||N(view.confidenceLevel)>=1))throw Error("冲刺FVP区间水平须在 0 与 1 之间");
         if(view.metrics!==undefined&&!plainObject(view.metrics))throw Error("冲刺FVP参数显示设置须为数据字典");
@@ -11040,15 +11391,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       }
       if (analysis) {
         if (analysis.angle !== undefined && ![90,30].includes(analysis.angle)) throw new Error("F–V 目标角度须为 90° 或 30°");
-        ["deltaForcePct","deltaVelocityPct"].forEach(key => { if (!optionalNumber(analysis[key])) throw new Error("F–V 情景变化须为有限数值"); });
+        ["deltaForcePct","deltaVelocityPct"].forEach(key => { if (analysis[key] !== undefined && (N(analysis[key]) === null || Number(analysis[key]) <= -100)) throw new Error("F–V 情景变化须为大于 −100% 的有限数值"); });
       }
       if (view) {
         ["fv","pv","points","optimum","comparison","confidence","responseForce","responseVelocity","responseBoth"].forEach(key => { if (view[key] !== undefined && typeof view[key] !== "boolean") throw new Error("F–V 图层选项无效"); });
+        if (view.elasticityView !== undefined && !["response","constraint"].includes(view.elasticityView)) throw new Error("跳跃FVP弹性视图无效");
         if (view.range !== undefined && !["full","measured"].includes(view.range)) throw new Error("F–V 显示范围无效");
         if (view.pinnedLoad !== undefined && view.pinnedLoad !== null && (N(view.pinnedLoad) === null || N(view.pinnedLoad) < 0)) throw new Error("F–V 定位负荷无效");
       }
     });
-    if (input.views?.fvpProtocol !== undefined && !FVP_IDS.includes(input.views.fvpProtocol)) throw new Error("F–V 剖面选项无效");
+    if (input.views?.fvpProtocol !== undefined && !["auto",...FVP_IDS].includes(input.views.fvpProtocol)) throw new Error("F–V 剖面选项无效");
     (input.data.imtp || []).forEach((row) => {
       [
         "peakForce",
@@ -11414,7 +11766,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     capabilityDirections,
     capabilityDirectionsBasis,
     fvpAnalysis,
+    resolveJumpFvpProtocol,
     sprintFvpAnalysis,
+    sprintElasticityAnalysis,
     sprintFvpMetricKeys,
     sprintFvpViewDefaults,
     normalizeSprintFvpView,
@@ -14620,7 +14974,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
 
   function jumpFvp(data, options = {}, layout = {}) {
     const w = Math.max(240, layout.width || 480), h = layout.height || 410;
-    const sprint = data?.kind === "sprint", title = sprint ? "冲刺FVP" : "跳跃 F–V 与 P–V 剖面";
+    const sprint = data?.kind === "sprint", title = sprint ? "冲刺FVP" : `跳跃FVP${data?.id ? " · " + (data.id === "fvp_cmj" ? "CMJ" : "SJ") : ""}`;
     if (!data?.valid) return layoutSVG(w, h, title, text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
     const fv = options.fv !== false, pv = options.pv !== false;
     if (!fv && !pv) return layoutSVG(w, h, sprint ? title : "跳跃力–速度剖面", text(w / 2, h / 2, "勾选 F–V 或 P–V 查看曲线", 'text-anchor="middle" font-size="13"'), "当前未选择显示曲线", layout);
@@ -14685,6 +15039,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function jumpElasticity(data, layout = {}) {
     const w=Math.max(240,layout.width||480),h=layout.height||330;
+    const sprint=data?.kind==="sprint",title=sprint?"参数改变与预测冲刺时间响应":"参数改变与预测跳跃高度响应",outcome=sprint?"预测冲刺时间改善":"预测跳跃高度改变";
     const valid=points=>(points||[]).filter(p=>p.valid!==false&&num(p.deltaPct)!==null);
     const series=[
       {key:"force",view:"responseForce",color:C.blue,label:"仅 F₀ 改变",shape:"circle"},
@@ -14692,19 +15047,49 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       {key:"both",view:"responseBoth",color:"#73548c",label:"F₀ 与 V₀ 各改变",shape:"triangle"},
     ].map(item=>({...item,points:valid(data[item.key]),curve:valid(data[item.key+"Curve"]||data[item.key])}));
     const all=series.flatMap(item=>item.curve),visible=series.filter(item=>data[item.view]!==false);
-    if(!all.length)return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",text(w/2,h/2,"完成有效剖面后显示敏感度",'text-anchor="middle" font-size="13"'),"尚无有效敏感度",layout);
-    if(!visible.length)return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",text(w/2,h/2,"勾选曲线查看表现响应",'text-anchor="middle" font-size="13"'),"未选择响应曲线",layout);
+    if(!all.length)return layoutSVG(w,h,title,text(w/2,h/2,"完成有效剖面后显示敏感度",'text-anchor="middle" font-size="13"'),"尚无有效敏感度",layout);
+    if(!visible.length)return layoutSVG(w,h,title,text(w/2,h/2,"勾选曲线查看表现响应",'text-anchor="middle" font-size="13"'),"未选择响应曲线",layout);
     const small=w<400,left=small?44:54,right=w-20,top=45,bottom=h-110;
     // Keep scales stable while series are toggled so their response remains comparable.
     const xMin=Math.min(0,...all.map(p=>p.changePct)),xMax=Math.max(10,...all.map(p=>p.changePct)),yMin=Math.min(0,...all.map(p=>p.deltaPct))*1.13,yMax=Math.max(.5,...all.map(p=>p.deltaPct))*1.13;
-    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin,xMax,yMin,yMax,xLabel:"参数改变 · %",yLabel:"垂直跳跃高度改变 · %",solidGrid:true});
+    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin,xMax,yMin,yMax,xLabel:"参数改变 · %",yLabel:outcome+" · %",solidGrid:true});
     let out=grid+line(left,y(0),right,y(0),'stroke="#9aa4ae" stroke-dasharray="3 4"');
     visible.forEach(({key,points,curve,color,label,shape},index)=>{
       out+=`<g data-response-series="${key}"><polyline points="${polygonPoints(curve.map(p=>[x(p.changePct),y(p.deltaPct)]))}" fill="none" stroke="${color}" stroke-width="2.5"/>`;
-      points.forEach(p=>{out+=point(x(p.changePct),y(p.deltaPct),4,color,`${label} ${fmt(p.changePct,1)}% · 垂直跳跃高度 ${p.deltaPct>=0?'+':''}${fmt(p.deltaPct,2)}%`,"",shape);});
+      points.forEach(p=>{out+=point(x(p.changePct),y(p.deltaPct),4,color,`${label} ${fmt(p.changePct,1)}% · ${outcome} ${p.deltaPct>=0?'+':''}${fmt(p.deltaPct,2)}%`,"",shape);});
       const ly=h-48+index*18;out+=line(left,ly,left+22,ly,`stroke="${color}" stroke-width="2.5"`)+marker(left+11,ly,3.5,color,shape)+text(left+29,ly+4,label,'font-size="11"')+'</g>';
     });
-    return layoutSVG(w,h,"参数改变与垂直跳跃高度响应",out,"单端曲线只改变F₀或V₀；联合曲线中F₀与V₀各改变横轴所示百分比。每条曲线均重新求解垂直跳跃高度。",layout);
+    return layoutSVG(w,h,title,out,`单端曲线只改变F₀或V₀；联合曲线中F₀与V₀各改变横轴所示百分比。每条曲线均重新求解${sprint?"到达目标距离的冲刺时间，正值表示时间缩短":"垂直跳跃高度"}。`,layout);
+  }
+  function sprintElasticity(data, layout = {}) { return jumpElasticity({ ...data, kind: "sprint" }, layout); }
+  function jumpElasticityConstraint(data, layout = {}) {
+    const w=Math.max(240,layout.width||480),h=layout.height||330,title="固定预测跳跃高度 · ER–EN";
+    const points=(data?.points||[]).filter(p=>num(p.ER)!==null&&num(p.EN)!==null);
+    if(!data?.valid||!points.length)return layoutSVG(w,h,title,text(w/2,h/2,"完成有效剖面后显示固定高度曲线",'text-anchor="middle" font-size="13"'),data?.reason||"尚无有效固定高度曲线",layout);
+    const left=w<400?44:54,right=w-20,top=48,bottom=h-100;
+    const xMax=Math.max(1,...points.map(p=>p.ER))*1.06,yMin=Math.max(0,Math.min(...points.map(p=>p.EN))*.9),yMax=Math.max(.1,...points.map(p=>p.EN))*1.08;
+    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin:0,xMax,yMin,yMax,xLabel:"弹性比 ER",yLabel:"弹性范数 EN",solidGrid:true});
+    let out=grid+`<polyline data-elasticity-constraint-curve points="${polygonPoints([...points].sort((a,b)=>a.ER-b.ER).map(p=>[x(p.ER),y(p.EN)]))}" fill="none" stroke="${C.blue}" stroke-width="2.5"/>`;
+    const landmarks=[{key:"current",label:"当前剖面",color:C.blue,shape:"circle"},{key:"valley",label:"EN 最低点",color:C.green,shape:"diamond"},{key:"balance",label:"ER = 1",color:"#73548c",shape:"triangle"}];
+    landmarks.forEach(({key,label,color,shape},i)=>{const p=data[key];if(num(p?.ER)===null||num(p?.EN)===null)return;out+=point(x(p.ER),y(p.EN),5,color,`${label} · ER ${fmt(p.ER,3)} · EN ${fmt(p.EN,3)}`,`data-elasticity-landmark="${key}"`,shape);const ly=h-54+i*18;out+=marker(left+5,ly,4,color,shape)+text(left+18,ly+4,label,'font-size="11"');});
+    return layoutSVG(w,h,title,out,`固定模型预测垂直跳跃高度 ${fmt(data.heightCm,2)} cm 与蹬伸距离，改变剖面分配并重新计算 ER 与 EN。EN 最低点与 ER = 1 的平衡点分别标记；采样范围不表示生理阈值。`,layout);
+  }
+  function sprintElasticityDistance(data, layout = {}) {
+    const w=Math.max(240,layout.width||480),h=layout.height||330,title="冲刺弹性随距离变化";
+    const points=(data?.points||[]).filter(p=>p.valid!==false&&num(p.distanceM)!==null&&[p.Fe,p.ve,p.EN,p.ER].every(value=>num(value)!==null));
+    if(!data?.valid||!points.length)return layoutSVG(w,h,title,text(w/2,h/2,"完成有效剖面后显示距离曲线",'text-anchor="middle" font-size="13"'),data?.reason||"尚无有效距离曲线",layout);
+    const landmarks=[data.current,data.valley,data.balance].filter(p=>p?.valid!==false&&num(p?.distanceM)!==null&&[p.Fe,p.ve,p.EN,p.ER].every(value=>num(value)!==null)),all=points.concat(landmarks);
+    const small=w<400,left=small?44:54,right=w-(small?45:54),top=48,bottom=h-125,xMax=Math.max(1,...all.map(p=>p.distanceM))*1.04,yMax=Math.max(.1,...all.flatMap(p=>[p.Fe,p.ve,p.EN]))*1.12,erMax=Math.max(1,...all.map(p=>p.ER))*1.1;
+    const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin:0,xMax,yMin:0,yMax,xLabel:"目标距离 · m",yLabel:"Fₑ / vₑ / EN",solidGrid:true});
+    const yER=value=>bottom-value/erMax*(bottom-top),erColor=C.neutral,purple="#73548c";
+    let out=grid+line(right,top,right,bottom,`stroke="${erColor}"`)+text(right,top-14,"ER · 右轴",`text-anchor="end" font-size="11" fill="${erColor}"`);
+    ticks(0,erMax).forEach(value=>{out+=text(right+7,yER(value)+4,fmt(value,1),`font-size="11" fill="${erColor}"`);});
+    const series=[{key:"Fe",label:"Fₑ · 左轴",color:C.blue},{key:"ve",label:"vₑ · 左轴",color:C.green},{key:"EN",label:"EN · 左轴",color:purple},{key:"ER",label:"ER · 右轴",color:erColor,dash:true}];
+    series.forEach(({key,label,color,dash},i)=>{const scale=key==="ER"?yER:y;out+=`<polyline data-distance-series="${key}" data-distance-axis="${key==="ER"?"right":"left"}" points="${polygonPoints([...points].sort((a,b)=>a.distanceM-b.distanceM).map(p=>[x(p.distanceM),scale(p[key])]))}" fill="none" stroke="${color}" stroke-width="${dash?1.7:2.4}"${dash?' stroke-dasharray="5 4"':""}/>`;const ly=h-73+Math.floor(i/2)*20,lx=left+(i%2?Math.min(112,(right-left)*.54):0);out+=line(lx,ly,lx+18,ly,`stroke="${color}" stroke-width="${dash?1.7:2.4}"${dash?' stroke-dasharray="5 4"':""}`)+text(lx+24,ly+4,label,'font-size="10"');});
+    const current=data.current;if(num(current?.distanceM)!==null){out+=line(x(current.distanceM),top,x(current.distanceM),bottom,'stroke="#9aa4ae" stroke-dasharray="3 4"');for(const{key,color}of series)if(num(current[key])!==null)out+=point(x(current.distanceM),(key==="ER"?yER:y)(current[key]),4.3,color,`当前目标 ${fmt(current.distanceM,1)} m · ${key} ${fmt(current[key],3)}`,`data-distance-current="${key}"`);}
+    for(const[key,label,color,shape]of[["valley","EN 最低点",purple,"diamond"],["balance","ER = 1",erColor,"triangle"]]){const p=data[key],metric=key==="valley"?"EN":"ER";if(p?.valid!==false&&num(p?.distanceM)!==null&&num(p?.[metric])!==null)out+=point(x(p.distanceM),(metric==="ER"?yER:y)(p[metric]),5,color,`${label} · ${fmt(p.distanceM,2)} m`, `data-elasticity-landmark="${key}"`,shape);}
+    out+=text(left,h-17,"菱形：EN 最低点 · 三角：ER = 1",'font-size="10"');
+    return layoutSVG(w,h,title,out,"Fₑ、vₑ、EN 读取左轴，ER 读取右轴；各指标均为无量纲。当前剖面保持不变，分别求解各目标距离的冲刺时间与弹性。竖虚线标记当前目标距离；EN 最低点与 ER = 1 的平衡点分别求解。",layout);
   }
 
   global.RingsideViz = {
@@ -14727,6 +15112,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     jumpFvp,
     sprintFvp,
     jumpElasticity,
+    jumpElasticityConstraint,
+    sprintElasticity,
+    sprintElasticityDistance,
     C,
   };
 })(typeof window !== "undefined" ? window : globalThis);
@@ -15742,14 +16130,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const unit = metric => metric?.unit && metric.unit !== "比值" ? ` <small>${E(metric.unit)}</small>` : "";
     const directionCard = metric => {
       const key = metric.id, title = metric.title, selected = metric.metricId;
-      const selector = print ? "" : `<label class="capability-selector no-print">判断依据<select data-capability-selection="${key}" aria-label="${E(title)}判断依据">${options[key].map(([id, label]) => `<option value="${id}"${id === selected ? " selected" : ""}>${E(label)}</option>`).join("")}</select></label>`;
+      const selector = print || !options[key] ? "" : `<label class="capability-selector no-print">判断依据<select data-capability-selection="${key}" aria-label="${E(title)}判断依据">${options[key].map(([id, label]) => `<option value="${id}"${id === selected ? " selected" : ""}>${E(label)}</option>`).join("")}</select></label>`;
       const basis = selected === "fvp" && metric.context?.angle ? `${metric.context.angle}° 目标方向`
-        : selected === "sprint_fvp" && positive(metric.context?.targetDistanceM) ? `目标距离 ${F(metric.context.targetDistanceM, 1)} m` : "";
-      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3>${selector}<section data-direction-metric="${E(selected)}"><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}<p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p></section></article>`;
+        : selected === "jump_elasticity" ? "90° 垂直 · 模型预测跳跃高度"
+        : ["sprint_fvp", "sprint_elasticity"].includes(selected) && positive(metric.context?.targetDistanceM) ? `目标距离 ${F(metric.context.targetDistanceM, 1)} m` : "";
+      const category = key === "endurance" ? "cardio" : key, parameters = cards.find(card => card.id === category);
+      const folded = `<details class="capability-card-parameters" data-capability-parameters="${key}"${record.views?.capabilityExpanded?.[key] === true ? " open" : ""}><summary><span>查看相关参数</span><small>${parameters?.metrics.length || 0} 项</small></summary><div data-report-patch="parameters-${key}">${parameters ? parameterGroup(parameters) : '<p class="empty">完成相关测试后显示参数。</p>'}</div></details>`;
+      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3><section data-report-patch="summary-${key}" data-direction-metric="${E(selected)}"><p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}</section>${selector}${folded}</article>`;
     };
     const cardioPrimary = directions.find(direction => direction.id === "endurance");
-    const endurance = `<article class="capability-direction-card" data-capability-direction="endurance"><h3>耐力发展方向</h3><section data-direction-metric="${E(cardioPrimary.metricId)}"><p class="capability-direction-basis">${E(cardioPrimary.label)}</p><p class="capability-direction-value">${format(cardioPrimary)}${unit(cardioPrimary)}</p><p class="capability-direction-judgment">${E(cardioPrimary.judgment)}</p></section></article>`;
-    const left = `<div class="capability-direction-grid">${directions.filter(direction => direction.id !== "endurance").map(directionCard).join("")}${endurance}</div>`;
     const target = metric => {
       const definition = record.definitions.find(item => item.id === metric.id);
       const value = positive(metric.target) ? N(metric.target) : definition?.referenceEnabled && definition.matched !== false && positive(definition.target) ? N(definition.target) : null;
@@ -15778,11 +16167,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
       const labels = { strength: "力量参数", reactive: "反应力量参数", speed: "速度与速度储备参数", cardio: "心肺与阈值参数" };
       const targets = (card.targets || []).filter(item => N(item.value) !== null);
-      return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
+      return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table" data-capability-parameter-table="${E(card.id === "cardio" ? "endurance" : card.id)}"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
     };
-    const right = cards.length ? cards.map(parameterGroup).join("") : '<p class="empty">完成测试后显示能力参数。</p>';
-    const plots = fvp || sprint ? `<div class="capability-plot-region"><div class="capability-region-heading pdf-group-heading">${E(T.analysisLabel)}</div><div class="quality-group">${fvp}${sprint}</div></div>` : "";
-    return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}">${plots}<details class="details-group" id="trainingAnalysisDetail" open><summary>能力发展方向与参数</summary><div class="quality-group"><div class="detail-pair capability-structure-pair" data-capability-analysis data-pdf-pair data-pdf-title="能力发展方向与参数"><div class="capability-directions">${left}</div><div class="detail-data capability-parameter-column"><div class="capability-parameter-groups">${right}</div></div></div></div></details></section>`;
+    const left = `<div class="capability-direction-grid" data-capability-analysis>${[...directions.filter(direction => direction.id !== "endurance"), cardioPrimary].filter(Boolean).map(directionCard).join("")}</div>`;
+    return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}"><div class="capability-region-heading pdf-group-heading">${E(T.analysisLabel)}</div><div class="quality-group">${left}${fvp}${sprint}${renderSprintElasticityAnalysis(report, { print })}</div></section>`;
   }
   function sprintFvpChartData(solved, confidence) {
     const profiles = [], add = (profile, kind, label) => {
@@ -15826,7 +16214,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const follows = N(record.sprintFvpAnalysis?.targetDistanceM) === null;
     const distanceText = positive(solved.targetDistanceM) ? `目标冲刺距离 ${F(solved.targetDistanceM, 1)} m${follows ? " · 跟随当前测试末段" : " · 专项目标"}` : "目标冲刺距离待确定";
     const toggle = (key, label) => `<label><input type="checkbox" data-sprint-fvp-view="${key}"${view[key] === true ? " checked" : ""}>${E(label)}</label>`;
-    const controls = print ? "" : `<form class="sprint-target-form no-print" data-sprint-target-form><label>专项目标距离 · m<input type="number" min="0.1" step="any" data-sprint-target-distance aria-label="冲刺FVP 目标距离" value="${E(record.sprintFvpAnalysis?.targetDistanceM ?? "")}" placeholder="跟随测试末段"></label><button class="btn small" type="submit">保存目标距离</button><button class="btn small" type="button" data-sprint-target-follow>跟随测试末段</button></form><div class="fvp-controls no-print">${toggle("fv", "F–V")}${toggle("pv", "P–V")}${toggle("optimum", "目标最优曲线")}${toggle("confidence", "95%拟合置信区间（近似）")}</div><details class="fvp-method no-print" id="sprintFvpDisplaySettings" data-sprint-fvp-display-settings><summary>显示参数</summary><div class="fvp-controls">${metrics.map(([key, label]) => `<label><input type="checkbox" data-sprint-fvp-metric="${key}"${view.metrics[key] !== false ? " checked" : ""}>${E(label)}</label>`).join("")}</div></details>`;
+    const controls = print ? "" : `<form class="sprint-target-form no-print" data-sprint-target-form><label>专项目标距离 · m<input type="number" min="0.000001" step="any" data-sprint-target-distance aria-label="冲刺FVP 目标距离" value="${E(record.sprintFvpAnalysis?.targetDistanceM ?? "")}" placeholder="跟随测试末段"></label><button class="btn small" type="button" data-sprint-target-follow>跟随测试末段</button><p class="fvp-form-help">编辑完成后自动保存；留空跟随测试末段。</p></form><div class="fvp-controls no-print">${toggle("fv", "F–V")}${toggle("pv", "P–V")}${toggle("optimum", "目标最优曲线")}${toggle("confidence", "95%拟合置信区间（近似）")}</div><details class="fvp-method no-print" id="sprintFvpDisplaySettings" data-sprint-fvp-display-settings><summary>显示参数</summary><div class="fvp-controls">${metrics.map(([key, label]) => `<label><input type="checkbox" data-sprint-fvp-metric="${key}"${view.metrics[key] !== false ? " checked" : ""}>${E(label)}</label>`).join("")}</div></details>`;
     const metadata = confidence?.metadata;
     const confidenceStatus = view.confidence === true ? `<p class="fvp-table-note" data-sprint-fvp-confidence-status data-confidence-available="${confidence?.available === true}" data-confidence-version="${E(metadata?.version)}" data-confidence-n="${E(metadata?.n)}" data-confidence-df="${E(metadata?.df)}" data-sprint-fvp-confidence-meta="${E(JSON.stringify({ ...(metadata || {}), requested: confidence?.requested, available: confidence?.available === true, reason: confidence?.reason || "" }))}">${confidence?.available ? `95%逐点拟合置信区间（近似） · 当前剖面 · n=${E(metadata.n)} · df=${E(metadata.df)}` : E(confidence?.reason || "拟合置信区间待计算。")}</p>` : "";
     const confidenceMethod = view.confidence === true && metadata ? `<p data-sprint-fvp-confidence-method>95%区间为当前曲线的逐点平均拟合置信区间，使用分段位置拟合残差估计参数协方差并作一阶传播；P–V 区间由同一速度乘力区间得到。近似位置残差独立且同方差，体重、环境、时间与起始位置修正作为固定条件；不含计时误差相关性、系统误差及日间变异，也不是同时置信带或预测区间。n=${E(metadata.n)}，df=${E(metadata.df)}；方法版本 ${E(metadata.version)}。</p>` : "";
@@ -15839,7 +16227,37 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const config = solved.config || record.sprintFvpConfig || {}, conditions = [`${F(solved.mass ?? record.athlete.mass, 1)} kg`, `身高 ${F(solved.heightCm ?? config.heightCm ?? record.athlete.height, 1)} cm`, `${F(config.temperatureC, 1)} °C`, `${F(config.pressureHpa, 1)} hPa`, `风速 ${F(config.windMps, 2)} m/s`].join(" · ");
     const trials = (solved.trials || []).filter(trial => trial.present).flatMap(trial => (trial.inputSplits || trial.splits || []).filter(split => N(split.distanceM) !== null || N(split.timeS) !== null).map((split, index) => [String(trial.index + 1), F(split.distanceM, 1), F(split.timeS, 3), E(trial.excluded ? "已排除" : trial.selected ? "采用" : trial.eligible ? "保留" : trial.reason || "待复核"), index === 0 ? E([trial.notes, trial.exclusionReason].filter(Boolean).join("；")) : ""]));
     const method = `<details class="fvp-method sprint-fvp-method"><summary>拟合残差、测试条件与方法</summary><p>${E(conditions)}</p><p>${E(solved.selectionBasis || "采用同一完整冲刺试次的分段计时")}${selected ? ` · 第 ${selected.index + 1} 次` : ""}。${config.inputTimeMode === "interval" ? "分段耗时累加为累计时间" : "累计时间输入"}；固定时间修正 ${F(config.timeCorrectionS, 3)} s，起始位置修正 ${F(config.positionStartM, 2)} m。</p>${fitRows.length ? table(["距离 m", "累计时间 s", "拟合距离 m", "残差 m"], fitRows, [], "sprint-fvp-fit-table") : ""}<p>V(t) = Vmax(1 − exp(−t/τ))，x(t) = Vmax[t + τ(exp(−t/τ) − 1)]。τ ${F(solved.fit?.tau, 3)} s；距离残差 RMSE ${F(solved.fit?.rmseM, 4)} m；F–V 回归 R² ${F(model.r2, 4)}。</p><p>水平力由体重×加速度与空气阻力求得，以 0.1 s 采样至当前试次末段时间；RF = F水平/√(F水平² + (mg)²)，RF max 为 t &gt; 0.3 s 样本中的最大值，DRF 为同一窗口 RF–V 回归斜率，以百分点/(m/s)显示。</p><p>V₀ 为 F–V 外推的零力速度；Vmax 为分段速度模型的渐近值；终点速度为测试末段时间的模型值；Vopt = V₀/2 为峰值功率对应速度。</p><p>距离最优剖面由独立冲刺模型在固定 Pmax、体重与空气阻力下求最短目标距离时间。相对最优剖面 = 100·SFV/SFVopt；FVP 不平衡性 = 100·|1 − SFV/SFVopt|。${solved.optimum?.valid && solved.optimum.withinStudySimulation === false ? "当前目标距离或功率超出原研究的模拟范围。" : ""}</p><p><a href="https://doi.org/10.1111/sms.12490" target="_blank" rel="noopener noreferrer">Samozino 等 · 分段计时冲刺力–速度–功率方法（2016）</a> · <a href="https://doi.org/10.1111/sms.14097" target="_blank" rel="noopener noreferrer">Samozino 等 · 距离最优冲刺 F–V（2022）</a></p>${confidenceMethod}</details>`;
-    return `<article class="fvp-analysis-card sprint-fvp-analysis" id="detail-sprint_fvp" data-test-ids="sprint_fvp" data-sprint-fvp-panel><div class="fvp-analysis-heading test-title"><div><h3>${E(title)}</h3><p class="sprint-target-summary">${E(distanceText)}</p></div></div>${controls}${confidenceStatus}<div class="detail-pair sprint-fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="sprintFvp" data-chart-input="${E(JSON.stringify([graph, view]))}">${V.sprintFvp(graph, view)}</div><div class="detail-data">${result}</div></div>${method}${trials.length ? `<details class="fvp-raw-trials" data-raw-trials="sprint_fvp" data-trial-title="${E(title)} · 原始录入分段"><summary>${E(title)} · 原始录入分段</summary>${table(["试次", "录入距离 m", "录入时间 s", "采用情况", "备注"], trials, [], "repeat-raw-table")}</details>` : ""}</article>`;
+    return `<article class="fvp-analysis-card sprint-fvp-analysis" id="detail-sprint_fvp" data-test-ids="sprint_fvp" data-sprint-fvp-panel><div class="fvp-analysis-heading test-title"><div><h3>${E(title)}</h3><p class="sprint-target-summary" data-report-patch="sprint-target-summary">${E(distanceText)}</p></div></div>${controls}<div data-report-patch="sprint-confidence-status">${confidenceStatus}</div><div class="detail-pair sprint-fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="sprint-profile-chart" data-chart-kind="sprintFvp" data-chart-input="${E(JSON.stringify([graph, view]))}">${V.sprintFvp(graph, view)}</div><div class="detail-data" data-report-patch="sprint-profile-results">${result}</div></div>${method}${trials.length ? `<details class="fvp-raw-trials" data-raw-trials="sprint_fvp" data-trial-title="${E(title)} · 原始录入分段"><summary>${E(title)} · 原始录入分段</summary>${table(["试次", "录入距离 m", "录入时间 s", "采用情况", "备注"], trials, [], "repeat-raw-table")}</details>` : ""}</article>`;
+  }
+  function sprintElasticityData(framework, view) {
+    const compact = points => (points || []).map(point => ({ changePct: point.changePct, valid: point.valid, deltaPct: point.timeGainPct ?? -point.deltaPct }));
+    return { kind: "sprint", force: compact(framework.sensitivity?.force), velocity: compact(framework.sensitivity?.velocity), both: compact(framework.sensitivity?.both),
+      responseForce: view.responseForce !== false, responseVelocity: view.responseVelocity !== false, responseBoth: view.responseBoth !== false };
+  }
+  function sprintElasticityTable(framework) {
+    if (!framework?.valid) return `<div class="fvp-empty-result">${E(framework?.reason || "完成有效冲刺剖面后显示弹性框架。")}</div>`;
+    const current = framework.current || {}, scenario = framework.scenario || {}, elasticity = framework.elasticity || {}, next = scenario.elasticity || {}, rows = [];
+    const change = value => N(value) === null ? "待计算" : `${value >= 0 ? "+" : ""}${F(value, 2)}%`;
+    const add = (label, before, after, unit, note, digits = 3) => rows.push([E(label), `${F(before, digits)}${unit ? " " + E(unit) : ""}`, `${F(after, digits)}${unit ? " " + E(unit) : ""}`, E(note)]);
+    add("力量端 F₀", current.F0, scenario.F0, "N/kg", `参数改变 ${change(scenario.deltaForcePct)}`, 2);
+    add("速度端 V₀", current.V0, scenario.V0, "m/s", `参数改变 ${change(scenario.deltaVelocityPct)}`);
+    add("最大功率 Pmax", current.Pmax, scenario.Pmax, "W/kg", "按情景参数重新计算", 2);
+    add("模型预测冲刺时间", current.timeS, scenario.timeS, "s", N(scenario.timeGainS) !== null ? `${scenario.timeGainS >= 0 ? "缩短" : "增加"} ${F(Math.abs(scenario.timeGainS), 3)} s（${change(scenario.timeGainPct)} 改善）` : "情景无法计算");
+    add("力量弹性 Fₑ", elasticity.Fe, next.Fe, "", next.judgments?.Fe || "冲刺时间对力量端的局部敏感性");
+    add("速度弹性 vₑ", elasticity.ve, next.ve, "", next.judgments?.ve || "冲刺时间对速度端的局部敏感性");
+    add("弹性比 ER", elasticity.ER, next.ER, "", next.judgments?.ER || "两端局部敏感性的相对大小");
+    add("弹性范数 EN", elasticity.EN, next.EN, "", "两端局部敏感性的合成强度");
+    return elasticityComparisonTable(rows, "sprint_fvp") + (scenario.valid === false ? `<p class="fvp-table-note">${E(scenario.reason || "请核对情景参数。")}</p>` : "");
+  }
+  function renderSprintElasticityAnalysis(report, { print = false } = {}) {
+    const { record, stats } = report;
+    if (!record.enabled.sprint_fvp || !(record.data.sprint_fvp || []).some(row => (row.splits || []).some(split => N(split.distanceM) !== null || N(split.timeS) !== null))) return "";
+    const framework = stats.sprintElasticity || {}, view = M.normalizeSprintFvpView(record.sprintFvpView), analysis = record.sprintFvpAnalysis || {};
+    const distance = view.elasticityView === "distance", kind = distance ? "sprintElasticityDistance" : "sprintElasticity", graph = distance ? { ...framework.constraint, targetDistanceM: framework.targetDistanceM } : sprintElasticityData(framework, view);
+    const input = (key, text) => `<label>${text}<input type="number" data-sprint-scenario="${key}" value="${E(analysis[key] ?? 0)}" step="any" aria-label="冲刺${text}"></label>`;
+    const toggle = (key, text) => `<label><input type="checkbox" data-sprint-fvp-view="${key}"${view[key] !== false ? " checked" : ""}>${text}</label>`;
+    const controls = print ? `<p class="fvp-table-note">情景参数改变：F₀ ${F(analysis.deltaForcePct ?? 0, 2)}% · V₀ ${F(analysis.deltaVelocityPct ?? 0, 2)}%。</p>` : `<form class="fvp-scenario-form no-print" data-sprint-scenario-form>${input("deltaForcePct", "F₀ 改变 · %")}${input("deltaVelocityPct", "V₀ 改变 · %")}<p class="fvp-form-help">编辑完成后自动保存；0% 表示保持当前参数。</p></form><p class="fvp-draft-status no-print" data-elasticity-draft-status data-elasticity-id="sprint_fvp" role="status" hidden></p><div class="fvp-controls fvp-response-controls no-print"><label>图表视图 <select data-sprint-elasticity-view="elasticityView" aria-label="冲刺FVP弹性框架图表视图"><option value="response"${!distance ? " selected" : ""}>参数改变与表现响应</option><option value="distance"${distance ? " selected" : ""}>弹性随距离变化</option></select></label><span class="fvp-response-toggles"${distance ? " hidden" : ""}>${toggle("responseForce", "仅 F₀")}${toggle("responseVelocity", "仅 V₀")}${toggle("responseBoth", "F₀ 与 V₀ 同时")}</span></div>`;
+    return `<article class="fvp-analysis-card" data-sprint-elasticity-panel><div class="fvp-analysis-heading test-title"><div><h3>冲刺FVP弹性框架</h3><p data-report-patch="sprint-elasticity-heading">目标距离 ${F(framework.targetDistanceM ?? stats.sprintFvp?.targetDistanceM, 1)} m · 模型预测冲刺时间</p></div></div>${controls}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="sprint-elasticity-chart" data-chart-kind="${kind}" data-chart-input="${E(JSON.stringify([graph]))}">${V[kind](graph)}</div><div class="detail-data" data-report-patch="sprint-scenario-results">${sprintElasticityTable(framework)}</div></div><p class="fvp-table-note">正值表示预测冲刺时间缩短。弹性描述时间敏感性，情景结果用于比较训练方向。</p><details class="fvp-method"><summary>弹性计算与来源</summary><p>沿用当前冲刺 F₀、V₀ 与已记录的空气条件；参数改变后重新求解到达目标距离的冲刺时间。${framework.elasticity?.differenceMethod === "analytic-no-drag" ? "无空气阻力时，力量与速度弹性由解析式计算" : "含空气阻力时，力量与速度弹性分别以单端提高 1% 的冲刺时间变化估算"}；ER = Fₑ/vₑ，EN = √(Fₑ² + vₑ²)。</p><p>距离视图展示同一剖面在不同目标距离的弹性；EN 最低点与 ER = 1 的平衡点分别求解。</p><p>方法 ${E(framework.methodVersion || "待计算")} · bioRxiv 预印本</p><p><a href="https://doi.org/10.64898/2026.08.29.748040" target="_blank" rel="noopener noreferrer">Quantifying sprint force-velocity elasticity: implications for individualized training decisions</a></p></details></article>`;
   }
   function fvpChartData(solved) {
     const current=solved.current||solved.model||{}, profiles=[];
@@ -15888,13 +16306,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     add("力量端 F₀",current.F0,scenario.F0,"N/kg",`参数改变 ${change(scenario.deltaForcePct??0)}`);
     add("速度端 V₀",current.V0,scenario.V0,"m/s",`参数改变 ${change(scenario.deltaVelocityPct??0)}`,3);
     add("最大功率 Pmax",current.Pmax,scenario.Pmax,"W/kg",N(scenario.Pmax)!==null?`改变 ${change((scenario.Pmax/current.Pmax-1)*100)}`:"待计算");
-    add("垂直跳跃高度",current.heightCm,scenario.heightCm,"cm",N(scenario.deltaCm)!==null?`${scenario.deltaCm>=0?"+":"−"}${F(Math.abs(scenario.deltaCm),2)} cm（${change(scenario.deltaPct)}）`:"情景无法计算");
+    add("模型预测跳跃高度",current.heightCm,scenario.heightCm,"cm",N(scenario.deltaCm)!==null?`${scenario.deltaCm>=0?"+":"−"}${F(Math.abs(scenario.deltaCm),2)} cm（${change(scenario.deltaPct)}）`:"情景无法计算");
     add("力量弹性 Fₑ",elasticity.Fe,nextElasticity.Fe,"",nextJudgments.Fe||"待判断",3);
     add("速度弹性 vₑ",elasticity.ve,nextElasticity.ve,"",nextJudgments.ve||"待判断",3);
     add("弹性比 ER",elasticity.ER,nextElasticity.ER,"",nextJudgments.ER||"待判断",3);
     add("弹性范数 EN",elasticity.EN,nextElasticity.EN,"","两端局部响应的合成强度",3);
-    add("双端各提高 1%",elasticity.Fe + elasticity.ve,N(nextElasticity.Fe)!==null&&N(nextElasticity.ve)!==null?nextElasticity.Fe+nextElasticity.ve:null,"%","垂直跳跃高度的局部增益",2);
-    return table(["指标","当前","情景","情景判定"],rows,[],"fvp-scenario-table")+(scenario.valid===false?`<p class="fvp-table-note" role="status">${E(scenario.reason||scenario.message||"情景无法计算，请核对输入。")}</p>`:"");
+    add("双端各提高 1%",N(elasticity.Fe)!==null&&N(elasticity.ve)!==null?elasticity.Fe+elasticity.ve:null,N(nextElasticity.Fe)!==null&&N(nextElasticity.ve)!==null?nextElasticity.Fe+nextElasticity.ve:null,"%","模型预测跳跃高度的局部增益",2);
+    return elasticityComparisonTable(rows, solved.id)+(scenario.valid===false?`<p class="fvp-table-note" role="status">${E(scenario.reason||scenario.message||"情景无法计算，请核对输入。")}</p>`:"");
+  }
+  function elasticityComparisonTable(rows, id) {
+    const scenarioAttr = ` data-elasticity-scenario-output data-elasticity-id="${E(id)}"`;
+    return `<div class="table-wrap"><table class="fvp-scenario-table"><thead><tr>${["指标", "当前", "情景", "情景判定"].map((label, i) => `<th scope="col"${i > 1 ? scenarioAttr : ""}>${label}</th>`).join("")}</tr></thead><tbody>${rows.map(row => `<tr>${row.map((value, i) => `<td data-label="${["指标", "当前", "情景", "情景判定"][i]}"${i > 1 ? scenarioAttr : ""}>${value || "—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   }
   function fvpLoadTable(solved) {
     const points=solved.points||[];
@@ -15903,11 +16325,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return `<details class="fvp-method fvp-load-details"><summary>负荷点与重复测量</summary><div class="table-wrap"><table class="fvp-load-table"><thead><tr><th>负荷 kg</th><th>采用跳高 cm</th><th>力 N/kg</th><th>速度 m/s</th><th>功率 W/kg</th><th>均值 ± SD / CV</th></tr></thead><tbody>${points.map(p=>{const group=groupFor(p.load)||{},statistics=group.statistics||group,n=group.n??p.n,mean=statistics.mean??group.meanHeightCm,sd=statistics.sd??group.sdHeightCm,cv=statistics.cv;const repeat=n>=3&&N(mean)!==null&&N(sd)!==null?`${F(mean,2)} ± ${F(sd,2)} cm / ${F(cv,1)}%`:"—";return `<tr data-fvp-id="${E(solved.id)}" data-fvp-load="${E(p.load)}" role="button" tabindex="0" aria-label="附加负荷 ${E(p.load)} kg，采用跳高 ${F(p.heightCm??p.height,2)} cm" aria-pressed="false"><td>${F(p.load,1)}</td><td>${F(p.heightCm??p.height,2)}</td><td>${F(p.forceRelative??p.force,2)}</td><td>${F(p.velocity,3)}</td><td>${F(p.powerRelative??p.power,2)}</td><td>${repeat}</td></tr>`;}).join("")}</tbody></table></div></details>`;
   }
   function fvpRawTrials(record,id,solved,displayName) {
-    const rows=solved.trials||record.data?.[id]||[],selected=new Set((solved.points||[]).flatMap(p=>p.selectedIds||[]));
+    const rows=record.data?.[id]||solved.trials||[],checked=new Map((solved.trials||[]).map(row=>[row.id,row])),selected=new Set((solved.points||[]).flatMap(p=>p.selectedIds||[]));
     if(!rows.some(row=>N(row.height)!==null||N(row.load)!==null||row.notes))return "";
     const label=displayName||(id==="fvp_cmj"?"负荷 CMJ":"负荷 SJ");
-    const data=rows.map((row,index)=>[index+1,F(row.load,1),F(row.height,2),F(row.distanceCm||record.fvpConfig?.[id]?.distanceCm,1),E(row.excluded?"已排除":row.valid===false?row.reason||"待复核":selected.has(row.id)?"采用":"保留"),E([row.notes,row.excluded?row.exclusionReason:""].filter(Boolean).join("；"))]);
-    return `<details class="fvp-raw-trials" data-raw-trials="${E(id)}" data-trial-title="${label} FVP"><summary>${label} · 原始试次 · ${rows.length} 次</summary>${table(["试次","负荷 kg","垂直跳高 cm","蹬伸距离 cm","采用情况","备注"],data,[],"repeat-raw-table")}</details>`;
+    const data=rows.map((row,index)=>{const effective=checked.get(row.id)||solved.trials?.[index]||row,blank=row.distanceCm===null||row.distanceCm===undefined||String(row.distanceCm).trim()==="",distance=blank?record.fvpConfig?.[id]?.distanceCm:row.distanceCm;return[index+1,F(row.load,1),F(row.height,2),`${F(distance,1)}${blank&&N(distance)!==null?"（通用）":""}`,E(row.excluded?"已排除":effective.valid===false?effective.reason||"待复核":selected.has(effective.id??row.id)?"采用":"保留"),E([row.notes,row.excluded?row.exclusionReason:""].filter(Boolean).join("；"))];});
+    return `<details class="fvp-raw-trials" data-raw-trials="${E(id)}" data-trial-title="${E(label)} · 原始试次"><summary>${E(label)} · 原始试次 · ${rows.length} 次</summary>${table(["试次","负荷 kg","垂直跳高 cm","蹬伸距离 cm","采用情况","备注"],data,[],"repeat-raw-table")}</details>`;
   }
   function fvpMethod(record,solved) {
     const config=record.fvpConfig?.[solved.id]||{},fit=solved.fit||{},mode="每负荷最高有效跳跃";
@@ -15918,40 +16340,79 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function renderFVPAnalysis(report,{print=false}={}) {
     const record=report.record,all=Object.entries(report.stats.fvp||{}).filter(([id])=>record.enabled[id]&&(record.data[id]||[]).some(row=>N(row.height)!==null||N(row.load)!==null||row.notes));
     if(!all.length)return "";
-    const preferred=record.views?.fvpProtocol;
-    const chosen=all.find(([id])=>id===preferred)||all.find(([,solved])=>solved.valid)||all[0];
+    const protocol=M.resolveJumpFvpProtocol(record,report.stats);
+    const chosen=all.find(([id])=>id===protocol)||all[0];
     const rendered=print?all.filter(([,solved])=>solved.valid):[chosen];
     if(!rendered.length)return "";
-    const profileOptions=all.map(([id])=>{const label=id==="fvp_cmj"?"CMJ":"SJ",builtin=T.builtins.find(test=>test.id===id),name=report.projects.find(test=>test.id===id)?.name;return `<option value="${E(id)}"${id===chosen[0]?" selected":""}>${E(name&&name!==builtin?.name?`${label} · ${name}`:label)}</option>`;}).join("");
+    const profileOptions=all.map(([id])=>{const label=id==="fvp_cmj"?"CMJ":"SJ",builtin=T.builtins.find(test=>test.id===id),name=report.projects.find(test=>test.id===id)?.name;return `<option value="${E(id)}"${id===chosen[0]?" selected":""}>${E(name&&name!==T.displayName(builtin,record)?`${label} · ${name}`:label)}</option>`;}).join("");
     return `<div class="fvp-analysis-stack" data-fvp-analysis-stack>${rendered.map(([id,solved])=>{
-      const analysis=record.fvpAnalysis?.[id]||{},angle=analysis.angle===30?30:90,view={fv:true,pv:true,points:true,optimum:true,comparison:false,confidence:true,range:"full",pinnedLoad:null,...record.fvpView?.[id]},label=id==="fvp_cmj"?"CMJ":"SJ";
+      const analysis=record.fvpAnalysis?.[id]||{},angle=analysis.angle===30?30:90,view={fv:true,pv:true,points:true,optimum:true,comparison:false,confidence:true,range:"full",pinnedLoad:null,responseForce:true,responseVelocity:true,responseBoth:true,elasticityView:"response",...record.fvpView?.[id]},label=id==="fvp_cmj"?"CMJ":"SJ";
       const builtin=T.builtins.find(test=>test.id===id),displayName=report.projects.find(test=>test.id===id)?.name||builtin?.name;
-      const profileTitle=displayName&&displayName!==builtin?.name?displayName:`跳跃力–速度剖面 · ${label}`;
-      const graph=fvpChartData({...solved,id}),elasticity=fvpElasticityData({...solved,id},view);
+      const profileTitle=`跳跃FVP · ${label}`;
+      const graph=fvpChartData({...solved,id}),elasticity=view.elasticityView==="constraint"?{...solved.elasticityConstraint,id}:fvpElasticityData({...solved,id},view),elasticityKind=view.elasticityView==="constraint"?"jumpElasticityConstraint":"jumpElasticity";
       const toggle=(key,text)=>`<label><input type="checkbox" data-action="fvp-view" data-fvp-view="${key}" data-fvp-id="${id}" aria-label="${E(text)}"${view[key]?" checked":""}>${E(text)}</label>`;
       const common=print?"":`<div class="fvp-controls fvp-shared-controls no-print"><label>跳跃协议 <select data-fvp-protocol aria-label="FVP 跳跃协议">${profileOptions}</select></label><label>目标方向 <select data-action="fvp-angle" data-fvp-angle data-fvp-id="${id}" aria-label="FVP 目标方向"><option value="90"${angle===90?" selected":""}>90° 垂直</option><option value="30"${angle===30?" selected":""}>30° 倾斜目标</option></select></label></div>`;
       const controls=print?"":`<div class="fvp-controls no-print">${toggle("fv","F–V")}${toggle("pv","P–V")}${toggle("points","实测点")}${toggle("optimum","目标最优曲线")}${toggle("comparison","另一角度参照")}${toggle("confidence","95%置信带")}<label>显示范围 <select data-action="fvp-range" data-fvp-view="range" data-fvp-id="${id}" aria-label="FVP 显示范围"><option value="full"${view.range!=="measured"?" selected":""}>完整剖面</option><option value="measured"${view.range==="measured"?" selected":""}>实测范围</option></select></label></div>`;
       const input=(key,text)=>`<label>${text}<input type="number" data-fvp-scenario="${key}" data-fvp-id="${id}" value="${E(analysis[key]??0)}" step="any" aria-label="${text}"></label>`;
-      const scenario=print?`<p class="fvp-table-note">情景参数改变：F₀ ${F(analysis.deltaForcePct??0,2)}% · V₀ ${F(analysis.deltaVelocityPct??0,2)}%。</p>`:`<form class="fvp-scenario-form no-print" data-fvp-scenario-form data-fvp-id="${id}">${input("deltaForcePct","F₀ 改变 · %")}${input("deltaVelocityPct","V₀ 改变 · %")}<button class="btn small" type="submit">保存情景</button></form><div class="fvp-scenario-shortcuts no-print">${[["force","仅 F₀ +5%"],["velocity","仅 V₀ +5%"],["both","两者 +5%"]].map(([key,text])=>`<button type="button" class="btn small" data-fvp-shortcut="${key}" data-fvp-id="${id}">${text}</button>`).join("")}</div>`;
-      return `<article class="fvp-analysis-card" data-fvp-panel="${id}" data-fvp-pinned-load="${view.pinnedLoad===null?"":E(view.pinnedLoad)}"><div class="fvp-analysis-heading test-title"><div><h3>${E(profileTitle)}</h3><p>${angle===90?"90° 垂直":"30° 倾斜目标"} · ${solved.points?.length||0} 个负荷代表点</p></div></div>${common}${controls}<div class="detail-pair fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="jumpFvp" data-chart-input="${E(JSON.stringify([graph,view]))}">${V.jumpFvp(graph,view)}</div><div class="detail-data">${fvpResultTable(solved)}</div></div><p class="fvp-load-legend no-print" data-fvp-selection-summary hidden></p>${fvpLoadTable({...solved,id})}${fvpMethod(record,{...solved,id})}${fvpRawTrials(record,id,solved,displayName)}</article><article class="fvp-analysis-card" data-fvp-elasticity="${id}"><div class="fvp-analysis-heading test-title"><div><h3>垂直跳表现响应 · ${label}</h3><p>力量端与速度端的垂直跳高响应</p></div></div>${scenario}${print?"":`<div class="fvp-controls fvp-response-controls no-print">${toggle("responseForce","仅 F₀")}${toggle("responseVelocity","仅 V₀")}${toggle("responseBoth","F₀ 与 V₀ 同时")}</div>`}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="jumpElasticity" data-chart-input="${E(JSON.stringify([elasticity]))}">${V.jumpElasticity(elasticity)}</div><div class="detail-data" data-fvp-scenario-results>${fvpScenarioTable(solved)}</div></div></article>`;
+      const scenario=print?`<p class="fvp-table-note">情景参数改变：F₀ ${F(analysis.deltaForcePct??0,2)}% · V₀ ${F(analysis.deltaVelocityPct??0,2)}%。</p>`:`<form class="fvp-scenario-form no-print" data-fvp-scenario-form data-fvp-id="${id}">${input("deltaForcePct","F₀ 改变 · %")}${input("deltaVelocityPct","V₀ 改变 · %")}<p class="fvp-form-help">编辑完成后自动保存；0% 表示保持当前参数。</p></form><p class="fvp-draft-status no-print" data-elasticity-draft-status data-elasticity-id="${id}" role="status" hidden></p><div class="fvp-scenario-shortcuts no-print">${[["force","仅 F₀ +5%"],["velocity","仅 V₀ +5%"],["both","两者 +5%"]].map(([key,text])=>`<button type="button" class="btn small" data-fvp-shortcut="${key}" data-fvp-id="${id}">${text}</button>`).join("")}</div>`;
+      const responseControls=print?"":`<div class="fvp-controls fvp-response-controls no-print"><label>图表视图 <select data-fvp-view="elasticityView" data-fvp-id="${id}" aria-label="跳跃FVP弹性框架图表视图"><option value="response"${view.elasticityView!=="constraint"?" selected":""}>参数改变与表现响应</option><option value="constraint"${view.elasticityView==="constraint"?" selected":""}>固定预测跳跃高度 · ER–EN</option></select></label><span class="fvp-response-toggles"${view.elasticityView==="constraint"?" hidden":""}>${toggle("responseForce","仅 F₀")}${toggle("responseVelocity","仅 V₀")}${toggle("responseBoth","F₀ 与 V₀ 同时")}</span></div>`;
+      return `<article class="fvp-analysis-card" data-fvp-panel="${id}" data-fvp-pinned-load="${view.pinnedLoad===null?"":E(view.pinnedLoad)}"><div class="fvp-analysis-heading test-title"><div><h3>${E(profileTitle)}</h3><p data-report-patch="jump-heading-${id}">${angle===90?"90° 垂直":"30° 倾斜目标"} · ${solved.points?.length||0} 个负荷代表点</p></div></div>${common}${controls}<div class="detail-pair fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="jump-profile-chart-${id}" data-chart-kind="jumpFvp" data-chart-input="${E(JSON.stringify([graph,view]))}">${V.jumpFvp(graph,view)}</div><div class="detail-data" data-report-patch="jump-profile-results-${id}">${fvpResultTable(solved)}</div></div><p class="fvp-load-legend no-print" data-fvp-selection-summary hidden></p>${fvpLoadTable({...solved,id})}${fvpMethod(record,{...solved,id})}${fvpRawTrials(record,id,solved,displayName)}</article><article class="fvp-analysis-card" data-fvp-elasticity="${id}"><div class="fvp-analysis-heading test-title"><div><h3>跳跃FVP弹性框架 · ${label}</h3><p>90° 垂直 · 模型预测跳跃高度；与上方剖面的目标方向独立</p></div></div>${scenario}${responseControls}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="jump-elasticity-chart-${id}" data-chart-kind="${elasticityKind}" data-chart-input="${E(JSON.stringify([elasticity]))}">${V[elasticityKind](elasticity)}</div><div class="detail-data" data-report-patch="jump-scenario-results-${id}" data-fvp-scenario-results>${fvpScenarioTable({...solved,id})}</div></div><p class="fvp-table-note">弹性描述当前剖面附近的高度敏感性；情景为重新计算的模型预测。</p></article>`;
     }).join("")}</div>`;
   }
   function prepareFVPPrint(clone,snapshot) {
     const region=clone.querySelector("[data-capability-region]");
     if(!region)return;
-    const directionOpen=region.querySelector("#trainingAnalysisDetail")?.open;
+    const expanded = Object.fromEntries([...region.querySelectorAll("[data-capability-parameters]")].map(node => [node.dataset.capabilityParameters, node.open]));
     region.outerHTML=renderCapabilityAnalysis(build(snapshot),{print:true});
-    const directions=clone.querySelector("[data-capability-region] #trainingAnalysisDetail");
-    if(directions&&directionOpen!==undefined)directions.open=directionOpen;
+    clone.querySelectorAll("[data-capability-region] [data-capability-parameters]").forEach(node => {
+      if (Object.hasOwn(expanded, node.dataset.capabilityParameters)) node.open = expanded[node.dataset.capabilityParameters];
+    });
+  }
+  function patchCapabilityAnalysis(container, report) {
+    const region = container.querySelector("[data-capability-region]");
+    if (!region) return false;
+    const template = region.ownerDocument.createElement("template");
+    template.innerHTML = renderCapabilityAnalysis(report);
+    const fresh = template.content.querySelector("[data-capability-region]");
+    if (!fresh) return false;
+    for (const next of fresh.querySelectorAll("[data-report-patch]")) {
+      const current = [...region.querySelectorAll("[data-report-patch]")].find(node => node.dataset.reportPatch === next.dataset.reportPatch);
+      if (!current) continue;
+      // Parameter explanations keep their original details and summary nodes,
+      // so a blur-triggered save cannot swallow the following toggle click.
+      const detailKey = node => `${node.closest("[data-capability-metric]")?.dataset.capabilityMetric || ""}:${node.querySelector(":scope > summary")?.textContent || ""}`;
+      const existing = new Map([...current.querySelectorAll("details")].map(node => [detailKey(node), node]));
+      for (const detail of [...next.querySelectorAll("details")]) {
+        const preserved = existing.get(detailKey(detail));
+        if (!preserved) continue;
+        const summary = preserved.querySelector(":scope > summary"), nextSummary = detail.querySelector(":scope > summary");
+        if (summary && nextSummary) summary.innerHTML = nextSummary.innerHTML;
+        preserved.replaceChildren(...(summary ? [summary] : []), ...[...detail.childNodes].filter(node => node !== nextSummary));
+        detail.replaceWith(preserved);
+      }
+      for (const attr of [...current.attributes]) if (attr.name.startsWith("data-") && attr.name !== "data-report-patch") current.removeAttribute(attr.name);
+      for (const attr of [...next.attributes]) if (attr.name.startsWith("data-")) current.setAttribute(attr.name, attr.value);
+      current.replaceChildren(...next.childNodes);
+      delete current.dataset.chartLayout;
+    }
+    for (const panel of region.querySelectorAll("[data-fvp-elasticity],[data-sprint-elasticity-panel]")) {
+      const id = panel.dataset.fvpElasticity, view = id ? report.record.fvpView?.[id] : report.record.sprintFvpView;
+      const toggles = panel.querySelector(".fvp-response-toggles");
+      if (toggles) toggles.hidden = id ? view?.elasticityView === "constraint" : view?.elasticityView === "distance";
+    }
+    layoutCharts(region);
+    return true;
   }
   function previewFVP(container,solved) {
     const panel=container.querySelector(`[data-fvp-elasticity="${solved.id}"]`);
     if(!panel)return;
-    const view=Object.fromEntries([...panel.querySelectorAll("[data-fvp-view]")].map(control=>[control.dataset.fvpView,control.checked]));
-    const chart=panel.querySelector('[data-chart-kind="jumpElasticity"]'),data=fvpElasticityData(solved,view);
+    const view=Object.fromEntries([...panel.querySelectorAll("[data-fvp-view]")].map(control=>[control.dataset.fvpView,control.tagName==="SELECT"?control.value:control.checked]));
+    const chart=panel.querySelector("[data-chart-kind]"),kind=view.elasticityView==="constraint"?"jumpElasticityConstraint":"jumpElasticity",data=view.elasticityView==="constraint"?solved.elasticityConstraint:fvpElasticityData(solved,view);
+    if(!chart)return;
+    chart.dataset.chartKind=kind;
     chart.dataset.chartInput=JSON.stringify([data]);
     delete chart.dataset.chartLayout;
-    chart.innerHTML=V.jumpElasticity(data,{width:Math.round(chart.getBoundingClientRect().width)||480,height:330});
+    chart.innerHTML=V[kind](data,{width:Math.round(chart.getBoundingClientRect().width)||480,height:330});
     panel.querySelector("[data-fvp-scenario-results]").innerHTML=fvpScenarioTable(solved);
     layoutCharts(panel);
   }
@@ -16004,8 +16465,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     // A wrapped mean/SD must not push the right-side statistics below the
     // corresponding right-side result and evaluation in neighboring columns.
     alignIsometricSides(container);
-    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], sprintFvp:[390,450] };
-    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, sprintFvp:390 };
+    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], jumpElasticityConstraint:[310,400], sprintFvp:[390,450], sprintElasticity:[310,400], sprintElasticityDistance:[310,400] };
+    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, jumpElasticityConstraint:330, sprintFvp:390, sprintElasticity:330, sprintElasticityDistance:330 };
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);
@@ -16037,7 +16498,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     layoutCharts(container);
     bindFVPInteractions(container);
   }
-  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderCapabilityAnalysis, prepareFVPPrint, previewFVP, bindFVPInteractions };
+  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderSprintElasticityAnalysis, renderCapabilityAnalysis, prepareFVPPrint, patchCapabilityAnalysis, previewFVP, bindFVPInteractions };
 })(window);
 
 </script>
@@ -16655,6 +17116,31 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     clone.querySelectorAll(".details-group").forEach((node) => {
       if (node.querySelector(".empty") && !node.querySelector(".test-block,.lvp-card,.fvp-analysis-card")) node.remove();
     });
+    // Capability parameters alone follow the screen's disclosure state. Flatten
+    // open disclosures before row annotation; closed rows never enter the PDF
+    // paginator or its expected-row diagnostics.
+    clone.querySelectorAll("details[data-capability-parameters]").forEach((node) => {
+      if (!node.open) { node.remove(); return; }
+      const content = document.createElement("div");
+      content.className = "capability-parameters-static";
+      content.dataset.capabilityParameters = node.dataset.capabilityParameters;
+      [...node.childNodes].filter(child => child.tagName !== "SUMMARY").forEach(child => content.append(child));
+      node.replaceWith(content);
+    });
+    clone.querySelectorAll(".capability-direction-grid").forEach(grid => {
+      if (!grid.querySelector(".capability-parameters-static")) {
+        grid.dataset.pdfAtomic = "";
+        return;
+      }
+      grid.classList.add("capability-direction-grid-expanded-pdf");
+      for (const card of grid.querySelectorAll(":scope > .capability-direction-card")) {
+        const summary = document.createElement("div");
+        summary.className = "capability-direction-print-summary";
+        summary.dataset.pdfAtomic = "";
+        [...card.children].filter(child => !child.matches(".capability-parameters-static")).forEach(child => summary.append(child));
+        card.prepend(summary);
+      }
+    });
     const rawTrials = [...clone.querySelectorAll("[data-raw-trials]")];
     if (rawTrials.length) {
       const appendix = document.createElement("section");
@@ -16901,7 +17387,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
 
   function freezePrimaryColumns(source) {
-    for (const table of source.querySelectorAll(".iso-results.with-repeat-columns,.imtp-results,.fvp-result-table,.fvp-scenario-table,.fvp-load-table")) {
+    for (const table of source.querySelectorAll(".iso-results.with-repeat-columns,.imtp-results,.fvp-result-table,.fvp-scenario-table,.fvp-load-table,.capability-parameter-table")) {
       const widths = [...table.tHead.rows[0].cells].map(cell => cell.getBoundingClientRect().width);
       const columns = element("colgroup");
       widths.forEach(width => {
@@ -17973,7 +18459,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const field = (key, label, type = "number", choices) => ({key, label, type, ...(choices ? {choices} : {})});
   const text = (key, label, choices) => field(key, label, "text", choices);
   const bool = (key, label) => field(key, label, "boolean", ["否", "是"]);
-  const settingValue=(record,f)=>f.key.startsWith("sprintFvpView.")?get(M.normalizeSprintFvpView(record.sprintFvpView),f.key.slice("sprintFvpView.".length)):get(record,f.key);
+  const settingValue=(record,f)=>f.key==="views.fvpProtocol"?(record.views?.fvpProtocol??"auto"):f.key.startsWith("sprintFvpView.")?get(M.normalizeSprintFvpView(record.sprintFvpView),f.key.slice("sprintFvpView.".length)):get(record,f.key);
   function choiceLabels(f) {
     const key=f.key.split(".").at(-1);
     if(key==="inputMode")return {summary:"设备汇总",jumps:"逐跳"};
@@ -17987,14 +18473,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(key==="vo2Unit")return {"ml/kg/min":"mL·kg⁻¹·min⁻¹","l/min":"L/min"};
     if(key==="label")return {VO2peak:"VO₂peak",VO2max:"VO₂max"};
     if(key==="range")return {full:"完整剖面",measured:"实测范围"};
+    if(key==="elasticityView")return f.key.startsWith("sprintFvpView.")?{response:"参数响应",distance:"不同目标距离"}:{response:"参数响应",constraint:"固定跳高 ER–EN"};
+    if(key==="fvpProtocol")return {auto:"自动选择有效协议",fvp_sj:"SJ",fvp_cmj:"CMJ"};
     if(key==="inputTimeMode")return {cumulative:"累计计时",interval:"各段用时"};
     if(key==="timingStart"||key==="startConvention")return {first_propulsive_action:"首次推进动作",gate_crossing:"通过计时门",start_signal:"出发信号",other:"其他"};
-    if(key==="strength")return {fvp:"跳跃 FVP 不平衡度",fdsi:"DSI",idsi_matched:"iDSI · 匹配 CMJ 推进期",idsi_fixed250:"iDSI · 固定 0–250 ms",eur:"EUR"};
-    if(key==="reactive")return {dj_rsi:"DJ RSI",hop_rsi:"10/5 Hop RSI",cmrj_rsi:"CMRJ RSI"};
-    if(key==="speed")return {sprint_fvp:"冲刺 FVP 不平衡度",srr:"SRR"};
+    if(f.key.startsWith("views.capabilitySelections.")&&M.capabilityDirectionOptions[key])return Object.fromEntries(M.capabilityDirectionOptions[key]);
     return {};
   }
   const displayChoice=(f,value)=>choiceLabels(f)[value]??value;
+  const legacyChoice = (f,value) => f.key === "views.capabilitySelections.strength" ? {"跳跃 FVP 不平衡度":"fvp","FVP 不平衡性":"fvp"}[value]
+    : f.key === "views.capabilitySelections.speed" ? {"冲刺 FVP 不平衡度":"sprint_fvp","冲刺 FVP 不平衡性":"sprint_fvp"}[value]
+    : f.key === "views.capabilitySelections.reactive" ? {"10/5 Hop RSI":"hop_rsi"}[value] : undefined;
   const metaFields = [field("date", "测试日期 YYYY-MM-DD", "date"), field("age", "本次年龄 岁"), field("mass", "本次体重 kg"), field("height", "本次身高 cm")];
   const prefix = [text("recordId", "测试编号"), text("athleteId", "运动员编号"), text("name", "运动员")];
   const notes = text("notes", "备注");
@@ -18038,28 +18527,39 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       rows.push(field(analysis + ".angle", "最优剖面角度 °", "number", [90, 30]), field(analysis + ".deltaForcePct", "力量端变化 %"), field(analysis + ".deltaVelocityPct", "速度端变化 %"));
       for (const [key, label] of [["fv", "显示 F–V 曲线"], ["pv", "显示 P–V 曲线"], ["points", "显示实测点"], ["optimum", "显示最优剖面"], ["comparison", "显示另一角度最优剖面"], ["confidence", "显示置信区间"], ["responseForce", "显示力量端单独变化"], ["responseVelocity", "显示速度端单独变化"], ["responseBoth", "显示力量与速度同步变化"]]) rows.push(bool(view + "." + key, label));
       rows.push(text(view + ".range", "图表范围", ["full", "measured"]), {...field(view + ".pinnedLoad", "固定查看负荷 kg（可留空）"), nullable:true});
+      rows.push(text(view + ".elasticityView", "跳跃弹性视图", ["response","constraint"]));
     }
     if (isSprint(record, id)) {
       const config = "sprintFvpConfig.", analysis = "sprintFvpAnalysis.";
       rows.push(text(config + "device", "冲刺计时设备"), field(config + "heightCm", "模型身高 cm（留空沿用运动员身高）"), field(config + "temperatureC", "温度 °C"), field(config + "pressureHpa", "气压 hPa"), field(config + "windMps", "风速 m/s（顺风为正）"));
       rows.push(text(config + "inputTimeMode", "原始时间方式", ["cumulative", "interval"]), text(config + "timingStart", "计时起点", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), text(config + "startConvention", "原始计时起点标记", ["first_propulsive_action", "gate_crossing", "start_signal", "other"]), field(config + "timeCorrectionS", "确定的累计时间修正 s"), field(config + "positionStartM", "空间起点距出发线 m"), field(analysis + "targetDistanceM", "专项目标距离 m（留空跟随末段）"));
       rows.push(text(config + "methodVersion", "计算方法版本"), field(config + "sampleStepS", "采样步长 s"), field(config + "rfAfterS", "RF 起始时间 s（严格大于）"), text(config + "samplingWindow", "采样终点依据"));
+      rows.push(field(analysis + "deltaForcePct", "弹性情景 F₀ 变化 %"),field(analysis + "deltaVelocityPct", "弹性情景 V₀ 变化 %"),text(analysis + "elasticityMethodVersion", "冲刺弹性方法版本"));
       for(const [key,label] of [["fv","显示 F–V 曲线"],["pv","显示 P–V 曲线"],["optimum","显示目标距离最优曲线"]])rows.push(bool("sprintFvpView."+key,label));
       rows.push(bool("sprintFvpView.confidence","显示近似 95% 拟合均值区间"));
       rows.push(text("sprintFvpView.confidenceMethodVersion","近似区间方法版本"),field("sprintFvpView.confidenceLevel","近似区间水平"));
+      rows.push(text("sprintFvpView.elasticityView","冲刺弹性视图",["response","distance"]));
+      for(const [key,label]of [["responseForce","显示力量端单独变化"],["responseVelocity","显示速度端单独变化"],["responseBoth","显示力量与速度同步变化"]])rows.push(bool("sprintFvpView."+key,label));
       for(const [key,label] of [["F0","力量端 F₀"],["V0","速度端 V₀"],["Pmax","最大功率 Pmax"],["F0Absolute","力量端 F₀ · 绝对"],["PmaxAbsolute","最大功率 Pmax · 绝对"],["slope","剖面斜率 SFV"],["RFmax","RF max"],["DRF","DRF"],["Vmax","速度模型渐近值 Vmax"],["endVelocity","终点速度"],["Vopt","峰值功率对应速度 Vopt"]])rows.push(bool("sprintFvpView.metrics."+key,"显示参数 · "+label));
     }
-    if (selectedTests(record)[0]?.id === id) rows.push(text("views.capabilitySelections.strength", "力量发展判定指标", ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"]), text("views.capabilitySelections.reactive", "反应力量判定指标", ["dj_rsi","hop_rsi","cmrj_rsi"]), text("views.capabilitySelections.speed", "速度发展判定指标", ["sprint_fvp","srr"]));
+    if (selectedTests(record)[0]?.id === id) {
+      for(const [key,label]of [["strength","力量发展判定指标"],["reactive","反应力量判定指标"],["speed","速度发展判定指标"]])rows.push(text("views.capabilitySelections."+key,label,M.capabilityDirectionOptions[key].map(([value])=>value)));
+      for(const [key,label]of [["strength","力量"],["reactive","反应力量"],["speed","速度"],["endurance","耐力"]])rows.push(bool("views.capabilityExpanded."+key,label+"卡片参数默认展开"));
+      if(selectedTests(record).some(test=>isFVP(test.id)&&T.isNative(record,test.id)))rows.push(text("views.fvpProtocol","当前跳跃 FVP 协议",["auto","fvp_sj","fvp_cmj"]));
+    }
     return rows;
   }
-  const isSharedSetting = f => f.key.startsWith("dsi.") || f.key.startsWith("views.capabilitySelections.");
+  const isSharedSetting = f => f.key.startsWith("dsi.") || f.key.startsWith("views.capabilitySelections.") || f.key.startsWith("views.capabilityExpanded.") || f.key === "views.fvpProtocol";
+  const additiveSetting = f => /^sprintFvpAnalysis\.(?:deltaForcePct|deltaVelocityPct|elasticityMethodVersion)$/.test(f.key)
+    || /^sprintFvpView\.(?:elasticityView|responseForce|responseVelocity|responseBoth)$/.test(f.key)
+    || /^fvpView\.fvp_(?:sj|cmj)\.elasticityView$/.test(f.key);
   const sharedSettings = record => [...new Map(selectedTests(record).flatMap(test=>settings(record,test.id)).filter(isSharedSetting).map(f=>[f.key,f])).values()];
   function change(f,before,after,extra={}) {
     return {field:f.key,label:f.label,before:before??"",after:after??"",displayBefore:displayChoice(f,before??""),displayAfter:displayChoice(f,after??""),...extra};
   }
   function projectConditions(previous,incoming,id) {
     if(!previous)return [];
-    const changes=settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)&&String(settingValue(previous,f)??"")!==String(settingValue(incoming,f)??"")).map(f=>change(f,settingValue(previous,f),settingValue(incoming,f)));
+    const changes=settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!additiveSetting(f)||get(incoming,f.key)!==undefined)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)&&String(settingValue(previous,f)??"")!==String(settingValue(incoming,f)??"")).map(f=>change(f,settingValue(previous,f),settingValue(incoming,f)));
     if(id==="iso")for(const direction of isoRows(incoming)){
       const prior=previous.data.iso.find(row=>row.id===direction.id);if(!prior)continue;
       const label=(M.REG[direction.region]||direction.region)+" · "+direction.direction;
@@ -18076,6 +18576,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     // A legacy workbook with no display namespace supplies no replacement choices.
     // Explicit new setting rows may create it later during parsing.
     if(isSprint(input,"sprint_fvp")&&input.sprintFvpView===undefined)delete record.sprintFvpView;
+    if(isSprint(input,"sprint_fvp")) {
+      for(const key of ["deltaForcePct","deltaVelocityPct","elasticityMethodVersion"])if(input.sprintFvpAnalysis?.[key]===undefined)delete record.sprintFvpAnalysis[key];
+      for(const key of ["elasticityView","responseForce","responseVelocity","responseBoth"])if(record.sprintFvpView&&input.sprintFvpView?.[key]===undefined)delete record.sprintFvpView[key];
+    }
+    for(const id of ["fvp_sj","fvp_cmj"])if(record.fvpView?.[id]&&input.fvpView?.[id]?.elasticityView===undefined)delete record.fvpView[id].elasticityView;
+    if(input.views?.capabilityExpanded===undefined)delete record.views.capabilityExpanded;
+    else for(const key of ["strength","reactive","speed","endurance"])if(input.views.capabilityExpanded[key]===undefined)delete record.views.capabilityExpanded[key];
     record.narrative = M.defaults().narrative;
     record.customValues = {};
     const defaults = M.defaults();
@@ -18288,7 +18795,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       issue(errors,cell.worksheet,cell.row,cell.col,"请填是 / 否");return false;
     }
     value=String(value).trim();
-    value=Object.entries(choiceLabels(f)).find(([,label])=>label===value)?.[0]??value;
+    value=Object.entries(choiceLabels(f)).find(([,label])=>label===value)?.[0]??legacyChoice(f,value)??value;
     if(f.choices&&!f.choices.includes(value))issue(errors,cell.worksheet,cell.row,cell.col,"可选值："+f.choices.join(" / "));
     return value;
   }
@@ -18499,7 +19006,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         else record.data[test.id]=holders;
       }
       try {
-        if(isSprint(record,"sprint_fvp")&&record.sprintFvpView!==undefined)record.sprintFvpView=M.normalizeSprintFvpView(record.sprintFvpView);
+        if(isSprint(record,"sprint_fvp")&&record.sprintFvpView!==undefined){
+          const supplied=new Set(["elasticityView","responseForce","responseVelocity","responseBoth"].filter(key=>record.sprintFvpView[key]!==undefined));
+          record.sprintFvpView=M.normalizeSprintFvpView(record.sprintFvpView);
+          for(const key of ["elasticityView","responseForce","responseVelocity","responseBoth"])if(!supplied.has(key))delete record.sprintFvpView[key];
+        }
         M.applyAge(record);
         const walk=(value,path="")=>{if(value&&typeof value==="object"){for(const [key,child]of Object.entries(value))walk(child,path?path+"."+key:key);return;}const message=M.validateField(record,path,value);if(message){const location=entry.locations.get(path);issue(errors,location?.sheet,location?.row,location?.column,record.athlete.name+"："+message+"（"+path+"）");}};
         walk(record);
@@ -18575,7 +19086,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         }else record.data[id]=clone(incoming.data[id]);
         if(isSprint(incoming,id)&&incoming.sprintFvpView!==undefined)record.sprintFvpView=M.normalizeSprintFvpView({...record.sprintFvpView,...incoming.sprintFvpView,metrics:{...record.sprintFvpView?.metrics,...incoming.sprintFvpView?.metrics}});
         for(const d of incoming.definitions.filter(d=>d.testId===id&&T.isManualMetric(d)&&!T.isAttemptMetric(d)))record.customValues[d.id]=clone(incoming.customValues[d.id]||{value:"",notes:""});
-        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)))put(record,f.key,clone(f.nullable && empty(settingValue(incoming,f)) ? null : settingValue(incoming,f)??""));
+        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!additiveSetting(f)||get(incoming,f.key)!==undefined)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)))put(record,f.key,clone(f.nullable && empty(settingValue(incoming,f)) ? null : settingValue(incoming,f)??""));
         if(id==="cmj"){record.cmjConfig=clone(incoming.cmjConfig);record.dsi.cmjUnit=incoming.dsi.cmjUnit;}
         if(id==="imtp")record.imtpConfig=clone(incoming.imtpConfig);
         const nextContext=JSON.stringify([record.protocol[id],record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);
@@ -20305,6 +20816,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function gotoInputError(key) {
     const draft = draftsFor()[key];
     if (!draft) return;
+    if (draft.mode === "report") {
+      if (["fvp_sj","fvp_cmj"].includes(draft.id)) state.views.fvpProtocol=draft.id;
+      ui.mode = "report"; renderReport(false); renderWorkspace();
+      reportEditControls().find(control => reportEditInfo(control)?.path === key)?.focus();
+      return;
+    }
     if (draft.mode === "settings") openSettings(draft.tab);
     else openEntry(draft.tab);
     const path = resolveDraftPath(key);
@@ -20316,6 +20833,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function ensureExportable(records = [state]) {
     saveEditor();
+    flushReportEdits(records);
     const pending = records.filter((r) =>
       Object.keys(draftsFor(r)).some((key) => resolveDraftPath(key, r)),
     );
@@ -20811,6 +21329,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   async function switchRecord(a, r, options = {}) {
     const sequence = ++selectionSequence;
+    if(reportEditInfo(document.activeElement))commitReportControl(document.activeElement);
     if (state) { captureReportUI(); saveEditor(); }
     if (!await persist()) return;
     if (sequence !== selectionSequence) return;
@@ -21322,6 +21841,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(libraryTransferActive||creation?.submitting||window.RingsideExcelFlow.isBusy())return null;
     saveEditor();
     const records=entryRecords();
+    flushReportEdits(records);
     if(!records.length)throw Error("请先选择本次测试记录");
     if(records.some(r=>!library.athletes.some(a=>a.id===r.athleteId&&!a.deletedAt&&!a.archived)))throw Error("请先录入并保存测量，完成运动员建档");
     if(Object.keys(draftsFor()).some(key=>resolveDraftPath(key)))throw Error("请先核对当前运动员的标红输入");
@@ -21658,6 +22178,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const fvpFocus = ["data-fvp-view", "data-fvp-angle", "data-fvp-protocol", "data-capability-selection", "data-sprint-target-distance", "data-sprint-fvp-view", "data-sprint-fvp-metric"].find(attribute => active?.hasAttribute(attribute));
     const fvpFocusId = active?.dataset?.fvpId, fvpFocusValue = fvpFocus && active.getAttribute(fvpFocus);
     $("detailContent").innerHTML = window.RingsideReport.render(report);
+    reportEditControls().forEach(control=>control.dataset.reportRecordId=state.recordId);
+    restoreReportEdits();
     window.RingsideReport.observeCharts($("detailContent"));
     window.RingsideReport.bindFVPInteractions?.($("detailContent"));
     document.querySelectorAll("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings]").forEach((el) => {
@@ -23301,6 +23823,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function facts() {
     // Suppress inactive custom targets in AI-derived scores/findings as well as
     // metric rows, without changing the saved record or local report formulas.
+    flushReportEdits();
     const analysisRecord = effectiveRecord();
     analysisRecord.definitions.forEach((d) => { if (!d.referenceEnabled) { d.target = ""; d.ranges = []; } });
     const report = window.RingsideReport.build(analysisRecord),
@@ -23357,6 +23880,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         optimum:copy(s.sprintFvp.optimum), optimumReason:s.sprintFvp.optimumReason,
         imbalance:copy(s.sprintFvp.imbalance), judgments:copy(s.sprintFvp.judgments || null),
       } : null,
+      sprintFVPElasticity: copy(s.sprintElasticity || null),
       cpet: copy(s.raw.cpet || null),
       qualityIssues: s.qualityIssues || [],
       migrationReview: {
@@ -23693,7 +24217,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     try {
       const messages = [
         { role: "system", content: window.RingsideInterventions.systemPrompt },
-        { role: "user", content: "生成解读与干预建议：四个能力发展方向优先采用 selectedCapabilityDirections 中选定的指标、数值和判定，其余能力参数用于综合分析背景。\n" + JSON.stringify(facts()) },
+        { role: "user", content: "生成解读与干预建议：四个能力发展方向优先采用 selectedCapabilityDirections 中选定的指标、数值和判定，其余能力参数用于综合分析背景。跳跃 FVP 弹性须绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性须绑定目标距离，并遵守有效性与静止起跑、静风条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小，不当作通用能力评分或训练比例。情景为模型预测：跳高增加表示改善，冲刺用时减少表示改善；不得替代实测或声称训练后必然达到。\n" + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
       let validated, pages;
@@ -23757,7 +24281,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function reportPayload() {
     ensureExportable();
-    persist();
     const profile=library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId);
     return {
       schema: 2,
@@ -23767,12 +24290,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     };
   }
   async function libraryPayload() {
+    ensureExportable(); assertLibraryReportEdits();
     if (!await persist()) throw Error("请先完成保存");
     return repository.exportLibrary();
   }
-  function exportHTMLString() {
-    const payload = reportPayload(),
-      clone = document.documentElement.cloneNode(true);
+  function exportHTMLString(payload = reportPayload()) {
+    const clone = document.documentElement.cloneNode(true);
     clone.querySelector("#embedded-data").textContent = JSON.stringify(
       payload,
     ).replace(/</g, "\\u003c");
@@ -23887,21 +24410,25 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       ext
     );
   }
-  function downloadHTML() {
+  async function downloadHTML() {
     $("reportExportMenu").open=false;
     try {
-      download(exportHTMLString(), filename("html"), "text/html;charset=utf-8");
+      const payload=reportPayload(),name=filename("html");
+      if (!await persist()) throw Error("保存失败，请先重试");
+      download(exportHTMLString(payload), name, "text/html;charset=utf-8");
     } catch (e) {
       return toast(e.message);
     }
     toast("当前HTML报告已保存");
   }
-  function downloadJSON() {
+  async function downloadJSON() {
     $("reportExportMenu").open=false;
     try {
+      const payload=reportPayload(),name=filename("json");
+      if (!await persist()) throw Error("保存失败，请先重试");
       download(
-        JSON.stringify(reportPayload(), null, 2),
-        filename("json"),
+        JSON.stringify(payload, null, 2),
+        name,
         "application/json;charset=utf-8",
       );
     } catch (e) {
@@ -23910,6 +24437,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   async function downloadLibrary() {
     try {
+      ensureExportable(); assertLibraryReportEdits();
       if (!await persist()) throw Error("保存失败，请先重试");
       const blob = await repository.backupBlob(count => toast("正在备份 " + count + " 条测试"));
       download(blob, "MotionBench_完整备份_" + today() + ".motionbench.jsonl", "application/x-ndjson");
@@ -24112,7 +24640,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     } catch (e) {
       return toast(e.message);
     }
-    persist();
     renderReport();
     const record = effectiveRecord(),
       name = filename("pdf"),
@@ -24121,6 +24648,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     setPDFStatus(true, "生成 PDF…");
     $("pdfProgress").hidden = false;
     try {
+      if (!await persist()) throw Error("保存失败，请先重试");
       const blob = await window.RingsidePDF.build(record, report, {
         onProgress: (p) => {
           $("pdfProgress").textContent =
@@ -24144,13 +24672,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
   }
 
-  function print() {
+  async function print() {
     try {
       ensureExportable();
     } catch (e) {
       return toast(e.message);
     }
-    persist();
+    if (!await persist()) return toast("保存失败，请先重试");
     cancelJob();
     const groups = [...document.querySelectorAll(".details-group")],
       old = groups.map((g) => g.open);
@@ -24324,41 +24852,131 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       control.after(feedback);
     }
     feedback.textContent = message + "，此值未保存";
-    $("entrySave").textContent = "部分输入未保存，请核对标红字段";
+    if (control.closest("#entryView")) $("entrySave").textContent = "部分输入未保存，请核对标红字段";
   }
   function fvpControlRecord(control) {
     const id = control.dataset.fvpId || control.closest("[data-fvp-id]")?.dataset.fvpId;
     return state && ["fvp_sj", "fvp_cmj"].includes(id) && T.isNative(state, id) ? id : null;
   }
-  function fvpScenarioValues(id) {
-    const values = { ...state.fvpAnalysis[id] };
-    for (const control of $("detailContent").querySelectorAll(`[data-fvp-scenario][data-fvp-id="${id}"]`)) {
-      const key = control.dataset.fvpScenario;
-      if (!["deltaForcePct", "deltaVelocityPct"].includes(key)) continue;
-      if (control.value === "" || !control.validity.valid || !Number.isFinite(Number(control.value))) return null;
-      values[key] = Number(control.value);
-    }
-    return values;
+  const reportEditSelector = "[data-fvp-scenario],[data-sprint-scenario],[data-sprint-target-distance]";
+  let reportPointerDown = false, reportPatchQueued = false;
+  document.addEventListener("pointerdown",event=>{reportPointerDown=!!event.target.closest?.("#reportView");},true);
+  const finishReportPointer=()=>setTimeout(()=>{reportPointerDown=false;if(reportPatchQueued){reportPatchQueued=false;refreshCapabilityAnalysis();}},0);
+  document.addEventListener("pointerup",finishReportPointer,true);
+  document.addEventListener("pointercancel",finishReportPointer,true);
+  function reportEditControls() {
+    return [...($("detailContent")?.querySelectorAll(reportEditSelector) || [])];
   }
-  function previewFVPScenario(id) {
-    const values = fvpScenarioValues(id);
-    if (!values) return;
-    const previewRecord = effectiveRecord();
-    previewRecord.fvpAnalysis[id] = values;
-    const solved = window.RingsideFVP.solve(previewRecord, id);
-    window.RingsideReport.previewFVP?.($("detailContent"), solved);
+  function reportEditInfo(control) {
+    if (!state || !control?.matches?.(reportEditSelector)) return null;
+    if(!control.isConnected || control.dataset.reportRecordId && control.dataset.reportRecordId!==state.recordId)return null;
+    if (control.hasAttribute("data-sprint-target-distance")) return {id:"sprint_fvp", path:"sprintFvpAnalysis.targetDistanceM", target:true};
+    const key = control.dataset.fvpScenario || control.dataset.sprintScenario;
+    if (!["deltaForcePct", "deltaVelocityPct"].includes(key)) return null;
+    const id = control.hasAttribute("data-sprint-scenario") ? "sprint_fvp" : fvpControlRecord(control);
+    if (!id) return null;
+    return {id, path:id === "sprint_fvp" ? `sprintFvpAnalysis.${key}` : `fvpAnalysis.${id}.${key}`, target:false};
   }
-  function saveFVPScenario(id, values = fvpScenarioValues(id)) {
-    if (!values) return toast("请填写有效的参数改变百分比");
-    for (const key of ["deltaForcePct", "deltaVelocityPct"]) {
-      const error = M.validateField(state, `fvpAnalysis.${id}.${key}`, values[key]);
-      if (error) return toast(error);
+  function reportEditError(record, info, raw, badInput = false) {
+    if (info.target && raw.trim() === "" && !badInput) return "";
+    if (badInput || raw.trim() === "" || !Number.isFinite(Number(raw))) return info.target ? "目标距离须为有限正数，留空可跟随试次末段" : "请输入有限的变化百分比；无变化请填写 0";
+    return M.validateField(record, info.path, Number(raw)) || "";
+  }
+  function rememberReportEdit(control) {
+    const info = reportEditInfo(control); if (!info) return;
+    const raw = control.value || (control.validity?.badInput ? rawNumbers.get(control)?.value || "" : "");
+    if(!control.validity?.badInput)rawNumbers.set(control,{value:control.value,selected:false});
+    const message = reportEditError(state, info, raw, control.validity?.badInput);
+    (inputDrafts[draftRecordKey()] ||= {})[info.path] = {value:raw,message,badInput:!!control.validity?.badInput,mode:"report",label:control.getAttribute("aria-label") || info.path,id:info.id,target:info.target};
+    saveDrafts(); inputIssue(control, message); updateReportDraftStatus();
+  }
+  function restoreReportEdits() {
+    if (!state) return;
+    reportEditControls().forEach(control => {
+      const info = reportEditInfo(control), draft = info && draftsFor()[info.path];
+      if (!draft || draft.mode !== "report") return;
+      if (draft.badInput && control.type === "number") {control.type="text";control.inputMode="decimal";}
+      control.value = draft.value; inputIssue(control, draft.message);
+    });
+    updateReportDraftStatus();
+  }
+  function updateReportDraftStatus() {
+    if (!state) return;
+    for (const id of ["fvp_sj","fvp_cmj","sprint_fvp"]) {
+      const pending = Object.values(draftsFor()).filter(draft => draft.mode === "report" && draft.id === id);
+      const invalid = pending.some(draft => draft.message);
+      $("detailContent")?.querySelectorAll(`[data-elasticity-id="${id}"][data-elasticity-scenario-output]`).forEach(node=>node.hidden=invalid);
+      $("detailContent")?.querySelectorAll(`[data-elasticity-id="${id}"][data-elasticity-draft-status]`).forEach(node=>{
+        node.textContent = invalid ? "请修正标红字段后查看情景结果。" : pending.length ? "编辑完成后自动保存并更新结果。" : "";
+        node.hidden = !pending.length;
+      });
     }
-    const record = effectiveRecord(); record.fvpAnalysis[id] = values;
-    const solved = window.RingsideFVP.solve(record, id);
-    if (solved.scenario?.valid === false) return toast(solved.scenario.message || "此情景无法计算跳跃高度，请调整参数");
-    state.fvpAnalysis[id] = values;
-    changed(false); renderReport();
+  }
+  function setRecordPath(record, path, value) {
+    const parts=path.split("."), key=parts.pop();let node=record;
+    for(const part of parts) node=node[part] ||= {};
+    node[key]=value;
+  }
+  function commitReportDraft(record, path) {
+    const entries = draftsFor(record), draft = entries[path];
+    if (!draft || draft.mode !== "report") return true;
+    const info={id:draft.id,path,target:draft.target};
+    let message=reportEditError(record,info,String(draft.value),draft.badInput);
+    const value=info.target && String(draft.value).trim()==="" ? "" : Number(draft.value);
+    if(!message) {
+      const candidate=effectiveRecord(record);setRecordPath(candidate,path,value);
+      const result=info.id==="sprint_fvp" ? M.stats(candidate).sprintElasticity : window.RingsideFVP.solve(candidate,info.id);
+      if(result?.valid && result.scenario?.valid===false) message=result.scenario.message || result.scenario.reason || "此情景无法计算，请调整参数";
+    }
+    if(message) {draft.message=message;saveDrafts();if(record.recordId===state.recordId)restoreReportEdits();return false;}
+    setRecordPath(record,path,value);delete entries[path];saveDrafts();
+    if(record.recordId===state.recordId) changed(false);
+    return true;
+  }
+  function refreshCapabilityAnalysis() {
+    if (!state || ui.mode !== "report") return;
+    // A blur can run between pointer-down and click. Defer layout changes until
+    // that click finishes, while committing the valid value immediately.
+    if(reportPointerDown){reportPatchQueued=true;return;}
+    const report=window.RingsideReport.build(effectiveRecord());
+    window.RingsideReport.patchCapabilityAnalysis?.($("detailContent"),report);
+    restoreReportEdits();renderNarrativeStatus();
+  }
+  function commitReportControl(control) {
+    const info=reportEditInfo(control);if(!info)return false;
+    rememberReportEdit(control);
+    if(!commitReportDraft(state,info.path)) return false;
+    inputIssue(control);refreshCapabilityAnalysis();return true;
+  }
+  function flushReportEdits(records = [state]) {
+    if(!state)return;
+    const active=document.activeElement;
+    if(reportEditInfo(active)) rememberReportEdit(active);
+    let updated=false;
+    for(const record of records.filter(Boolean)) {
+      for(const [path,draft] of Object.entries(draftsFor(record))) {
+        if(draft.mode!=="report")continue;
+        if(!commitReportDraft(record,path)) {
+          if(record.recordId===state.recordId)gotoInputError(path);
+          throw Error("请先修正弹性情景或目标距离的标红字段");
+        }
+        updated=true;
+      }
+    }
+    if(updated)refreshCapabilityAnalysis();
+  }
+  function assertLibraryReportEdits() {
+    if(Object.values(inputDrafts).some(entries=>Object.values(entries).some(draft=>draft.mode==="report"))) throw Error("其他记录仍有未完成的弹性输入，请返回对应记录修正后备份");
+  }
+  function saveFVPScenario(id, values) {
+    if(!state || !values)return;
+    const record=effectiveRecord();record.fvpAnalysis[id]={...record.fvpAnalysis[id],...values};
+    const solved=window.RingsideFVP.solve(record,id);
+    if(solved.valid && solved.scenario?.valid===false)return toast(solved.scenario.message || "此情景无法计算");
+    state.fvpAnalysis[id]=record.fvpAnalysis[id];
+    for(const key of ["deltaForcePct","deltaVelocityPct"])delete draftsFor()[`fvpAnalysis.${id}.${key}`];
+    saveDrafts();changed(false);refreshCapabilityAnalysis();
+    reportEditControls().filter(control=>reportEditInfo(control)?.id===id).forEach(control=>control.value=state.fvpAnalysis[id][control.dataset.fvpScenario]);
   }
   document.addEventListener("fvp-selection", event => {
     const { id, load } = event.detail || {};
@@ -24366,23 +24984,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     state.fvpView[id].pinnedLoad = load; changed(false);
   });
   document.addEventListener("submit", event => {
-    if (event.target.matches("[data-sprint-target-form]")) {
-      event.preventDefault(); if (!state) return;
-      const control = event.target.querySelector("[data-sprint-target-distance]"), value = control?.value.trim() || "";
-      const error = M.validateField(state, "sprintFvpAnalysis.targetDistanceM", value);
-      if (error || value && (!Number.isFinite(Number(value)) || Number(value) <= 0)) return toast(error || "目标距离须为正数");
-      (state.sprintFvpAnalysis ||= {}).targetDistanceM = value === "" ? "" : Number(value);
-      changed(false); renderReport(); return;
-    }
-    if (!event.target.matches("[data-fvp-scenario-form]")) return;
+    if (!event.target.matches("[data-sprint-target-form],[data-fvp-scenario-form],[data-sprint-scenario-form]")) return;
     event.preventDefault();
-    const id = fvpControlRecord(event.target);
-    if (id) saveFVPScenario(id);
+    event.target.querySelectorAll(reportEditSelector).forEach(control=>commitReportControl(control));
   });
+  document.addEventListener("focusout",event=>{if(reportEditInfo(event.target))commitReportControl(event.target);});
   document.addEventListener("input", (e) => {
     const t = e.target;
-    if (t.dataset.fvpScenario) {
-      const id = fvpControlRecord(t); if (id) previewFVPScenario(id);
+    if (reportEditInfo(t)) {
+      rememberReportEdit(t);
       return;
     }
     if (t.id === "aiPreview" && pendingAI) {
@@ -24445,6 +25055,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   });
   document.addEventListener("change", (e) => {
     const t = e.target;
+    if (reportEditInfo(t)) {commitReportControl(t);return;}
+    if (t.hasAttribute("data-sprint-elasticity-view")) {
+      if(!state || !["response","distance"].includes(t.value))return;
+      state.sprintFvpView.elasticityView=t.value;changed(false);refreshCapabilityAnalysis();return;
+    }
     if (t.hasAttribute("data-sprint-fvp-view") || t.hasAttribute("data-sprint-fvp-metric")) {
       if (!state || !T.isNative(state, "sprint_fvp") || t.type !== "checkbox") return;
       const view = M.normalizeSprintFvpView(state.sprintFvpView), defaults = M.sprintFvpViewDefaults();
@@ -24454,15 +25069,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         view.metrics[key] = t.checked;
       } else {
         const key = t.dataset.sprintFvpView;
-        if (!["fv", "pv", "optimum", "confidence"].includes(key)) return;
+        if (!["fv", "pv", "optimum", "confidence", "responseForce", "responseVelocity", "responseBoth"].includes(key)) return;
         view[key] = t.checked;
       }
-      state.sprintFvpView = view; changed(false); renderReport(); return;
+      state.sprintFvpView = view; changed(false); refreshCapabilityAnalysis(); return;
     }
     if (t.hasAttribute("data-capability-selection")) {
       const key = t.dataset.capabilitySelection, choices = M.capabilityDirectionOptions;
       if (!state || !choices[key]?.some(([id]) => id === t.value)) return;
-      (state.views.capabilitySelections ||= {})[key] = t.value; changed(false); renderReport(); return;
+      (state.views.capabilitySelections ||= {})[key] = t.value; changed(false); refreshCapabilityAnalysis(); return;
     }
     if (t.hasAttribute("data-fvp-protocol")) {
       state.views.fvpProtocol = t.value; changed(false); renderReport(); return;
@@ -24471,7 +25086,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const id = fvpControlRecord(t); if (!id) return;
       if (t.hasAttribute("data-fvp-angle")) state.fvpAnalysis[id].angle = Number(t.value);
       else state.fvpView[id][t.dataset.fvpView] = t.type === "checkbox" ? t.checked : t.value;
-      changed(false); renderReport(); return;
+      changed(false); refreshCapabilityAnalysis(); return;
     }
     if (t.dataset.metricUnit) return requestMetricUnit(t, t.dataset.metricUnit);
     if (t.dataset.creationProject && creation) {
@@ -24595,7 +25210,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   document.addEventListener("click", (e) => {
     if (e.target.closest("[data-sprint-target-follow]")) {
       if (!state) return; (state.sprintFvpAnalysis ||= {}).targetDistanceM = "";
-      changed(false); renderReport(); return;
+      delete draftsFor()["sprintFvpAnalysis.targetDistanceM"];saveDrafts();
+      const control=reportEditControls().find(node=>node.hasAttribute("data-sprint-target-distance"));if(control){control.value="";inputIssue(control);}
+      changed(false); refreshCapabilityAnalysis(); return;
     }
     const shortcut = e.target.closest("[data-fvp-shortcut]");
     if (shortcut) {
@@ -24616,13 +25233,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     } else if (!e.target.closest("#bodyRegionTooltip")) hideBodyRegionTooltip();
   });
   document.addEventListener("keydown", (e) => {
+    if(e.key==="Enter" && reportEditInfo(e.target)) {e.preventDefault();commitReportControl(e.target);return;}
     if (e.key === "Escape" && tooltipAnchor) {
       tooltipDismissed=tooltipAnchor;hideTooltip();e.preventDefault();return;
     }
     bodyTouchInteraction = false;
     if (
       e.target.type === "number" &&
-      e.target.dataset.path &&
+      (e.target.dataset.path || reportEditInfo(e.target)) &&
       (e.ctrlKey || e.metaKey) &&
       e.key.toLowerCase() === "a"
     )
@@ -24721,7 +25339,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   window.addEventListener("scroll", positionBodyRegionTooltip, {passive:true});
   document.addEventListener("beforeinput", (e) => {
     const t = e.target;
-    if (t.type !== "number" || !t.dataset.path) return;
+    if (t.type !== "number" || (!t.dataset.path && !reportEditInfo(t))) return;
     const prior = rawNumbers.get(t) || { value: t.value, selected: false };
     let value = prior.selected ? "" : prior.value;
     if (e.inputType?.startsWith("insert"))
@@ -24787,6 +25405,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   document.addEventListener(
     "toggle",
     (e) => {
+      if(state && e.target.isConnected && e.target.matches("#reportView [data-capability-parameters]")) {
+        const key=e.target.dataset.capabilityParameters;
+        if(["strength","reactive","speed","endurance"].includes(key) && state.views.capabilityExpanded?.[key]!==e.target.open) {
+          (state.views.capabilityExpanded ||= {})[key]=e.target.open;changed(false);
+        }
+        return;
+      }
       if (
         e.target.isConnected &&
         e.target.matches("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings]")

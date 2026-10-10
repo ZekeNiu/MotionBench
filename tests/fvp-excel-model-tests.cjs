@@ -29,7 +29,7 @@ function fill(record) {
     const cmj = id === "fvp_cmj";
     record.fvpConfig[id] = {device:"测力台 A", method:cmj ? "起跳速度" : "腾空时间", posture:cmj ? "手叉腰，自选下蹲深度" : "手叉腰，静止 2 秒", distanceCm:cmj ? 40 : 35, distanceSource:"髋高差实测"};
     record.fvpAnalysis[id] = {angle:cmj ? 30 : 90, deltaForcePct:5, deltaVelocityPct:3};
-    record.fvpView[id] = {fv:true, pv:true, points:true, optimum:true, comparison:cmj, confidence:cmj, range:"full", pinnedLoad:20,responseForce:!cmj,responseVelocity:cmj,responseBoth:true};
+    record.fvpView[id] = {...F.defaultsView(),fv:true, pv:true, points:true, optimum:true, comparison:cmj, confidence:cmj, range:"full", pinnedLoad:20,responseForce:!cmj,responseVelocity:cmj,responseBoth:true};
     const loads = cmj ? [0, 15, 30, 45] : [0, 20, 40, 60, 80], heights = cmj ? [45, 36, 28, 20] : [38, 28, 22, 17, 13];
     record.data[id] = loads.map((load, index) => ({id:id + "_native_" + index, load, height:heights[index], distanceCm:index === 2 ? (cmj ? 38 : 36) : "", notes:index === 0 ? '原始记录："自重" & 基线' : "", excluded:false, exclusionReason:""}));
     record.data[id].push({id:id + "_repeat", load:loads[1], height:heights[1] - 0.2, distanceCm:cmj ? 39 : 35.5, notes:"同负荷复测", excluded:false, exclusionReason:""});
