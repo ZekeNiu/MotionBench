@@ -8,8 +8,9 @@ const { chromium } = require("./helpers/playwright.cjs");
 const { extensionFixture } = require("./helpers/core-fixtures.cjs");
 const { radarFixture } = require("./helpers/radar-fixtures.cjs");
 const { chartFixture } = require("./helpers/chart-ai-fixture.cjs");
+const { artifactDirectory, ready, downloadFromReport, emptyRecord } = require("./helpers/pdf-browser.cjs");
 const root = path.resolve(__dirname, ".."),
-  out = path.join(root, "output/pdf");
+  out = artifactDirectory(root, "output/pdf/v2.17.2-work/download");
 fs.mkdirSync(out, { recursive: true });
 const results = {
   started: new Date().toISOString(),
@@ -17,6 +18,11 @@ const results = {
     .update(fs.readFileSync(path.join(root, "Ringside_Boxing_Assessment.html")))
     .digest("hex"),
   cases: [],
+  narrativeFixture: {
+    path: "tests/fixtures/pdf-chart-narrative.md",
+    sha256: createHash("sha256").update(fs.readFileSync(path.join(root, "tests/fixtures/pdf-chart-narrative.md"))).digest("hex"),
+    origin: "controlled synthetic text",
+  },
 };
 const cases = [
   { id: "chrome-chart-percent", channel: "chrome", width: 1440, chartAxis: "percent" },
@@ -56,20 +62,12 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
       network = [];
     // Match the before/after design fixtures and make cross-browser dates stable.
     await page.clock.setFixedTime(new Date("2026-10-06T15:43:00Z"));
-    if (config.core || config.radar)
-      await page.addInitScript(
-        (record) =>
-          localStorage.setItem(
-            "ringside-library-v2:" + location.pathname,
-            JSON.stringify(record),
-          ),
-        config.radar ? radarFixture() : extensionFixture({ pdf: true }),
-      );
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("request", (r) => {
       if (/^https?:/.test(r.url())) network.push(r.url());
     });
     const started = Date.now();
+    let emptyFixture = null;
     const sourceHash = createHash("sha256")
       .update(
         fs.readFileSync(path.join(root, "Ringside_Boxing_Assessment.html")),
@@ -79,7 +77,8 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
       await page.goto(
         pathToFileURL(path.join(root, "Ringside_Boxing_Assessment.html")).href,
       );
-      await page.waitForFunction(() => window.App?.downloadPDF);
+      await ready(page);
+      if (config.core || config.radar) await page.evaluate(record => App.importPayload(RingsideModel.recordEnvelope(record)), config.radar ? radarFixture() : extensionFixture({ pdf: true }));
       await page.evaluate(() => {
         const original = RingsideReport.layoutCharts;
         window.__printFigures = [];
@@ -94,18 +93,14 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
       });
       if (config.chartAxis) {
         await page.evaluate(chartFixture);
-        const narrative = fs.readFileSync(path.join(root, "output/ai/chart-ai/boxing-complete.md"), "utf8");
+        const narrative = fs.readFileSync(path.join(root, "tests/fixtures/pdf-chart-narrative.md"), "utf8");
         await page.evaluate(({axis, narrative}) => {
           const r = App.getState();r.views.imtp.yAxis = axis;
-          r.narrative = { text:narrative, html:RingsideModel.textToHTML(narrative), revision:1, origin:"AI", basis:RingsideModel.fingerprint(r) };
+          r.narrative = { text:narrative, html:RingsideModel.textToHTML(narrative), revision:1, origin:"manual", basis:RingsideModel.fingerprint(r) };
           App.renderReport();
         }, {axis:config.chartAxis, narrative});
       }
-      if (config.empty)
-        await page.evaluate(() => {
-          App.createAthlete("PDF空白验收");
-          App.showReport();
-        });
+      if (config.empty) emptyFixture = await emptyRecord(page, "pdf-empty-synthetic");
       if (config.partialSpeed)
         await page.evaluate(() => {
           const r = App.getState();
@@ -216,8 +211,10 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
           };
           App.renderReport();
         });
-      await page.evaluate(() => {
-        document.querySelector("#performanceDetail").open = false;
+      await page.evaluate(empty => {
+        const detail = document.querySelector("#performanceDetail");
+        if (detail) detail.open = false;
+        else if (!empty) throw Error("Measured report must contain its performance details");
         window.scrollTo({ top: 350, behavior: "instant" });
         const draw = window.html2canvas;
         window.__pdfLayouts = [];
@@ -284,41 +281,19 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
           }
           return canvas;
         };
-      });
+      }, !!config.empty);
       await page.waitForTimeout(220);
       const before = await page.evaluate(() => ({
         id: App.getState().recordId,
-        open: document.querySelector("#performanceDetail").open,
+        open: document.querySelector("#performanceDetail")?.open ?? null,
         scroll: scrollY,
         narrative: App.getState().narrative.html,
       }));
-      const downloading = Promise.race([
-        page.waitForEvent("download", { timeout: 180000 }),
-        page
-          .waitForFunction(
-            () => RingsidePDF.lastDiagnostics?.status === "failed",
-            null,
-            { timeout: 180000 },
-          )
-          .then(async () => {
-            throw Error(
-              (await page.evaluate(() => RingsidePDF.lastDiagnostics)).error,
-            );
-          }),
-      ]);
-      if (!(await page.locator("#saveModal").isVisible())) {
-        if (await page.locator("#sidebar").evaluate((el) => el.inert))
-          await page.locator("#sidebarToggle").click();
-        await page
-          .locator('#sidebar button[onclick="App.saveMenu()"] ')
-          .click();
-      }
-      await page.locator("#pdfButton").click();
-      const file = await downloading,
+      const file = await downloadFromReport(page, "downloadPDF"),
         destination = path.join(out, config.id + ".pdf");
       await file.saveAs(destination);
       await page.waitForFunction(
-        () => !document.querySelector("#pdfButton").disabled,
+        () => !document.querySelector("#reportExportMenu [data-pdf-action]").disabled,
       );
       const header = fs
         .readFileSync(destination)
@@ -327,7 +302,7 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
       assert.equal(header, "%PDF-");
       const after = await page.evaluate(() => ({
         id: App.getState().recordId,
-        open: document.querySelector("#performanceDetail").open,
+        open: document.querySelector("#performanceDetail")?.open ?? null,
         scroll: scrollY,
         narrative: App.getState().narrative.html,
         stages: document.querySelectorAll(".ringside-pdf-stage").length,
@@ -393,6 +368,7 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
         speedReferenceRaster: speedRaster,
         fmsPainLabels: await page.evaluate(() => window.__pdfPainLabels),
         syntheticSpeedContinuation: !!config.speedContinuation,
+        emptyFixture,
       });
       console.log(
         "PASS " + config.id + " " + fs.statSync(destination).size + " bytes",

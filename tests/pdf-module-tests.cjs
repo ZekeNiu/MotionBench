@@ -6,8 +6,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { pathToFileURL } = require('node:url');
+const { artifactDirectory } = require('./helpers/pdf-browser.cjs');
 const root = path.resolve(__dirname, '..');
-const artifacts = path.join(root, 'output', 'pdf');
+const artifacts = artifactDirectory(root, 'output/pdf');
 const { chromium } = require('./helpers/playwright.cjs');
 
 async function inject(page, filename) {
