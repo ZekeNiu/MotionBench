@@ -236,7 +236,14 @@
       if (!plainObject(row) || row.id !== undefined && (!safeId(row.id) || ids.has(row.id))) throw Error("冲刺 F–V 试次 ID 无效或重复");
       if (row.id) ids.add(row.id);
       if (!Array.isArray(row.splits) || row.splits.length > 100) throw Error("冲刺分段须为距离与时间数组");
-      row.splits.forEach(split => { if (!plainObject(split) || !optionalNumber(split.distanceM) || !optionalNumber(split.timeS)) throw Error("冲刺分段距离与计时须为有限数值或留空"); });
+      const splitIds = new Set();
+      row.splits.forEach(split => {
+        if (!plainObject(split) || !optionalNumber(split.distanceM) || !optionalNumber(split.timeS)) throw Error("冲刺分段距离与计时须为有限数值或留空");
+        if (split.id !== undefined) {
+          if (!safeId(split.id) || splitIds.has(split.id)) throw Error("冲刺分段 ID 无效或重复");
+          splitIds.add(split.id);
+        }
+      });
       if (row.excluded !== undefined && typeof row.excluded !== "boolean") throw Error("冲刺排除选项无效");
       ["notes", "exclusionReason"].forEach(key => { if (row[key] !== undefined && typeof row[key] !== "string") throw Error("冲刺 " + key + " 须为文字"); });
     });

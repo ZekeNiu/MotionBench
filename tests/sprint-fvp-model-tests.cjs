@@ -178,6 +178,43 @@ test("pre-sprint native records gain a disabled empty module without stale prose
   const before = M.fingerprint(old), restored = M.normalizeRecord(json(old)); assert.equal(restored.enabled.sprint_fvp, false);
   assert.equal(M.fingerprint(restored), before); assert.deepEqual(json(restored.data.sprint_fvp), []);
 });
+test("validation rejects duplicate explicit split identifiers within one trial", () => {
+  const r = fixture(); r.data.sprint_fvp[0].splits[0].id = "same_split"; r.data.sprint_fvp[0].splits[1].id = "same_split";
+  assert.throws(() => M.validateRecord(r), /ID/);
+});
+test("validation rejects unsafe explicit split identifiers", () => {
+  ["split.1", "split 1", "", null, 0, "__proto__", "prototype", "constructor"].forEach(id => {
+    const r = fixture(); r.data.sprint_fvp[0].splits[0].id = id;
+    assert.throws(() => M.validateRecord(r), /ID/, `unsafe split id ${JSON.stringify(id)}`);
+  });
+});
+test("legacy missing split IDs normalize stably without replacing raw inputs or method metadata", () => {
+  const r = fixture(); r.data.sprint_fvp[0].splits[0].id = "sprint_split_1";
+  r.data.sprint_fvp[0].splits[0].sourceMetadata = { imported: "synthetic" };
+  r.sprintFvpConfig.sampleStepS = .01; r.sprintFvpConfig.rfAfterS = .5;
+  const raw = json(r.data.sprint_fvp[0].splits), config = json(r.sprintFvpConfig);
+  M.validateRecord(r);
+  const restored = M.normalizeRecord(json(r)), again = M.normalizeRecord(json(restored)), splits = restored.data.sprint_fvp[0].splits;
+  M.validateRecord(restored); assert.equal(new Set(splits.map(split => split.id)).size, splits.length);
+  assert.ok(splits.every(split => typeof split.id === "string" && /^[A-Za-z0-9_-]+$/.test(split.id)));
+  assert.deepEqual(json(again.data.sprint_fvp[0].splits), json(splits));
+  assert.deepEqual(json(splits.map(split => { const copy = { ...split }; delete copy.id; return copy; })), raw.map(split => { delete split.id; return split; }));
+  assert.deepEqual(json(restored.sprintFvpConfig), config);
+});
+test("separate trials may reuse explicit split identifiers", () => {
+  const r = fixture(); r.data.sprint_fvp[0].splits.forEach((split, i) => { split.id = `split_${i}`; });
+  const second = json(r.data.sprint_fvp[0]); second.id = "sprint_synthetic_second"; r.data.sprint_fvp.push(second);
+  assert.doesNotThrow(() => M.validateRecord(r));
+});
+test("technical split IDs do not change calculations or measurement fingerprint", () => {
+  const r = M.normalizeRecord(fixture()), before = json(r), fingerprint = M.fingerprint(r), expected = F.solve(r);
+  r.data.sprint_fvp[0].splits.forEach((split, i) => { split.id = `replacement_${i}`; }); M.validateRecord(r);
+  const actual = F.solve(r); assert.equal(M.fingerprint(r), fingerprint);
+  const actualFit = json(actual.fit), expectedFit = json(expected.fit);
+  [actualFit, expectedFit].forEach(fit => fit.points.forEach(point => { delete point.id; }));
+  assert.deepEqual(actualFit, expectedFit); assert.deepEqual(json(actual.model), json(expected.model));
+  assert.deepEqual(json(r.data.sprint_fvp[0].splits.map(({ distanceM, timeS }) => ({ distanceM, timeS }))), before.data.sprint_fvp[0].splits.map(({ distanceM, timeS }) => ({ distanceM, timeS })));
+});
 test("validation rejects malformed native split payloads and duplicate trial identifiers", () => {
   const mutations = [r => { r.data.sprint_fvp[0].splits[0].timeS = "not-time"; }, r => { r.data.sprint_fvp[0].splits = {}; },
     r => { r.data.sprint_fvp.push(json(r.data.sprint_fvp[0])); }, r => { r.sprintFvpConfig.pressureHpa = "NaN"; }];
