@@ -13,7 +13,7 @@ for (const name of [
   "cpet-reference",
   "definitions",
   "tests",
-  "model",
+  "scoring", "model",
   "interventions",
   "viz",
   "report",

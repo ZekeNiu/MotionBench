@@ -4,7 +4,7 @@ const fs = require("node:fs"), path = require("node:path"), vm = require("node:v
 const crypto = require("node:crypto"), {execFileSync} = require("node:child_process");
 const root = path.join(__dirname, ".."), copy = value => JSON.parse(JSON.stringify(value));
 const model = vm.createContext({console, Intl, crypto:crypto.webcrypto}); model.window = model;
-for (const name of ["calc", "fvp", "sprint-fvp", "cpet-reference", "definitions", "tests", "model", "sprint-fvp-entry"])
+for (const name of ["calc", "fvp", "sprint-fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "sprint-fvp-entry"])
   vm.runInContext(fs.readFileSync(path.join(root, "src/ringside-" + name + ".js"), "utf8"), model);
 const M = model.RingsideModel, T = model.RingsideTests, appRef = process.argv.includes("--app-ref") ? process.argv[process.argv.indexOf("--app-ref") + 1] : null;
 const app = appRef ? execFileSync("git", ["show", appRef + ":src/ringside-app.js"], {cwd:root, encoding:"utf8"}) : fs.readFileSync(path.join(root, "src/ringside-app.js"), "utf8");

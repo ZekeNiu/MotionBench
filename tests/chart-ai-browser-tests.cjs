@@ -4,9 +4,9 @@ const { createHash } = require("node:crypto"), { pathToFileURL } = require("node
 const { chromium } = require("./helpers/playwright.cjs");
 const { chartFixture } = require("./helpers/chart-ai-fixture.cjs");
 const root = path.resolve(__dirname,".."), out = path.join(root,"output/playwright/chart-ai");
-const baseline = "output/backups/chart-ai-pre-implementation-20261007/Ringside_Boxing_Assessment.html";
+const baseline = "output/backups/chart-ai-pre-implementation-20261007/MotionBench.html";
 const digest = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
-const result = { sourceHash:digest(path.join(root,"Ringside_Boxing_Assessment.html")), baselineHash:digest(path.join(root,baseline)), layouts:[], images:[], checks:[], errors:[], network:[] };
+const result = { sourceHash:digest(path.join(root,"MotionBench.html")), baselineHash:digest(path.join(root,baseline)), layouts:[], images:[], checks:[], errors:[], network:[] };
 const scenes = [["#detail-fms","fms"],["#detail-iso","isometric"],["#detail-imtp","imtp"],["#detail-lactate","lactate"],[".test-block:has(.speed-detail)","speed"],["#lvp-upper","lvp"]];
 async function geometry(page, width, scenario) {
   const figures = await page.locator("[data-chart-kind]").evaluateAll(nodes=>nodes.map(n=>{
@@ -33,7 +33,7 @@ async function shot(page, version, selector, name) {
 (async()=>{
   const browser=await chromium.launch();
   try {
-    for (const [version,file] of [["before",baseline],["after","Ringside_Boxing_Assessment.html"]]) {
+    for (const [version,file] of [["before",baseline],["after","MotionBench.html"]]) {
       const context=await browser.newContext({offline:true,viewport:{width:1440,height:1000},locale:"zh-CN",timezoneId:"Asia/Shanghai"});
       const page=await context.newPage();page.setDefaultTimeout(10000);
       page.on("pageerror",e=>result.errors.push(e.message));page.on("request",r=>{if(/^https?:/.test(r.url()))result.network.push(r.url());});

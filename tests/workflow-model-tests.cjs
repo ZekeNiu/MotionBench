@@ -4,7 +4,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const context = vm.createContext({ console, Intl, crypto: require('node:crypto').webcrypto });
 context.window = context;
-['ringside-calc.js', 'ringside-fvp.js', 'ringside-cpet-reference.js', 'ringside-definitions.js', 'ringside-tests.js', 'ringside-model.js', 'ringside-interventions.js'].forEach(name => vm.runInContext(fs.readFileSync(path.join(__dirname, '../src', name), 'utf8'), context));
+['ringside-calc.js', 'ringside-fvp.js', 'ringside-cpet-reference.js', 'ringside-definitions.js', 'ringside-tests.js', 'ringside-scoring.js', 'ringside-model.js', 'ringside-interventions.js'].forEach(name => vm.runInContext(fs.readFileSync(path.join(__dirname, '../src', name), 'utf8'), context));
 const M = context.RingsideModel, Def = context.Def;
 const copy = value => JSON.parse(JSON.stringify(value));
 const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-9, `${actual} != ${expected}`);
@@ -89,7 +89,7 @@ test('shared directory supports all athletes while copied snapshots stay indepen
   const a = M.recordFromCatalog(cat, { name: 'A' }, { custom_speed: true }), b = M.recordFromCatalog(cat, { name: 'B' }, { custom_speed: true });
   assert.equal(a.customTests[0].name, '专项速度'); assert.equal(b.customTests[0].id, 'custom_speed'); assert.equal(M.validateCatalog(cat), true);
   cat.definitions.find(d => d.id === 'metric_speed').target = 6;
-  near(a.definitions.find(d => d.id === 'metric_speed').target, 5); near(b.definitions.find(d => d.id === 'metric_speed').target, 5);
+  assert.equal(a.definitions.find(d => d.id === 'metric_speed').target, null); assert.equal(b.definitions.find(d => d.id === 'metric_speed').target, null);
   assert.equal(a.customValues.metric_speed, undefined); assert.equal(b.customValues.metric_speed, undefined);
 });
 
@@ -97,7 +97,7 @@ test('only selected projects acquire catalog snapshots and preferred-hand/profil
   const cat = M.mergeCatalog(M.normalizeCatalog(), customRecord()); cat.definitions.find(d => d.id === 'cmj_height').target = 60;
   const first = M.recordFromCatalog(cat, { name: '历史姓名', sport: '拳击', dominantHand: '左手' }, { cmj: true });
   assert.equal(first.customTests.length, 0); assert.ok(!first.definitions.some(d => d.id === 'metric_speed')); assert.deepEqual(copy(first.catalogAppliedTests), ['cmj']);
-  assert.equal(first.definitions.find(d => d.id === 'cmj_height').target, 60);
+  assert.equal(first.definitions.find(d => d.id === 'cmj_height').target, null);
   const currentProfile = { name: '档案姓名', sex: '男', sport: '散打', dominantHand: '右手', sportLevel: '专业' };
   const restored = M.normalizeLibrary(M.recordEnvelope(first, currentProfile, cat));
   assert.equal(restored.athletes[0].profile.name, '档案姓名'); assert.equal(restored.athletes[0].profile.sport, '散打');
@@ -108,7 +108,7 @@ test('only selected projects acquire catalog snapshots and preferred-hand/profil
 test('same-ID conflicting old projects preserve all definitions and block new selection until resolved', () => {
   const first = customRecord(), second = customRecord('专项新定义'); second.definitions.at(-1).target = 21.6;
   let cat = M.mergeCatalog(M.normalizeCatalog(), first, '旧记录一'); cat = M.mergeCatalog(cat, second, '旧记录二'); cat = M.mergeCatalog(cat, second, '旧记录二重复');
-  assert.equal(cat.conflicts.length, 1); assert.equal(cat.conflicts[0].variants.length, 2); near(cat.conflicts[0].variants[1].definitions[0].target, 6);
+  assert.equal(cat.conflicts.length, 1); assert.equal(cat.conflicts[0].variants.length, 2); assert.equal(cat.conflicts[0].variants[1].definitions[0].target,null);
   const record = M.recordFromCatalog(cat, { name: 'C' }, { custom_speed: true }); assert.equal(record.enabled.custom_speed, false); assert.equal(record.customTests.length, 0);
   near(first.definitions.at(-1).target, 18); near(second.definitions.at(-1).target, 21.6); assert.equal(M.validateCatalog(cat), true);
 });
@@ -117,7 +117,7 @@ test('migrating a legacy library merges its custom catalog but ignores personal 
   const r = customRecord(); r.athlete.name = 'A'; r.definitions.find(d => d.id === 'cmj_height').target = 999; r.protocol.cmj = 'A个人协议';
   const lib = M.libraryDefaults(); delete lib.catalog; lib.athletes = [{ id: r.athleteId, name: 'A', records: [r] }];
   const normalized = M.normalizeLibrary(lib);
-  assert.ok(normalized.catalog.tests.some(t => t.id === 'custom_speed')); assert.equal(normalized.catalog.definitions.find(d => d.id === 'cmj_height').target, 50); assert.notEqual(normalized.catalog.protocol.cmj, 'A个人协议');
+  assert.ok(normalized.catalog.tests.some(t => t.id === 'custom_speed')); assert.equal(normalized.catalog.definitions.find(d => d.id === 'cmj_height').target, null); assert.notEqual(normalized.catalog.protocol.cmj, 'A个人协议');
   assert.equal(normalized.athletes[0].records[0].definitions.find(d => d.id === 'cmj_height').target, 999); assert.deepEqual(copy(M.normalizeLibrary(normalized)), copy(normalized));
 });
 

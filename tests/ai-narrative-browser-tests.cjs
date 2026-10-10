@@ -3,7 +3,7 @@ const fs=require("node:fs"),path=require("node:path"),assert=require("node:asser
 const {createHash}=require("node:crypto"),{pathToFileURL}=require("node:url");
 const {chromium}=require("./helpers/playwright.cjs");
 const {chartFixture}=require("./helpers/chart-ai-fixture.cjs");
-const root=path.resolve(__dirname,".."),file=path.join(root,"Ringside_Boxing_Assessment.html"),out=path.join(root,"output/ai/narrative-flow.json");
+const root=path.resolve(__dirname,".."),file=path.join(root,"MotionBench.html"),out=path.join(root,"output/ai/narrative-flow.json");
 const result={sourceHash:createHash("sha256").update(fs.readFileSync(file)).digest("hex"),synthetic:true,liveQualityEvidence:false,checks:[],errors:[]};
 (async()=>{const browser=await chromium.launch();try{
   const context=await browser.newContext({viewport:{width:1440,height:1000}}),page=await context.newPage();

@@ -7,9 +7,9 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("./helpers/playwright.cjs");
 const root = path.resolve(__dirname, "..");
 const output = path.join(root, "output/playwright/visual-upgrade");
-const baseline = "output/backups/visual-upgrade-pre-implementation-20261006/Ringside_Boxing_Assessment.html";
+const baseline = "output/backups/visual-upgrade-pre-implementation-20261006/MotionBench.html";
 const digest = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
-const result = { sourceHash: digest(path.join(root, "Ringside_Boxing_Assessment.html")), baselineHash: digest(path.join(root, baseline)), layouts: [], contrast: [], errors: [], network: [], images: [] };
+const result = { sourceHash: digest(path.join(root, "MotionBench.html")), baselineHash: digest(path.join(root, baseline)), layouts: [], contrast: [], errors: [], network: [], images: [] };
 
 async function checkLongRadarLabels(page) {
   result.radarLabels = [];
@@ -85,7 +85,7 @@ async function capture(page, version, name) {
 (async () => {
   const browser = await chromium.launch({ headless: true });
   try {
-    for (const [version, file] of [["before", baseline], ["after", "Ringside_Boxing_Assessment.html"]]) {
+    for (const [version, file] of [["before", baseline], ["after", "MotionBench.html"]]) {
       const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, locale: "zh-CN", timezoneId: "Asia/Shanghai", offline: true });
       const page = await context.newPage();
       await page.clock.setFixedTime(new Date("2026-10-06T15:43:00Z"));

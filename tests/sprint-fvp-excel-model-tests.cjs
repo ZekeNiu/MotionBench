@@ -1,7 +1,7 @@
 "use strict";
 const assert = require("node:assert/strict"), fs = require("node:fs"), path = require("node:path"), vm = require("node:vm");
 global.window = global; global.ExcelJS = require("../vendor/exceljs.min.js");
-for (const name of ["calc", "sprint-fvp", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation", "interventions", "excel", "entry-session", "sprint-fvp-entry"]) vm.runInThisContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"));
+for (const name of ["calc", "sprint-fvp", "fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "evaluation", "interventions", "excel", "entry-session", "sprint-fvp-entry"]) vm.runInThisContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"));
 const M = RingsideModel, X = RingsideExcel, F = RingsideSprintFVP, S = RingsideEntrySession, E = RingsideSprintFVPEntry;
 const {manifest, column} = require("./helpers/excel-template.cjs"), copy = value => JSON.parse(JSON.stringify(value));
 let passed = 0;

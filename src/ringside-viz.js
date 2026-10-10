@@ -399,7 +399,7 @@
 
   function abilityList(items) {
     return (
-      '<div class="ability-comparison table-wrap"><table><thead><tr><th scope="col">能力</th><th scope="col">目标达成</th></tr></thead><tbody>' +
+      '<div class="ability-comparison table-wrap"><table><thead><tr><th scope="col">能力</th><th scope="col">能力评分</th></tr></thead><tbody>' +
       items
         .map(
           (item) =>
@@ -408,7 +408,7 @@
             '</td><td><strong style="color:' +
             color(item.status) +
             '">' +
-            (num(item.value) === null ? "—" : fmt(num(item.value), 0) + "%") +
+            (num(item.value) === null ? "—" : fmt(num(item.value), 0) + " / 100") +
             "</strong></td></tr>",
         )
         .join("") +

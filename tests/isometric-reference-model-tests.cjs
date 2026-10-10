@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("node:fs"),path=require("node:path"),vm=require("node:vm"),assert=require("node:assert/strict");
 const c=vm.createContext({console,Intl,crypto:require("node:crypto").webcrypto});c.window=c;
-for(const name of ["calc","fvp","cpet-reference","iso-reference","definitions","tests","model","evaluation","interventions","viz","report"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),c);
+for(const name of ["calc","fvp","cpet-reference","iso-reference","definitions","tests","scoring", "model","evaluation","interventions","viz","report"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),c);
 const M=c.RingsideModel,E=c.RingsideEvaluation,I=c.RingsideIsoReferences,R=c.RingsideReport,copy=v=>JSON.parse(JSON.stringify(v));
 let passed=0;const near=(a,b)=>assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
 function test(name,fn){try{fn();passed++;console.log("PASS "+name);}catch(error){console.error("FAIL "+name+"\n"+error.stack);process.exit(1);}}
@@ -125,10 +125,10 @@ test("a one-time shared scheme seed fills only blanks and excludes demo-only pro
 test("capture editor roundtrip shared resolution and exports preserve reference edits but no raw overrides",()=>{
  const r=athlete(),p=E.create(r);assert.equal(p.isoReferencesVersion,1);const draft=E.template(p),x=row(draft,"shoulder","abduction");x.reference.groups[0].values.DOM=3;
  const before=copy(r.data);p.criteria=E.fromTemplate(draft,p);E.validateProfile(p);const resolved=E.resolve(r,p);near(M.effectiveIsoTarget(resolved,row(resolved,"shoulder","abduction"),"R").target,210);assert.deepEqual(copy(r.data),before);
- const envelope=M.recordEnvelope(resolved,p);assert.equal(envelope.profile.criteria.iso.find(v=>v.id===x.id).reference.groups[0].values.DOM,3);const imported=E.migrate({schema:3,kind:"athlete-library",evaluationProfiles:[p],athletes:[{id:r.athleteId,records:[{...r,evaluationProfileId:p.id}]}]});assert.equal(imported.evaluationProfiles[0].criteria.iso.find(v=>v.id===x.id).reference.groups[0].values.DOM,3);
+ const envelope=M.recordEnvelope(resolved,p);assert.equal(envelope.evaluationProfile.standards.find(v=>v.kind==="iso"&&v.directionId===x.id).reference.groups[0].values.DOM,3);const imported=E.migrate({schema:3,kind:"athlete-library",evaluationProfiles:[p],athletes:[{id:r.athleteId,records:[{...r,evaluationProfileId:p.id}]}]});assert.equal(imported.evaluationProfiles[0].criteria.iso.find(v=>v.id===x.id).reference.groups[0].values.DOM,3);
 });
 test("measurement condition mismatches disable reference targets as well as manual targets",()=>{
- const r=athlete(),p=E.create(r),x=row(r,"shoulder","abduction");x.protocol="另一协议";const out=E.resolve(r,p),value=row(out,"shoulder","abduction");assert.equal(value.reference,undefined);assert.equal(M.effectiveIsoTarget(out,value,"L").target,null);
+ const r=athlete(),p=E.create(r),x=row(r,"shoulder","abduction");x.protocolIdentity.version++;const out=E.resolve(r,p),value=row(out,"shoulder","abduction");assert.equal(value.reference,undefined);assert.equal(M.effectiveIsoTarget(out,value,"L").target,null);
 });
 test("standalone materialization and real import preserve deliberately blank shared targets",()=>{
  const r=M.normalizeRecord(athlete()),p=E.create(r),rule=p.criteria.iso.find(v=>v.id==="iso_shoulder_abduction");rule.target="";delete rule.reference;

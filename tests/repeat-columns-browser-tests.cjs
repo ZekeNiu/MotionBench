@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict"),{createHash}=require("node:crypto"),{pathToFileURL}=require("node:url");
 const {chromium}=require("./helpers/playwright.cjs");
-const root=path.resolve(__dirname,".."),source=path.join(root,"Ringside_Boxing_Assessment.html"),out=path.join(root,"output/playwright/repeat-columns"),demo=path.join(root,"output/demo"),pdfOut=path.join(root,"output/pdf");
+const root=path.resolve(__dirname,".."),source=path.join(root,"MotionBench.html"),out=path.join(root,"output/playwright/repeat-columns"),demo=path.join(root,"output/demo"),pdfOut=path.join(root,"output/pdf");
 const sha=p=>createHash("sha256").update(fs.readFileSync(p)).digest("hex"); fs.mkdirSync(out,{recursive:true});
 const evidence={sourceHash:sha(source),checks:[],layouts:[],images:[],downloads:[],errors:[],network:[],pass:false};
 const screensOnly=process.argv.includes("--screens-only");let browser,page;

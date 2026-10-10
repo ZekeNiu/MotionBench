@@ -3,7 +3,7 @@ const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("n
 const copy=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
 const content=record=>{const value=copy(record);delete value.updated;return JSON.stringify(value);};
 const model=vm.createContext({console,Intl,crypto:crypto.webcrypto});model.window=model;
-for(const name of ["calc","fvp","sprint-fvp","cpet-reference","definitions","tests","model"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),model);
+for(const name of ["calc","fvp","sprint-fvp","cpet-reference","definitions","tests","scoring", "model"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),model);
 const M=model.RingsideModel,app=fs.readFileSync(path.join(__dirname,"../src/ringside-app.js"),"utf8");
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function deferred(){let resolve;const promise=new Promise(done=>{resolve=done;});return{promise,resolve};}

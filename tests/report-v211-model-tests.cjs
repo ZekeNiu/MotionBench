@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("node:fs"),vm=require("node:vm"),assert=require("node:assert/strict");
 const context=vm.createContext({console,Intl,crypto:require("node:crypto").webcrypto});context.window=context;
-for(const name of ["calc", "fvp","definitions","tests","model","evaluation","interventions","viz","report"])vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`,"utf8"),context);
+for(const name of ["calc", "fvp","definitions","tests","scoring", "model","evaluation","interventions","viz","report"])vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`,"utf8"),context);
 const M=context.RingsideModel,R=context.RingsideReport;
 const direction=(html,key)=>html.match(new RegExp(`<article[^>]*data-capability-direction="${key}"[^>]*>[\\s\\S]*?<\\/article>`))?.[0]||"";
 const parameter=(html,id)=>html.match(new RegExp(`<tr[^>]*data-capability-metric="${id}"[^>]*>[\\s\\S]*?<\\/tr>`))?.[0]||"";

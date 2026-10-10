@@ -451,6 +451,11 @@
   function convertDefinition(input, legacy = false) {
     const d = clone(input);
     if (!d.legacyManual) ["name","protocol"].forEach(key => { d[key] = Def.factoryText(d.id,key,d[key]); });
+    d.protocolIdentity ||= protocolIdentity("metric:" + d.id, d.protocol);
+    if (!d.legacyManual && d.measurementScale === undefined && d.ratioEligible === undefined) {
+      const factory = extraDefs().find(value=>value.id===d.id && value.testId===d.testId);
+      if (factory?.measurementScale) d.measurementScale = factory.measurementScale;
+    }
     d.ranges = Array.isArray(d.ranges) ? d.ranges : [];
     if (d.unit === "km/h") {
       if (N(d.target) !== null) d.target = N(d.target) / 3.6;
@@ -476,7 +481,7 @@
   }
   function defaults() {
     const rows = isoRows();
-    return {
+    const record = {
       schema: 2,
       capabilityVersion: 1,
       fvpVersion: 1,
@@ -584,7 +589,7 @@
         fvp_cmj: "双手叉腰；统一反向动作与起跳姿势；分负荷测量跳跃高度和推进距离；同负荷选最高有效试次",
         sprint_fvp: "静止起跑；从首次推进动作计时；至少 4 个加速分段；同末段距离选最快完整有效试次",
         dj: "双手叉腰；记录跌落高度；落地后立即反弹；RSI 为垂直跳跃高度/触地时间。",
-        hop: "垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按垂直跳跃高度/触地时间选最高5个；保留实际数量。",
+        hop: "10/5 Hop Test 连续反应跳；录入整次测试汇总结果，记录设备筛选依据、总跳数、有效跳数及采用跳数。",
         cmrj: "双手叉腰；最大 CMJ 后落地立即反弹；分别记录首跳和第二跳。",
         imtp: "IMTP；姿势、固定方式、采样率与力起点待记录",
         iso: "",
@@ -676,6 +681,26 @@
         revision: 0,
       },
     };
+    stampProtocolIdentities(record);
+    return record;
+  }
+
+  function protocolIdentity(scope, description) {
+    const text = scope + "\n" + canonicalProtocolText(scope.replace(/^test:/,""),description);
+    let first = 2166136261, second = 2246822519;
+    for (let i = 0; i < text.length; i++) { first = Math.imul(first ^ text.charCodeAt(i), 16777619); second = Math.imul(second ^ text.charCodeAt(i), 3266489917); }
+    return { id: "protocol_" + (first >>> 0).toString(16).padStart(8,"0") + (second >>> 0).toString(16).padStart(8,"0"), version: 1 };
+  }
+  function canonicalProtocolText(testId, description) {
+    const text=String(description || ""),prior="垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按垂直跳跃高度/触地时间选最高5个；保留实际数量。";
+    return testId === "hop" && [prior,"垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按跳高/触地时间选最高5个；保留实际数量。","10/5 Hop Test 连续反应跳；录入整次测试汇总结果，记录设备筛选依据、总跳数、有效跳数及采用跳数。"].includes(text) ? prior : text;
+  }
+  function stampProtocolIdentities(source) {
+    source.protocolIdentities ||= {};
+    for (const id of new Set([...Object.keys(source.protocol || {}),...(source.definitions || []).map(d=>d.testId),...(source.tests || source.customTests || []).map(test=>test.id)])) source.protocolIdentities[id] ||= protocolIdentity("test:" + id, Def.factoryText(id,"testProtocol",source.protocol?.[id] || ""));
+    for (const d of source.definitions || []) d.protocolIdentity ||= protocolIdentity("metric:" + d.id, d.legacyManual ? d.protocol : Def.factoryText(d.id,"protocol",d.protocol));
+    for (const row of source.data?.iso || []) row.protocolIdentity ||= protocolIdentity("iso:" + row.id, row.protocol || source.protocol?.iso);
+    return source;
   }
 
   function textToHTML(text) {
@@ -1086,6 +1111,9 @@
         (x) => ["imtp", "cmj", "sj", "dj", "hop", "cmrj", "cpet", ...ADDED_FVP_IDS].includes(x.testId) && T.isNative(out,x.testId) && !existing.has(x.id),
       )
       .forEach((x) => out.definitions.push(x));
+    out.protocolIdentities = clone(s.protocolIdentities || {});
+    stampProtocolIdentities(out);
+    if (s.measurementPolicyVersion !== 1) migrateMeasurementPolicy(out, s);
     out.projectSnapshots = T.snapshots(out);
     T.describe(out).forEach((test) => {
       if (!T.isNative(out,test.id) && test.repeatPolicy.fields.length) {
@@ -1224,7 +1252,36 @@
     }
     out.narrative.text = htmlToText(out.narrative.html);
     delete out.narratives;
+    out.measurementPolicyVersion = 1;
+    if (s.measurementPolicyVersion !== 1 && out.measurementMigration) {
+      const after = repeatAnalysis(out);
+      out.measurementMigration.representatives = after.map(group => {
+        const before = out.measurementMigration.representatives.find(prior => prior.key === group.key && prior.testId === group.testId);
+        return { testId: group.testId, key: group.key, before: before?.before || {}, after: clone(group.representatives), selectedBefore: before?.selectedBefore || [], selectedAfter: group.selectedIds,
+          changed: before ? canonicalJSON(before.before) !== canonicalJSON(group.representatives) || canonicalJSON(before.selectedBefore) !== canonicalJSON(group.selectedIds) : false };
+      });
+    }
     return out;
+  }
+
+  function migrateMeasurementPolicy(record, original) {
+    const prior = repeatAnalysis(record, { legacySelection: true });
+    const decisions = [];
+    for (const test of T.describe(record)) {
+      const saved = (original.projectSnapshots || original.tests || []).find(item => item.id === test.id) || (original.customTests || []).find(item => item.id === test.id);
+      if (T.isNative(record, test.id)) continue;
+      const primary = record.definitions.find(d => d.id === (saved?.primaryMetricId || test.repeatPolicy.primaryMetricId));
+      const explicit = ["higher", "lower"].includes(saved?.selectionDirection), known = explicit || ["higher", "lower"].includes(primary?.direction);
+      const direction = explicit ? saved.selectionDirection : known ? primary.direction : "higher";
+      for (const list of [record.projectSnapshots || [], record.customTests || []]) {
+        const item = list.find(item => item.id === test.id);
+        if (item) { item.selectionDirection = direction; if (!known) item.selectionNeedsReview = true; }
+      }
+      decisions.push({ testId: test.id, primaryMetricId: primary?.id || null, selectionDirection: direction, status: known ? "confirmed" : "review",
+        basis: explicit ? "stored-measurement-rule" : known ? "legacy-measurement-definition" : "legacy-selection-preserved" });
+    }
+    record.measurementMigration = { version: 1, decisions, reviewRequired: decisions.some(item => item.status === "review"),
+      representatives: prior.map(group => ({ testId: group.testId, key: group.key, before: clone(group.representatives), selectedBefore: group.selectedIds })) };
   }
 
   function normalizeIMTP(input) {
@@ -1263,13 +1320,14 @@
     return row;
   }
   function imtpTimeContext(record) {
-    return { protocol: record.protocol?.imtp || "", force: { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } };
+    return { protocol: record.protocol?.imtp || "", protocolIdentity: record.protocolIdentities?.imtp || protocolIdentity("test:imtp",record.protocol?.imtp), force: { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } };
   }
   function imtpTimeStandard(record, timeMs, kind) {
     const rule = (record.imtpTimeStandards || []).find(r => r.timeMs === timeMs && r.kind === kind);
     if (rule) {
       const current = imtpTimeContext(record), context = rule.context;
-      const matched = rule.matched !== false && context?.protocol === current.protocol &&
+      const identity = context?.protocolIdentity || protocolIdentity("test:imtp",context?.protocol);
+      const matched = rule.matched !== false && canonicalJSON(identity) === canonicalJSON(current.protocolIdentity) &&
         context.force?.unit === current.force.unit && context.force?.definition === current.force.definition;
       return { ...clone(rule), unit: kind === "force_pct_peak" ? "%PF" : "N/s", matched,
         referenceEnabled: matched && rule.referenceEnabled, target: matched ? rule.target : null,
@@ -1611,7 +1669,7 @@
       !definition ||
       N(value) === null ||
       positive(definition.target) === null ||
-      !definition.referenceEnabled
+      !definition.referenceEnabled || definition.targetEnabled === false
     )
       return null;
     if (definition.direction === "lower")
@@ -1677,7 +1735,15 @@
           }));
     if (action === "clear") definition.referenceEnabled = false;
     definition.unit = unit;
+    for (const axis of Object.values(next.axes || {})) {
+      const transform = axis.transforms?.["metric:" + id] || axis.transforms?.[id];
+      if (!transform) continue;
+      if (action === "clear") { delete axis.transforms["metric:" + id]; delete axis.transforms[id]; axis.migrationIssue = "测量单位已改变，请重新配置计分规则"; }
+      else if (transform.kind === "anchors") transform.points.forEach(point => { point.value = transformValue(point.value); });
+      else if (transform.kind === "table") transform.ranges.forEach(range => { for (const key of ["min", "max"]) if (range[key] != null) range[key] = transformValue(range[key]); });
+    }
     return next;
+    function transformValue(value) { const result = N(value) * factor; if (!Number.isFinite(result)) throw Error("计分规则换算超出有效数值范围"); return result; }
   }
   function targetStatus(value, definition, record) {
     if (definition?.referenceEnabled && definition.ranges?.length)
@@ -2142,7 +2208,7 @@
     if (!Array.isArray(record.data[testId])) record.data[testId] = [{ id: uid(), metrics: {}, notes: "" }];
     return record.data[testId];
   }
-  function repeatAnalysis(record) {
+  function repeatAnalysis(record, options = {}) {
     const groups = [];
     const field = (id, key, label, unit, options = {}) => ({
       id, key, label, unit, cvEligible: true, minimum: 0, ...options,
@@ -2229,7 +2295,7 @@
         const metricId = id === "ift" ? record.data.ift.protocol === "treadmill" ? "ift_treadmill" : "ift_shuttle" : id + "_speed";
         add(id, id, test.name, [field(metricId, "speed", id === "ift" ? "VIFT" : "速度", "m/s", { positive: true, read: (row) => speedMS(row, record.data[id].unit) }), ...extras], rows, metricId);
       } else {
-        add(id, id, test.name, extras, rows, test.repeatPolicy.primaryMetricId, test.repeatPolicy.direction);
+        add(id, id, test.name, extras, rows, test.repeatPolicy.primaryMetricId, options.legacySelection ? test.repeatPolicy.direction || "higher" : test.repeatPolicy.selectionDirection || "higher");
       }
     });
     return groups;
@@ -2889,6 +2955,7 @@
       axisValues[definition.id] = result?.evaluationValid ? result.evaluationValue : null;
       return { ...definition, unit: result?.evaluationUnit || definition.unit,
         referenceEnabled: !!result?.referenceEnabled, target: result?.referenceEnabled ? standard.target : null,
+        targetEnabled: !!result?.referenceEnabled && standard?.targetEnabled !== false,
         ranges: result?.referenceEnabled ? standard.ranges : [], direction: standard?.direction || definition.direction };
     });
     axisDefinitions
@@ -2896,35 +2963,54 @@
         (d) =>
           d.category === "performance" && d.scoring !== false &&
           use(d.testId) &&
-          T.abilityName(d.ability) &&
-          attainment(axisValues[d.id], d) !== null,
+          T.abilityName(d.ability),
       )
       .forEach((d) => {
         const label = T.abilityName(d.ability);
         if (!groups.has(label)) groups.set(label, []);
         groups.get(label).push(d);
       });
+    const aggregationIssues = [];
     const axes = [...groups].map(([label, defs]) => {
       const cfg = T.axisConfig(state, label) || {
           method: "primary",
-          primary: defs[0].id,
-        },
-        chosen =
-          cfg.method === "primary"
-            ? [defs.find((d) => d.id === cfg.primary) || (replacedTimeIds.has(cfg.primary) ? null : defs[0])].filter(Boolean)
-            : defs;
-      if (!chosen.length) return null;
-      const scores = chosen.map((d) => attainment(axisValues[d.id], d)),
-        value =
-          cfg.method === "min"
-            ? Math.min(...scores)
-            : scores.reduce((a, b) => a + b, 0) / scores.length;
-      const knownStatuses = chosen
-        .map((d) => targetStatus(axisValues[d.id], d, state))
-        .filter((s) => s !== "gray");
-      const status = knownStatuses.length
-        ? knownStatuses.reduce((a, s) => (rank[s] > rank[a] ? s : a), "green")
-        : "gray";
+          primary: defs.find(d => d.referenceEnabled && positive(d.target) !== null)?.id || "",
+        };
+      const missing = reason => { aggregationIssues.push({ ability: label, reason }); return null; };
+      if (!["primary", "mean"].includes(cfg.method)) return missing(cfg.migrationIssue || "原汇总方式已停用");
+      const findMember = id => {
+        const plain = String(id).replace(/^metric:/, "");
+        if (String(id).startsWith("imtp-time:")) {
+          const [,kind,time] = id.split(":"), result = imtpTimeResults.find(result => result.kind === (kind === "force_pct_peak" ? "force" : kind) && result.timeMs === Number(time));
+          if (!result) return null;
+          return { definition: { ...result.standard, id: result.id, name: result.name, unit: result.evaluationUnit, testId: "imtp", ability: label, referenceEnabled: result.referenceEnabled, measurementScale: "ratio", zeroValid: false }, value: result.evaluationValid ? result.evaluationValue : null, subjectId: id };
+        }
+        const d = defs.find(d => d.id === plain);
+        return d ? { definition: d, value: axisValues[d.id], subjectId: "metric:" + d.id } : null;
+      };
+      const members = cfg.method === "primary" ? [cfg.primary] : cfg.members;
+      if (!Array.isArray(members) || !members.length || new Set(members).size !== members.length) return missing("请选择固定的参与指标");
+      const selected = members.map(findMember);
+      if (selected.some(member => !member || N(member.value) === null)) return missing("选定指标缺少有效结果");
+      const chosen = selected.map(member => member.definition);
+      let scores, status;
+      if (cfg.method === "primary") {
+        scores = [attainment(selected[0].value, chosen[0])];
+        if (scores[0] === null) return missing("代表指标未配置适用目标");
+        status = targetStatus(selected[0].value, chosen[0], state);
+      } else {
+        const transformed = selected.map((member, index) => {
+          const d = member.definition, transform = cfg.transforms?.[members[index]];
+          const match = state.evaluationStandards?.find(standard => standard.subjectId === member.subjectId);
+          return root.RingsideScoring?.evaluate(member.value, transform, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
+            applicable: match ? match.enabled && match.applicable : d.referenceEnabled,
+            subject: { measurementScale: root.RingsideEvaluation?.measurementScale(d) || d.measurementScale || "unknown", zeroValid: d.zeroValid === true || d.id === "pushup_reps" } }) || { valid: false, reason: "计分模块未加载" };
+        });
+        if (transformed.some(result => !result.valid)) return missing(transformed.find(result => !result.valid).reason);
+        scores = transformed.map(result => result.score);
+        status = cfg.ranges?.length ? grade(scores.reduce((a,b) => a+b,0)/scores.length, { referenceEnabled: true, ranges: cfg.ranges }).status : "gray";
+      }
+      const value = scores.reduce((a,b) => a+b,0)/scores.length;
       return {
         key: label,
         label: T.abilityLabel(state, label),
@@ -2932,6 +3018,7 @@
         defs: chosen,
         method: cfg.method,
         scores,
+        members: selected.map(member => member.subjectId),
         status,
         tooltip: chosen
           .map((d) => T.metricName(d) + " " + fmt(axisValues[d.id]) + " " + d.unit)
@@ -3115,29 +3202,7 @@
       reason: "",
     };
     if (!advantages.items.length) {
-      if (axes.length < 2)
-        advantages.reason = "有效评分维度不足，尚不能区分相对强项";
-      else if (axes.every((a) => Math.abs(a.value - axes[0].value) < 1e-9))
-        advantages.reason = "各维度评分相同，尚不能区分相对强项";
-      else
-        advantages = {
-          items: [...axes]
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 2)
-            .map((a) => ({
-              id: a.key,
-              label: a.label,
-              ability: a.key,
-              score: a.value,
-              value: a.value,
-              unit: "%",
-              detail: "相对强项 · 目标达成度 " + fmt(a.value, 1) + "%",
-              status: "gray",
-              relative: true,
-            })),
-          relative: true,
-          reason: "依据本次有效能力评分比较",
-        };
+      advantages.reason = "尚无命中已配置优势区间的指标";
     }
     // Body details are a read model of the same representative results. They
     // never add findings or change the individual scoring rules.
@@ -3239,7 +3304,7 @@
       date: state.athlete.date,
     };
     const cards = capabilityCards(state, values, raw, derived, {fvp,sprintElasticity});
-    return {
+    const result = {
       values,
       fvp,
       sprintFvp,
@@ -3252,6 +3317,7 @@
       representativeData: state.data,
       raw,
       axes,
+      aggregationIssues,
       validTests,
       signals: {
         regions,
@@ -3265,6 +3331,43 @@
       lvpSeries,
       qualityIssues,
     };
+    result.evaluationResults = evaluationResults(state, result);
+    return result;
+  }
+
+  // Every consumer receives the same effective grade, target and aggregation contribution.
+  function evaluationResults(record, computed) {
+    const results = [], standards = new Map((record.evaluationStandards || []).map(rule => [rule.subjectId, rule]));
+    function add(subjectId, value) {
+      const rule = standards.get(subjectId), contributions = computed.axes.flatMap(axis => axis.members.flatMap((id, index) => id === subjectId ? [{ ability: axis.key, method: axis.method, score: axis.scores[index], transform: clone(T.axisConfig(record, axis.key)?.transforms?.[id] || { kind: "ratio", direction: value.direction || "higher" }) }] : []));
+      results.push({ subjectId, kind: subjectId.split(":")[0], value: null, unit: "", target: null, attainment: null,
+        grade: { status: "gray", label: "未设置评价", range: null }, applicable: rule ? rule.enabled && rule.applicable : record.evaluationProfileFormat !== 2,
+        targetApplicable: rule?.targetApplicable ?? record.evaluationProfileFormat !== 2, rangesApplicable: rule?.rangesApplicable ?? record.evaluationProfileFormat !== 2,
+        reason: rule?.reason || "", schemeRevision: record.evaluationProfileRevision || null, scoreContributions: contributions, ...value });
+    }
+    const timeIds = new Set(computed.imtpTimeResults.map(result => result.id));
+    for (const d of record.definitions) if (record.enabled[d.testId] && !timeIds.has(d.id)) {
+      const value = N(computed.values[d.id]);
+      add("metric:" + d.id, { metricId: d.id, testId: d.testId, name: T.metricName(d), value, unit: d.unit, direction: d.direction,
+        grade: evaluation(value, d, record), target: d.targetEnabled === false || !d.referenceEnabled ? null : N(d.target), attainment: attainment(value, d),
+        reference: d.referenceMatch || null, source: d.source || "" });
+    }
+    for (const result of computed.imtpTimeResults) {
+      const kind = result.kind === "force" ? "force_pct_peak" : "rfd";
+      const id = result.standard ? "imtp-time:" + kind + ":" + result.timeMs : "metric:" + result.id;
+      add(id, { metricId: result.id, testId: "imtp", timeMs: result.timeMs, name: result.name, value: result.evaluationValue, unit: result.evaluationUnit,
+        rawValue: result.value, rawUnit: result.unit, target: result.referenceEnabled ? result.target : null, grade: result.evaluation,
+        attainment: result.evaluationValid ? attainment(result.evaluationValue, result.standard) : null, source: result.source });
+    }
+    for (const row of computed.isoAnalyses) for (const side of row.sides) add("iso:" + row.id, { testId: "iso", directionId: row.id, side: side.side, name: row.direction, value: side.value, unit: row.unit,
+      target: side.target, attainment: side.value !== null && positive(side.target) !== null ? Calc.score(side.value, side.target) : null,
+      grade: { status: side.status, label: side.label, range: null }, reference: side.referenceComparison, source: side.referenceSource,
+      reason: side.reasons.join("；") || side.referenceReason || "" });
+    for (const pair of computed.balanceResults) for (const side of pair.results) add("balance:" + pair.id, { testId: "iso", pairId: pair.id, side: side.side, name: pair.label, value: side.value, unit: "比值",
+      grade: { status: side.status, label: side.label, range: null }, reference: side.referenceComparison, source: side.referenceSource, reason: side.reason || side.evaluationReason });
+    for (const [index, item] of (computed.raw.fms?.items || []).entries()) add("fms:" + index, { testId: "fms", kind: "fixed", name: item.name, value: item.value, unit: "分", applicable: true,
+      grade: { status: item.status, label: Def.assessmentLabel(item.status, item.value === null ? "未测" : "已测"), range: null } });
+    return results;
   }
 
   function recordProgressDetail(record, testId, computed) {
@@ -3443,7 +3546,7 @@
     // Real measurements, changed protocols/standards and explicit switches remain inputs.
     const data = clone(record.data), enabled = { ...record.enabled }, protocol = { ...record.protocol };
     if (T.isNative(record, "sprint_fvp")) for (const trial of data.sprint_fvp || []) for (const split of trial.splits || []) delete split.id;
-    for (const row of data.iso || []) if (row.reference === null) delete row.reference;
+    for (const row of data.iso || []) { if (row.reference === null) delete row.reference; if (row.protocolIdentity?.version === 1) delete row.protocolIdentity; }
     // Factory display-name cleanup alone keeps the original serialized narrative basis.
     for (const row of data.iso || []) if (["neck","trunk"].includes(row.region) && ["lateralFlexion","rotation"].includes(row.directionCode)) {
       const label = row.directionCode === "lateralFlexion" ? "侧屈" : "旋转";
@@ -3492,6 +3595,7 @@
       return !empty(value) && value !== false;
     };
     const defaultProtocol = defaults().protocol;
+    const matchesDefaultProtocol = id => !protocol[id] || protocol[id] === defaultProtocol[id] || id === "hop" && ["垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按跳高/触地时间选最高5个；保留实际数量。", "垂直连续反应跳；≤5 个有效跳按已筛选数据使用，>5 个按垂直跳跃高度/触地时间选最高5个；保留实际数量。"].includes(protocol[id]);
     const fvpConfig = clone(record.fvpConfig || {}), fvpAnalysis = clone(record.fvpAnalysis || {});
     const sprintFvpScenario = clone(record.sprintFvpAnalysis || {}), defaultSprintElasticity = sprintElasticityDefaults();
     // Additive default scenario/method fields preserve historical AI evidence.
@@ -3499,7 +3603,7 @@
     const defaultFvpConfig = fvpConfigDefaults(), defaultFvpAnalysis = fvpAnalysisDefaults();
     const sameFvpDefaults = (value, base) => Object.keys({ ...base, ...value }).every(key => JSON.stringify(value?.[key] ?? base[key]) === JSON.stringify(base[key]));
     const cpetMeasured = data.cpet && [data.cpet.vo2,data.cpet.peakHr,data.cpet.rer,...["first","second"].flatMap(side => ["vo2","hr","speed","power"].map(key => data.cpet.thresholds?.[side]?.[key]))].some(value => !empty(value));
-    const invisible = new Set(["dj","hop","cmrj","cpet"].filter((id) => T.isNative(record,id) && !enabled[id] && !(id === "cpet" ? cpetMeasured || data.cpet?.protocol || data.cpet?.modality : meaningful(data[id])) && (!protocol[id] || protocol[id] === defaultProtocol[id])));
+    const invisible = new Set(["dj","hop","cmrj","cpet"].filter((id) => T.isNative(record,id) && !enabled[id] && !(id === "cpet" ? cpetMeasured || data.cpet?.protocol || data.cpet?.modality : meaningful(data[id])) && matchesDefaultProtocol(id)));
     FVP_IDS.forEach(id => {
       if (T.isNative(record,id) && !enabled[id] && !meaningful(data[id]) && (!protocol[id] || protocol[id] === defaultProtocol[id]) && sameFvpDefaults(fvpConfig[id], defaultFvpConfig) && sameFvpDefaults(fvpAnalysis[id], defaultFvpAnalysis)) invisible.add(id);
       if (invisible.has(id)) { delete fvpConfig[id]; delete fvpAnalysis[id]; }
@@ -3511,13 +3615,36 @@
     invisible.forEach((id) => { delete data[id]; delete enabled[id]; delete protocol[id]; });
     Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
     const projection = definition => {
-      const { referenceMatch, referenceGroups, ...result } = definition;
+      const { referenceMatch, referenceGroups, targetEnabled, rangesEnabled, protocolIdentity, ...result } = definition;
+      if (protocolIdentity?.version > 1) result.protocolIdentity = protocolIdentity;
+      if (!T.isManualMetric(result) && result.measurementScale === "ratio") delete result.measurementScale;
       if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
       return result;
     };
     const extras = new Map(extraDefs().filter((d) => ["dj","hop","cmrj","cpet", ...ADDED_FVP_IDS].includes(d.testId) || /propulsive_|matched_|impulse250/.test(d.id)).map((d) => [d.id,projection(d)]));
     const same = (a,b) => [...new Set([...Object.keys(a),...Object.keys(b)])].every((key) => JSON.stringify(a[key]) === JSON.stringify(b[key]));
-    const definitions = withoutReplacedIMTPStandards(record).map(projection).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
+    const fingerprintRecord = { ...record, definitions: clone(record.definitions), imtpTimeStandards: (record.imtpTimeStandards || []).filter(rule=>!rule.legacyMetricId) };
+    for (const rule of (record.imtpTimeStandards || []).filter(rule=>rule.legacyMetricId)) {
+      const d = fingerprintRecord.definitions.find(d=>d.id===rule.legacyMetricId);
+      if (d) for (const key of ["target","ranges","direction","referenceEnabled","source"]) d[key]=clone(rule[key]);
+    }
+    const definitions = withoutReplacedIMTPStandards(fingerprintRecord).map(projection).filter((d) => !extras.has(d.id) || !same(d,extras.get(d.id)));
+    const fingerprintAxes = clone(record.axes || {});
+    for (const axis of Object.values(fingerprintAxes)) if (axis.method === "primary" && typeof axis.primary === "string") axis.primary = axis.primary.replace(/^metric:/, "");
+    for (const [key, axis] of Object.entries(fingerprintAxes)) {
+      const primary = fingerprintRecord.definitions.find(d=>{
+        const timeRule=fingerprintRecord.imtpTimeStandards.find(rule=>d.id==="imtp_"+(rule.kind==="force_pct_peak"?"f":"rfd")+rule.timeMs),effective=timeRule || d;
+        return T.axisKey(d.ability)===key && d.category==="performance" && d.scoring!==false && effective.referenceEnabled && positive(effective.target)!==null;
+      });
+      if (axis.method === "primary" && axis.primary === primary?.id) delete fingerprintAxes[key];
+    }
+    const fingerprintProjects = record.projectSnapshots?.filter(t => !invisible.has(t.id)).map(test => {
+      const result = { ...test }, primary = record.definitions.find(d => d.id === test.primaryMetricId) || record.definitions.find(d => d.testId === test.id && T.isAttemptMetric(d));
+      const priorDirection = T.isNative(record,test.id) ? "higher" : primary?.direction || "higher";
+      if (test.selectionDirection === priorDirection) delete result.selectionDirection;
+      delete result.selectionNeedsReview;
+      return result;
+    });
     const derivedEnabled = Object.fromEntries(Object.entries(record.derivedEnabled || {}).filter(([,enabled]) => enabled === false));
     const athlete = { ...record.athlete }, trainingContext = { ...record.trainingContext };
     delete athlete.birthDate;
@@ -3534,7 +3661,8 @@
       ...(changedDisabledEvaluation ? { evaluationSwitchBasis: "disabled-extension-standards-v1" } : {}),
       definitions,
       custom: record.customValues,
-      projects: record.projectSnapshots?.filter((t) => !invisible.has(t.id)),
+      projects: fingerprintProjects,
+      ...(Object.values(record.protocolIdentities || {}).some(identity=>identity.version>1) ? { protocolVersions: record.protocolIdentities } : {}),
       rules: record.rules,
       lvp: record.lvp,
       thresholds: record.thresholds,
@@ -3546,9 +3674,9 @@
       ...(!invisible.has("sprint_fvp") && T.isNative(record,"sprint_fvp") ? { sprintFvpConfig: record.sprintFvpConfig, ...(record.sprintFvpAnalysis !== undefined || Object.keys(sprintFvpScenario).length ? { sprintFvpAnalysis: sprintFvpScenario } : {}) } : {}),
       ...(record.impulseConfig?.confirmed ? { impulseConfig: record.impulseConfig } : {}),
       ...(Object.keys(derivedEnabled).length ? { derivedEnabled } : {}),
-      ...(record.imtpTimeStandards?.length ? { imtpTimeStandards: record.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
+      ...(fingerprintRecord.imtpTimeStandards.length ? { imtpTimeStandards: fingerprintRecord.imtpTimeStandards.map(({ matched, ...rule }) => rule).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind)) } : {}),
       balancePairs: fingerprintPairs,
-      axes: record.axes,
+      axes: fingerprintAxes,
       protocol,
     });
   }
@@ -3575,11 +3703,12 @@
     } catch (_) { return false; }
   }
   function recordEnvelope(record, profile, catalog) {
+    const evaluation = profile && (profile.formatVersion === 2 || profile.criteria);
     return {
       schema: 2,
       kind: "assessment-record",
       record: clone(record),
-      ...(profile ? { profile: clone(profile) } : {}),
+      ...(profile ? evaluation ? { evaluationProfile: root.RingsideEvaluation?.serializeProfile(profile) || clone(profile) } : { profile: clone(profile) } : {}),
       ...(catalog ? { catalog: clone(catalog) } : {}),
     };
   }
@@ -3615,17 +3744,24 @@
     const record = defaults();
     return {
       revision: 1,
+      measurementPolicyVersion: 1,
       capabilityVersion: 1,
       fvpVersion: 1,
       sprintFvpVersion: 1,
       tests: T.snapshots(record),
-      definitions: record.definitions,
+      definitions: record.definitions.map(catalogMetric),
       abilityGroups: T.abilityGroups(record),
       abilityGroupConflicts: [],
       protocol: record.protocol,
+      protocolIdentities: clone(record.protocolIdentities),
       conflicts: [],
       derivedEnabled: T.derivedDefaults(),
     };
+  }
+  function catalogMetric(definition) {
+    const d = { ...definition, target: null, ranges: [], referenceEnabled: false };
+    for (const key of ["reference", "referenceGroups", "referenceMode", "referenceMatch", "targetEnabled", "rangesEnabled", "context"]) delete d[key];
+    return d;
   }
   function normalizeCatalog(input) {
     const base = catalogDefaults(),
@@ -3636,6 +3772,10 @@
         ? catalog.revision
         : 1;
     catalog.tests = Array.isArray(catalog.tests) ? catalog.tests : base.tests;
+    for (const test of catalog.tests) if (!["higher", "lower"].includes(test.selectionDirection)) {
+      const metric = (catalog.definitions || []).find(d => d.id === test.primaryMetricId) || (catalog.definitions || []).find(d => d.testId === test.id && d.entryScope === "attempt");
+      test.selectionDirection = metric?.direction === "lower" ? "lower" : "higher";
+    }
     catalog.tests.forEach((test) => { if (["dj","hop","cmrj","cpet", ...ADDED_FVP_IDS].includes(test.id) && test.measurementVersion !== 1) test.legacyCustom = true; });
     catalog.derivedEnabled = { ...T.derivedDefaults(), ...catalog.derivedEnabled };
     base.tests.forEach((test) => {
@@ -3675,10 +3815,13 @@
     catalog.conflicts.forEach((conflict) => {
       conflict.variants = (conflict.variants || []).map((variant) => ({
         ...variant,
-        definitions: (variant.definitions || []).map(convertDefinition),
+        definitions: (variant.definitions || []).map(convertDefinition).map(catalogMetric),
         protocol: variant.test.legacyCustom ? migrateLegacySpeedText(variant.protocol || "", {}).text : Def.factoryText(variant.test.id,"testProtocol",migrateLegacySpeedText(variant.protocol || "", {}).text),
       }));
     });
+    catalog.definitions = catalog.definitions.map(catalogMetric);
+    stampProtocolIdentities(catalog);
+    catalog.measurementPolicyVersion = 1;
     return catalog;
   }
   function canonicalJSON(value) {
@@ -3702,6 +3845,7 @@
         catalog.definitions.filter((d) => d.testId === testId),
       ).sort((a, b) => a.id.localeCompare(b.id)),
       protocol: catalog.protocol[testId] || "",
+      protocolIdentity: clone(catalog.protocolIdentities?.[testId] || protocolIdentity("test:"+testId,catalog.protocol[testId])),
       source,
     };
   }
@@ -3710,12 +3854,14 @@
       canonicalJSON({
         test: a.test,
         definitions: a.definitions,
-        protocol: a.protocol,
+        protocol: canonicalProtocolText(a.test.id,a.protocol),
+        protocolIdentity: a.protocolIdentity,
       }) ===
       canonicalJSON({
         test: b.test,
         definitions: b.definitions,
-        protocol: b.protocol,
+        protocol: canonicalProtocolText(b.test.id,b.protocol),
+        protocolIdentity: b.protocolIdentity,
       })
     );
   }
@@ -3745,15 +3891,17 @@
           normalized.projectSnapshots.find((t) => t.id === test.id) || test,
         ),
         definitions: clone(
-          normalized.definitions.filter((d) => d.testId === test.id),
+          normalized.definitions.filter((d) => d.testId === test.id).map(catalogMetric),
         ).sort((a, b) => a.id.localeCompare(b.id)),
         protocol: normalized.protocol[test.id] || "",
+        protocolIdentity: clone(normalized.protocolIdentities[test.id] || protocolIdentity("test:"+test.id,normalized.protocol[test.id])),
         source,
       };
       if (!catalog.tests.some((t) => t.id === test.id)) {
         catalog.tests.push(clone(candidate.test));
         catalog.definitions.push(...clone(candidate.definitions));
         catalog.protocol[test.id] = candidate.protocol;
+        catalog.protocolIdentities[test.id] = clone(normalized.protocolIdentities[test.id] || protocolIdentity("test:"+test.id,candidate.protocol));
       } else if (!sameVariant(catalogVariant(catalog, test.id, ""), candidate))
         addConflict(test, candidate);
     });
@@ -3761,7 +3909,8 @@
       .filter(
         (d) => T.isManualMetric(d) && TESTS.some((t) => t[0] === d.testId),
       )
-      .forEach((definition) => {
+      .forEach((rawDefinition) => {
+        const definition = catalogMetric(rawDefinition);
         const existing = catalog.definitions.find(
           (d) => d.id === definition.id,
         );
@@ -3781,11 +3930,13 @@
         catalog.abilityGroupConflicts.push({ key: group.key, localName: existing.name, incomingName: group.name });
     }
     catalog.abilityGroups = T.abilityGroups(catalog);
+    stampProtocolIdentities(catalog);
     return catalog;
   }
   function recordFromCatalog(input, profile, enabled = {}, testDate = date()) {
     const catalog = normalizeCatalog(input),
       record = defaults();
+    record.measurementPolicyVersion = 1;
     record.derivedEnabled = clone(catalog.derivedEnabled);
     const blocked = new Set(
       catalog.conflicts.filter((c) => c.resolved !== true).map((c) => c.testId),
@@ -3804,6 +3955,7 @@
     record.trainingContext.experienceYears = profileFromRecord(profile).experienceYears;
     applyAge(record);
     record.projectSnapshots = T.snapshots(catalog);
+    record.protocolIdentities = clone(catalog.protocolIdentities);
     record.abilityGroupSnapshot = clone(T.abilityGroups(catalog));
     // This legacy value selects an existing metric ID, not a test method.
     // Normalize still uses the historical shuttle fallback for old records.
@@ -3842,7 +3994,8 @@
     if (!input || input.kind !== "athlete-library") {
       const record = normalizeRecord(input?.record || input),
         lib = libraryDefaults();
-      const profile = profileFromRecord(input?.profile || record);
+      const suppliedProfile = input?.profile;
+      const profile = profileFromRecord(suppliedProfile && !(suppliedProfile.formatVersion === 2 || suppliedProfile.criteria) ? suppliedProfile : record);
       lib.athletes.push({
         id: record.athleteId,
         name: profile.name || record.athlete.name || "未命名运动员",
@@ -4235,6 +4388,7 @@
     const projects = source.tests || source.projectSnapshots || source.customTests || [];
     projects.forEach((test) => {
       if (test.primaryMetricId === undefined || test.primaryMetricId === "") return;
+      if (!source.tests && source.enabled && source.enabled[test.id] !== true && !(source.definitions || []).some(d=>d.testId===test.id)) return;
       if (!safeId(test.primaryMetricId) || !(source.definitions || []).some((d) => d.id === test.primaryMetricId && d.testId === test.id && T.isAttemptMetric(d)))
         throw new Error("主指标须为该测试的试次指标");
     });
@@ -4424,6 +4578,8 @@
     )
       throw new Error("不是有效的 Ringside 报告数据");
     validateDataTree(input);
+    const identities = [...Object.values(input.protocolIdentities || {}), ...input.definitions.map(d=>d.protocolIdentity), ...(input.data.iso || []).map(row=>row.protocolIdentity)].filter(value=>value!==undefined);
+    for (const identity of identities) if (!plainObject(identity) || !safeId(identity.id) || !Number.isSafeInteger(identity.version) || identity.version<1) throw Error("测量协议身份或版本无效");
     validateDerivedOptions(input);
     if (input.views?.idsiWindow !== undefined && !["idsi_matched","idsi_fixed250"].includes(input.views.idsiWindow)) throw new Error("iDSI 积分时窗选项无效");
     if (input.views?.capabilitySelections !== undefined) {
@@ -5032,19 +5188,20 @@
     const candidate = normalizeRecord(input), original = normalizeRecord(legacySampleRecord());
     if (candidate.narrative.html !== original.narrative.html || candidate.narrative.text !== original.narrative.text || Object.keys(input.narrative || {}).some(key => !["html","text","updated","basis","origin","revision"].includes(key))) return { record:input, changed:false };
     const clean = (value, key = "") => {
-      if (["id","date","measurementVersion"].includes(key)) return undefined;
+      if (["id","date","measurementVersion","protocolIdentity"].includes(key)) return undefined;
       if (Array.isArray(value)) return value.map(item => clean(item));
       if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([k,v]) => [k,clean(v,k)]).filter(([,v]) => v !== undefined && v !== "" && v !== null));
       return value;
     };
     // Compare every original measurement and identity/context field. Added tests must be empty.
     const originalTests = entries => Object.fromEntries(Object.entries(entries).filter(([id]) => !["dj","hop","cmrj","cpet"].includes(id)));
-    const core = record => ({ athlete:clean(record.athlete), data:clean(originalTests(record.data)), enabled:originalTests(record.enabled), protocol:originalTests(record.protocol), mode:record.mode, dsi:record.dsi, thresholds:record.thresholds, trainingContext:record.trainingContext, customValues:record.customValues, customTests:record.customTests, rules:record.rules, axes:record.axes, lvp:record.lvp, cmjConfig:record.cmjConfig, imtpConfig:record.imtpConfig, impulseConfig:record.impulseConfig });
+    const core = record => ({ athlete:clean(record.athlete), data:clean(originalTests(record.data)), enabled:originalTests(record.enabled), protocol:originalTests(record.protocol), mode:record.mode, dsi:record.dsi, thresholds:record.thresholds, trainingContext:record.trainingContext, customValues:record.customValues, customTests:record.customTests, rules:record.rules, axes:JSON.parse(fingerprint(record)).axes, lvp:record.lvp, cmjConfig:record.cmjConfig, imtpConfig:record.imtpConfig, impulseConfig:record.impulseConfig });
     if (canonicalJSON(core(candidate)) !== canonicalJSON(core(original))) return { record:input, changed:false };
     const effective = profile && root.RingsideEvaluation ? root.RingsideEvaluation.resolve(candidate,profile) : candidate;
+    for (const rule of (effective.imtpTimeStandards || []).filter(rule=>rule.legacyMetricId)) { const d=effective.definitions.find(d=>d.id===rule.legacyMetricId); if(d) for(const key of ["target","ranges","direction","referenceEnabled","source"]) d[key]=clone(rule[key]); }
     if (canonicalJSON(core(effective)) !== canonicalJSON(core(original))) return { record:input, changed:false };
     const definitionProjection = definition => {
-      const { context,referenceMatch,...value } = definition;
+      const { context,referenceMatch,protocolIdentity,targetEnabled,rangesEnabled,...value } = definition;
       if (!value.legacyManual) ["name","protocol"].forEach(key => { value[key] = Def.factoryText(value.id,key,value[key]); });
       if (/(?:^|_)rsi(?:_modified)?$/.test(value.id) && value.target == null && value.ranges.length === 0 && value.source === "用户配置评价标准" && value.protocol === "使用实际测试协议与匹配评价标准") {
         const current = original.definitions.find(d => d.id === value.id);
@@ -5077,6 +5234,9 @@
     cpetDefaults,
     cpetSummary,
     normalizeRecord,
+    protocolIdentity,
+    canonicalProtocolText,
+    stampProtocolIdentities,
     normalizeIMTP,
     syncIMTPLegacy,
     imtpTimeContext,
@@ -5099,6 +5259,7 @@
     changeMetricUnit,
     targetStatus,
     evaluation,
+    evaluationResults,
     isoRows,
     normalizeIsoDirection,
     migrateBalancePair,

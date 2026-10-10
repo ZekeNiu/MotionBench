@@ -1,0 +1,173 @@
+{
+  "version": "2.19.0",
+  "status": "passed",
+  "artifact": {
+    "path": "MotionBench.html",
+    "sha256": "235cee8c87419df8bd9d95c21f738936ddfeee7439b28bd51115f993b8985b80",
+    "bytes": 4643207
+  },
+  "sourceHashes": {
+    "src/ringside-acquisition.js": "656bed15b92949d29b076c83c3f54244d1b1eb28d26f48fb911d1ec0cbc5c2a2",
+    "src/ringside-ai-settings.js": "be1825ae2010790df32a7328e49d01d09966fec7338d55b459eba3332c672178",
+    "src/ringside-app.js": "f9a3e063545d16ae6b7238c1df6474b75cb7c36e5829c53a2dc71557d3ebd93f",
+    "src/ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "src/ringside-context-ui.js": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+    "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "src/ringside-definitions.js": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+    "src/ringside-entry-session.js": "11ddbb50920163ca9e19ffe413b265584270a671a4d7bf2f08e12dde863e934a",
+    "src/ringside-evaluation.js": "6a939a63f34543d9f8aeb99b7a757fdeb2180e034338f20413fc973f86b7b4f8",
+    "src/ringside-excel-flow.js": "f6b5fc3f981794bfdd668d9551f78b5b8a640f085b8e4d266514b7c828eb2b14",
+    "src/ringside-excel-v3.js": "cd631e7037e6878ce6754a3411a04f43d6a8bdac4528ad722351d10c27ff25f4",
+    "src/ringside-excel.css": "25cfe4e3bff61779bf0820a0aa94b0fb6278fd9d358b1a8a088cd74bb9de91d9",
+    "src/ringside-excel.js": "5d6339a0a523ad7b4c64f946621c7214eb527ea6be6ddc4751c1c1b57d418937",
+    "src/ringside-fvp-entry.js": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+    "src/ringside-fvp.css": "6f4186f5d9359d076beb77fa2aee9f7882f56cd89a4e807a21fb3c550a5fa5b7",
+    "src/ringside-fvp.js": "d347a4eb782843def779e002ba605480a572b60b866f8d832943d7b4fb0ce9a9",
+    "src/ringside-interventions.js": "dbf4de248da97f84b20319dc4d3c19312776a79bbd34f54c4d3381dd9b2dfb08",
+    "src/ringside-iso-reference.js": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+    "src/ringside-management-refinement.css": "3968eef35dde87e81283debc414f8a746f443e7c66f22a0e9e9e1ede28c3d8fb",
+    "src/ringside-management.js": "7acecb3439c0fbfad3b0e73f427ad153f9173499b214778909444095efd422d1",
+    "src/ringside-model.js": "0929561c62b9dd2780d210ba16694d15deacda6461302cd290ebdd006c0e1710",
+    "src/ringside-pdf.js": "0ca32a86fc6ed29b31f305832cdec0174d4997535cee28e0228e2052373c2f87",
+    "src/ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "src/ringside-profile.js": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+    "src/ringside-report-refinement.css": "21b88c2e51dbf8ab21ee720b4097a7e7325dc650bcba5796b8b96cdd30d2f456",
+    "src/ringside-report.js": "caea68e8ed312ed0a765ed03bb2bdac46d28b1b4da402585d2f4f6233135efdc",
+    "src/ringside-scoring.js": "5d0a46e99f7b4c94177ecfdb915857a4719716830aa1e34fe1c52c381f6f8959",
+    "src/ringside-settings.js": "340bd08c9ec18ba081755521f9cdca542bb96f6a7d0bc2da56f97372ef56db84",
+    "src/ringside-shell.html": "3477a065222fdb95240e2047a1ec62bb966cbc364d8721083eea6ad539f8d131",
+    "src/ringside-sources.js": "909277eeafede0663a125b7b8d56ff84567fb458fef525e19872042c16e06db4",
+    "src/ringside-sprint-elasticity.js": "00c4d827f92cf0261ecbd43b727b8209bdb8cbd7261c5ecf38b2713d3e5e9f27",
+    "src/ringside-sprint-fvp-confidence.js": "d307e1e3575454696c89e6520026e17e858f0970123b42effc92a71fd8ead020",
+    "src/ringside-sprint-fvp-entry.js": "86332c1ca4327af3e95f0c54ac5b6864464e74f1ab75bb61a059a17653137d7e",
+    "src/ringside-sprint-fvp.js": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+    "src/ringside-store.js": "fcf396e1fe12108daa38e0fafe5276f8d64ccf120c922190a3903f9a2972bc6a",
+    "src/ringside-tests.js": "260a78c156845db5488e1627ef7e1d193f0f776d212d1fa90c879e33bcb3651e",
+    "src/ringside-viz.js": "c1d4e4f921e415fe1e98ffebbac12909f360ff86a63af8906941be7ba4ac031f",
+    "src/ringside-workflow.css": "0394b74fc4ccf1962f0a002b329c0333da6cd197e998368a904a77e4871580db",
+    "src/ringside.css": "6062c7d1b54d6a653369318c9a2a7c6c1d5af3b9967f7fa34861e8643b03ee1c",
+    "scripts/build.py": "9b2dafb1a7c2160cfea2ee6f0997fac0ae8b732752121cdee093c6c527f5570a",
+    "package.json": "dd9a0052a6a358c771f88e681a0e3d012ec9d162977fa1416e1ac7a04f75e2c3",
+    "vendor/versions.json": "4f2a59a286cd6a242a4d1793a2b1c14eae2cd05182fc6d17b6eba21a14465a74"
+  },
+  "unit": {
+    "path": "output/tests/v2.19.0/unit-results.json",
+    "sha256": "b4017af9b25ae31318a2483bd56522a9ad5a4abb281270e142df08ae76fdee0a",
+    "suites": 50,
+    "checks": 747
+  },
+  "browsers": [
+    {
+      "name": "management",
+      "channel": "chrome",
+      "checks": 11,
+      "path": "output/playwright/management-v219/chrome-results.json",
+      "sha256": "3f14e9dd93d35a0dcadbc076363a09698d5a1e546c05eeb59b4a4fb728d42ec0"
+    },
+    {
+      "name": "management",
+      "channel": "msedge",
+      "checks": 11,
+      "path": "output/playwright/management-v219/msedge-results.json",
+      "sha256": "1f60e272eaad3340d48f1e3bc846fcd4e6d4cdc70e3beea4a15bc6a28cac741d"
+    },
+    {
+      "name": "management-faults",
+      "channel": "chrome",
+      "checks": 11,
+      "path": "output/playwright/management-v219/chrome-fault-results.json",
+      "sha256": "1163bfa356cee3fe85489c8a1e82bbd3370c706f54d1d54b5f6572cf614ee3af"
+    },
+    {
+      "name": "management-faults",
+      "channel": "msedge",
+      "checks": 11,
+      "path": "output/playwright/management-v219/msedge-fault-results.json",
+      "sha256": "824c364c7bbf8f11c7fb550f2dc631981d7fd647dfdee7ed9113925c3fd12c5c"
+    },
+    {
+      "name": "acquisition",
+      "channel": "chrome",
+      "checks": 7,
+      "path": "output/tests/v219-acquisition-browser/chrome-results.json",
+      "sha256": "6b756c920d8aef0d498d0a68808a6c489a5839231fe0e3c1d99066f2c0c06c5b"
+    },
+    {
+      "name": "acquisition",
+      "channel": "msedge",
+      "checks": 7,
+      "path": "output/tests/v219-acquisition-browser/msedge-results.json",
+      "sha256": "af74a898ed4062cb3d05e0079b2dcb5c3a29dfc1313cb5ec69d845e7c033174f"
+    },
+    {
+      "name": "storage",
+      "channel": "chrome",
+      "checks": 8,
+      "path": "output/playwright/v2.19.0/storage/chrome.json",
+      "sha256": "6f3ddedbff10ec319d9fb8147f96c87d39bfb859978412113b04d84fe6ad8a5b"
+    },
+    {
+      "name": "storage",
+      "channel": "msedge",
+      "checks": 8,
+      "path": "output/playwright/v2.19.0/storage/msedge.json",
+      "sha256": "5644c65666f3bac5a14244b649098db55669962c406e26b6fa464bda2c5b7f3b"
+    },
+    {
+      "name": "report",
+      "channel": "chrome",
+      "checks": 18,
+      "path": "output/playwright/v2.19.0/report/chrome-results.json",
+      "sha256": "f78a55c24eee759ddfb7c4b2d1facb25dae687168fdb7537b22988883d7377f9"
+    },
+    {
+      "name": "report",
+      "channel": "msedge",
+      "checks": 18,
+      "path": "output/playwright/v2.19.0/report/msedge-results.json",
+      "sha256": "657b967a6c98db69d41367d6f55578ae9476943aed9d23d7d82f56ae7c3f198d"
+    },
+    {
+      "name": "mean-report",
+      "channel": "chrome",
+      "checks": 4,
+      "path": "output/playwright/v2.19.0/scoring-report/chrome.json",
+      "sha256": "4f928ff9170f5d44a7eb895bf15c3adda88d7f5203477d9b473701ee4b23c8da"
+    },
+    {
+      "name": "mean-report",
+      "channel": "msedge",
+      "checks": 4,
+      "path": "output/playwright/v2.19.0/scoring-report/msedge.json",
+      "sha256": "94fc2d87246bc70946e5203e03fd3ae25bf039820edbfa43789838173e499df6"
+    }
+  ],
+  "nativeExcel": {
+    "path": "output/tests/v219-excel-native/evidence.json",
+    "sha256": "aeed85f849f19ae35a8339396de36516f19280b46379d77d5ba224abd9f4426b"
+  },
+  "pdfRenders": {
+    "path": "output/pdf/v2.19.0/renders.json",
+    "sha256": "b71c194a1567c58bc739b6fbb08fc0fc48c9cd76f4e12067446056f0e7b61c7f"
+  },
+  "visualReview": {
+    "path": "output/pdf/v2.19.0/visual-review.json",
+    "sha256": "68b9420817955a06ae5cc8096f03aa14ea3281b3fea96e1ba4aa6a0084f4f48f"
+  },
+  "managementVisualReview": {
+    "path": "output/playwright/management-v219/management-visual-review.json",
+    "sha256": "a9cc2b5e9e9d2a9af95a727d24cdb68245e01bfdb06a5433be145f47c467f457"
+  },
+  "rollback": {
+    "tag": "rollback-v2.18.0-local-before-management-20261011",
+    "commit": "0faaa5c1dfb9ee234faf30b751067670fdf4d9ff",
+    "sha256": "0a72a07e322f1c083b672e8647823977b3f1d11112b1d3bd7c65165de0c04741"
+  },
+  "verificationLimits": [
+    "Browser workflows and migrations use isolated synthetic libraries; the user's live browser library was not opened.",
+    "Chrome and Edge ran on this Windows host; narrow screens use browser viewports rather than physical mobile devices.",
+    "AI input and stale-result protection were checked; no live model-provider content-quality claim.",
+    "Native Microsoft Excel was exercised on this host; other spreadsheet applications and physical printers were not tested."
+  ],
+  "recordedAt": "2026-10-10T19:12:40.650732+00:00"
+}

@@ -6,7 +6,7 @@ const { createHash } = require('node:crypto');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('./helpers/playwright.cjs');
 const { artifactDirectory, ready, openExport, downloadFromReport, emptyRecord } = require('./helpers/pdf-browser.cjs');
-const root = path.resolve(__dirname, '..'), file = path.join(root, 'Ringside_Boxing_Assessment.html');
+const root = path.resolve(__dirname, '..'), file = path.join(root, 'MotionBench.html');
 const out = artifactDirectory(root, 'output/pdf/v2.17.2-work/failure');
 fs.mkdirSync(out, { recursive: true });
 const result = { sourceHash: createHash('sha256').update(fs.readFileSync(file)).digest('hex'), pass: false };

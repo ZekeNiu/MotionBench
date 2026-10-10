@@ -21,8 +21,11 @@ tmp/
 # Only the clean application is a generated HTML tracked at the root.
 *.html
 !/MotionBench.html
-!/Ringside_Boxing_Assessment.html
 !src/*.html
 !tests/fixtures/*.html
 
 !/downloads/MotionBench-v2.17.5-local-preview.zip
+
+# Private deployment archives and rollback state
+.motionbench-backups/
+/交付/

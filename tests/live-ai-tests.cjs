@@ -8,7 +8,7 @@ const { pathToFileURL } = require("node:url"),
 const { chromium } = require("./helpers/playwright.cjs");
 const { spawn } = require("node:child_process");
 const root = path.resolve(__dirname, ".."),
-  file = path.join(root, "Ringside_Boxing_Assessment.html");
+  file = path.join(root, "MotionBench.html");
 const out = path.join(root, "output/ai");
 fs.mkdirSync(out, { recursive: true });
 const replay = process.env.RINGSIDE_AI_REPLAY

@@ -9,7 +9,7 @@ const { createHash } = require("node:crypto"),
 const { chromium } = require("./helpers/playwright.cjs"),
   { extensionFixture } = require("./helpers/core-fixtures.cjs");
 const root = path.resolve(__dirname, ".."),
-  source = path.join(root, "Ringside_Boxing_Assessment.html"),
+  source = path.join(root, "MotionBench.html"),
   out = path.join(root, "output/playwright");
 const result = {
   sourceHash: createHash("sha256")

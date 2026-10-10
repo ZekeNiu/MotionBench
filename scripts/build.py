@@ -29,7 +29,7 @@ for name in ["html2canvas.min.js", "jspdf.umd.min.js", "exceljs.min.js"]:
     if not path.exists():
         raise SystemExit("Missing pinned offline dependency: " + str(path))
     pieces.append(path.read_text(encoding="utf-8"))
-for name in ["ringside-tests.js", "ringside-model.js", "ringside-evaluation.js", "ringside-store.js", "ringside-interventions.js", "ringside-viz.js", "ringside-report.js", "ringside-ai-settings.js", "ringside-settings.js", "ringside-pdf.js", "ringside-picker.js", "ringside-excel.js", "ringside-profile.js", "ringside-context-ui.js", "ringside-management.js", "ringside-entry-session.js", "ringside-fvp-entry.js", "ringside-sprint-fvp-entry.js", "ringside-excel-flow.js", "ringside-app.js"]:
+for name in ["ringside-tests.js", "ringside-scoring.js", "ringside-model.js", "ringside-acquisition.js", "ringside-evaluation.js", "ringside-store.js", "ringside-interventions.js", "ringside-viz.js", "ringside-report.js", "ringside-ai-settings.js", "ringside-settings.js", "ringside-pdf.js", "ringside-picker.js", "ringside-excel.js", "ringside-excel-v3.js", "ringside-profile.js", "ringside-context-ui.js", "ringside-management.js", "ringside-entry-session.js", "ringside-fvp-entry.js", "ringside-sprint-fvp-entry.js", "ringside-excel-flow.js", "ringside-app.js"]:
     path = SRC / name
     subprocess.run(["node", "--check", str(path)], check=True)
     pieces.append(path.read_text(encoding="utf-8"))
@@ -42,6 +42,5 @@ script_tags = "\n".join("<script>\n" + code.replace("</script", "<\\/script") + 
 result = shell.replace("<!-- RINGSIDE_SCRIPTS -->", script_tags)
 destination = ROOT / "MotionBench.html"
 destination.write_text(result, encoding="utf-8")
-# Keep the established file path usable, preserving browser-local records.
-(ROOT / "Ringside_Boxing_Assessment.html").write_text(result, encoding="utf-8")
+# The retired root alias stays absent; the daily entry URL is MotionBench.html.
 print(f"Built {destination.name}: {destination.stat().st_size:,} bytes; {len(pieces)} offline scripts")

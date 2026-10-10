@@ -1,7 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 global.window=global;global.ExcelJS=require("../vendor/exceljs.min.js");
-for(const name of ["calc","fvp","cpet-reference","definitions","tests","model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
+for(const name of ["calc","fvp","cpet-reference","definitions","tests","scoring", "model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
 const M=RingsideModel,X=RingsideExcel,{manifest,columns,column,validationValues}=require("./helpers/excel-template.cjs");let passed=0;
 const copy=value=>JSON.parse(JSON.stringify(value));
 function seed(ids=["squat"]){const r=M.recordFromCatalog(M.normalizeCatalog(),{name:"同名运动员",sport:"拳击",birthDate:"2000-01-01"},Object.fromEntries(ids.map(id=>[id,true])),"2026-10-09");r.athlete.mass=75;r.fvpConfig.fvp_cmj.distanceCm=35;return r;}

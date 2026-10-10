@@ -1,7 +1,7 @@
 "use strict";
 const assert = require("node:assert/strict"), fs = require("node:fs"), path = require("node:path"), vm = require("node:vm"), crypto = require("node:crypto");
 global.window = global; global.ExcelJS = require("../vendor/exceljs.min.js");
-for (const name of ["calc", "cpet-reference", "definitions", "tests", "fvp", "model", "evaluation", "interventions", "excel", "entry-session", "fvp-entry"]) vm.runInThisContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"));
+for (const name of ["calc", "cpet-reference", "definitions", "tests", "fvp", "scoring", "model", "evaluation", "interventions", "excel", "entry-session", "fvp-entry"]) vm.runInThisContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"));
 const M = RingsideModel, X = RingsideExcel, S = RingsideEntrySession, F = RingsideFVP, E = RingsideFVPEntry;
 const copy = value => JSON.parse(JSON.stringify(value)), hash = file => crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 let passed = 0;

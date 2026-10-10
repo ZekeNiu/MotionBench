@@ -8,7 +8,7 @@ const evidence={sourceHash:hash(file),checks:[],errors:[],pass:false};fs.mkdirSy
 (async()=>{const browser=await chromium.launch({channel:"chrome"});try{
   const context=await browser.newContext({acceptDownloads:true,viewport:{width:1440,height:1000}}),page=await context.newPage();
   page.on("pageerror",e=>evidence.errors.push(e.message));
-  const legacy=path.join(root,"Ringside_Boxing_Assessment.html");assert.equal(hash(legacy),hash(file));
+  const legacy=path.join(root,"MotionBench.html");assert.equal(hash(legacy),hash(file));
   await page.goto(pathToFileURL(legacy).href);await page.evaluate(()=>{
     const r=App.getState();r.athlete.name="MotionBench 迁移验收（模拟数据）";r.athlete.sport="篮球";
     r.trainingContext={experienceYears:2,weeklySessions:1,equipment:"自重",weeklySchedule:"周二、周四篮球；周六体能"};

@@ -3,7 +3,7 @@ const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("n
 const copy=value=>value===undefined?undefined:JSON.parse(JSON.stringify(value));
 const content=record=>{const value=copy(record);delete value.updated;return JSON.stringify(value);};
 const model=vm.createContext({console,Intl,crypto:crypto.webcrypto});model.window=model;
-for(const name of ["calc","fvp","sprint-fvp","cpet-reference","definitions","tests","model"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),model);
+for(const name of ["calc","fvp","sprint-fvp","cpet-reference","definitions","tests","scoring", "model"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),model);
 const M=model.RingsideModel,app=fs.readFileSync(path.join(__dirname,"../src/ringside-app.js"),"utf8"),tick=()=>new Promise(resolve=>setImmediate(resolve));
 function deferred(){let resolve;const promise=new Promise(done=>{resolve=done;});return{promise,resolve};}
 function fixture(){const record=copy(M.normalizeRecord(M.defaults()));record.recordId="synthetic_ordinary_record";record.athleteId="synthetic_ordinary_owner";record.athlete.name="Synthetic ordinary save";record.athlete.mass=75;record.athlete.height=180;record.data.cmj[0].height=30;record.updated="2026-10-10T01:00:00.000Z";return record;}
@@ -11,6 +11,7 @@ function external(baseline,height){const record=copy(baseline);record.data.cmj[0
 function harness(baseline){
   let stored=copy(baseline),loadHook=null,saveHook=null;const loads=[],saves=[],status={textContent:""},record=baseline||fixture();
   const library={...copy(M.libraryDefaults()),evaluationProfiles:[],groups:[],activeRecordId:record.recordId,activeAthleteId:record.athleteId,athletes:[{id:record.athleteId,records:[{recordId:record.recordId}]}]};
+  library.catalog=copy(M.normalizeCatalog(library.catalog));
   const c=vm.createContext({console,Intl,crypto:crypto.webcrypto,Map,Set,JSON,Promise,copy,clearTimeout,
     now:()=>"2026-10-10T02:00:00.000Z",recordBaselines:new Map(),recordStorageBaselines:new Map(),queuedRecords:new Map(),entryPersistQueue:Promise.resolve(),
     pendingSaves:0,saveSequence:0,saveTimer:null,storageFailed:false,libraryTransferActive:false,entrySession:null,state:null,reportDirty:false,

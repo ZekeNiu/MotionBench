@@ -76,7 +76,7 @@ function verifyPages(result) {
 
 async function main() {
   fs.mkdirSync(artifacts, { recursive: true });
-  const sourceHash = createHash('sha256').update(fs.readFileSync(path.join(root, 'Ringside_Boxing_Assessment.html'))).digest('hex');
+  const sourceHash = createHash('sha256').update(fs.readFileSync(path.join(root, 'MotionBench.html'))).digest('hex');
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'vendor', 'versions.json'), 'utf8'));
   for (const dependency of manifest.dependencies) {
     for (const [filename, expected] of [[dependency.file, dependency.sha256], [dependency.license_file, dependency.license_sha256]]) {
@@ -92,7 +92,7 @@ async function main() {
     const page = await context.newPage();
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', request => { if (/^https?:/i.test(request.url())) requests.push(request.url()); });
-    await page.goto(pathToFileURL(path.join(root, 'Ringside_Boxing_Assessment.html')).href);
+    await page.goto(pathToFileURL(path.join(root, 'MotionBench.html')).href);
     await page.waitForFunction(() => !!window.App?.ready);
     assert.equal(await page.evaluate(() => App.ready), true, 'application initialization must complete');
     for (const filename of ['vendor/html2canvas.min.js', 'vendor/jspdf.umd.min.js', 'src/ringside-pdf.js']) await inject(page, filename);

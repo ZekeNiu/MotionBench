@@ -6,7 +6,7 @@ const { createHash } = require("node:crypto");
 const root = path.resolve(__dirname, '..');
 const artifactIndex = process.argv.indexOf('--artifact-dir');
 const artifactArg = process.argv.find(arg => arg.startsWith('--artifact-dir='))?.slice(15);
-const artifactDir = artifactArg || (artifactIndex >= 0 ? process.argv[artifactIndex + 1] : 'output/tests/v2.18.0-dual-elasticity-final');
+const artifactDir = artifactArg || (artifactIndex >= 0 ? process.argv[artifactIndex + 1] : 'output/tests/v2.19.0');
 if (!artifactDir || artifactDir.startsWith('--')) throw Error('--artifact-dir requires a directory');
 const resultDir = path.resolve(root, artifactDir);
 const outputRelative = path.relative(path.join(root, 'output'), resultDir);
@@ -14,9 +14,11 @@ if (!outputRelative || outputRelative.startsWith('..') || path.isAbsolute(output
 fs.mkdirSync(resultDir, { recursive: true });
 const digest = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const moduleFiles = fs.readdirSync(path.join(root, 'src')).filter(name => name.endsWith('.js'));
-const summary = { sourceHash: digest(path.join(root, 'Ringside_Boxing_Assessment.html')), runnerSha256: digest(__filename),
+const summary = { sourceHash: digest(path.join(root, 'MotionBench.html')), runnerSha256: digest(__filename),
   modules: Object.fromEntries(moduleFiles.map(name => [name, digest(path.join(root, 'src', name))])), suites: [] };
 for (const name of [
+  "evaluation-v219-model-tests.cjs",
+  "excel-v219-contract-tests.cjs",
   "model-tests.cjs",
   "athlete-context-model-tests.cjs",
   "athlete-context-excel-tests.cjs",
@@ -78,7 +80,7 @@ for (const name of [
   if (result.error) throw result.error;
   if (result.status !== 0) process.exit(result.status || 1);
 }
-summary.sourceUnchanged = digest(path.join(root, 'Ringside_Boxing_Assessment.html')) === summary.sourceHash &&
+summary.sourceUnchanged = digest(path.join(root, 'MotionBench.html')) === summary.sourceHash &&
   digest(__filename) === summary.runnerSha256 && moduleFiles.every(name => digest(path.join(root, 'src', name)) === summary.modules[name]) &&
   summary.suites.every(suite => digest(path.join(__dirname, suite.name)) === suite.sha256);
 fs.writeFileSync(path.join(resultDir, 'unit-results.json'), JSON.stringify(summary, null, 2));

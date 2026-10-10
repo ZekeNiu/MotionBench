@@ -5,7 +5,7 @@ const root = path.resolve(__dirname, ".."), out = path.join(root, "output/capabi
 fs.mkdirSync(out, { recursive: true });
 const appSource = fs.readFileSync(path.join(root, "src/ringside-app.js"), "utf8");
 const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto, flushReportEdits:()=>{} }); c.window = c;
-for (const name of ["calc", "fvp", "sprint-fvp", "sprint-elasticity", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "model", "evaluation", "interventions", "viz", "report"])
+for (const name of ["calc", "fvp", "sprint-fvp", "sprint-elasticity", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "scoring", "model", "evaluation", "interventions", "viz", "report"])
   vm.runInContext(fs.readFileSync(path.join(root, `src/ringside-${name}.js`), "utf8"), c, { filename: name });
 const M = c.RingsideModel, R = c.RingsideReport;
 const json = value => JSON.parse(JSON.stringify(value));
@@ -20,6 +20,7 @@ function appFunction(name, next) {
 vm.runInContext("const M=window.RingsideModel,T=window.RingsideTests,N=Calc.num; const copy=x=>JSON.parse(JSON.stringify(x)); const positive=x=>N(x)!==null&&Number(x)>0;" +
   appFunction("effectiveRecord", "upgradeDemo") + appFunction("facts", "preview") + "const App={facts,recordBasis};", c);
 const App = vm.runInContext("App", c);
+function linkState(record){c.state=record;const profile=c.RingsideEvaluation.create(record);c.state.evaluationProfileId=profile.id;c.library={evaluationProfiles:[profile]};}
 function fixture() {
   const r = M.sampleRecord(); r.views.capabilitySelections = { strength: "fdsi", reactive: "dj_rsi", speed: "srr" }; return r;
 }
@@ -50,7 +51,7 @@ const checks = [];
 function test(name, run) { run(); passed++; checks.push(name); console.log("PASS " + name); }
 const hash = value => createHash("sha256").update(value).digest("hex");
 test("actual App.facts changes its selected basis when strength switches DSI to EUR", () => {
-  c.state = fixture(); c.library = { evaluationProfiles: [] };
+  linkState(fixture());
   const before = App.facts(), beforeBasis = App.recordBasis(), beforeHtml = section(R.renderCapabilityAnalysis(R.build(c.state)), "strength");
   c.state.views.capabilitySelections.strength = "eur";
   const after = App.facts(), afterBasis = App.recordBasis(), afterHtml = section(R.renderCapabilityAnalysis(R.build(c.state)), "strength");
@@ -99,7 +100,7 @@ test("shared projection and registry are pure and all selected metrics match act
     const directions = M.capabilityDirections(record, stats);
     assert.equal(directions.find(item => item.id === key).metricId, id);
     assert.equal(JSON.stringify({ record, stats }), original);
-    c.state = json(record);
+    linkState(json(record));
     assert.deepEqual(json(App.facts().selectedCapabilityDirections), json(directions));
   }
 });
@@ -166,7 +167,7 @@ vm.runInContext(appSource.slice(snapshotStart,snapshotEnd) + appFunction("curren
 const AI = vm.runInContext("AI", c), response = { choices:[{message:{content:"合成测试：根据选中的能力指标安排训练，并在下一周期复测。"},finish_reason:"stop"}] };
 function deferred() { let resolve; const promise = new Promise(done => {resolve=done;});return {promise,resolve}; }
 function reset() {
-  c.state=fixture(); c.state.narrative.text="原始人工正文"; c.state.narrative.html="<p>原始人工正文</p>";
+  linkState(fixture()); c.state.narrative.text="原始人工正文"; c.state.narrative.html="<p>原始人工正文</p>";
   c.state.narrative.basis=App.recordBasis(); c.state.narrative.origin="manual";
   c.state.previousNarrative={text:"更早的正文"}; c.job=null;c.pendingAI=null;c.status=null;c.persisted=0;c.confirmations=0;c.modals=0;c.measurements=0;c.toasts=[];
   c.document.fonts.ready=Promise.resolve(); c.requestResult=Promise.resolve(response); requests.length=0;

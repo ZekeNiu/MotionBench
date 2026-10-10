@@ -1,7 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm"),crypto=require("node:crypto");
 const context=vm.createContext({console,Intl,crypto:crypto.webcrypto});context.window=context;
-for(const name of ["calc","fvp","sprint-fvp","cpet-reference","definitions","tests","model","sprint-fvp-entry"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),context);
+for(const name of ["calc","fvp","sprint-fvp","cpet-reference","definitions","tests","scoring", "model","sprint-fvp-entry"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),context);
 const M=context.RingsideModel,F=context.RingsideSprintFVP,E=context.RingsideSprintFVPEntry,copy=value=>JSON.parse(JSON.stringify(value));
 const app=fs.readFileSync(path.join(__dirname,"../src/ringside-app.js"),"utf8");let passed=0;
 function test(name,run){run();passed++;console.log("PASS "+name);}

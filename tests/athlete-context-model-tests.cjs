@@ -2,7 +2,7 @@
 const assert = require("node:assert/strict"), fs = require("node:fs"), path = require("node:path"), vm = require("node:vm");
 const context = vm.createContext({console, Intl, crypto:require("node:crypto").webcrypto});
 context.window = context;
-for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation"]) vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),context);
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "evaluation"]) vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),context);
 const M = context.RingsideModel, copy = value => JSON.parse(JSON.stringify(value));
 let passed = 0;
 function test(name, run) { run(); passed++; console.log("PASS " + name); }

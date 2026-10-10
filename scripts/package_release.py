@@ -8,7 +8,7 @@ import zipfile
 root = Path(__file__).resolve().parents[1]
 version = json.loads((root / "package.json").read_text(encoding="utf-8"))["version"]
 destination = root / "output/release" / ("MotionBench-" + version + "-Windows.zip")
-files = ["MotionBench.html", "Ringside_Boxing_Assessment.html", "Start_MotionBench.cmd", "scripts/serve.py", "scripts/ai_credentials.py", "README.md", f"docs/motionbench-{version}.md", f"docs/acceptance-{version}.json", "docs/speed-reference.md", "docs/architecture.md", "assets/motionbench-logo.svg", "examples/three-trials.json", "vendor/versions.json", "vendor/html2canvas.LICENSE.txt", "vendor/jspdf.LICENSE.txt", "vendor/exceljs.LICENSE.txt"]
+files = ["MotionBench.html", "Start_MotionBench.cmd", "scripts/serve.py", "scripts/ai_credentials.py", "README.md", f"docs/motionbench-{version}.md", f"docs/acceptance-{version}.json", "docs/speed-reference.md", "docs/architecture.md", "assets/motionbench-logo.svg", "examples/three-trials.json", "vendor/versions.json", "vendor/html2canvas.LICENSE.txt", "vendor/jspdf.LICENSE.txt", "vendor/exceljs.LICENSE.txt"]
 if (root / f"docs/acceptance-{version}.md").is_file():
     files.append(f"docs/acceptance-{version}.md")
 destination.parent.mkdir(parents=True, exist_ok=True)

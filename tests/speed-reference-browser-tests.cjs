@@ -2,7 +2,7 @@
 const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict');
 const { pathToFileURL } = require('node:url'), { createHash } = require('node:crypto');
 const { chromium } = require('./helpers/playwright.cjs');
-const root = path.resolve(__dirname, '..'), file = path.join(root, 'Ringside_Boxing_Assessment.html'), out = path.join(root, 'output/playwright');
+const root = path.resolve(__dirname, '..'), file = path.join(root, 'MotionBench.html'), out = path.join(root, 'output/playwright');
 const result = { sourceHash: createHash('sha256').update(fs.readFileSync(file)).digest('hex'), tests: [], errors: [], network: [], images: [] };
 (async () => {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });

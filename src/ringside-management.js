@@ -5,8 +5,14 @@
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID(), now=()=>new Date().toISOString(), lib=()=>App.getLibrary();
   const sections=[["athletes","运动员管理"],["teams","队伍管理"],["records","测试记录"],["plans","测试方案"],["metrics","指标库"],["profiles","评价方案"],["backup","备份与恢复"]];
-  let current="athletes", selected=new Set(), filters={}, editor=null, planDraft=null, formAction=null, pendingReview=null, busy=false, filterTimer;
-  const filter=()=>filters[current] ||= {q:"",group:"",sport:"",status:"active",from:"",to:"",test:"",page:1,sort:"recent"};
+  let current="athletes", selected=new Set(), selections={}, filters={}, editor=null, planDraft=null, formAction=null, pendingReview=null, busy=false, filterTimer;
+  const pathKey=value=>encodeURIComponent(value).replace(/\./g,"%2E");
+  const freshFilters=()=>({q:"",group:"",sport:"",status:"active",from:"",to:"",test:"",page:1,sort:"recent",athleteId:"",advanced:false});
+  const filter=()=>filters[current] ||= freshFilters();
+  const athleteView=()=>current==="athletes"||current==="teams";
+  const commit=mutator=>App.commitLibraryChange(mutator);
+  function more(content,label="更多"){return `<details class="management-more"><summary>${esc(label)}</summary><div class="management-more-menu">${content}</div></details>`;}
+  function stateActions(state,id=""){return state==="trash"?button("恢复","restore",id)+button("永久删除","purge",id):(state==="archived"?button("恢复在用","unarchive",id):button("归档","archive",id))+button("移入回收站","trash",id);}
   function button(label,action,id="",extra="") { return `<button type="button" class="btn small" data-manager-action="${action}" data-id="${esc(id)}" ${extra}>${label}</button>`; }
   const option=(value,label,selected)=>`<option value="${esc(value)}" ${value===selected?"selected":""}>${esc(label)}</option>`;
   const field=(label,html)=>`<label class="field"><span>${label}</span>${html}</label>`;
@@ -14,47 +20,52 @@
   function profileOptions(selected="") {return lib().evaluationProfiles.filter(p=>!p.disabled||p.id===selected).map(p=>option(p.id,p.name,selected)).join("");}
   const profileName=id=>lib().evaluationProfiles.find(p=>p.id===id)?.name||"未关联";
   function navigation(){return sections.map(([id,label])=>`<button data-manager-action="section" data-id="${id}" class="${current===id?"active":""}" ${current===id?'aria-current="page"':""}>${label}</button>`).join("");}
-  function open(tab="athletes"){clearTimeout(filterTimer);if(tab==="catalog")tab="metrics";current=sections.some(s=>s[0]===tab)?tab:"athletes";selected.clear();render();requestAnimationFrame(()=>window.scrollTo({top:filter().scroll||0,behavior:"instant"}));}
+  function open(tab="athletes"){selections[current]=selected;clearTimeout(filterTimer);if(tab==="catalog")tab="metrics";current=sections.some(s=>s[0]===tab)?tab:"athletes";selected=selections[current] ||= new Set();render();requestAnimationFrame(()=>window.scrollTo({top:filter().scroll||0,behavior:"instant"}));}
   function visibleStatus(item,owner) {return item.deletedAt||owner?.deletedAt?"trash":item.archived||owner?.archived?"archived":"active";}
   function allRows() {
     const f=filter();let rows;
-    if(current==="athletes") rows=lib().athletes.map(a=>({id:a.id,athlete:a,item:a}));
+    if(athleteView()) rows=lib().athletes.map(a=>({id:a.id,athlete:a,item:a}));
     else rows=lib().athletes.flatMap(a=>a.records.map(r=>({id:r.recordId,athlete:a,item:r})));
     const q=f.q.trim().toLocaleLowerCase();
-    rows=rows.filter(({athlete:a,item:r})=>(f.status==="all"?visibleStatus(r,a)!=="trash":visibleStatus(r,a)===f.status)&&(!f.group||a.groupId===f.group)&&(!f.sport||a.profile.sport===f.sport)&&(!q||[a.name,a.profile.sport,r.title,r.athlete?.date,a.id].join(" ").toLocaleLowerCase().includes(q))&&(!f.from||(r.athlete?.date||"")>=f.from)&&(!f.to||(r.athlete?.date||"")<=f.to)&&(!f.test||r.enabled?.[f.test]));
+    rows=rows.filter(({athlete:a,item:r})=>(f.status==="all"?visibleStatus(r,a)!=="trash":visibleStatus(r,a)===f.status)&&(!f.athleteId||a.id===f.athleteId)&&(!(current==="teams"?f.teamId:f.group)||a.groupId===(current==="teams"?f.teamId:f.group))&&(!f.sport||a.profile.sport===f.sport)&&(!q||[a.name,a.profile.sport,r.title,r.athlete?.date,a.id].join(" ").toLocaleLowerCase().includes(q))&&(!f.from||(r.athlete?.date||"")>=f.from)&&(!f.to||(r.athlete?.date||"")<=f.to)&&(!f.test||r.enabled?.[f.test])&&(!f.evaluationProfileId||r.evaluationProfileId===f.evaluationProfileId));
     rows.sort((a,b)=>f.sort==="name"?a.athlete.name.localeCompare(b.athlete.name,"zh-CN")||a.id.localeCompare(b.id):(b.item.athlete?.date||b.item.updated||"").localeCompare(a.item.athlete?.date||a.item.updated||"")||a.id.localeCompare(b.id));
     return rows;
   }
   function toolbar() {
-    const f=filter(),sports=[...new Set(lib().athletes.map(a=>a.profile.sport).filter(Boolean))].sort();
-    return `<div class="management-filters">${field("搜索",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="姓名、编号${current==="records"?"或测试名称":"或专项"}">`)}${field("队伍",`<select data-manager-filter="group">${option("","全部队伍",f.group)}${lib().groups.map(g=>option(g.id,g.name,f.group)).join("")}</select>`)}${field("专项",`<select data-manager-filter="sport">${option("","全部专项",f.sport)}${sports.map(s=>option(s,s,f.sport)).join("")}</select>`)}${field("状态",`<select data-manager-filter="status">${[["active","在用"],["archived","已归档"],["trash","回收站"],["all","全部未删除"]].map(([v,n])=>option(v,n,f.status)).join("")}</select>`)}${field("排序",`<select data-manager-filter="sort">${option("recent","最近优先",f.sort)}${option("name","姓名顺序",f.sort)}</select>`)}${current==="records"?field("起始日期",`<input type="date" data-manager-filter="from" value="${esc(f.from)}">`)+field("结束日期",`<input type="date" data-manager-filter="to" value="${esc(f.to)}">`)+field("测试项目",`<select data-manager-filter="test">${option("","全部项目",f.test)}${lib().catalog.tests.map(t=>option(t.id,t.name,f.test)).join("")}</select>`):""}</div>`;
+    const f=filter(),sports=[...new Set(lib().athletes.map(a=>a.profile.sport).filter(Boolean))].sort(),records=!athleteView();
+    const scope=f.athleteId?lib().athletes.find(a=>a.id===f.athleteId):null,scopeTitle=scope?scope.name+(records?"的测试记录":"的资料"):f.evaluationProfileId?"关联方案："+profileName(f.evaluationProfileId):"";
+    const count=[f.sport,f.from,f.to,f.test,f.evaluationProfileId,f.sort!=="recent"].filter(Boolean).length;
+    return (scopeTitle?`<div class="management-scope"><span>${esc(scopeTitle)}</span>${button(records?"查看全部记录":"查看全部运动员","clear-scope")}${button(f.originTab==="teams"?"返回队伍成员":f.originTab==="profiles"?"返回评价方案":f.originTab==="records"?"返回测试记录":"返回运动员列表","scope-back")}</div>`:"")+`<div class="manager-filter-shell"><div class="management-filters management-primary-filters">${field("搜索",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="姓名、编号${records?"或测试名称":"或专项"}">`)}${current!=="teams"?field("队伍",`<select data-manager-filter="group">${option("","全部队伍",f.group)}${lib().groups.map(g=>option(g.id,g.name,f.group)).join("")}</select>`):""}${field("状态",`<select data-manager-filter="status">${[["active","在用"],["archived","已归档"],["trash","回收站"],["all","全部未删除"]].map(([v,n])=>option(v,n,f.status)).join("")}</select>`)}</div><details class="management-advanced" ${f.advanced?"open":""}><summary>筛选与排序${count?` · 已设置 ${count} 项`:""}</summary><div class="management-filters">${field("专项",`<select data-manager-filter="sport">${option("","全部专项",f.sport)}${sports.map(x=>option(x,x,f.sport)).join("")}</select>`)}${field("排序",`<select data-manager-filter="sort">${option("recent","最近优先",f.sort)}${option("name","姓名顺序",f.sort)}</select>`)}${records?field("起始日期",`<input type="date" data-manager-filter="from" value="${esc(f.from)}">`)+field("结束日期",`<input type="date" data-manager-filter="to" value="${esc(f.to)}">`)+field("测试项目",`<select data-manager-filter="test">${option("","全部项目",f.test)}${lib().catalog.tests.map(t=>option(t.id,t.name,f.test)).join("")}</select>`):""}</div>${button("清除筛选","clear-filters")}</details></div>`;
   }
   function lists() {
     const rows=allRows(),f=filter(),pages=Math.max(1,Math.ceil(rows.length/30));f.page=Math.min(pages,Math.max(1,f.page));
-    const page=rows.slice((f.page-1)*30,f.page*30),athletes=current==="athletes";
-    const actions=f.status==="trash"?button("恢复","restore")+button("永久删除","purge"):button("归档","archive")+button("恢复在用","unarchive")+button("移入回收站","trash")+(athletes?button("调整队伍","batch-group"):button("更换评价方案","batch-profile"));
-    return toolbar()+`<div class="management-batch"><label><input type="checkbox" id="selectManagementPage" ${page.length&&page.every(r=>selected.has(r.id))?"checked":""}>选择本页</label><span>已选 ${selected.size} 项</span><div class="row">${actions}</div></div><div class="management-table-wrap"><table class="management-table"><thead><tr><th>选择</th><th>运动员</th><th>队伍 / 专项</th><th>${athletes?"历次测试":"日期 / 项目"}</th><th>${athletes?"状态":"评价方案"}</th><th>操作</th></tr></thead><tbody>${page.map(({id,athlete:a,item:r})=>{
+    const allowed=new Set(rows.map(r=>r.id));for(const id of selected)if(!allowed.has(id))selected.delete(id);
+    const page=rows.slice((f.page-1)*30,f.page*30),athletes=athleteView(),selectedRows=rows.filter(r=>selected.has(r.id));
+    const states=new Set(selectedRows.map(r=>visibleStatus(r.item,r.athlete))),actions=states.has("trash")?button("恢复","restore")+button("永久删除","purge"):(states.has("active")?button("归档","archive"):"")+(states.has("archived")?button("恢复在用","unarchive"):"")+(athletes?button("调整队伍","batch-group"):button("更换评价方案","batch-profile"))+more(button("移入回收站","trash"));
+    const selectedOnPage=page.filter(r=>selected.has(r.id)).length;
+    return toolbar()+(selected.size?`<div class="management-batch" role="region" aria-label="已选项目操作"><b>已选 ${selected.size} 项${selected.size!==selectedOnPage?`（本页 ${selectedOnPage} 项）`:""}</b>${button("取消选择","clear-selection")}<div class="row">${athletes&&selectedRows.every(r=>visibleStatus(r.item,r.athlete)==="active")?button("开始测试","batch-new-record"):""}${actions}</div></div>`:"")+`<div class="management-table-wrap"><table class="management-table"><thead><tr><th><label class="management-select-all"><input type="checkbox" id="selectManagementPage" aria-label="选择本页" ${page.length&&page.every(r=>selected.has(r.id))?"checked":""}>本页</label></th><th>运动员</th><th>队伍 / 专项</th><th>${athletes?"历次测试":"日期 / 项目"}</th><th>${athletes?"状态":"评价方案"}</th><th>操作</th></tr></thead><tbody>${page.map(({id,athlete:a,item:r})=>{
       const state=visibleStatus(r,a),count=a.records.filter(x=>!x.deletedAt).length;
-      const rowActions=state==="trash"?button("恢复","restore",id)+button("永久删除","purge",id):athletes?button("资料","edit-athlete",id)+button("新建测试","new-record",id)+button("测试记录","athlete-records",id):button("查看报告","report",id)+button("录入 / 编辑","entry",id)+button("名称 / 日期","edit-record",id);
-      return `<tr data-managed-id="${esc(id)}"><td data-label="选择"><input type="checkbox" data-manager-select="${esc(id)}" aria-label="选择 ${esc(a.name)} ${esc(r.athlete?.date||"")}" ${selected.has(id)?"checked":""}></td><td data-label="运动员"><b>${esc(a.name)}</b><small>${esc(a.id.slice(-8))}</small></td><td data-label="队伍 / 专项">${esc(lib().groups.find(g=>g.id===a.groupId)?.name||"未分组")}<small>${esc(a.profile.sport||"未填写专项")}</small></td><td data-label="${athletes?"历次测试":"日期 / 项目"}">${athletes?count+" 条":esc(r.athlete.date||"未填日期")+`<small>${esc(r.title||Object.entries(r.enabled).filter(([,v])=>v).map(([k])=>lib().catalog.tests.find(t=>t.id===k)?.name||k).join("、"))}</small>`}</td><td data-label="${athletes?"状态":"评价方案"}">${athletes?({active:"在用",archived:"已归档",trash:"回收站"}[state]):esc(profileName(r.evaluationProfileId))}</td><td data-label="操作"><div class="row">${rowActions}</div></td></tr>`;
+      const rowActions=state==="trash"?(!athletes&&a.deletedAt?button("恢复所属运动员","owner-manage",a.id):button("恢复","restore",id))+more(button("永久删除","purge",id)):athletes?(state==="active"?button("新建测试","new-record",id):button("测试记录","athlete-records",id))+more(button("资料","edit-athlete",id)+(state==="active"?button("测试记录","athlete-records",id):"")+(current==="teams"?button("转队","team-transfer",id)+button("移出队伍","team-remove",id):"")+stateActions(state,id)):button("查看报告","report",id)+button("录入 / 编辑","entry",id)+more(button("名称 / 日期","edit-record",id)+button("更换评价方案","record-profile",id)+(a.archived?button("恢复所属运动员","owner-manage",a.id)+button("移入回收站","trash",id):stateActions(state,id)));
+      const names=Object.entries(r.enabled||{}).filter(([,v])=>v).map(([k])=>lib().catalog.tests.find(t=>t.id===k)?.name||k);
+      return `<tr data-managed-id="${esc(id)}" ${current==="teams"?`data-team-member="${esc(id)}"`:""}><td data-label="选择"><input type="checkbox" data-manager-select="${esc(id)}" aria-label="选择 ${esc(a.name)} ${esc(r.athlete?.date||"")}" ${selected.has(id)?"checked":""}></td><td data-label="运动员">${athletes?button(esc(a.name),"athlete-records",a.id):`<b>${esc(a.name)}</b>`}<small>${esc(a.id.slice(-8))}</small></td><td data-label="队伍 / 专项">${esc(lib().groups.find(g=>g.id===a.groupId)?.name||"未分组")}<small>${esc(a.profile.sport||"未填写专项")}</small></td><td data-label="${athletes?"历次测试":"日期 / 项目"}">${athletes?count+" 条":esc(r.athlete.date||"未填日期")+`<small>${esc(r.title||names.slice(0,3).join("、"))}${!r.title&&names.length>3?`等 ${names.length} 项`:""}</small>`}</td><td data-label="${athletes?"状态":"评价方案"}">${athletes?({active:"在用",archived:"已归档",trash:"回收站"}[state]):esc(profileName(r.evaluationProfileId))+(a.deletedAt?'<small>所属运动员在回收站</small>':a.archived?'<small>所属运动员已归档</small>':"" )}</td><td data-label="操作"><div class="row">${rowActions}</div></td></tr>`;
     }).join("")||'<tr><td colspan="6" class="empty">没有符合条件的资料。</td></tr>'}</tbody></table></div><div class="management-pagination"><span>${rows.length} 项 · 每页 30 项</span><div class="row">${button("上一页","page",String(f.page-1),f.page<=1?"disabled":"")}<span>${f.page} / ${pages}</span>${button("下一页","page",String(f.page+1),f.page>=pages?"disabled":"")}</div></div>`;
   }
   function teams() {
     const f=filter(),q=f.q.trim().toLocaleLowerCase(),team=lib().groups.find(g=>g.id===f.teamId);
     if(team){
-      const members=lib().athletes.filter(a=>a.groupId===team.id&&!a.deletedAt&&(!q||[a.name,a.profile.sport,a.id].join(" ").toLocaleLowerCase().includes(q)));
-      return `<div class="management-team-heading"><div><h2>${esc(team.name)}</h2><p class="note">${members.filter(a=>!a.archived).length} 名在用运动员 · ${members.filter(a=>a.archived).length} 名已归档</p></div><div class="row">${button("返回队伍列表","team-close")}${button("添加 / 转入成员","team-add",team.id)}</div></div>${field("搜索成员",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="姓名、编号或专项">`)}<div class="management-table-wrap"><table class="management-table team-members-table"><thead><tr><th>运动员</th><th>专项</th><th>状态</th><th>操作</th></tr></thead><tbody>${members.map(a=>`<tr data-team-member="${esc(a.id)}"><td data-label="运动员">${esc(a.name)}<small>${esc(a.id.slice(-8))}</small></td><td data-label="专项">${esc(a.profile.sport||"未填写")}</td><td data-label="状态">${a.archived?"已归档":"在用"}</td><td data-label="操作"><div class="row">${button("资料","edit-athlete",a.id)}${button("转队","team-transfer",a.id)}${button("移出队伍","team-remove",a.id)}</div></td></tr>`).join("")||'<tr><td colspan="4" class="empty">暂无符合条件的成员。</td></tr>'}</tbody></table></div>`;
+      const members=lib().athletes.filter(a=>a.groupId===team.id&&!a.deletedAt);
+      return `<div class="management-team-heading"><div>${button("返回队伍列表","team-close")}<h2>${esc(team.name)}</h2><p class="note">${members.filter(a=>!a.archived).length} 名在用运动员 · ${members.filter(a=>a.archived).length} 名已归档</p></div><div class="row">${button("添加成员","team-add",team.id)}${more(button("新建运动员并加入","team-new-athlete",team.id)+button("改名","group-edit",team.id)+button("删除队伍","group-delete",team.id))}</div></div>${lists()}`;
     }
     return field("搜索队伍",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="队伍名称">`)+(lib().groups.filter(g=>!q||g.name.toLocaleLowerCase().includes(q)).map(g=>{
       const members=lib().athletes.filter(a=>a.groupId===g.id&&!a.deletedAt);
-      return `<article class="management-catalog-item" data-team-id="${esc(g.id)}"><div><h3>${esc(g.name)}</h3><p class="note">${members.filter(a=>!a.archived).length} 名在用运动员 · ${members.filter(a=>a.archived).length} 名已归档</p></div><div class="row">${button("成员名单","team-open",g.id)}${button("添加 / 转入成员","team-add",g.id)}${button("改名","group-edit",g.id)}${button("删除队伍","group-delete",g.id)}</div></article>`;
+      return `<article class="management-catalog-item" data-team-id="${esc(g.id)}"><div><h3>${esc(g.name)}</h3><p class="note">${members.filter(a=>!a.archived).length} 名在用运动员 · ${members.filter(a=>a.archived).length} 名已归档</p></div><div class="row">${button("成员名单","team-open",g.id)}${more(button("添加成员","team-add",g.id)+button("改名","group-edit",g.id)+button("删除队伍","group-delete",g.id))}</div></article>`;
     }).join("")||'<p class="empty">暂无符合条件的队伍。</p>');
   }
   function editTeam(id="") {
     const team=lib().groups.find(g=>g.id===id);
     showForm(team?"队伍名称":"新建队伍",field("名称",`<input name="name" required maxlength="100" value="${esc(team?.name||"")}" placeholder="填写队伍或训练组名称">`),async form=>{
       const name=new FormData(form).get("name").trim();if(!name||lib().groups.some(g=>g.id!==id&&g.name===name))throw Error("名称为空或已存在");
-      if(team)team.name=name;else lib().groups.push({id:"group_"+uid(),name});await App.saveLibraryChanges();
+      await commit(candidate=>{if(team){const currentTeam=candidate.groups.find(g=>g.id===id);if(!currentTeam)throw Error("队伍已不存在");currentTeam.name=name;}else candidate.groups.push({id:"group_"+uid(),name});});
     });
   }
   function testPlans() {
@@ -69,38 +80,21 @@
     return conflicts+(lib().catalog.abilityGroupConflicts||[]).map((c,i)=>`<section class="notice" data-ability-conflict="${esc(c.key)}"><h3>能力分类名称待确认</h3><p>本机名称：<b>${esc(T.abilityLabel(lib().catalog,c.key))}</b> · 导入名称：<b>${esc(c.incomingName)}</b></p><p>当前沿用本机名称。选择只影响后续测试，已有记录保留各自名称。</p><div class="row">${button("保留本机名称","ability-conflict-local",String(i))}${button("采用导入名称","ability-conflict-incoming",String(i))}</div></section>`).join("");
   }
   function metrics() {
-    const f=filter(),q=f.q.trim().toLocaleLowerCase(),profile=metricProfile(),defaults=M.defaults(),record=App.getState();
-    const matched=record&&profile?Eval.resolve(record,profile):null,measurement=record?Eval.capture(record):null,issues=new Map((matched?.evaluationIssues||[]).map(x=>[x.id,x.reason]));
-    const abilities=T.abilityGroups(lib().catalog),projects=T.describe(lib().catalog).filter(t=>!f.test||t.id===f.test),groups=new Map(abilities.map(g=>[g.key,[]]));
-    for(const t of projects){
-      const ability=t.primaryAbility||"未分类",label=T.abilityLabel(lib().catalog,ability),conflicted=lib().catalog.conflicts.some(c=>c.testId===t.id&&!c.resolved);
-      if(f.ability&&f.ability!==ability)continue;
-      const rows=[];
-      const add=(id,name,unit,mode,standard,actions)=>{if(!q||[t.name,label,name,unit].join(" ").toLocaleLowerCase().includes(q))rows.push(`<tr data-library-metric="${esc(id)}"><td data-label="项目">${esc(t.name)}</td><td data-label="指标">${esc(name)}</td><td data-label="单位">${esc(unit)}</td><td data-label="数据方式">${esc(mode)}</td><td data-label="评价标准">${standard}</td><td data-label="操作"><div class="row">${actions}</div></td></tr>`);};
-      for(const d of t.definitions.filter(d=>t.id!=="imtp"||!/^imtp_(?:f|rfd)\d+$/.test(d.id))){
-        const rule=profile?.criteria.definitions.find(x=>x.id===d.id);
-        add(d.id,T.metricName(d),d.unit,T.isManualMetric(d)?d.entryScope==="attempt"?"逐试次录入":"单次记录录入":"固定计算",standardSummary(rule)+(issues.has(d.id)?`<small class="standard-mismatch">当前记录：${esc(issues.get(d.id))}</small>`:""),button("编辑指标","metric-edit",d.id,conflicted?"disabled":"")+button("编辑标准","standard-edit",d.id));
-      }
-      if(t.id==="fms")defaults.data.fms.forEach((r,i)=>add("fms_"+i,r.name,"分",r.bilateral?"双侧录入":"单项录入",'<span>固定 0–3 分；疼痛为 0 分</span>',button("查看评分","standard-fms")));
-      if(t.id==="iso"){
-        const iso=new Map(defaults.data.iso.map(r=>[r.id,r]));for(const r of profile?.criteria.iso||[])iso.set(r.id,r);
-        for(const r of iso.values()){const rule=profile?.criteria.iso.find(x=>x.id===r.id);add(r.id,isoName(r),r.unit,r.paired?"双侧测量":"单值测量",(rule?.target!==""&&rule?.target!=null?`目标 ${esc(rule.target)} ${esc(rule.unit)}`:rule?.reference?.enabled?`<span>文献均值参考 · ${esc(rule.reference.basis)}</span><small>${esc(rule.reference.source)}</small>`:'<span class="note">未配置目标</span>')+(issues.has(r.id)?`<small class="standard-mismatch">当前记录：${esc(issues.get(r.id))}</small>`:""),button("编辑目标 / 参考","standard-iso",r.id));}
-        for(const p of profile?.criteria.balance||defaults.balancePairs){const actual=measurement?.balance.find(x=>x.id===p.id),mismatch=record?.enabled.iso&&actual&&Eval.canonical(actual.contexts)!==Eval.canonical(p.contexts);add("balance_"+p.id,p.label,"比值","关节平衡",standardSummary(p)+(mismatch?'<small class="standard-mismatch">当前记录：测量条件不匹配</small>':""),button("编辑标准","standard-balance",p.id));}
-      }
-      if(t.id==="imtp")for(const time of imtpTimes(profile,record))for(const kind of ["force_pct_peak","rfd"]){
-        const rule=profile?.criteria.imtpTimeStandards?.find(r=>r.kind===kind&&r.timeMs===time),legacy=profile?.criteria.definitions.find(d=>d.id===(kind==="rfd"?"imtp_rfd":"imtp_f")+time);
-        const standard=rule?standardSummary(rule)+(record&&!Eval.imtpTimeMatches?.(record,rule)?'<small class="standard-mismatch">当前记录：测量条件不匹配</small>':""):kind==="force_pct_peak"&&legacy?'<span class="note">旧标准单位为 N；%PF 标准尚未配置</span>':standardSummary(legacy);
-        add(kind+":"+time,kind==="force_pct_peak"?`${time} ms 力占峰值力比例`:`0–${time} ms 平均 RFD`,kind==="force_pct_peak"?"%PF":"N/s","逐试次录入",standard,button("编辑标准","standard-time",kind+":"+time));
-      }
-      for(const [id,p]of Object.entries(profile?.criteria.lvp||{}).filter(([id])=>(id.startsWith("landmine")?"landmine":id)===t.id)){const actual=measurement?.lvp[id],mismatch=record?.enabled[t.id]&&actual&&(actual.metric!==p.metric||actual.protocol!==p.protocol);add("lvp_"+id,"负荷–速度参数"+(id==="landmineL"?" · 左":id==="landmineR"?" · 右":""),"m/s",p.metric,`MVT ${esc(p.mvt||"未配置")}<small>${esc((p.zones||[]).map(z=>z.label+" "+z.min+"–"+z.max).join("；"))}</small>${mismatch?'<small class="standard-mismatch">当前记录：速度口径或协议不匹配</small>':""}`,button("编辑参数","standard-lvp",id));}
-      if(!rows.length&&q&&![t.name,label].join(" ").toLocaleLowerCase().includes(q))continue;
-      if(!groups.has(ability))groups.set(ability,[]);
-      const otherAbilities=t.abilities.filter(a=>a!==ability).map(a=>T.abilityLabel(lib().catalog,a));
-      groups.get(ability).push(`<tbody data-metric-project="${esc(t.id)}"><tr class="metric-project-heading"><th colspan="6"><div class="metric-project-header"><div><h3>${esc(t.name)} ${t.disabled?'<span class="pill">已停用</span>':""}${conflicted?'<span class="pill">待确认版本</span>':""}</h3><p class="note">${t.category==="screen"?"筛查":"运动表现"}${otherAbilities.length?" · 指标还涉及："+esc(otherAbilities.join("、")):""}</p></div><div class="row">${button("编辑项目","catalog-edit",t.id,conflicted?"disabled":"")}${button("新增指标","new-metric",t.id,conflicted?"disabled":"")}${t.id==="imtp"?button("添加时点标准","standard-time-new"):""}${button(t.disabled?"启用":"停用","catalog-toggle",t.id)}</div></div>${lib().catalog.protocol[t.id]?`<p class="metric-project-protocol">${esc(lib().catalog.protocol[t.id])}</p>`:""}</th></tr>${rows.join("")||'<tr><td colspan="6" class="empty">此项目暂无数值指标，可从项目上方新增。</td></tr>'}</tbody>`);
+    const f=filter(),q=f.q.trim().toLocaleLowerCase(),abilities=T.abilityGroups(lib().catalog),projects=T.describe(lib().catalog);
+    for(const t of projects){const key=t.primaryAbility||"unclassified";if(!abilities.some(g=>g.key===key))abilities.push({key,name:t.primaryAbility?T.abilityLabel(lib().catalog,t.primaryAbility):"未分类",synthetic:true});}
+    const project=projects.find(t=>t.id===f.test);
+    if(project){
+      const conflicted=lib().catalog.conflicts.some(c=>c.testId===project.id&&!c.resolved),definitions=project.definitions;
+      const rows=definitions.map(d=>`<tr data-library-metric="${esc(d.id)}"><td data-label="指标"><b>${esc(T.metricName(d))}</b></td><td data-label="单位">${esc(d.unit||"—")}</td><td data-label="数据方式">${T.isManualMetric(d)?d.entryScope==="attempt"?"逐试次录入":"本次测试汇总":"计算结果"}</td><td data-label="操作">${button("编辑指标","metric-edit",d.id,conflicted?"disabled":"")}</td></tr>`).join("");
+      const fixed=project.id==="fms"?'<p class="note">七项动作保留左右侧分数、疼痛和备注；0–3 分及双侧取低规则固定。</p>':project.id==="iso"?'<p class="note">测量按部位、方向和侧别保存。目标、参考值和关节比值分级在评价方案中设置。</p>':"";
+      return catalogNotices()+`<div class="management-scope">${button("返回项目列表","catalog-back")}</div><article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量协议</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写协议")}</p></section><section class="catalog-definition-block"><h3>测量内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据方式</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">定义修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
     }
-    const sections=[...groups].filter(([key,tables])=>(!f.ability||f.ability===key)&&(tables.length||!f.test&&(!q||T.abilityLabel(lib().catalog,key).toLocaleLowerCase().includes(q)))).map(([key,tables])=>{const i=abilities.findIndex(g=>g.key===key);return `<section class="metric-ability-group" data-metric-ability="${esc(key)}"><div class="metric-ability-heading"><h2>${esc(T.abilityLabel(lib().catalog,key))}</h2><div class="row">${button("改名","ability-edit",key)}${button("上移","ability-up",key,i<=0?"disabled":"")}${button("下移","ability-down",key,i<0||i>=abilities.length-1?"disabled":"")}</div></div>${tables.length?`<div class="management-table-wrap"><table class="management-table metric-library-table"><thead><tr><th>项目</th><th>指标</th><th>单位</th><th>数据方式</th><th>评价标准</th><th>操作</th></tr></thead>${tables.join("")}</table></div>`:'<div class="metric-ability-empty"><p>此能力分类暂无项目。新建项目或编辑已有项目时，可选择此分类。</p>'+button("新建项目","new-test",key)+'</div>'}</section>`;}).join("");
-    const derived=(!f.ability||f.ability==="training-analysis")&&!f.test?derivedLibrary(q):"";
-    return catalogNotices()+`<div class="management-filters metrics-filters">${field("搜索",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="项目、指标或能力">`)}${field("能力分类",`<select data-manager-filter="ability">${option("","全部能力",f.ability)}${abilities.map(g=>option(g.key,g.name,f.ability)).join("")}${option("training-analysis",T.analysisLabel,f.ability)}</select>`)}${field("所属项目",`<select data-manager-filter="test">${option("","全部项目",f.test)}${lib().catalog.tests.map(t=>option(t.id,t.name+(t.disabled?"（已停用）":""),f.test)).join("")}</select>`)}${field("查看 / 编辑评价方案",`<select id="metricEvaluationProfile" data-manager-filter="profileId">${profileOptions(profile?.id)}</select>`)}</div><p class="note">分类、项目与指标定义的修改用于后续测试。${esc(profile?.name||"暂无评价方案")}中的评价标准修改会用于关联此方案的记录。</p>${sections+derived||'<p class="empty">没有符合条件的项目或指标。</p>'}`;
+    const filtered=projects.filter(t=>(!f.ability||(t.primaryAbility||"unclassified")===f.ability)&&(!q||[t.name,T.abilityLabel(lib().catalog,t.primaryAbility),...t.definitions.map(T.metricName)].join(" ").toLocaleLowerCase().includes(q)));
+    const groups=abilities.filter(g=>!f.ability||f.ability===g.key).map((g,i)=>{
+      const items=filtered.filter(t=>(t.primaryAbility||"unclassified")===g.key);if(q&&!items.length)return "";
+      return `<section class="metric-ability-group" data-metric-ability="${esc(g.key)}"><div class="metric-ability-heading"><h2>${esc(g.name)}</h2>${g.synthetic?"":more(button("改名","ability-edit",g.key)+button("上移","ability-up",g.key,i===0?"disabled":"")+button("下移","ability-down",g.key,i===abilities.length-1?"disabled":""),"管理分类")}</div><div class="catalog-project-grid">${items.map(t=>`<article class="catalog-project-card" data-metric-project="${esc(t.id)}"><h3>${esc(t.name)}</h3><p>${t.definitions.length} 个结果指标${t.disabled?" · 已停用":""}</p>${button("查看项目","catalog-open",t.id)}</article>`).join("")||`<p class="note">此分类暂无项目。${button("新建项目","new-test",g.synthetic?"":g.key)}</p>`}</div></section>`;
+    }).join("");
+    return catalogNotices()+`<div class="management-filters catalog-filters">${field("搜索",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="项目或指标名称">`)}${field("能力分类",`<select data-manager-filter="ability">${option("","全部能力",f.ability)}${abilities.map(g=>option(g.key,g.name,f.ability)).join("")}${option("training-analysis",T.analysisLabel,f.ability)}</select>`)}</div>${f.ability==="training-analysis"?derivedLibrary(q):groups||'<p class="empty">没有符合条件的项目。</p>'}`;
   }
   function planPickerOptions() {
     return {source:lib().catalog,selection:planDraft,isoRows:M.isoRows(),context:"plan",showOrder:true,blockedIds:lib().catalog.conflicts.filter(conflict=>!conflict.resolved).map(conflict=>conflict.testId),onChange(next){planDraft.testIds=next.testIds;planDraft.isoDirectionIds=next.isoDirectionIds;const error=$("testPlanError");if(error)error.textContent="";}};
@@ -115,10 +109,7 @@
   }
   async function saveCatalog(catalog) {
     M.validateCatalog(catalog);
-    const library=lib(),previous=library.catalog;
-    catalog.revision=(Number(previous.revision)||1)+1;library.catalog=catalog;
-    try{await App.saveLibraryChanges();}
-    catch(error){if(lib()===library&&library.catalog===catalog)library.catalog=previous;throw error;}
+    await commit(candidate=>{catalog.revision=(Number(candidate.catalog.revision)||1)+1;candidate.catalog=clone(catalog);});
   }
   function editAbility(key="") {
     const existing=T.abilityGroups(lib().catalog).find(g=>g.key===key);
@@ -132,116 +123,96 @@
       catalog.abilityGroups=groups;await saveCatalog(catalog);
     });
   }
-  function metricProfile(){const f=filters.metrics||={},id=f.profileId||App.getState()?.evaluationProfileId||lib().defaultEvaluationProfileId;return lib().evaluationProfiles.find(p=>p.id===id)||lib().evaluationProfiles.find(p=>p.id===lib().defaultEvaluationProfileId);}
   function isoName(row){return M.REG[row.region]+" · "+(row.region==="neck"?row.direction.replace(/[（(](?:左\s*\/\s*右|中线)[）)]/g,""):row.direction);}
-  function standardSummary(rule){if(!rule||!rule.referenceEnabled&&(rule.target===""||rule.target==null)&&!rule.ranges?.length&&!rule.referenceGroups?.length)return '<span class="note">未设置评价标准</span>';return `<span>${rule.target!==""&&rule.target!=null?"目标 "+esc(rule.target)+" · ":""}${rule.direction==="lower"?"数值越低越好":rule.direction==="higher"?"数值越高越好":""}</span>${rule.referenceEnabled?`<small>${rule.referenceGroups?esc(rule.referenceGroups.length+" 组年龄 / 性别 / 测试方式标准"):esc(Def.rangeText(rule.ranges||[]))}</small>`:'<small>未启用分级</small>'}${rule.source?`<small>${esc(rule.source)}</small>`:""}`;}
-  function imtpTimes(profile,record){const times=new Set((profile?.criteria.imtpTimeStandards||[]).map(r=>r.timeMs));for(const d of profile?.criteria.definitions||[]){const match=d.id.match(/^imtp_(?:f|rfd)(\d+)$/);if(match)times.add(Number(match[1]));}for(const trial of record?.data.imtp||[])for(const p of trial.timePoints||[])if(Number(p.timeMs)>0)times.add(Number(p.timeMs));return [...times].sort((a,b)=>a-b);}
-  function profiles() {
-    if(editor)return profileEditor();
-    return lib().evaluationProfiles.map(p=>{
-      const count=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===p.id).length,0);
-      return `<article class="management-catalog-item"><div><h3>${esc(p.name)} ${p.id===lib().defaultEvaluationProfileId?'<span class="pill">默认</span>':""}${p.disabled?'<span class="pill">已停用</span>':""}</h3><p class="note">版本 ${p.revision} · 关联 ${count} 条记录</p></div><div class="row">${button("编辑","profile-edit",p.id)}${button("复制","profile-copy",p.id)}${button("设为默认","profile-default",p.id,p.disabled?"disabled":"")}${button("关联记录","profile-records",p.id)}${button(p.disabled?"启用":"停用","profile-toggle",p.id,p.id===lib().defaultEvaluationProfileId?"disabled":"")}${p.previous?button("恢复上一版","profile-revert",p.id):""}</div></article>`;
-    }).join("");
-  }
-  const ruleLabels={asymAmber:"不对称关注阈值 %",asymRed:"不对称预警阈值 %",scoreAmber:"目标达成关注下界 %",scoreGreen:"目标达成达标下界 %"};
-  const input=(path,value,type="number")=>`<input data-profile-path="${esc(path)}" type="${type}" ${type==="number"?'step="any"':""} value="${esc(value)}">`;
+  const ruleLabels={asymAmber:"双侧差异关注阈值 %",asymRed:"双侧差异预警阈值 %",scoreAmber:"目标达成关注下界 %",scoreGreen:"目标达成达标下界 %"};
+  const input=(path,value,type="number",extra="")=>`<input data-profile-path="${esc(path)}" type="${type}" ${type==="number"?'step="any"':""} value="${esc(value)}" ${extra}>`;
   const check=(path,value,label)=>`<label class="check-line"><input type="checkbox" data-profile-path="${esc(path)}" ${value?"checked":""}>${label}</label>`;
   const select=(path,value,options)=>`<select data-profile-path="${esc(path)}">${options.map(([v,n])=>option(v,n,value)).join("")}</select>`;
-  function ranges(path,value,label="评价分级区间：范围 | 名称 | red / amber / green") {return field(label,`<textarea rows="4" data-profile-ranges="${esc(path)}">${esc(editor.rangeDrafts[path]??Def.rangeText(value))}</textarea>`);}
-  function referenceGroupEditor(d,index) {
-    const groups=d.referenceGroups||[],base="definitions."+index+".referenceGroups";
-    let html=`<section class="profile-rule-block"><h3>年龄、性别与测试方式标准</h3><p class="note">年龄按下限含、上限不含匹配；空白表示不限。分层目标留空时沿用上方目标。峰值 RER 只限制本行分级区间。</p><div class="row">${button("添加分层","profile-group-add",String(index))}</div>`;
-    if(!groups.length)return html+'<p class="note">未设置分层标准。</p></section>';
-    if(!groups.some(g=>g.id===editor.referenceGroupId))editor.referenceGroupId=groups[0].id;
-    html+='<div class="management-table-wrap"><table class="management-table reference-groups-table"><thead><tr><th>性别</th><th>年龄下限</th><th>年龄上限</th><th>测试方式</th><th>最低峰值 RER</th><th>本组训练目标</th><th>操作</th></tr></thead><tbody>';
-    html+=groups.map((g,j)=>{const path=base+"."+j;return `<tr data-reference-group="${esc(g.id)}"><td data-label="性别">${select(path+".sex",g.sex,[["any","不限"],["male","男"],["female","女"]])}</td><td data-label="年龄下限">${input(path+".ageMin",g.ageMin)}</td><td data-label="年龄上限">${input(path+".ageMax",g.ageMax)}</td><td data-label="测试方式">${select(path+".mode",g.mode,[["any","不限"],["treadmill","跑台"],["cycle","功率车"]])}</td><td data-label="最低峰值 RER">${input(path+".minPeakRER",g.minPeakRER??"")}</td><td data-label="本组训练目标">${input(path+".target",g.target??"")}</td><td><div class="row">${button("编辑区间","profile-group-select",g.id,g.id===editor.referenceGroupId?'aria-current="true"':"")}${button("复制","profile-group-copy",index+":"+j)}${button("删除","profile-group-delete",index+":"+j)}</div></td></tr>`;}).join("");
-    html+='</tbody></table></div>';
-    const j=groups.findIndex(g=>g.id===editor.referenceGroupId),g=groups[j],path=base+"."+j;
-    html+=`<div class="form-grid">${field("本组来源 / 专项说明",input(path+".source",g.source,"text"))}</div>${g.modified?'<p class="note">本组已按用户设置修改。</p>':""}<div class="management-table-wrap"><table class="management-table reference-ranges-table"><thead><tr><th>下限</th><th>含下限</th><th>上限</th><th>含上限</th><th>名称</th><th>显示颜色</th><th>操作</th></tr></thead><tbody>`;
-    html+=g.ranges.map((r,k)=>{const rangePath=path+".ranges."+k;return `<tr><td data-label="下限">${input(rangePath+".min",r.min)}</td><td data-label="含下限">${check(rangePath+".includeMin",r.includeMin!==false,"包含")}</td><td data-label="上限">${input(rangePath+".max",r.max)}</td><td data-label="含上限">${check(rangePath+".includeMax",r.includeMax!==false,"包含")}</td><td data-label="名称">${input(rangePath+".label",r.label,"text")}</td><td data-label="显示颜色">${select(rangePath+".status",r.status,[["gray","中性"],["red","红色"],["amber","黄色"],["green","绿色"]])}</td><td>${button("删除","profile-group-range-delete",index+":"+j+":"+k)}</td></tr>`;}).join("");
-    return html+`</tbody></table></div><p class="note">区间端点留空表示无上限或无下限。</p>${button("添加区间","profile-group-range-add",index+":"+j)}</section>`;
+  function profiles() {
+    if(editor)return profileEditor();
+    const q=filter().q.trim().toLocaleLowerCase();
+    return field("搜索评价方案",`<input type="search" data-manager-filter="q" value="${esc(filter().q)}" placeholder="方案名称">`)+lib().evaluationProfiles.filter(p=>!q||p.name.toLocaleLowerCase().includes(q)).map(p=>{
+      const count=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===p.id).length,0);
+      return `<article class="management-catalog-item" data-evaluation-profile="${esc(p.id)}"><div><h3>${esc(p.name)} ${p.id===lib().defaultEvaluationProfileId?'<span class="pill">默认</span>':""}${p.disabled?'<span class="pill">已停用</span>':""}</h3><p class="note">版本 ${p.revision} · 关联 ${count} 条记录</p></div><div class="row">${button("编辑","profile-edit",p.id)}${more(button("复制","profile-copy",p.id)+button("设为默认","profile-default",p.id,p.disabled?"disabled":"")+button("关联记录","profile-records",p.id)+button(p.disabled?"启用":"停用","profile-toggle",p.id,p.id===lib().defaultEvaluationProfileId?"disabled":"")+(p.previous||p.releases?.length?button("版本历史","profile-history",p.id)+button("恢复上一版","profile-revert",p.id):""))}</div></article>`;
+    }).join("");
   }
-  function evaluationHelp() {
-    return '<p class="note" data-evaluation-help>参考目标用于目标达成度与能力图；启用分级区间时，评价色标以区间为准，达标不一定表示达到参考目标。未设区间时，按参考目标及目标达成阈值评价。关闭本指标评价后，保留配置，但不参与评级或能力达成计算。</p>';
+  function structuredRanges(path,items=[],scores=false) {
+    return `<div class="management-table-wrap structured-ranges"><table class="management-table"><thead><tr><th>下限</th><th>含下限</th><th>上限</th><th>含上限</th>${scores?'<th>转换分数</th>':'<th>等级名称</th><th>显示颜色</th>'}<th>操作</th></tr></thead><tbody>${items.map((r,i)=>{const p=path+"."+i;return `<tr><td data-label="下限">${input(p+".min",r.min)}</td><td data-label="含下限">${check(p+".includeMin",r.includeMin!==false,"包含")}</td><td data-label="上限">${input(p+".max",r.max)}</td><td data-label="含上限">${check(p+".includeMax",r.includeMax!==false,"包含")}</td>${scores?`<td data-label="转换分数">${input(p+".score",r.score)}</td>`:`<td data-label="等级名称">${input(p+".label",r.label,"text")}</td><td data-label="显示颜色">${select(p+".status",r.status,[["gray","中性"],["red","红色"],["amber","黄色"],["green","绿色"]])}</td>`}<td data-label="操作">${button("删除","rule-range-delete",p)}</td></tr>`;}).join("")||`<tr><td colspan="${scores?6:7}">尚未设置区间。</td></tr>`}</tbody></table></div><div class="rule-range-footer"><small>端点留空表示不限制；边界是否包含分别设置。</small>${button("添加区间",scores?"score-range-add":"rule-range-add",path)}</div>`;
+  }
+  const formatRanges=ranges=>ranges.map(r=>`${r.includeMin===false?"(":"["}${r.min??"−∞"}, ${r.max??"+∞"}${r.includeMax===false?")":"]"} ${r.label??r.score??""}`).join("；");
+  function conditionsEditor(path,value={},fixedSex=false){
+    return `<div class="form-grid">${field("性别",select(path+".sex",value.sex||"any",fixedSex?[["male","男"],["female","女"]]:[["any","不限"],["male","男"],["female","女"]]))}${field("年龄下限（含）",input(path+".ageMin",value.ageMin))}${field("年龄上限（不含）",input(path+".ageMax",value.ageMax))}</div>`;
+  }
+  function referenceGroupEditor(rule,index,subject) {
+    const groups=rule.referenceGroups||[],base="standards."+index+".referenceGroups";
+    return `<details class="rule-conditions" ${groups.length?"open":""}><summary>按年龄 / 性别设置不同标准${groups.length?` · ${groups.length} 组`:""}</summary>${groups.map((g,j)=>{const path=base+"."+j;return `<section class="profile-rule-block"><div class="rule-section-heading"><h4>条件标准 ${j+1}</h4>${more(button("复制","profile-group-copy",index+":"+j)+button("删除","profile-group-delete",index+":"+j))}</div>${conditionsEditor(path,g)}${subject.testId==="cpet"?`<div class="form-grid">${field("测试方式",select(path+".mode",g.mode||"any",[["any","不限"],["treadmill","跑台"],["cycle","功率车"]]))}${field("分级要求的最低峰值 RER",input(path+".minPeakRER",g.minPeakRER))}</div>`:""}<div class="form-grid">${field("本组目标（留空沿用通用目标）",input(path+".target",g.target))}${field("参考来源",input(path+".source",g.source,"text"))}</div>${structuredRanges(path+".ranges",g.ranges||[])}</section>`;}).join("")}${button("添加条件标准","profile-group-add",String(index))}</details>`;
+  }
+  function isoReferenceEditor(ref,path,subject) {
+    if(!ref)return button("添加参考均值","profile-reference-add",subject.id);
+    const keys=ref.sideBasis==="dominance"?["DOM","ND"]:Object.keys(ref.groups?.[0]?.values||{}).length?Object.keys(ref.groups[0].values):["C"],names={DOM:"优势侧",ND:"非优势侧",L:"左",R:"右",C:"数值"};
+    return `<details class="iso-reference-editor"><summary>参考均值${ref.enabled?"":" · 未启用"}</summary><div class="form-grid">${check(path+".enabled",ref.enabled,"显示参考均值")}${field("参考单位",select(path+".basis",ref.basis,subject.kind==="balance"?[["ratio","比值"]]:[["N","N"],["N/kg","N/kg"],["%BW","体重百分比 %BW"]]))}${field("参考来源",input(path+".source",ref.source,"text"))}</div>${(ref.groups||[]).map((g,j)=>{const p=path+".groups."+j;return `<section class="reference-condition-row"><div class="rule-section-heading"><h4>参考组 ${j+1}</h4>${more(button("复制","reference-row-copy",p)+button("删除","rule-range-delete",p))}</div>${conditionsEditor(p,g,true)}<div class="form-grid">${field("统计口径",select(p+".mode",g.mode||"any",[["any","不限"],["best","最好值"],["mean","均值"]]))}${keys.map(k=>field(names[k]||k,input(p+".values."+k,g.values?.[k]))).join("")}</div></section>`;}).join("")}<div class="row">${button("添加参考组","reference-row-add",path)}</div><p class="note">参考均值单独展示，不自动作为训练目标或分级界值。</p>${button("移除参考均值","profile-reference-clear",path)}</details>`;
+  }
+  function standardEditor(subject) {
+    const index=editor.profile.standards.findIndex(r=>r.id===subject.id),rule=editor.profile.standards[index];
+    if(subject.locked&&subject.historical)return `<div class="profile-standard-detail"><h3>${esc(subject.name)}</h3><p>旧版绝对力标准保留供历史结果核对。新的时点标准分别配置力占峰值力比例（%PF）或平均 RFD。</p>${rule?`<dl><dt>参考目标</dt><dd>${rule.enabled!==false&&rule.targetEnabled!==false&&rule.target!=null?esc(rule.target)+" "+esc(subject.unit):"未启用"}</dd><dt>分级区间</dt><dd>${esc(formatRanges(rule.ranges||[]))||"未配置"}</dd><dt>来源</dt><dd>${esc(rule.source||"未填写")}</dd></dl>`:'<p class="note">本方案没有旧版绝对力标准。</p>'}</div>`;
+    if(subject.locked)return `<div class="profile-standard-detail"><h3>${esc(subject.name)}</h3><p>固定 0–3 分。疼痛为 0 分，双侧项目保留原始左右侧得分并取低侧计分。</p><p class="note">固定测量规则不作为可编辑评价标准。</p></div>`;
+    if(!rule)return `<div class="profile-standard-detail"><h3>${esc(subject.name)}</h3><p class="note">尚未为此结果设置评价标准。实测结果正常保留。</p>${button("配置本项标准","profile-standard-add",subject.id)}</div>`;
+    const path="standards."+index,caps=subject.capabilities||{target:subject.kind!=="balance",ranges:subject.kind!=="iso",reference:["iso","balance"].includes(subject.kind),conditions:true};
+    const target=caps.target?`<section class="rule-component"><h4>参考目标</h4>${check(path+".targetEnabled",rule.targetEnabled!==false,"启用目标比较")}<div class="form-grid">${field("目标 · "+(subject.unit||"数值"),input(path+".target",rule.target))}${subject.kind!=="iso"?field("评价方向",select(path+".direction",rule.direction||"higher",[["higher","数值越高越好"],["lower","数值越低越好"]])):""}</div></section>`:"";
+    const ranges=caps.ranges?`<section class="rule-component"><h4>分级区间</h4>${check(path+".rangesEnabled",rule.rangesEnabled!==false,"启用区间分级")}${structuredRanges(path+".ranges",rule.ranges||[])}</section>`:"";
+    return `<div class="profile-standard-detail" data-standard-subject="${esc(subject.id)}"><div class="rule-section-heading"><h3>${esc(subject.name)}</h3>${more(button("移除此项标准","profile-standard-remove",subject.id))}</div><p class="note">${esc(subject.unit||"无单位")} · ${esc(subject.context?.protocol||"使用项目测量协议")}</p>${check(path+".enabled",rule.enabled!==false,"使用本项标准")}${target}${ranges}<div class="form-grid">${field("参考来源 / 说明",input(path+".source",rule.source||"","text"))}</div><details class="rule-conditions"><summary>适用条件（可选）${rule.referenceGroups?.length?` · ${rule.referenceGroups.length} 组条件标准`:""}</summary><h4>通用条件</h4>${conditionsEditor(path+".conditions",rule.conditions||{})}<details class="rule-conditions"><summary>分别设置目标与分级的条件</summary>${caps.target?`<h4>目标比较</h4>${conditionsEditor(path+".targetConditions",rule.targetConditions||{})}`:""}${caps.ranges?`<h4>区间分级</h4>${conditionsEditor(path+".rangesConditions",rule.rangesConditions||{})}`:""}</details>${subject.kind==="metric"||caps.referenceGroups?referenceGroupEditor(rule,index,subject):""}</details>${caps.reference?isoReferenceEditor(rule.reference,path+".reference",subject):""}</div>`;
+  }
+  function lvpSettings(projectId) {
+    const items=Object.entries(editor.profile.settings.lvp||{}).filter(([id])=>(id.startsWith("landmine")?"landmine":id)===projectId);
+    if(!["bench","squat","deadlift","landmine"].includes(projectId))return "";
+    return `<details class="project-analysis-settings" ${editor.analysisOpen?"open":""}><summary>分析设置 · MVT 与速度训练区间</summary><p class="note">这些参数用于推算负荷，不改变实测负荷、速度或代表试次。</p>${items.map(([id,c])=>{const p="settings.lvp."+id;return `<section class="profile-rule-block"><h4>${esc(id==="landmineL"?"左侧":id==="landmineR"?"右侧":"负荷–速度分析")}</h4><div class="form-grid">${field("适用速度口径",select(p+".metric",c.metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))}${field("MVT m/s",input(p+".mvt",c.mvt))}${field("依据 / 设备",input(p+".source",c.source||"","text"))}</div><div class="management-table-wrap"><table class="management-table"><thead><tr><th>速度下限 m/s</th><th>速度上限 m/s</th><th>名称</th><th>操作</th></tr></thead><tbody>${(c.zones||[]).map((z,i)=>`<tr><td data-label="下限">${input(p+".zones."+i+".min",z.min)}</td><td data-label="上限">${input(p+".zones."+i+".max",z.max)}</td><td data-label="名称">${input(p+".zones."+i+".label",z.label,"text")}</td><td>${button("删除","rule-range-delete",p+".zones."+i)}</td></tr>`).join("")}</tbody></table></div>${button("添加速度区间","lvp-zone-add",p+".zones")}</section>`;}).join("")||button("配置分析参数","lvp-settings-add",projectId)}</details>`;
+  }
+  function previewScore(subject,transform,value) {
+    if(value===""||value===undefined)return "输入实测值查看转换结果";
+    const rule=editor.profile.standards.find(r=>r.id===subject.id);if(!rule)return "请先为此结果设置评价标准";const result=Eval.previewTransform(rule,transform,Number(value),subject);
+    return result.valid?`转换分数：${Number(result.score.toFixed(4))}`:result.reason||"无法转换";
+  }
+  function transformEditor(axis,subject,transform) {
+    const path="aggregations."+pathKey(axis)+".transforms."+pathKey(subject.id),value=editor.previewValues?.[axis+"/"+subject.id]??"";
+    let h=`<section class="score-transform" data-transform-subject="${esc(subject.id)}"><h4>${esc(subject.name)} · ${esc(subject.unit)}</h4>${field("转换方式",select(path+".kind",transform.kind,[...(subject.measurementScale==="ratio"||transform.kind==="ratio"?[["ratio","相对参考目标"]]:[]),["anchors","数值与分数对应点"],["table","分数区间表"]]))}`;
+    if(transform.kind==="ratio")h+=field("转换方向",select(path+".direction",transform.direction||"higher",[["higher","数值越高分数越高"],["lower","数值越低分数越高"]]));
+    if(transform.kind==="anchors")h+=field("分数变化",select(path+".shape",transform.shape||"higher",[["higher","随数值递增"],["lower","随数值递减"],["range","中间范围较高"]]))+`<div class="score-anchor-list">${(transform.points||[]).map((p,i)=>`<div class="row">${field("实测值",input(path+".points."+i+".value",p.value))}${field("对应分数",input(path+".points."+i+".score",p.score))}${button("删除","rule-range-delete",path+".points."+i)}</div>`).join("")}</div>${button("添加对应点","score-anchor-add",path+".points")}`;
+    if(transform.kind==="table")h+=structuredRanges(path+".ranges",transform.ranges||[],true);
+    return h+`<div class="score-preview">${field("试算实测值",`<input type="number" step="any" data-score-preview-axis="${esc(axis)}" data-score-preview-subject="${esc(subject.id)}" value="${esc(value)}">`)}<output data-score-output-axis="${esc(axis)}" data-score-output-subject="${esc(subject.id)}">${esc(previewScore(subject,transform,value))}</output></div></section>`;
+  }
+  function aggregationsEditor(subjects) {
+    const eligible=subjects.filter(s=>!s.locked&&s.ability&&s.kind!=="iso"&&s.kind!=="balance"),abilities=[...new Set(eligible.map(s=>s.ability))];
+    return `<section class="profile-aggregations"><p class="note">代表指标缺测时不替换为其他指标。平均分只使用明确选定的成员，全部成员有效后才计算。</p><div class="form-grid">${["scoreAmber","scoreGreen"].map(k=>field(ruleLabels[k],input("settings.thresholds."+k,editor.profile.settings.thresholds[k]))).join("")}</div>${abilities.map(ability=>{const axis=T.axisKey(ability),cfg=editor.profile.aggregations[axis]||{method:"disabled"},available=eligible.filter(s=>s.ability===ability),path="aggregations."+pathKey(axis);
+      let h=`<details class="ability-aggregation" ${cfg.method!=="disabled"?"open":""}><summary>${esc(T.abilityLabel(lib().catalog,ability))} · ${{primary:"代表指标",mean:"固定成员平均分",disabled:"未启用"}[cfg.method]||"待配置"}</summary>${cfg.migrationIssue?`<p class="notice">${esc(cfg.migrationIssue)}</p>`:""}${field("汇总方式",select(path+".method",cfg.method,[["disabled","不显示此能力"],["primary","代表指标"],["mean","固定成员平均分"]]))}`;
+      if(cfg.method==="primary")h+=field("代表指标",select(path+".primary",cfg.primary||"",[["","请选择代表指标"],...available.map(s=>[s.id,s.name+" · "+s.unit])]));
+      if(cfg.method==="mean")h+=`<div class="aggregation-members">${available.map(s=>`<label class="check-line"><input type="checkbox" data-aggregation-axis="${esc(axis)}" data-aggregation-member="${esc(s.id)}" ${(cfg.members||[]).includes(s.id)?"checked":""}>${esc(s.name)} · ${esc(s.unit)}</label>`).join("")}</div>${(cfg.members||[]).map(id=>{const subject=subjects.find(s=>s.id===id);return subject?transformEditor(axis,subject,cfg.transforms?.[id]||{kind:"ratio",direction:"higher"}):`<p class="notice">未找到成员 ${esc(id)}</p>`;}).join("")}<details class="rule-conditions"><summary>平均分的分级区间（可选）</summary>${structuredRanges(path+".ranges",cfg.ranges||[])}</details>`;
+      return h+'</details>';
+    }).join("")}</section>`;
   }
   function profileEditor() {
-    const r=editor.record,tab=editor.tab, tabs=[["definitions","指标标准"],["imtp","IMTP 时点"],["rules","筛查阈值"],["axes","能力汇总"],["iso","等长目标"],["balance","关节平衡"],["lvp","LVP 参数"]];
-    let h=`<div class="profile-editor-header">${field("方案名称",`<input id="profileName" value="${esc(editor.profile.name)}" maxlength="120" ${editor.readOnly?"readonly":""}>`)}<div class="row">${button(editor.origin==="metrics"?"返回指标库":"返回方案列表","profile-close")}${editor.readOnly?button("复制为新方案","profile-copy",editor.profile.id):button("补充新增指标","profile-extend")+button("查看变更并保存","profile-review","",'class="btn primary"')}</div></div><div class="profile-tabs">${tabs.map(([id,label])=>button(label,"profile-tab",id,tab===id?'aria-current="page"':"")).join("")}</div><div id="profileEditorFields">`;
-    if(tab==="definitions"){
-      h+=evaluationHelp();
-      const i=Math.max(0,r.definitions.findIndex(d=>d.id===editor.metricId)),d=r.definitions[i];
-      h+=field("指标",`<select id="profileMetricSelect">${r.definitions.map(d=>option(d.id,T.metricName(d)+" · "+d.unit,editor.metricId)).join("")}</select>`);
-      if(d)h+=`<p class="note">${esc(T.metricProtocol(d)||"未记录协议")} · ${esc(d.unit)} · ${esc(T.abilityLabel(lib().catalog,d.ability))}</p><div class="form-grid">${field(d.testId==="cpet"?"通用训练目标":"参考目标（用于达成度）",input("definitions."+i+".target",d.target))}${field("评价方向",select("definitions."+i+".direction",d.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input("definitions."+i+".source",d.source,"text"))}</div>${check("definitions."+i+".referenceEnabled",d.referenceEnabled,"启用本指标评价")}${Array.isArray(d.referenceGroups)?referenceGroupEditor(d,i):ranges("definitions."+i+".ranges",d.ranges)+`<div class="row">${d.ranges.map((x,j)=>check("definitions."+i+".ranges."+j+".advantage",x.advantage,esc(x.label)+"认定为优势")).join("")}</div>`+(d.testId==="cpet"?button("添加年龄 / 性别 / 测试方式标准","profile-group-add",String(i)):"")}`;
-    } else if(tab==="imtp")h+=imtpStandardEditor();
-    else if(tab==="rules")h+='<div class="form-grid">'+Object.entries(ruleLabels).map(([id,label])=>field(label,input("rules."+id,r.rules[id]))).join("")+'</div><p class="note">FMS 保留固定 0–3 分及疼痛判定。</p>';
-    else if(tab==="iso")h+='<p class="note">手填目标优先；目标留空时使用已启用的参考均值。参考数值可编辑。</p>'+r.data.iso.map((row,i)=>`<article class="profile-rule-block" data-standard-key="${esc(row.id)}"><div class="profile-rule-row"><b>${esc(isoName(row))}</b>${field("目标 · "+esc(row.unit),input("data.iso."+i+".target",row.target))}<span class="note">${esc(row.protocol||"")}</span></div>${isoReferenceEditor(row.reference,"data.iso."+i+".reference",row)}</article>`).join("");
-    else if(tab==="balance")h+='<p class="note">参考均值用于数值比较，不等同于评价区间；仅有均值时保留中性显示。</p>'+r.balancePairs.map((p,i)=>`<div class="profile-rule-block" data-standard-key="${esc(p.id)}"><h3>${esc(p.label)}</h3><p class="note">${esc(r.data.iso.find(x=>x.id===p.numeratorId)?.direction||"未匹配方向")} / ${esc(r.data.iso.find(x=>x.id===p.denominatorId)?.direction||"未匹配方向")}</p>${p.ratioMigrationIssue?'<p class="notice">'+esc(p.ratioMigrationIssue)+'</p>':""}${check("balancePairs."+i+".referenceEnabled",p.referenceEnabled,"启用评价区间")}${field("依据",input("balancePairs."+i+".source",p.source,"text"))}${ranges("balancePairs."+i+".ranges",p.ranges)}${isoReferenceEditor(p.reference,"balancePairs."+i+".reference",{region:p.region,paired:true},true)}</div>`).join("");
-    else if(tab==="axes")h+=[...new Set(r.definitions.filter(d=>d.category==="performance"&&d.ability).map(d=>d.ability))].map(ability=>{
-      const id=T.axisKey(ability),defs=r.definitions.filter(d=>d.ability===ability),cfg=T.axisConfig(r,ability)||{method:"primary",primary:defs[0].id};r.axes[id]=cfg;
-      return `<div class="profile-rule-row"><b>${esc(T.abilityLabel(lib().catalog,ability))}</b>${field("汇总方式",`<select data-profile-axis="${esc(id)}" data-axis-field="method">${[["primary","代表指标"],["mean","平均达成"],["min","最低达成"]].map(([v,n])=>option(v,n,cfg.method)).join("")}</select>`)}${field("代表指标",`<select data-profile-axis="${esc(id)}" data-axis-field="primary">${defs.map(d=>option(d.id,T.metricName(d),cfg.primary)).join("")}</select>`)}</div>`;
-    }).join("");
-    else if(tab==="lvp")h+=Object.entries(r.lvp).map(([id,p])=>`<div class="profile-rule-block" data-standard-key="${esc(id)}"><h3>${esc({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠 L",landmineR:"地雷杠 R"}[id])}</h3><div class="form-grid">${field("适用速度口径",select("lvp."+id+".metric",p.metric,[["MV","平均速度 MV"],["MPV","平均推进速度 MPV"],["PV","峰值速度 PV"]]))}${field("MVT m/s",input("lvp."+id+".mvt",p.mvt))}${field("依据 / 设备",input("lvp."+id+".source",p.source||"","text"))}</div>${field("素质区间：下限..上限 | 名称",`<textarea rows="4" data-profile-zones="${id}">${esc(editor.zoneDrafts[id]??p.zones.map(z=>z.min+".."+z.max+" | "+z.label).join("\n"))}</textarea>`)}</div>`).join("");
-    h+='</div><p id="profileEditorError" class="field-error" role="alert"></p>';
-    return h;
-  }
-  function isoReferenceEditor(ref,path,row,balance=false) {
-    if(!ref)return !balance?button("设置参考","profile-iso-reference-add",path):"";
-    const keys=ref.sideBasis==="dominance"?["DOM","ND"]:row.paired?["L","R"]:["C"];
-    const names={DOM:"优势手侧",ND:"非优势侧",L:"L",R:"R",C:"单项"};
-    let h=`<details class="iso-reference-editor"><summary>${esc(ref.enabled?"参考均值":"参考均值 · 已停用")} · ${esc(ref.source)}</summary><div class="form-grid">${check(path+".enabled",ref.enabled,"启用参考均值")}${field("数值单位",select(path+".basis",ref.basis,balance?[["ratio","比值"]]:[["N","N"],["N/kg","N/kg"],["%BW","体重百分比 %BW"]]))}${field("参考来源",input(path+".source",ref.source,"text"))}</div><div class="management-table-wrap"><table class="management-table"><thead><tr><th>性别</th><th>年龄下限</th><th>年龄上限（不含）</th><th>统计方式</th>${keys.map(key=>'<th>'+names[key]+'</th>').join("")}</tr></thead><tbody>`;
-    h+=ref.groups.map((g,j)=>{const p=path+".groups."+j;return `<tr><td data-label="性别">${g.sex==="male"?"男":"女"}</td><td data-label="年龄下限">${input(p+".ageMin",g.ageMin)}</td><td data-label="年龄上限">${input(p+".ageMax",g.ageMax)}</td><td data-label="统计方式">${{best:"最好值",mean:"均值",any:"通用参考"}[g.mode]}</td>${keys.map(key=>`<td data-label="${names[key]}">${input(p+".values."+key,g.values[key]??"")}</td>`).join("")}</tr>`;}).join("");
-    return h+`</tbody></table></div><div class="row">${button("清除参考","profile-iso-reference-clear",path)}</div></details>`;
-  }
-  function imtpStandardEditor(){
-    const r=editor.record;r.imtpTimeStandards||=[];
-    const choices=new Set(imtpTimes(editor.profile,App.getState()).flatMap(time=>["force_pct_peak:"+time,"rfd:"+time]));for(const rule of r.imtpTimeStandards)choices.add(rule.kind+":"+rule.timeMs);if(editor.timeKey)choices.add(editor.timeKey);
-    const keys=[...choices].sort((a,b)=>Number(a.split(":")[1])-Number(b.split(":")[1])||a.localeCompare(b));editor.timeKey ||= keys[0];
-    const label=key=>{const[kind,time]=key.split(":");return kind==="rfd"?`0–${time} ms 平均 RFD · N/s`:`${time} ms 力占峰值力比例 · %PF`;};
-    let h=evaluationHelp()+`<div class="row">${field("时点指标",`<select id="imtpStandardSelect">${keys.map(key=>option(key,label(key),editor.timeKey)).join("")}</select>`)}${button("添加时点","profile-time-new")}</div>`;
-    if(!editor.timeKey)return h+'<p class="empty">尚未配置时点标准。</p>';
-    const[kind,time]=editor.timeKey.split(":"),timeMs=Number(time),i=r.imtpTimeStandards.findIndex(x=>x.kind===kind&&x.timeMs===timeMs),rule=r.imtpTimeStandards[i];
-    if(!rule){const legacy=r.definitions.find(d=>d.id===(kind==="rfd"?"imtp_rfd":"imtp_f")+time);
-      if(kind==="force_pct_peak"&&legacy)return h+`<div class="notice"><h3>旧力值标准 · ${time} ms · N</h3>${standardSummary(legacy)}<p>切换后请重新填写 %PF 目标和区间。原始力值与其他记录数据保持原样。</p>${button("切换为 %PF 并清空阈值","profile-time-create",editor.timeKey)}</div>`;
-      return h+`<p class="note">尚未配置此时点标准。</p>${button("配置此时点标准","profile-time-create",editor.timeKey)}`;
-    }
-    const path="imtpTimeStandards."+i,unit=kind==="rfd"?"N/s":"%PF",context=rule.context;
-    h+=`<p class="note">${esc(context.protocol||"未记录协议")} · ${context.force.definition==="net"?"净力":"总力"} · ${unit}</p><div class="form-grid">${field("参考目标 · "+unit,input(path+".target",rule.target))}${field("评价方向",select(path+".direction",rule.direction,[["higher","数值越高越好"],["lower","数值越低越好"]]))}${field("参考来源 / 适用人群",input(path+".source",rule.source,"text"))}</div>${check(path+".referenceEnabled",rule.referenceEnabled,"启用本指标评价")}${ranges(path+".ranges",rule.ranges)}`;
-    return h;
-  }
-  function createTimeRule(key){
-    const[kind,time]=key.split(":"),timeMs=Number(time),r=editor.record;r.imtpTimeStandards||=[];
-    if(r.imtpTimeStandards.some(x=>x.kind===kind&&x.timeMs===timeMs))return;
-    const legacy=kind==="rfd"?r.definitions.find(d=>d.id==="imtp_rfd"+time):null;
-    const source=legacy?r:App.getState()?.enabled.imtp?App.getState():r;
-    r.imtpTimeStandards.push({kind,timeMs,context:Eval.imtpTimeContext(source),target:legacy?.target??null,ranges:clone(legacy?.ranges||[]),direction:legacy?.direction||"higher",referenceEnabled:!!legacy?.referenceEnabled,source:legacy?.source||""});
-    editor.timeKey=key;render();
-  }
-  function newTimeStandard(fromLibrary=false){
-    showForm("添加 IMTP 时点标准",`<div class="form-grid">${field("时间 ms",'<input name="timeMs" type="number" min="0.000001" step="any" required>')}${field("指标",'<select name="kind"><option value="force_pct_peak">力占峰值力比例 · %PF</option><option value="rfd">0–t 平均 RFD · N/s</option></select>')}</div>`,async form=>{
-      const data=new FormData(form),time=Number(data.get("timeMs"));if(!Number.isFinite(time)||time<=0)throw Error("时间须为正数");const key=data.get("kind")+":"+time;
-      if(fromLibrary)openStandard("time",key);else editor.timeKey=key;
-      if(!editor.record.imtpTimeStandards?.some(x=>x.kind===data.get("kind")&&x.timeMs===time)&&!(data.get("kind")==="force_pct_peak"&&editor.record.definitions.some(d=>d.id==="imtp_f"+time)))createTimeRule(key);
-    });
+    const p=editor.profile,subjects=Eval.ruleSubjects(lib().catalog,p),projects=T.describe(lib().catalog),ids=[...new Set(subjects.map(s=>s.testId))];
+    if(!ids.includes(editor.projectId))editor.projectId=ids[0]||"";
+    const projectSubjects=subjects.filter(s=>s.testId===editor.projectId);if(!projectSubjects.some(s=>s.id===editor.subjectId))editor.subjectId=projectSubjects[0]?.id;
+    const active=projectSubjects.find(s=>s.id===editor.subjectId);
+    let h=`<div class="profile-editor-header">${field("方案名称",`<input id="profileName" value="${esc(p.name)}" maxlength="120" ${editor.readOnly?"readonly":""}>`)}<div class="row">${button("返回方案列表","profile-close")}${!editor.readOnly?button("查看变更并保存","profile-review"):button("复制为新方案","profile-copy",p.id)}</div></div><div class="profile-workspace-nav">${button("项目标准","profile-view","projects",editor.view!=="aggregations"?'aria-current="page"':"")}${button("能力图与目标达成","profile-view","aggregations",editor.view==="aggregations"?'aria-current="page"':"")}</div><div id="profileEditorFields">`;
+    if(editor.view==="aggregations")h+=aggregationsEditor(subjects);
+    else h+=`<div class="profile-project-select">${field("测试项目",`<select id="profileProjectSelect">${ids.map(id=>option(id,(projects.find(t=>t.id===id)?.name||id)+` · ${p.standards.filter(s=>s.testId===id).length} 项标准`,editor.projectId)).join("")}</select>`)}</div>${editor.projectId==="imtp"?`<div class="row">${button("添加时点标准","profile-time-new")}</div>`:""}${editor.projectId==="iso"?`<details class="project-analysis-settings"><summary>双侧差异评价</summary><div class="form-grid">${["asymAmber","asymRed"].map(k=>field(ruleLabels[k],input("settings.thresholds."+k,p.settings.thresholds[k]))).join("")}</div></details>`:""}<div class="profile-project-workspace"><nav class="profile-result-list" aria-label="项目结果">${projectSubjects.map(s=>button(`${esc(s.name)}<small>${esc(s.unit||"固定评分")} · ${s.locked?(s.historical?"历史标准 · 只读":"固定规则"):p.standards.some(r=>r.id===s.id)?"已配置":"未配置"}</small>`,"profile-subject",s.id,s.id===editor.subjectId?'aria-current="true"':"")).join("")}</nav><div>${active?standardEditor(active):'<p class="empty">此项目暂无可配置结果。</p>'}${lvpSettings(editor.projectId)}</div></div>`;
+    return h+'</div><p id="profileEditorError" class="field-error" role="alert"></p>';
   }
   function openStandard(kind,id){
-    const profile=metricProfile();if(!profile)throw Error("请先创建评价方案");if(!viewProfile(profile.id))return;App.openManagement("profiles");editor.origin="metrics";
-    editor.tab=kind==="edit"?"definitions":kind==="time"?"imtp":kind;
-    if(kind==="edit"){
-      if(!editor.record.definitions.some(d=>d.id===id)){const source=M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true]))),d=Eval.capture(source).definitions.find(d=>d.id===id);if(!d)throw Error("指标不存在");if(!Eval.hasInstalledStandard(d))Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(clone(d));editor.profile.criteria.definitions.push(clone(d));}
-      editor.metricId=id;
-    }
-    if(kind==="time")editor.timeKey=id;
-    render();
-    if(["iso","balance","lvp"].includes(kind))requestAnimationFrame(()=>{const el=[...$("profileEditorFields").querySelectorAll("[data-standard-key]")].find(n=>n.dataset.standardKey===id);el?.scrollIntoView({block:"center"});el?.querySelector("input,textarea,select")?.focus({preventScroll:true});});
+    const profile=lib().evaluationProfiles.find(p=>p.id===lib().defaultEvaluationProfileId);if(!profile)throw Error("请先创建评价方案");if(!viewProfile(profile.id))return;App.openManagement("profiles");
+    const subject=Eval.ruleSubjects(lib().catalog,editor.profile).find(s=>s.id===id||s.metricId===id);if(subject){editor.subjectId=subject.id;editor.projectId=subject.testId;}render();
   }
-  function backup() {return `<div class="backup-grid"><article class="form-card"><h2>完整备份</h2><p>包含运动员、历次测试、队伍、回收站、测试方案、指标库和评价方案。</p><button class="btn primary" onclick="App.downloadLibrary()">导出完整备份</button></article><article class="form-card"><h2>导入与恢复</h2>${field("导入方式",'<select id="backupImportMode"><option value="merge">合并到当前资料库</option><option value="replace">恢复为完整资料库</option></select>')}<button class="btn primary" onclick="document.getElementById('importFile').click()">选择备份文件</button><p class="note">支持完整 JSONL 备份、旧 JSON 和已保存的 HTML。</p>${button("恢复上次资料库","restore-library")}</article><article class="form-card"><h2>旧版兼容与迁移前资料</h2><p>旧版兼容导出包含未删除的测试记录及旧版支持的生效标准；不包含队伍、无测试档案、测试方案、新增 IMTP 时点标准、独立能力分类编号与顺序快照。VIFT 方法原文保留，旧版不提供其编辑入口。峰值百分比不会写成 N 标准。</p><div class="row"><button class="btn" onclick="App.downloadLegacyLibrary()">导出旧版兼容 JSON</button><button class="btn" onclick="App.downloadPreMigration()">下载迁移前资料</button></div></article></div>`;}
+  function backup() {
+    return `<div class="backup-grid"><article class="form-card"><h2>完整备份</h2><p>包含运动员、历次测试、队伍、回收站、测试方案、指标库和评价方案。</p><button class="btn primary" onclick="App.downloadLibrary()">导出完整备份</button></article><article class="form-card"><h2>导入与恢复</h2>${field("导入方式",'<select id="backupImportMode"><option value="merge">合并到当前资料库</option><option value="replace">恢复为完整资料库</option></select>')}<button class="btn primary" onclick="document.getElementById('importFile').click()">选择备份文件</button><p class="note">支持完整 JSONL 备份、旧 JSON 和已保存的 HTML。</p>${button("恢复上次资料库","restore-library")}</article><article class="form-card"><h2>升级资料</h2><p>查看本次升级前保留的资料和迁移核对结果。</p><div class="row"><button class="btn" onclick="App.downloadUpgradeBackup()">导出升级前资料</button><button class="btn" onclick="App.downloadMigrationReport()">迁移核对清单</button></div><details class="rule-conditions"><summary>回退到升级前版本</summary><p>先下载当前完整备份。回退会恢复升级前的资料并结束本页面，再使用已备份的旧版程序。</p><div class="row"><button class="btn" onclick="App.downloadLibrary()">下载当前完整备份</button><button class="btn" onclick="App.downloadUpgradeBackup()">下载升级前备份</button><button class="btn" onclick="App.downloadRollbackRecoveryBackup()">导出回退前新版资料</button><button class="btn" onclick="App.prepareVersionRollback()">恢复升级前资料并结束页面</button></div></details></article></div><details class="rule-conditions"><summary>旧版兼容导出</summary><p>旧版兼容格式不包含新评价方案中的完整计分配置；需要完整恢复时使用升级前备份。</p><div class="row"><button class="btn" onclick="App.downloadLegacyLibrary()">导出旧版兼容 JSON</button><button class="btn" onclick="App.downloadPreMigration()">下载旧格式迁移前资料</button></div></details>`;
+  }
   function render(options={}) {
     if(!lib())return;
     const focused=document.activeElement, key=focused?.dataset.managerFilter, caret=focused?.selectionStart;
     const title=sections.find(([id])=>id===current)[1];
-    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("＋ 新建能力","ability-new")+button("＋ 新建项目","new-test")+button("＋ 新增指标","new-metric"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
+    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"&&!filter().test?button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new"),"管理分类"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
     const content=$("managementContent"),html=`<div class="management-heading"><div><h1>${title}</h1></div><div class="row">${action}</div></div>`+(current==="athletes"||current==="records"?lists():current==="teams"?teams():current==="plans"?testPlans():current==="metrics"?metrics():current==="profiles"?profiles():backup());
-    const filterBar=node=>{const control=node.querySelector("[data-manager-filter]");return control?.closest(".management-filters")||control?.closest(".field");};
+    const filterBar=node=>{const control=node.querySelector("[data-manager-filter]");return control?.closest(".manager-filter-shell")||control?.closest(".management-filters")||control?.closest(".field");};
     const retained=options.preserveFilters&&filterBar(content);
     if(retained?.parentNode===content){
       const draft=document.createElement("div");draft.innerHTML=html;
@@ -254,15 +225,15 @@
       }else content.innerHTML=html;
     }else content.innerHTML=html;
     if(current==="plans"&&planDraft)root.RingsidePicker.bind($("testPlanPicker"),planPickerOptions());
-    if(editor?.readOnly&&current==="profiles") $("profileEditorFields")?.querySelectorAll("input,select,textarea").forEach(el=>el.disabled=true);
+    if(editor?.readOnly&&current==="profiles") $("profileEditorFields")?.querySelectorAll("input,select,textarea,button").forEach(el=>{if(el.id!=="profileProjectSelect"&&el.dataset.managerAction!=="profile-subject")el.disabled=true;});
     if(key){const el=$("managementContent").querySelector(`[data-manager-filter="${key}"]`);el?.focus({preventScroll:true});if(caret!==null&&el?.setSelectionRange)try{el.setSelectionRange(caret,caret);}catch{}}
   }
   function showForm(title,html,action) {
     formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
   }
-  function editAthlete(id="") {
+  function editAthlete(id="",groupId="") {
     const a=lib().athletes.find(a=>a.id===id)||(id?App.getAthlete?.(id):null),p=a?.profile||{};
-    showForm(a?"编辑运动员资料":"新建运动员",root.RingsideProfile.render({...p,name:p.name||a?.name||""},{groups:lib().groups,groupId:a?.groupId||""}),async form=>{
+    showForm(a?"编辑运动员资料":"新建运动员",root.RingsideProfile.render({...p,name:p.name||a?.name||""},{groups:lib().groups,groupId:a?.groupId||groupId}),async form=>{
       const {profile,groupId}=root.RingsideProfile.read(form);
       await App.updateAthleteProfile(id,{...p,...profile},groupId);
     });
@@ -272,246 +243,276 @@
   }
   async function cleanup(action,id) {
     const ids=id?[id]:[...selected];if(!ids.length)throw Error("请先选择资料");
-    const athletes=current==="athletes",selectedAthletes=athletes?lib().athletes.filter(a=>ids.includes(a.id)):[];
-    const records=athletes?selectedAthletes.flatMap(a=>a.records):lib().athletes.flatMap(a=>a.records).filter(r=>ids.includes(r.recordId));
-    if(action==="purge"&&!confirm(`永久删除 ${athletes?selectedAthletes.length+" 名运动员及其 ":""}${records.length} 条测试记录？此操作无法从回收站恢复。`))return;
-    if(action==="trash"&&!confirm(`将 ${athletes?selectedAthletes.length+" 名运动员及其 ":""}${records.length} 条记录移入回收站？`))return;
-    const changes=[],removals={};
-    if(athletes){for(const a of selectedAthletes){if(action==="archive")a.archived=true;if(action==="unarchive")a.archived=false;if(action==="trash")a.deletedAt=now();if(action==="restore")a.deletedAt=null;}}
-    if(!athletes||["trash","restore","purge"].includes(action))for(const summary of records){
-      if(action==="purge"){(removals.records||=[]).push(summary.recordId);continue;}
-      const r=await App.getRepository().loadRecord(summary.recordId);
-      if(action==="archive")r.archived=true;if(action==="unarchive")r.archived=false;
-      if(action==="trash"&&!r.deletedAt){r.deletedAt=now();if(athletes)r.deletedWithAthlete=r.athleteId;}
-      if(action==="restore"&&(!athletes||r.deletedWithAthlete===r.athleteId)){r.deletedAt=null;delete r.deletedWithAthlete;}
-      changes.push(r);
-    }
-    if(action==="purge"&&athletes)lib().athletes=lib().athletes.filter(a=>!ids.includes(a.id));
-    if(action==="restore"&&!athletes)for(const r of changes){const a=lib().athletes.find(a=>a.id===r.athleteId);if(a?.deletedAt)throw Error("请先恢复该记录所属的运动员");}
-    await App.saveLibraryChanges(changes,removals);selected.clear();render();
+    const athletes=athleteView();if(!athletes&&action==="unarchive"&&lib().athletes.some(a=>a.archived&&a.records.some(r=>ids.includes(r.recordId))))throw Error("所选记录的运动员已归档。请先在该运动员的资料中恢复在用，再恢复单独归档的记录。");
+    const owners=athletes?lib().athletes.filter(a=>ids.includes(a.id)):[],summaries=athletes?owners.flatMap(a=>a.records):lib().athletes.flatMap(a=>a.records).filter(r=>ids.includes(r.recordId));
+    if(action==="purge"&&!confirm(`永久删除 ${athletes?owners.length+" 名运动员及其 ":""}${summaries.length} 条测试记录？此操作无法从回收站恢复。`))return;
+    if(action==="trash"&&!confirm(`将 ${athletes?owners.length+" 名运动员及其 ":""}${summaries.length} 条记录移入回收站？`))return;
+    await commit(async(candidate,{loadRecord})=>{
+      const selectedAthletes=athletes?candidate.athletes.filter(a=>ids.includes(a.id)):[],records=athletes?selectedAthletes.flatMap(a=>a.records):candidate.athletes.flatMap(a=>a.records).filter(r=>ids.includes(r.recordId)),changes=[],removals={};
+      if(athletes)for(const a of selectedAthletes){if(action==="archive")a.archived=true;if(action==="unarchive")a.archived=false;if(action==="trash")a.deletedAt=now();if(action==="restore")a.deletedAt=null;}
+      if(!athletes||["trash","restore","purge"].includes(action))for(const summary of records){
+        const stored=await loadRecord(summary.recordId);if(!stored)throw Error("记录已不存在，请刷新列表");const r=clone(stored);
+        if(action==="purge"){(removals.records||=[]).push(r.recordId);continue;}
+        if(action==="archive")r.archived=true;if(action==="unarchive")r.archived=false;
+        if(action==="trash"&&!r.deletedAt){r.deletedAt=now();if(athletes)r.deletedWithAthlete=r.athleteId;}
+        if(action==="restore"&&(!athletes||r.deletedWithAthlete===r.athleteId)){r.deletedAt=null;delete r.deletedWithAthlete;}
+        if(action==="restore"&&!athletes&&candidate.athletes.find(a=>a.id===r.athleteId)?.deletedAt)throw Error("请先恢复该记录所属的运动员");
+        changes.push(r);
+      }
+      if(action==="purge"&&athletes)candidate.athletes=candidate.athletes.filter(a=>!ids.includes(a.id));
+      return {records:changes,removals};
+    });selected.clear();render();
+  }
+  function makeEditor(profile,options={}) {
+    const draft=Eval.normalizeProfile(clone(profile),lib().catalog);
+    editor={profile:draft,view:"projects",projectId:"",subjectId:"",previewValues:{},invalid:new Set(),...options};editor.baseline=editorSnapshot();return editor;
   }
   function viewProfile(id,readOnly=false) {
     const profile=lib().evaluationProfiles.find(p=>p.id===id);if(!profile||!discardEditor())return false;
-    editor={profile:clone(profile),record:Eval.template(profile),tab:"definitions",metricId:profile.criteria.definitions[0]?.id,rangeDrafts:{},zoneDrafts:{},readOnly};editor.baseline=editorSnapshot();pendingReview=null;render();return true;
+    makeEditor(profile,{readOnly,baseRevision:profile.revision});pendingReview=null;render();return true;
   }
-  function editorSnapshot(){return editor?Eval.canonical({name:editor.profile.name,record:editor.record,ranges:editor.rangeDrafts,zones:editor.zoneDrafts}):"";}
+  function editorSnapshot(){return editor?Eval.canonical(Eval.serializeProfile(editor.profile)):"";}
   function editorDirty(){return !!editor&&!editor.readOnly&&(editor.isNew||editorSnapshot()!==editor.baseline);}
   function discardEditor(){if(editorDirty()&&!confirm("当前评价方案有未保存修改，放弃这些修改？"))return false;editor=null;return true;}
   function parseProfile() {
-    if (editor.invalid?.size) throw Error("请修正未完成的数值输入");
-    for(const [path,text] of Object.entries(editor.rangeDrafts)){
-      const old=getPath(editor.record,path),ranges=Def.parseRanges(text);
-      setPath(editor.record,path,ranges.map(r=>({...r,advantage:old.find(x=>x.label===r.label)?.advantage||false})));
-    }
-    for(const[id,text]of Object.entries(editor.zoneDrafts)) editor.record.lvp[id].zones=text.split(/\r?\n/).filter(s=>s.trim()).map(line=>{
-      const [range,label]=line.split("|").map(s=>s.trim()),m=range.match(/^(\d*\.?\d+)\s*\.\.\s*(\d*\.?\d+)$/);
-      if(!m||!label||Number(m[2])<=Number(m[1]))throw Error("LVP 区间请填写：下限..上限 | 名称");return {min:Number(m[1]),max:Number(m[2]),label};
-    });
-    const updated={...clone(editor.profile),criteria:Eval.fromTemplate(editor.record,editor.profile)};Eval.validateProfile(updated);return updated;
+    if(editor.invalid?.size)throw Error("请修正未完成的数值输入");
+    const profile=Eval.serializeProfile(editor.profile);Eval.validateProfile(profile);return profile;
   }
-  function changesBetween(old,next) {
-    const rows=[],add=(name,a,b)=>{if(Eval.canonical(a)!==Eval.canonical(b))rows.push([name,a,b]);};
-    const metric=d=>d?`${d.referenceEnabled?"启用":"未启用"} · 目标 ${d.target??"—"} ${d.unit} · ${d.direction==="higher"?"越高越好":"越低越好"}\n${Def.rangeText(d.ranges)}\n${d.source||""}`:"未包含";
-    for(const d of next.definitions)add(T.metricName(d),metric(old.definitions.find(x=>x.id===d.id)),metric(d));
-    const groupText=g=>g?`${{male:"男",female:"女",any:"不限性别"}[g.sex]} · 年龄 [${g.ageMin??"不限"}, ${g.ageMax??"不限"}) · ${{treadmill:"跑台",cycle:"功率车",any:"不限方式"}[g.mode]} · 最低峰值 RER ${g.minPeakRER??"不限"} · 目标 ${g.target??"沿用通用目标"}\n${Def.rangeText(g.ranges)}\n${g.source}`:"未包含";
-    for(const d of next.definitions){const prior=old.definitions.find(x=>x.id===d.id),groups=d.referenceGroups||[],before=prior?.referenceGroups||[];for(const id of new Set([...before.map(g=>g.id),...groups.map(g=>g.id)]))add(T.metricName(d)+" · 分层标准 "+id,groupText(before.find(g=>g.id===id)),groupText(groups.find(g=>g.id===id)));}
-    for(const rule of next.imtpTimeStandards||[]){const unit=rule.kind==="rfd"?"N/s":"%PF",prior=old.imtpTimeStandards?.find(x=>x.timeMs===rule.timeMs&&x.kind===rule.kind);add(`IMTP ${rule.timeMs} ms ${rule.kind==="rfd"?"RFD · N/s":"力占峰值力 · %PF"}`,metric(prior?{...prior,unit}:null),metric({...rule,unit}));}
-    for(const[k,label]of Object.entries(ruleLabels))add(label,old.rules[k],next.rules[k]);
-    const isoReference=ref=>!ref?"未配置参考":`${ref.enabled?"启用":"停用"} · ${ref.basis} · ${ref.source}\n${ref.groups.map(g=>`${g.sex==="male"?"男":"女"} [${g.ageMin},${g.ageMax}) ${g.mode}：${Object.entries(g.values).map(([k,v])=>k+" "+(v??"—")).join(" / ")}`).join("\n")}`;
-    for(const row of next.iso){const prior=old.iso.find(x=>x.id===row.id);add(M.REG[row.region]+" · "+row.direction,`目标 ${prior?.target??"—"}\n${isoReference(prior?.reference)}`,`目标 ${row.target??"—"}\n${isoReference(row.reference)}`);}
-    const balance=p=>p?`${p.referenceEnabled?"启用":"未启用"} · ${Def.rangeText(p.ranges)} · ${p.source||"未注明依据"}\n${isoReference(p.reference)}`:"未包含";
-    for(const p of next.balance)add("关节平衡 "+p.label,balance(old.balance.find(x=>x.id===p.id)),balance(p));
-    const lvp=p=>p?`${p.metric} · MVT ${p.mvt??"—"} m/s\n${(p.zones||[]).map(z=>z.min+"–"+z.max+" m/s："+z.label).join("\n")}\n${p.source||"未注明依据"}`:"未包含";
-    for(const[id,p]of Object.entries(next.lvp))add("LVP "+({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠左侧",landmineR:"地雷杠右侧"}[id]||id),lvp(old.lvp[id]),lvp(p));
-    const axis=(a,c)=>a?({primary:"代表指标",mean:"平均达成",min:"最低达成"}[a.method]||a.method)+" · "+(c.definitions.find(d=>d.id===a.primary)?.name||"未选代表指标"):"未设置";
-    for(const id of new Set([...Object.keys(old.axes),...Object.keys(next.axes)])){const ability=next.definitions.find(d=>T.axisKey(d.ability)===id)?.ability||"能力汇总";add(T.abilityLabel(lib().catalog,ability),axis(old.axes[id],old),axis(next.axes[id],next));}return rows;
+  function changesBetween(old,next){return Eval.changesBetween?Eval.changesBetween(old,next):Eval.canonical(old)===Eval.canonical(next)?[]:[["评价配置",JSON.stringify(old),JSON.stringify(next)]];}
+  function profileSnapshot(profile){const snapshot=Eval.serializeProfile(Eval.normalizeProfile(clone(profile),lib().catalog));delete snapshot.previous;delete snapshot.releases;return snapshot;}
+  function profileHistory(profile){
+    const versions=new Map((profile.releases||[]).map(p=>[p.revision,profileSnapshot({...p,id:profile.id})]));
+    if(profile.previous&&!versions.has(profile.previous.revision))versions.set(profile.previous.revision,profileSnapshot({...profile.previous,id:profile.id}));
+    return [...versions.values()].sort((a,b)=>a.revision-b.revision);
+  }
+  function diffTable(diff){
+    const labels={...ruleLabels,enabled:"使用标准",targetEnabled:"目标比较",rangesEnabled:"区间分级",target:"参考目标",ranges:"分级区间",direction:"评价方向",source:"来源 / 说明",context:"测量条件",protocol:"测量协议",unit:"单位",selectionDirection:"代表试次选取",aggregation:"汇总口径",metric:"速度口径",conditions:"通用条件",targetConditions:"目标适用条件",rangesConditions:"分级适用条件",sex:"性别",ageMin:"年龄下限",ageMax:"年龄上限",minPeakRER:"最低峰值 RER",referenceGroups:"条件标准",reference:"参考均值",groups:"参考组",basis:"参考单位",statistic:"统计口径",sideBasis:"侧别口径",values:"参考值",mode:"测试 / 统计方式",min:"下限",max:"上限",includeMin:"含下限",includeMax:"含上限",label:"名称",status:"颜色",method:"汇总方式",kind:"类型",region:"部位",directionCode:"方向",members:"固定成员",primary:"代表指标",transforms:"分数转换",points:"数值对应点",value:"实测值",score:"转换分数",shape:"分数变化",mvt:"MVT",zones:"速度区间",DOM:"优势侧",ND:"非优势侧",L:"左侧",R:"右侧",C:"数值",paired:"双侧测量",timeMs:"时间 ms",measureKind:"时点结果",migrationIssue:"待确认事项"};
+    const names=new Map(Eval.ruleSubjects(lib().catalog,editor?.profile).map(s=>[s.id,s.name])),hidden=new Set(["id","testId","metricId","directionId","pairId","protocolIdentity","sourceId","legacy"]),words={higher:"数值越高越好",lower:"数值越低越好",range:"中间范围较高",primary:"代表指标",mean:"固定成员平均分",disabled:"未启用",ratio:"相对参考目标",anchors:"数值与分数对应点",table:"分数区间表",male:"男",female:"女",any:"不限",green:"绿色",amber:"黄色",red:"红色",gray:"中性",dominance:"优势侧 / 非优势侧",anatomical:"左 / 右",force_pct_peak:"力占峰值力比例",rfd:"平均 RFD"};
+    const parse=v=>{if(typeof v!=="string"||!v.startsWith("{"))return v;try{return JSON.parse(v);}catch{return v;}},value=(v,key)=>v===undefined||v===null||v===""?"未设置":typeof v==="boolean"?v?"是":"否":key==="basis"&&v==="ratio"?"比值":key==="mode"?({any:"不限",best:"最好值",mean:"均值",treadmill:"跑台",cycle:"功率车"}[v]||String(v)):names.get(v)||words[v]||String(v),rows=[];
+    const walk=(name,a,b,keyName)=>{
+      if(Eval.canonical(a)===Eval.canonical(b))return;
+      if(a&&typeof a==="object"||b&&typeof b==="object"){
+        const left=a&&typeof a==="object"?a:{},right=b&&typeof b==="object"?b:{},keys=new Set([...Object.keys(left),...Object.keys(right)]);
+        if(!keys.size){rows.push([name,value(a),value(b)]);return;}
+        for(const key of keys)if(!hidden.has(key))walk(name+" · "+(names.get(key)||labels[key]||(/^\d+$/.test(key)?String(Number(key)+1):key)),left[key],right[key],key);
+      }else rows.push([name,value(a,keyName),value(b,keyName)]);
+    };
+    diff.forEach(([name,a,b])=>walk(name,parse(a),parse(b)));
+    return rows.length?`<div class="management-table-wrap"><table class="profile-diff"><thead><tr><th>变更内容</th><th>原配置</th><th>新配置</th></tr></thead><tbody>${rows.map(([name,a,b])=>`<tr><td data-label="变更内容">${esc(name)}</td><td data-label="原配置">${esc(a)}</td><td data-label="新配置">${esc(b)}</td></tr>`).join("")}</tbody></table></div>`:'<p>没有改变评价数值。</p>';
+  }
+  async function publishProfile(next,baseRevision){
+    await commit(candidate=>{
+      const index=candidate.evaluationProfiles.findIndex(p=>p.id===next.id),prior=candidate.evaluationProfiles[index];
+      if(prior&&prior.revision!==baseRevision)throw Error("方案已在其他页面更新。请保留当前内容，重新载入最新方案后再保存。");
+      const saved={...clone(next),revision:prior?prior.revision+1:1,updated:now()};
+      if(prior){saved.previous=profileSnapshot(prior);saved.releases=[...profileHistory(prior),saved.previous];}
+      else saved.releases=[];
+      if(index<0)candidate.evaluationProfiles.push(saved);else candidate.evaluationProfiles[index]=saved;
+    });
   }
   function reviewProfile() {
-    const next=parseProfile(),original=lib().evaluationProfiles.find(p=>p.id===next.id),diff=changesBetween(original?.criteria||next.criteria,next.criteria);
-    const affected=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===next.id).length,0);
-    pendingReview=next;
-    showForm("保存评价方案",`<p><b>${esc(next.name)}</b> · ${affected} 条关联记录将使用此版本。</p>${diff.length?`<div class="management-table-wrap"><table class="profile-diff"><thead><tr><th>项目</th><th>原配置</th><th>新配置</th></tr></thead><tbody>${diff.map(([n,a,b])=>`<tr><td>${esc(n)}</td><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join("")}</tbody></table></div>`:'<p>评价数值未改变；将保存方案名称或新增方案。</p>'}`,async()=>{
-      const index=lib().evaluationProfiles.findIndex(p=>p.id===next.id),prior=lib().evaluationProfiles[index];
-      const saved={...next,revision:prior?prior.revision+1:1,updated:now()};
-      if(prior)saved.previous={name:prior.name,criteria:clone(prior.criteria),revision:prior.revision,updated:prior.updated};
-      if(index<0)lib().evaluationProfiles.push(saved);else lib().evaluationProfiles[index]=saved;
-      const origin=editor.origin;await App.saveLibraryChanges();editor=null;pendingReview=null;if(origin==="metrics")App.openManagement("metrics");
+    const next=parseProfile(),original=lib().evaluationProfiles.find(p=>p.id===next.id),diff=changesBetween(original||{...next,standards:[],aggregations:{},settings:{thresholds:{},lvp:{}}},next),baseRevision=editor.baseRevision;
+    const affected=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===next.id).length,0);pendingReview=next;
+    showForm("保存评价方案",`<p><b>${esc(next.name)}</b> · ${affected} 条关联记录将使用此版本。</p>${diffTable(diff)}`,async()=>{await publishProfile(next,baseRevision);editor=null;pendingReview=null;});
+  }
+  function reviewHistory(id,latest=false){
+    const profile=lib().evaluationProfiles.find(p=>p.id===id),versions=profileHistory(profile);if(!versions.length)throw Error("暂无历史版本");
+    const affected=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===id).length,0),selected=versions.at(-1).revision;
+    showForm(latest?"恢复上一版评价方案":"评价方案版本历史",`<p><b>${esc(profile.name)}</b> · 当前版本 ${profile.revision} · ${affected} 条关联记录</p>${field("历史版本",`<select id="profileHistoryVersion" name="revision">${[...versions].reverse().map(p=>option(String(p.revision),`版本 ${p.revision} · ${(p.updated||"").slice(0,10)} · ${p.name}`,String(selected))).join("")}</select>`)}<p class="note">恢复将发布一个新版本，已有发布历史继续保留。</p><div id="profileHistoryDiff"></div>`,async form=>{
+      const revision=Number(new FormData(form).get("revision")),version=versions.find(p=>p.revision===revision);if(!version)throw Error("历史版本已变化");
+      const next={...clone(version),id,disabled:profile.disabled};Eval.validateProfile(next);await publishProfile(next,profile.revision);editor=null;
     });
+    const update=()=>{$("profileHistoryDiff").innerHTML=diffTable(changesBetween(profile,versions.find(p=>p.revision===Number($("profileHistoryVersion").value))));};$("profileHistoryVersion").addEventListener("change",update);update();$("managementForm").querySelector('[type="submit"]').textContent="恢复并发布新版本";
   }
-  function getPath(obj,path){return path.split(".").reduce((v,k)=>v?.[k],obj);}
-  function setPath(obj,path,value){const keys=path.split(".");if(keys.some(k=>["__proto__","constructor","prototype"].includes(k)))throw Error("无效字段");let current=obj;for(const k of keys.slice(0,-1))current=current[k];current[keys.at(-1)]=value;}
-  function markReferenceEdited(path){
-    const iso=path.match(/^((?:data\.iso|balancePairs)\.\d+\.reference)\.(.+)$/);
-    if(iso&&iso[2]!=="enabled"&&iso[2]!=="source"){const ref=getPath(editor.record,iso[1]);if(ref&&!ref.source.includes("用户调整"))ref.source+="（用户调整）";return;}
-    const match=path.match(/^definitions\.(\d+)\.referenceGroups\.(\d+)\.(.+)$/);if(!match||match[3]==="target")return;
-    const group=editor.record.definitions[Number(match[1])].referenceGroups[Number(match[2])];group.modified=true;
-    if(group.sourceId==="friend-2022-rer110"&&match[3]!=="source"&&!group.source.includes("用户调整"))group.source+="（用户调整）";
+  function getPath(obj,path){return path.split(".").map(decodeURIComponent).reduce((v,k)=>v?.[k],obj);}
+  function setPath(obj,path,value){const keys=path.split(".").map(decodeURIComponent);if(keys.some(k=>["__proto__","constructor","prototype"].includes(k)))throw Error("无效字段");let current=obj;for(const k of keys.slice(0,-1)){if(!current[k]||typeof current[k]!=="object")current[k]={};current=current[k];}current[keys.at(-1)]=value;}
+  function removeDraftRow(path,index){
+    getPath(editor.profile,path).splice(index,1);
+    editor.invalid=new Set([...editor.invalid].flatMap(key=>{if(!key.startsWith(path+"."))return [key];const parts=key.slice(path.length+1).split("."),row=Number(parts[0]);if(row===index)return [];if(row>index)parts[0]=String(row-1);return [path+"."+parts.join(".")];}));
   }
-  function clearGroupInputErrors(index){if(editor.invalid)for(const path of [...editor.invalid])if(path.startsWith("definitions."+index+".referenceGroups"))editor.invalid.delete(path);}
+  function updateScorePreviews(){
+    if(!editor)return;const subjects=Eval.ruleSubjects(lib().catalog,editor.profile);
+    document.querySelectorAll('[data-score-output-axis]').forEach(node=>{const axis=node.dataset.scoreOutputAxis,id=node.dataset.scoreOutputSubject,subject=subjects.find(s=>s.id===id);if(subject)node.textContent=previewScore(subject,editor.profile.aggregations[axis]?.transforms?.[id],editor.previewValues[axis+"/"+id]);});
+  }
   async function action(name,id) {
-    if(name==="profile-iso-reference-clear"){if(editor.readOnly)throw Error("请先复制为新方案");setPath(editor.record,id,null);return render();}
-    if(name==="profile-iso-reference-add"){
-      if(editor.readOnly)throw Error("请先复制为新方案");
-      const row=getPath(editor.record,id.replace(/\.reference$/,""));
-      const builtin=root.RingsideIsoReferences?.defaultReference(row);
-      const anatomical=["neck","trunk"].includes(row.region),keys=row.paired?anatomical?["L","R"]:["DOM","ND"]:["C"];
-      setPath(editor.record,id,builtin||{enabled:true,sourceId:"user",source:"用户编辑参考",statistic:"mean",basis:"N",sideBasis:row.paired&&!anatomical?"dominance":"anatomical",groups:["male","female"].map(sex=>({sex,ageMin:0,ageMax:120,mode:"any",values:Object.fromEntries(keys.map(key=>[key,""]))}))});
-      return render();
-    }
     if(name==="section")return App.openManagement(id);
     if(name==="page"){filter().page=Number(id);return render();}
+    if(name==="clear-selection"){selected.clear();return render();}
+    if(name==="clear-filters"){const old=filter();filters[current]={...freshFilters(),teamId:old.teamId,athleteId:old.athleteId,originTab:old.originTab};selected.clear();return render();}
+    if(name==="clear-scope"){filter().athleteId="";filter().evaluationProfileId="";filter().page=1;return render();}
+    if(name==="scope-back")return App.openManagement(filter().originTab||"athletes");
+    if(name==="owner-manage"){const owner=lib().athletes.find(a=>a.id===id);if(!owner)throw Error("运动员已不存在");filters.athletes={...freshFilters(),athleteId:id,status:owner.deletedAt?"trash":owner.archived?"archived":"active",originTab:"records"};selections.athletes=new Set();return App.openManagement("athletes");}
     if(["archive","unarchive","trash","restore","purge"].includes(name))return cleanup(name,id);
     if(name==="new-athlete"||name==="edit-athlete")return editAthlete(id);
+    if(name==="team-new-athlete")return editAthlete("",id);
     if(name==="new-record")return App.startDataEntry(id);
-    if(name==="choose-new-record")return App.startDataEntry();
-    if(name==="athlete-records"){const a=lib().athletes.find(a=>a.id===id);filters.records={...filter(),q:a.id,page:1,status:"all",from:"",to:"",test:""};return App.openManagement("records");}
-    if(name==="report"||name==="entry"){const a=lib().athletes.find(a=>a.records.some(r=>r.recordId===id));return App.openManagedRecord(a.id,id,name==="entry");}
+    if(name==="batch-new-record")return App.startTeamDataEntry([...selected],current==="teams"?filter().teamId:filter().group);
+    if(name==="choose-new-record")return App.startDataEntry(filter().athleteId||"");
+    if(name==="athlete-records"){filters.records={...freshFilters(),athleteId:id,status:"all",originTab:current};selections.records=new Set();return App.openManagement("records");}
+    if(name==="report"||name==="entry"){const a=lib().athletes.find(a=>a.records.some(r=>r.recordId===id));if(a)return App.openManagedRecord(a.id,id,name==="entry");return;}
     if(name==="edit-record"){
       const r=await App.getRepository().loadRecord(id);return showForm("测试名称与日期",field("名称",`<input name="title" maxlength="100" value="${esc(r.title)}">`)+field("测试日期",`<input type="date" name="date" value="${esc(r.athlete.date)}" required>`),async form=>{const data=new FormData(form);await App.updateRecordDate(id,data.get("date"),{title:data.get("title").trim()});});
     }
-    if(name==="groups")return groups();
+    if(name==="groups")return App.openManagement("teams");
     if(name==="group-new"||name==="group-edit")return editTeam(id);
-    if(name==="team-open"||name==="team-close"){filter().teamId=name==="team-open"?id:"";filter().q="";return render();}
+    if(name==="team-open"||name==="team-close"){filters.teams={...freshFilters(),teamId:name==="team-open"?id:""};selected.clear();return render();}
     if(name==="team-add"){
       const team=lib().groups.find(g=>g.id===id),athletes=lib().athletes.filter(a=>!a.deletedAt&&!a.archived&&a.groupId!==id);
-      return showForm("添加 / 转入 "+team.name,`<p class="note">选择已有运动员。已属于其他队伍的运动员将转入本队。</p>${field("搜索运动员",'<input type="search" id="teamMemberSearch" placeholder="姓名、编号或专项">')}<div class="team-member-picker">${athletes.map(a=>`<label class="check-line" data-team-candidate="${esc([a.name,a.id,a.profile.sport].join(" ").toLocaleLowerCase())}"><input type="checkbox" name="athleteIds" value="${esc(a.id)}"><span>${esc(a.name)} · ${esc(a.id.slice(-8))}<small>${esc(a.profile.sport||"未填写专项")} · ${esc(lib().groups.find(g=>g.id===a.groupId)?.name||"未分组")}</small></span></label>`).join("")||'<p class="empty">暂无可添加的在用运动员。</p>'}</div>`,async form=>{const ids=new FormData(form).getAll("athleteIds");if(!ids.length)throw Error("请选择运动员");lib().athletes.filter(a=>ids.includes(a.id)).forEach(a=>a.groupId=id);await App.saveLibraryChanges();});
+      return showForm("添加成员 · "+team.name,`<p class="note">已有队伍的运动员会转入本队，测试记录继续保留。</p>${field("搜索运动员",'<input type="search" id="teamMemberSearch" placeholder="姓名、编号或专项">')}<div class="team-member-picker">${athletes.map(a=>`<label class="check-line" data-team-candidate="${esc([a.name,a.id,a.profile.sport].join(" ").toLocaleLowerCase())}"><input type="checkbox" name="athleteIds" value="${esc(a.id)}"><span>${esc(a.name)} · ${esc(a.id.slice(-8))}<small>${esc(a.profile.sport||"未填写专项")} · ${esc(lib().groups.find(g=>g.id===a.groupId)?.name||"未分组")}</small></span></label>`).join("")||'<p class="empty">暂无可添加的在用运动员。</p>'}</div>`,async form=>{const ids=new FormData(form).getAll("athleteIds");if(!ids.length)throw Error("请选择运动员");await commit(candidate=>{if(!candidate.groups.some(g=>g.id===id))throw Error("队伍已不存在");for(const a of candidate.athletes.filter(a=>ids.includes(a.id))){if(a.deletedAt||a.archived)throw Error("部分运动员状态已变化，请重新选择");a.groupId=id;}});});
     }
-    if(name==="team-remove"){const a=lib().athletes.find(a=>a.id===id);a.groupId="";await App.saveLibraryChanges();return render();}
+    if(name==="team-remove"){await commit(candidate=>{const a=candidate.athletes.find(a=>a.id===id);if(a)a.groupId="";});return render();}
     if(name==="team-transfer"){
-      const a=lib().athletes.find(a=>a.id===id);return showForm("转移队伍 · "+a.name,field("新队伍",`<select name="groupId">${groupOptions(a.groupId)}</select>`),async form=>{a.groupId=new FormData(form).get("groupId");await App.saveLibraryChanges();});
+      const a=lib().athletes.find(a=>a.id===id);return showForm("转移队伍 · "+a.name,field("新队伍",`<select name="groupId">${groupOptions(a.groupId)}</select>`),async form=>{const value=new FormData(form).get("groupId");await commit(candidate=>{const athlete=candidate.athletes.find(a=>a.id===id);if(!athlete)throw Error("运动员已不存在");athlete.groupId=value;});});
     }
     if(name==="group-delete"){
       if(!confirm("删除队伍后，其运动员归为未分组，资料和测试继续保留。继续？"))return;
-      lib().groups=lib().groups.filter(g=>g.id!==id);lib().athletes.filter(a=>a.groupId===id).forEach(a=>a.groupId="");await App.saveLibraryChanges();filter().teamId="";return render();
+      await commit(candidate=>{candidate.groups=candidate.groups.filter(g=>g.id!==id);candidate.athletes.filter(a=>a.groupId===id).forEach(a=>a.groupId="");});filter().teamId="";return render();
     }
     if(["plan-new","plan-edit","plan-copy"].includes(name)){
-      const existing=(lib().testPlans||[]).find(p=>p.id===id);
-      planDraft=existing?clone(existing):{id:"plan_"+uid(),name:"",testIds:[],isoDirectionIds:[],defaultEvaluationProfileId:lib().defaultEvaluationProfileId,disabled:false};
+      const existing=(lib().testPlans||[]).find(p=>p.id===id);planDraft=existing?clone(existing):{id:"plan_"+uid(),name:"",testIds:[],isoDirectionIds:[],defaultEvaluationProfileId:lib().defaultEvaluationProfileId,disabled:false};
       if(!Array.isArray(planDraft.isoDirectionIds))planDraft.isoDirectionIds=planDraft.testIds.includes("iso")?M.legacyIsoDirectionIds():[];
       if(name==="plan-copy"){planDraft.id="plan_"+uid();planDraft.name+=" 副本";planDraft.disabled=false;}return render();
     }
     if(name==="plan-close"){planDraft=null;return render();}
     if(name==="plan-save"){
-      planDraft.name=planDraft.name.trim();if(!planDraft.name)throw Error("请填写测试方案名称");if((lib().testPlans||[]).some(p=>p.id!==planDraft.id&&p.name===planDraft.name))throw Error("测试方案名称已存在");
-      if(!planDraft.testIds.length)throw Error("请至少添加一个测试项目");if(planDraft.testIds.some(id=>!lib().catalog.tests.some(t=>t.id===id)))throw Error("请移除已不存在的项目");
-      if(planDraft.testIds.includes("iso")&&!planDraft.isoDirectionIds.length)throw Error("请至少选择一个等长力量测试方向");
-      lib().testPlans||=[];const i=lib().testPlans.findIndex(p=>p.id===planDraft.id);if(i<0)lib().testPlans.push(clone(planDraft));else lib().testPlans[i]=clone(planDraft);
-      await App.saveLibraryChanges();planDraft=null;return render();
+      const draft=clone(planDraft);draft.name=draft.name.trim();if(!draft.name)throw Error("请填写测试方案名称");
+      if(!draft.testIds.length)throw Error("请至少添加一个测试项目");if(draft.testIds.some(id=>!lib().catalog.tests.some(t=>t.id===id)))throw Error("请移除已不存在的项目");
+      if(draft.testIds.includes("iso")&&!draft.isoDirectionIds.length)throw Error("请至少选择一个等长力量测试方向");
+      await commit(candidate=>{candidate.testPlans||=[];if(candidate.testPlans.some(p=>p.id!==draft.id&&p.name===draft.name))throw Error("测试方案名称已存在");const i=candidate.testPlans.findIndex(p=>p.id===draft.id);if(i<0)candidate.testPlans.push(draft);else candidate.testPlans[i]=draft;});planDraft=null;return render();
     }
-    if(name==="plan-toggle"){const plan=(lib().testPlans||[]).find(p=>p.id===id);plan.disabled=!plan.disabled;await App.saveLibraryChanges();return render();}
-    if(name==="plan-delete"){if(!confirm("删除这个测试方案？已经创建的测试记录继续保留。"))return;lib().testPlans=(lib().testPlans||[]).filter(p=>p.id!==id);await App.saveLibraryChanges();return render();}
-    if(name==="batch-group"||name==="batch-profile"){
-      if(!selected.size)throw Error("请先选择资料");
-      const isGroup=name==="batch-group",ids=[...selected];
-      return showForm(isGroup?"批量调整队伍":"批量更换评价方案",`<p>已选择 ${ids.length} 项。</p>`+field(isGroup?"队伍":"评价方案",`<select name="value">${isGroup?groupOptions():profileOptions(lib().defaultEvaluationProfileId)}</select>`),async form=>{
-        const value=new FormData(form).get("value"),records=[];
-        if(isGroup)lib().athletes.filter(a=>ids.includes(a.id)).forEach(a=>a.groupId=value);
-        else for(const id of ids){const r=await App.getRepository().loadRecord(id);r.evaluationProfileId=value;r.updated=now();records.push(r);}
-        await App.saveLibraryChanges(records);selected.clear();
+    if(name==="plan-toggle"){await commit(candidate=>{const p=candidate.testPlans.find(p=>p.id===id);p.disabled=!p.disabled;});return render();}
+    if(name==="plan-delete"){if(!confirm("删除这个测试方案？已经创建的测试记录继续保留。"))return;await commit(candidate=>{candidate.testPlans=candidate.testPlans.filter(p=>p.id!==id);});return render();}
+    if(["batch-group","batch-profile","record-profile"].includes(name)){
+      const ids=name==="record-profile"?[id]:[...selected],isGroup=name==="batch-group";if(!ids.length)throw Error("请先选择资料");
+      return showForm(isGroup?"调整队伍":"更换评价方案",`<p>已选择 ${ids.length} 项。</p>`+field(isGroup?"队伍":"评价方案",`<select name="value">${isGroup?groupOptions():profileOptions(lib().defaultEvaluationProfileId)}</select>`),async form=>{
+        const value=new FormData(form).get("value");await commit(async(candidate,{loadRecord})=>{const records=[];
+          if(isGroup)candidate.athletes.filter(a=>ids.includes(a.id)).forEach(a=>a.groupId=value);
+          else for(const recordId of ids){const r=clone(await loadRecord(recordId));r.evaluationProfileId=value;r.updated=now();records.push(r);}
+          return {records};
+        });selected.clear();
       });
     }
     if(name==="ability-new"||name==="ability-edit")return editAbility(id);
     if(name==="ability-up"||name==="ability-down"){
-      const catalog=clone(lib().catalog),groups=T.abilityGroups(catalog),i=groups.findIndex(g=>g.key===id),j=i+(name==="ability-up"?-1:1);
-      if(i<0||j<0||j>=groups.length)return;
+      const catalog=clone(lib().catalog),groups=T.abilityGroups(catalog),i=groups.findIndex(g=>g.key===id),j=i+(name==="ability-up"?-1:1);if(i<0||j<0||j>=groups.length)return;
       [groups[i],groups[j]]=[groups[j],groups[i]];catalog.abilityGroups=groups;await saveCatalog(catalog);return render();
     }
     if(name==="ability-conflict-local"||name==="ability-conflict-incoming"){
       const catalog=clone(lib().catalog),i=Number(id),conflict=catalog.abilityGroupConflicts?.[i];if(!conflict)throw Error("待确认分类已变化，请重新打开指标库");
-      if(name==="ability-conflict-incoming"){
-        const groups=T.abilityGroups(catalog),group=groups.find(g=>g.key===conflict.key);if(!group)throw Error("能力分类不存在");group.name=conflict.incomingName;catalog.abilityGroups=groups;
-        for(const c of catalog.abilityGroupConflicts)if(c.key===conflict.key)c.localName=group.name;
-      }
+      if(name==="ability-conflict-incoming"){const groups=T.abilityGroups(catalog),group=groups.find(g=>g.key===conflict.key);if(!group)throw Error("能力分类不存在");group.name=conflict.incomingName;catalog.abilityGroups=groups;for(const c of catalog.abilityGroupConflicts)if(c.key===conflict.key)c.localName=group.name;}
       catalog.abilityGroupConflicts.splice(i,1);await saveCatalog(catalog);return render();
     }
-    if(name==="new-test"){
-      const opened=App.openCatalogItem("new-test");
-      if(opened!==false&&id){if($("catalogPrimaryAbility"))$("catalogPrimaryAbility").value=id;if($("catalogAbility"))$("catalogAbility").value=id;}
-      return opened;
-    }
-    if(name==="derived-toggle"){if(!(T.derivedDefinitions?.()||[]).some(d=>d.id===id))throw Error("派生指标不存在");const catalog=clone(lib().catalog);catalog.derivedEnabled||={};catalog.derivedEnabled[id]=catalog.derivedEnabled[id]===false;await saveCatalog(catalog);return render();}
+    if(name==="new-test"){const opened=App.openCatalogItem("new-test");if(opened!==false&&id){if($("catalogPrimaryAbility"))$("catalogPrimaryAbility").value=id;if($("catalogAbility"))$("catalogAbility").value=id;}return opened;}
+    if(name==="derived-toggle"){const catalog=clone(lib().catalog);catalog.derivedEnabled||={};catalog.derivedEnabled[id]=catalog.derivedEnabled[id]===false;await saveCatalog(catalog);return render();}
+    if(name==="catalog-open"||name==="project-metrics"){filter().test=id;return render();}
+    if(name==="catalog-back"){filter().test="";return render();}
     if(name==="new-metric")return App.openCatalogItem("new-metric",id||filter().test||"");
     if(name==="catalog-edit")return App.openCatalogItem("edit-project",id);
-    if(name==="catalog-resolve"){const [i,j]=id.split(":").map(Number);await App.resolveCatalogConflict(i,j);return render();}
+    if(name==="catalog-resolve"){await App.resolveCatalogConflict(...id.split(":").map(Number));return render();}
     if(name==="metric-edit"){const d=lib().catalog.definitions.find(d=>d.id===id);return App.openCatalogItem("edit",d.testId,d.id);}
-    if(["standard-edit","standard-iso","standard-balance","standard-lvp","standard-time"].includes(name))return openStandard(name.slice(9),id);
-    if(name==="standard-fms"){showForm("FMS 固定评分",'<p>每项保留 0–3 分。出现疼痛记 0 分；双侧项目分别记录左右侧，以较低侧分数计入总分。</p><p>评分规则固定，原始左右侧分数、疼痛标记与备注分别保留。</p>',async()=>{});$("managementForm").querySelector('[type="submit"]').textContent="关闭";return;}
-    if(name==="standard-time-new")return newTimeStandard(true);
-    if(name==="profile-time-new")return newTimeStandard();
-    if(name==="profile-time-create")return createTimeRule(id);
-    if(name==="project-metrics"){filters.metrics={q:"",test:id};return App.openManagement("metrics");}
     if(name==="catalog-toggle"){const catalog=clone(lib().catalog),test=catalog.tests.find(t=>t.id===id);test.disabled=!test.disabled;await saveCatalog(catalog);return render();}
+    if(name==="project-standards"){
+      return showForm("选择评价方案",field("评价方案",`<select name="profile">${profileOptions(lib().defaultEvaluationProfileId)}</select>`),async form=>{const profileId=new FormData(form).get("profile");if(viewProfile(profileId)){editor.projectId=id;App.openManagement("profiles");}});
+    }
     if(name==="profile-edit")return viewProfile(id);
     if(name==="profile-new"||name==="profile-copy"){
       if(!discardEditor())return;
-      const source=lib().evaluationProfiles.find(p=>p.id===(id||lib().defaultEvaluationProfileId)),profile={...clone(source),id:"evaluation_"+uid(),name:name==="profile-copy"?source.name+" 副本":"新评价方案",revision:1,disabled:false};delete profile.previous;
-      editor={profile,record:Eval.template(profile),tab:"definitions",metricId:profile.criteria.definitions[0]?.id,rangeDrafts:{},zoneDrafts:{},readOnly:false,isNew:true};editor.baseline=editorSnapshot();return render();
+      const source=name==="profile-copy"?lib().evaluationProfiles.find(p=>p.id===id):null,profile=source?Eval.serializeProfile(Eval.normalizeProfile(source)):{formatVersion:2,standards:[],aggregations:{},settings:{thresholds:clone(M.defaults().rules),lvp:{}}};
+      Object.assign(profile,{id:"evaluation_"+uid(),name:source?source.name+" 副本":"新评价方案",revision:1,updated:now(),disabled:false});delete profile.previous;delete profile.releases;makeEditor(profile,{isNew:true,baseRevision:null});return render();
     }
-    if(name==="profile-tab"){editor.tab=id;return render();}
-    if(name==="profile-close"){const origin=editor.origin;if(!discardEditor())return;return origin==="metrics"?App.openManagement("metrics"):render();}
+    if(name==="profile-close"){if(discardEditor())render();return;}
+    if(name==="profile-view"){editor.view=id;return render();}
     if(name==="profile-review")return reviewProfile();
-    if(name==="profile-group-select"){editor.referenceGroupId=id;return render();}
+    if(name==="profile-subject"){editor.subjectId=id;return render();}
+    if(name==="profile-standard-add"){
+      const subject=Eval.ruleSubjects(lib().catalog,editor.profile).find(s=>s.id===id);if(!subject)throw Error("结果定义已变化，请重新打开项目");Eval.ensureStandard(editor.profile,subject);return render();
+    }
+    if(name==="profile-standard-remove"){const index=editor.profile.standards.findIndex(r=>r.id===id);if(index>=0)removeDraftRow("standards",index);return render();}
+    if(["rule-range-add","score-range-add","score-anchor-add","lvp-zone-add"].includes(name)){
+      let rows=getPath(editor.profile,id);if(!Array.isArray(rows)){rows=[];setPath(editor.profile,id,rows);}
+      rows.push(name==="score-anchor-add"?{value:null,score:null}:name==="lvp-zone-add"?{min:null,max:null,label:""}:{min:null,max:null,includeMin:true,includeMax:false,...(name==="score-range-add"?{score:null}:{label:"",status:"gray"})});return render();
+    }
+    if(name==="rule-range-delete"){const keys=id.split("."),index=Number(keys.pop());removeDraftRow(keys.join("."),index);return render();}
+    if(name==="reference-row-copy"){const keys=id.split("."),index=Number(keys.pop()),rows=getPath(editor.profile,keys.join("."));rows.push(clone(rows[index]));return render();}
+    if(name==="reference-row-add"){const ref=getPath(editor.profile,id),rule=editor.profile.standards[Number(id.split(".")[1])],keys=ref.sideBasis==="dominance"?["DOM","ND"]:rule.context?.paired?["L","R"]:["C"];ref.groups||=[];ref.groups.push({sex:"male",ageMin:null,ageMax:null,mode:"any",values:Object.fromEntries((keys.length?keys:["C"]).map(k=>[k,null]))});return render();}
     if(name==="profile-group-add"){
-      const d=editor.record.definitions[Number(id)],group={id:"reference_"+uid(),sex:"any",ageMin:null,ageMax:null,mode:"any",ranges:clone(d.ranges||[]),source:"用户配置专项标准"};
-      d.referenceGroups||=[];d.referenceGroups.push(group);d.referenceMode="grouped";d.ranges=[];d.referenceEnabled=true;editor.referenceGroupId=group.id;return render();
+      const rule=editor.profile.standards[Number(id)];rule.referenceGroups||=[];rule.referenceGroups.push({id:"reference_"+uid(),sex:"any",ageMin:null,ageMax:null,mode:"any",ranges:[],source:""});return render();
     }
-    if(["profile-group-copy","profile-group-delete","profile-group-range-add","profile-group-range-delete"].includes(name)){
-      const [i,j,k]=id.split(":").map(Number),d=editor.record.definitions[i],group=d.referenceGroups[j];clearGroupInputErrors(i);
-      if(name==="profile-group-copy"){const copy={...clone(group),id:"reference_"+uid()};d.referenceGroups.splice(j+1,0,copy);editor.referenceGroupId=copy.id;}
-      if(name==="profile-group-delete")d.referenceGroups.splice(j,1);
-      if(name==="profile-group-range-add"){group.ranges.push({min:null,max:null,includeMin:true,includeMax:false,label:"",status:"gray"});markReferenceEdited("definitions."+i+".referenceGroups."+j+".ranges");}
-      if(name==="profile-group-range-delete"){group.ranges.splice(k,1);markReferenceEdited("definitions."+i+".referenceGroups."+j+".ranges");}
-      return render();
+    if(name==="profile-group-copy"||name==="profile-group-delete"){
+      const [i,j]=id.split(":").map(Number),groups=editor.profile.standards[i].referenceGroups;
+      if(name==="profile-group-delete")removeDraftRow("standards."+i+".referenceGroups",j);else groups.push({...clone(groups[j]),id:"reference_"+uid()});return render();
     }
-    if(name==="profile-default"){lib().defaultEvaluationProfileId=id;await App.saveLibraryChanges();return render();}
-    if(name==="profile-toggle"){const p=lib().evaluationProfiles.find(p=>p.id===id);if(id===lib().defaultEvaluationProfileId)throw Error("请先指定其他默认方案");p.disabled=!p.disabled;await App.saveLibraryChanges();return render();}
-    if(name==="profile-records"){
-      const p=lib().evaluationProfiles.find(p=>p.id===id),rows=lib().athletes.flatMap(a=>a.records.filter(r=>r.evaluationProfileId===id).map(r=>({a,r})));
-      return showForm(p.name+" · 关联记录",rows.map(({a,r})=>`<div class="reference-row"><span>${esc(a.name)} · ${esc(r.athlete.date)}</span>${button("查看报告","report",r.recordId)}</div>`).join("")||"暂无关联记录",async()=>{});
+    if(name==="profile-reference-clear"){setPath(editor.profile,id,null);editor.invalid=new Set([...editor.invalid].filter(p=>!p.startsWith(id+".")));return render();}
+    if(name==="profile-reference-add"){
+      const subjects=Eval.ruleSubjects(lib().catalog,editor.profile),subject=subjects.find(s=>s.id===id),rule=editor.profile.standards.find(r=>r.id===id),row=M.defaults().data.iso.find(r=>r.id===subject.directionId),basis=subject.kind==="balance"?"ratio":"N",anatomical=row&&["neck","trunk"].includes(row.region),keys=row?.paired?anatomical?["L","R"]:["DOM","ND"]:["C"];
+      rule.reference=clone(subject.defaultRule?.reference||{enabled:true,basis,sourceId:"user",source:"",statistic:"mean",sideBasis:row?.paired&&!anatomical?"dominance":"anatomical",groups:["male","female"].map(sex=>({sex,ageMin:0,ageMax:120,mode:"any",values:Object.fromEntries(keys.map(k=>[k,""]))}))});rule.reference.enabled=true;return render();
     }
-    if(name==="profile-revert"){
-      const p=lib().evaluationProfiles.find(p=>p.id===id);if(!confirm("恢复上一版标准，并重新评价所有关联记录？"))return;
-      const previous={name:p.name,criteria:clone(p.criteria),revision:p.revision,updated:p.updated};Object.assign(p,p.previous,{revision:p.revision+1,updated:now(),previous});await App.saveLibraryChanges();return render();
+    if(name==="lvp-settings-add"){
+      const defaults=M.defaults();for(const [key,value]of Object.entries(defaults.lvp))if((key.startsWith("landmine")?"landmine":key)===id)editor.profile.settings.lvp[key]={...clone(value),protocol:lib().catalog.protocol[id]||"",source:""};editor.analysisOpen=true;return render();
     }
-    if(name==="profile-extend"){
-      const candidates=[M.recordFromCatalog(lib().catalog,{},Object.fromEntries(lib().catalog.tests.map(t=>[t.id,true])))];if(App.getState())candidates.push(App.getState());
-      for(const r of candidates){const c=Eval.capture(r);for(const d of c.definitions)if(!editor.record.definitions.some(x=>x.id===d.id)){if(!Eval.hasInstalledStandard(d))Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:""});editor.record.definitions.push(d);editor.profile.criteria.definitions.push(clone(d));}for(const row of c.iso)if(!editor.record.data.iso.some(x=>x.id===row.id))editor.record.data.iso.push({...row,target:"",left:"",right:"",center:"",notes:""});}
-      return render();
+    if(name==="profile-time-new"){
+      return showForm("添加 IMTP 时点标准",field("时间 ms",'<input name="timeMs" type="number" min="0.000001" step="any" required>')+field("结果",'<select name="kind"><option value="force_pct_peak">力占峰值力比例 · %PF</option><option value="rfd">0–t 平均 RFD · N/s</option></select>'),async form=>{
+        const data=new FormData(form),timeMs=Number(data.get("timeMs")),measureKind=data.get("kind"),subjects=Eval.ruleSubjects(lib().catalog,editor.profile),prior=subjects.find(s=>s.kind==="imtp-time"&&s.measureKind===measureKind);
+        if(!prior)throw Error("未找到 IMTP 测量定义，请先确认指标库中的项目");const subject={...clone(prior),id:"imtp-time:"+measureKind+":"+timeMs,timeMs,name:measureKind==="rfd"?`0–${timeMs} ms 平均 RFD`:`${timeMs} ms 力占峰值力比例`};delete subject.defaultRule;Eval.ensureStandard(editor.profile,subject);editor.subjectId=subject.id;
+      });
     }
+    if(name==="profile-default"){await commit(candidate=>{if(candidate.evaluationProfiles.find(p=>p.id===id)?.disabled)throw Error("请先启用方案");candidate.defaultEvaluationProfileId=id;});return render();}
+    if(name==="profile-toggle"){await commit(candidate=>{if(id===candidate.defaultEvaluationProfileId)throw Error("请先指定其他默认方案");const p=candidate.evaluationProfiles.find(p=>p.id===id);p.disabled=!p.disabled;});return render();}
+    if(name==="profile-records"){filters.records={...freshFilters(),status:"all",evaluationProfileId:id,originTab:"profiles"};selections.records=new Set();return App.openManagement("records");}
+    if(name==="profile-revert"||name==="profile-history")return reviewHistory(id,name==="profile-revert");
     if(name==="restore-library"){if(confirm("切换回上次导入或迁移前保留的资料库？当前资料库仍会保留。"))await App.restorePreviousLibrary();return;}
+  }
+  function profileInput(control){
+    if(!editor||editor.readOnly||!control.dataset.profilePath)return;
+    const path=control.dataset.profilePath;let value=control.type==="checkbox"?control.checked:control.type==="number"?control.value===""?null:Number(control.value):control.value;
+    if(control.validity.badInput)editor.invalid.add(path);else editor.invalid.delete(path);setPath(editor.profile,path,value);
+    const segments=path.split(".").map(decodeURIComponent);
+    if(segments[0]==="aggregations"){
+      const cfg=editor.profile.aggregations[segments[1]];delete cfg.migrationIssue;
+      if(segments.at(-1)==="method"){if(value==="mean"){cfg.members||=[];cfg.transforms||={};}if(value==="primary")cfg.primary||="";delete cfg.migrationIssue;}
+      if(segments.at(-1)==="kind"){const transform=getPath(editor.profile,path.slice(0,-5));if(value==="anchors"){transform.points||=[];transform.shape||="higher";}if(value==="table")transform.ranges||=[];if(value==="ratio")transform.direction||="higher";}
+    }
+    updateScorePreviews();
   }
   function init() {
     document.addEventListener("click",async event=>{
       const target=event.target.closest("[data-manager-action]");if(!target||busy)return;
-      event.preventDefault();busy=true;
+      event.preventDefault();target.closest(".management-more")?.removeAttribute("open");busy=true;
       try{await action(target.dataset.managerAction,target.dataset.id);}catch(error){showError(error);}finally{busy=false;}
     });
+    document.addEventListener("toggle",event=>{
+      const detail=event.target;
+      if(detail.matches?.('.management-advanced'))filter().advanced=detail.open;
+      if(detail.matches?.('.management-more')&&detail.open){
+        document.querySelectorAll('.management-more[open]').forEach(other=>{if(other!==detail)other.open=false;});
+        const menu=detail.querySelector('.management-more-menu'),rect=detail.querySelector('summary').getBoundingClientRect(),width=menu.offsetWidth,height=menu.offsetHeight;
+        menu.style.left=Math.max(12,Math.min(innerWidth-width-12,rect.right-width))+"px";menu.style.top=Math.max(12,rect.bottom+height+8>innerHeight?rect.top-height-6:rect.bottom+6)+"px";
+      }
+    },true);
+    document.addEventListener("pointerdown",event=>document.querySelectorAll('.management-more[open]').forEach(detail=>{if(!detail.contains(event.target))detail.open=false;}));
+    document.addEventListener("keydown",event=>{if(event.key==="Escape")document.querySelectorAll('.management-more[open]').forEach(detail=>{detail.open=false;detail.querySelector('summary').focus();});});
     document.addEventListener("input",event=>{
       const t=event.target;
       if(t.id==="teamMemberSearch"){const q=t.value.trim().toLocaleLowerCase();$("managementFields").querySelectorAll("[data-team-candidate]").forEach(el=>el.hidden=!!q&&!el.dataset.teamCandidate.includes(q));}
       if(t.id==="testPlanName"&&planDraft)planDraft.name=t.value;
-      if(t.dataset.managerFilter&&t.tagName!=="SELECT"){filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();clearTimeout(filterTimer);const tab=current;filterTimer=setTimeout(()=>{if(current===tab&&App.getUIState().mode==="management")render({preserveFilters:true});},100);}
+      if(t.dataset.managerFilter&&t.tagName!=="SELECT"){filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();clearTimeout(filterTimer);const tab=current;filterTimer=setTimeout(()=>{if(current===tab&&App.getUIState().mode==="management")render({preserveFilters:true});},140);}
       if(t.id==="profileName"&&editor)editor.profile.name=t.value;
-      if(editor&&!editor.readOnly){
-        if(t.dataset.profilePath) { editor.invalid ||= new Set(); if(t.validity.badInput)editor.invalid.add(t.dataset.profilePath);else editor.invalid.delete(t.dataset.profilePath); }
-        if(t.dataset.profilePath){
-          const path=t.dataset.profilePath;let value=t.type==="checkbox"?t.checked:t.type==="number"&&t.value!==""?Number(t.value):t.value;
-          if(path.includes(".referenceGroups.")&&t.type==="number"&&t.value==="")value=/\.(target|minPeakRER)$/.test(path)?undefined:null;
-          setPath(editor.record,path,value);markReferenceEdited(path);
-        }
-        if(t.dataset.profileRanges)editor.rangeDrafts[t.dataset.profileRanges]=t.value;
-        if(t.dataset.profileZones)editor.zoneDrafts[t.dataset.profileZones]=t.value;
-      }
+      profileInput(t);
+      if(t.dataset.scorePreviewSubject&&editor){editor.previewValues[t.dataset.scorePreviewAxis+"/"+t.dataset.scorePreviewSubject]=t.value;updateScorePreviews();}
     });
     document.addEventListener("change",event=>{
       const t=event.target;
       if(t.dataset.managerFilter&&t.tagName==="SELECT"){clearTimeout(filterTimer);filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();render({preserveFilters:true});}
       if(t.dataset.managerSelect){if(t.checked)selected.add(t.dataset.managerSelect);else selected.delete(t.dataset.managerSelect);render();}
       if(t.id==="selectManagementPage"){const f=filter();allRows().slice((f.page-1)*30,f.page*30).forEach(r=>t.checked?selected.add(r.id):selected.delete(r.id));render();}
-      if(t.id==="profileMetricSelect"){editor.metricId=t.value;render();}
-      if(t.id==="imtpStandardSelect"){editor.timeKey=t.value;render();}
+      if(t.id==="profileProjectSelect"){editor.projectId=t.value;editor.subjectId="";render();}
       if(t.id==="testPlanProfile"&&planDraft)planDraft.defaultEvaluationProfileId=t.value;
-      if(t.dataset.profileAxis&&editor){editor.record.axes[t.dataset.profileAxis][t.dataset.axisField]=t.value;}
+      if(t.dataset.profilePath&&t.tagName==="SELECT"){profileInput(t);if(/\.(method|kind|shape)$/.test(t.dataset.profilePath))render();}
+      if(t.dataset.aggregationMember&&editor){
+        const axis=t.dataset.aggregationAxis,id=t.dataset.aggregationMember,cfg=editor.profile.aggregations[axis];cfg.members||=[];cfg.transforms||={};
+        if(t.checked){if(!cfg.members.includes(id))cfg.members.push(id);const subject=Eval.ruleSubjects(lib().catalog,editor.profile).find(s=>s.id===id),rule=editor.profile.standards.find(r=>r.id===id);cfg.transforms[id]||=subject?.measurementScale==="ratio"?{kind:"ratio",direction:rule?.direction||"higher"}:{kind:"anchors",shape:"higher",points:[]};}
+        else cfg.members=cfg.members.filter(x=>x!==id);delete cfg.migrationIssue;render();
+      }
     });
     $("managementForm").addEventListener("submit",async event=>{
       event.preventDefault();const form=event.target,submit=form.querySelector('[type="submit"]');if(submit.disabled)return;
@@ -537,8 +538,8 @@
     const isoIds=new Set(M.selectedIsoRows(record).map(row=>row.id));
     const iso=record.enabled.iso?'<h3>等长目标</h3>'+M.selectedIsoRows(record).map(r=>{const targets=(r.paired?["L","R"]:[""]).map(side=>{const t=M.effectiveIsoTarget(record,r,side);return `${side?side+" ":""}${t.kind==="reference"?"参考 ":"目标 "}${number(t.target)}${t.target===null?"":" "+r.unit}${t.reason?" · "+t.reason:""}`;});return `<p>${esc(M.REG[r.region])} · ${esc(r.direction)}：<b>${esc(targets.join(" / "))}</b>${issues.has(r.id)?' · '+esc(issues.get(r.id)):""}</p>`;}).join("")+'<h3>关节平衡</h3>'+record.balancePairs.filter(pair=>isoIds.has(pair.numeratorId)&&isoIds.has(pair.denominatorId)).map(p=>`<article class="effective-standard"><h4>${esc(p.label)}</h4>${p.ratioMigrationIssue?'<p class="notice">'+esc(p.ratioMigrationIssue)+'</p>':""}${p.referenceEnabled&&p.confirmed?ranges(p.ranges):'<p class="note">未启用分级或未确认测量条件可比</p>'}${p.source?'<p class="note">依据：'+esc(p.source)+'</p>':""}${p.reference?.enabled?'<p class="note">均值参考：'+esc(p.reference.source)+'</p>':""}</article>`).join(""):"";
     const lvp=Object.entries(record.lvp).filter(([id])=>record.enabled[id.startsWith("landmine")?"landmine":id]).map(([id,p])=>`<article class="effective-standard"><h4>${esc({bench:"卧推",squat:"深蹲",deadlift:"硬拉",landmineL:"地雷杠左侧",landmineR:"地雷杠右侧"}[id])}</h4><p>${esc(p.metric)} · MVT ${number(p.mvt)} m/s</p>${p.zones.map(z=>'<p>'+esc(z.label)+'：'+number(z.min)+'–'+number(z.max)+' m/s</p>').join("")}${p.source?'<p class="note">依据：'+esc(p.source)+'</p>':""}</article>`).join("");
-    const axes=Object.entries(record.axes).map(([id,a])=>{const ability=record.definitions.find(d=>T.axisKey(d.ability)===id)?.ability||"能力";return '<p>'+esc(T.abilityLabel(record,ability))+'：'+esc({primary:"代表指标",mean:"平均达成",min:"最低达成"}[a.method]||a.method)+(a.method==="primary"?' · '+esc(record.definitions.find(d=>d.id===a.primary)?.name||"未选代表指标"):"")+'</p>';}).join("");
-    showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}${imtp}<h3>汇总与筛查阈值</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});
+    const axes=Object.entries(record.axes).map(([id,a])=>{const ability=record.definitions.find(d=>T.axisKey(d.ability)===id)?.ability||"能力";return '<p>'+esc(T.abilityLabel(record,ability))+'：'+esc({primary:"代表指标",mean:"固定成员平均分",disabled:"未启用"}[a.method]||a.method)+(a.method==="primary"?' · '+esc(record.definitions.find(d=>"metric:"+d.id===a.primary||d.id===a.primary)?.name||"未选代表指标"):"")+'</p>';}).join("");
+    showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}${imtp}<h3>目标达成与双侧差异</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});
     $("managementForm").querySelector('[type="submit"]').textContent="关闭";
   }
   root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective};

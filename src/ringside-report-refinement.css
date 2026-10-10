@@ -202,3 +202,10 @@
   #reportView .stat-side, #reportView .stat-load { min-height: 0; }
   .athlete-summary dl { gap: 6px 12px; }
 }
+/* Fixed-member score composition belongs to the capability card. */
+#abilityScoreDetails:not(:empty){padding:18px 20px;border-top:1px solid var(--line)}
+.ability-score-details>summary{cursor:pointer;color:var(--muted);font-size:12px;font-weight:600}
+.ability-score-details section{margin-top:20px}
+.ability-score-details h4{margin:0 0 12px;font-size:14px}
+.ability-score-details .note{margin:10px 0 0}
+@media(max-width:600px){#abilityScoreDetails:not(:empty){padding:16px 12px}}

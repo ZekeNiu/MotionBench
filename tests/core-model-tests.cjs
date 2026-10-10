@@ -9,7 +9,7 @@ const context = vm.createContext({
   crypto: require("node:crypto").webcrypto,
 });
 context.window = context;
-for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "interventions", "viz", "report"])
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "interventions", "viz", "report"])
   vm.runInContext(
     fs.readFileSync(
       path.join(__dirname, "../src/ringside-" + name + ".js"),
@@ -44,6 +44,7 @@ function fixture(ability = "灵敏性") {
     ability,
     category: "performance",
     direction: "higher",
+    measurementScale: "ratio",
     target: 100,
     referenceEnabled: true,
     ranges: [
@@ -115,7 +116,7 @@ test("reserved and punctuation ability names survive scoring configuration and b
     '力量 <&> "特殊"',
   ]) {
     const record = fixture(ability);
-    record.axes[T.axisKey(ability)] = { method: "mean" };
+    record.axes[T.axisKey(ability)] = { method: "mean",members:["metric:measure_core"],transforms:{"metric:measure_core":{kind:"ratio",direction:"higher"}} };
     assert.equal(M.stats(record).axes[0].label, ability);
     near(M.stats(record).axes[0].value, 80);
     assert.equal(M.validateRecord(M.normalizeRecord(record)), true);

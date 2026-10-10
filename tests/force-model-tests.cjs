@@ -4,7 +4,7 @@ const path = require('path');
 const assert = require('node:assert/strict');
 const context = vm.createContext({ console, Intl, crypto: require('node:crypto').webcrypto });
 context.window = context;
-for (const name of ['ringside-calc.js', 'ringside-fvp.js', 'ringside-cpet-reference.js', 'ringside-definitions.js', 'ringside-tests.js', 'ringside-model.js', 'ringside-interventions.js']) {
+for (const name of ['ringside-calc.js', 'ringside-fvp.js', 'ringside-cpet-reference.js', 'ringside-definitions.js', 'ringside-tests.js', 'ringside-scoring.js', 'ringside-model.js', 'ringside-interventions.js']) {
   const filename = path.join(__dirname, '../src', name);
   vm.runInContext(fs.readFileSync(filename, 'utf8'), context);
 }

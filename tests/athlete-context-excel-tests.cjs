@@ -1,7 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 global.window=global;global.ExcelJS=require("../vendor/exceljs.min.js");
-for(const name of ["calc","fvp","cpet-reference","definitions","tests","model","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
+for(const name of ["calc","fvp","cpet-reference","definitions","tests","scoring", "model","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
 const M=RingsideModel,X=RingsideExcel,copy=value=>JSON.parse(JSON.stringify(value));let passed=0;
 const catalog=M.normalizeCatalog();
 function record(profile={}){const r=M.recordFromCatalog(catalog,{name:"生日测试运动员",...profile},{cmj:true},"2026-10-09");r.evaluationProfileId="evaluation_context";r.data.cmj[0].height=30;return r;}

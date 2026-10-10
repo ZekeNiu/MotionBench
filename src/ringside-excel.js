@@ -244,7 +244,8 @@
     return result;
   }
   function requireExcel() { if (!root.ExcelJS?.Workbook) throw Error("Excel 离线组件尚未加载，请使用完整版本重新打开"); }
-  async function createTemplate({records, prefill = false, schema = 2}) {
+  async function createTemplate({records, prefill = false, schema = root.RingsideExcelV3 ? 3 : 2}) {
+    if(schema===3){if(!root.RingsideExcelV3)throw Error("新版 Excel 模块尚未加载");return root.RingsideExcelV3.createTemplate({records,prefill});}
     requireExcel();
     if (![1,2].includes(schema)) throw Error("不支持的 Excel 模板版本");
     if (!Array.isArray(records) || !records.length || records.length > 300) throw Error("请选择 1–300 名已有运动员");
@@ -404,6 +405,7 @@
     const errors=[],info=book.getWorksheet("_MotionBench");if(!info)throw Error("缺少 MotionBench 模板信息，请重新下载模板");
     let encoded="";info.eachRow((row,i)=>{if(row.getCell(1).value!==i-1)throw Error("模板信息顺序不完整");const v=row.getCell(2).value;if(typeof v!=="string")throw Error("模板信息损坏");encoded+=v;});
     let manifest;try{manifest=JSON.parse(encoded);}catch(_){throw Error("模板信息损坏");}
+    if(manifest.schema===3){if(!root.RingsideExcelV3)throw Error("此模板需要新版 MotionBench");return root.RingsideExcelV3.readWorkbook(book,manifest);}
     if(manifest.format!=="motionbench-test-template"||![1,2].includes(manifest.schema)||!safe(manifest.templateId)||!Array.isArray(manifest.records)||!manifest.records.length||manifest.records.length>300)throw Error("模板版本或测试列表无效");
     if(manifest.schema===2&&(!Array.isArray(manifest.sheets)||manifest.listsSheet!=="_MotionBench_Lists"||JSON.stringify(manifest.recordRefs)!==JSON.stringify(recordReferences(manifest.records))||JSON.stringify(manifest.directionRefs)!==JSON.stringify(directionReferences(manifest.records))))throw Error("模板身份映射损坏，请重新下载模板");
     const targets=new Map(), entries=[];
@@ -600,7 +602,7 @@
     const spec=makeSpecs([record]).find(s=>s.id===id&&!["custom","timePoints","hopJumps"].includes(s.kind));
     if(!spec)return 0;
     let count=dataRows(spec,record,true).filter(row=>hasMeasurement(spec,row)&&(!selection||id!=="iso"||selection.includes(row.directionId))).length;
-    if(id==="hop"&&T.isNative(record,id))count=M.repeatRows(record,id).filter(set=>meaningful(set,["summary.height","summary.rsi","summary.contactTimeMs","summary.activeStiffness","notes"])||set.jumps?.some(j=>meaningful(j,["height","contactTimeMs","flightTimeMs","notes"]))).length;
+    if(id==="hop"&&T.isNative(record,id))count=M.repeatRows(record,id).filter(set=>root.RingsideAcquisition?root.RingsideAcquisition.hopHasData(set):meaningful(set,["summary.height","summary.rsi","summary.contactTimeMs","summary.activeStiffness","notes"])||set.jumps?.some(j=>meaningful(j,["height","contactTimeMs","flightTimeMs","notes"]))).length;
     if(id==="imtp")count=M.repeatRows(record,id).filter(row=>meaningful(row,attemptFields(record,id).map(f=>f.key))||row.timePoints?.some(p=>!empty(p.force)||!empty(p.rfd))).length;
     return count+record.definitions.filter(d=>d.testId===id&&T.isManualMetric(d)&&!T.isAttemptMetric(d)&&!empty(record.customValues[d.id]?.value)).length+settings(record,id).filter(f=>["thresholds.lt1","thresholds.lt2"].includes(f.key)&&!empty(get(record,f.key))).length;
   }
@@ -608,6 +610,13 @@
     const errors=clone(parsed.errors||[]),entries=[],owners=new Map(athletes.map(a=>[a.id,a])),existing=new Map(records.map(r=>[r.recordId,r]));
     for(const item of parsed.entries){
       const incoming=clone(item.record),previous=existing.get(incoming.recordId),owner=owners.get(incoming.athleteId);
+      const acquisition=item.acquisition||null;
+      if(acquisition){const message=root.RingsideAcquisition.validateHopBaseline(previous,acquisition.hopBaseline);if(message)issue(errors,null,0,0,incoming.athlete.name+"："+message);}
+      if(!acquisition&&previous&&root.RingsideAcquisition&&item.incoming.includes("hop")){
+        const historical=root.RingsideAcquisition.historicalHopSets(previous),imported=root.RingsideAcquisition.historicalHopSets(incoming);
+        const rawSignature=sets=>canonical(sets.map(set=>({notes:set.notes||"",metrics:set.metrics||{},activeStiffness:set.summary?.activeStiffness??"",jumps:(set.jumps||[]).map(jump=>Object.fromEntries(["height","contactTimeMs","flightTimeMs","notes"].map(key=>[key,jump[key]??""])))})));
+        if(historical.length&&rawSignature(historical)!==rawSignature(imported))issue(errors,null,0,0,incoming.athlete.name+"：旧版模板中的逐跳数据与已保留历史不同，不能覆盖历史逐跳；请使用完整备份恢复为独立副本");
+      }
       if(!owner||owner.deletedAt||owner.archived){issue(errors,null,0,0,incoming.athlete.name+"：运动员不在当前在用档案中");continue;}
       if(previous&&(previous.athleteId!==incoming.athleteId||previous.deletedAt||previous.archived)){issue(errors,null,0,0,incoming.athlete.name+"：目标记录不属于此运动员或已归档 / 删除");continue;}
       try {
@@ -620,14 +629,17 @@
         if(!previous&&(!catalogTest||catalogTest.disabled||catalog.conflicts.some(c=>c.testId===test.id&&!c.resolved)))issue(errors,null,0,0,test.name+"：项目已停用或存在未解决定义冲突，请重新下载模板");
         if(canonical(contract(current,test.id))!==canonical(contract(incoming,test.id)))issue(errors,null,0,0,test.name+"：指标字段或单位已变化，请重新下载模板");
         const directions=test.id==="iso"?isoRows(incoming).map(r=>r.id):null,oldCount=previous?countProject(previous,test.id,directions):0,newCount=countProject(incoming,test.id,directions),hasIncoming=item.incoming.includes(test.id),identical=!!previous&&canonical(projectData(previous,test.id,directions))===canonical(projectData(incoming,test.id,directions));
-        return {id:test.id,name:test.name,oldCount,newCount,hasIncoming,identical,conditionChanges:projectConditions(previous,incoming,test.id),defaultAction:hasIncoming&&!identical&&!oldCount?"replace":"keep"};
+        const parameterFields=acquisition?root.RingsideAcquisition.project(incoming,test.id).parameters:[];
+        const parameterChanges=acquisition&&previous?parameterFields.filter(f=>Object.prototype.hasOwnProperty.call(acquisition.parameters,f.key)&&String(get(previous,f.key)??"")!==String(get(incoming,f.key)??"")).map(f=>change(f,get(previous,f.key),get(incoming,f.key))):[];
+        return {id:test.id,name:test.name,oldCount,newCount,hasIncoming,identical,conditionChanges:acquisition?parameterChanges:projectConditions(previous,incoming,test.id),readiness:acquisition?root.RingsideAcquisition.readiness(incoming,test.id):[],defaultAction:hasIncoming&&!identical&&!oldCount?"replace":"keep"};
       });
       const metadataChanges=previous?metaFields.filter(f=>String(previous.athlete[f.key]??"")!==String(incoming.athlete[f.key]??"")).map(f=>({field:f.key,label:f.label,before:previous.athlete[f.key]??"",after:incoming.athlete[f.key]??""})):[];
-      const settingsChanges=previous?sharedSettings(incoming).filter(f=>!empty(get(incoming,f.key))&&String(get(previous,f.key)??"")!==String(get(incoming,f.key))).map(f=>change(f,get(previous,f.key),get(incoming,f.key))):[];
-      entries.push({recordId:incoming.recordId,athleteId:incoming.athleteId,name:owner.name,date:incoming.athlete.date,existing:!!previous,projects,metadataChanges,settingsChanges,incoming,previous:previous?clone(previous):null,base:previous?null:current});
+      const settingsChanges=previous&&!acquisition?sharedSettings(incoming).filter(f=>!empty(get(incoming,f.key))&&String(get(previous,f.key)??"")!==String(get(incoming,f.key))).map(f=>change(f,get(previous,f.key),get(incoming,f.key))):[];
+      entries.push({recordId:incoming.recordId,athleteId:incoming.athleteId,name:owner.name,date:incoming.athlete.date,existing:!!previous,projects,metadataChanges,settingsChanges,incoming,acquisition,previous:previous?clone(previous):null,base:previous?null:current});
     }
     return {templateId:parsed.templateId,entries,errors};
   }
+  const forceConfiguration=config=>{const {entryTimeMs,...physical}=config||{};return physical;};
   function apply(review, decisions={}) {
     if(review.errors?.length)throw Error("请先修正 Excel 中的全部错误，再重新导入");
     const records=[],skipped=[];let created=0,updated=0;
@@ -639,26 +651,37 @@
       M.applyAge(record, incoming.athlete.birthDate);
       for(const project of chosen){
         const id=project.id;record.enabled[id]=true;
-        const priorContext=JSON.stringify([record.protocol[id],record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);
+        const priorContext=JSON.stringify([record.protocol[id],entry.acquisition?forceConfiguration(record[id+"Config"]):record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);
         if(id==="iso"){
           const selected=isoRows(incoming),ids=new Set(selected.map(r=>r.id));
           record.data.iso=record.data.iso.map(row=>ids.has(row.id)?clone(selected.find(r=>r.id===row.id)):row);
           for(const row of selected)if(!record.data.iso.some(r=>r.id===row.id))record.data.iso.push(clone(row));
           const next=[...new Set([...isoRows(record).map(r=>r.id),...selected.map(r=>r.id)])];
           if(M.setIsoDirectionSelection)M.setIsoDirectionSelection(record,next);else record.isoDirectionIds=next;
-        }else record.data[id]=clone(incoming.data[id]);
-        if(isSprint(incoming,id)&&incoming.sprintFvpView!==undefined)record.sprintFvpView=M.normalizeSprintFvpView({...record.sprintFvpView,...incoming.sprintFvpView,metrics:{...record.sprintFvpView?.metrics,...incoming.sprintFvpView?.metrics}});
+        }else if(id==="hop"&&root.RingsideAcquisition&&(entry.acquisition||entry.previous&&root.RingsideAcquisition.historicalHopSets(entry.previous).length))record.data[id]=root.RingsideAcquisition.mergeHop(entry.previous,incoming);
+        else record.data[id]=clone(incoming.data[id]);
+        if(!entry.acquisition&&isSprint(incoming,id)&&incoming.sprintFvpView!==undefined)record.sprintFvpView=M.normalizeSprintFvpView({...record.sprintFvpView,...incoming.sprintFvpView,metrics:{...record.sprintFvpView?.metrics,...incoming.sprintFvpView?.metrics}});
         for(const d of incoming.definitions.filter(d=>d.testId===id&&T.isManualMetric(d)&&!T.isAttemptMetric(d)))record.customValues[d.id]=clone(incoming.customValues[d.id]||{value:"",notes:""});
-        for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!additiveSetting(f)||get(incoming,f.key)!==undefined)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)))put(record,f.key,clone(f.nullable && empty(settingValue(incoming,f)) ? null : settingValue(incoming,f)??""));
-        if(id==="cmj"){record.cmjConfig=clone(incoming.cmjConfig);record.dsi.cmjUnit=incoming.dsi.cmjUnit;}
-        if(id==="imtp")record.imtpConfig=clone(incoming.imtpConfig);
-        const nextContext=JSON.stringify([record.protocol[id],record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);
+        if(!entry.acquisition)for(const f of settings(incoming,id).filter(f=>!isSharedSetting(f)&&(!additiveSetting(f)||get(incoming,f.key)!==undefined)&&(!f.key.startsWith("sprintFvpView.")||incoming.sprintFvpView!==undefined)))put(record,f.key,clone(f.nullable && empty(settingValue(incoming,f)) ? null : settingValue(incoming,f)??""));
+        if(id==="cmj"&&!entry.acquisition){record.cmjConfig=clone(incoming.cmjConfig);record.dsi.cmjUnit=incoming.dsi.cmjUnit;}
+        if(id==="imtp"&&!entry.acquisition)record.imtpConfig=clone(incoming.imtpConfig);
+        if(id==="imtp"&&entry.acquisition)record.imtpConfig.entryTimeMs=clone(incoming.imtpConfig.entryTimeMs||[]);
+        const nextContext=JSON.stringify([record.protocol[id],entry.acquisition?forceConfiguration(record[id+"Config"]):record[id+"Config"],record.dsi.source,record.dsi.protocol,record.dsi.definition,record.dsi.cmjUnit]);
         if(["cmj","imtp"].includes(id)&&priorContext!==nextContext){record.dsi.confirmed=false;record.impulseConfig.confirmed=false;}
       }
-      if(!entry.existing||decision.settings==="replace"){
+      if(!entry.acquisition&&(!entry.existing||decision.settings==="replace")){
         const before=JSON.stringify([record.dsi.source,record.dsi.protocol,record.dsi.definition]);
         for(const f of shared)if(!empty(get(incoming,f.key)))put(record,f.key,clone(get(incoming,f.key)));
         if(before!==JSON.stringify([record.dsi.source,record.dsi.protocol,record.dsi.definition]))record.dsi.confirmed=false;
+      }
+      if(entry.acquisition){
+        const message=root.RingsideAcquisition.validateHopBaseline(entry.previous,entry.acquisition.hopBaseline);if(message)throw Error(message);
+        const parameterKeys=new Set(entry.projects.filter(project=>!entry.existing||decision.conditions?.[project.id]==="replace").flatMap(project=>root.RingsideAcquisition.project(incoming,project.id).parameters.map(f=>f.key)));
+        const before=JSON.stringify([record.protocol.cmj,record.protocol.imtp,forceConfiguration(record.cmjConfig),forceConfiguration(record.imtpConfig),record.dsi.source,record.dsi.definition,record.dsi.protocol]);
+        for(const key of parameterKeys)if(!key.endsWith(".confirmed")&&Object.prototype.hasOwnProperty.call(entry.acquisition.parameters,key))put(record,key,clone(entry.acquisition.parameters[key]));
+        const after=JSON.stringify([record.protocol.cmj,record.protocol.imtp,forceConfiguration(record.cmjConfig),forceConfiguration(record.imtpConfig),record.dsi.source,record.dsi.definition,record.dsi.protocol]);
+        if(before!==after){record.dsi.confirmed=false;record.impulseConfig.confirmed=false;}
+        for(const key of ["dsi.confirmed","impulseConfig.confirmed"])if(parameterKeys.has(key)&&Object.prototype.hasOwnProperty.call(entry.acquisition.parameters,key))put(record,key,entry.acquisition.parameters[key]===true);
       }
       if(!entry.existing){
         record.evaluationProfileId=incoming.evaluationProfileId;
@@ -673,5 +696,6 @@
     }
     return {records,skipped,created,updated};
   }
-  root.RingsideExcel=Object.freeze({createTemplate,readTemplate,preview,apply});
+  const legacyAdapter=Object.freeze({makeSpecs,settings,attemptFields,dataRows,exportFields,displayChoice,writeValue,blankRecord,selectedTests,recordReferences,metaFields,prefix,cellValue,countProject});
+  root.RingsideExcel=Object.freeze({createTemplate,readTemplate,preview,apply,legacyAdapter});
 })(typeof window!=="undefined"?window:globalThis);

@@ -4,7 +4,7 @@
   const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
   const object = value => value !== null && typeof value === "object" && !Array.isArray(value);
   const configurationKeys = new Set([
-    "id", "name", "protocol", "unit", "method", "label", "inputmode", "selectionbasis",
+    "id", "name", "protocol", "protocolidentity", "unit", "method", "label", "inputmode", "selectionbasis",
     "vo2unit", "oxygenlabel", "side", "region", "direction", "directioncode", "code", "target",
     "paired", "bilateral", "measurementversion", "forcedefinition", "impulsedefinition",
     "modality", "timems", "location", "position", "posture", "angle", "fixation", "measurementlocation",

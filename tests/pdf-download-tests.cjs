@@ -15,7 +15,7 @@ fs.mkdirSync(out, { recursive: true });
 const results = {
   started: new Date().toISOString(),
   sourceHash: createHash("sha256")
-    .update(fs.readFileSync(path.join(root, "Ringside_Boxing_Assessment.html")))
+    .update(fs.readFileSync(path.join(root, "MotionBench.html")))
     .digest("hex"),
   cases: [],
   narrativeFixture: {
@@ -70,12 +70,12 @@ const only = (process.argv.find((value) => value.startsWith("--only=")) || "")
     let emptyFixture = null;
     const sourceHash = createHash("sha256")
       .update(
-        fs.readFileSync(path.join(root, "Ringside_Boxing_Assessment.html")),
+        fs.readFileSync(path.join(root, "MotionBench.html")),
       )
       .digest("hex");
     try {
       await page.goto(
-        pathToFileURL(path.join(root, "Ringside_Boxing_Assessment.html")).href,
+        pathToFileURL(path.join(root, "MotionBench.html")).href,
       );
       await ready(page);
       if (config.core || config.radar) await page.evaluate(record => App.importPayload(RingsideModel.recordEnvelope(record)), config.radar ? radarFixture() : extensionFixture({ pdf: true }));

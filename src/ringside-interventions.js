@@ -150,19 +150,8 @@
           "。优先在对应动作上提高输出，控制新增练习的总量。",
       );
     }
-    if (s.advantages.items.length) {
-      const strong = s.advantages.items.slice(0, 2);
-      lines.push(
-        "• " +
-          (strong.every((a) => a.relative) ? "相对强项" : "优势") +
-          "：" +
-          strong.map((a) => a.label + "（" + a.detail + "）").join("；") +
-          "。" +
-          (strong.every((a) => a.relative)
-            ? "这是本次有效维度之间的比较，不能据此认定已达到评价目标；训练资源优先用于上述短板。"
-            : "保留对应能力的训练刺激，把新增训练资源集中到已明确的短板。"),
-      );
-    }
+    const strong = s.advantages.items.filter(item=>!item.relative).slice(0,2);
+    if (strong.length) lines.push("• 优势：" + strong.map(a=>a.label + "（" + a.detail + "）").join("；") + "。保留对应能力的训练刺激，把新增训练资源集中到已明确的短板。");
     if (lines.length === 1)
       lines.push(
         "• 当前已测项目未触发评价短板，继续保持已有动作标准；评价标准未启用或项目缺测时，尚不能据此确认优势或训练不足。",

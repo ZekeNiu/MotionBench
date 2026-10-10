@@ -2,7 +2,7 @@
 const fs=require("node:fs"),path=require("node:path"),vm=require("node:vm"),assert=require("node:assert/strict"),{createHash,webcrypto}=require("node:crypto"),{pathToFileURL}=require("node:url");
 const {chromium}=require("./helpers/playwright.cjs"),root=path.resolve(__dirname,".."),file=path.join(root,"MotionBench.html"),out=path.join(root,"output/playwright/management");
 const sandbox=vm.createContext({Intl,console,crypto:webcrypto});sandbox.window=sandbox;
-for(const name of ["calc", "fvp","cpet-reference","definitions","tests","model","interventions"])vm.runInContext(fs.readFileSync(path.join(root,"src/ringside-"+name+".js"),"utf8"),sandbox);
+for(const name of ["calc", "fvp","cpet-reference","definitions","tests","scoring", "model","interventions"])vm.runInContext(fs.readFileSync(path.join(root,"src/ringside-"+name+".js"),"utf8"),sandbox);
 const M=sandbox.RingsideModel,legacy=JSON.stringify(M.recordEnvelope(M.sampleRecord()));
 const channel=process.argv.includes("--edge")?"msedge":"chrome";
 const result={channel,sourceHash:createHash("sha256").update(fs.readFileSync(file)).digest("hex"),pass:false,checks:[],errors:[],syntheticAIOnly:true};

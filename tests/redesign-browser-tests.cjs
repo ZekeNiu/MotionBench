@@ -16,7 +16,7 @@ function playwright() {
 }
 const { chromium } = playwright();
 const root = path.resolve(__dirname, '..'), artifactDir = path.join(root, 'output/playwright');
-const source = path.join(root, 'Ringside_Boxing_Assessment.html');
+const source = path.join(root, 'MotionBench.html');
 const fixture = path.join(__dirname, 'fixtures/verification-v1-original-demo.json');
 const legacyHTMLFixture = path.join(__dirname, 'fixtures/legacy-v1-exported.html');
 const original = JSON.parse(fs.readFileSync(fixture, 'utf8'));
@@ -44,7 +44,7 @@ async function startServer() {
     });
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return { server, url: `http://127.0.0.1:${server.address().port}/Ringside_Boxing_Assessment.html` };
+  return { server, url: `http://127.0.0.1:${server.address().port}/MotionBench.html` };
 }
 async function boot(url = serverInfo.url, viewport = { width: 1440, height: 1000 }) {
   const context = await browser.newContext({ viewport, locale: 'zh-CN', timezoneId: 'Asia/Shanghai', acceptDownloads: true });

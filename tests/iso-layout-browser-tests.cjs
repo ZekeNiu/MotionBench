@@ -2,7 +2,7 @@
 const fs = require("node:fs"), path = require("node:path"), assert = require("node:assert/strict");
 const { createHash } = require("node:crypto"), { pathToFileURL } = require("node:url");
 const { chromium } = require("./helpers/playwright.cjs");
-const root = path.resolve(__dirname, ".."), source = path.join(root, "Ringside_Boxing_Assessment.html");
+const root = path.resolve(__dirname, ".."), source = path.join(root, "MotionBench.html");
 const out = path.join(root, "output/playwright/iso-layout"), pdfOut = path.join(root, "output/pdf");
 fs.mkdirSync(out, { recursive: true });
 const hash = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");

@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), vm = require("node:vm"), assert = require("node:assert/strict");
 const ctx = vm.createContext({console, Intl, Blob, TextDecoder, crypto: require("node:crypto").webcrypto}); ctx.window = ctx;
-for (const name of ["calc", "fvp", "sprint-fvp", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "model", "evaluation", "interventions"])
+for (const name of ["calc", "fvp", "sprint-fvp", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "scoring", "model", "evaluation", "interventions"])
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"), ctx);
 // Exercise the real synchronous merge without opening IndexedDB or adding a
 // production API solely for the tests.
@@ -27,15 +27,11 @@ test("old shipped VIFT descriptions merge with neutral defaults without a false 
     assert.deepEqual(copy(local.definitions.find(d => d.id === "ift_treadmill")), localDefinition);
   }
 });
-test("VIFT comparison preserves custom method, unit, value and threshold differences", () => {
+test("VIFT catalog comparison preserves measurement differences", () => {
   const mutations = [
     c => c.definitions.find(d => d.id === "ift_treadmill").protocol += " 自定义条件",
     c => c.protocol.ift = "实际测试条件不同",
-    c => c.definitions.find(d => d.id === "ift_treadmill").unit = "km/h",
-    c => c.definitions.find(d => d.id === "ift_treadmill").target += .01,
-    c => c.definitions.find(d => d.id === "ift_treadmill").ranges[0].max += .01,
-    c => c.definitions.find(d => d.id === "ift_treadmill").ranges[0].includeMax = false,
-    c => c.definitions.find(d => d.id === "ift_treadmill").referenceEnabled = true,
+    c => c.definitions.find(d => d.id === "ift_treadmill").unit = "m/min",
     c => c.definitions.find(d => d.id === "ift_treadmill").name = "自定义终末速度",
     c => c.tests.find(t => t.id === "ift").name = "自定义测试名称",
   ];
@@ -43,6 +39,11 @@ test("VIFT comparison preserves custom method, unit, value and threshold differe
     const local = M.normalizeCatalog(), incoming = oldCatalog(); mutate(incoming); merge(local, incoming);
     const conflict = local.conflicts.find(c => c.testId === "ift"); assert.ok(conflict); assert.equal(conflict.variants.length, 2);
   }
+});
+test("legacy evaluation fields do not create measurement catalog conflicts",()=>{
+  const local=M.normalizeCatalog(),incoming=oldCatalog(),d=incoming.definitions.find(d=>d.id==="ift_treadmill");
+  Object.assign(d,{target:123,referenceEnabled:true,ranges:[{min:0,max:50,label:"Legacy",status:"green"}]});
+  merge(local,incoming);assert.equal(local.conflicts.length,0);assert.equal(local.definitions.find(metric=>metric.id===d.id).target,null);
 });
 test("ability name conflicts and ordered additions remain intact beside the VIFT alias", () => {
   const local = M.normalizeCatalog(), incoming = oldCatalog();
@@ -84,7 +85,10 @@ function memoryRepository() {
   const table = name => { if (!tables.has(name)) tables.set(name,new Map()); return tables.get(name); };
   const key = (name,row) => name === "meta" ? row.id : JSON.stringify([row.generation,row.id]);
   const repo = new S.Repository({transaction() {
-    const tx = {objectStore(name) { return {put(row) { table(name).set(key(name,row),copy(row)); }}; }};
+    const tx = {objectStore(name) { return {
+      put(row) { table(name).set(key(name,row),copy(row)); },
+      get(id) {const request={};queueMicrotask(()=>{request.result=table(name).get(name==="meta"?id:JSON.stringify(id));request.onsuccess?.();});return request;},
+    }; }};
     queueMicrotask(() => tx.oncomplete?.()); return tx;
   }});
   repo.meta = async id => table("meta").get(id);

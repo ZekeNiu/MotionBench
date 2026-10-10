@@ -4,7 +4,7 @@
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict");
 const {spawn}=require("node:child_process"),{createHash}=require("node:crypto"),{pathToFileURL}=require("node:url");
 const {chromium}=require("./helpers/playwright.cjs"),{chartFixture}=require("./helpers/chart-ai-fixture.cjs");
-const root=path.resolve(__dirname,".."),file=path.join(root,"Ringside_Boxing_Assessment.html"),out=path.join(root,"output/ai/chart-ai");
+const root=path.resolve(__dirname,".."),file=path.join(root,"MotionBench.html"),out=path.join(root,"output/ai/chart-ai");
 const replay=process.env.RINGSIDE_AI_NARRATIVE_REPLAY ? JSON.parse(fs.readFileSync(process.env.RINGSIDE_AI_NARRATIVE_REPLAY,"utf8")) : null;
 const key=replay ? "replay-no-key" : process.env.RINGSIDE_AI_KEY,service=process.env.RINGSIDE_AI_URL||"https://api.apikey.fan",model=process.env.RINGSIDE_AI_MODEL||"gpt-5.6-sol";
 if(!key)throw Error("Set RINGSIDE_AI_KEY in the process environment");

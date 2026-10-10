@@ -3,7 +3,7 @@ const fs=require("node:fs"),path=require("node:path"),assert=require("node:asser
 const {pathToFileURL}=require("node:url"),{createHash}=require("node:crypto");
 const {chromium}=require("./helpers/playwright.cjs");
 const {artifactDirectory,ready,showReport,downloadFromReport,emptyRecord}=require("./helpers/pdf-browser.cjs");
-const root=path.resolve(__dirname,".."),out=artifactDirectory(root,"output/pdf/v2.17.2-work/repeat-fixture"),source=path.join(root,"Ringside_Boxing_Assessment.html");
+const root=path.resolve(__dirname,".."),out=artifactDirectory(root,"output/pdf/v2.17.2-work/repeat-fixture"),source=path.join(root,"MotionBench.html");
 fs.mkdirSync(out,{recursive:true});
 const digest=p=>createHash("sha256").update(fs.readFileSync(p)).digest("hex");
 const result={sourceHash:digest(source),checks:[],errors:[],network:[],images:[],layouts:[],downloads:[],pass:false};

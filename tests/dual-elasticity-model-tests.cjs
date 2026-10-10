@@ -1,7 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 global.window=global;global.ExcelJS=require("../vendor/exceljs.min.js");
-for(const name of ["calc","fvp","sprint-fvp","sprint-elasticity","sources","cpet-reference","definitions","tests","model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
+for(const name of ["calc","fvp","sprint-fvp","sprint-elasticity","sources","cpet-reference","definitions","tests","scoring", "model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
 const M=RingsideModel,F=RingsideFVP,S=RingsideSprintFVP,E=RingsideSprintElasticity,T=RingsideTests,X=RingsideExcel;
 const {manifest,column}=require("./helpers/excel-template.cjs"),copy=value=>JSON.parse(JSON.stringify(value));
 // Workbook-assigned row IDs and its empty manual-metric holder carry no measurement.

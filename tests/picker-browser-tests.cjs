@@ -8,7 +8,7 @@ const result={channel,scope:"source component browser checks",artifactHash:creat
  try{
   fs.mkdirSync(out,{recursive:true});await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><main style="max-width:1100px;margin:auto;padding:16px"><label class="field">方案名称<input id="planName" value="保留的草稿"></label><div id="picker"></div></main></body></html>');
   for(const name of ["ringside.css","ringside-management-refinement.css"])await page.addStyleTag({path:path.join(root,"src",name)});
-  for(const name of ["calc", "fvp","cpet-reference","definitions","tests","model","picker"])await page.addScriptTag({path:path.join(root,"src/ringside-"+name+".js")});
+  for(const name of ["calc", "fvp","cpet-reference","definitions","tests","scoring", "model","picker"])await page.addScriptTag({path:path.join(root,"src/ringside-"+name+".js")});
   await page.evaluate(()=>{window.selection={testIds:["cmj"],isoDirectionIds:[]};const options={source:RingsideModel.defaults(),selection,context:"plan",onChange(next){window.selection=next;}};document.querySelector('#picker').innerHTML=RingsidePicker.render(options);window.picker=RingsidePicker.bind(document.querySelector('#picker'),options);});
   await check("continuous keyboard selection keeps focus grid nodes and other draft fields",async()=>{
    const control=page.locator('[data-picker-project="imtp"]');await control.focus();await page.evaluate(()=>{window.initialControl=document.activeElement;window.initialGrid=document.querySelector('.check-grid');});await control.press("Space");

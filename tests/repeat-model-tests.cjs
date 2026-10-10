@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), vm = require("node:vm"), assert = require("node:assert/strict");
 const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto }); c.window = c;
-for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "interventions", "viz", "report"]) vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`, "utf8"), c);
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "interventions", "viz", "report"]) vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`, "utf8"), c);
 const M = c.RingsideModel, R = c.RingsideReport, T = c.RingsideTests, C = c.Calc;
 let passed = 0;
 const test = (name, fn) => { fn(); passed++; console.log("PASS " + name); };
@@ -9,7 +9,7 @@ const near = (a,b) => assert.ok(Math.abs(a-b) < 1e-8, `${a} != ${b}`);
 const copy = (x) => JSON.parse(JSON.stringify(x));
 function custom() {
   const r = M.defaults();
-  r.customTests.push({ id: "custom_repeat", name: "往返跑", category: "performance", primaryMetricId: "time" });
+  r.customTests.push({ id: "custom_repeat", name: "往返跑", category: "performance", primaryMetricId: "time",selectionDirection:"lower" });
   r.enabled.custom_repeat = true;
   for (const [id, name, unit, direction] of [["time", "用时", "s", "lower"], ["force_extra", "力", "N", "higher"]]) r.definitions.push({ id, testId:"custom_repeat", name, unit, direction, category:"performance", ability:"速度", ranges:[], target:null, entryScope:"attempt", cvEligible:true });
   r.data.custom_repeat = [{id:"a",metrics:{time:12,force_extra:100}}, {id:"b",metrics:{time:10,force_extra:80}}, {id:"c",metrics:{time:10,force_extra:120}}];

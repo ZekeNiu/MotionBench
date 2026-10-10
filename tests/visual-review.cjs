@@ -7,7 +7,7 @@ const { pathToFileURL } = require("node:url");
 const { chromium } = require("./helpers/playwright.cjs");
 const root = path.resolve(__dirname, "..");
 const out = path.join(root, "output/playwright");
-const file = path.join(root, "Ringside_Boxing_Assessment.html");
+const file = path.join(root, "MotionBench.html");
 fs.mkdirSync(out, { recursive: true });
 const result = {
   sourceHash: createHash("sha256").update(fs.readFileSync(file)).digest("hex"),

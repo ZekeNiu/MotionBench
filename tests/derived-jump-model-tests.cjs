@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), vm = require("node:vm"), assert = require("node:assert/strict");
 const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto }); c.window = c;
-for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation"]) vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`, "utf8"), c);
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "evaluation"]) vm.runInContext(fs.readFileSync(`src/ringside-${name}.js`, "utf8"), c);
 const M = c.RingsideModel, T = c.RingsideTests, E = c.RingsideEvaluation;
 const copy = (x) => JSON.parse(JSON.stringify(x)), near = (a,b) => assert.ok(Math.abs(a-b)<1e-9,`${a} != ${b}`);
 let passed=0; const test=(name,fn)=>{fn();passed++;console.log("PASS "+name);};
@@ -114,7 +114,8 @@ test("2.10 source fixtures retain measurements, scoring, manual text and narrati
   for(const source of [old.RingsideModel.defaults(),old.RingsideModel.sampleRecord()].map(old.RingsideModel.normalizeRecord)) {
     source.narrative.summary="保留的手动分析";const before=old.RingsideModel.stats(source), baseline=old.RingsideModel.fingerprint(source), r=M.normalizeRecord(copy(source)), after=M.stats(r);
     const expectedAxes=copy(before.axes);for(const axis of expectedAxes)for(const definition of axis.defs){definition.name=c.Def.factoryText(definition.id,"name",definition.name);definition.protocol=c.Def.factoryText(definition.id,"protocol",definition.protocol);}
-    assert.deepEqual(copy(after.values),copy(before.values));assert.deepEqual(copy(after.axes),expectedAxes);assert.deepEqual(copy(after.findings),copy(before.findings));assert.equal(r.narrative.summary,"保留的手动分析");
+    const axisValues=axes=>copy(axes).map(({members,scores,method,...axis})=>({...axis,defs:axis.defs.map(({protocolIdentity,...d})=>d)}));
+    assert.deepEqual(copy(after.values),copy(before.values));assert.deepEqual(axisValues(after.axes),axisValues(expectedAxes));assert.deepEqual(copy(after.findings),copy(before.findings));assert.equal(r.narrative.summary,"保留的手动分析");
     if(M.fingerprint(r)!==baseline){const a=JSON.parse(M.fingerprint(r)),b=JSON.parse(baseline);for(const key of Object.keys(a))assert.deepEqual(a[key],b[key],"fingerprint differs at "+key);}
     assert.equal(M.fingerprint(r)===baseline,true,"fingerprint retains exact serialized order");
     r.derivedEnabled.eur=false;assert.notEqual(M.fingerprint(r),baseline);r.derivedEnabled.eur=true;

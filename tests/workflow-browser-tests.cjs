@@ -10,7 +10,7 @@ const { createHash } = require("node:crypto");
 const { pathToFileURL } = require("node:url");
 const { chromium } = require("./helpers/playwright.cjs");
 const root = path.resolve(__dirname, "..");
-const source = path.join(root, "Ringside_Boxing_Assessment.html");
+const source = path.join(root, "MotionBench.html");
 const out = path.join(root, "output/playwright");
 const hash = (value) => createHash("sha256").update(value).digest("hex");
 const only = (process.argv.find((x) => x.startsWith("--only=")) || "")

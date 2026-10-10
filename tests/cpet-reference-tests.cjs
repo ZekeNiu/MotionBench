@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("node:fs"),vm=require("node:vm"),path=require("node:path"),assert=require("node:assert/strict");
 const ctx=vm.createContext({console,Intl,crypto:require("node:crypto").webcrypto});ctx.window=ctx;
-for(const name of ["calc", "fvp","cpet-reference","definitions","tests","model","evaluation"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),ctx);
+for(const name of ["calc", "fvp","cpet-reference","definitions","tests","scoring", "model","evaluation"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),ctx);
 const M=ctx.RingsideModel,E=ctx.RingsideEvaluation,R=ctx.RingsideReferences,json=x=>JSON.parse(JSON.stringify(x));let passed=0;
 function test(name,fn){try{fn();passed++;console.log("PASS "+name);}catch(error){console.error("FAIL "+name+"\n"+error.stack);process.exitCode=1;}}
 function fixture(){const r=M.defaults();r.athlete.age=25;r.athlete.sex="男";r.athlete.mass=70;r.enabled.cpet=true;Object.assign(r.data.cpet,{modality:"treadmill",vo2:45.4,vo2Unit:"ml/kg/min",rer:1.1});return r;}
@@ -46,25 +46,25 @@ test("single-record materialization copies only currently effective standards",(
  const r=fixture(),p=E.create(r),before=JSON.stringify(r),out=E.materialize(r,p),d=out.definitions.find(d=>d.id==="cpet_vo2_relative");assert.equal(d.referenceGroups,undefined);assert.equal(d.ranges.length,20);assert.equal(M.grade(45.4,d).label,"P50–P55");assert.equal(JSON.stringify(r),before);M.validateRecord(out);
 });
 test("old empty factory RSI upgrades while user-edited standards survive",()=>{
- const p=E.create(fixture()),d=p.criteria.definitions.find(d=>d.id==="dj_rsi"),custom=p.criteria.definitions.find(d=>d.id==="hop_rsi");Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:"用户配置评价标准",protocol:"使用实际测试协议与匹配评价标准"});custom.target=7;custom.source="我的标准";
- p.criteria.definitions=p.criteria.definitions.filter(d=>d.testId!=="cpet");const before=json(p.criteria),lib={evaluationProfiles:[p]};assert.equal(E.upgradeLibraryProfiles(lib),true);assert.equal(d.referenceEnabled,true);assert.equal(custom.target,7);assert.equal(custom.source,"我的标准");assert.equal(p.criteria.definitions.find(d=>d.id==="cpet_vo2_relative").referenceGroups.length,28);assert.deepEqual(json(p.previous.criteria),before);const rev=p.revision;assert.equal(E.upgradeLibraryProfiles(lib),false);assert.equal(p.revision,rev);E.validateProfile(p);p.criteria=json(p.previous.criteria);assert.equal(E.upgradeLibraryProfiles(lib),false);assert.deepEqual(json(p.criteria),before);
+ const r=fixture(),old={id:"legacy_factory",name:"旧工厂方案",revision:1,criteria:E.capture(r),isoReferencesVersion:1},d=old.criteria.definitions.find(d=>d.id==="dj_rsi"),custom=old.criteria.definitions.find(d=>d.id==="hop_rsi");Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:"用户配置评价标准",protocol:"使用实际测试协议与匹配评价标准"});custom.target=7;custom.source="我的标准";
+ old.criteria.definitions=old.criteria.definitions.filter(d=>d.testId!=="cpet");const lib={evaluationProfiles:[old]};assert.equal(E.upgradeLibraryProfiles(lib),true);const p=lib.evaluationProfiles[0];assert.equal(p.formatVersion,2);assert.equal(p.standards.find(d=>d.id==="metric:dj_rsi").enabled,true);assert.equal(p.standards.find(d=>d.id==="metric:hop_rsi").target,7);assert.equal(p.standards.find(d=>d.id==="metric:hop_rsi").source,"我的标准");assert.equal(p.standards.find(d=>d.id==="metric:cpet_vo2_relative").referenceGroups.length,28);assert.equal(p.previous.standards.find(d=>d.id==="metric:dj_rsi").enabled,false);const rev=p.revision;assert.equal(E.upgradeLibraryProfiles(lib),false);assert.equal(p.revision,rev);E.validateProfile(p);p.standards=[];assert.equal(E.upgradeLibraryProfiles(lib),false);assert.equal(p.standards.length,0);
 });
 test("paired DJ/Hop standards require both measurement protocols to match",()=>{
  const r=fixture();r.enabled.dj=true;r.enabled.hop=true;r.protocol.dj="45 cm three-trial mean";r.protocol.hop="ten jumps best five FT/CT";
  const d=r.definitions.find(d=>d.id==="rqr");assert.ok(d);d.referenceEnabled=true;d.ranges=[{min:1,max:null,label:"自定义标准",status:"green"}];const p=E.create(r);
  assert.equal(E.resolve(r,p).definitions.find(d=>d.id==="rqr").referenceEnabled,true);assert.equal(E.template(p).protocol.hop,r.protocol.hop);
- r.protocol.hop="five-jump mean";const resolved=E.resolve(r,p).definitions.find(d=>d.id==="rqr");assert.equal(resolved.referenceEnabled,false);assert.equal(resolved.ranges.length,0);
+ r.protocol.hop="five-jump mean";r.protocolIdentities.hop.version++;const resolved=E.resolve(r,p).definitions.find(d=>d.id==="rqr");assert.equal(resolved.referenceEnabled,false);assert.equal(resolved.ranges.length,0);
 });
 test("precise factory aliases migrate independently of grades and preserve custom and rollback text",()=>{
- const r=fixture(),p=E.create(r);p.builtinStandardsVersion=1;
+ const r=fixture(),p={id:"legacy_alias",name:"旧方案",revision:1,criteria:E.capture(r),isoReferencesVersion:1,builtinStandardsVersion:1};
  const d=p.criteria.definitions.find(d=>d.id==="cmj_height");d.name="CMJ 跳高";d.protocol=ctx.Def.factoryText(d.id,"protocol",d.protocol,true);d.context.metricProtocol=d.protocol;d.target=77;
  const dj=p.criteria.definitions.find(d=>d.id==="dj_height");dj.context.protocol=ctx.Def.factoryText("dj","testProtocol",dj.context.protocol,true);dj.target=44;dj.referenceEnabled=true;
  const custom=p.criteria.definitions.find(d=>d.id==="sj_height");custom.name="SJ 跳高（队内命名）";
  const manual=p.criteria.definitions.find(d=>d.id==="hop_height");manual.legacyManual=true;manual.name="HOP 反弹跳高";
  p.previous={name:p.name,criteria:json(p.criteria),revision:p.revision,updated:p.updated};const previous=JSON.stringify(p.previous),revision=p.revision;
  assert.equal(E.resolve(r,p).definitions.find(d=>d.id==="dj_height").target,44);
- assert.equal(E.upgradeLibraryProfiles({evaluationProfiles:[p]}),true);assert.equal(d.name,"CMJ 垂直跳跃高度");assert.equal(d.protocol.includes("跳高"),false);assert.equal(d.target,77);assert.equal(p.revision,revision);assert.equal(JSON.stringify(p.previous),previous);assert.equal(custom.name,"SJ 跳高（队内命名）");assert.equal(manual.name,"HOP 反弹跳高");
- assert.equal(E.template({...p,criteria:p.previous.criteria}).definitions.find(d=>d.id==="cmj_height").name,"CMJ 垂直跳跃高度");assert.equal(JSON.stringify(p.previous),previous);assert.equal(E.upgradeLibraryProfiles({evaluationProfiles:[p]}),false);
- p.criteria=json(p.previous.criteria);assert.equal(E.upgradeLibraryProfiles({evaluationProfiles:[p]}),true);assert.equal(p.criteria.definitions.find(d=>d.id==="cmj_height").target,77);
+ const lib={evaluationProfiles:[p]};assert.equal(E.upgradeLibraryProfiles(lib),true);assert.equal(d.name,"CMJ 垂直跳跃高度");assert.equal(d.protocol.includes("跳高"),false);assert.equal(d.target,77);assert.equal(p.revision,revision);assert.equal(JSON.stringify(p.previous),previous);assert.equal(custom.name,"SJ 跳高（队内命名）");assert.equal(manual.name,"HOP 反弹跳高");
+ assert.equal(E.template({...p,criteria:p.previous.criteria}).definitions.find(d=>d.id==="cmj_height").name,M.defaults().definitions.find(d=>d.id==="cmj_height").name);assert.equal(JSON.stringify(p.previous),previous);assert.equal(E.upgradeLibraryProfiles(lib),false);
+ assert.equal(lib.evaluationProfiles[0].previous.standards.find(d=>d.id==="metric:cmj_height").target,77);assert.equal(JSON.stringify(lib.evaluationProfiles[0]).includes('"criteria":'),false);
 });
 console.log(passed+" CPET reference and shared-standard checks passed");

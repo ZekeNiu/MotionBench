@@ -1,7 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm"),crypto=require("node:crypto");
 global.window=global;global.ExcelJS=require("../vendor/exceljs.min.js");
-for(const name of ["calc","sprint-fvp","fvp","cpet-reference","definitions","tests","model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
+for(const name of ["calc","sprint-fvp","fvp","cpet-reference","definitions","tests","scoring", "model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
 // Expose the existing catalog merge only in this test VM; IndexedDB is not mocked as a browser validation.
 vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-store.js"),"utf8").replace("  function validateTestPlans(","  root.testSprintCatalogMerge=mergeCatalog;\n  function validateTestPlans("));
 const M=RingsideModel,T=RingsideTests,F=RingsideSprintFVP,X=RingsideExcel,E=RingsideEvaluation,S=RingsideStore;
@@ -28,7 +28,8 @@ function sampled(distances){const r=record();r.sprintFvpAnalysis.targetDistanceM
   });
   await test("historical records gain display defaults without changing raw measurement or timing settings",()=>{
     assert.equal(Object.hasOwn(legacy,"sprintFvpView"),false);const r=record();assert.deepEqual(r.sprintFvpView,M.sprintFvpViewDefaults());assert.deepEqual(trialData(r.data.sprint_fvp),trialData(legacy.data.sprint_fvp));
-    for(const key of ["recordId","athleteId","enabled","sprintFvpConfig","projectSnapshots"])assert.deepEqual(r[key],legacy[key],key);
+    for(const key of ["recordId","athleteId","enabled","sprintFvpConfig"])assert.deepEqual(r[key],legacy[key],key);
+    assert.deepEqual(r.projectSnapshots.map(({selectionDirection,...project})=>project),legacy.projectSnapshots);
     assert.deepEqual(r.sprintFvpAnalysis,{...legacy.sprintFvpAnalysis,deltaForcePct:0,deltaVelocityPct:0,elasticityMethodVersion:"li-2026-sprint-elasticity-forward1-v1"});
     assert.equal(M.fingerprint(r),M.fingerprint(legacy));
   });

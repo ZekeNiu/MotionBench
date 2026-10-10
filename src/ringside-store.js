@@ -12,6 +12,8 @@
   }
   function athleteMetadata(a) { const {records, ...metadata}=a; return clone(metadata); }
   function mergeCatalog(local, incoming) {
+    Object.assign(local,M.normalizeCatalog(local));
+    incoming=M.normalizeCatalog(incoming);
     const groups = root.RingsideTests.abilityGroups(local).map(clone);
     const conflicts = local.abilityGroupConflicts || [];
     const addGroup = group => {
@@ -24,15 +26,21 @@
     for (const conflict of incoming.abilityGroupConflicts || []) addGroup({key:conflict.key,name:conflict.incomingName});
     local.abilityGroups = groups;
     local.abilityGroupConflicts = conflicts;
-    const variant=(catalog,id,source)=>({test:clone(catalog.tests.find(t=>t.id===id)),definitions:clone(catalog.definitions.filter(d=>d.testId===id)).sort((a,b)=>a.id.localeCompare(b.id)),protocol:catalog.protocol[id]||"",source});
-    const comparable = value => ({...value,source:"",
-      test:{...value.test,name:value.test.id==="ift"&&value.test.name==="30–15 IFT"?"30-15VIFT":value.test.name,
-        ...(["fms","iso"].includes(value.test.id)&&(value.test.primaryAbility===""||value.test.primaryAbility===undefined)
-          ? {primaryAbility:value.test.id==="fms"?"动作筛查":"等长力量"} : {})},
-      definitions:value.definitions.map(d=>({...d,name:root.RingsideTests.metricName(d),protocol:root.Def.viftProtocol(d.id,d.protocol)}))});
+    const variant=(catalog,id,source)=>({test:clone(catalog.tests.find(t=>t.id===id)),definitions:clone(catalog.definitions.filter(d=>d.testId===id)).sort((a,b)=>a.id.localeCompare(b.id)),protocol:catalog.protocol[id]||"",protocolIdentity:catalog.protocolIdentities?.[id],source});
+    const comparable = value => {
+      // Both full catalogues have already applied legacy collision detection.
+      // Keep that provenance when normalizing a project-sized comparison.
+      const id=value.test.id,normalized=M.normalizeCatalog({capabilityVersion:1,fvpVersion:1,sprintFvpVersion:1,tests:[value.test],definitions:value.definitions,protocol:{[id]:value.protocol||""},protocolIdentities:value.protocolIdentity?{[id]:value.protocolIdentity}:{},conflicts:[]});
+      const result=variant(normalized,id,"");
+      result.protocol=M.canonicalProtocolText(id,result.protocol);
+      result.definitions=result.definitions.map(d=>({...d,name:root.RingsideTests.metricName(d),protocol:root.Def.viftProtocol(d.id,d.protocol)}));
+      if(id==="ift"&&result.test.name==="30–15 IFT")result.test.name="30-15VIFT";
+      if(["fms","iso"].includes(id)&&!result.test.primaryAbility)result.test.primaryAbility=id==="fms"?"动作筛查":"等长力量";
+      return result;
+    };
     const same=(a,b)=>E.canonical(comparable(a))===E.canonical(comparable(b));
     for(const t of incoming.tests){
-      if(!local.tests.some(x=>x.id===t.id)){local.tests.push(clone(t));local.definitions.push(...clone(incoming.definitions.filter(d=>d.testId===t.id)));local.protocol[t.id]=incoming.protocol[t.id]||"";continue;}
+      if(!local.tests.some(x=>x.id===t.id)){local.tests.push(clone(t));local.definitions.push(...clone(incoming.definitions.filter(d=>d.testId===t.id)));local.protocol[t.id]=incoming.protocol[t.id]||"";local.protocolIdentities||={};if(incoming.protocolIdentities?.[t.id])local.protocolIdentities[t.id]=clone(incoming.protocolIdentities[t.id]);continue;}
       const candidate=variant(incoming,t.id,"导入项目库"),current=variant(local,t.id,"本机项目库");
       if(!same(current,candidate)){
         let conflict=local.conflicts.find(c=>c.testId===t.id&&!c.resolved);
@@ -96,15 +104,17 @@
     async meta(id) { return request(this.db.transaction("meta").objectStore("meta").get(id)); }
     async get(table,id,generation=this.generation) { return (await request(this.db.transaction(table).objectStore(table).get([generation,id])))?.value; }
     async values(table,generation=this.generation) { return (await request(this.db.transaction(table).objectStore(table).getAll(keyRange(generation)))).map(row=>row.value); }
-    async directory() {
-      const [config,athletes,index,groups,profiles]=await Promise.all([this.get("config","library"),this.values("athletes"),this.values("recordIndex"),this.values("groups"),this.values("profiles")]);
+    async directory(generation=this.generation) {
+      const [config,athletes,index,groups,profiles]=await Promise.all([this.get("config","library",generation),this.values("athletes",generation),this.values("recordIndex",generation),this.values("groups",generation),this.values("profiles",generation)]);
       if(!config) throw Error("资料库配置缺失");
       const owners=new Map(athletes.map(a=>[a.id,{...a,records:[]} ]));
       for(const r of index) owners.get(r.athleteId)?.records.push(r);
       const lib={...config,testPlans:config.testPlans||[],athletes:[...owners.values()],groups,evaluationProfiles:profiles};
-      this.metadataHashes.clear();
-      for(const [table,items] of [["athletes",athletes],["groups",groups],["profiles",profiles],["config",[{...config,id:"library"}]]])
-        for(const item of items) this.metadataHashes.set(table+":"+item.id,JSON.stringify(item));
+      if(generation===this.generation){
+        this.metadataHashes.clear();
+        for(const [table,items] of [["athletes",athletes],["groups",groups],["profiles",profiles],["config",[{...config,id:"library"}]]])
+          for(const item of items) this.metadataHashes.set(table+":"+item.id,JSON.stringify(table==="config"?config:item));
+      }
       return lib;
     }
     loadRecord(id) { return this.get("records",id); }
@@ -112,7 +122,14 @@
     flush() { return this.queue; }
     save(lib,records=[],removals={},checks={}) {
       const generation=this.generation;
-      const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles],["config",[{...configuration(lib),id:"library"}]]].map(([table,items])=>[table,clone(items)]);
+      const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles.map(p=>E.serializeProfile ? E.serializeProfile(p) : p)],["config",[{...configuration(lib),id:"library"}]]].map(([table,items])=>[table,clone(items)]);
+      for(const [table,items] of metadata){
+        const ids=new Set();
+        for(const item of items){if(ids.has(item.id))throw Error("资料包含重复编号");ids.add(item.id);validateEntity({athletes:"athlete",groups:"group",profiles:"profile",config:"config"}[table],item);}
+      }
+      const owners=new Set(lib.athletes.map(a=>a.id)),profileIds=new Set(lib.evaluationProfiles.map(p=>p.id)),groupIds=new Set(lib.groups.map(g=>g.id));
+      if(lib.athletes.some(a=>a.groupId&&!groupIds.has(a.groupId)))throw Error("运动员所属队伍不存在");
+      if(!profileIds.has(lib.defaultEvaluationProfileId)||records.some(r=>!owners.has(r.athleteId)||!profileIds.has(r.evaluationProfileId)))throw Error("测试关联的运动员或评价方案不存在");
       const snapshots=records.map(r=>{validateEntity("record",r);return clone(r);}),deletions=clone(removals),expected=clone(checks);
       // Capture caller values now, but compare metadata only after preceding writes commit.
       return this.enqueue(async()=>{
@@ -120,23 +137,23 @@
         const writes=[],nextHashes=new Map(this.metadataHashes);
         for(const [table,items] of metadata){
           const known=new Set();
-          for(const item of items){const key=table+":"+item.id,encoded=JSON.stringify(item);known.add(key);if(nextHashes.get(key)!==encoded){writes.push([table,item.id,item]);nextHashes.set(key,encoded);}}
+          for(const item of items){const key=table+":"+item.id,value=table==="config"?Object.fromEntries(Object.entries(item).filter(([key])=>key!=="id")):item,encoded=JSON.stringify(value);known.add(key);if(nextHashes.get(key)!==encoded){writes.push([table,item.id,value]);nextHashes.set(key,encoded);}}
           for(const key of [...nextHashes.keys()])if(key.startsWith(table+":")&&!known.has(key)){(deletions[table] ||= []).push(key.slice(table.length+1));nextHashes.delete(key);}
         }
         for(const r of snapshots)writes.push(["records",r.recordId,r],["recordIndex",r.recordId,summary(r)]);
         for(const id of deletions.records||[])(deletions.recordIndex ||= []).push(id);
-        const guarded = expected.expectedConfig !== undefined || expected.expectedRecords || expected.expectedAthletes || expected.expectedProfiles || expected.expectedOwnerRecordIds;
-        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions), ["meta"], guarded ? ["records","athletes","config"] : [], expected.expectedProfiles ? ["profiles"] : [], expected.expectedOwnerRecordIds ? ["recordIndex"] : [], snapshots.length ? ["athletes"] : []))];
+        const guarded = expected.expectedConfig !== undefined || expected.expectedRecords || expected.expectedAthletes || expected.expectedProfiles || expected.expectedGroups || expected.expectedOwnerRecordIds;
+        const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions), ["meta"], guarded ? ["records","athletes","config"] : [], expected.expectedProfiles ? ["profiles"] : [], expected.expectedGroups ? ["groups"] : [], expected.expectedOwnerRecordIds ? ["recordIndex"] : [], snapshots.length ? ["athletes"] : []))];
         if(!writes.length&&!Object.keys(deletions).length&&!guarded)return;
         const tx=this.db.transaction(names,"readwrite"),done=completed(tx);
         try {
           const active = await request(tx.objectStore("meta").get("active"));
           if (active?.value !== generation) throw Error("资料库已在另一个页面切换，请重新打开并重新预览");
           const comparisons = [];
-          for (const [table, entries] of [["records", expected.expectedRecords], ["athletes", expected.expectedAthletes], ["profiles", expected.expectedProfiles]])
+          for (const [table, entries] of [["records", expected.expectedRecords], ["athletes", expected.expectedAthletes], ["profiles", expected.expectedProfiles], ["groups", expected.expectedGroups]])
             for (const [id, encoded] of Object.entries(entries || {})) comparisons.push(request(tx.objectStore(table).get([generation,id])).then(row => JSON.stringify(row?.value ?? null) === encoded));
           if (expected.expectedConfig !== undefined) comparisons.push(request(tx.objectStore("config").get([generation,"library"])).then(row => JSON.stringify(row?.value ?? null) === expected.expectedConfig));
-          if ((await Promise.all(comparisons)).some(matches => !matches)) throw Error("导入预览已过期：资料已被其他页面修改，请重新预览后再导入");
+          if ((await Promise.all(comparisons)).some(matches => !matches)) throw Error("资料已在其他页面修改，请重新打开并核对后保存");
           if(expected.expectedOwnerRecordIds){
             const index=await request(tx.objectStore("recordIndex").getAll(keyRange(generation)));
             for(const [ownerId,ids] of Object.entries(expected.expectedOwnerRecordIds)){
@@ -155,6 +172,7 @@
           }
           for(const [table,id,value] of writes)tx.objectStore(table).put({generation,id,value});
           for(const [table,ids] of Object.entries(deletions))for(const id of ids)tx.objectStore(table).delete([generation,id]);
+          tx.objectStore("meta").put({id:"revision",value:uid()});
           await done;this.metadataHashes=nextHashes;
         } catch (error) {
           try { tx.abort(); } catch (_) {}
@@ -180,21 +198,59 @@
       yield {type:"end",counts};
     }
     backupBlob(onProgress=()=>{}) { return this.enqueue(() => this.createBackupBlob(onProgress)); }
-    async createBackupBlob(onProgress) {
+    async createBackupBlob(onProgress=()=>{},generation=this.generation) {
       const chunks=[];let records=0;
-      for await(const row of this.rows()) {chunks.push(new Blob([JSON.stringify(row)+"\n"],{type:"application/x-ndjson"}));if(row.type==="record"&&++records%100===0)onProgress(records);}
+      for await(const row of this.rows(generation)) {chunks.push(new Blob([JSON.stringify(row)+"\n"],{type:"application/x-ndjson"}));if(row.type==="record"&&++records%100===0)onProgress(records);}
       return new Blob(chunks,{type:"application/x-ndjson"});
     }
     exportLibrary() { return this.enqueue(() => this.createLibrary()); }
-    async createLibrary() {
-      const lib=await this.directory(), owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
-      for await(const batch of this.batches("records"))for(const r of batch)owners.get(r.athleteId).records.push(r);
+    async createLibrary(generation=this.generation) {
+      const lib=await this.directory(generation), owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
+      for await(const batch of this.batches("records",generation))for(const r of batch)owners.get(r.athleteId).records.push(r);
       return lib;
+    }
+    upgradeMeasurementContract() {
+      return this.enqueue(async()=>{
+        const config=await this.get("config","library"), profiles=await this.values("profiles");
+        if(config?.catalog?.measurementPolicyVersion>=1 && profiles.every(profile=>profile.formatVersion===2))return null;
+        const expectedRevision=(await this.meta("revision"))?.value;
+        const before=await this.createLibrary(),after=E.migrate(clone(before));
+        const checkpoint={created:new Date().toISOString(),fromVersion:before.version||"unknown",toVersion:"2.19.0",report:E.migrationReport?E.migrationReport(before,after):null};
+        await this.stageImport(libraryRows(after),{upgradeCheckpoint:checkpoint,expectedRevision});
+        return checkpoint;
+      });
+    }
+    async upgradeBackupBlob() {
+      await this.flush();
+      const checkpoint=(await this.meta("upgrade-2.19.0"))?.value;
+      if(!checkpoint?.generation)throw Error("没有升级前资料备份");
+      return this.createBackupBlob(()=>{},checkpoint.generation);
+    }
+    async rollbackRecoveryBackupBlob() {
+      await this.flush();
+      const checkpoint=(await this.meta("upgrade-2.19.0"))?.value;
+      const generation=checkpoint?.rollbackGenerations?.at(-1)?.generation;
+      if(!generation||!await this.get("config","library",generation))throw Error("没有回退前的新版资料副本");
+      return this.createBackupBlob(()=>{},generation);
+    }
+    async restoreUpgradeCheckpoint() {
+      await this.flush();
+      const checkpoint=(await this.meta("upgrade-2.19.0"))?.value,target=checkpoint?.generation;
+      if(!target||!await this.get("config","library",target))throw Error("没有可恢复的升级前资料");
+      const current=this.generation,tx=this.db.transaction("meta","readwrite"),done=completed(tx);
+      try {
+        if((await request(tx.objectStore("meta").get("active")))?.value!==current)throw Error("资料库已在其他页面切换，请重新打开后恢复");
+        if(current!==target){const rollbackGenerations=[...(checkpoint.rollbackGenerations||[])];if(!rollbackGenerations.some(item=>item.generation===current))rollbackGenerations.push({generation:current,created:new Date().toISOString()});tx.objectStore("meta").put({id:"upgrade-2.19.0",value:{...checkpoint,rollbackGenerations}});}
+        tx.objectStore("meta").put({id:"active",value:target});tx.objectStore("meta").put({id:"previous",value:current});tx.objectStore("meta").put({id:"revision",value:uid()});await done;
+        this.generation=target;this.metadataHashes.clear();
+      } catch(error) {try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
     }
     async importLibrary(lib,options={}) {return this.importRows(libraryRows(lib),options);}
     importRows(iterable,options={}) { return this.enqueue(() => this.stageImport(iterable,options)); }
-    async stageImport(iterable,{merge=false,onProgress=()=>{}}={}) {
+    async stageImport(iterable,{merge=false,onProgress=()=>{},upgradeCheckpoint=null,expectedRevision}={}) {
       const generation="generation_"+uid(),oldGeneration=this.generation,obsoleteGeneration=(await this.meta("previous"))?.value;
+      const revision=(await this.meta("revision"))?.value;
+      if(upgradeCheckpoint && revision!==expectedRevision)throw Error("资料已在其他页面修改，请重新打开后升级");
       const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
       let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
@@ -240,7 +296,7 @@
           if(!mapTable[raw.type])throw Error("备份包含未知类型");
           const order=["config","group","profile","athlete","record"].indexOf(raw.type);
           if(order<lastType)throw Error("备份资料顺序无效");lastType=order;
-          const row={type:raw.type,value:clone(raw.value)},v=row.value;validateEntity(row.type,v);
+          const row={type:raw.type,value:raw.type==="profile"&&E.serializeProfile?E.serializeProfile(raw.value):clone(raw.value)},v=row.value;validateEntity(row.type,v);
           const incomingId=row.type==="record"?v.recordId:row.type==="config"?"library":v.id;
           if(seen.get(row.type).has(incomingId))throw Error("备份包含重复 ID："+incomingId);
           seen.get(row.type).add(incomingId);counts[row.type]++;
@@ -252,7 +308,7 @@
             config=v;
           }
           if(row.type==="profile"){
-            const old=profiles.get(v.id);if(old&&E.signature(old.criteria)!==E.signature(v.criteria)){const next="evaluation_"+uid();profileMap.set(v.id,next);v.id=next;v.name+="（导入）";}
+            const old=profiles.get(v.id);if(old&&E.canonical(E.serializeProfile(old))!==E.canonical(E.serializeProfile(v))){const next="evaluation_"+uid();profileMap.set(v.id,next);v.id=next;v.name+="（导入）";}
             else if(old)continue;
             profiles.set(v.id,v);
           }
@@ -289,7 +345,13 @@
         const actual=[await this.values("athletes",generation),await this.values("recordIndex",generation)];
         if(actual[0].length>2000||actual[1].length>10000)throw Error("合并后资料超过容量边界");
         const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
+        try {
+          const [active,currentRevision]=await Promise.all([request(tx.objectStore("meta").get("active")),request(tx.objectStore("meta").get("revision"))]);
+          if((active?.value||"")!==oldGeneration || currentRevision?.value!==revision) throw Error("资料已在其他页面修改，请重新预览后导入");
+        } catch(error) { try {tx.abort();} catch(_) {} await done.catch(()=>{}); throw error; }
         tx.objectStore("meta").put({id:"active",value:generation});
+        tx.objectStore("meta").put({id:"revision",value:uid()});
+        if(upgradeCheckpoint){const prior=(await request(tx.objectStore("meta").get("upgrade-2.19.0")))?.value;tx.objectStore("meta").put({id:"upgrade-2.19.0",value:{...upgradeCheckpoint,generation:oldGeneration,upgradedGeneration:generation,rollbackGenerations:prior?.rollbackGenerations||[]}});}
         tx.objectStore("meta").put({id:"previous",value:oldGeneration});await done;
         this.generation=generation;this.metadataHashes.clear();
         if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
@@ -298,14 +360,17 @@
     }
     async discardGeneration(generation) {
       if(!generation||generation===this.generation)return;
+      const checkpoint=(await this.meta("upgrade-2.19.0"))?.value;
+      if(checkpoint?.generation===generation||checkpoint?.rollbackGenerations?.some(item=>item.generation===generation))return;
       const tx=this.db.transaction(tables,"readwrite"),done=completed(tx);
       for(const table of tables)tx.objectStore(table).delete(keyRange(generation));await done;
     }
     async restorePrevious() {
       await this.flush();const previous=(await this.meta("previous"))?.value;
       if(!previous||!await this.get("config","library",previous))throw Error("没有可恢复的迁移前资料库");
+      if((await this.meta("upgrade-2.19.0"))?.value?.generation===previous)return this.importLibrary(E.migrate(await this.createLibrary(previous)));
       const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
-      tx.objectStore("meta").put({id:"active",value:previous});tx.objectStore("meta").put({id:"previous",value:this.generation});await done;this.generation=previous;this.metadataHashes.clear();
+      tx.objectStore("meta").put({id:"active",value:previous});tx.objectStore("meta").put({id:"previous",value:this.generation});tx.objectStore("meta").put({id:"revision",value:uid()});await done;this.generation=previous;this.metadataHashes.clear();
     }
     close(){this.db.close();}
   }
@@ -314,7 +379,7 @@
     const counts={athlete:0,record:0,group:0,profile:0,config:1};
     yield{type:"config",value:configuration(lib)};
     for(const value of lib.groups||[]){counts.group++;yield{type:"group",value};}
-    for(const value of lib.evaluationProfiles){counts.profile++;yield{type:"profile",value};}
+    for(const value of lib.evaluationProfiles){counts.profile++;yield{type:"profile",value:E.serializeProfile?E.serializeProfile(value):value};}
     for(const a of lib.athletes){counts.athlete++;yield{type:"athlete",value:athleteMetadata(a)};}
     for(const a of lib.athletes)for(const value of a.records){counts.record++;yield{type:"record",value};}
     yield{type:"end",counts};

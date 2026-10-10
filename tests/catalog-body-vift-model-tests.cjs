@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), vm = require("node:vm"), assert = require("node:assert/strict");
 const context = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto }); context.window = context;
-for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation", "interventions"])
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "evaluation", "interventions"])
   vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"), context);
 const M = context.RingsideModel, T = context.RingsideTests, E = context.RingsideEvaluation, D = context.Def;
 const copy = value => JSON.parse(JSON.stringify(value));
@@ -132,27 +132,29 @@ test("exact old built-in VIFT descriptions match the neutral description in both
     assert.equal(effective.referenceEnabled, true); near(effective.target, 23.5 / 3.6);
   }
 });
-test("VIFT aliases never relax unit, record protocol, custom descriptions or metric IDs", () => {
-  const r = record("ift"); r.data.ift.speed = 6; r.data.ift.protocol = "treadmill";
-  r.definitions.find(d => d.id === "ift_treadmill").referenceEnabled = true;
-  const profile = E.create(r);
-  for (const mutate of [d => d.unit = "km/h", d => d.context.protocol = "另一个实际条件", d => d.context.metricProtocol = legacyProtocol + " 自定义"]) {
-    const p = copy(profile), d = p.criteria.definitions.find(d => d.id === "ift_treadmill"); mutate(d); if (d.unit === "km/h") d.context.unit = "km/h";
-    assert.equal(E.resolve(r, p).definitions.find(d => d.id === "ift_treadmill").referenceEnabled, false);
+test("VIFT standard matching preserves unit and protocol identities while text is editable", () => {
+  const r=record("ift");r.data.ift.speed=6;r.data.ift.protocol="treadmill";r.definitions.find(d=>d.id==="ift_treadmill").referenceEnabled=true;
+  const profile=E.create(r);
+  for(const mutate of [rule=>rule.context.unit="km/h",rule=>rule.context.protocolIdentity.version++,rule=>rule.context.metricProtocolIdentity.version++]){
+    const p=E.normalizeProfile(copy(profile)),rule=p.standards.find(d=>d.metricId==="ift_treadmill");mutate(rule);
+    assert.equal(E.resolve(r,p).definitions.find(d=>d.id==="ift_treadmill").referenceEnabled,false);
   }
-  const onlyShuttle = copy(profile); onlyShuttle.criteria.definitions = onlyShuttle.criteria.definitions.filter(d => d.id !== "ift_treadmill");
-  assert.equal(E.resolve(r, onlyShuttle).definitions.find(d => d.id === "ift_treadmill").target, null);
+  const prose=E.normalizeProfile(copy(profile)),rule=prose.standards.find(d=>d.metricId==="ift_treadmill");rule.context.protocol="说明修订";rule.context.metricProtocol="措辞修订";
+  assert.equal(E.resolve(r,prose).definitions.find(d=>d.id==="ift_treadmill").referenceEnabled,true);
+  const onlyShuttle=E.normalizeProfile(copy(profile));onlyShuttle.standards=onlyShuttle.standards.filter(d=>d.metricId!=="ift_treadmill");
+  assert.equal(E.resolve(r,onlyShuttle).definitions.find(d=>d.id==="ift_treadmill").target,null);
 });
+
 test("independent VIFT method survives repeated projections and export without selecting a standard", () => {
   const r = record("ift"); r.data.ift.method = "自填方法，不按旧名称推断";
   r.data.ift.trials = [{ id: "ift_a", speed: 5, unit: "m/s" }, { id: "ift_b", speed: 6, unit: "m/s" }];
-  const profile = E.create(r), signature = E.signature(profile.criteria);
+  const profile = E.create(r), signature = E.signature(profile);
   for (const mode of ["best", "mean"]) {
     r.mode = mode; const normalized = M.normalizeRecord(M.recordEnvelope(r).record), s = M.stats(E.resolve(normalized, profile));
     assert.equal(s.representativeData.ift.method, r.data.ift.method);
     assert.equal(s.values.ift_treadmill, undefined); near(s.values.ift_shuttle, mode === "best" ? 6 : 5.5);
   }
-  assert.equal(E.signature(E.capture(r)), signature);
+  assert.equal(E.signature(profile), signature); assert.equal(E.signature(E.create(r)),signature);
   const invalid = copy(r); invalid.data.ift.method = 42; assert.throws(() => M.validateRecord(invalid));
 });
 test("body details use representative iso values, sides, asymmetry, target and missing directions", () => {

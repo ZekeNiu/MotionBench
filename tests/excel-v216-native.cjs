@@ -3,7 +3,7 @@ const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("n
 const root=path.resolve(__dirname,".."),mode=process.argv[2],directory=path.resolve(process.argv[3]||path.join(root,"output/excel-v216-native"));
 const resultsOption=process.argv.indexOf("--results-dir"),resultsDir=resultsOption>=0?path.resolve(process.argv[resultsOption+1]):path.join(root,"output/tests");fs.mkdirSync(resultsDir,{recursive:true});
 global.window=global;global.ExcelJS=require("../vendor/exceljs.min.js");
-for(const name of ["calc","fvp","cpet-reference","definitions","tests","model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(root,"src/ringside-"+name+".js"),"utf8"));
+for(const name of ["calc","fvp","cpet-reference","definitions","tests","scoring", "model","evaluation","interventions","excel"])vm.runInThisContext(fs.readFileSync(path.join(root,"src/ringside-"+name+".js"),"utf8"));
 const M=RingsideModel,X=RingsideExcel,{manifest}=require("./helpers/excel-template.cjs"),hash=file=>crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 function seed(id){const r=M.recordFromCatalog(M.normalizeCatalog(),{name:"Native Excel 同名运动员",sport:"拳击",birthDate:"2000-01-01"},{[id]:true},"2026-10-09");r.athlete.mass=75;r.fvpConfig.fvp_cmj.distanceCm=35;return r;}
 async function prepare(){

@@ -1,14 +1,14 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto"), {spawnSync} = require("node:child_process");
 const root = path.resolve(__dirname,".."), destination = path.join(root,"output/excel-native/athlete-context-results.json");
-const inputs = ["MotionBench.html", "Ringside_Boxing_Assessment.html", "src/ringside-calc.js", "src/ringside-fvp.js", "src/ringside-cpet-reference.js", "src/ringside-definitions.js", "src/ringside-tests.js", "src/ringside-model.js", "src/ringside-excel.js", "vendor/exceljs.min.js", "tests/athlete-context-excel-tests.cjs", "tests/athlete-context-native.ps1", "tests/verify-athlete-context-native.cjs"];
+const inputs = ["MotionBench.html", "MotionBench.html", "src/ringside-calc.js", "src/ringside-fvp.js", "src/ringside-cpet-reference.js", "src/ringside-definitions.js", "src/ringside-tests.js", "src/ringside-model.js", "src/ringside-excel.js", "vendor/exceljs.min.js", "tests/athlete-context-excel-tests.cjs", "tests/athlete-context-native.ps1", "tests/verify-athlete-context-native.cjs"];
 const digest = file => crypto.createHash("sha256").update(fs.readFileSync(path.join(root,file))).digest("hex");
 const snapshot = () => Object.fromEntries(inputs.map(file=>[file,digest(file)]));
 const checksFrom = output => output.split(/\r?\n/).filter(line=>/^PASS [^\d]/.test(line)).map(line=>line.slice(5));
 const evidence = {created:new Date().toISOString(),pass:false,syntheticDataOnly:true,actualMicrosoftExcel:false,checks:[],steps:[]};
 try {
   evidence.inputHashes = snapshot(); evidence.sourceHash = evidence.inputHashes["MotionBench.html"];
-  if(evidence.sourceHash !== evidence.inputHashes["Ringside_Boxing_Assessment.html"])throw Error("The two standalone HTML artifacts differ");
+  if(evidence.sourceHash !== evidence.inputHashes["MotionBench.html"])throw Error("The two standalone HTML artifacts differ");
   const html=fs.readFileSync(path.join(root,"MotionBench.html"),"utf8").replace(/\r\n/g,"\n");
   evidence.embeddedSourceChecks=inputs.filter(file=>file.startsWith("src/")||file==="vendor/exceljs.min.js").map(file=>{
     const source=fs.readFileSync(path.join(root,file),"utf8").replace(/\r\n/g,"\n").replaceAll("</script","<\\/script");

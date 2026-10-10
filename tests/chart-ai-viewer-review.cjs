@@ -3,7 +3,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict'),cryp
 const {pathToFileURL}=require('url'),{chromium}=require('./helpers/playwright.cjs');
 const root=path.resolve(__dirname,'..'),dir=path.join(root,'output/playwright/chart-ai');
 const hash=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');
-(async()=>{const browser=await chromium.launch();const result={sourceHash:hash(path.join(root,'Ringside_Boxing_Assessment.html')),viewerSha256:hash(path.join(dir,'comparison.html')),scenes:[],errors:[],network:[]};
+(async()=>{const browser=await chromium.launch();const result={sourceHash:hash(path.join(root,'MotionBench.html')),viewerSha256:hash(path.join(dir,'comparison.html')),scenes:[],errors:[],network:[]};
 try {
  const context=await browser.newContext({offline:true,viewport:{width:1440,height:1000}}),page=await context.newPage();
  page.on('pageerror',e=>result.errors.push(e.message));page.on('request',r=>{if(/^https?:/.test(r.url()))result.network.push(r.url());});

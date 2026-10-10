@@ -196,24 +196,31 @@
         items.length ? status : "gray",
       );
     }
-    const advantage = s.advantages;
+    const advantage = {...s.advantages, items:s.advantages.items.filter(item=>!item.relative)};
     html += card(
       "优势",
-      advantage.relative
-        ? advantage.items.length
-          ? "相对强项"
-          : "待评价"
-        : advantage.items.length
-          ? advantage.items.length + "<small> 项</small>"
-          : "待评价",
+      advantage.items.length ? advantage.items.length + "<small> 项</small>" : "待评价",
       advantage.items.length
         ? advantage.items
             .map((x) => E(x.label || (x.ability ? T.abilityLabel(record, x.ability) : x.name)))
             .join("、")
         : E(advantage.reason || "暂无可判断项"),
-      advantage.relative || !advantage.items.length ? "text gray" : "green",
+      !advantage.items.length ? "text gray" : "green",
     );
     return html;
+  }
+  function abilityDetails(report) {
+    const {record,stats}=report,results=stats.evaluationResults||[];
+    const axes=stats.axes.filter(axis=>axis.method==="mean");
+    if(!axes.length)return "";
+    return `<details class="ability-score-details"><summary>查看能力平均分的组成</summary>${axes.map(axis=>{
+      const ids=axis.members||[],n=ids.length;
+      const rows=ids.map((id,index)=>{
+        const result=results.find(item=>item.subjectId===id),definition=record.definitions.find(d=>d.id===(result?.metricId||id.replace(/^metric:/,"")));
+        return [E(definition?.name||result?.name||id),F(result?.value??stats.values[definition?.id],2)+" "+E(result?.unit||definition?.unit||""),E(result?.grade?.label||"—"),F(axis.scores?.[index],1),F(n?axis.scores?.[index]/n:null,1)];
+      });
+      return `<section data-ability-score="${E(axis.key)}"><h4>${E(axis.label)} · ${F(axis.value,1)} 分</h4>${table(["成员","原始成绩","单项分级","换算得分","平均贡献"],rows,ids)}<p class="note">${n} 个固定成员等权平均。</p></section>`;
+    }).join("")}</details>`;
   }
   function overview(report) {
     const cards = [], stats = report.stats;
@@ -1375,5 +1382,5 @@
     layoutCharts(container);
     bindFVPInteractions(container);
   }
-  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderSprintElasticityAnalysis, renderCapabilityAnalysis, prepareFVPPrint, patchCapabilityAnalysis, previewFVP, bindFVPInteractions };
+  global.RingsideReport = { build, summary, overview, abilityDetails, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderSprintElasticityAnalysis, renderCapabilityAnalysis, prepareFVPPrint, patchCapabilityAnalysis, previewFVP, bindFVPInteractions };
 })(window);

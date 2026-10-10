@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), vm = require("node:vm"), assert = require("node:assert/strict"), path = require("node:path");
 const ctx = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto }); ctx.window = ctx;
-for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation", "interventions"]) vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"), ctx);
+for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "evaluation", "interventions"]) vm.runInContext(fs.readFileSync(path.join(__dirname, "../src/ringside-" + name + ".js"), "utf8"), ctx);
 const M = ctx.RingsideModel, E = ctx.RingsideEvaluation, D = ctx.Def, copy = value => JSON.parse(JSON.stringify(value));
 let passed = 0;
 function test(name, fn) { try { fn(); passed++; console.log("PASS " + name); } catch (error) { console.error("FAIL " + name); throw error; } }
@@ -76,7 +76,7 @@ test("unit, protocol and force-basis mismatches disable replacement without lega
   const r = record(); r.data.imtp = [trial("a", 1000, 900, 1000, 100)];
   const p = profile(r, [rule(r, "force_pct_peak", 100)]), legacy = p.criteria.definitions.find(x => x.id === "imtp_f100");
   Object.assign(legacy, { referenceEnabled: true, target: 500, ranges: [] });
-  for (const mutate of [x => x.protocol.imtp = "other", x => x.imtpConfig.definition = "net", x => x.imtpConfig.unit = "kgf"]) {
+  for (const mutate of [x => x.protocolIdentities.imtp.version++, x => x.imtpConfig.definition = "net", x => x.imtpConfig.unit = "kgf"]) {
     const altered = copy(r); mutate(altered); const resolved = E.resolve(altered, p), row = point(altered, p, 100);
     assert.equal(row.forceStandard.matched, false); assert.equal(row.forceEvaluation.status, "gray");
     assert.equal(resolved.definitions.find(x => x.id === "imtp_f100").referenceEnabled, false);
@@ -99,11 +99,11 @@ test("an existing time metric keeps its explicit ability role using percent unit
   let s = M.stats(E.resolve(r, p)), axis = s.axes.find(a => a.label === "早期发力");
   near(axis.value, 50); assert.equal(axis.defs[0].id, "imtp_f100"); assert.equal(axis.defs[0].unit, "%PF");
   assert.match(axis.tooltip, /45 %PF/); near(s.values.imtp_f100, 450);
-  p.criteria.axes["ability:早期发力"].method = "mean"; axis = M.stats(E.resolve(r, p)).axes.find(a => a.label === "早期发力"); near(axis.value, 55);
-  p.criteria.axes["ability:早期发力"].method = "min"; axis = M.stats(E.resolve(r, p)).axes.find(a => a.label === "早期发力"); near(axis.value, 50);
+  Object.assign(p.criteria.axes["ability:早期发力"],{method:"mean",members:["metric:imtp_f100","metric:imtp_f200"],transforms:{"metric:imtp_f100":{kind:"ratio",direction:"higher"},"metric:imtp_f200":{kind:"ratio",direction:"higher"}}}); axis = M.stats(E.resolve(r, p)).axes.find(a => a.label === "早期发力"); near(axis.value, 55);
+  p.criteria.axes["ability:早期发力"].method = "min"; axis = M.stats(E.resolve(r, p)).axes.find(a => a.label === "早期发力"); assert.equal(axis,undefined);
   p.criteria.axes["ability:早期发力"].method = "primary";
   p.criteria.imtpTimeStandards[0].referenceEnabled = false; assert.equal(M.stats(E.resolve(r, p)).axes.some(a => a.label === "早期发力"), false);
-  p.criteria.imtpTimeStandards[0].referenceEnabled = true; r.protocol.imtp = "different";
+  p.criteria.imtpTimeStandards[0].referenceEnabled = true; r.protocolIdentities.imtp.version++;
   assert.equal(M.stats(E.resolve(r, p)).axes.some(a => a.label === "早期发力"), false);
 });
 test("new arbitrary times do not become default axis representatives or alter PF and DSI", () => {
@@ -121,7 +121,7 @@ test("profile templates, snapshots, copies and restoration preserve time standar
   next.previous = { criteria: copy(p.criteria), revision: 1, name: p.name }; E.validateProfile(next);
   const frozen = M.normalizeRecord(copy(E.resolve(r, next))); M.validateRecord(frozen);
   assert.equal(point(frozen).forceStandard.target, 95); assert.deepEqual(copy(M.stats(frozen).imtpTimeResults), copy(M.stats(E.resolve(r, next)).imtpTimeResults));
-  const restored = { ...next, criteria: copy(next.previous.criteria) }; assert.equal(point(r, restored).forceStandard.target, 90);
+  const restored = E.normalizeProfile(copy(next.previous)); assert.equal(point(r, restored).forceStandard.target, 90);
   assert.equal(E.capture(frozen).imtpTimeStandards[0].matched, undefined);
 });
 test("effective time-standard changes stale narrative but profile names do not", () => {

@@ -27,7 +27,7 @@ const subset = r => ({ raw:r.data.sprint_fvp, config:r.sprintFvpConfig, analysis
   selections:r.views.capabilitySelections });
 function legacyFixture() {
   const old = vm.createContext({ console, Intl, crypto:require("node:crypto").webcrypto }); old.window = old;
-  for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "model", "evaluation", "interventions"])
+  for (const name of ["calc", "fvp", "cpet-reference", "definitions", "tests", "scoring", "model", "evaluation", "interventions"])
     vm.runInContext(execFileSync("git", ["show", `rollback-v2.16.1-local-20261010:src/ringside-${name}.js`], { cwd:root, encoding:"utf8" }), old);
   const record = JSON.parse(JSON.stringify(old.RingsideModel.sampleRecord()));
   record.demo = false; record.recordId = "sprint-legacy-synthetic"; record.athleteId = "sprint-legacy-athlete";
