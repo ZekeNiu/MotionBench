@@ -16,6 +16,7 @@ progress.md
 tmp/
 *.zip
 !/downloads/MotionBench-v2.17.2-local-preview.zip
+!/downloads/MotionBench-v2.17.3-local-preview.zip
 
 # Only the clean application is a generated HTML tracked at the root.
 *.html

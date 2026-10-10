@@ -1,22 +1,30 @@
-# MotionBench 2.17.2-local 下载
+# MotionBench 2.17.3-local 图表修正版下载
 
-- [试用 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010-r2/downloads/MotionBench-v2.17.2-local-preview.zip)：解压后打开 `MotionBench.html`。包含版本说明、验收记录、Windows 应用计划和四张合成数据截图。
-- [单独下载 HTML](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010-r2/MotionBench.html)。浏览器若显示源码，请保存为 HTML 后在本地打开。
-- [完整源代码](https://github.com/ZekeNiu/MotionBench/tree/review-v2.17.2-local-20261010-r2)及[本轮修复和已知问题](../docs/local-fixes-2.17.2.md)。
+- [下载试用 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.3-chart-restore-20261010/downloads/MotionBench-v2.17.3-local-preview.zip)：应用、版本说明、验收、Windows 计划及八张实际对照截图。
+- [单独下载 HTML](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.3-chart-restore-20261010/MotionBench.html)，[源代码](https://github.com/ZekeNiu/MotionBench/tree/review-v2.17.3-chart-restore-20261010)。
+- [直接查看三版本桌面与窄屏整区截图](../docs/chart-restore-comparison-2.17.3.md)。
 
-这是独立开发版本，main 和正式 Release 保持原样。HTML 与本地服务器可用；当前不是 Windows 安装包。
+原完整 FVP、弹性框架及下方的完整冲刺 FVP 保留，四卡折叠独立。图表尺寸、原控件和计算保持一致。
+当前仍是离线 HTML/本地服务器应用；没有生成 Windows 安装包。main、旧版及正式 Release 保留。
 
 | 文件 | 字节数 | SHA256 |
 | --- | ---: | --- |
-| MotionBench.html | 4435395 | `7bc7de631f464cee5c9dff2108375e8425ec34e355e943d030f5f38861c8c033` |
-| MotionBench-v2.17.2-local-preview.zip | 2304817 | `9a5b9ae6475d51747a992bb3dc30599095b97e3370dba43ec43994c11dd2f5d5` |
+| MotionBench.html | 4436737 | `5a9d9d4a742878be8e258a58a68238a77a4e5c0f26898090e34d3ed8e0e67854` |
+| MotionBench-v2.17.3-local-preview.zip | 4023651 | `b32c8d6563b9242313e46294f2be90f610bedff5b145095e68fb513c8a489a39` |
 
-可以在 PowerShell 使用 `Get-FileHash -Algorithm SHA256 -LiteralPath '文件路径'` 核对下载。
+PowerShell：`Get-FileHash -Algorithm SHA256 -LiteralPath '文件路径'`。
 
-回退代码使用 [2.17.1 回退标签](https://github.com/ZekeNiu/MotionBench/tree/review-rollback-v2.17.1-local-20261010)，预期提交 `136bf21db398b1a9a83ed34a49635820bc85337e`，HTML SHA256 为 `537d1a22d0839d76acd75b8acc6c67d8781d98f82a32ff2e5bdc8d1429cebd21`。在新目录克隆和核对的具体命令见修复说明。已有正式版本和原始标签保留。
+本轮实际通过 41 套/586 项单测，Chrome/Edge × 1440/390 共 38 项图区检查，双浏览器共 28 项完整冲刺保存/导入导出检查。
+最终两份 PDF 的全部 50 页原始 PNG 和 12 张实际整区截图已人工查看；[验收记录](../docs/acceptance-2.17.3-local.json)绑定最终 HTML。
+历史基线的折叠失败单独记录，不计入修正版通过结果；用户特定记录的全部隐藏原因尚未复现。
 
-代码回退不能代替数据库恢复。升级前从原页面导出完整 JSONL 数据备份；新目录和页面来源可能对应独立资料库，应通过完整备份恢复资料。本轮只用合成数据验证，没有读取、上传或迁移真实运动员资料。
+[修正、已知边界与数据回退说明](../docs/chart-restore-2.17.3.md)。修正前代码回退标签为
+[review-rollback-v2.17.2-before-chart-restore-20261010](https://github.com/ZekeNiu/MotionBench/tree/review-rollback-v2.17.2-before-chart-restore-20261010)，
+预期提交 `cd82f0868cc94a454df3c014d4b610d52f7aba4d`，HTML SHA256 `7bc7de631f464cee5c9dff2108375e8425ec34e355e943d030f5f38861c8c033`。
 
-本地验收已通过 41 套/583 项模型检查、112 项独立科学数值检查、Chrome/Edge 各 15 项完整流程、各 4 项真实双页面保存冲突验证、各 10 项真实 IndexedDB 分段 ID 导入检查；两份 PDF 共 50 页实际视觉检查。测试范围与限制见 [验收记录](../docs/acceptance-2.17.2-local.json)。备份、导入、恢复的四种并发缺陷仅完成复现，尚未修复；用户参考工作簿的原公式、两个 sheet 及图表核对仍待可读本地文件。
+旧交付版仍可下载：[2.17.2 ZIP](https://github.com/ZekeNiu/MotionBench/raw/refs/tags/review-v2.17.2-local-20261010-r2/downloads/MotionBench-v2.17.2-local-preview.zip)，
+[2.17.2 不可变源码](https://github.com/ZekeNiu/MotionBench/tree/review-v2.17.2-local-20261010-r2)。
+旧 ZIP SHA256 为 `9a5b9ae6475d51747a992bb3dc30599095b97e3370dba43ec43994c11dd2f5d5`，未改写。
 
-文档包 r2 修订仅补全 Windows 计划的仓库链接；产品 HTML、验收记录和截图保持原样，首次审查标签仍保留。
+代码回退不能替代数据恢复。新路径的 HTML 使用独立本地数据库，真实资料需原应用的 JSONL 备份单独导入。
+本轮只使用合成数据；存储扩展已暂停，原生用户工作簿核查仍受既有物化阻塞限制。

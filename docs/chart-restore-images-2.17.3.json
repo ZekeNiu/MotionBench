@@ -1,0 +1,59 @@
+{
+  "synthetic": true,
+  "sourceSha256": {
+    "original": "a97c903c243246df6a6cb569d28a17c7bc3d35f9380bd3885d973f00d931edff",
+    "before": "7bc7de631f464cee5c9dff2108375e8425ec34e355e943d030f5f38861c8c033",
+    "fixed": "5a9d9d4a742878be8e258a58a68238a77a4e5c0f26898090e34d3ed8e0e67854"
+  },
+  "commonFixtureSha256": "7698e3bce363614da67df19b560393aeffd607057fc92b2a1435c3b85a7c73ad",
+  "images": [
+    {
+      "path": "downloads/chart-restore-2.17.3/original-1440.png",
+      "source": "output/playwright/fvp-three-regions/baseline-original-v3/chrome-1440-historical-initial.png",
+      "sha256": "ec72c3f096b148ca2d1d8375922727d433f821e9ef9d487354731ce3f9554cd8",
+      "bytes": 253035
+    },
+    {
+      "path": "downloads/chart-restore-2.17.3/before-1440.png",
+      "source": "output/playwright/fvp-three-regions/baseline-regression-v3/chrome-1440-historical-initial.png",
+      "sha256": "8534ff5f881b55039ecc1a6a109e60e2c3c1720274f0f45b14107a002181d208",
+      "bytes": 332645
+    },
+    {
+      "path": "downloads/chart-restore-2.17.3/fixed-1440.png",
+      "source": "output/playwright/fvp-three-regions/fixed/chrome-1440-historical-initial.png",
+      "sha256": "99a433f667ea9addd45408ffb780cfd4351b674029eb537e9be89352d50b453a",
+      "bytes": 339078
+    },
+    {
+      "path": "downloads/chart-restore-2.17.3/original-390.png",
+      "source": "output/playwright/fvp-three-regions/baseline-original-390/chrome-390-historical-initial.png",
+      "sha256": "3e5b2d278a6bac79142d33d44f143f4066e67c7c784594bc2145d0fc7174e9de",
+      "bytes": 226463
+    },
+    {
+      "path": "downloads/chart-restore-2.17.3/before-390.png",
+      "source": "output/playwright/fvp-three-regions/baseline-regression-390/chrome-390-historical-initial.png",
+      "sha256": "a28e8813720d9ef0a4e1239c0289bff5404236b0f780a10a24b5f7bf56ecc254",
+      "bytes": 298890
+    },
+    {
+      "path": "downloads/chart-restore-2.17.3/fixed-390.png",
+      "source": "output/playwright/fvp-three-regions/fixed/chrome-390-historical-initial.png",
+      "sha256": "b95224d45dca24acd15c9ddc656b0568bb76caf253bab6e220e93bf52b917182",
+      "bytes": 301954
+    },
+    {
+      "path": "downloads/chart-restore-2.17.3/fixed-cards-folded-1440.png",
+      "source": "output/playwright/fvp-three-regions/fixed/chrome-1440-independent-graphs-folded-capability.png",
+      "sha256": "67d23a39708d717c7d07483ab4a1a1975fde1e58ebbcf68a27e8da14825f33ad",
+      "bytes": 228890
+    },
+    {
+      "path": "downloads/chart-restore-2.17.3/fixed-cards-folded-390.png",
+      "source": "output/playwright/fvp-three-regions/fixed/chrome-390-independent-graphs-folded-capability.png",
+      "sha256": "01746ba77355a4bf99764de4986cfb8c0b7d2e6f7390e0bb4ff395be4743bcbe",
+      "bytes": 188418
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "pass": true,
+  "version": "2.17.3-local",
+  "deliveryScope": "Local chart restoration; no release, merge or deployment",
+  "completedAtUTC": "2026-10-10T13:45:31.277443+00:00",
+  "sha256": "5a9d9d4a742878be8e258a58a68238a77a4e5c0f26898090e34d3ed8e0e67854",
+  "bytes": 4436737,
+  "standaloneFilesEqual": true,
+  "reproducibleBuild": true,
+  "embeddedData": null,
+  "unitVerification": {
+    "suiteCount": 41,
+    "checks": 586,
+    "suiteNames": [
+      "model-tests.cjs",
+      "athlete-context-model-tests.cjs",
+      "athlete-context-excel-tests.cjs",
+      "athlete-context-report-tests.cjs",
+      "fvp-model-tests.cjs",
+      "sprint-fvp-model-tests.cjs",
+      "sprint-fvp-usability-model-tests.cjs",
+      "sprint-capability-report-model-tests.cjs",
+      "capability-directions-model-tests.cjs",
+      "sprint-fvp-excel-model-tests.cjs",
+      "fvp-report-model-tests.cjs",
+      "report-v216-model-tests.cjs",
+      "report-v2161-model-tests.cjs",
+      "dsi-v2161-model-tests.cjs",
+      "fvp-excel-model-tests.cjs",
+      "entry-session-model-tests.cjs",
+      "entry-session-save-model-tests.cjs",
+      "ordinary-save-model-tests.cjs",
+      "isometric-selection-model-tests.cjs",
+      "picker-model-tests.cjs",
+      "excel-model-tests.cjs",
+      "excel-v216-tests.cjs",
+      "derived-jump-model-tests.cjs",
+      "v216-direction-model-tests.cjs",
+      "isometric-reference-model-tests.cjs",
+      "cpet-reference-tests.cjs",
+      "capability-cpet-model-tests.cjs",
+      "force-model-tests.cjs",
+      "viz-tests.cjs",
+      "workflow-model-tests.cjs",
+      "core-model-tests.cjs",
+      "report-v2-model-tests.cjs",
+      "chart-ai-model-tests.cjs",
+      "repeat-model-tests.cjs",
+      "management-model-tests.cjs",
+      "imtp-standards-model-tests.cjs",
+      "report-refinement-model-tests.cjs",
+      "catalog-body-vift-model-tests.cjs",
+      "store-catalog-model-tests.cjs",
+      "report-v210-model-tests.cjs",
+      "report-v211-model-tests.cjs"
+    ]
+  },
+  "visualVerification": {
+    "pdfFiles": 2,
+    "actualPdfPagesReviewed": 50,
+    "screenshots": 12,
+    "historicalScreenshotsAreCurrentPass": false,
+    "limitations": [
+      "The user-specific original disappearance trigger was not reproduced; the verified regression boundary is that folding the former shared capability detail hid valid graphs.",
+      "Only target graph pages of historical PDFs were manually inspected; all 50 pages of the two final PDFs were actually reviewed.",
+      "Synthetic offline fixtures only; no real athlete data, live AI or physical timing devices were used."
+    ]
+  },
+  "scientificModuleVerification": {
+    "scope": "Independent calculation modules; no direct final-HTML execution claim",
+    "tool": "SciPy 1.17.1",
+    "checks": 112,
+    "moduleSha256": {
+      "ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+      "ringside-sprint-fvp.js": "044adda2f1ff94ee334a139d86a5fd1426feaca216b6b97e25e83ca09ae731bd"
+    },
+    "scriptPath": "tests/sprint-fvp-independent-checks.py",
+    "scriptSha256": "8d62107eed552d827e5c8ab812c89385d469f85f26d9f0d0061107d64c98a140"
+  },
+  "verificationLimits": [
+    "All records and browser storage are synthetic; browsers run offline in isolated contexts.",
+    "Historical original/regression runs are comparison evidence and never count as current acceptance.",
+    "This round restores graph visibility; it makes no claim that the four known storage concurrency defects were fixed.",
+    "The user's workbook was not materialized on Windows and is not treated as verified formula/chart evidence.",
+    "Independent scientific verification binds calculation modules, not final HTML execution.",
+    "Physical devices, paper printing, native Excel and a packaged Windows application were not tested.",
+    "The user-specific original disappearance trigger was not reproduced; the verified regression boundary is that folding the former shared capability detail hid valid graphs.",
+    "Only target graph pages of historical PDFs were manually inspected; all 50 pages of the two final PDFs were actually reviewed.",
+    "Synthetic offline fixtures only; no real athlete data, live AI or physical timing devices were used."
+  ],
+  "graphBrowserRuns": [
+    {
+      "channel": "chrome",
+      "width": 1440,
+      "checks": 10,
+      "pdf": {
+        "path": "output/playwright/fvp-three-regions/fixed/chrome-1440-three-regions.pdf",
+        "sha256": "33f4f8172c2b1465f2059e4b3f86b9488a93494cdfee0334154dd25fb9e572a1",
+        "bytes": 9773680,
+        "pageCount": 25,
+        "chartCounts": {
+          "jumpFvp": 2,
+          "jumpElasticity": 2,
+          "sprintFvp": 1
+        }
+      }
+    },
+    {
+      "channel": "chrome",
+      "width": 390,
+      "checks": 9,
+      "pdf": null
+    },
+    {
+      "channel": "msedge",
+      "width": 1440,
+      "checks": 10,
+      "pdf": {
+        "path": "output/playwright/fvp-three-regions/fixed/msedge-1440-three-regions.pdf",
+        "sha256": "ab878834aa961c74233f7716120590a39281b3bd713f582056e991a280212eed",
+        "bytes": 9773680,
+        "pageCount": 25,
+        "chartCounts": {
+          "jumpFvp": 2,
+          "jumpElasticity": 2,
+          "sprintFvp": 1
+        }
+      }
+    },
+    {
+      "channel": "msedge",
+      "width": 390,
+      "checks": 9,
+      "pdf": null
+    }
+  ],
+  "sprintWorkflowChecks": [
+    {
+      "channel": "chrome",
+      "checks": 14
+    },
+    {
+      "channel": "msedge",
+      "checks": 14
+    }
+  ],
+  "historicalComparisons": [
+    {
+      "label": "original",
+      "sourceSha256": "a97c903c243246df6a6cb569d28a17c7bc3d35f9380bd3885d973f00d931edff",
+      "includedInCurrentAcceptance": false
+    },
+    {
+      "label": "regression",
+      "sourceSha256": "7bc7de631f464cee5c9dff2108375e8425ec34e355e943d030f5f38861c8c033",
+      "includedInCurrentAcceptance": false
+    }
+  ],
+  "evidenceIndex": "output/acceptance-manifest-2.17.3-chart-restore.json"
+}
