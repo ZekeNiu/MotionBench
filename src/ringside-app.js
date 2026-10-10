@@ -341,12 +341,17 @@
     const raw = sessionStorage.getItem(entrySessionKey);
     if (!raw) return;
     try {
-      const session = await window.RingsideEntrySession.decode(JSON.parse(raw), id => repository.loadRecord(id));
+      const baselines = new Map();
+      const session = await window.RingsideEntrySession.decode(JSON.parse(raw), async id => {
+        const stored = await repository.loadRecord(id);
+        if (stored) baselines.set(id, recordContent(stored));
+        return stored;
+      });
       session.records = session.records.filter(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived) || session.pendingAthletes.some(a => a.id === r.athleteId));
       if (!session.records.length) { sessionStorage.removeItem(entrySessionKey); return; }
       entrySession = session;
       for (const record of session.records) if (T.isNative(record, "sprint_fvp")) record.data.sprint_fvp = window.RingsideSprintFVP.normalizeTrials(record.data.sprint_fvp);
-      for (const r of session.records) if (session.savedIds.has(r.recordId)) recordBaselines.set(r.recordId, recordContent(await repository.loadRecord(r.recordId)));
+      for (const r of session.records) if (session.savedIds.has(r.recordId)) recordBaselines.set(r.recordId, baselines.get(r.recordId));
       state = session.records.find(r => r.recordId === session.selectedRecordId) || session.records[0];
       ui.mode = "entry";
       if (session.conflictRecordIds?.length) toast("部分记录已在其他页面修改，已载入资料库中的最新内容，请核对");
@@ -1054,6 +1059,10 @@
       if (!pending && recordBaselines.get(record.recordId) === content) return true;
       const snapshot = copy(record), next = copy(library);
       snapshot.updated = now();
+      const stored = await repository.loadRecord(record.recordId);
+      if (pending ? !!stored : !stored || recordContent(stored) !== recordBaselines.get(record.recordId))
+        throw Error("此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录");
+      if (session !== entrySession) return false;
       let owner = next.athletes.find(a => a.id === record.athleteId && !a.deletedAt && !a.archived);
       if (!owner && pending) {
         const profile = session.pendingAthletes.find(a => a.id === record.athleteId);
@@ -1066,7 +1075,7 @@
       next.activeAthleteId = snapshot.athleteId; next.activeRecordId = snapshot.recordId; next.updated = now();
       pendingSaves++; $("saveStatus").textContent = "正在保存…";
       try {
-        await repository.save(next, [snapshot]);
+        await repository.save(next, [snapshot], {}, {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}});
         library = next; record.updated = snapshot.updated;
         session.savedIds.add(record.recordId); recordBaselines.set(record.recordId, content);
         storageFailed = false; $("saveStatus").textContent = "已保存到本机"; saveEntrySession(); refreshEntryChrome(); return true;
