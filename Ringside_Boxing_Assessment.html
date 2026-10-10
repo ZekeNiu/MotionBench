@@ -3885,7 +3885,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.17.1-local"});
+window.RingsideBuild=Object.freeze({"version": "2.17.2-local"});
 </script>
 <script>
 (function (root) {
@@ -4609,7 +4609,14 @@ window.RingsideBuild=Object.freeze({"version": "2.17.1-local"});
       if (!plainObject(row) || row.id !== undefined && (!safeId(row.id) || ids.has(row.id))) throw Error("冲刺 F–V 试次 ID 无效或重复");
       if (row.id) ids.add(row.id);
       if (!Array.isArray(row.splits) || row.splits.length > 100) throw Error("冲刺分段须为距离与时间数组");
-      row.splits.forEach(split => { if (!plainObject(split) || !optionalNumber(split.distanceM) || !optionalNumber(split.timeS)) throw Error("冲刺分段距离与计时须为有限数值或留空"); });
+      const splitIds = new Set();
+      row.splits.forEach(split => {
+        if (!plainObject(split) || !optionalNumber(split.distanceM) || !optionalNumber(split.timeS)) throw Error("冲刺分段距离与计时须为有限数值或留空");
+        if (split.id !== undefined) {
+          if (!safeId(split.id) || splitIds.has(split.id)) throw Error("冲刺分段 ID 无效或重复");
+          splitIds.add(split.id);
+        }
+      });
       if (row.excluded !== undefined && typeof row.excluded !== "boolean") throw Error("冲刺排除选项无效");
       ["notes", "exclusionReason"].forEach(key => { if (row[key] !== undefined && typeof row[key] !== "string") throw Error("冲刺 " + key + " 须为文字"); });
     });
@@ -6218,6 +6225,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   const N = Calc.num;
   const FVP_IDS = ["fvp_sj", "fvp_cmj"];
   const ADDED_FVP_IDS = [...FVP_IDS, "sprint_fvp"];
+  const capabilityDirectionOptions = Object.freeze(Object.fromEntries(Object.entries({
+    strength: [["fvp", "FVP 不平衡性"], ["fdsi", "DSI"], ["idsi_matched", "iDSI · 匹配 CMJ 推进期"], ["idsi_fixed250", "iDSI · 固定 0–250 ms"], ["eur", "EUR"]],
+    reactive: [["dj_rsi", "DJ RSI"], ["hop_rsi", "Hop RSI"], ["cmrj_rsi", "CMRJ RSI"]],
+    speed: [["sprint_fvp", "冲刺 FVP 不平衡性"], ["srr", "SRR"]],
+  }).map(([key, options]) => [key, Object.freeze(options.map(option => Object.freeze(option)))])));
   const sprintFvpConfigDefaults = () => root.RingsideSprintFVP?.defaultsConfig() || { heightCm: "", temperatureC: 20, pressureHpa: 1013.25, windMps: 0, device: "", startConvention: "first_propulsive_action", timingStart: "first_propulsive_action", inputTimeMode: "cumulative", timeCorrectionS: 0, positionStartM: 0, methodVersion: "samozino-2016-splits-v1", sampleStepS: .1, rfAfterS: .3, samplingWindow: "terminal_time" };
   const sprintFvpAnalysisDefaults = () => root.RingsideSprintFVP?.defaultsAnalysis() || { targetDistanceM: "" };
   const fvpConfigDefaults = () => root.RingsideFVP?.defaultsConfig() || { device: "", method: "", posture: "", distanceCm: "", distanceSource: "" };
@@ -8589,6 +8601,68 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (cardioCard) cardioCard.targets = targets;
     return cards;
   }
+  function capabilityDirections(record, computed = stats(record)) {
+    const cards = (computed.capabilityCards || []).map(card => ({ ...card,
+      metrics: (card.metrics || []).filter(metric => N(metric.value) !== null),
+    })).filter(card => card.metrics.length);
+    const byId = id => cards.flatMap(card => card.metrics).find(metric => metric.id === id);
+    const impulse = id => {
+      const result = (computed.derived?.results || []).find(item => item.id === id);
+      return result && { ...result, label: capabilityDirectionOptions.strength.find(([key]) => key === id)?.[1], judgment: result.directionHint, status: "gray" };
+    };
+    const selectedFvp = record.views?.fvpProtocol;
+    const jumpEntries = Object.entries(computed.fvp || {}).filter(([id]) => record.enabled[id]
+      && (record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
+    const jumpId = jumpEntries.find(([id]) => id === selectedFvp)?.[0] || jumpEntries[0]?.[0] || selectedFvp || "fvp_sj";
+    const jump = computed.fvp?.[jumpId], sprint = computed.sprintFvp;
+    const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
+      value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
+      judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
+    const sprintMetric = { id: "sprint_fvp", label: "冲刺 FVP 不平衡性", value: sprint?.valid ? sprint.imbalance?.magnitudePct : null,
+      unit: "%", digits: 2, judgment: sprint?.imbalance?.label || "待计算", status: "gray" };
+    const candidate = id => id === "fvp" ? jumpMetric : id === "sprint_fvp" ? sprintMetric
+      : id.startsWith("idsi_") ? impulse(id) : byId(id);
+    const choice = key => {
+      const saved = record.views?.capabilitySelections?.[key], options = capabilityDirectionOptions[key];
+      return options.some(([id]) => id === saved) ? saved
+        : options.find(([id]) => N(candidate(id)?.value) !== null)?.[0] || options[0][0];
+    };
+    const judgmentFor = (key, metric) => {
+      if (N(metric?.value) === null) return "待计算";
+      if (key === "reactive") return metric.judgment
+        ? (metric.status === "red" || metric.status === "amber" ? "优先提高反应力量 · " : metric.status === "green" ? "保持并巩固反应力量 · " : "当前 RSI 标准 · ") + Def.assessmentLabel(metric.status, metric.judgment)
+        : "已测量；在评价标准中选择 RSI 参考。";
+      if (metric.id === "eur") {
+        const definition = record.definitions.find(item => item.id === "eur");
+        const grade = definition?.referenceEnabled ? evaluation(metric.value, definition, record) : null;
+        return grade?.range ? Def.assessmentLabel(grade.status, grade.label) : "结合 CMJ 与 SJ 的绝对成绩和纵向变化判断发展方向。";
+      }
+      return metric.judgment ? Def.assessmentLabel(metric.status, metric.judgment) : "待判断";
+    };
+    const direction = (key, title) => {
+      const metricId = choice(key), metric = candidate(metricId) || { id: metricId, label: capabilityDirectionOptions[key].find(([id]) => id === metricId)?.[1], value: null };
+      return { id: key, title, metricId, label: metric.label || "", value: N(metric.value), unit: metric.unit || "",
+        digits: Number.isInteger(metric.digits) ? metric.digits : metric.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id || "") ? 3 : metric.unit === "%" ? 1 : 2,
+        status: metric.status || "gray", judgment: judgmentFor(key, metric),
+        context: metricId === "fvp" ? { protocol: jumpId, angle: jump?.valid ? jump.analysis?.angle || 90 : null }
+          : metricId === "sprint_fvp" ? { targetDistanceM: positive(sprint?.targetDistanceM) } : null };
+    };
+    const cardio = cards.find(card => card.id === "cardio"), primary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
+    return [direction("strength", "力量发展方向"), direction("reactive", "反应力量水平"), direction("speed", "速度发展方向"),
+      { id: "endurance", title: "耐力发展方向", metricId: primary?.id || "endurance", label: primary?.label || "心肺与阈值表现",
+        value: N(primary?.value), unit: primary?.unit || "", digits: Number.isInteger(primary?.digits) ? primary.digits
+          : primary?.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(primary?.id || "") ? 3 : primary?.unit === "%" ? 1 : 2,
+        status: primary?.status || "gray", context: null,
+        judgment: cardio?.conclusion || (primary?.judgment ? Def.assessmentLabel(primary.status, primary.judgment) : primary ? "已测量；按当前心肺与阈值目标判断。" : "待计算") }];
+  }
+  function capabilityDirectionsBasis(record, computed = stats(record)) {
+    const directions = capabilityDirections(record, computed);
+    // Selection identity has its own AI binding. Measurement/reference changes
+    // remain covered by fingerprint, including the existing age-only exception.
+    return JSON.stringify({ selections: directions.filter(direction => direction.id !== "endurance").map(direction => ({
+      id: direction.id, metricId: direction.metricId, ...(direction.metricId === "fvp" ? { protocol: direction.context.protocol } : {}),
+    })), idsiWindow: computed.capabilityCards?.find(card => card.id === "strength")?.metrics.find(metric => metric.id === "idsi")?.selectedVariant || null });
+  }
   function stats(record) {
     let state = record || defaults();
     if (state.isoDirectionIds !== undefined) state = { ...state, data: { ...state.data, iso: selectedIsoRows(state) } };
@@ -10502,8 +10576,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (input.views?.capabilitySelections !== undefined) {
       const selections = input.views.capabilitySelections;
       if (!plainObject(selections)) throw new Error("能力结构指标选项格式无效");
-      const options = { strength: ["fvp","fdsi","idsi_matched","idsi_fixed250","eur"], reactive: ["dj_rsi","hop_rsi","cmrj_rsi"], speed: ["sprint_fvp","srr"] };
-      Object.entries(options).forEach(([key, allowed]) => { if (selections[key] !== undefined && !allowed.includes(selections[key])) throw new Error("能力结构 " + key + " 指标选项无效"); });
+      Object.entries(capabilityDirectionOptions).forEach(([key, options]) => { if (selections[key] !== undefined && !options.some(([id]) => id === selections[key])) throw new Error("能力结构 " + key + " 指标选项无效"); });
     }
     validateAbilityGroups(input.abilityGroupSnapshot);
     if (input.data.ift?.method !== undefined && typeof input.data.ift.method !== "string") throw new Error("VIFT 测试方法格式无效");
@@ -11133,6 +11206,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     imtpTimeContext,
     forceTime,
     stats,
+    capabilityDirectionOptions,
+    capabilityDirections,
+    capabilityDirectionsBasis,
     fvpAnalysis,
     sprintFvpAnalysis,
     grade,
@@ -15432,9 +15508,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     })).filter(card => card.metrics.length);
     const fvp = renderFVPAnalysis(report, { print }), sprint = renderSprintFVPAnalysis(report, { print });
     if (!cards.length && !fvp && !sprint) return "";
-    const source = id => cards.find(card => card.id === id);
-    const byId = id => cards.flatMap(card => card.metrics).find(metric => metric.id === id);
-    const impulseName = id => id === "idsi_fixed250" ? "iDSI · 固定 0–250 ms" : "iDSI · 匹配 CMJ 推进期";
+    const options = M.capabilityDirectionOptions;
+    const directions = M.capabilityDirections(record, { ...stats, derived: stats.derived || report.derived });
+    const impulseName = id => options.strength.find(([key]) => key === id)?.[1];
     const impulse = id => {
       const result = (stats.derived?.results || report.derived?.results || []).find(item => item.id === id);
       return result && { ...result, label: impulseName(id), judgment: result.directionHint, status: "gray" };
@@ -15442,50 +15518,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const format = metric => F(metric?.value, Number.isInteger(metric?.digits) ? metric.digits
       : metric?.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric?.id || "") ? 3 : metric?.unit === "%" ? 1 : 2);
     const unit = metric => metric?.unit && metric.unit !== "比值" ? ` <small>${E(metric.unit)}</small>` : "";
-    const selectedFvp = record.views?.fvpProtocol;
-    const jumpEntries = Object.entries(stats.fvp || {}).filter(([id]) => record.enabled[id]
-      && (record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
-    const jumpId = jumpEntries.find(([id]) => id === selectedFvp)?.[0] || jumpEntries[0]?.[0] || selectedFvp || "fvp_sj";
-    const jump = stats.fvp?.[jumpId], sprintSolved = stats.sprintFvp;
-    const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
-      value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
-      judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
-    const sprintMetric = { id: "sprint_fvp", label: "冲刺 FVP 不平衡性", value: sprintSolved?.valid ? sprintSolved.imbalance?.magnitudePct : null,
-      unit: "%", digits: 2, judgment: sprintSolved?.imbalance?.label || "待计算", status: "gray" };
-    const options = {
-      strength: [["fvp", "FVP 不平衡性"], ["fdsi", "DSI"], ["idsi_matched", impulseName("idsi_matched")], ["idsi_fixed250", impulseName("idsi_fixed250")], ["eur", "EUR"]],
-      reactive: [["dj_rsi", "DJ RSI"], ["hop_rsi", "Hop RSI"], ["cmrj_rsi", "CMRJ RSI"]],
-      speed: [["sprint_fvp", "冲刺 FVP 不平衡性"], ["srr", "SRR"]],
-    };
-    const candidate = id => id === "fvp" ? jumpMetric : id === "sprint_fvp" ? sprintMetric
-      : id.startsWith("idsi_") ? impulse(id) : byId(id);
-    const choice = key => {
-      const saved = record.views?.capabilitySelections?.[key];
-      return options[key].some(([id]) => id === saved) ? saved
-        : options[key].find(([id]) => N(candidate(id)?.value) !== null)?.[0] || options[key][0][0];
-    };
-    const judgmentFor = (key, metric) => {
-      if (N(metric?.value) === null) return "待计算";
-      if (key === "reactive") return metric.judgment
-        ? (metric.status === "red" || metric.status === "amber" ? "优先提高反应力量 · " : metric.status === "green" ? "保持并巩固反应力量 · " : "当前 RSI 标准 · ") + assessmentLabel(metric.status, metric.judgment)
-        : "已测量；在评价标准中选择 RSI 参考。";
-      if (metric.id === "eur") {
-        const definition = record.definitions.find(item => item.id === "eur");
-        const grade = definition?.referenceEnabled ? M.evaluation(metric.value, definition, record) : null;
-        return grade?.range ? assessmentLabel(grade.status, grade.label) : "结合 CMJ 与 SJ 的绝对成绩和纵向变化判断发展方向。";
-      }
-      return metric.judgment ? assessmentLabel(metric.status, metric.judgment) : "待判断";
-    };
-    const directionCard = (key, title) => {
-      const selected = choice(key), metric = candidate(selected) || { id: selected, label: options[key].find(([id]) => id === selected)?.[1], value: null };
+    const directionCard = metric => {
+      const key = metric.id, title = metric.title, selected = metric.metricId;
       const selector = print ? "" : `<label class="capability-selector no-print">判断依据<select data-capability-selection="${key}" aria-label="${E(title)}判断依据">${options[key].map(([id, label]) => `<option value="${id}"${id === selected ? " selected" : ""}>${E(label)}</option>`).join("")}</select></label>`;
-      const basis = selected === "fvp" && jump?.valid ? `${jump.analysis?.angle || 90}° 目标方向`
-        : selected === "sprint_fvp" && positive(sprintSolved?.targetDistanceM) ? `目标距离 ${F(sprintSolved.targetDistanceM, 1)} m` : "";
-      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3>${selector}<section data-direction-metric="${E(selected)}"><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}<p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(judgmentFor(key, metric))}</p></section></article>`;
+      const basis = selected === "fvp" && metric.context?.angle ? `${metric.context.angle}° 目标方向`
+        : selected === "sprint_fvp" && positive(metric.context?.targetDistanceM) ? `目标距离 ${F(metric.context.targetDistanceM, 1)} m` : "";
+      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3>${selector}<section data-direction-metric="${E(selected)}"><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}<p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p></section></article>`;
     };
-    const cardio = source("cardio"), cardioPrimary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
-    const endurance = `<article class="capability-direction-card" data-capability-direction="endurance"><h3>耐力发展方向</h3><section data-direction-metric="${E(cardioPrimary?.id || "endurance")}"><p class="capability-direction-basis">${E(cardioPrimary?.label || "心肺与阈值表现")}</p><p class="capability-direction-value">${format(cardioPrimary)}${unit(cardioPrimary)}</p><p class="capability-direction-judgment">${E(cardio?.conclusion || (cardioPrimary?.judgment ? assessmentLabel(cardioPrimary.status, cardioPrimary.judgment) : cardioPrimary ? "已测量；按当前心肺与阈值目标判断。" : "待计算"))}</p></section></article>`;
-    const left = `<div class="capability-direction-grid">${directionCard("strength", "力量发展方向")}${directionCard("reactive", "反应力量水平")}${directionCard("speed", "速度发展方向")}${endurance}</div>`;
+    const cardioPrimary = directions.find(direction => direction.id === "endurance");
+    const endurance = `<article class="capability-direction-card" data-capability-direction="endurance"><h3>耐力发展方向</h3><section data-direction-metric="${E(cardioPrimary.metricId)}"><p class="capability-direction-basis">${E(cardioPrimary.label)}</p><p class="capability-direction-value">${format(cardioPrimary)}${unit(cardioPrimary)}</p><p class="capability-direction-judgment">${E(cardioPrimary.judgment)}</p></section></article>`;
+    const left = `<div class="capability-direction-grid">${directions.filter(direction => direction.id !== "endurance").map(directionCard).join("")}${endurance}</div>`;
     const target = metric => {
       const definition = record.definitions.find(item => item.id === metric.id);
       const value = positive(metric.target) ? N(metric.target) : definition?.referenceEnabled && definition.matched !== false && positive(definition.target) ? N(definition.target) : null;
@@ -19389,7 +19431,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     recovery = null,
     storageFailed = false,
     lastRestorePayload = null;
-  const recordBaselines = new Map(), queuedRecords = new Map(),
+  const recordBaselines = new Map(), recordStorageBaselines = new Map(), queuedRecords = new Map(),
     undoDeletes = new Map();
   const rawNumbers = new WeakMap();
   let bodyRegionAnchor = null, bodyRegionPinned = false, bodyRegionHideTimer, bodyTouchInteraction = false;
@@ -19490,6 +19532,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
   }
   function recordBasis() { return state ? M.fingerprint(effectiveRecord()) : ""; }
+  function capabilityDirectionsBasis() { return state ? M.capabilityDirectionsBasis(effectiveRecord()) : ""; }
+  function capabilityDirectionsMatch(binding) {
+    return binding?.capabilityDirectionsBasis === undefined || binding.capabilityDirectionsBasis === capabilityDirectionsBasis();
+  }
   function upgradeDemo(record) {
     const linkedProfile = library.evaluationProfiles.find(profile => profile.id === record.evaluationProfileId);
     const upgraded = M.upgradeOriginalDemo(record, linkedProfile);
@@ -19511,7 +19557,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const catalogChanged = JSON.stringify(library.catalog) !== catalogBefore;
     const profilesChanged = window.RingsideEvaluation.upgradeLibraryProfiles(library);
     const id = current || library.activeRecordId;
-    state = pending || (id ? await repository.loadRecord(id) : null);
+    const stored = pending || (id ? await repository.loadRecord(id) : null);
+    state = stored;
     const upgrade = state ? upgradeDemo(state) : {changed:false};
     if(state)state=M.normalizeRecord(upgrade.record || state);
     if (pending && state) entrySession.records[entrySession.records.findIndex(r => r.recordId === pending.recordId)] = state;
@@ -19527,7 +19574,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (state?.deletedAt || owner?.deletedAt) { state = null; library.activeRecordId="";if(owner?.deletedAt)library.activeAthleteId="";await repository.save(library); }
     if (state && (!entrySession || entrySession.savedIds.has(state.recordId))) {
       library.activeAthleteId = state.athleteId; library.activeRecordId = state.recordId;
-      if (!pending) recordBaselines.set(state.recordId, recordContent(state));
+      if (!pending) rememberRecordBaseline(state, upgrade.changed ? state : stored);
     } else { library.activeRecordId = ""; }
     reportDirty = true;
   }
@@ -19590,7 +19637,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         if (pendingOwner) { pendingOwner.profile = copy(target.profile); pendingOwner.name = target.name; pendingOwner.groupId = groupId; }
       }
       if (updates.has(state?.recordId)) state = entrySession?.records.find(record => record.recordId === state.recordId) || copy(updates.get(state.recordId));
-      for (const record of records) recordBaselines.set(record.recordId, recordContent(record));
+      for (const record of records) rememberRecordBaseline(record);
       if (birthChanged) cancelJob({preserveModalId:"managementModal"});
       saveEntrySession(); reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
       return target.id;
@@ -19615,7 +19662,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       library = next;
       if (entrySession) entrySession.records = entrySession.records.map(item => item.recordId === recordId ? copy(record) : item);
       if (state?.recordId === recordId) state = entrySession?.records.find(item => item.recordId === recordId) || copy(record);
-      recordBaselines.set(recordId,recordContent(record)); cancelJob({preserveModalId:"managementModal"}); saveEntrySession();
+      rememberRecordBaseline(record); cancelJob({preserveModalId:"managementModal"}); saveEntrySession();
       reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
     } finally { libraryTransferActive = false; }
   }
@@ -19646,12 +19693,20 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const raw = sessionStorage.getItem(entrySessionKey);
     if (!raw) return;
     try {
-      const session = await window.RingsideEntrySession.decode(JSON.parse(raw), id => repository.loadRecord(id));
+      const baselines = new Map();
+      const session = await window.RingsideEntrySession.decode(JSON.parse(raw), async id => {
+        const stored = await repository.loadRecord(id);
+        if (stored) baselines.set(id, recordContent(stored));
+        return stored;
+      });
       session.records = session.records.filter(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived) || session.pendingAthletes.some(a => a.id === r.athleteId));
       if (!session.records.length) { sessionStorage.removeItem(entrySessionKey); return; }
       entrySession = session;
       for (const record of session.records) if (T.isNative(record, "sprint_fvp")) record.data.sprint_fvp = window.RingsideSprintFVP.normalizeTrials(record.data.sprint_fvp);
-      for (const r of session.records) if (session.savedIds.has(r.recordId)) recordBaselines.set(r.recordId, recordContent(await repository.loadRecord(r.recordId)));
+      for (const r of session.records) if (session.savedIds.has(r.recordId)) {
+        recordBaselines.set(r.recordId, baselines.get(r.recordId));
+        recordStorageBaselines.set(r.recordId, baselines.get(r.recordId));
+      }
       state = session.records.find(r => r.recordId === session.selectedRecordId) || session.records[0];
       ui.mode = "entry";
       if (session.conflictRecordIds?.length) toast("部分记录已在其他页面修改，已载入资料库中的最新内容，请核对");
@@ -19666,7 +19721,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     state = target ? await repository.loadRecord(target) : null;
     library.activeAthleteId = state?.athleteId || session.origin?.athleteId || "";
     library.activeRecordId = state?.recordId || "";
-    if (state) recordBaselines.set(state.recordId, recordContent(state));
+    if (state) rememberRecordBaseline(state);
     reportDirty = true;
   }
   async function selectEntryAthlete(recordId) {
@@ -19694,6 +19749,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const content = copy(record);
     delete content.updated;
     return JSON.stringify(content);
+  }
+  function rememberRecordBaseline(record, stored = record) {
+    recordBaselines.set(record.recordId, recordContent(record));
+    recordStorageBaselines.set(record.recordId, recordContent(stored));
   }
   function draftRecordKey(record = state) {
     return record.athleteId + ":" + record.recordId;
@@ -20335,18 +20394,29 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (modified) library.updated = now();
     const sequence = ++saveSequence;
     if (modified) queuedRecords.set(record.recordId,{sequence,content});
+    const snapshot = record ? copy(record) : null, next = copy(library);
     $("saveStatus").textContent = "正在保存…";
     pendingSaves++;
-    let saving;
-    try { saving=repository.save(library, modified ? [record] : []); } catch(error) { saving=Promise.reject(error); }
-    return saving.then(() => {
-      if (record) recordBaselines.set(record.recordId, content);
+    const saving = entryPersistQueue.then(async () => {
+      const writeRecord = record && recordBaselines.get(record.recordId) !== content;
+      let checks = {};
+      if (writeRecord) {
+        const stored = await repository.loadRecord(record.recordId);
+        if (recordStorageBaselines.has(record.recordId) ? !stored || recordContent(stored) !== recordStorageBaselines.get(record.recordId) : !!stored)
+          throw Error("此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录");
+        checks = {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}};
+      }
+      await repository.save(next, writeRecord ? [snapshot] : [], {}, checks);
+      if (writeRecord) rememberRecordBaseline(snapshot);
+    });
+    const task = saving.then(() => {
       if (sequence === saveSequence) { storageFailed = false; $("saveStatus").textContent = "已保存到本机"; if (state) refreshEntryChrome(); }
       return true;
     }).catch(error => {
       storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message;
       if (state) refreshEntryChrome(); return false;
     }).finally(() => { pendingSaves--; if(record&&queuedRecords.get(record.recordId)?.sequence===sequence)queuedRecords.delete(record.recordId); });
+    entryPersistQueue = task; return task;
   }
   function persistSessionRecord(record) {
     saveEntrySession();
@@ -20359,6 +20429,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (!pending && recordBaselines.get(record.recordId) === content) return true;
       const snapshot = copy(record), next = copy(library);
       snapshot.updated = now();
+      const stored = await repository.loadRecord(record.recordId);
+      if (pending ? !!stored : !stored || recordContent(stored) !== recordBaselines.get(record.recordId))
+        throw Error("此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录");
+      if (session !== entrySession) return false;
       let owner = next.athletes.find(a => a.id === record.athleteId && !a.deletedAt && !a.archived);
       if (!owner && pending) {
         const profile = session.pendingAthletes.find(a => a.id === record.athleteId);
@@ -20371,9 +20445,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       next.activeAthleteId = snapshot.athleteId; next.activeRecordId = snapshot.recordId; next.updated = now();
       pendingSaves++; $("saveStatus").textContent = "正在保存…";
       try {
-        await repository.save(next, [snapshot]);
+        await repository.save(next, [snapshot], {}, {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}});
         library = next; record.updated = snapshot.updated;
-        session.savedIds.add(record.recordId); recordBaselines.set(record.recordId, content);
+        session.savedIds.add(record.recordId); rememberRecordBaseline(snapshot);
         storageFailed = false; $("saveStatus").textContent = "已保存到本机"; saveEntrySession(); refreshEntryChrome(); return true;
       } finally { pendingSaves--; }
     }).catch(error => { storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message; saveEntrySession(); refreshEntryChrome(); return false; });
@@ -20484,7 +20558,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (sequence !== selectionSequence) return;
     cancelJob();
     state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
-    if (loaded) { recordBaselines.set(loaded.recordId, recordContent(loaded)); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
+    if (loaded) { rememberRecordBaseline(loaded, upgrade.changed ? loaded : stored); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
     entryTab = options.edit && state ? orderedEntryProjects()[0]?.id || "plan" : "athlete"; isoFilter = "all"; reportDirty = true;
     const saved = loaded && ui.records[loaded.recordId];
     ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
@@ -21009,14 +21083,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       await repository.save(next,result.records,{},checks);
       library=await repository.directory();storageFailed=false;
       const current=result.records.find(r=>r.recordId===state?.recordId);
-      if(current){cancelJob({preserveModalId:"excelModal"});state=copy(current);recordBaselines.set(state.recordId,recordContent(state));}
+      if(current){cancelJob({preserveModalId:"excelModal"});state=copy(current);rememberRecordBaseline(state);}
       if(entrySession){
         for(const record of result.records){
           let index=entrySession.records.findIndex(r=>r.recordId===record.recordId);
           if(index<0)index=entrySession.records.findIndex(r=>r.athleteId===record.athleteId&&!entrySession.savedIds.has(r.recordId));
           if(index>=0){const wasActive=entrySession.records[index].recordId===state?.recordId;entrySession.records[index]=copy(record);if(wasActive)state=entrySession.records[index];}
           else entrySession.records.push(copy(record));
-          entrySession.savedIds.add(record.recordId);recordBaselines.set(record.recordId,recordContent(record));
+          entrySession.savedIds.add(record.recordId);rememberRecordBaseline(record);
         }
         saveEntrySession();if(ui.mode==="entry"){renderEntry();renderWorkspace();}
       }
@@ -21334,11 +21408,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (!state) return;
     renderAIStatus();
     const n = state.narrative,
-      stale = n.text && n.basis !== recordBasis() && !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId));
+      directionsStale = n.text && !capabilityDirectionsMatch(n),
+      stale = directionsStale || n.text && n.basis !== recordBasis() && !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId));
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
           ? "尚未填写"
+          : directionsStale
+            ? "分析依据已更新 · 待复核"
           : stale
             ? "数据已更新 · 待复核"
             : n.origin === "AI"
@@ -21374,6 +21451,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       updated: now(),
       basis: recordBasis(),
       origin: "manual",
+      ...(state.narrative.capabilityDirectionsBasis !== undefined ? { capabilityDirectionsBasis: capabilityDirectionsBasis() } : {}),
       revision: (state.narrative.revision || 0) + 1,
     };
     changed(false);
@@ -22994,6 +23072,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         status: a.status,
       })),
       capabilityAnalysis: copy(s.capabilityCards || []),
+      selectedCapabilityDirections: copy(M.capabilityDirections(analysisRecord, s)),
       jumpFVP: copy(Object.fromEntries(Object.entries(s.fvp || {}).filter(([, profile]) => profile.enabled))),
       sprintFVP: s.sprintFvp?.enabled ? {
         valid:s.sprintFvp.valid, reason:s.sprintFvp.reason, methodVersion:s.sprintFvp.config?.methodVersion,
@@ -23043,6 +23122,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (open) showAIDraft();
   }
   function showAIDraft() {
+    if (!pendingAI || !currentMatches(pendingAI)) return false;
+    if (!capabilityDirectionsMatch(pendingAI)) {
+      pendingAI = null;
+      setAIStatus("error", "能力分析依据已更新", "请按当前选中的指标重新生成建议。");
+      return false;
+    }
     $("previewTitle").textContent = pendingAI.origin + "草稿预览";
     $("aiPreview").innerHTML = M.sanitizeHTML(pendingAI.html);
     $("aiPreview").contentEditable = "true";
@@ -23065,6 +23150,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (!p || !currentMatches(p)) return toast("草稿所属测试已切换", "ai");
     if (p.basis !== recordBasis())
       return toast("测试数据已更新，请重新生成", "ai");
+    if (!capabilityDirectionsMatch(p))
+      return toast("能力分析依据已更新，请重新生成", "ai");
     if (
       p.revision !== state.narrative.revision &&
       !confirm("生成后正文已有人工修改。应用草稿将替换当前文字，是否继续？")
@@ -23076,6 +23163,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       text: p.text,
       updated: now(),
       basis: p.basis,
+      ...(p.capabilityDirectionsBasis !== undefined ? { capabilityDirectionsBasis: p.capabilityDirectionsBasis } : {}),
       origin: p.origin,
       revision: (state.narrative.revision || 0) + 1,
     };
@@ -23145,6 +23233,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (pendingAI.basis !== recordBasis()) {
       pendingAI = null;
       return setAIStatus("error", "测试数据已更新", "请基于最新数据重新生成建议。");
+    }
+    if (!capabilityDirectionsMatch(pendingAI)) {
+      pendingAI = null;
+      return setAIStatus("error", "能力分析依据已更新", "请按当前选中的指标重新生成建议。");
     }
     showAIDraft();
   }
@@ -23312,7 +23404,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     if(state.recordId!==requestedRecord)return;
     saveEditor();
-    const binding = snapshot(),
+    const binding = { ...snapshot(), capabilityDirectionsBasis: capabilityDirectionsBasis() },
       task = {
         ...binding,
         token: ++jobSequence,
@@ -23326,7 +23418,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     try {
       const messages = [
         { role: "system", content: window.RingsideInterventions.systemPrompt },
-        { role: "user", content: "生成解读与干预建议：\n" + JSON.stringify(facts()) },
+        { role: "user", content: "生成解读与干预建议：四个能力发展方向优先采用 selectedCapabilityDirections 中选定的指标、数值和判定，其余能力参数用于综合分析背景。\n" + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
       let validated, pages;
@@ -23334,6 +23426,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const json = await request("/chat/completions", { model: selectedModel, messages, stream: false }, task.controller, 300000, connection);
         if (job !== task || !currentMatches(task)) return;
         if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
+        if (!capabilityDirectionsMatch(binding)) throw Error("生成期间能力分析依据已更新，请根据当前依据重新生成。");
         const result = json.choices?.[0]?.message?.content,
           text =
           typeof result === "string"
@@ -23346,6 +23439,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         validated = window.RingsideInterventions.validateAI(text);
         await document.fonts.ready;
         if (job !== task || !currentMatches(task)) return;
+        if (!capabilityDirectionsMatch(binding)) throw Error("生成期间能力分析依据已更新，请根据当前依据重新生成。");
         pages = window.RingsidePDF.measureNarrative(M.textToHTML(validated));
         if (pages <= 2) break;
         if (attempt === 0) {
@@ -23355,6 +23449,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
       if (pages > 2) throw Error("模型精简后仍超过两页，请重新生成或更换模型。");
       if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
+      if (!capabilityDirectionsMatch(binding)) throw Error("生成期间能力分析依据已更新，请根据当前依据重新生成。");
       preview(validated, "AI", binding, task.autoPreview && isNarrativeView()
         && !document.querySelector(".modal-backdrop.show"));
       setAIStatus("ready", "AI 新建议已生成，等待应用", "当前正文约 " + pages + " 页 A4。核对或编辑后点击“应用草稿”，下方正文才会更新。");
@@ -23595,7 +23690,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       state = M.normalizeRecord(upgrade.record || importedRecord);
       library.activeAthleteId=state.athleteId;library.activeRecordId=state.recordId;
       if (upgrade.changed) await repository.save(library, [state]);
-      recordBaselines.set(state.recordId,recordContent(state));await persist({duringTransfer:true});
+      rememberRecordBaseline(state, upgrade.changed ? state : importedRecord);await persist({duringTransfer:true});
     }
     ui.mode="report"; renderReport(false);renderWorkspace();return result;
     });
@@ -24076,8 +24171,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   document.addEventListener("change", (e) => {
     const t = e.target;
     if (t.hasAttribute("data-capability-selection")) {
-      const key = t.dataset.capabilitySelection, choices = {strength:["fvp","fdsi","idsi_matched","idsi_fixed250","eur"], reactive:["dj_rsi","hop_rsi","cmrj_rsi"], speed:["sprint_fvp","srr"]};
-      if (!state || !choices[key]?.includes(t.value)) return;
+      const key = t.dataset.capabilitySelection, choices = M.capabilityDirectionOptions;
+      if (!state || !choices[key]?.some(([id]) => id === t.value)) return;
       (state.views.capabilitySelections ||= {})[key] = t.value; changed(false); renderReport(); return;
     }
     if (t.hasAttribute("data-fvp-protocol")) {

@@ -15,6 +15,7 @@ VERSION = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["versi
 ACCEPTANCE = {
     "2.17.0-local": {"browserDir": "output/playwright/sprint-fvp", "browserChecks": 12, "unitSuites": 37},
     "2.17.1-local": {"browserDir": "output/playwright/sprint-fvp-2.17.1-local", "browserChecks": 15, "unitSuites": 38},
+    "2.17.2-local": {"browserDir": "output/playwright/sprint-fvp-2.17.2-local", "browserChecks": 15, "unitSuites": 41},
 }
 CHANNELS = ("chrome", "msedge")
 DIRECTIONS = ["strength", "reactive", "speed", "endurance"]
@@ -93,7 +94,7 @@ def verify_exports(data, channel):
     require(subset(load(record_path)["record"]) == saved, "Downloaded record differs from saved settings")
     backup_path = verify_item(items[channel + "-backup.motionbench.jsonl"])
     rows = [json.loads(line) for line in backup_path.read_text(encoding="utf-8-sig").splitlines() if line.strip()]
-    if VERSION == "2.17.1-local":
+    if VERSION != "2.17.0-local":
         require(data.get("packageVersion") == VERSION, "Browser evidence has a different producer version")
         header = next(row for row in rows if row.get("type") == "header")
         config = next(row["value"] for row in rows if row.get("type") == "config")
@@ -205,7 +206,7 @@ def verify_science(modules, evidence):
 
 
 def verify_pdf_module(sha, evidence):
-    directory = "output/pdf/v2.17.1-" + sha[:8]
+    directory = "output/pdf/v" + VERSION.replace("-local", "") + "-" + sha[:8]
     manifest = read_current(directory + "/evidence-manifest.json", sha, evidence, "pdfModuleManifest")
     require(manifest["version"] == VERSION and manifest["exitCode"] == 0 and manifest["passCount"] == 6,
             "Additional PDF module run did not complete all six checks")
@@ -231,6 +232,104 @@ def verify_pdf_module(sha, evidence):
             "scope": "Automated module checks; separate from visually reviewed sprint PDFs"}
 
 
+def verify_concurrency(sha, evidence):
+    sessions, storage = [], []
+    for channel in CHANNELS:
+        session = read_current("output/playwright/entry-concurrency-2.17.2/final/" + channel + "-results.json",
+                               sha, evidence, channel + "EntryConcurrency")
+        require(session["pass"] is True and session["synthetic"] is True and not session["expectVulnerable"]
+                and session["sourceUnchanged"] is True and len(session["checks"]) == 4,
+                "Final two-page session checks failed: " + channel)
+        require(session["errors"] == [] and session["network"] == [], "Session browser errors: " + channel)
+        for item in session["artifacts"]:
+            verify_item(item)
+        ordinary = next((item for item in session["scenarios"] if item["name"] == "ordinary-record"), None)
+        require(ordinary is not None and ordinary["saveReturn"] is False
+                and ordinary["storedHeight"] == 70 and ordinary["localHeight"] == ordinary["localCopy"]["height"] == 75
+                and ordinary["explicitReopenHeight"] == 70 and ordinary["normalSaveAfterReopen"] is True,
+                "Ordinary record save did not reject an external edit: " + channel)
+        sessions.append({"channel": channel, "checks": len(session["checks"]),
+                         "ordinarySaveRecovery": ordinary})
+        relative = "output/playwright/storage-repros-v2.17.2/final/" + channel + "-results.json"
+        data = load(relative)
+        evidence[channel + "StorageReproduction"] = artifact(relative)
+        require(data["sourceSha256"] == sha and data["buildProducerVersion"] == VERSION
+                and data["sourceUnchanged"] is True and data["synthetic"] is True,
+                "Storage reproduction used another build: " + channel)
+        require(data["reproductionSuccess"] is True and data["productFixed"] is False
+                and data["controlCount"] == 3 and data["reproducedDefectCount"] == 4,
+                "Storage controls/reproductions incomplete: " + channel)
+        require(data["runnerSha256"] == digest(local_path("tests/storage-concurrency-repros.cjs"))
+                and data["errors"] == [] and data["network"] == [], "Storage evidence code/errors differ")
+        for item in data["artifacts"]:
+            verify_item(item)
+        storage.append({"channel": channel, "normalControls": 3, "knownUnfixedDefectsReproduced": 4,
+                        "productFixed": False, "checks": data["checks"]})
+    return {"sessionFix": sessions, "knownUnfixedStorageReproductions": storage}
+
+
+def verify_split_imports(sha, evidence):
+    imports = []
+    for channel in CHANNELS:
+        data = read_current("output/playwright/split-id-import-2.17.2/final/" + channel + "-results.json",
+                            sha, evidence, channel + "SplitIdImports")
+        require(data["pass"] is True and data["synthetic"] is True and data["realIndexedDB"] is True
+                and data["sourceUnchanged"] is True and data["buildVersion"] == VERSION
+                and len(data["checks"]) == 10 and data["errors"] == [] and data["network"] == [],
+                "Split ID import checks incomplete: " + channel)
+        require(data["runnerSha256"] == digest(local_path("tests/sprint-split-id-import-tests.cjs")),
+                "Split ID import runner changed after execution")
+        for item in data["artifacts"]:
+            verify_item(item)
+        imports.append({"channel": channel, "checks": 10, "realIndexedDB": True})
+    return imports
+
+
+def verify_pdf_regressions(sha, evidence):
+    directory = "output/pdf/v2.17.2-work"
+    manifest = read_current(directory + "/regression-evidence-manifest.json", sha, evidence, "pdfRegressionManifest")
+    require(manifest["version"] == VERSION, "PDF regression manifest version differs")
+    require({run["name"]: run["checks"] for run in manifest["runs"]}
+            == {"download": 12, "failure": 1, "repeats": 12, "repeat-pdf": 2, "module": 6}
+            and all(run["exitCode"] == 0 for run in manifest["runs"]), "PDF runner execution incomplete")
+    expected_runners = {"tests/pdf-download-tests.cjs", "tests/pdf-failure-ui-tests.cjs", "tests/repeat-browser-tests.cjs",
+                        "tests/repeat-pdf-tests.cjs", "tests/pdf-module-tests.cjs", "tests/helpers/pdf-browser.cjs",
+                        "tests/fixtures/pdf-chart-narrative.md"}
+    require({item["path"] for item in manifest["runners"]} == expected_runners, "PDF runner registry differs")
+    for item in [*manifest["runners"], *manifest["results"]]:
+        path = verify_item(item)
+        require(path.stat().st_size == item["bytes"], "PDF regression artifact size changed")
+    downloads = read_current(directory + "/download/download-verification.json", sha, evidence, "pdfDownloads")
+    require(downloads["consistentSourceHash"] is True and len(downloads["cases"]) == 12
+            and all(case["pass"] and case["errors"] == [] and case["network"] == [] for case in downloads["cases"]),
+            "All twelve PDF download regressions must pass")
+    require(downloads["narrativeFixture"]["sha256"] == digest(local_path("tests/fixtures/pdf-chart-narrative.md")),
+            "PDF synthetic narrative fixture changed after execution")
+    empty = next(case for case in downloads["cases"] if case["id"] == "chrome-empty")
+    require(empty["emptyFixture"]["validTests"] == 0, "PDF empty case did not use an empty record")
+    for case in downloads["cases"]:
+        path = local_path(case["file"])
+        require(path.stat().st_size == case["bytes"] and path.read_bytes().startswith(b"%PDF-"),
+                "Actual downloaded PDF is missing: " + case["id"])
+    failure = read_current(directory + "/failure/failure-ui-verification.json", sha, evidence, "pdfFailureRecovery")
+    require(failure["pass"] is True and failure["retryPages"] > 0, "PDF failure/retry regression failed")
+    producer = read_current(directory + "/repeats/review.json", sha, evidence, "repeatFixtureProducer")
+    require(producer["pass"] is True and len(producer["checks"]) == 12
+            and producer["errors"] == [] and producer["network"] == [], "Repeat fixture producer failed")
+    for item in producer["downloads"]:
+        verify_item(item)
+    repeated = read_current(directory + "/repeat-pdf/repeat-download-verification.json", sha, evidence, "repeatPdfDownloads")
+    require(repeated["pass"] is True and repeated["foldStateIndependent"] is True
+            and repeated["producerSourceHash"] == sha and len(repeated["cases"]) == 2
+            and all(case["pass"] and case["errors"] == [] and case["network"] == [] for case in repeated["cases"]),
+            "Repeat PDF producer/consumer regressions failed")
+    for case in repeated["cases"]:
+        path = local_path(directory + "/repeat-pdf/" + case["id"] + ".pdf")
+        require(digest(path) == case["pdfSha256"], "Repeated PDF hash differs")
+    return {"downloadCases": 12, "failureRecovery": 1, "repeatProducerChecks": 12,
+            "repeatPdfCases": 2, "limits": manifest["limitations"]}
+
+
 def main():
     require(VERSION in ACCEPTANCE, "Unsupported version for the local verifier")
     html_path = local_path("MotionBench.html")
@@ -241,7 +340,7 @@ def main():
             "Rebuild changed the tested artifact; rerun acceptance against the new candidate")
     html = html_path.read_text(encoding="utf-8")
     modules = inline_modules(html)
-    if VERSION == "2.17.1-local":
+    if VERSION != "2.17.0-local":
         require('window.RingsideBuild=Object.freeze(' + json.dumps({"version": VERSION}) + ');' in html,
                 "Standalone producer identity differs from package.json")
     require(re.search(r'<script id="embedded-data" type="application/json">\s*null\s*</script>', html),
@@ -267,7 +366,10 @@ def main():
     visual = read_current(ACCEPTANCE[VERSION]["browserDir"] + "/visual-review.json", sha, evidence, "visualReview")
     pages = verify_visual(visual, browsers, evidence)
     science = verify_science(modules, evidence)
-    pdf_module = verify_pdf_module(sha, evidence) if VERSION == "2.17.1-local" else None
+    pdf_module = verify_pdf_module(sha, evidence) if VERSION != "2.17.0-local" else None
+    concurrency = verify_concurrency(sha, evidence) if VERSION == "2.17.2-local" else None
+    split_imports = verify_split_imports(sha, evidence) if VERSION == "2.17.2-local" else None
+    pdf_regressions = verify_pdf_regressions(sha, evidence) if VERSION == "2.17.2-local" else None
     historical = []
     legacy = ROOT / "output/tests/v217-legacy-browser-summary.json"
     if legacy.is_file():
@@ -282,7 +384,9 @@ def main():
         "modelChecks": sum(suite["checksPassed"] for suite in suites),
         "browserWorkflowChecks": sum(browser["checks"] for browser in browsers), "browsers": browsers,
         "pdfFilesReviewed": len(visual["pdfs"]), "pdfPagesVisuallyReviewed": pages,
-        "scientificModuleVerification": science, "additionalPdfModuleVerification": pdf_module, "historicalEvidence": historical,
+        "scientificModuleVerification": science, "additionalPdfModuleVerification": pdf_module,
+        "concurrencyVerification": concurrency, "splitIdImportVerification": split_imports,
+        "additionalPdfRegressionVerification": pdf_regressions, "historicalEvidence": historical,
         "verificationLimits": ["All acceptance records are synthetic; browser contexts are isolated and offline.",
             "Narrow screens use viewport emulation; physical devices and paper printing were not tested.",
             "User sprint workbook was not materialized on Windows; cached Library values are not original-formula/chart verification.",
@@ -292,9 +396,18 @@ def main():
     (ROOT / "output/acceptance-manifest.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     public = {key: result[key] for key in ["pass", "version", "deliveryScope", "completedAtUTC", "html", "sha256", "bytes",
         "reproducibleBuild", "standaloneFilesEqual", "unitSuites", "modelChecks", "browserWorkflowChecks",
-        "pdfFilesReviewed", "pdfPagesVisuallyReviewed", "scientificModuleVerification", "additionalPdfModuleVerification", "verificationLimits"]}
+        "pdfFilesReviewed", "pdfPagesVisuallyReviewed", "scientificModuleVerification", "additionalPdfModuleVerification",
+        "concurrencyVerification", "splitIdImportVerification", "additionalPdfRegressionVerification", "verificationLimits"]}
     public["evidenceIndex"] = "output/acceptance-manifest.json"
     public["historicalEvidenceIncludedInCurrentAcceptance"] = False
+    # Keep exact local evidence intact; publish portable synthetic identities.
+    public = json.loads(json.dumps(public))
+    if VERSION == "2.17.2-local":
+        for item in public["concurrencyVerification"]["sessionFix"]:
+            for identity in item["ordinarySaveRecovery"]["identity"]:
+                identity["pathname"] = "<CANDIDATE_PATH>/MotionBench.html"
+                identity["name"] = "motionbench-v3:<CANDIDATE_PATH>/MotionBench.html"
+        public["publicPathRedaction"] = "Local candidate paths are replaced with a shared placeholder; exact identities remain in local evidence."
     (ROOT / f"docs/acceptance-{VERSION}.json").write_text(json.dumps(public, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"PASS {VERSION}: {len(suites)} unit suites, {result['modelChecks']} model checks, "
           f"{result['browserWorkflowChecks']} Chrome/Edge scenarios, {pages} visually reviewed PDF pages")

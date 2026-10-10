@@ -9,18 +9,21 @@
 | `ringside-fvp.js`／`RingsideFVP` | 跳跃 FVP、最优剖面、弹性与情景计算 | 继续接收测量与配置，返回确定的数值结果；不调用 DOM、文件或资料库 |
 | `ringside-sprint-fvp.js`／`RingsideSprintFVP` | 本轮冲刺分段拟合、力／速度／功率、目标距离剖面与原始结构校验 | 保留 `solve/read`、`validate` 及 `METHOD_VERSION`；以最终验收确认具体算法和边界 |
 | `RingsideModel.stats()`、`RingsideEvaluation` | 计算和生效评价解析 | 网页、桌面、Excel 与报告消费同一次结果，不在桌面宿主中重写公式 |
+| `RingsideModel.capabilityDirections()`、`capabilityDirectionsBasis()` | 四个方向的共享指标与判定，以及 AI 所选依据绑定 | 屏幕、PDF、AI 消费同一投影；所选依据与测量指纹分别绑定，保留旧叙事兼容 |
 | `RingsideReport.build()`、PDF 模块 | 报告快照、图表、分页与完整性核对 | 保留现有报告模型和打印布局；宿主只接管保存文件、打印等系统能力 |
 | `RingsideStore.Repository` | IndexedDB 事务、目录摘要、记录加载、保存、分代导入和恢复 | 从现有调用面抽取最小存储 adapter，先保留 IndexedDB 实现 |
 | `ringside-excel.js`／`ringside-excel-flow.js` | XLSX 模板、解析、预览、采用与一次事务保存 | 文件读写接宿主，字段、单位、稳定 ID、旧模板兼容和保存合同保持统一 |
 | `ringside-entry-session.js`、App | 临时录入会话、保存队列和交互 | 会话恢复与长期资料库存储分别管理，未保存草稿不成为已保存记录 |
 
-“最优冲刺 FVP”必须随目标距离、计算方法版本及相应假设保存，不能在桌面化时变成不注明距离的通用标准。图形和四卡选择属于显示偏好；原始分段计时、计时起点与测量条件属于记录资料。单位和报告结论继续由模型统一输出。
+“最优冲刺 FVP”必须随目标距离、计算方法版本及相应假设保存，不能在桌面化时变成不注明距离的通用标准。图形开关属于显示偏好；四卡所选分析依据另外绑定 AI 草稿，不进入全局测量指纹。原始分段计时、计时起点与测量条件属于记录资料。单位和报告结论继续由模型统一输出。
 
 ## 阶段一：计算、存储与备份合同
 
 从现有调用提炼边界，按需要逐个引入 adapter，不更换 UI 框架，也不把所有模块重写为新工程。
 
 存储合同首先覆盖现有 `directory()`、`loadRecord(id)`、`save(lib, records, removals, checks)`、`flush()`、`importRows()`、`createBackupBlob()`、`restorePrevious()` 和 `close()`。保留当前保存前的 `expectedConfig`／`expectedRecords`／`expectedAthletes`／归属全集检查，以及“失败不部分提交”的含义。IndexedDB 和后续本地后端使用同一套合同检查。
+
+2.17.2-local 已在两个真实页面间验证会话与普通记录的完整快照保存检查，并建立可运行的备份一致性、导入激活和恢复并发复现。后续先补一致读取事务与事务内代指针核对，再考虑更换后端；这些未修复项及最小方案见[本轮记录](local-fixes-2.17.2.md)。
 
 备份 codec 与存储 adapter 分开：当前完整库是 schema 3 JSONL，记录 schema 2，Excel 模板 schema 2；三者的版本不能互相替代。备份版本、记录版本、算法版本、应用版本分别记录。新配置用可选字段和明确默认值承接旧记录；新增持久化字段必须经过规范化、保存、备份、再导入和报告验证，不靠 UI 默认值模拟保存成功。
 

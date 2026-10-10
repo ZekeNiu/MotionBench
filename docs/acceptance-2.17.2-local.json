@@ -1,0 +1,1472 @@
+{
+  "pass": true,
+  "version": "2.17.2-local",
+  "deliveryScope": "Local reviewable build; no release, merge or deployment",
+  "completedAtUTC": "2026-10-10T12:51:05.794111+00:00",
+  "html": "MotionBench.html",
+  "sha256": "7bc7de631f464cee5c9dff2108375e8425ec34e355e943d030f5f38861c8c033",
+  "bytes": 4435395,
+  "reproducibleBuild": true,
+  "standaloneFilesEqual": true,
+  "unitSuites": 41,
+  "modelChecks": 583,
+  "browserWorkflowChecks": 30,
+  "pdfFilesReviewed": 2,
+  "pdfPagesVisuallyReviewed": 50,
+  "scientificModuleVerification": {
+    "scope": "Independent calculation modules; no direct final-HTML execution claim",
+    "tool": "SciPy 1.17.1",
+    "checks": 112,
+    "moduleSha256": {
+      "ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+      "ringside-sprint-fvp.js": "044adda2f1ff94ee334a139d86a5fd1426feaca216b6b97e25e83ca09ae731bd"
+    },
+    "scriptPath": "tests/sprint-fvp-independent-checks.py",
+    "scriptSha256": "8d62107eed552d827e5c8ab812c89385d469f85f26d9f0d0061107d64c98a140"
+  },
+  "additionalPdfModuleVerification": {
+    "checks": 6,
+    "samplePages": 16,
+    "stressPages": 11,
+    "scope": "Automated module checks; separate from visually reviewed sprint PDFs"
+  },
+  "concurrencyVerification": {
+    "sessionFix": [
+      {
+        "channel": "chrome",
+        "checks": 4,
+        "ordinarySaveRecovery": {
+          "name": "ordinary-record",
+          "identity": [
+            {
+              "pathname": "<CANDIDATE_PATH>/MotionBench.html",
+              "name": "motionbench-v3:<CANDIDATE_PATH>/MotionBench.html",
+              "generation": "generation_0db5ee1d-2d58-4755-b4c2-53a9cb55c057",
+              "recordId": "normal-concurrency-record"
+            },
+            {
+              "pathname": "<CANDIDATE_PATH>/MotionBench.html",
+              "name": "motionbench-v3:<CANDIDATE_PATH>/MotionBench.html",
+              "generation": "generation_0db5ee1d-2d58-4755-b4c2-53a9cb55c057",
+              "recordId": "normal-concurrency-record"
+            }
+          ],
+          "saveReturn": false,
+          "storedHeight": 70,
+          "localHeight": 75,
+          "saveStatus": "保存失败 · 此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录",
+          "localCopy": {
+            "path": "output/playwright/entry-concurrency-2.17.2/final/chrome-ordinary-record-local-copy.json",
+            "sha256": "2fc5747ac6b1650211cf968d1a1d31a9d8a00249ef8d2ac4fced2fd4c7f76f64",
+            "height": 75
+          },
+          "explicitReopenHeight": 70,
+          "normalSaveAfterReopen": true
+        }
+      },
+      {
+        "channel": "msedge",
+        "checks": 4,
+        "ordinarySaveRecovery": {
+          "name": "ordinary-record",
+          "identity": [
+            {
+              "pathname": "<CANDIDATE_PATH>/MotionBench.html",
+              "name": "motionbench-v3:<CANDIDATE_PATH>/MotionBench.html",
+              "generation": "generation_09836e2d-6bc9-40fc-9c16-dfbfdacf9d29",
+              "recordId": "normal-concurrency-record"
+            },
+            {
+              "pathname": "<CANDIDATE_PATH>/MotionBench.html",
+              "name": "motionbench-v3:<CANDIDATE_PATH>/MotionBench.html",
+              "generation": "generation_09836e2d-6bc9-40fc-9c16-dfbfdacf9d29",
+              "recordId": "normal-concurrency-record"
+            }
+          ],
+          "saveReturn": false,
+          "storedHeight": 70,
+          "localHeight": 75,
+          "saveStatus": "保存失败 · 此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录",
+          "localCopy": {
+            "path": "output/playwright/entry-concurrency-2.17.2/final/msedge-ordinary-record-local-copy.json",
+            "sha256": "ac55f078c8f1d51bee8d5caf123fce8562205b1843b4793881f27790ac9e623b",
+            "height": 75
+          },
+          "explicitReopenHeight": 70,
+          "normalSaveAfterReopen": true
+        }
+      }
+    ],
+    "knownUnfixedStorageReproductions": [
+      {
+        "channel": "chrome",
+        "normalControls": 3,
+        "knownUnfixedDefectsReproduced": 4,
+        "productFixed": false,
+        "checks": [
+          {
+            "name": "normal-backup-roundtrip",
+            "kind": "control",
+            "status": "control-passed",
+            "expectedDefectReproduced": false,
+            "before": {
+              "instanceGeneration": "generation_5ae65a93-ee33-45ed-a52d-4f921d9516d8",
+              "active": "generation_5ae65a93-ee33-45ed-a52d-4f921d9516d8",
+              "previous": "",
+              "selected": "generation_5ae65a93-ee33-45ed-a52d-4f921d9516d8",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_5ebf3296-a09d-4d35-9c15-6677ca58c3df"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "a673ba3ff02185239fc54165cec9c26182fc32eb5261783ad0ce00c73ed1a14c"
+            },
+            "importAccepted": true,
+            "after": {
+              "instanceGeneration": "generation_3ed0c1ce-7e86-4f5c-bf16-cf90fa150156",
+              "active": "generation_3ed0c1ce-7e86-4f5c-bf16-cf90fa150156",
+              "previous": "",
+              "selected": "generation_3ed0c1ce-7e86-4f5c-bf16-cf90fa150156",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_5ebf3296-a09d-4d35-9c15-6677ca58c3df"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "a673ba3ff02185239fc54165cec9c26182fc32eb5261783ad0ce00c73ed1a14c"
+            }
+          },
+          {
+            "name": "normal-merge-and-reversible-restore",
+            "kind": "control",
+            "status": "control-passed",
+            "expectedDefectReproduced": false,
+            "before": {
+              "instanceGeneration": "generation_025110dc-5cec-43b8-af0e-bbe4ccaacc6f",
+              "active": "generation_025110dc-5cec-43b8-af0e-bbe4ccaacc6f",
+              "previous": "",
+              "selected": "generation_025110dc-5cec-43b8-af0e-bbe4ccaacc6f",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_aedfd67f-b5d4-4a53-a78f-bc00b85a545a"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "220417ae70f3701ee0b93a334c58a2c4b0609d13c4a0764ee60a0c0a8173334a"
+            },
+            "merged": {
+              "instanceGeneration": "generation_562a45dc-b95a-4d58-b2e9-29b4516d04c7",
+              "active": "generation_562a45dc-b95a-4d58-b2e9-29b4516d04c7",
+              "previous": "generation_025110dc-5cec-43b8-af0e-bbe4ccaacc6f",
+              "selected": "generation_562a45dc-b95a-4d58-b2e9-29b4516d04c7",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-incoming"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-incoming"
+              ],
+              "profileIds": [
+                "evaluation_aedfd67f-b5d4-4a53-a78f-bc00b85a545a",
+                "evaluation_baa4524e-e470-4327-ab17-2205c046bdb0"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 2
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-incoming": "initial-incoming"
+              },
+              "recordsSha256": "cf759133a0bb4f924a1dc53da4b793b2ee0c2dacaff37b8aea8e0d5c37eb029c"
+            },
+            "restored": {
+              "instanceGeneration": "generation_025110dc-5cec-43b8-af0e-bbe4ccaacc6f",
+              "active": "generation_025110dc-5cec-43b8-af0e-bbe4ccaacc6f",
+              "previous": "generation_562a45dc-b95a-4d58-b2e9-29b4516d04c7",
+              "selected": "generation_025110dc-5cec-43b8-af0e-bbe4ccaacc6f",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_aedfd67f-b5d4-4a53-a78f-bc00b85a545a"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "220417ae70f3701ee0b93a334c58a2c4b0609d13c4a0764ee60a0c0a8173334a"
+            },
+            "returned": {
+              "instanceGeneration": "generation_562a45dc-b95a-4d58-b2e9-29b4516d04c7",
+              "active": "generation_562a45dc-b95a-4d58-b2e9-29b4516d04c7",
+              "previous": "generation_025110dc-5cec-43b8-af0e-bbe4ccaacc6f",
+              "selected": "generation_562a45dc-b95a-4d58-b2e9-29b4516d04c7",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-incoming"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-incoming"
+              ],
+              "profileIds": [
+                "evaluation_aedfd67f-b5d4-4a53-a78f-bc00b85a545a",
+                "evaluation_baa4524e-e470-4327-ab17-2205c046bdb0"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 2
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-incoming": "initial-incoming"
+              },
+              "recordsSha256": "cf759133a0bb4f924a1dc53da4b793b2ee0c2dacaff37b8aea8e0d5c37eb029c"
+            }
+          },
+          {
+            "name": "stale-save-is-guarded",
+            "kind": "control",
+            "status": "control-passed",
+            "expectedDefectReproduced": false,
+            "before": {
+              "instanceGeneration": "generation_bfcf47ec-0852-4022-802d-676de655b562",
+              "active": "generation_bfcf47ec-0852-4022-802d-676de655b562",
+              "previous": "",
+              "selected": "generation_bfcf47ec-0852-4022-802d-676de655b562",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_67f3fddd-b84d-4d59-a91a-b0e678603e95"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "36b02b422e813f51cd5e53c4d9ed7a0a5cc1be2fe1377ebeb93f5b7fa36538bc"
+            },
+            "guardObserved": true,
+            "error": "资料库已在另一个页面切换，请先备份未保存内容再重新打开",
+            "currentBeforeAttempt": {
+              "instanceGeneration": "generation_870e81c3-7560-4373-8f4e-5a05dc6fea31",
+              "active": "generation_870e81c3-7560-4373-8f4e-5a05dc6fea31",
+              "previous": "generation_bfcf47ec-0852-4022-802d-676de655b562",
+              "selected": "generation_870e81c3-7560-4373-8f4e-5a05dc6fea31",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_43b1c465-cb84-4175-8293-81b92c9e965d"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "c3bc80e64717f0d875de652f6ff01e84abec77f75a8508b5ced1394b1799d9af"
+            },
+            "after": {
+              "instanceGeneration": "generation_bfcf47ec-0852-4022-802d-676de655b562",
+              "active": "generation_870e81c3-7560-4373-8f4e-5a05dc6fea31",
+              "previous": "generation_bfcf47ec-0852-4022-802d-676de655b562",
+              "selected": "generation_870e81c3-7560-4373-8f4e-5a05dc6fea31",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_43b1c465-cb84-4175-8293-81b92c9e965d"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "c3bc80e64717f0d875de652f6ff01e84abec77f75a8508b5ced1394b1799d9af"
+            }
+          },
+          {
+            "name": "backup-after-athletes-concurrent-new-owner",
+            "kind": "reproduction",
+            "status": "known-unfixed-defect-reproduced",
+            "expectedDefectReproduced": true,
+            "before": {
+              "instanceGeneration": "generation_c7400bb1-90f9-4307-b71a-2ee1d8d84120",
+              "active": "generation_c7400bb1-90f9-4307-b71a-2ee1d8d84120",
+              "previous": "",
+              "selected": "generation_c7400bb1-90f9-4307-b71a-2ee1d8d84120",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_e6dc266d-2304-4733-9a7c-e34ad31ae8cc"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "ae9a5e79880ce2c573315ad400cc9bb3f7ad421e55f4cc557e0fed8abef163e1"
+            },
+            "athletesReadBeforeConcurrentCommit": [
+              "athlete-base"
+            ],
+            "concurrentCommit": {
+              "instanceGeneration": "generation_c7400bb1-90f9-4307-b71a-2ee1d8d84120",
+              "active": "generation_c7400bb1-90f9-4307-b71a-2ee1d8d84120",
+              "previous": "",
+              "selected": "generation_c7400bb1-90f9-4307-b71a-2ee1d8d84120",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-during-backup"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-during-backup"
+              ],
+              "profileIds": [
+                "evaluation_e6dc266d-2304-4733-9a7c-e34ad31ae8cc"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-during-backup": "committed-during-backup"
+              },
+              "recordsSha256": "5ff2d2ef08ea6f7ee194c569a80ff78ed2daf76e35a19bf5a05f4acd9dec62c3"
+            },
+            "backupCounts": {
+              "athlete": 1,
+              "record": 2,
+              "group": 0,
+              "profile": 1,
+              "config": 1
+            },
+            "missingOwners": [
+              {
+                "recordId": "record-during-backup",
+                "athleteId": "athlete-during-backup"
+              }
+            ],
+            "backupImportAccepted": false,
+            "importError": "测试的运动员或评价方案不存在",
+            "importTargetAfter": {
+              "instanceGeneration": "",
+              "active": "",
+              "previous": "",
+              "selected": "",
+              "athleteIds": [],
+              "recordIds": [],
+              "profileIds": [],
+              "counts": {
+                "athletes": 0,
+                "records": 0,
+                "profiles": 0
+              },
+              "recordNotes": {},
+              "recordsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            "guardObserved": false
+          },
+          {
+            "name": "stale-restore-collapses-active-previous",
+            "kind": "reproduction",
+            "status": "known-unfixed-defect-reproduced",
+            "expectedDefectReproduced": true,
+            "before": {
+              "instanceGeneration": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "active": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "previous": "",
+              "selected": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_e3436486-b50d-4919-b16d-8e660e1bd3f8"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "a8a9c9ebc3ca4bb52d8783232c52b64bbe767a601d457ed22f16d054fe4ba0ce"
+            },
+            "currentBeforeAttempt": {
+              "instanceGeneration": "generation_061449af-690e-49dc-88c1-3145ddcfe1ac",
+              "active": "generation_061449af-690e-49dc-88c1-3145ddcfe1ac",
+              "previous": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "selected": "generation_061449af-690e-49dc-88c1-3145ddcfe1ac",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_0ceadf93-ea57-4ace-a7fa-f5c4ba935c56"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "79b2c8e9c52531ade743825ae67619afc6ebbd6dc2afbf227c1127cb23fa3aad"
+            },
+            "after": {
+              "instanceGeneration": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "active": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "previous": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "selected": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_e3436486-b50d-4919-b16d-8e660e1bd3f8"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "a8a9c9ebc3ca4bb52d8783232c52b64bbe767a601d457ed22f16d054fe4ba0ce"
+            },
+            "formerActiveStillStored": {
+              "instanceGeneration": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "active": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "previous": "generation_68ecab62-f6a8-41c4-9c7b-a15874498ccd",
+              "selected": "generation_061449af-690e-49dc-88c1-3145ddcfe1ac",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_0ceadf93-ea57-4ace-a7fa-f5c4ba935c56"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "79b2c8e9c52531ade743825ae67619afc6ebbd6dc2afbf227c1127cb23fa3aad"
+            },
+            "guardObserved": false,
+            "implication": "Former active generation remains stored, but active and previous pointers both select the stale generation."
+          },
+          {
+            "name": "stale-import-replaces-newer-active",
+            "kind": "reproduction",
+            "status": "known-unfixed-defect-reproduced",
+            "expectedDefectReproduced": true,
+            "before": {
+              "instanceGeneration": "generation_8377f6d7-8b1c-40f0-be46-277adc269df1",
+              "active": "generation_8377f6d7-8b1c-40f0-be46-277adc269df1",
+              "previous": "",
+              "selected": "generation_8377f6d7-8b1c-40f0-be46-277adc269df1",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_1d52beeb-7bb7-42aa-88f0-6d79264be9f4"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "de3f705bff7dce951bbaa8c7890279acf743af40c0fb0954a1833fc41a39ecfa"
+            },
+            "currentBeforeAttempt": {
+              "instanceGeneration": "generation_50de9a96-5752-4191-834c-9172c17a14ae",
+              "active": "generation_50de9a96-5752-4191-834c-9172c17a14ae",
+              "previous": "generation_8377f6d7-8b1c-40f0-be46-277adc269df1",
+              "selected": "generation_50de9a96-5752-4191-834c-9172c17a14ae",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_87a69b05-e014-41bc-9239-27b00e11e9f1"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "edd64e4678deba9b0802f116314964e1a3e6fd18dc09b45b515e5d954af0572a"
+            },
+            "after": {
+              "instanceGeneration": "generation_1e99fd3d-8e77-4fb3-91f7-50dcca8bfd69",
+              "active": "generation_1e99fd3d-8e77-4fb3-91f7-50dcca8bfd69",
+              "previous": "generation_8377f6d7-8b1c-40f0-be46-277adc269df1",
+              "selected": "generation_1e99fd3d-8e77-4fb3-91f7-50dcca8bfd69",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-incoming"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-incoming"
+              ],
+              "profileIds": [
+                "evaluation_014060a7-1e03-49d1-83c3-079dbb84dfc0",
+                "evaluation_1d52beeb-7bb7-42aa-88f0-6d79264be9f4"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 2
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-incoming": "initial-incoming"
+              },
+              "recordsSha256": "fa51cdc5adcf60b1f2141c8453125cea2a33d7d5cb1c96f14018c4e0bfe89b29"
+            },
+            "newerGenerationStillStored": {
+              "instanceGeneration": "generation_1e99fd3d-8e77-4fb3-91f7-50dcca8bfd69",
+              "active": "generation_1e99fd3d-8e77-4fb3-91f7-50dcca8bfd69",
+              "previous": "generation_8377f6d7-8b1c-40f0-be46-277adc269df1",
+              "selected": "generation_50de9a96-5752-4191-834c-9172c17a14ae",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_87a69b05-e014-41bc-9239-27b00e11e9f1"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "edd64e4678deba9b0802f116314964e1a3e6fd18dc09b45b515e5d954af0572a"
+            },
+            "guardObserved": false,
+            "lostFromActiveRecordIds": [
+              "record-new-active"
+            ]
+          },
+          {
+            "name": "same-generation-save-lost-from-merged-active",
+            "kind": "reproduction",
+            "status": "known-unfixed-defect-reproduced",
+            "expectedDefectReproduced": true,
+            "before": {
+              "instanceGeneration": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "active": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "previous": "",
+              "selected": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_9721b7e2-f063-48bd-85a1-a0ce94fd6d70"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "5860e573b19e3b17f06ac5d2926838ecd38fc20937cc892f6703e7ea7b1c464f"
+            },
+            "concurrentCommit": {
+              "instanceGeneration": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "active": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "previous": "",
+              "selected": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_9721b7e2-f063-48bd-85a1-a0ce94fd6d70"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "B-committed-during-merge"
+              },
+              "recordsSha256": "630629b6d00a1faffb2ea61569f1860ebf8666c148088f8b2d1c33e892d400e0"
+            },
+            "after": {
+              "instanceGeneration": "generation_06e4d880-9d48-4bd4-994c-329fa0b1e97a",
+              "active": "generation_06e4d880-9d48-4bd4-994c-329fa0b1e97a",
+              "previous": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "selected": "generation_06e4d880-9d48-4bd4-994c-329fa0b1e97a",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-incoming"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-incoming"
+              ],
+              "profileIds": [
+                "evaluation_44ced3a9-1bec-437e-92d4-26ae30b1265c",
+                "evaluation_9721b7e2-f063-48bd-85a1-a0ce94fd6d70"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 2
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-incoming": "initial-incoming"
+              },
+              "recordsSha256": "0e84f024e8300f99348c090fb9cee8b0e0f5825026658be8f71090f878e06611"
+            },
+            "previousStillContainsConcurrentCommit": {
+              "instanceGeneration": "generation_06e4d880-9d48-4bd4-994c-329fa0b1e97a",
+              "active": "generation_06e4d880-9d48-4bd4-994c-329fa0b1e97a",
+              "previous": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "selected": "generation_659fc1af-d208-4a78-9ebc-325f760a6229",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_9721b7e2-f063-48bd-85a1-a0ce94fd6d70"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "B-committed-during-merge"
+              },
+              "recordsSha256": "630629b6d00a1faffb2ea61569f1860ebf8666c148088f8b2d1c33e892d400e0"
+            },
+            "guardObserved": false,
+            "activeGenerationWasUnchangedDuringConcurrentSave": true,
+            "implication": "Checking active generation alone cannot detect a same-generation save made after merge seeding."
+          }
+        ]
+      },
+      {
+        "channel": "msedge",
+        "normalControls": 3,
+        "knownUnfixedDefectsReproduced": 4,
+        "productFixed": false,
+        "checks": [
+          {
+            "name": "normal-backup-roundtrip",
+            "kind": "control",
+            "status": "control-passed",
+            "expectedDefectReproduced": false,
+            "before": {
+              "instanceGeneration": "generation_1312ca59-c47a-4961-9350-067c10c583d4",
+              "active": "generation_1312ca59-c47a-4961-9350-067c10c583d4",
+              "previous": "",
+              "selected": "generation_1312ca59-c47a-4961-9350-067c10c583d4",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_3d4ca89e-2c44-4f89-b454-29007162b4c2"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "78d32d72db20c9c9c24a4beb74df29425a47566f145a0ac29c246452c77b9a6e"
+            },
+            "importAccepted": true,
+            "after": {
+              "instanceGeneration": "generation_7caa37e4-8d78-4eb5-8252-0600409a5b09",
+              "active": "generation_7caa37e4-8d78-4eb5-8252-0600409a5b09",
+              "previous": "",
+              "selected": "generation_7caa37e4-8d78-4eb5-8252-0600409a5b09",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_3d4ca89e-2c44-4f89-b454-29007162b4c2"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "78d32d72db20c9c9c24a4beb74df29425a47566f145a0ac29c246452c77b9a6e"
+            }
+          },
+          {
+            "name": "normal-merge-and-reversible-restore",
+            "kind": "control",
+            "status": "control-passed",
+            "expectedDefectReproduced": false,
+            "before": {
+              "instanceGeneration": "generation_2a056343-2db9-4d84-a4ef-79aa303aceee",
+              "active": "generation_2a056343-2db9-4d84-a4ef-79aa303aceee",
+              "previous": "",
+              "selected": "generation_2a056343-2db9-4d84-a4ef-79aa303aceee",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_23a2bdfa-2a92-405d-b402-483a3673684b"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "3a1e9253d392a00e4372b2347fa09cddb79985599b84cb56eb11e4626d0ed5b3"
+            },
+            "merged": {
+              "instanceGeneration": "generation_5eb3122a-7aa6-4c37-8b8c-c1aec2266e66",
+              "active": "generation_5eb3122a-7aa6-4c37-8b8c-c1aec2266e66",
+              "previous": "generation_2a056343-2db9-4d84-a4ef-79aa303aceee",
+              "selected": "generation_5eb3122a-7aa6-4c37-8b8c-c1aec2266e66",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-incoming"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-incoming"
+              ],
+              "profileIds": [
+                "evaluation_23a2bdfa-2a92-405d-b402-483a3673684b",
+                "evaluation_f9ac13d4-aefa-4b88-8063-598c293ef3ad"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 2
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-incoming": "initial-incoming"
+              },
+              "recordsSha256": "ae583b9c06c3191cb8315f2975bad51dbf92c1a5455efa6fddb04f5bc87f9935"
+            },
+            "restored": {
+              "instanceGeneration": "generation_2a056343-2db9-4d84-a4ef-79aa303aceee",
+              "active": "generation_2a056343-2db9-4d84-a4ef-79aa303aceee",
+              "previous": "generation_5eb3122a-7aa6-4c37-8b8c-c1aec2266e66",
+              "selected": "generation_2a056343-2db9-4d84-a4ef-79aa303aceee",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_23a2bdfa-2a92-405d-b402-483a3673684b"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "3a1e9253d392a00e4372b2347fa09cddb79985599b84cb56eb11e4626d0ed5b3"
+            },
+            "returned": {
+              "instanceGeneration": "generation_5eb3122a-7aa6-4c37-8b8c-c1aec2266e66",
+              "active": "generation_5eb3122a-7aa6-4c37-8b8c-c1aec2266e66",
+              "previous": "generation_2a056343-2db9-4d84-a4ef-79aa303aceee",
+              "selected": "generation_5eb3122a-7aa6-4c37-8b8c-c1aec2266e66",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-incoming"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-incoming"
+              ],
+              "profileIds": [
+                "evaluation_23a2bdfa-2a92-405d-b402-483a3673684b",
+                "evaluation_f9ac13d4-aefa-4b88-8063-598c293ef3ad"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 2
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-incoming": "initial-incoming"
+              },
+              "recordsSha256": "ae583b9c06c3191cb8315f2975bad51dbf92c1a5455efa6fddb04f5bc87f9935"
+            }
+          },
+          {
+            "name": "stale-save-is-guarded",
+            "kind": "control",
+            "status": "control-passed",
+            "expectedDefectReproduced": false,
+            "before": {
+              "instanceGeneration": "generation_6c97b687-0492-45dd-9882-eb138d92bc7e",
+              "active": "generation_6c97b687-0492-45dd-9882-eb138d92bc7e",
+              "previous": "",
+              "selected": "generation_6c97b687-0492-45dd-9882-eb138d92bc7e",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_f802c84c-43b7-46d5-9966-9df09dde3600"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "ababe19a5da3690a92317cb0a11376dba6b78913bdee8642c7830659bb37d95e"
+            },
+            "guardObserved": true,
+            "error": "资料库已在另一个页面切换，请先备份未保存内容再重新打开",
+            "currentBeforeAttempt": {
+              "instanceGeneration": "generation_c9cdd8dc-1fed-43e2-a433-5b4f58521cd6",
+              "active": "generation_c9cdd8dc-1fed-43e2-a433-5b4f58521cd6",
+              "previous": "generation_6c97b687-0492-45dd-9882-eb138d92bc7e",
+              "selected": "generation_c9cdd8dc-1fed-43e2-a433-5b4f58521cd6",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_53b5770c-8023-4eeb-82f4-a366bc009c6a"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "e5b61707e7af9aaefe8114769c1def67b8a5d639fcf36b8eb60172b99760890d"
+            },
+            "after": {
+              "instanceGeneration": "generation_6c97b687-0492-45dd-9882-eb138d92bc7e",
+              "active": "generation_c9cdd8dc-1fed-43e2-a433-5b4f58521cd6",
+              "previous": "generation_6c97b687-0492-45dd-9882-eb138d92bc7e",
+              "selected": "generation_c9cdd8dc-1fed-43e2-a433-5b4f58521cd6",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_53b5770c-8023-4eeb-82f4-a366bc009c6a"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "e5b61707e7af9aaefe8114769c1def67b8a5d639fcf36b8eb60172b99760890d"
+            }
+          },
+          {
+            "name": "backup-after-athletes-concurrent-new-owner",
+            "kind": "reproduction",
+            "status": "known-unfixed-defect-reproduced",
+            "expectedDefectReproduced": true,
+            "before": {
+              "instanceGeneration": "generation_2f5652d6-dd17-4114-a4e7-0eed026bbee9",
+              "active": "generation_2f5652d6-dd17-4114-a4e7-0eed026bbee9",
+              "previous": "",
+              "selected": "generation_2f5652d6-dd17-4114-a4e7-0eed026bbee9",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_02f14abe-e5f6-40d1-91db-9a1b703e024c"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "b4477cb7d16c15eb4c2346b859f69cb1b48274b29bd2a896147450d2c22a715d"
+            },
+            "athletesReadBeforeConcurrentCommit": [
+              "athlete-base"
+            ],
+            "concurrentCommit": {
+              "instanceGeneration": "generation_2f5652d6-dd17-4114-a4e7-0eed026bbee9",
+              "active": "generation_2f5652d6-dd17-4114-a4e7-0eed026bbee9",
+              "previous": "",
+              "selected": "generation_2f5652d6-dd17-4114-a4e7-0eed026bbee9",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-during-backup"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-during-backup"
+              ],
+              "profileIds": [
+                "evaluation_02f14abe-e5f6-40d1-91db-9a1b703e024c"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-during-backup": "committed-during-backup"
+              },
+              "recordsSha256": "669c8848e04cb2d87b443b4d15aa8090675cbc520e52094e9634253aa5a857d0"
+            },
+            "backupCounts": {
+              "athlete": 1,
+              "record": 2,
+              "group": 0,
+              "profile": 1,
+              "config": 1
+            },
+            "missingOwners": [
+              {
+                "recordId": "record-during-backup",
+                "athleteId": "athlete-during-backup"
+              }
+            ],
+            "backupImportAccepted": false,
+            "importError": "测试的运动员或评价方案不存在",
+            "importTargetAfter": {
+              "instanceGeneration": "",
+              "active": "",
+              "previous": "",
+              "selected": "",
+              "athleteIds": [],
+              "recordIds": [],
+              "profileIds": [],
+              "counts": {
+                "athletes": 0,
+                "records": 0,
+                "profiles": 0
+              },
+              "recordNotes": {},
+              "recordsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+            },
+            "guardObserved": false
+          },
+          {
+            "name": "stale-restore-collapses-active-previous",
+            "kind": "reproduction",
+            "status": "known-unfixed-defect-reproduced",
+            "expectedDefectReproduced": true,
+            "before": {
+              "instanceGeneration": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "active": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "previous": "",
+              "selected": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_0dcdbf9b-64b5-4e90-a956-d3a540fe645c"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "16504bcc94a1dbd5b4818cc64cf7bacb85f8c3ffb18baa94d58cc8a0fcf10616"
+            },
+            "currentBeforeAttempt": {
+              "instanceGeneration": "generation_2bed468d-cde1-415a-b03c-f49f1f1c1ff8",
+              "active": "generation_2bed468d-cde1-415a-b03c-f49f1f1c1ff8",
+              "previous": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "selected": "generation_2bed468d-cde1-415a-b03c-f49f1f1c1ff8",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_d2e781c7-3e4d-458f-a2c1-40e4f4987dab"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "a4566b43155331f1babca7a526b8d47d937b01e5a4e1f98130f5c0e59d0e6836"
+            },
+            "after": {
+              "instanceGeneration": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "active": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "previous": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "selected": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_0dcdbf9b-64b5-4e90-a956-d3a540fe645c"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "16504bcc94a1dbd5b4818cc64cf7bacb85f8c3ffb18baa94d58cc8a0fcf10616"
+            },
+            "formerActiveStillStored": {
+              "instanceGeneration": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "active": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "previous": "generation_a30eba58-9eff-4309-8ee9-5c2fc3c6c7fb",
+              "selected": "generation_2bed468d-cde1-415a-b03c-f49f1f1c1ff8",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_d2e781c7-3e4d-458f-a2c1-40e4f4987dab"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "a4566b43155331f1babca7a526b8d47d937b01e5a4e1f98130f5c0e59d0e6836"
+            },
+            "guardObserved": false,
+            "implication": "Former active generation remains stored, but active and previous pointers both select the stale generation."
+          },
+          {
+            "name": "stale-import-replaces-newer-active",
+            "kind": "reproduction",
+            "status": "known-unfixed-defect-reproduced",
+            "expectedDefectReproduced": true,
+            "before": {
+              "instanceGeneration": "generation_a13ab808-9a2a-4f30-ba02-14c6667178d3",
+              "active": "generation_a13ab808-9a2a-4f30-ba02-14c6667178d3",
+              "previous": "",
+              "selected": "generation_a13ab808-9a2a-4f30-ba02-14c6667178d3",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_aa2b5d51-aa65-411c-a148-7d35bab9a14b"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "1b8c5385eb8bffb8ebbe7299941c58b63231680228bdf79ed774661d5908d036"
+            },
+            "currentBeforeAttempt": {
+              "instanceGeneration": "generation_6532f0c8-dcd7-4f8d-9397-b85f5a50d648",
+              "active": "generation_6532f0c8-dcd7-4f8d-9397-b85f5a50d648",
+              "previous": "generation_a13ab808-9a2a-4f30-ba02-14c6667178d3",
+              "selected": "generation_6532f0c8-dcd7-4f8d-9397-b85f5a50d648",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_432e284f-258b-4389-abb5-203f53f7d4e1"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "0d58149db59a3e5124c8487345d60f33a325dd8ce24aa11b95a6137b2b38c0b8"
+            },
+            "after": {
+              "instanceGeneration": "generation_d4210c7c-c32a-4fc1-a5e9-f5c06a351fa5",
+              "active": "generation_d4210c7c-c32a-4fc1-a5e9-f5c06a351fa5",
+              "previous": "generation_a13ab808-9a2a-4f30-ba02-14c6667178d3",
+              "selected": "generation_d4210c7c-c32a-4fc1-a5e9-f5c06a351fa5",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-incoming"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-incoming"
+              ],
+              "profileIds": [
+                "evaluation_252b1547-f3d5-403c-bcf7-871cf8ee58dc",
+                "evaluation_aa2b5d51-aa65-411c-a148-7d35bab9a14b"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 2
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-incoming": "initial-incoming"
+              },
+              "recordsSha256": "c5b2547724c5865fd863999c9c3ec28632935d10f31dcfa426d57e4603d24e7a"
+            },
+            "newerGenerationStillStored": {
+              "instanceGeneration": "generation_d4210c7c-c32a-4fc1-a5e9-f5c06a351fa5",
+              "active": "generation_d4210c7c-c32a-4fc1-a5e9-f5c06a351fa5",
+              "previous": "generation_a13ab808-9a2a-4f30-ba02-14c6667178d3",
+              "selected": "generation_6532f0c8-dcd7-4f8d-9397-b85f5a50d648",
+              "athleteIds": [
+                "athlete-new-active"
+              ],
+              "recordIds": [
+                "record-new-active"
+              ],
+              "profileIds": [
+                "evaluation_432e284f-258b-4389-abb5-203f53f7d4e1"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-new-active": "initial-new-active"
+              },
+              "recordsSha256": "0d58149db59a3e5124c8487345d60f33a325dd8ce24aa11b95a6137b2b38c0b8"
+            },
+            "guardObserved": false,
+            "lostFromActiveRecordIds": [
+              "record-new-active"
+            ]
+          },
+          {
+            "name": "same-generation-save-lost-from-merged-active",
+            "kind": "reproduction",
+            "status": "known-unfixed-defect-reproduced",
+            "expectedDefectReproduced": true,
+            "before": {
+              "instanceGeneration": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "active": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "previous": "",
+              "selected": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_4fdfe95f-40d9-4c27-b34a-bee0caeaa2e8"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "initial-base"
+              },
+              "recordsSha256": "a753f6fcaa346bacb7cf224bda89984cd9cc3482392c24957a4791d8e4229c70"
+            },
+            "concurrentCommit": {
+              "instanceGeneration": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "active": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "previous": "",
+              "selected": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_4fdfe95f-40d9-4c27-b34a-bee0caeaa2e8"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "B-committed-during-merge"
+              },
+              "recordsSha256": "f21d7f68f107766273ac7e5928a638a7c4678b9b5d8c67d69461d19a18c78380"
+            },
+            "after": {
+              "instanceGeneration": "generation_f3af07a3-b183-44aa-a513-746f287da89b",
+              "active": "generation_f3af07a3-b183-44aa-a513-746f287da89b",
+              "previous": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "selected": "generation_f3af07a3-b183-44aa-a513-746f287da89b",
+              "athleteIds": [
+                "athlete-base",
+                "athlete-incoming"
+              ],
+              "recordIds": [
+                "record-base",
+                "record-incoming"
+              ],
+              "profileIds": [
+                "evaluation_4fdfe95f-40d9-4c27-b34a-bee0caeaa2e8",
+                "evaluation_87b0548b-262e-4d62-ab4b-cb9db4cef0c1"
+              ],
+              "counts": {
+                "athletes": 2,
+                "records": 2,
+                "profiles": 2
+              },
+              "recordNotes": {
+                "record-base": "initial-base",
+                "record-incoming": "initial-incoming"
+              },
+              "recordsSha256": "feeecc47a23778aaedc0b836b3f57006f18d03708977ee1461ace327a2997dd6"
+            },
+            "previousStillContainsConcurrentCommit": {
+              "instanceGeneration": "generation_f3af07a3-b183-44aa-a513-746f287da89b",
+              "active": "generation_f3af07a3-b183-44aa-a513-746f287da89b",
+              "previous": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "selected": "generation_7ce3b65f-5b71-498c-a5f8-dfccbcff6a33",
+              "athleteIds": [
+                "athlete-base"
+              ],
+              "recordIds": [
+                "record-base"
+              ],
+              "profileIds": [
+                "evaluation_4fdfe95f-40d9-4c27-b34a-bee0caeaa2e8"
+              ],
+              "counts": {
+                "athletes": 1,
+                "records": 1,
+                "profiles": 1
+              },
+              "recordNotes": {
+                "record-base": "B-committed-during-merge"
+              },
+              "recordsSha256": "f21d7f68f107766273ac7e5928a638a7c4678b9b5d8c67d69461d19a18c78380"
+            },
+            "guardObserved": false,
+            "activeGenerationWasUnchangedDuringConcurrentSave": true,
+            "implication": "Checking active generation alone cannot detect a same-generation save made after merge seeding."
+          }
+        ]
+      }
+    ]
+  },
+  "splitIdImportVerification": [
+    {
+      "channel": "chrome",
+      "checks": 10,
+      "realIndexedDB": true
+    },
+    {
+      "channel": "msedge",
+      "checks": 10,
+      "realIndexedDB": true
+    }
+  ],
+  "additionalPdfRegressionVerification": {
+    "downloadCases": 12,
+    "failureRecovery": 1,
+    "repeatProducerChecks": 12,
+    "repeatPdfCases": 2,
+    "limits": [
+      "The repeat fixture starts from a clean library and explicitly imports a synthetic empty active record before editing the catalog. It does not cover catalog saving with no active record; that product path currently fails after saving when rendering settings.",
+      "Catalog primary-metric conversion uses the public compatibility API and legacy configuration renderer; this run does not claim that the old settings entry is reachable through current navigation.",
+      "These regression PDFs have automated pagination, completeness and cleanup checks. The separate sprint acceptance workflow owns full visual PDF review."
+    ]
+  },
+  "verificationLimits": [
+    "All acceptance records are synthetic; browser contexts are isolated and offline.",
+    "Narrow screens use viewport emulation; physical devices and paper printing were not tested.",
+    "User sprint workbook was not materialized on Windows; cached Library values are not original-formula/chart verification.",
+    "Independent SciPy evidence verifies recorded calculation modules, not execution of the final standalone HTML.",
+    "No native Microsoft Excel, live AI-provider quality or clean Windows installation claim is made."
+  ],
+  "evidenceIndex": "output/acceptance-manifest.json",
+  "historicalEvidenceIncludedInCurrentAcceptance": false,
+  "publicPathRedaction": "Local candidate paths are replaced with a shared placeholder; exact identities remain in local evidence."
+}
