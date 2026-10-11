@@ -6,7 +6,7 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 const assert = require("node:assert/strict");
-const { createHash } = require("node:crypto");
+const { createHash, randomUUID } = require("node:crypto");
 const { spawn } = require("node:child_process");
 const { _electron } = require("./helpers/playwright.cjs");
 const ExcelJS = require("../vendor/exceljs.min.js");
@@ -283,6 +283,60 @@ async function verifyManagementCloseGuards(page) {
   await clean();
   await showReport(page);
 }
+async function verifySaveFailureGuard(page) {
+  const before = recordSubset(await page.evaluate(() => App.getState()));
+  const checked = await page.evaluate(async () => {
+    if (!await App.saveNow()) throw Error("initial verification save failed");
+    const repository = App.getRepository(), original = repository.save.bind(repository);
+    let attempts = 0;
+    repository.save = (...args) => {
+      attempts++;
+      return attempts === 1 ? Promise.reject(Error("Synthetic one-time desktop save failure")) : original(...args);
+    };
+    try {
+      const rejected = await App.prepareDesktopClose();
+      const retried = await App.prepareDesktopClose();
+      const stored = await repository.loadRecord(App.getState().recordId);
+      return { rejected, retried, attempts, stored };
+    } finally { repository.save = original; }
+  });
+  assert.equal(checked.rejected.ok, false, "a rejected durable write prevents native exit");
+  assert.match(checked.rejected.reason, /保存/);
+  assert.equal(checked.retried.ok, true, "the same close barrier succeeds after the genuine repository retry");
+  assert.ok(checked.attempts >= 2);
+  assert.deepEqual(recordSubset(checked.stored), before, "a failed close attempt and retry preserve all test measurements and identities");
+  result.storageFailure = { rejected: checked.rejected, retried: checked.retried, attempts: checked.attempts };
+}
+async function saveSyntheticAIConnection(session) {
+  const availability = await session.electron.evaluate(({ safeStorage }) => ({
+    available: safeStorage.isEncryptionAvailable(),
+    backend: process.platform === "linux" ? safeStorage.getSelectedStorageBackend?.() || null : null,
+  }));
+  result.aiSettings = { availability };
+  if (process.platform === "win32") assert.equal(availability.available, true, "Windows acceptance requires actual OS credential encryption");
+  if (!availability.available || availability.backend === "basic_text") {
+    const status = await session.page.evaluate(() => RingsideAISettings.status());
+    assert.equal(status.state, "unsupported", "a non-Windows environment without real OS encryption fails closed");
+    result.aiSettings.notVerified = "OS encryption is unavailable in this platform; Windows smoke must verify DPAPI";
+    return null;
+  }
+  const syntheticKey = "synthetic-desktop-key-not-valid-" + randomUUID();
+  const saved = await session.page.evaluate(async key => {
+    const prior = await RingsideAISettings.status();
+    return RingsideAISettings.save({ base: "https://motionbench-desktop-tests.invalid/v1", model: "synthetic-verification-model", key, expectedRevision: prior.revision });
+  }, syntheticKey);
+  assert.equal(saved.hasKey, true);
+  assert.equal(saved.state, "ready");
+  assert.equal(Object.hasOwn(saved, "key"), false, "a renderer settings response never returns the stored credential");
+  const ciphertext = fs.readFileSync(path.join(session.dataDir, "ai-settings.dat"));
+  assert.ok(ciphertext.length > 0);
+  assert.equal(ciphertext.includes(Buffer.from(syntheticKey, "utf8")), false, "OS-encrypted file has no plaintext UTF-8 key");
+  assert.equal(ciphertext.includes(Buffer.from(syntheticKey, "utf16le")), false, "OS-encrypted file has no plaintext Windows UTF-16 key");
+  result.aiSettings.saved = saved;
+  result.aiSettings.ciphertext = { bytes: ciphertext.length, sha256: hash(ciphertext), plaintextAbsent: true };
+  await session.page.evaluate(() => App.loadAISettings(true));
+  return saved;
+}
 
 (async () => {
   let active;
@@ -329,6 +383,11 @@ async function verifyManagementCloseGuards(page) {
       await showReport(active.page);
     });
     await check("management close guards distinguish actual edits, read-only views, reverted forms, and in-progress saves", () => verifyManagementCloseGuards(active.page));
+    await check("a failed durable save prevents close and a real retry preserves every measurement", () => verifySaveFailureGuard(active.page));
+    let savedAI;
+    await check("AI settings use available OS encryption and never write a synthetic credential as plaintext", async () => {
+      savedAI = await saveSyntheticAIConnection(active);
+    });
     let expected;
     const firstPid = active.pid;
     await check("closing a native window flushes the latest edit and a separate process restores the same record", async () => {
@@ -347,6 +406,51 @@ async function verifyManagementCloseGuards(page) {
       await active.page.screenshot({ path: file, fullPage: true });
       artifact(file, "screenshot");
       result.recordId = expected.recordId;
+    });
+    let forgottenAI;
+    if (savedAI) {
+      await check("encrypted AI connection metadata and revision survive a separate native process", async () => {
+        const restored = await active.page.evaluate(() => RingsideAISettings.status());
+        assert.deepEqual(restored, savedAI);
+        result.aiSettings.restoredAfterProcessRestart = true;
+      });
+      await check("forgetting the synthetic credential removes key availability without a provider request", async () => {
+        forgottenAI = await active.page.evaluate(async () => {
+          const current = await RingsideAISettings.status();
+          return RingsideAISettings.forget({ expectedRevision: current.revision });
+        });
+        assert.equal(forgottenAI.hasKey, false);
+        assert.equal(forgottenAI.state, "empty");
+        assert.notEqual(forgottenAI.revision, savedAI.revision);
+        result.aiSettings.forgotten = forgottenAI;
+        await active.page.evaluate(() => App.loadAISettings(true));
+      });
+    }
+    await check("an invalid numeric draft survives real close and restart while the stored measurement stays valid", async () => {
+      await active.page.evaluate(() => App.openEntry("cmj"));
+      await field(active.page, "data.cmj.0.height").fill("-5");
+      assert.equal(await field(active.page, "data.cmj.0.height").getAttribute("aria-invalid"), "true");
+      assert.equal(Number((await active.page.evaluate(() => App.getState())).data.cmj[0].height), 41.75);
+      const draftPid = active.pid;
+      await closeNatively(active);
+      active = await launch(dataDir, "invalid-draft-restart");
+      assert.notEqual(active.pid, draftPid);
+      assert.equal(await field(active.page, "data.cmj.0.height").inputValue(), "-5", "the editable invalid draft is restored from desktop durable draft storage");
+      assert.equal(await field(active.page, "data.cmj.0.height").getAttribute("aria-invalid"), "true");
+      assert.deepEqual(recordSubset(await active.page.evaluate(() => App.getState())), expected, "an invalid draft never overwrites the last valid saved record");
+      const draftScreenshot = path.join(out, "native-invalid-draft-after-restart.png");
+      await active.page.screenshot({ path: draftScreenshot, fullPage: true });
+      artifact(draftScreenshot, "restored-invalid-draft-screenshot");
+      if (forgottenAI) {
+        const current = await active.page.evaluate(() => RingsideAISettings.status());
+        assert.deepEqual(current, forgottenAI);
+        result.aiSettings.forgetSurvivesProcessRestart = true;
+      }
+      await field(active.page, "data.cmj.0.height").fill("41.75");
+      assert.notEqual(await field(active.page, "data.cmj.0.height").getAttribute("aria-invalid"), "true");
+      assert.equal(await active.page.evaluate(() => App.saveNow()), true);
+      await showReport(active.page);
+      result.invalidDraft = { restored: true, validMeasurementPreserved: true, corrected: true };
     });
     await check("XLSX export passes through the native save handler and opens as a populated workbook", async () => {
       await active.page.evaluate(() => App.openEntry("cmj"));

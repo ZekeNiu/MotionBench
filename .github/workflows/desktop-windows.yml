@@ -67,10 +67,29 @@ jobs:
           $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-smoke/installed'
           npm run test:desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # Smoke profiles are intentionally disposable. This separate synthetic
+          # canary verifies the real default user data directory survives uninstall.
+          $defaultDataDirectory = Join-Path $env:APPDATA 'MotionBench Desktop'
+          New-Item -ItemType Directory -Force -Path $defaultDataDirectory | Out-Null
+          $canary = Join-Path $defaultDataDirectory ("desktop-uninstall-canary-" + [guid]::NewGuid().ToString('N') + '.json')
+          [ordered]@{ synthetic = $true; purpose = 'uninstall data preservation'; run = $env:GITHUB_RUN_ID } |
+            ConvertTo-Json | Set-Content -LiteralPath $canary -Encoding utf8
+          $canaryHashBefore = (Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash
           $uninstaller = Get-ChildItem $installDirectory -Filter '*Uninstall*.exe' | Select-Object -First 1
           if (-not $uninstaller) { throw 'Installed uninstaller is missing' }
           $uninstall = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -PassThru -Wait
           if ($uninstall.ExitCode -ne 0) { throw "Uninstaller failed with exit code $($uninstall.ExitCode)" }
+          if (-not (Test-Path -LiteralPath $canary)) { throw 'Uninstall removed the synthetic default user data canary' }
+          $canaryHashAfter = (Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash
+          if ($canaryHashAfter -ne $canaryHashBefore) { throw 'Uninstall changed the synthetic default user data canary' }
+          [ordered]@{
+            synthetic = $true
+            defaultDataDirectory = $defaultDataDirectory
+            canarySha256Before = $canaryHashBefore.ToLowerInvariant()
+            canarySha256After = $canaryHashAfter.ToLowerInvariant()
+            preserved = $true
+          } | ConvertTo-Json | Set-Content 'output/desktop-package/uninstall-data-check.json' -Encoding utf8
+          Remove-Item -LiteralPath $canary
       - name: Create SHA-256 checksums and build provenance
         shell: pwsh
         run: |
@@ -93,6 +112,7 @@ jobs:
             signed = $false
             packagedSmoke = 'passed'
             installedSmoke = 'passed'
+            syntheticDefaultDataUninstallCheck = 'passed'
           } | ConvertTo-Json | Set-Content 'dist-desktop/build-provenance.json' -Encoding utf8
       - name: Upload verified Windows downloads
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0

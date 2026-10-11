@@ -15,8 +15,14 @@ function externalURL(value) {
 }
 function safeFilename(value) {
   let name = path.basename(String(value || "MotionBench-export").replace(/\\/g, "/"))
-    .replace(/[\x00-\x1f<>:"/\\|?*]/g, "_").replace(/[ .]+$/, "").slice(0, 180);
+    .replace(/[\x00-\x1f<>:"/\\|?*]/g, "_").replace(/[ .]+$/, "");
   if (!name || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(name)) name = "MotionBench_" + (name || "export");
+  // Keep the type suffix when shortening imported names, so Windows retains
+  // its file association and the native dialog can offer the correct filter.
+  const extension = path.extname(name);
+  const suffix = extension.length <= 20 ? extension : "";
+  const stem = name.slice(0, name.length - suffix.length);
+  name = stem.slice(0, 180 - suffix.length).replace(/[\uD800-\uDBFF]$/, "") + suffix;
   return name;
 }
 function exportFilters(filename) {

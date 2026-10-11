@@ -8,6 +8,7 @@ const { createAIService } = require("./ai-service.cjs");
 
 protocol.registerSchemesAsPrivileged([{ scheme: "motionbench", privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } }]);
 app.setName("MotionBench Desktop");
+if (process.platform === "win32") app.setAppUserModelId("com.motionbench.desktop");
 const dataArgument = process.argv.find(arg => arg.startsWith("--motionbench-data-dir="));
 const dataDirectory = dataArgument ? dataArgument.slice("--motionbench-data-dir=".length) : path.join(app.getPath("appData"), "MotionBench Desktop");
 if (!path.isAbsolute(dataDirectory)) throw Error("MotionBench data directory must be an absolute path");
