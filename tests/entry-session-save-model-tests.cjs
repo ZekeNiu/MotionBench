@@ -25,7 +25,7 @@ function harness(baseline){
         stored=snapshot;
       },
     },
-  });c.window=c;c.RingsideStore={summary:value=>({recordId:value.recordId,athleteId:value.athleteId})};
+  });c.window=c;c.draftStorage=c.sessionStorage;c.RingsideStore={summary:value=>({recordId:value.recordId,athleteId:value.athleteId})};
   for(const name of ["entry-session","sprint-fvp"])vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"),c);
   // Execute production restore/save functions, replacing only storage and DOM boundaries.
   for(const [startMarker,endMarker]of [["  function recordContent(record) {","  function draftRecordKey("],["  function saveEntrySession() {","  async function leaveEntrySession() {"],["  function persistSessionRecord(record) {","  function changed(render = true) {"]]){

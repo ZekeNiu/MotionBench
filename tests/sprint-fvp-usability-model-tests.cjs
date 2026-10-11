@@ -7,7 +7,8 @@ const app=fs.readFileSync(path.join(__dirname,"../src/ringside-app.js"),"utf8");
 function test(name,run){run();passed++;console.log("PASS "+name);}
 function fixture(){const record=M.defaults();record.athlete.mass=75;record.athlete.height=180;record.enabled.sprint_fvp=true;record.data.sprint_fvp=[{id:"synthetic_trial",splits:[5,10,20,30].map(distanceM=>({distanceM,timeS:F.timeAtDistance(distanceM,9.5,1.15)})),excluded:false,exclusionReason:"",notes:"Synthetic usability"}];return record;}
 function appDraftHarness(record){
-  const harness=vm.createContext({console,RingsideModel:M,sessionStorage:{setItem(){}},T:context.RingsideTests});
+  const harness=vm.createContext({console,RingsideModel:M,sessionStorage:{setItem(){}},inputDraftStorageFailed:false,T:context.RingsideTests});
+  harness.draftStorage=harness.sessionStorage;
   vm.runInContext(`let state=${JSON.stringify(record)};const inputDrafts={};const undoDeletes=new Map();const copy=x=>JSON.parse(JSON.stringify(x));const draftStorageKey='synthetic-drafts';const persist=()=>{};const renderEntry=()=>{};const changed=()=>{};const toast=()=>{};const rowFocus=()=>{};let reportDirty=false;`,harness);
   // Exercise the application's actual path, migration, deletion and undo code.
   for(const [name,next]of [["draftRecordKey","stablePath"],["stablePath","resolveDraftPath"],["resolveDraftPath","draftsFor"],["draftsFor","saveDrafts"],["saveDrafts","rememberInputError"],["rememberDeletion","removeRow"],["undoDelete","requestMetricUnit"]]){

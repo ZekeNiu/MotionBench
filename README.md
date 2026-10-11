@@ -4,6 +4,8 @@
 
 [本版使用与回退说明](docs/motionbench-2.19.0.md)。正式日常入口为 `MotionBench.html`；Windows 运行 `Start_MotionBench.cmd`。历史交付说明和验收文件按版本保留。
 
+Windows 独立应用的安装、资料迁移、备份与两种版本回退见 [桌面版使用说明](docs/windows-desktop.md)。
+
 ![MotionBench](assets/motionbench-logo.svg)
 
 ### 打开与使用

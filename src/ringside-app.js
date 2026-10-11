@@ -72,8 +72,9 @@
     records: {},
   };
   const uiKey = "ringside-ui-v1:" + location.pathname;
+  const draftStorage = window.MotionBenchDesktop ? localStorage : sessionStorage;
   const entrySessionKey = "ringside-entry-session-v1:" + location.pathname;
-  let entrySessionStorageFailed = false, entryPersistQueue = Promise.resolve();
+  let entrySessionStorageFailed = false, inputDraftStorageFailed = false, entryPersistQueue = Promise.resolve();
   const modalFocus = new Map();
   let sidebarNavKey = "", sidebarRevealFrame;
   const draftStorageKey = "ringside-input-drafts-v1:" + location.pathname;
@@ -156,7 +157,7 @@
     }, 180);
   }
   try {
-    inputDrafts = JSON.parse(sessionStorage.getItem(draftStorageKey) || "{}");
+    inputDrafts = JSON.parse(draftStorage.getItem(draftStorageKey) || "{}");
   } catch {}
   if (
     !inputDrafts ||
@@ -384,12 +385,12 @@
     if (!entrySession) return;
     try {
       const dirtyRecords = entrySession.records.filter(r => entrySession.savedIds.has(r.recordId) && recordBaselines.get(r.recordId) !== recordContent(r)).map(record => ({record, baselineContent:recordBaselines.get(record.recordId)}));
-      sessionStorage.setItem(entrySessionKey, JSON.stringify(window.RingsideEntrySession.encode(entrySession, state?.recordId, {dirtyRecords})));
+      draftStorage.setItem(entrySessionKey, JSON.stringify(window.RingsideEntrySession.encode(entrySession, state?.recordId, {dirtyRecords})));
       entrySessionStorageFailed = false;
     } catch { entrySessionStorageFailed = true; }
   }
   async function restoreEntrySession() {
-    const raw = sessionStorage.getItem(entrySessionKey);
+    const raw = draftStorage.getItem(entrySessionKey);
     if (!raw) return;
     try {
       const baselines = new Map();
@@ -399,7 +400,7 @@
         return stored;
       });
       session.records = session.records.filter(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived) || session.pendingAthletes.some(a => a.id === r.athleteId));
-      if (!session.records.length) { sessionStorage.removeItem(entrySessionKey); return; }
+      if (!session.records.length) { draftStorage.removeItem(entrySessionKey); return; }
       entrySession = session;
       for (const record of session.records) if (T.isNative(record, "sprint_fvp")) record.data.sprint_fvp = window.RingsideSprintFVP.normalizeTrials(record.data.sprint_fvp);
       for (const r of session.records) if (session.savedIds.has(r.recordId)) {
@@ -416,7 +417,7 @@
     const session = entrySession;
     const target = session.savedIds.has(state?.recordId) ? state.recordId : session.records.find(r => session.savedIds.has(r.recordId))?.recordId || session.origin?.recordId;
     for (const r of session.records) if (!session.savedIds.has(r.recordId)) delete inputDrafts[draftRecordKey(r)];
-    saveDrafts(); entrySession = null; sessionStorage.removeItem(entrySessionKey); entrySessionStorageFailed = false;
+    saveDrafts(); entrySession = null; draftStorage.removeItem(entrySessionKey); entrySessionStorageFailed = false;
     state = target ? await repository.loadRecord(target) : null;
     library.activeAthleteId = state?.athleteId || session.origin?.athleteId || "";
     library.activeRecordId = state?.recordId || "";
@@ -505,8 +506,9 @@
   }
   function saveDrafts() {
     try {
-      sessionStorage.setItem(draftStorageKey, JSON.stringify(inputDrafts));
-    } catch {}
+      draftStorage.setItem(draftStorageKey, JSON.stringify(inputDrafts));
+      inputDraftStorageFailed = false;
+    } catch { inputDraftStorageFailed = true; }
   }
   function rememberInputError(control, message, raw = null) {
     const entries = (inputDrafts[draftRecordKey()] ||= {});
@@ -806,7 +808,7 @@
     saveEntrySession();
     if (!state) return;
     try {
-      sessionStorage.setItem(
+      draftStorage.setItem(
         uiKey,
         JSON.stringify({
           recordId: state.recordId,
@@ -4629,6 +4631,27 @@
     window.addEventListener("afterprint", restorePrint);
     setTimeout(() => window.print(), 80);
   }
+  // Native exit is an explicit save barrier. Browser beforeunload remains
+  // unchanged; the desktop host waits for this result before destroying a window.
+  async function prepareDesktopClose({discardSettings = false} = {}) {
+    await window.App.ready;
+    if (!library || !repository) return {ok:true};
+    const management = window.RingsideManagement.desktopCloseStatus?.() || {};
+    if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || window.RingsideExcelFlow.isBusy())
+      return {ok:false,reason:"正在处理资料、AI 设置或文件导出，请完成或取消当前操作后再退出。"};
+    saveEditor(); saveDrafts(); saveEntrySession(); rememberUI();
+    if (!await persist()) return {ok:false,reason:"当前数据尚未保存。请修正输入或重试保存，再退出程序。"};
+    await entryPersistQueue; await repository.flush();
+    // flush() alone deliberately swallows queue failures, so inspect the public
+    // operation result above and the error flags after the final awaited write.
+    saveDrafts(); saveEntrySession();
+    if (storageFailed || entrySessionStorageFailed || inputDraftStorageFailed)
+      return {ok:false,reason:"本机保存失败，请检查磁盘空间并导出资料后重试。"};
+    if (!discardSettings && (aiDirty || management.unsaved || creation || catalogEdit || unitChange))
+      return {ok:false,discardable:true,reason:"有尚未提交的设置或管理表单。"};
+    if (job) cancelJob();
+    return {ok:true};
+  }
   window.App = {
     openEntry,
     openManagement, openManagedRecord, effectiveRecord, recordBasis,
@@ -4640,7 +4663,7 @@
     async restorePreviousLibrary() { await repository.restorePrevious();cancelJob();await loadDirectory(false);openManagement("athletes");renderReport();renderWorkspace(); },
     downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
     refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
-    saveNow: persist,
+    saveNow: persist, prepareDesktopClose,
     creationNext,
     selectCreationContext, creationDateChanged, creationContextInput, reuseCreationTraining, reusePreviousTraining,
     editCurrentAthlete() { const owner=activeAthlete();if(owner)window.RingsideManagement.editAthlete(owner.id); },
@@ -5378,7 +5401,7 @@
       window.RingsideManagement.init();
       await restoreEntrySession();
       try {
-        const saved=JSON.parse(sessionStorage.getItem(uiKey)||"null");
+        const saved=JSON.parse(draftStorage.getItem(uiKey)||"null");
         if(saved){ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}}
       } catch {}
       document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);

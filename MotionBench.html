@@ -4029,7 +4029,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.19.0"});
+window.RingsideBuild=Object.freeze({"version": "2.19.0-desktop.1"});
 </script>
 <script>
 (function (root) {
@@ -19967,7 +19967,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID(), now=()=>new Date().toISOString(), lib=()=>App.getLibrary();
   const sections=[["athletes","运动员管理"],["teams","队伍管理"],["records","测试记录"],["plans","测试方案"],["metrics","指标库"],["profiles","评价方案"],["backup","备份与恢复"]];
-  let current="athletes", selected=new Set(), selections={}, filters={}, editor=null, planDraft=null, formAction=null, pendingReview=null, busy=false, filterTimer;
+  let current="athletes", selected=new Set(), selections={}, filters={}, editor=null, planDraft=null, planBaseline="", formBaseline="", formAction=null, pendingReview=null, busy=false, filterTimer;
   const pathKey=value=>encodeURIComponent(value).replace(/\./g,"%2E");
   const freshFilters=()=>({q:"",group:"",sport:"",status:"active",from:"",to:"",test:"",page:1,sort:"recent",athleteId:"",advanced:false});
   const filter=()=>filters[current] ||= freshFilters();
@@ -20190,8 +20190,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(editor?.readOnly&&current==="profiles") $("profileEditorFields")?.querySelectorAll("input,select,textarea,button").forEach(el=>{if(el.id!=="profileProjectSelect"&&el.dataset.managerAction!=="profile-subject")el.disabled=true;});
     if(key){const el=$("managementContent").querySelector(`[data-manager-filter="${key}"]`);el?.focus({preventScroll:true});if(caret!==null&&el?.setSelectionRange)try{el.setSelectionRange(caret,caret);}catch{}}
   }
+  function formSnapshot() {
+    return JSON.stringify([...$("managementFields").querySelectorAll("input,select,textarea")]
+      .filter(control=>!control.disabled&&!control.readOnly&&control.type!=="search"&&!['submit','button','reset'].includes(control.type))
+      .map((control,index)=>[control.name||control.id||index,control.type,
+        ['checkbox','radio'].includes(control.type)?control.checked:control.multiple?[...control.selectedOptions].map(option=>option.value):control.value,
+        !!control.validity?.badInput]));
+  }
   function showForm(title,html,action) {
     formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
+    formBaseline=formSnapshot();
   }
   function editAthlete(id="",groupId="") {
     const a=lib().athletes.find(a=>a.id===id)||(id?App.getAthlete?.(id):null),p=a?.profile||{};
@@ -20235,6 +20243,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function editorSnapshot(){return editor?Eval.canonical(Eval.serializeProfile(editor.profile)):"";}
   function editorDirty(){return !!editor&&!editor.readOnly&&(editor.isNew||editorSnapshot()!==editor.baseline);}
+  function desktopCloseStatus() {
+    const modalOpen=$("managementModal")?.classList.contains("show"), submit=$("managementForm")?.querySelector('[type="submit"]');
+    return {busy:busy||!!(modalOpen&&submit?.disabled),
+      unsaved:editorDirty()||!!(!editor?.readOnly&&editor?.invalid?.size)||!!(planDraft&&Eval.canonical(planDraft)!==planBaseline)||!!(modalOpen&&formSnapshot()!==formBaseline)};
+  }
   function discardEditor(){if(editorDirty()&&!confirm("当前评价方案有未保存修改，放弃这些修改？"))return false;editor=null;return true;}
   function parseProfile() {
     if(editor.invalid?.size)throw Error("请修正未完成的数值输入");
@@ -20333,14 +20346,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(["plan-new","plan-edit","plan-copy"].includes(name)){
       const existing=(lib().testPlans||[]).find(p=>p.id===id);planDraft=existing?clone(existing):{id:"plan_"+uid(),name:"",testIds:[],isoDirectionIds:[],defaultEvaluationProfileId:lib().defaultEvaluationProfileId,disabled:false};
       if(!Array.isArray(planDraft.isoDirectionIds))planDraft.isoDirectionIds=planDraft.testIds.includes("iso")?M.legacyIsoDirectionIds():[];
+      planBaseline=Eval.canonical(planDraft);
       if(name==="plan-copy"){planDraft.id="plan_"+uid();planDraft.name+=" 副本";planDraft.disabled=false;}return render();
     }
-    if(name==="plan-close"){planDraft=null;return render();}
+    if(name==="plan-close"){planDraft=null;planBaseline="";return render();}
     if(name==="plan-save"){
       const draft=clone(planDraft);draft.name=draft.name.trim();if(!draft.name)throw Error("请填写测试方案名称");
       if(!draft.testIds.length)throw Error("请至少添加一个测试项目");if(draft.testIds.some(id=>!lib().catalog.tests.some(t=>t.id===id)))throw Error("请移除已不存在的项目");
       if(draft.testIds.includes("iso")&&!draft.isoDirectionIds.length)throw Error("请至少选择一个等长力量测试方向");
-      await commit(candidate=>{candidate.testPlans||=[];if(candidate.testPlans.some(p=>p.id!==draft.id&&p.name===draft.name))throw Error("测试方案名称已存在");const i=candidate.testPlans.findIndex(p=>p.id===draft.id);if(i<0)candidate.testPlans.push(draft);else candidate.testPlans[i]=draft;});planDraft=null;return render();
+      await commit(candidate=>{candidate.testPlans||=[];if(candidate.testPlans.some(p=>p.id!==draft.id&&p.name===draft.name))throw Error("测试方案名称已存在");const i=candidate.testPlans.findIndex(p=>p.id===draft.id);if(i<0)candidate.testPlans.push(draft);else candidate.testPlans[i]=draft;});planDraft=null;planBaseline="";return render();
     }
     if(name==="plan-toggle"){await commit(candidate=>{const p=candidate.testPlans.find(p=>p.id===id);p.disabled=!p.disabled;});return render();}
     if(name==="plan-delete"){if(!confirm("删除这个测试方案？已经创建的测试记录继续保留。"))return;await commit(candidate=>{candidate.testPlans=candidate.testPlans.filter(p=>p.id!==id);});return render();}
@@ -20504,7 +20518,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}${imtp}<h3>目标达成与双侧差异</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});
     $("managementForm").querySelector('[type="submit"]').textContent="关闭";
   }
-  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective};
+  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective,desktopCloseStatus};
 })(window);
 
 </script>
@@ -20943,8 +20957,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     records: {},
   };
   const uiKey = "ringside-ui-v1:" + location.pathname;
+  const draftStorage = window.MotionBenchDesktop ? localStorage : sessionStorage;
   const entrySessionKey = "ringside-entry-session-v1:" + location.pathname;
-  let entrySessionStorageFailed = false, entryPersistQueue = Promise.resolve();
+  let entrySessionStorageFailed = false, inputDraftStorageFailed = false, entryPersistQueue = Promise.resolve();
   const modalFocus = new Map();
   let sidebarNavKey = "", sidebarRevealFrame;
   const draftStorageKey = "ringside-input-drafts-v1:" + location.pathname;
@@ -21027,7 +21042,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }, 180);
   }
   try {
-    inputDrafts = JSON.parse(sessionStorage.getItem(draftStorageKey) || "{}");
+    inputDrafts = JSON.parse(draftStorage.getItem(draftStorageKey) || "{}");
   } catch {}
   if (
     !inputDrafts ||
@@ -21255,12 +21270,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (!entrySession) return;
     try {
       const dirtyRecords = entrySession.records.filter(r => entrySession.savedIds.has(r.recordId) && recordBaselines.get(r.recordId) !== recordContent(r)).map(record => ({record, baselineContent:recordBaselines.get(record.recordId)}));
-      sessionStorage.setItem(entrySessionKey, JSON.stringify(window.RingsideEntrySession.encode(entrySession, state?.recordId, {dirtyRecords})));
+      draftStorage.setItem(entrySessionKey, JSON.stringify(window.RingsideEntrySession.encode(entrySession, state?.recordId, {dirtyRecords})));
       entrySessionStorageFailed = false;
     } catch { entrySessionStorageFailed = true; }
   }
   async function restoreEntrySession() {
-    const raw = sessionStorage.getItem(entrySessionKey);
+    const raw = draftStorage.getItem(entrySessionKey);
     if (!raw) return;
     try {
       const baselines = new Map();
@@ -21270,7 +21285,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         return stored;
       });
       session.records = session.records.filter(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived) || session.pendingAthletes.some(a => a.id === r.athleteId));
-      if (!session.records.length) { sessionStorage.removeItem(entrySessionKey); return; }
+      if (!session.records.length) { draftStorage.removeItem(entrySessionKey); return; }
       entrySession = session;
       for (const record of session.records) if (T.isNative(record, "sprint_fvp")) record.data.sprint_fvp = window.RingsideSprintFVP.normalizeTrials(record.data.sprint_fvp);
       for (const r of session.records) if (session.savedIds.has(r.recordId)) {
@@ -21287,7 +21302,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const session = entrySession;
     const target = session.savedIds.has(state?.recordId) ? state.recordId : session.records.find(r => session.savedIds.has(r.recordId))?.recordId || session.origin?.recordId;
     for (const r of session.records) if (!session.savedIds.has(r.recordId)) delete inputDrafts[draftRecordKey(r)];
-    saveDrafts(); entrySession = null; sessionStorage.removeItem(entrySessionKey); entrySessionStorageFailed = false;
+    saveDrafts(); entrySession = null; draftStorage.removeItem(entrySessionKey); entrySessionStorageFailed = false;
     state = target ? await repository.loadRecord(target) : null;
     library.activeAthleteId = state?.athleteId || session.origin?.athleteId || "";
     library.activeRecordId = state?.recordId || "";
@@ -21376,8 +21391,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function saveDrafts() {
     try {
-      sessionStorage.setItem(draftStorageKey, JSON.stringify(inputDrafts));
-    } catch {}
+      draftStorage.setItem(draftStorageKey, JSON.stringify(inputDrafts));
+      inputDraftStorageFailed = false;
+    } catch { inputDraftStorageFailed = true; }
   }
   function rememberInputError(control, message, raw = null) {
     const entries = (inputDrafts[draftRecordKey()] ||= {});
@@ -21677,7 +21693,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     saveEntrySession();
     if (!state) return;
     try {
-      sessionStorage.setItem(
+      draftStorage.setItem(
         uiKey,
         JSON.stringify({
           recordId: state.recordId,
@@ -25500,6 +25516,27 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     window.addEventListener("afterprint", restorePrint);
     setTimeout(() => window.print(), 80);
   }
+  // Native exit is an explicit save barrier. Browser beforeunload remains
+  // unchanged; the desktop host waits for this result before destroying a window.
+  async function prepareDesktopClose({discardSettings = false} = {}) {
+    await window.App.ready;
+    if (!library || !repository) return {ok:true};
+    const management = window.RingsideManagement.desktopCloseStatus?.() || {};
+    if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || window.RingsideExcelFlow.isBusy())
+      return {ok:false,reason:"正在处理资料、AI 设置或文件导出，请完成或取消当前操作后再退出。"};
+    saveEditor(); saveDrafts(); saveEntrySession(); rememberUI();
+    if (!await persist()) return {ok:false,reason:"当前数据尚未保存。请修正输入或重试保存，再退出程序。"};
+    await entryPersistQueue; await repository.flush();
+    // flush() alone deliberately swallows queue failures, so inspect the public
+    // operation result above and the error flags after the final awaited write.
+    saveDrafts(); saveEntrySession();
+    if (storageFailed || entrySessionStorageFailed || inputDraftStorageFailed)
+      return {ok:false,reason:"本机保存失败，请检查磁盘空间并导出资料后重试。"};
+    if (!discardSettings && (aiDirty || management.unsaved || creation || catalogEdit || unitChange))
+      return {ok:false,discardable:true,reason:"有尚未提交的设置或管理表单。"};
+    if (job) cancelJob();
+    return {ok:true};
+  }
   window.App = {
     openEntry,
     openManagement, openManagedRecord, effectiveRecord, recordBasis,
@@ -25511,7 +25548,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     async restorePreviousLibrary() { await repository.restorePrevious();cancelJob();await loadDirectory(false);openManagement("athletes");renderReport();renderWorkspace(); },
     downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
     refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
-    saveNow: persist,
+    saveNow: persist, prepareDesktopClose,
     creationNext,
     selectCreationContext, creationDateChanged, creationContextInput, reuseCreationTraining, reusePreviousTraining,
     editCurrentAthlete() { const owner=activeAthlete();if(owner)window.RingsideManagement.editAthlete(owner.id); },
@@ -26249,7 +26286,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       window.RingsideManagement.init();
       await restoreEntrySession();
       try {
-        const saved=JSON.parse(sessionStorage.getItem(uiKey)||"null");
+        const saved=JSON.parse(draftStorage.getItem(uiKey)||"null");
         if(saved){ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}}
       } catch {}
       document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);

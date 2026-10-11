@@ -1,0 +1,118 @@
+name: MotionBench Windows Desktop
+
+on:
+  push:
+    branches:
+      - desktop-windows-*
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    env:
+      CI: true
+      CSC_IDENTITY_AUTO_DISCOVERY: false
+    steps:
+      - name: Check out the reviewed desktop branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Install build Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install Python for the shared HTML build
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+      - name: Install locked development dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build the shared offline application
+        run: npm run build
+      - name: Check existing application calculations and models
+        run: npm test
+      - name: Check desktop security and embedded AI service
+        run: npm run test:desktop-unit
+      - name: Create the Windows x64 installer and portable executable
+        run: npm run dist:windows
+      - name: Verify packaged assets and bundled Chromium
+        run: npm run verify:desktop-package
+      - name: Exercise the actual packaged Windows application
+        shell: pwsh
+        run: |
+          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-smoke/packaged'
+          npm run test:desktop
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Install and exercise the per-user application
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem 'dist-desktop/*-Setup-x64.exe' | Select-Object -First 1
+          if (-not $installer) { throw 'Missing Windows installer' }
+          $installDirectory = Join-Path $env:RUNNER_TEMP 'MotionBench-desktop-install-test'
+          $install = Start-Process -FilePath $installer.FullName -ArgumentList "/S /D=$installDirectory" -PassThru -Wait
+          if ($install.ExitCode -ne 0) { throw "Installer failed with exit code $($install.ExitCode)" }
+          $installedExecutable = Join-Path $installDirectory 'MotionBench.exe'
+          if (-not (Test-Path $installedExecutable)) { throw 'Installed executable is missing' }
+          $env:MOTIONBENCH_EXECUTABLE = $installedExecutable
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-smoke/installed'
+          npm run test:desktop
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $uninstaller = Get-ChildItem $installDirectory -Filter '*Uninstall*.exe' | Select-Object -First 1
+          if (-not $uninstaller) { throw 'Installed uninstaller is missing' }
+          $uninstall = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -PassThru -Wait
+          if ($uninstall.ExitCode -ne 0) { throw "Uninstaller failed with exit code $($uninstall.ExitCode)" }
+      - name: Create SHA-256 checksums and build provenance
+        shell: pwsh
+        run: |
+          $executables = @(Get-ChildItem 'dist-desktop/*.exe' | Sort-Object Name)
+          if ($executables.Count -ne 2) { throw 'Expected exactly installer and portable executables' }
+          $checksums = foreach ($file in $executables) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($file.Name)"
+          }
+          $checksums | Set-Content 'dist-desktop/SHA256SUMS.txt' -Encoding utf8
+          $package = Get-Content 'package.json' -Raw | ConvertFrom-Json
+          [ordered]@{
+            version = $package.version
+            commit = $env:GITHUB_SHA
+            branch = $env:GITHUB_REF_NAME
+            run = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            electron = $package.devDependencies.electron
+            electronBuilder = $package.devDependencies.'electron-builder'
+            architecture = 'x64'
+            signed = $false
+            packagedSmoke = 'passed'
+            installedSmoke = 'passed'
+          } | ConvertTo-Json | Set-Content 'dist-desktop/build-provenance.json' -Encoding utf8
+      - name: Upload verified Windows downloads
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: MotionBench-Windows-x64-${{ github.run_number }}
+          path: |
+            dist-desktop/*.exe
+            dist-desktop/SHA256SUMS.txt
+            dist-desktop/build-provenance.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+      - name: Upload test evidence, including failed runs
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: MotionBench-Desktop-Evidence-${{ github.run_number }}
+          path: |
+            output/desktop-smoke/
+            output/desktop-package/
+            output/tests/
+          if-no-files-found: warn
+          retention-days: 90
