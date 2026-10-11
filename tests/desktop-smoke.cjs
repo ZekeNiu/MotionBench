@@ -447,8 +447,8 @@ async function saveSyntheticAIConnection(session) {
         return { status: response.status, contents: await response.text() };
       });
       assert.equal(protocolPost.status, 403, "the custom protocol never exposes the host AI settings service");
-      const untrustedWindow = await active.electron.evaluate(async ({ BrowserWindow }, requestId) => {
-        const preload = BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences().preload;
+      const untrustedWindow = await active.electron.evaluate(async ({ app, BrowserWindow }, requestId) => {
+        const preload = require("node:path").join(app.getAppPath(), "desktop", "preload.cjs");
         const probe = new BrowserWindow({ show: false, webPreferences: { preload, nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true } });
         try {
           await probe.loadURL("data:text/html,<title>Synthetic AI source-boundary probe</title>");
