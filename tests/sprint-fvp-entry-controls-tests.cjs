@@ -29,14 +29,14 @@ function harness(record = fixture()) {
   const messages = [], counts = {changes:0, entry:0, report:0}, storage = new Map(); let change;
   const mode = control({}, {type:"select-one", tagName:"SELECT", dataset:{path:"sprintFvpConfig.inputTimeMode"}, value:"interval"});
   const c = vm.createContext({console, Intl, crypto:crypto.webcrypto, Map, Set, JSON, copy, M, T, state:record,
-    ui:{mode:"entry"}, entryTab:"sprint_fvp", inputDrafts:{}, draftStorageKey:"synthetic_drafts", undoDeletes:new Map(),
+    ui:{mode:"entry"}, entryTab:"sprint_fvp", inputDrafts:{}, inputDraftStorageFailed:false, draftStorageKey:"synthetic_drafts", undoDeletes:new Map(),
     sessionStorage:{setItem:(key, value) => storage.set(key, value)}, document:{addEventListener:(name, handler) => {if (name === "change") change = handler;}},
     changed:() => {counts.changes++;}, renderEntry:() => {counts.entry++;}, renderReport:() => {counts.report++;},
     reportEditInfo:() => null, refreshCapabilityAnalysis:() => {counts.report++;},
     toast:message => messages.push(message), inputIssue:() => {}, rowFocus:() => {}, forgetInputError:() => {},
     $:() => ({querySelector:() => mode}), uid:() => crypto.randomUUID(),
     setPath:(key, value) => {const parts = key.split("."); let target = record; for (const part of parts.slice(0, -1)) target = target[part] ||= {}; target[parts.at(-1)] = value; counts.changes++;},
-  }); c.window = c; c.RingsideSprintFVPEntry = model.RingsideSprintFVPEntry;
+  }); c.window = c; c.draftStorage = c.sessionStorage; c.RingsideSprintFVPEntry = model.RingsideSprintFVPEntry;
   // Use the real App entry/change code; replace only rendering and browser storage boundaries.
   for (const [start, end] of [["  function draftRecordKey(", "  function rememberInputError("], ["  function addRow(", "  function addIso("], ["  function inheritConfiguration(", "  async function createAthlete("], ['  document.addEventListener("change", (e) => {', '  $("interpEditor").addEventListener("paste",']])
     vm.runInContext(section(start, end), c);

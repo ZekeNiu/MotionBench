@@ -41,6 +41,7 @@ assert shell.count("<!-- RINGSIDE_SCRIPTS -->") == 1
 script_tags = "\n".join("<script>\n" + code.replace("</script", "<\\/script") + "\n</script>" for code in pieces)
 result = shell.replace("<!-- RINGSIDE_SCRIPTS -->", script_tags)
 destination = ROOT / "MotionBench.html"
-destination.write_text(result, encoding="utf-8")
+# Use identical artifact bytes on Windows and Linux; source newlines normalize on read.
+destination.write_bytes(result.encode("utf-8"))
 # The retired root alias stays absent; the daily entry URL is MotionBench.html.
 print(f"Built {destination.name}: {destination.stat().st_size:,} bytes; {len(pieces)} offline scripts")

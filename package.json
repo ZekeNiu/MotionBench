@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.19.0",
+  "version": "2.19.0-desktop.1",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -50,9 +50,23 @@
     "test:sprint-pdf": "node tests/sprint-fvp-browser-tests.cjs --pdf --artifact-dir output/playwright/sprint-fvp-2.17.5-local",
     "test:entry-concurrency": "node tests/entry-concurrency-browser-tests.cjs --artifact-dir output/playwright/entry-concurrency-2.17.3/final && node tests/entry-concurrency-browser-tests.cjs --edge --artifact-dir output/playwright/entry-concurrency-2.17.3/final",
     "test:storage-repros": "node tests/storage-concurrency-repros.cjs --artifact-dir output/playwright/storage-repros-v2.17.3/final && node tests/storage-concurrency-repros.cjs --edge --artifact-dir output/playwright/storage-repros-v2.17.3/final",
-    "test:split-id-import": "node tests/sprint-split-id-import-tests.cjs --artifact-dir output/playwright/split-id-import-2.17.3/final && node tests/sprint-split-id-import-tests.cjs --edge --artifact-dir output/playwright/split-id-import-2.17.3/final"
+    "test:split-id-import": "node tests/sprint-split-id-import-tests.cjs --artifact-dir output/playwright/split-id-import-2.17.3/final && node tests/sprint-split-id-import-tests.cjs --edge --artifact-dir output/playwright/split-id-import-2.17.3/final",
+    "start:desktop": "npm run build && electron .",
+    "pack:desktop": "npm run build && electron-builder --config electron-builder.yml --dir --publish never",
+    "dist:windows": "npm run build && electron-builder --config electron-builder.yml --win --x64 --publish never",
+    "test:desktop": "node tests/desktop-smoke.cjs",
+    "test:desktop-unit": "node tests/desktop-security-tests.cjs && node tests/desktop-ai-tests.cjs && node tests/desktop-ai-bridge-tests.cjs && node tests/desktop-bridge-tests.cjs",
+    "verify:desktop-package": "node scripts/check-desktop-package.cjs"
   },
   "devDependencies": {
-    "playwright": "1.57.0"
+    "playwright": "1.57.0",
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3"
+  },
+  "main": "desktop/main.cjs",
+  "author": "Zeke Niu",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24 <25"
   }
 }

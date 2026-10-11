@@ -29,3 +29,6 @@ tmp/
 # Private deployment archives and rollback state
 .motionbench-backups/
 /交付/
+
+# Generated native desktop packages
+dist-desktop/

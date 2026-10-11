@@ -1,0 +1,47 @@
+# Keep the desktop runtime small and exclude test fixtures, real data and old ZIPs.
+appId: com.motionbench.desktop
+productName: MotionBench
+copyright: Copyright © 2026 Zeke Niu
+asar: true
+compression: maximum
+npmRebuild: false
+forceCodeSigning: false
+directories:
+  output: dist-desktop
+  buildResources: desktop/assets
+files:
+  - MotionBench.html
+  - package.json
+  - desktop/*.cjs
+  - desktop/assets/motionbench.ico
+  - desktop/assets/motionbench.png
+  - vendor/*.LICENSE.txt
+  - vendor/versions.json
+win:
+  icon: desktop/assets/motionbench.ico
+  executableName: MotionBench
+  requestedExecutionLevel: asInvoker
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+nsis:
+  artifactName: MotionBench-${version}-Setup-${arch}.${ext}
+  oneClick: true
+  perMachine: false
+  allowElevation: false
+  packElevateHelper: false
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: MotionBench
+  runAfterFinish: false
+portable:
+  artifactName: MotionBench-${version}-Portable-${arch}.${ext}
+  requestExecutionLevel: user
+  # In locked builder 26.15.3, true omits UNPACK_DIR_NAME and uses NSIS's
+  # per-launch $PLUGINSDIR. A fixed extraction path races repeated launches.
+  unpackDirName: true
+# Releases are a deliberate later action; every build script also passes --publish never.
+publish: null

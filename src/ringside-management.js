@@ -5,7 +5,7 @@
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID(), now=()=>new Date().toISOString(), lib=()=>App.getLibrary();
   const sections=[["athletes","运动员管理"],["teams","队伍管理"],["records","测试记录"],["plans","测试方案"],["metrics","指标库"],["profiles","评价方案"],["backup","备份与恢复"]];
-  let current="athletes", selected=new Set(), selections={}, filters={}, editor=null, planDraft=null, formAction=null, pendingReview=null, busy=false, filterTimer;
+  let current="athletes", selected=new Set(), selections={}, filters={}, editor=null, planDraft=null, planBaseline="", formBaseline="", formAction=null, pendingReview=null, busy=false, filterTimer;
   const pathKey=value=>encodeURIComponent(value).replace(/\./g,"%2E");
   const freshFilters=()=>({q:"",group:"",sport:"",status:"active",from:"",to:"",test:"",page:1,sort:"recent",athleteId:"",advanced:false});
   const filter=()=>filters[current] ||= freshFilters();
@@ -228,8 +228,16 @@
     if(editor?.readOnly&&current==="profiles") $("profileEditorFields")?.querySelectorAll("input,select,textarea,button").forEach(el=>{if(el.id!=="profileProjectSelect"&&el.dataset.managerAction!=="profile-subject")el.disabled=true;});
     if(key){const el=$("managementContent").querySelector(`[data-manager-filter="${key}"]`);el?.focus({preventScroll:true});if(caret!==null&&el?.setSelectionRange)try{el.setSelectionRange(caret,caret);}catch{}}
   }
+  function formSnapshot() {
+    return JSON.stringify([...$("managementFields").querySelectorAll("input,select,textarea")]
+      .filter(control=>!control.disabled&&!control.readOnly&&control.type!=="search"&&!['submit','button','reset'].includes(control.type))
+      .map((control,index)=>[control.name||control.id||index,control.type,
+        ['checkbox','radio'].includes(control.type)?control.checked:control.multiple?[...control.selectedOptions].map(option=>option.value):control.value,
+        !!control.validity?.badInput]));
+  }
   function showForm(title,html,action) {
     formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
+    formBaseline=formSnapshot();
   }
   function editAthlete(id="",groupId="") {
     const a=lib().athletes.find(a=>a.id===id)||(id?App.getAthlete?.(id):null),p=a?.profile||{};
@@ -273,6 +281,11 @@
   }
   function editorSnapshot(){return editor?Eval.canonical(Eval.serializeProfile(editor.profile)):"";}
   function editorDirty(){return !!editor&&!editor.readOnly&&(editor.isNew||editorSnapshot()!==editor.baseline);}
+  function desktopCloseStatus() {
+    const modalOpen=$("managementModal")?.classList.contains("show"), submit=$("managementForm")?.querySelector('[type="submit"]');
+    return {busy:busy||!!(modalOpen&&submit?.disabled),
+      unsaved:editorDirty()||!!(!editor?.readOnly&&editor?.invalid?.size)||!!(planDraft&&Eval.canonical(planDraft)!==planBaseline)||!!(modalOpen&&formSnapshot()!==formBaseline)};
+  }
   function discardEditor(){if(editorDirty()&&!confirm("当前评价方案有未保存修改，放弃这些修改？"))return false;editor=null;return true;}
   function parseProfile() {
     if(editor.invalid?.size)throw Error("请修正未完成的数值输入");
@@ -371,14 +384,15 @@
     if(["plan-new","plan-edit","plan-copy"].includes(name)){
       const existing=(lib().testPlans||[]).find(p=>p.id===id);planDraft=existing?clone(existing):{id:"plan_"+uid(),name:"",testIds:[],isoDirectionIds:[],defaultEvaluationProfileId:lib().defaultEvaluationProfileId,disabled:false};
       if(!Array.isArray(planDraft.isoDirectionIds))planDraft.isoDirectionIds=planDraft.testIds.includes("iso")?M.legacyIsoDirectionIds():[];
+      planBaseline=Eval.canonical(planDraft);
       if(name==="plan-copy"){planDraft.id="plan_"+uid();planDraft.name+=" 副本";planDraft.disabled=false;}return render();
     }
-    if(name==="plan-close"){planDraft=null;return render();}
+    if(name==="plan-close"){planDraft=null;planBaseline="";return render();}
     if(name==="plan-save"){
       const draft=clone(planDraft);draft.name=draft.name.trim();if(!draft.name)throw Error("请填写测试方案名称");
       if(!draft.testIds.length)throw Error("请至少添加一个测试项目");if(draft.testIds.some(id=>!lib().catalog.tests.some(t=>t.id===id)))throw Error("请移除已不存在的项目");
       if(draft.testIds.includes("iso")&&!draft.isoDirectionIds.length)throw Error("请至少选择一个等长力量测试方向");
-      await commit(candidate=>{candidate.testPlans||=[];if(candidate.testPlans.some(p=>p.id!==draft.id&&p.name===draft.name))throw Error("测试方案名称已存在");const i=candidate.testPlans.findIndex(p=>p.id===draft.id);if(i<0)candidate.testPlans.push(draft);else candidate.testPlans[i]=draft;});planDraft=null;return render();
+      await commit(candidate=>{candidate.testPlans||=[];if(candidate.testPlans.some(p=>p.id!==draft.id&&p.name===draft.name))throw Error("测试方案名称已存在");const i=candidate.testPlans.findIndex(p=>p.id===draft.id);if(i<0)candidate.testPlans.push(draft);else candidate.testPlans[i]=draft;});planDraft=null;planBaseline="";return render();
     }
     if(name==="plan-toggle"){await commit(candidate=>{const p=candidate.testPlans.find(p=>p.id===id);p.disabled=!p.disabled;});return render();}
     if(name==="plan-delete"){if(!confirm("删除这个测试方案？已经创建的测试记录继续保留。"))return;await commit(candidate=>{candidate.testPlans=candidate.testPlans.filter(p=>p.id!==id);});return render();}
@@ -542,5 +556,5 @@
     showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}${imtp}<h3>目标达成与双侧差异</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});
     $("managementForm").querySelector('[type="submit"]').textContent="关闭";
   }
-  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective};
+  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective,desktopCloseStatus};
 })(window);
