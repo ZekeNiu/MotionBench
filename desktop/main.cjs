@@ -11,9 +11,17 @@ app.setName("MotionBench Desktop");
 if (process.platform === "win32") app.setAppUserModelId("com.motionbench.desktop");
 const dataArgument = process.argv.find(arg => arg.startsWith("--motionbench-data-dir="));
 const dataDirectory = dataArgument ? dataArgument.slice("--motionbench-data-dir=".length) : path.join(app.getPath("appData"), "MotionBench Desktop");
-if (!path.isAbsolute(dataDirectory)) throw Error("MotionBench data directory must be an absolute path");
-app.setPath("userData", dataDirectory);
-app.setPath("sessionData", dataDirectory);
+try {
+  if (!path.isAbsolute(dataDirectory)) throw Error("MotionBench data directory must be an absolute path");
+  // Electron requires a new custom path to exist before setPath. This also
+  // covers a first installation, not only a previously opened user profile.
+  require("node:fs").mkdirSync(dataDirectory, {recursive:true});
+  app.setPath("userData", dataDirectory);
+  app.setPath("sessionData", dataDirectory);
+} catch {
+  dialog.showErrorBox("MotionBench 启动失败", "无法创建或访问本机数据目录，请检查路径及写入权限。\n" + dataDirectory);
+  app.exit(1);
+}
 const testMode = process.argv.includes("--motionbench-test");
 const testExportDirectory = testMode && process.env.MOTIONBENCH_TEST_EXPORT_DIR ? path.resolve(process.env.MOTIONBENCH_TEST_EXPORT_DIR) : null;
 let mainWindow, closing = false, allowClose = false, rendererGone = false;

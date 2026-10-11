@@ -16,7 +16,7 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: windows-latest
-    timeout-minutes: 35
+    timeout-minutes: 45
     env:
       CI: true
       CSC_IDENTITY_AUTO_DISCOVERY: false
@@ -53,6 +53,15 @@ jobs:
           $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
           $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-smoke/packaged'
           npm run test:desktop
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Exercise the actual single-file portable wrapper
+        shell: pwsh
+        run: |
+          $portable = Get-ChildItem 'dist-desktop/*-Portable-x64.exe' | Select-Object -First 1
+          if (-not $portable) { throw 'Missing Windows portable executable' }
+          $env:MOTIONBENCH_PORTABLE_EXECUTABLE = $portable.FullName
+          $env:MOTIONBENCH_PORTABLE_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-smoke/portable'
+          node tests/portable-wrapper-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Install and exercise the per-user application
         shell: pwsh
@@ -113,6 +122,7 @@ jobs:
             signed = $false
             packagedSmoke = 'passed'
             installedSmoke = 'passed'
+            portableWrapperSmoke = 'passed'
             syntheticDefaultDataUninstallCheck = 'passed'
           } | ConvertTo-Json | Set-Content 'dist-desktop/build-provenance.json' -Encoding utf8
       - name: Upload verified Windows downloads

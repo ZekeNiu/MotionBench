@@ -40,5 +40,8 @@ nsis:
 portable:
   artifactName: MotionBench-${version}-Portable-${arch}.${ext}
   requestExecutionLevel: user
+  # In locked builder 26.15.3, true omits UNPACK_DIR_NAME and uses NSIS's
+  # per-launch $PLUGINSDIR. A fixed extraction path races repeated launches.
+  unpackDirName: true
 # Releases are a deliberate later action; every build script also passes --publish never.
 publish: null

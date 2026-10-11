@@ -27,6 +27,7 @@ const result = {
   errors: [],
   network: [],
   artifacts: [],
+  windows: [],
   pass: false,
 };
 const sessions = new Set();
@@ -89,6 +90,13 @@ async function launch(dataDir, label) {
   page.on("dialog", dialog => dialog.accept());
   await electron.context().setOffline(true);
   await ready(page);
+  const nativeWindow = await electron.evaluate(({ BrowserWindow, screen }) => {
+    const window = BrowserWindow.getAllWindows()[0];
+    const bounds = window.getBounds(), display = screen.getDisplayMatching(bounds);
+    return { bounds, contentBounds: window.getContentBounds(), display: { size: display.size, workArea: display.workArea, scaleFactor: display.scaleFactor } };
+  });
+  const rendererWindow = await page.evaluate(() => ({ innerWidth, innerHeight, devicePixelRatio, screenAvailable: { width: screen.availWidth, height: screen.availHeight } }));
+  result.windows.push({ session: label, ...nativeWindow, renderer: rendererWindow });
   // Observe the existing native save handler instead of creating downloads or
   // supplying a Playwright saveAs path that could mask desktop integration bugs.
   await electron.evaluate(({ BrowserWindow }) => {
@@ -153,6 +161,7 @@ async function assertCharts(page) {
       diagrams,
       jump: ["fvp_sj", "fvp_cmj"].map(id => ({ id, valid: RingsideFVP.solve(record, id).valid })),
       sprint: RingsideSprintFVP.solve(record).valid,
+      viewport: { innerWidth, innerHeight, devicePixelRatio, documentWidth: document.documentElement.scrollWidth },
       overflow: document.documentElement.scrollWidth > innerWidth + 1,
     };
   });
@@ -169,7 +178,13 @@ async function assertCharts(page) {
 async function createMeasurements(page) {
   await page.evaluate(() => App.importPayload(RingsideModel.libraryDefaults(), "replace-library"));
   const athleteId = await page.evaluate(() => App.createAthlete("Windows 桌面验收运动员（合成）"));
-  await page.locator('[data-workspace-nav="entry"]').click();
+  const navigation = page.locator('[data-workspace-nav="entry"]');
+  const sidebarToggle = page.locator("#sidebarToggle");
+  if (!await navigation.isVisible() || await sidebarToggle.getAttribute("aria-expanded") !== "true" || await page.locator("#sidebar").evaluate(node => node.inert)) {
+    await sidebarToggle.click();
+    await page.waitForFunction(() => document.getElementById("sidebarToggle").getAttribute("aria-expanded") === "true" && !document.getElementById("sidebar").inert);
+  }
+  await navigation.click();
   await page.locator(`[data-creation-athlete="${athleteId}"]`).check();
   await page.locator("#creationNext").click();
   await page.locator("#creationTestStep").waitFor({ state: "visible" });
