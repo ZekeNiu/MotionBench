@@ -1,10 +1,11 @@
 "use strict";
-const { app, BrowserWindow, protocol, session, dialog, Menu, shell, safeStorage, net } = require("electron");
+const { app, BrowserWindow, protocol, session, dialog, Menu, shell, safeStorage, net, ipcMain } = require("electron");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const crypto = require("node:crypto");
 const { APP_ORIGIN, APP_URL, CSP, isAppURL, externalURL, safeFilename, exportFilters } = require("./security.cjs");
 const { createAIService } = require("./ai-service.cjs");
+const { createAIBridge } = require("./ai-bridge.cjs");
 
 protocol.registerSchemesAsPrivileged([{ scheme: "motionbench", privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } }]);
 app.setName("MotionBench Desktop");
@@ -98,14 +99,21 @@ async function start() {
   const ses = session.defaultSession;
   const token = crypto.randomBytes(32).toString("hex");
   const ai = createAIService({directory:dataDirectory,safeStorage,origin:APP_ORIGIN,token,fetch:net.fetch.bind(net)});
+  const aiBridge = createAIBridge({service:ai,origin:APP_ORIGIN,token,isTrustedSender:event => {
+    const contents = mainWindow?.webContents;
+    return !!contents && !contents.isDestroyed() && event.sender === contents &&
+      event.senderFrame === contents.mainFrame && event.senderFrame?.url === APP_URL && contents.getURL() === APP_URL;
+  }});
+  ipcMain.handle("motionbench:ai-request", (event, ...args) => aiBridge.handle(event, ...args));
+  ipcMain.on("motionbench:ai-cancel", (event, id) => aiBridge.cancel(event, id));
   const original = await fs.readFile(path.join(app.getAppPath(), "MotionBench.html"), "utf8");
-  const bootstrap = `<script id="motionbench-local-bootstrap">window.MotionBenchLocal=Object.freeze({token:${JSON.stringify(token)}});window.MotionBenchDesktop=Object.freeze({version:${JSON.stringify(app.getVersion())}});</script>`;
+  const bootstrap = `<script id="motionbench-local-bootstrap">window.MotionBenchLocal=Object.freeze({native:true});window.MotionBenchDesktop=Object.freeze({version:${JSON.stringify(app.getVersion())}});</script>`;
   const html = original.replace("<head>", "<head>" + bootstrap);
   if (html === original) throw Error("MotionBench application document has no head");
   protocol.handle("motionbench", async request => {
     if (!isAppURL(request.url)) return new Response("Forbidden", {status:403});
     const url = new URL(request.url);
-    if (url.pathname.startsWith("/api/")) return ai.handle(request);
+    if (url.pathname.startsWith("/api/")) return new Response("Forbidden", {status:403});
     if (url.pathname !== "/MotionBench.html" || request.method !== "GET") return new Response("Not found",{status:404});
     return new Response(html,{headers:{"Content-Type":"text/html; charset=utf-8","Content-Security-Policy":CSP,"X-Content-Type-Options":"nosniff","Cache-Control":"no-store"}});
   });
@@ -133,7 +141,7 @@ async function start() {
   mainWindow = new BrowserWindow({
     width:1440,height:960,minWidth:900,minHeight:650,show:false,title:"MotionBench",backgroundColor:"#f5f6f8",
     icon:path.join(__dirname,"assets","motionbench.png"),
-    webPreferences:{nodeIntegration:false,nodeIntegrationInWorker:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,webviewTag:false}
+    webPreferences:{preload:path.join(__dirname,"preload.cjs"),nodeIntegration:false,nodeIntegrationInWorker:false,contextIsolation:true,sandbox:true,webSecurity:true,allowRunningInsecureContent:false,webviewTag:false}
   });
   mainWindow.webContents.setWindowOpenHandler(({url}) => {
     const link = externalURL(url); if(link) shell.openExternal(link).catch(() => {});
@@ -147,7 +155,7 @@ async function start() {
   mainWindow.webContents.on("render-process-gone", () => {rendererGone=true;if(!allowClose)mainWindow.close();});
   mainWindow.on("close", closeSafely);
   mainWindow.once("ready-to-show", () => mainWindow.show());
-  mainWindow.on("closed", () => {mainWindow=null;});
+  mainWindow.on("closed", () => {aiBridge.cancelAll();mainWindow=null;});
   buildMenu();
   await mainWindow.loadURL(APP_URL);
 }

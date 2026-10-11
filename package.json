@@ -55,7 +55,7 @@
     "pack:desktop": "npm run build && electron-builder --config electron-builder.yml --dir --publish never",
     "dist:windows": "npm run build && electron-builder --config electron-builder.yml --win --x64 --publish never",
     "test:desktop": "node tests/desktop-smoke.cjs",
-    "test:desktop-unit": "node tests/desktop-security-tests.cjs && node tests/desktop-ai-tests.cjs",
+    "test:desktop-unit": "node tests/desktop-security-tests.cjs && node tests/desktop-ai-tests.cjs && node tests/desktop-ai-bridge-tests.cjs && node tests/desktop-bridge-tests.cjs",
     "verify:desktop-package": "node scripts/check-desktop-package.cjs"
   },
   "devDependencies": {

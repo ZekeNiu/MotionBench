@@ -44,10 +44,14 @@ async function fixture(options = {}) {
   const service = createAIService(config);
   async function call(body, endpoint = "/api/ai-settings", requestOptions = {}) {
     const { headers = {}, ...rest } = requestOptions;
+    const requestHeaders = new Headers({ Origin: ORIGIN, "X-MotionBench-Token": TOKEN,
+      "Content-Type": "application/json" });
+    for (const [name, value] of Object.entries(headers)) {
+      if (value === null) requestHeaders.delete(name);
+      else requestHeaders.set(name, value);
+    }
     const request = new Request(ORIGIN + endpoint, {
-      method: "POST", headers: { Origin: ORIGIN, "X-MotionBench-Token": TOKEN,
-        "Content-Type": "application/json", ...headers },
-      body: JSON.stringify(body), ...rest,
+      method: "POST", headers: requestHeaders, body: JSON.stringify(body), ...rest,
     });
     const response = await service.handle(request);
     return { status: response.status, headers: response.headers, body: await response.json() };

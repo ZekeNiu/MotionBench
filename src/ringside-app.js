@@ -4039,7 +4039,9 @@
     try {
       const bridge=window.MotionBenchLocal, config=connection||await configuredAI(path!=="/models"),
         base=bridge?"":config.base, requestKey=bridge?"":config.key;
-      const response = await fetch(bridge ? "/api/relay" : base + path, {
+      const response = typeof window.MotionBenchNative?.requestAI === "function"
+        ? await window.RingsideAISettings.nativeRequest("/api/relay", JSON.stringify({ path, payload, configRevision:config.configRevision }), controller.signal)
+        : await fetch(bridge ? "/api/relay" : base + path, {
         method: bridge || payload ? "POST" : "GET",
         headers: bridge ? { "Content-Type": "application/json", "X-MotionBench-Token": bridge.token } : {
           Authorization: "Bearer " + requestKey,

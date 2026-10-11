@@ -19,7 +19,7 @@ const allowed = /^(?:package\.json|MotionBench\.html|desktop\/[a-z0-9-]+\.cjs|de
 for (const name of archiveFiles) {
   assert.ok(allowed.test(name), `Unexpected file in application archive: ${name}`);
 }
-for (const name of ['package.json', 'MotionBench.html', 'desktop/main.cjs', 'desktop/security.cjs', 'desktop/ai-service.cjs', 'desktop/assets/motionbench.ico']) {
+for (const name of ['package.json', 'MotionBench.html', 'desktop/main.cjs', 'desktop/preload.cjs', 'desktop/security.cjs', 'desktop/ai-service.cjs', 'desktop/ai-bridge.cjs', 'desktop/assets/motionbench.ico']) {
   assert.ok(archiveFiles.includes(name), `Missing packaged runtime asset: ${name}`);
 }
 const sourcePackage = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));

@@ -7,7 +7,7 @@ const os = require("node:os");
 const path = require("node:path");
 const assert = require("node:assert/strict");
 const { createHash, randomUUID } = require("node:crypto");
-const { spawn } = require("node:child_process");
+const { spawn, execFile } = require("node:child_process");
 const { _electron } = require("./helpers/playwright.cjs");
 const ExcelJS = require("../vendor/exceljs.min.js");
 
@@ -30,7 +30,7 @@ const result = {
   windows: [],
   pass: false,
 };
-const sessions = new Set();
+const sessions = new Map();
 const hash = bytes => createHash("sha256").update(bytes).digest("hex");
 const artifact = (file, kind) => {
   const bytes = fs.readFileSync(file);
@@ -80,7 +80,11 @@ async function ready(page) {
 }
 async function launch(dataDir, label) {
   const electron = await _electron.launch({ executablePath, args: launchArgs(dataDir), cwd: root, env: launchEnv(), timeout: 45000 });
-  sessions.add(electron);
+  const child = electron.process();
+  const owned = { label, child, launcherPid: child.pid, nativePid: null, closed: false };
+  sessions.set(electron, owned);
+  electron.once("close", () => { owned.closed = true; });
+  owned.nativePid = await electron.evaluate(() => process.pid);
   const page = await electron.firstWindow({ timeout: 45000 });
   page.setDefaultTimeout(20000);
   page.on("pageerror", error => result.errors.push({ session: label, message: error.message }));
@@ -96,7 +100,7 @@ async function launch(dataDir, label) {
     return { bounds, contentBounds: window.getContentBounds(), display: { size: display.size, workArea: display.workArea, scaleFactor: display.scaleFactor } };
   });
   const rendererWindow = await page.evaluate(() => ({ innerWidth, innerHeight, devicePixelRatio, screenAvailable: { width: screen.availWidth, height: screen.availHeight } }));
-  result.windows.push({ session: label, ...nativeWindow, renderer: rendererWindow });
+  result.windows.push({ session: label, nativePid: owned.nativePid, launcherPid: owned.launcherPid, ...nativeWindow, renderer: rendererWindow });
   // Observe the existing native save handler instead of creating downloads or
   // supplying a Playwright saveAs path that could mask desktop integration bugs.
   await electron.evaluate(({ BrowserWindow }) => {
@@ -108,16 +112,64 @@ async function launch(dataDir, label) {
       }));
     });
   });
-  return { electron, page, dataDir, label, pid: electron.process().pid };
+  return { electron, page, dataDir, label, pid: owned.nativePid };
 }
 async function closeNatively(session) {
   const closed = session.electron.waitForEvent("close", { timeout: 45000 });
+  closed.catch(() => {});
   await session.electron.evaluate(({ BrowserWindow }) => {
     // Let evaluation complete before closing the very process being evaluated.
     setImmediate(() => BrowserWindow.getAllWindows()[0].close());
   });
   await closed;
   sessions.delete(session.electron);
+}
+async function bounded(operation, milliseconds, message) {
+  let timer;
+  try {
+    return await Promise.race([operation, new Promise((_, reject) => {
+      timer = setTimeout(() => reject(Error(message)), milliseconds);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+async function terminateOwnedTree(owned) {
+  // Playwright launches a command shell on Windows. Its PID owns the application
+  // tree while alive; the separately recorded native PID covers an exited shell.
+  const launcherAlive = owned.child.exitCode === null && owned.child.signalCode === null;
+  const pid = launcherAlive ? owned.launcherPid : owned.nativePid;
+  if (!Number.isInteger(pid) || pid <= 0 || pid === process.pid) throw Error("Missing isolated test-process identity for cleanup");
+  if (process.platform === "win32") {
+    return await new Promise(resolve => execFile("taskkill", ["/PID", String(pid), "/T", "/F"], { windowsHide: true, timeout: 10000 }, (error, _stdout, stderr) => resolve({
+      pid, exitCode: error?.code ?? 0, error: error?.message || null, stderr: stderr.trim().slice(0, 2000),
+    })));
+  }
+  // Playwright's POSIX launcher creates a separate process group. Signal only
+  // that group, so browser helpers cannot retain the disposable profile's files.
+  try { process.kill(-owned.launcherPid, "SIGKILL"); return { pid: owned.launcherPid, processGroup: true, exitCode: 0 }; }
+  catch (error) { return { pid: owned.launcherPid, processGroup: true, error: error.message, code: error.code }; }
+}
+async function cleanupSession(electron, owned) {
+  const detail = { session: owned.label, nativePid: owned.nativePid, launcherPid: owned.launcherPid, forced: false };
+  if (!owned.closed) {
+    // Install the exit observer before requesting exit, and await it even when
+    // evaluation loses its connection as the native process stops. This forced
+    // app exit is exclusively fault cleanup; closeNatively above tests the real
+    // product save barrier and remains mandatory for a successful smoke run.
+    const closed = electron.waitForEvent("close", { timeout: 10000 }).then(() => true, () => false);
+    try {
+      await bounded(electron.evaluate(({ app }) => { setImmediate(() => app.exit(1)); }), 5000, "Fault-cleanup exit request timed out");
+    } catch (error) { detail.exitRequestError = error.message; }
+    if (!await closed && !owned.closed) {
+      detail.forced = true;
+      const killed = electron.waitForEvent("close", { timeout: 5000 }).then(() => true, () => false);
+      detail.termination = await terminateOwnedTree(owned);
+      await killed;
+    }
+  }
+  detail.closed = owned.closed;
+  detail.exitCode = owned.child.exitCode;
+  detail.signal = owned.child.signalCode;
+  return detail;
 }
 async function nativeDownload(session, extension, trigger, timeout = 240000) {
   const before = await session.electron.evaluate(() => globalThis.__desktopSmokeDownloads.length);
@@ -372,6 +424,45 @@ async function saveSyntheticAIConnection(session) {
       assert.deepEqual(native.prefs, { contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, allowRunningInsecureContent: false });
       assert.deepEqual(native.listeningApplicationServers, [], "MotionBench must not open a Node HTTP service; automation debugger sockets are outside this check");
       assert.deepEqual(await active.page.evaluate(() => ({ require: typeof require, process: typeof process, module: typeof module })), { require: "undefined", process: "undefined", module: "undefined" });
+      const capabilities = await active.page.evaluate(() => ({
+        keys: Object.keys(window.MotionBenchNative || {}).sort(),
+        requestAI: typeof window.MotionBenchNative?.requestAI,
+        cancelAI: typeof window.MotionBenchNative?.cancelAI,
+        localKeys: Object.keys(window.MotionBenchLocal || {}).sort(),
+        localNative: window.MotionBenchLocal?.native,
+        hasToken: Object.hasOwn(window.MotionBenchLocal || {}, "token"),
+        tokenType: typeof window.MotionBenchLocal?.token,
+      }));
+      assert.deepEqual(capabilities.keys, ["cancelAI", "requestAI"], "the preload exposes exactly two bounded AI operations");
+      assert.equal(capabilities.requestAI, "function");
+      assert.equal(capabilities.cancelAI, "function");
+      assert.deepEqual(capabilities.localKeys, ["native"]);
+      assert.equal(capabilities.localNative, true);
+      assert.equal(capabilities.hasToken, false, "the private host token is absent from the renderer bootstrap");
+      assert.equal(capabilities.tokenType, "undefined");
+      const protocolPost = await active.page.evaluate(async () => {
+        const response = await fetch("/api/ai-settings", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "status" }),
+        });
+        return { status: response.status, contents: await response.text() };
+      });
+      assert.equal(protocolPost.status, 403, "the custom protocol never exposes the host AI settings service");
+      const untrustedWindow = await active.electron.evaluate(async ({ BrowserWindow }, requestId) => {
+        const preload = BrowserWindow.getAllWindows()[0].webContents.getLastWebPreferences().preload;
+        const probe = new BrowserWindow({ show: false, webPreferences: { preload, nodeIntegration: false, contextIsolation: true, sandbox: true, webSecurity: true } });
+        try {
+          await probe.loadURL("data:text/html,<title>Synthetic AI source-boundary probe</title>");
+          const reply = await probe.webContents.executeJavaScript(`(async () => ({
+            keys: Object.keys(window.MotionBenchNative || {}).sort(),
+            response: await window.MotionBenchNative.requestAI("/api/ai-settings", '{"action":"status"}', ${JSON.stringify(requestId)})
+          }))()`);
+          return { url: probe.webContents.getURL(), ...reply };
+        } finally { probe.destroy(); }
+      }, randomUUID());
+      assert.ok(untrustedWindow.url.startsWith("data:text/html,"));
+      assert.deepEqual(untrustedWindow.keys, ["cancelAI", "requestAI"], "the untrusted probe uses the same actual preload");
+      assert.equal(untrustedWindow.response.status, 403, "a different native window cannot use the workspace AI host");
+      assert.equal(await active.electron.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length), 1, "the source-boundary probe is always destroyed");
       const forbidden = await active.page.evaluate(async () => {
         const response = await fetch("motionbench://app/package.json");
         return { status: response.status, contents: await response.text() };
@@ -379,6 +470,7 @@ async function saveSyntheticAIConnection(session) {
       assert.ok(forbidden.status >= 400, "private application files are not served to the renderer");
       assert.ok(!forbidden.contents.includes('"devDependencies"'));
       result.native = native;
+      result.native.aiBoundary = { capabilities, protocolPost, untrustedWindow };
       await active.page.reload();
       await ready(active.page);
     });
@@ -541,14 +633,23 @@ async function saveSyntheticAIConnection(session) {
     }
     process.exitCode = 1;
   } finally {
-    for (const electron of sessions) {
-      // Test cleanup must not stall on a native error dialog after an assertion
-      // fails. This applies only to our disposable verification processes.
-      try { await electron.evaluate(({ app }) => app.exit(1)); } catch { electron.process().kill(); }
+    result.cleanup = { sessions: [], errors: [], temporaryProfileRemoved: false };
+    for (const [electron, owned] of sessions) {
+      try {
+        const detail = await cleanupSession(electron, owned);
+        result.cleanup.sessions.push(detail);
+        if (!detail.closed) result.cleanup.errors.push({ session: owned.label, message: "Isolated native process did not close within bounded fault cleanup" });
+      } catch (error) {
+        result.cleanup.errors.push({ session: owned.label, message: error.message });
+      }
     }
+    try {
+      await fs.promises.rm(temporaryRoot, { recursive: true, force: true, maxRetries: 20, retryDelay: 100 });
+      result.cleanup.temporaryProfileRemoved = !fs.existsSync(temporaryRoot);
+    } catch (error) { result.cleanup.errors.push({ stage: "temporary-profile", code: error.code, message: error.message }); }
+    if (result.cleanup.errors.length) { result.pass = false; process.exitCode = 1; }
     result.finishedAt = new Date().toISOString();
     fs.writeFileSync(path.join(out, "results.json"), JSON.stringify(result, null, 2));
-    fs.rmSync(temporaryRoot, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
     console.log(`${result.checks.length} desktop checks completed; ${result.pass ? "PASS" : "FAIL"}`);
   }
 })();
