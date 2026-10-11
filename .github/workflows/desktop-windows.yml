@@ -89,6 +89,13 @@ jobs:
           if (-not $uninstaller) { throw 'Installed uninstaller is missing' }
           $uninstall = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -PassThru -Wait
           if ($uninstall.ExitCode -ne 0) { throw "Uninstaller failed with exit code $($uninstall.ExitCode)" }
+          # An NSIS bootstrap can hand off to a temporary uninstaller. Check
+          # the actual removal outcome before declaring user data preserved.
+          $removalDeadline = [DateTime]::UtcNow.AddSeconds(60)
+          while ((Test-Path -LiteralPath $installedExecutable) -or (Test-Path -LiteralPath $uninstaller.FullName)) {
+            if ([DateTime]::UtcNow -ge $removalDeadline) { throw 'Uninstall did not remove the application and original uninstaller within 60 seconds' }
+            Start-Sleep -Milliseconds 200
+          }
           if (-not (Test-Path -LiteralPath $canary)) { throw 'Uninstall removed the synthetic default user data canary' }
           $canaryHashAfter = (Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash
           if ($canaryHashAfter -ne $canaryHashBefore) { throw 'Uninstall changed the synthetic default user data canary' }
@@ -97,6 +104,8 @@ jobs:
             defaultDataDirectory = $defaultDataDirectory
             canarySha256Before = $canaryHashBefore.ToLowerInvariant()
             canarySha256After = $canaryHashAfter.ToLowerInvariant()
+            applicationRemoved = $true
+            uninstallerRemoved = $true
             preserved = $true
           } | ConvertTo-Json | Set-Content 'output/desktop-package/uninstall-data-check.json' -Encoding utf8
           Remove-Item -LiteralPath $canary
