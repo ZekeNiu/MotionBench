@@ -12,7 +12,9 @@ const appDirectory = path.resolve(process.argv[2] || path.join(root, 'dist-deskt
 const archive = path.join(appDirectory, 'resources', 'app.asar');
 assert.ok(fs.existsSync(archive), `Missing packaged archive: ${archive}`);
 const names = asar.listPackage(archive).map(name => name.replace(/\\/g, '/').replace(/^\//, ''));
-const archiveFiles = names.filter(name => !asar.statFile(archive, name).files);
+// ASAR's lookup APIs split on the host path separator. Keep the manifest
+// portable, but convert names back to native paths at the API boundary.
+const archiveFiles = names.filter(name => !asar.statFile(archive, path.normalize(name)).files);
 const allowed = /^(?:package\.json|MotionBench\.html|desktop\/[a-z0-9-]+\.cjs|desktop\/assets\/motionbench\.(?:ico|png)|vendor\/[a-z0-9-]+\.LICENSE\.txt|vendor\/versions\.json)$/;
 for (const name of archiveFiles) {
   assert.ok(allowed.test(name), `Unexpected file in application archive: ${name}`);
@@ -21,12 +23,12 @@ for (const name of ['package.json', 'MotionBench.html', 'desktop/main.cjs', 'des
   assert.ok(archiveFiles.includes(name), `Missing packaged runtime asset: ${name}`);
 }
 const sourcePackage = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const packagedPackage = JSON.parse(asar.extractFile(archive, 'package.json').toString('utf8'));
+const packagedPackage = JSON.parse(asar.extractFile(archive, path.normalize('package.json')).toString('utf8'));
 assert.equal(packagedPackage.name, sourcePackage.name);
 assert.equal(packagedPackage.version, sourcePackage.version);
 assert.equal(packagedPackage.main, 'desktop/main.cjs');
 const sourceHtml = fs.readFileSync(path.join(root, 'MotionBench.html'));
-const packagedHtml = asar.extractFile(archive, 'MotionBench.html');
+const packagedHtml = asar.extractFile(archive, path.normalize('MotionBench.html'));
 assert.deepEqual(packagedHtml, sourceHtml, 'Packaged HTML is stale or differs from the verified build');
 assert.ok(packagedHtml.toString('utf8').includes(sourcePackage.version), 'Missing current build version');
 
