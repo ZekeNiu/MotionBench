@@ -322,8 +322,9 @@ async function verifyManagementCloseGuards(page) {
       await active.page.evaluate(() => App.openSettings("ai"));
       await active.page.getByRole("button", { name: "复制分析资料", exact: true }).click();
       await active.page.waitForFunction(() => document.getElementById("toast")?.textContent.includes("已复制当前测试资料"));
-      const expectedFacts = await active.page.evaluate(() => JSON.stringify(App.facts(), null, 2));
-      assert.equal(await active.electron.evaluate(({ clipboard }) => clipboard.readText()), expectedFacts);
+      const expectedFacts = await active.page.evaluate(() => JSON.parse(JSON.stringify(App.facts())));
+      const copiedFacts = await active.electron.evaluate(({ clipboard }) => clipboard.readText());
+      assert.deepEqual(JSON.parse(copiedFacts), expectedFacts, "the native clipboard contains the complete current analysis payload, irrespective of Windows newline normalization");
       assert.equal(await active.page.locator("#previewModal").isVisible(), false, "clipboard permission does not force the manual-copy fallback modal");
       await showReport(active.page);
     });
