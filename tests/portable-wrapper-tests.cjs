@@ -15,7 +15,7 @@ const root = path.resolve(__dirname, "..");
 const out = path.resolve(process.env.MOTIONBENCH_PORTABLE_ARTIFACT_DIR || path.join(root, "output", "desktop-smoke", "portable"));
 const originalExecutable = process.env.MOTIONBENCH_PORTABLE_EXECUTABLE;
 const packageVersion = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
-const evidence = { synthetic: true, platform: process.platform, version: packageVersion, checks: [], pass: false, startedAt: new Date().toISOString() };
+const evidence = { synthetic: true, platform: process.platform, version: packageVersion, checks: [], launches: [], pass: false, startedAt: new Date().toISOString() };
 const wrappers = new Set();
 const temporaryRoot = process.platform === "win32" ? fs.mkdtempSync(path.join(os.tmpdir(), "motionbench-便携 验收-")) : null;
 let active;
@@ -49,6 +49,10 @@ function launchWrapper(executable, dataDirectory, port) {
 }
 
 async function connect(wrapper, port) {
+  const launch = { label: "launch-" + (evidence.launches.length + 1), port, wrapperPid: wrapper.process.pid, errors: [], console: [], requestFailures: [], snapshots: [] };
+  evidence.launches.push(launch);
+  let session;
+  try {
   const endpoint = `http://127.0.0.1:${port}`;
   const deadline = Date.now() + 120000;
   while (Date.now() < deadline) {
@@ -70,10 +74,62 @@ async function connect(wrapper, port) {
     await sleep(100);
   }
   assert.ok(page, "the portable wrapper opens the application document");
+  session = { wrapper, browser, context, page, launch };
   page.setDefaultTimeout(30000);
+  page.on("pageerror", error => { if (launch.errors.length < 100) launch.errors.push({ message: error.message, stack: error.stack?.slice(0, 4000) }); });
+  page.on("console", message => { if (launch.console.length < 100) launch.console.push({ type: message.type(), text: message.text().slice(0, 4000), location: message.location() }); });
+  page.on("requestfailed", request => { if (launch.requestFailures.length < 100) launch.requestFailures.push({ url: request.url(), error: request.failure()?.errorText }); });
+  page.on("dialog", dialog => dialog.accept().catch(() => {}));
+  // CDP can discover the target as soon as navigation commits. Let the bundled
+  // document finish parsing before changing the network state during startup.
+  await page.waitForLoadState("domcontentloaded", { timeout: 45000 });
+  await captureInitialization(session, "before-ready");
   await context.setOffline(true);
-  await page.waitForFunction(() => window.App?.ready === true, null, { timeout: 45000 });
-  return { wrapper, browser, context, page };
+  await ready(page);
+  await captureInitialization(session, "ready");
+  return session;
+  } catch (error) {
+    launch.failure = error.stack || String(error);
+    if (session) await captureInitialization(session, "initialization-failure");
+    fs.writeFileSync(path.join(out, "initialization-diagnostics.json"), JSON.stringify(evidence.launches, null, 2) + "\n");
+    throw error;
+  }
+}
+
+async function ready(page) {
+  await page.waitForFunction(() => !!window.App?.ready, null, { timeout: 45000 });
+  // App.ready is an initialization Promise, not a Boolean property. Playwright
+  // awaits the evaluated Promise, as the packaged desktop smoke test does.
+  let timer;
+  try {
+    const initialized = await Promise.race([
+      page.evaluate(() => App.ready),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(Error("Application initialization Promise did not settle within 45 seconds")), 45000); }),
+    ]);
+    assert.equal(initialized, true, "the actual portable application initializes successfully");
+  } finally { clearTimeout(timer); }
+}
+
+async function captureInitialization(session, stage) {
+  const snapshot = { stage, capturedAt: new Date().toISOString(), url: session.page.url(), wrapperExited: session.wrapper.exited, wrapperExitCode: session.wrapper.exitCode };
+  try {
+    snapshot.renderer = await session.page.evaluate(() => ({
+      url: location.href, readyState: document.readyState, online: navigator.onLine,
+      appPresent: !!window.App, readyType: typeof window.App?.ready,
+      readyIsPromise: typeof window.App?.ready?.then === "function",
+      desktopVersion: window.MotionBenchDesktop?.version,
+      nativeRequestType: typeof window.MotionBenchNative?.requestAI,
+      startupStatus: document.getElementById("startupStatus")?.textContent?.slice(0, 3000),
+      body: document.body?.innerText?.slice(0, 6000),
+    }));
+  } catch (error) { snapshot.evaluationFailure = error.message; }
+  try {
+    const name = `portable-${session.launch.label}-${stage}.png`;
+    await session.page.screenshot({ path: path.join(out, name), fullPage: true, timeout: 10000 });
+    snapshot.screenshot = name;
+  } catch (error) { snapshot.screenshotFailure = error.message; }
+  session.launch.snapshots.push(snapshot);
+  fs.writeFileSync(path.join(out, "initialization-diagnostics.json"), JSON.stringify(evidence.launches, null, 2) + "\n");
 }
 
 async function finish(wrapper, timeout = 30000) {
@@ -120,6 +176,7 @@ async function closeNormally(session) {
       athleteId = await active.page.evaluate(() => App.createAthlete("便携程序真实包装器验收（合成）"));
       assert.ok(athleteId);
       assert.equal(await active.page.evaluate(() => App.saveNow()), true);
+      assert.ok(fs.existsSync(path.join(dataDirectory, "IndexedDB")), "the native wrapper forwards the complete Chinese and space-containing user data argument");
     });
     await check("repeated Portable.exe launch exits cleanly while the original application remains intact", async () => {
       const second = launchWrapper(executable, dataDirectory, await availablePort());
@@ -128,7 +185,7 @@ async function closeNormally(session) {
       assert.equal(active.browser.isConnected(), true);
       assert.equal(active.context.pages().filter(page => page.url() === "motionbench://app/MotionBench.html").length, 1);
       await active.page.reload();
-      await active.page.waitForFunction(() => window.App?.ready === true);
+      await ready(active.page);
       assert.equal(await active.page.evaluate(id => App.getLibrary().athletes.filter(athlete => athlete.id === id).length, athleteId), 1);
     });
     await check("the portable application exits through its native save barrier and a fresh wrapper restores its data", async () => {

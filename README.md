@@ -2,20 +2,20 @@
 
 跨项目的运动表现评估与训练建议工作台。当前版本 **2.19.0**：统一测量采集、Excel 和评价规则，重新组织记录、运动员、队伍与指标库，保留单人／多人四步录入及既有 FVP、冲刺、弹性分析和报告。
 
-[本版使用与回退说明](docs/motionbench-2.19.0.md)。正式日常入口为 `MotionBench.html`；Windows 运行 `Start_MotionBench.cmd`。历史交付说明和验收文件按版本保留。
+**此分支提供 Windows 独立桌面版 `2.19.0-desktop.1`，基于网页版 v2.19.0。** 日常打开安装后的 MotionBench 快捷方式，或直接运行 `MotionBench-2.19.0-desktop.1-Portable-x64.exe`；运行软件无需 Python、浏览器或手动打开 HTML。下载、安装、资料迁移、备份与两种版本回退见 [桌面版使用说明](docs/windows-desktop.md)。
 
-Windows 独立应用的安装、资料迁移、备份与两种版本回退见 [桌面版使用说明](docs/windows-desktop.md)。
+网页版 v2.19.0 继续保留：[原版本源码](https://github.com/ZekeNiu/MotionBench/tree/v2.19.0) · [原版本使用与回退说明](docs/motionbench-2.19.0.md)。下文 HTML／CMD、浏览器地址及 Python 启动器的说明对应网页版；桌面版的入口、资料目录及 AI 连接以桌面说明为准。历史交付说明和验收文件按版本保留。
 
 ![MotionBench](assets/motionbench-logo.svg)
 
-### 打开与使用
+### 网页版打开与使用
 
 - **日常使用**：运行 `Start_MotionBench.cmd`，继续使用原浏览器及 `http://127.0.0.1:8765/MotionBench.html` 地址。
 - **使用中转 AI 服务**：Windows 双击 `Start_MotionBench.cmd`，在自动打开的页面中使用；保持启动窗口开启。需要 Python 3.10 或更新版本。其他系统运行 `python3 scripts/serve.py`。
 - **更新旧版**：保持原文件位置、原浏览器和原打开地址。已停用的旧根目录入口不再生成；切换地址或浏览器前请先导出完整备份。
 - 解压后运行 Start_MotionBench.cmd；测试资料保存在使用该入口的本地浏览器中。
 
-### 迁移与回退
+### 网页版迁移与回退
 
 在原路径、原浏览器打开新版时，会先校验旧资料并写入新资料库；成功后切换，旧浏览器存储继续保留。“备份与恢复”可下载迁移前资料、导出完整备份或恢复上次导入前资料库。导入校验失败不替换现有资料。
 
