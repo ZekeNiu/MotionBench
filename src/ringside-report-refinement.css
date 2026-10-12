@@ -174,6 +174,7 @@
 .ringside-pdf-document .capability-parameters-static .capability-parameter-group { border:0!important; padding:0!important; }
 .iso-results.with-repeat-columns { table-layout:fixed; }
 .iso-results.with-repeat-columns th,.iso-results.with-repeat-columns th:nth-child(4) { width:auto; min-width:0; }
+.iso-results.with-repeat-columns .stat-side { display:flow-root; }
 .iso-results .iso-reference-evaluation { display:block; font-size:11px; line-height:1.65; color:var(--muted); }
 .iso-results .iso-reference { font-size:10px; line-height:1.6; }
 .iso-results .iso-status { max-width:100%; white-space:nowrap; }
