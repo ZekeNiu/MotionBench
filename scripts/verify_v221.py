@@ -237,10 +237,12 @@ def verify_pdf(index, source_hash, pdfs):
         with tempfile.TemporaryDirectory(prefix="motionbench-pdf-221-") as temporary:
             prefix = Path(temporary) / "page"
             subprocess.run([renderer, "-scale-to", "1500", "-png", str(ROOT / item["path"]), str(prefix)], check=True, capture_output=True)
+            rendered = {int(path.stem.rsplit("-", 1)[1]): path for path in Path(temporary).glob("page-*.png")}
+            require(sorted(rendered) == list(range(1, expected + 1)), "Poppler omitted or added report pages")
             for page in reviewed["pages"]:
                 image = index.item(page)
                 require(page["pass"] is True and page["reviewed"] is True, "Unreviewed PDF page")
-                with Image.open(ROOT / image["path"]) as saved, Image.open(Path(temporary) / f"page-{page['page']}.png") as actual:
+                with Image.open(ROOT / image["path"]) as saved, Image.open(rendered[page["page"]]) as actual:
                     saved, actual = saved.convert("RGB"), actual.convert("RGB")
                     require(list(saved.size) == page["size"] == list(actual.size) and saved.tobytes() == actual.tobytes(), "Reviewed image differs from actual PDF page: " + image["path"])
                     require(max(ImageStat.Stat(saved).stddev) > 5, "Blank rendered PDF page")
@@ -365,10 +367,12 @@ def verify_pagination_visual(index, source_hash, pdfs):
         with tempfile.TemporaryDirectory(prefix="motionbench-pagination-pdf-221-") as temporary:
             prefix = Path(temporary) / "page"
             subprocess.run([renderer, "-scale-to", "1500", "-png", str(ROOT / item["path"]), str(prefix)], check=True, capture_output=True)
+            rendered = {int(path.stem.rsplit("-", 1)[1]): path for path in Path(temporary).glob("page-*.png")}
+            require(sorted(rendered) == list(range(1, expected + 1)), "Poppler omitted or added multi-axis pages")
             for page in reviewed["pages"]:
                 image = index.item(page)
                 require(page["pass"] is True and page["reviewed"] is True, "Unreviewed multi-axis PDF page")
-                with Image.open(ROOT / image["path"]) as saved, Image.open(Path(temporary) / f"page-{page['page']}.png") as actual:
+                with Image.open(ROOT / image["path"]) as saved, Image.open(rendered[page["page"]]) as actual:
                     saved, actual = saved.convert("RGB"), actual.convert("RGB")
                     require(list(saved.size) == page["size"] == list(actual.size) and saved.tobytes() == actual.tobytes(), "Reviewed image differs from actual multi-axis PDF page: " + image["path"])
                     require(max(ImageStat.Stat(saved).stddev) > 5, "Blank multi-axis PDF page")
