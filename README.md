@@ -77,7 +77,7 @@
 
 2.19.1 的冻结验收包括 52 个单元套件、773 项检查、100 项两浏览器检查、实际 PDF 导出及逐页核验、真实 Windows 安装目录选择、旧版升级、便携程序、重装与卸载后资料保留。验收记录与构建来源随发行提供。
 
-[验收记录](docs/acceptance-2.19.1.md) · [发行说明](docs/motionbench-2.19.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
+[验收记录](docs/acceptance-2.19.1.md) · [公开发布验收](docs/publication-2.19.1.md) · [发行说明](docs/motionbench-2.19.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
 
 ## 已确认的优化项
 

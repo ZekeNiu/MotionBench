@@ -16,7 +16,7 @@
 | 构建依赖告警 | 一个 `sprintf-js` 拒绝服务公告沿依赖链产生 8 个中等告警条目 | 单独验证构建依赖调整 |
 | 已跟踪预览 ZIP 与图片 | 三个 ZIP 内 HTML 数据为空；20 张独立图像未发现真实人员标识 | 保留合成演示资料，公开部署使用独立文件清单 |
 | README 开发环境 | 已修正为 Node.js 24.x，与 package 一致 | 随本轮主页更新发布 |
-| GitHub 默认主页 | 检查时 main 仍为 2.8.0，首页网址为空 | 本轮发布任务更新默认分支、演示入口与下载说明 |
+| GitHub 默认主页 | 已从旧 2.8.0 更新为当前 2.19.1 源码，设置在线演示网址 | 已发布；首页补全功能、下载、安装、更新、存储、迁移、AI 和开发说明 |
 | 软件授权 | `package.json` 为 `UNLICENSED` | 首页如实说明，具体开源许可证由项目所有者决定 |
 | Windows 数字签名 | 当前构建出处明确记录 `signed:false` | 如需改善系统信任提示，后续配置发布证书 |
 
@@ -82,7 +82,9 @@ Windows [单实例锁](../desktop/main.cjs#L195) 会将第二次启动交给已�
 
 实际查看了 `downloads/chart-restore-2.17.3/` 的 8 张图片、`downloads/sprint-display-2.17.5/` 的 8 张图片，以及 2.17.2 ZIP 内另有的 4 张截图。内容均为能力分析和冲刺图区；含人员栏的图片显示 `Synthetic three-region new entry`，未发现真实人员标识。ZIP 中重复收录的图片与已跟踪图片属于相同图像。
 
-公开 demo 应只部署从正式源码构建的演示文件和必要资源，不部署整个工作区、个人资料库、桌面配置或验收输出目录。此次检查针对上述当前文件，没有执行 Git 历史重写，也没有读取个人 AppData、实际运动员数据库或 AI 凭据。
+本轮 [公开 demo 构建脚本](../scripts/build_public_demo.cjs) 从 `M.defaults()` 空白结构生成新的模拟测量、人员和训练背景；没有调用旧示例记录或读取保存的运动员记录。演示资料使用单独的浏览器存储命名空间，发布目录限定为 `index.html`、`.nojekyll` 和 `demo-build.json`。
+
+公开 demo 已通过 [GitHub Pages 发布任务](https://github.com/ZekeNiu/MotionBench/actions/runs/38266749385) 部署；网页 SHA-256 为 `13745a18887f3e6ffe61dfe2bc04dc5e86f06739acfae2298c0a5ccf3121f249`。公开部署不包含整个工作区、个人资料库、桌面配置或验收输出目录。此次检查针对上述当前文件，没有执行 Git 历史重写，也没有读取个人 AppData、实际运动员数据库或 AI 凭据。
 
 ## 复现与证据
 
