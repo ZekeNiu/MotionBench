@@ -25,6 +25,7 @@ const bounded=async(fn,timeout=180000)=>{const until=Date.now()+timeout;while(Da
     const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
     app=await _electron.launch({executablePath:exe,args:mode==="verify"?["--motionbench-test"]:[],env,timeout:45000});page=await app.firstWindow();page.setDefaultTimeout(30000);
     await page.waitForFunction(()=>!!window.App?.ready);assert.equal(await page.evaluate(()=>App.ready),true);
+    result.renderer=await page.evaluate(()=>({innerWidth,innerHeight,devicePixelRatio,sidebarInert:document.querySelector("#sidebar").inert,sidebarBounds:document.querySelector("#sidebar").getBoundingClientRect().toJSON()}));
     const host=await app.evaluate(({app})=>({version:app.getVersion(),userData:app.getPath("userData"),sessionData:app.getPath("sessionData"),pid:process.pid,argv:process.argv}));assert.equal(path.resolve(host.userData),path.resolve(profile));assert.equal(path.resolve(host.sessionData),path.resolve(profile));assert.equal(host.version,mode==="update"?"2.19.1-desktop.0":"2.19.1-desktop.1");result.host=host;
     const archive=path.join(path.dirname(exe),"resources/app.asar");result.archiveSha256=await readHash(archive);result.runtimeHtmlSha256=digest(asar.extractFile(archive,path.normalize("MotionBench.html")));
     if(mode==="verify") {
@@ -37,7 +38,7 @@ const bounded=async(fn,timeout=180000)=>{const until=Date.now()+timeout;while(Da
       result.rawMeasurementsAndIdsPreserved=true;result.dpapiCipherAndRevisionPreserved=true;result.preferencesPreserved=true;
       const closed=app.waitForEvent("close",{timeout:30000});await app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows()[0].close());await closed;app=null;
     } else {
-      assert.ok(!host.argv.includes("--motionbench-test"));await page.locator("#desktopSettingsButton").click();await page.locator("#checkUpdatesOnStartup:not([disabled])").waitFor();await page.locator("#checkUpdatesOnStartup").uncheck();await page.waitForFunction(()=>!document.querySelector("#checkUpdatesOnStartup").disabled);
+      assert.ok(!host.argv.includes("--motionbench-test"));if(await page.locator("#sidebar").evaluate(node=>node.inert))await page.locator("#sidebarToggle").click();await page.locator("#desktopSettingsButton").click();await page.locator("#checkUpdatesOnStartup:not([disabled])").waitFor();await page.locator("#checkUpdatesOnStartup").uncheck();await page.waitForFunction(()=>!document.querySelector("#checkUpdatesOnStartup").disabled);
       assert.equal((await page.evaluate(()=>MotionBenchNative.getUpdateState())).checkUpdatesOnStartup,false);
       await page.evaluate(()=>App.importPayload(RingsideModel.libraryDefaults(),"replace-library"));const athlete=await page.evaluate(()=>App.createAthlete("CI 应用内升级运动员（合成）"));
       const nav=page.locator('[data-workspace-nav="entry"]');if(!await nav.isVisible()||await page.locator("#sidebar").evaluate(node=>node.inert))await page.locator("#sidebarToggle").click();await nav.click();await page.locator(`[data-creation-athlete="${athlete}"]`).check();await page.locator("#creationNext").click();await page.locator('[data-picker-project="cmj"]').check();await page.locator("#creationDate").fill("2026-10-12");await page.locator("#creationSubmit").click();await page.waitForFunction(()=>App.getUIState().mode==="entry");
@@ -59,7 +60,7 @@ const bounded=async(fn,timeout=180000)=>{const until=Date.now()+timeout;while(Da
       await page.evaluate(()=>{document.querySelector("#installDesktopUpdateButton").click();}).catch(error=>{if(!/Target.*closed|has been closed/i.test(error.message))throw error;});await closed;app=null;result.oldHostExitedNaturally=true;
     }
     result.passed=true;
-  } catch(error){result.error=error.stack||error.message;throw error;}
+  } catch(error){result.error=error.stack||error.message;if(page&&!page.isClosed())await page.screenshot({path:path.join(out,mode+"-failure.png")}).catch(()=>{});throw error;}
   finally {
     if(app&&!installTriggered) {try{await page?.evaluate(async()=>{if(window.__liveRepository&&window.__liveSave){__liveRepository.save=__liveSave;await App.saveNow();}});}catch{}await app.close().catch(()=>{});}
     await fs.writeFile(path.join(out,mode+"-results.json"),JSON.stringify(result,null,2)+"\n");
