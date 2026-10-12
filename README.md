@@ -2,11 +2,11 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**当前版本：Windows `2.20.1-desktop.1` · HTML `2.20.1`**
+**当前版本：Windows `2.21.0-desktop.1` · HTML `2.21.0`**
 
-[在线 Demo](https://zekeniu.github.io/MotionBench/) · [下载 Windows 安装版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Setup-x64.exe) · [下载便携版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Portable-x64.exe) · [下载离线 HTML](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1) · [修订说明](docs/motionbench-2.20.1.md)
+[在线 Demo](https://zekeniu.github.io/MotionBench/) · [下载 Windows 安装版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.21.0-desktop.1/MotionBench-2.21.0-desktop.1-Setup-x64.exe) · [下载便携版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.21.0-desktop.1/MotionBench-2.21.0-desktop.1-Portable-x64.exe) · [下载离线 HTML](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.21.0) · [修订说明](docs/motionbench-2.21.0.md)
 
-2.20.1 修复多轴能力雷达图及评分明细组合过高时无法导出 PDF 的问题，过长卡片按内容分页，标题与首图保持相邻，较短卡片保持完整。原有计算与资料保持不变。详见 [修订说明](docs/motionbench-2.20.1.md) 和 [发布核验记录](docs/publication-2.20.1.md)。
+2.21.0 加入12个常用测试项目、14个指标与4套大学生体测单项等级方案，并支持为通用项目选择成绩条形图、重复试次点图或实测与目标。结果表继续保留；左右独立选值、测量方法和既有记录的快照使用同一计算流程。详见 [使用说明](docs/motionbench-2.21.0.md)、[项目与标准来源](docs/preset-tests-and-standards.md) 和 [发布核验记录](https://github.com/ZekeNiu/MotionBench/blob/main/docs/publication-2.21.0.md)。
 
 ![MotionBench 在线演示，全部资料为模拟数据](assets/motionbench-demo.png)
 
@@ -61,7 +61,7 @@
 
 ## HTML、本机入口与资料迁移
 
-下载 [2.20.1 HTML 发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1) 中的 `MotionBench.html` 可直接打开，无需安装。需要本机 AI 中转时，解压 `MotionBench-2.20.1-HTML.zip`，Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
+下载 [2.21.0 HTML 发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.21.0) 中的 `MotionBench.html` 可直接打开，无需安装。需要本机 AI 中转时，解压 `MotionBench-2.21.0-HTML.zip`，Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
 
 本机启动器默认地址为 `http://127.0.0.1:8765/MotionBench.html`。保持原文件位置、浏览器和打开地址可继续使用原资料。浏览器、地址、路径或桌面入口变化前，请先在“备份与恢复”导出完整 JSONL，再在目标入口导入并核对。单条 JSON、HTML 和 PDF 用于报告分享，完整资料库迁移使用 JSONL。
 
@@ -75,11 +75,11 @@
 
 主动生成 AI 建议时，当前测试和训练背景会发送给用户配置的服务；姓名和原始生日字段不发送，自由备注请先去掉身份信息。普通录入、计算和导出不需要 AI 服务。
 
-## 本版验证与方法资料
+## 方法与使用说明
 
-2.20.1 验证包含 54 组／806 项模型检查、132 项浏览器检查、37 项原生程序检查，以及 14 份合成 PDF／101 页渲染核对。新增专项覆盖 1、3、7 轴能力图、双成员平均评分、人工正文和原始试次表分页。公开下载、真实网址、更新与本机验收的范围和结果分别记录在 [发布核验记录](docs/publication-2.20.1.md)，成品校验值与构建来源随发行附件提供。
+本版可按需添加12个常用测试项目、14个测量指标和4套大学生体测单项等级方案。通用项目可选择成绩条形图、重复试次点图或实测与目标，结果表继续保留。添加项目和标准的操作见[2.21.0使用说明](docs/motionbench-2.21.0.md)，协议、单位和官方分组边界见[常用测试与评价标准](docs/preset-tests-and-standards.md)。
 
-[2.20.1 验收](docs/acceptance-2.20.1.md) · [2.20.0 历史验收](docs/acceptance-2.20.0.md) · [2.20.0 公开发布与补验](docs/publication-2.20.0.md) · [2.20.1 修订说明](docs/motionbench-2.20.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
+[软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺FVP方法](docs/sprint-fvp-method.md) · [历次发行](https://github.com/ZekeNiu/MotionBench/releases)
 
 ## 评价方案与项目目录
 
@@ -87,7 +87,7 @@
 
 “项目与指标库”按项目主能力组织，支持搜索具体指标、查看测量和结果规则、独立编辑项目及指标，再进入选定评价方案配置标准。能力图分数为 0–100 分；目标、等级和参考均值各自保留原有用途。
 
-普通成绩保存独立于共享配置；跨页面恢复与资料清理受事务保护，备份过程检测版本变化，避免生成混合版本资料库。此次修复对应的原始审查记录见 [项目审查](docs/project-review-20261012.md)。
+普通成绩保存独立于共享配置；跨页面恢复与资料清理受事务保护，备份过程检测版本变化，避免生成混合版本资料库。此次修复对应的原始审查记录见 [项目审查](https://github.com/ZekeNiu/MotionBench/blob/main/docs/project-review-20261012.md)。
 
 ## 开发与构建
 
@@ -110,3 +110,5 @@ npm run verify:desktop-package
 ## 许可
 
 项目当前声明为 `UNLICENSED`，尚未指定开源许可证。第三方依赖的许可文本保留在 `vendor/`，各依赖按其许可证使用。
+
+常用项目从“项目与指标库 → 添加常用项目”加入，参考方案也可从“评价方案 → 添加参考方案”单独选择；已有记录继续使用原方案。大学生方案按实际性别和学年选择，用正式体测成绩判断单项等级。
