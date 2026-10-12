@@ -11,15 +11,18 @@ $outputFolder=Join-Path $workspaceRoot 'output\tests\v2191-desktop\installed-upg
 New-Item -ItemType Directory -Force -Path $previousFolder,$outputFolder | Out-Null
 $registryKey='HKCU:\Software\7ab680cb-2a51-5387-9959-bfceb2c524d6'
 if (Test-Path $registryKey) { throw 'CI installer identity already exists; refusing to replace an unowned installation.' }
-$result=[ordered]@{synthetic=$true;passed=$false;previousArtifactId=11691562131;previousCommit='71e2d905a82712f04ed725868b3ce2932cb5f5f8';checkedAt=[DateTime]::UtcNow.ToString('o');scriptSha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant();newInstallerSha256=(Get-FileHash -LiteralPath $currentInstaller -Algorithm SHA256).Hash.ToLowerInvariant()}
+$baselineFixture=Join-Path $PSScriptRoot 'fixtures\desktop-upgrade-baseline.json'
+$baseline=Get-Content -LiteralPath $baselineFixture -Raw | ConvertFrom-Json
+if ($baseline.schema -ne 1 -or $baseline.version -ne '2.19.0-desktop.1' -or $baseline.commit -ne '71e2d905a82712f04ed725868b3ce2932cb5f5f8' -or $baseline.archiveUrl -notlike 'https://github.com/ZekeNiu/MotionBench/releases/download/rollback-*/*-baseline.zip' -or $baseline.archiveSha256 -notmatch '^[a-f0-9]{64}$' -or $baseline.archiveSize -le 0) { throw 'The fixed previous-version archive fixture is invalid.' }
+$result=[ordered]@{synthetic=$true;passed=$false;previousArtifactId=$baseline.artifactId;previousCommit=$baseline.commit;previousArchiveUrl=$baseline.archiveUrl;previousArchiveSha256=$baseline.archiveSha256;baselineFixtureSha256=(Get-FileHash -LiteralPath $baselineFixture -Algorithm SHA256).Hash.ToLowerInvariant();checkedAt=[DateTime]::UtcNow.ToString('o');scriptSha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant();newInstallerSha256=(Get-FileHash -LiteralPath $currentInstaller -Algorithm SHA256).Hash.ToLowerInvariant()}
 $installed=$false
 try {
-    if (-not $env:GITHUB_TOKEN) { throw 'Read-only GitHub Actions access is required for the fixed previous installer artifact.' }
-    $headers=@{Authorization="Bearer $env:GITHUB_TOKEN";Accept='application/vnd.github+json'}
-    $metadata=Invoke-RestMethod -Uri "https://api.github.com/repos/$env:GITHUB_REPOSITORY/actions/artifacts/11691562131" -Headers $headers
-    if ($metadata.expired -or $metadata.name -ne 'MotionBench-Windows-x64-11' -or $metadata.workflow_run.head_sha -ne $result.previousCommit) { throw 'The previous artifact is expired or has a different source identity.' }
     $archive=Join-Path $ownedFolder 'previous.zip'
-    Invoke-WebRequest -Uri $metadata.archive_download_url -Headers $headers -OutFile $archive
+    # The public rollback archive is pinned independently of Actions retention.
+    # Verify its complete bytes before extracting or launching the old installer.
+    Invoke-WebRequest -Uri $baseline.archiveUrl -OutFile $archive -TimeoutSec 180
+    if ((Get-Item -LiteralPath $archive).Length -ne $baseline.archiveSize -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne $baseline.archiveSha256) { throw 'Previous archive checksum or length failed.' }
+    $result.previousArchiveVerified=$true;$result.previousArchiveSize=(Get-Item -LiteralPath $archive).Length
     Expand-Archive -LiteralPath $archive -DestinationPath $previousFolder
     $oldInstaller=@(Get-ChildItem -LiteralPath $previousFolder -Recurse -Filter 'MotionBench-2.19.0-desktop.1-Setup-x64.exe')
     $provenance=@(Get-ChildItem -LiteralPath $previousFolder -Recurse -Filter 'build-provenance.json')

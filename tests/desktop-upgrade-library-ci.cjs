@@ -29,7 +29,9 @@ const subset=record=>Object.fromEntries(["recordId","athleteId","athlete","enabl
       await page.locator('[data-path="data.cmj.0.height"]').fill("41.5");await page.evaluate(()=>App.entry("review"));await page.locator("#entryFinish").click();
       assert.equal(await page.evaluate(()=>App.saveNow()),true);
       const savedAI=await page.evaluate(async()=>{const status=await RingsideAISettings.status();return RingsideAISettings.save({base:"https://motionbench-ci-upgrade.invalid/v1",model:"synthetic-ci-model",key:"motionbench-ci-synthetic-key-never-used",expectedRevision:status.revision});});assert.equal(savedAI.hasKey,true);
-      const record=await page.evaluate(async()=>App.getRepository().loadRecord(App.getState().recordId));assert.equal(record.data.cmj[0].height,41.5);
+      // The fixed 2.19.0 baseline stores input values as raw strings. Keep that
+      // exact representation in the seed so verification catches type changes.
+      const record=await page.evaluate(async()=>App.getRepository().loadRecord(App.getState().recordId));assert.equal(record.data.cmj[0].height,"41.5");
       const seed={synthetic:true,record:subset(record),athleteIds:await page.evaluate(()=>App.getLibrary().athletes.map(a=>a.id)),aiRevision:savedAI.revision,aiCipherSha256:hash(await fs.readFile(path.join(expectedProfile,"ai-settings.dat"))),oldArchiveSha256:result.archiveSha256,oldRuntimeHtmlSha256:result.runtimeHtmlSha256};
       await fs.mkdir(path.dirname(seedPath),{recursive:true});await fs.writeFile(seedPath,JSON.stringify(seed,null,2)+"\n");result.seedSha256=hash(await fs.readFile(seedPath));
     } else {

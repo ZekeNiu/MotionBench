@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "version": "2.19.0-desktop.1",
+  "commit": "71e2d905a82712f04ed725868b3ce2932cb5f5f8",
+  "artifactId": 11691562131,
+  "archiveUrl": "https://github.com/ZekeNiu/MotionBench/releases/download/rollback-v2.19.0-desktop.1-before-2.19.1-20261012/MotionBench-2.19.0-desktop.1-baseline.zip",
+  "archiveSha256": "3a73ba9539ad88c0427695e3a0916738a674e60b6e8fb44cb98488ca1ae0d54d",
+  "archiveSize": 226308505
+}

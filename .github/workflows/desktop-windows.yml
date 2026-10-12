@@ -81,8 +81,6 @@ jobs:
           ./tests/desktop-installer-wizard-ci.ps1 -InstallerPath $installer.FullName -ProposedDirectory $directory -ResultDirectory "$env:GITHUB_WORKSPACE/output/tests/v2191-desktop/installer-wizard"
       - name: Upgrade the fixed previous installer and preserve the default synthetic library
         shell: pwsh
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
         run: |
           $installer = Get-ChildItem 'dist-desktop/*-Setup-x64.exe' | Select-Object -First 1
           ./tests/desktop-installed-upgrade-ci.ps1 -InstallerPath $installer.FullName
@@ -199,6 +197,9 @@ jobs:
             previousVersionUpgradeCheck = 'passed'
             previousVersion = $upgrade.oldVersion
             previousInstallerSha256 = $upgrade.oldInstallerSha256
+            previousArchiveUrl = $upgrade.previousArchiveUrl
+            previousArchiveSha256 = $upgrade.previousArchiveSha256
+            previousArchiveSize = $upgrade.previousArchiveSize
             assetSha256 = $assetSha256
           } | ConvertTo-Json -Depth 6 | Set-Content 'dist-desktop/build-provenance.json' -Encoding utf8
           $artifactRows = @()
@@ -219,7 +220,7 @@ jobs:
           }
           foreach ($entry in $evidenceFiles.GetEnumerator()) { $artifactRows += [ordered]@{path=$entry.Key;sha256=(Get-FileHash -LiteralPath $entry.Key -Algorithm SHA256).Hash.ToLowerInvariant();kind=$entry.Value} }
           $producerScripts = @()
-          foreach ($repoPath in @('.github/workflows/desktop-windows.yml','scripts/check-desktop-package.cjs','tests/desktop-installer-wizard-ci.ps1','tests/helpers/desktop-installer-native.cs','tests/desktop-installed-upgrade-ci.ps1','tests/desktop-upgrade-library-ci.cjs','tests/desktop-smoke.cjs','tests/helpers/desktop-artifact-identity.cjs','tests/portable-wrapper-tests.cjs')) {
+          foreach ($repoPath in @('.github/workflows/desktop-windows.yml','scripts/check-desktop-package.cjs','tests/desktop-installer-wizard-ci.ps1','tests/helpers/desktop-installer-native.cs','tests/desktop-installed-upgrade-ci.ps1','tests/fixtures/desktop-upgrade-baseline.json','tests/desktop-upgrade-library-ci.cjs','tests/desktop-smoke.cjs','tests/helpers/desktop-artifact-identity.cjs','tests/portable-wrapper-tests.cjs')) {
             $producerScripts += [ordered]@{repoPath=$repoPath;sha256=(Get-FileHash -LiteralPath $repoPath -Algorithm SHA256).Hash.ToLowerInvariant()}
           }
           $ciResult.artifacts = $artifactRows
