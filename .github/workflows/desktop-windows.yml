@@ -125,27 +125,114 @@ jobs:
           $canaryHashBefore = (Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash
           $uninstaller = Get-ChildItem $installDirectory -Filter '*Uninstall*.exe' | Select-Object -First 1
           if (-not $uninstaller) { throw 'Installed uninstaller is missing' }
-          $uninstall = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -WindowStyle Hidden -PassThru -Wait
-          if ($uninstall.ExitCode -ne 0) { throw "Uninstaller failed with exit code $($uninstall.ExitCode)" }
-          # An NSIS bootstrap can hand off to a temporary uninstaller. Check
-          # the actual removal outcome before declaring user data preserved.
-          $removalDeadline = [DateTime]::UtcNow.AddSeconds(60)
-          while ((Test-Path -LiteralPath $installedExecutable) -or (Test-Path -LiteralPath $uninstaller.FullName)) {
-            if ([DateTime]::UtcNow -ge $removalDeadline) { throw 'Uninstall did not remove the application and original uninstaller within 60 seconds' }
-            Start-Sleep -Milliseconds 200
+          $registryPath = 'HKCU:\Software\7ab680cb-2a51-5387-9959-bfceb2c524d6'
+          $captureUninstallState = {
+            param($directory, $application, $originalUninstaller, $registry, $allProcesses)
+            $prefix = [IO.Path]::GetFullPath($directory).TrimEnd('\') + '\'
+            $state = [ordered]@{ appExeExists=(Test-Path -LiteralPath $application); originalUninstallerExists=(Test-Path -LiteralPath $originalUninstaller); hkcuInstallLocation=$null; processes=@() }
+            try { $state.hkcuInstallLocation = (Get-ItemProperty -LiteralPath $registry -ErrorAction SilentlyContinue).InstallLocation } catch { $state.registryError=$_.Exception.Message }
+            try {
+              $state.processes = @(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object { $allProcesses -or ($_.ExecutablePath -and $_.ExecutablePath.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) } | Sort-Object ProcessId | ForEach-Object {
+                [ordered]@{ pid=[uint32]$_.ProcessId; parentPid=[uint32]$_.ParentProcessId; name=$_.Name; path=$_.ExecutablePath; createdUtc=if ($_.CreationDate) { $_.CreationDate.ToUniversalTime().ToString('o') } else { $null } }
+              })
+            } catch { $state.processSnapshotError=$_.Exception.Message }
+            return $state
           }
-          if (-not (Test-Path -LiteralPath $canary)) { throw 'Uninstall removed the synthetic default user data canary' }
-          $canaryHashAfter = (Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash
-          if ($canaryHashAfter -ne $canaryHashBefore) { throw 'Uninstall changed the synthetic default user data canary' }
-          [ordered]@{
+          $uninstallDiagnostic = [ordered]@{
             synthetic = $true
-            defaultDataDirectory = $defaultDataDirectory
+            sourceHtmlSha256 = (Get-FileHash -LiteralPath 'MotionBench.html' -Algorithm SHA256).Hash.ToLowerInvariant()
+            installerSha256 = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            installDirectory = $installDirectory
+            originalUninstaller = $uninstaller.FullName
+            originalUninstallerSha256 = (Get-FileHash -LiteralPath $uninstaller.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            arguments = '/S'
+            before = (& $captureUninstallState $installDirectory $installedExecutable $uninstaller.FullName $registryPath $false)
             canarySha256Before = $canaryHashBefore.ToLowerInvariant()
-            canarySha256After = $canaryHashAfter.ToLowerInvariant()
-            applicationRemoved = $true
-            uninstallerRemoved = $true
-            preserved = $true
-          } | ConvertTo-Json | Set-Content 'output/desktop-package/uninstall-data-check.json' -Encoding utf8
+            outcomeAssertionsPassed = $false
+            pollIntervalMilliseconds = 250
+            pollBudgetSeconds = 180
+            observationLimit = 'Finite snapshots can miss a short-lived process; an absent observed descendant does not prove that no child was launched.'
+          }
+          $uninstallSamples = [Collections.Concurrent.ConcurrentQueue[object]]::new()
+          $monitorControl = [hashtable]::Synchronized(@{ stop=$false; ready=$false; polls=0 })
+          $uninstallMonitor = $null
+          $uninstall = $null
+          try {
+            # Observe while preserving Start-Process -Wait and the normal /S lifecycle.
+            # Process metadata stays in memory until it is filtered to this owned
+            # install directory and the actual bootstrap's observed descendants.
+            $uninstallMonitor = Start-ThreadJob -ArgumentList $captureUninstallState,$installDirectory,$installedExecutable,$uninstaller.FullName,$registryPath,$uninstallSamples,$monitorControl -ScriptBlock {
+              param($capture, $directory, $application, $originalUninstaller, $registry, $samples, $control)
+              $deadline = [DateTime]::UtcNow.AddSeconds(180)
+              while (-not $control.stop -and [DateTime]::UtcNow -lt $deadline) {
+                $samples.Enqueue([ordered]@{ at=[DateTime]::UtcNow.ToString('o'); state=(& $capture $directory $application $originalUninstaller $registry $true) })
+                $control.polls++
+                $control.ready=$true
+                Start-Sleep -Milliseconds 250
+              }
+            }
+            $monitorReadyDeadline = [DateTime]::UtcNow.AddSeconds(5)
+            while (-not $monitorControl.ready -and [DateTime]::UtcNow -lt $monitorReadyDeadline) { Start-Sleep -Milliseconds 50 }
+            $uninstallDiagnostic.monitorReadyBeforeLaunch = $monitorControl.ready
+            $uninstallDiagnostic.startedUtc = [DateTime]::UtcNow.ToString('o')
+            $uninstall = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -WindowStyle Hidden -PassThru -Wait
+            $uninstallDiagnostic.launchProcess = [ordered]@{ pid=$uninstall.Id; exitCode=$uninstall.ExitCode; returnedUtc=[DateTime]::UtcNow.ToString('o') }
+            if ($uninstall.ExitCode -ne 0) { throw "Uninstaller failed with exit code $($uninstall.ExitCode)" }
+            # An NSIS bootstrap can hand off to a temporary uninstaller. Check
+            # the actual removal outcome before declaring user data preserved.
+            $removalDeadline = [DateTime]::UtcNow.AddSeconds(60)
+            while ((Test-Path -LiteralPath $installedExecutable) -or (Test-Path -LiteralPath $uninstaller.FullName)) {
+              if ([DateTime]::UtcNow -ge $removalDeadline) { throw 'Uninstall did not remove the application and original uninstaller within 60 seconds' }
+              Start-Sleep -Milliseconds 200
+            }
+            if (-not (Test-Path -LiteralPath $canary)) { throw 'Uninstall removed the synthetic default user data canary' }
+            $canaryHashAfter = (Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash
+            if ($canaryHashAfter -ne $canaryHashBefore) { throw 'Uninstall changed the synthetic default user data canary' }
+            [ordered]@{
+              synthetic = $true
+              defaultDataDirectory = $defaultDataDirectory
+              canarySha256Before = $canaryHashBefore.ToLowerInvariant()
+              canarySha256After = $canaryHashAfter.ToLowerInvariant()
+              applicationRemoved = $true
+              uninstallerRemoved = $true
+              preserved = $true
+            } | ConvertTo-Json | Set-Content 'output/desktop-package/uninstall-data-check.json' -Encoding utf8
+            $uninstallDiagnostic.outcomeAssertionsPassed = $true
+          } catch { $uninstallDiagnostic.failure=$_.Exception.Message; throw }
+          finally {
+            $monitorControl.stop=$true
+            if ($uninstallMonitor) {
+              $monitorCompleted = $uninstallMonitor | Wait-Job -Timeout 10
+              if (-not $monitorCompleted) { Stop-Job -Job $uninstallMonitor; $uninstallDiagnostic.monitorCleanupTimedOut=$true }
+              $uninstallDiagnostic.monitorErrors = @($uninstallMonitor.ChildJobs | ForEach-Object { $_.Error | ForEach-Object { $_.ToString() } })
+              Remove-Job -Job $uninstallMonitor -Force
+            }
+            $samples = @($uninstallSamples.ToArray())
+            $descendantIds = [Collections.Generic.HashSet[uint32]]::new()
+            if ($uninstall) { [void]$descendantIds.Add([uint32]$uninstall.Id) }
+            do {
+              $added=$false
+              foreach ($sample in $samples) { foreach ($processRow in $sample.state.processes) {
+                if ($descendantIds.Contains($processRow.parentPid) -and $processRow.createdUtc -ge $uninstallDiagnostic.startedUtc) { if ($descendantIds.Add($processRow.pid)) { $added=$true } }
+              } }
+            } while ($added)
+            $prefix = [IO.Path]::GetFullPath($installDirectory).TrimEnd('\') + '\'
+            $transitions = @()
+            $previousState = $null
+            foreach ($sample in $samples) {
+              $sample.state.processes = @($sample.state.processes | Where-Object { $descendantIds.Contains($_.pid) -or ($_.path -and $_.path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)) })
+              $serializedState = $sample.state | ConvertTo-Json -Depth 8 -Compress
+              if ($serializedState -ne $previousState) { $transitions += $sample; $previousState=$serializedState }
+            }
+            $uninstallDiagnostic.polls = $monitorControl.polls
+            $uninstallDiagnostic.transitions = $transitions
+            $uninstallDiagnostic.after = (& $captureUninstallState $installDirectory $installedExecutable $uninstaller.FullName $registryPath $false)
+            $uninstallDiagnostic.canaryExistsAfter = Test-Path -LiteralPath $canary
+            if ($uninstallDiagnostic.canaryExistsAfter) {
+              try { $uninstallDiagnostic.canarySha256After=(Get-FileHash -LiteralPath $canary -Algorithm SHA256).Hash.ToLowerInvariant() } catch { $uninstallDiagnostic.canaryHashError=$_.Exception.Message }
+            }
+            $uninstallDiagnostic | ConvertTo-Json -Depth 12 | Set-Content 'output/desktop-package/uninstall-diagnostic.json' -Encoding utf8
+          }
           Remove-Item -LiteralPath $canary
       - name: Create SHA-256 checksums and build provenance
         shell: pwsh
@@ -229,6 +316,7 @@ jobs:
             'output/desktop-smoke/installed/results.json' = 'installed-smoke'
             'output/desktop-smoke/portable/results.json' = 'portable'
             'output/desktop-package/uninstall-data-check.json' = 'uninstall'
+            'output/desktop-package/uninstall-diagnostic.json' = 'uninstall-diagnostic'
             'output/desktop-v220-management/packaged/native-management-results.json' = 'management-native'
             'output/tests/v221-desktop/packaged-pdf/native-pdf-results.json' = 'pdf-native'
           }
