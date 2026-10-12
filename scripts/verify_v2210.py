@@ -61,6 +61,8 @@ GENERIC_VISUAL = "output/implementation-2.21.0/generic/generic-pdf-visual-review
 GENERIC_SCREENSHOT_VISUAL = "output/implementation-2.21.0/generic/generic-screenshot-visual-review.json"
 STANDARDS_DOC = "docs/preset-tests-and-standards.md"
 CI_NATIVE_SMOKE = "output/desktop-smoke/packaged/results.json"
+NATIVE_EXECUTABLE = "dist-desktop/win-unpacked/MotionBench.exe"
+EVIDENCE_TOOLS = {"scripts/verify_v2210.py", "scripts/verify_delivery.py", "scripts/package_v2210_evidence.py"}
 PUBLIC_V220_HTML_SHA256 = "9fdac139dcad46a4f533877296f9000abdf9a91ec2d68fae1164453f9d19beae"
 
 
@@ -447,6 +449,7 @@ def verify_desktop(index, source_hash, smoke_selection=None):
     package = index.read(EVIDENCE["package"])
     require(package["version"] == DESKTOP_VERSION and package["webVersion"] == VERSION and not package["directoryOnly"] and package["updaterConfigurationPresent"], "Incomplete production desktop package")
     archive = index.file("dist-desktop/win-unpacked/resources/app.asar", package["archiveSha256"])
+    executable = index.file(NATIVE_EXECUTABLE)
     index.file("dist-desktop/win-unpacked/resources/app-update.yml")
     script = """const fs=require('fs'),path=require('path'),crypto=require('crypto'),asar=require('@electron/asar'),yaml=require('js-yaml');const hash=b=>crypto.createHash('sha256').update(b).digest('hex'),a=path.resolve('dist-desktop/win-unpacked/resources/app.asar');const names=asar.listPackage(a).map(x=>x.replace(/\\\\/g,'/').replace(/^\\//,''));const files=names.filter(x=>!asar.statFile(a,path.normalize(x)).files).sort();const runtimeFiles=fs.readdirSync('desktop').filter(x=>x.endsWith('.cjs')).sort();console.log(JSON.stringify({files,package:JSON.parse(asar.extractFile(a,path.normalize('package.json')).toString('utf8')),runtimeHashes:Object.fromEntries(runtimeFiles.map(n=>['desktop/'+n,hash(asar.extractFile(a,path.normalize('desktop/'+n)))])),htmlSha256:hash(asar.extractFile(a,path.normalize('MotionBench.html'))),updater:yaml.load(fs.readFileSync('dist-desktop/win-unpacked/resources/app-update.yml','utf8'))}));"""
     packed = json.loads(subprocess.check_output(["node", "-e", script], cwd=ROOT, text=True))
@@ -477,12 +480,12 @@ def verify_desktop(index, source_hash, smoke_selection=None):
             verify_smoke_lifecycle(data)
         if key == "nativeManagement":
             require(data["cleanup"]["temporaryProfileRemoved"] is True and data["cleanup"]["sessions"] == [] and data["cleanup"]["errors"] == [], "Native management did not normally close its owned sessions and remove the private profile")
-            require(data["executableSha256"] == digest(ROOT / "dist-desktop/win-unpacked/MotionBench.exe"), "Native management used another executable")
+            require(data["executableSha256"] == executable["sha256"], "Native management used another executable")
             require(data["versions"]["desktop"] == DESKTOP_VERSION and data["versions"]["web"] == VERSION, "Native management versions differ")
             require([session["label"] for session in data["sessions"]] == ["initial", "reopened"] and all(session["isolatedUserData"] for session in data["sessions"]) and data["sessions"][0]["nativePid"] != data["sessions"][1]["nativePid"], "Native management did not restart in a separate isolated process")
             require(len(data["artifacts"]) == 12 and data["blockedNativeClose"]["windowAlive"] is True, "Native management lacks screenshots or exit protection")
         results.append({"name": key, "checks": count, "origin": smoke_selection["origin"] if key == "nativeSmoke" else "local", **index.file(relative, base=base)})
-    return {"unitChecks": len(unit["checks"]), "nativeChecks": 33, "archive": archive, "unitEvidence": index.file(EVIDENCE["desktopUnit"]), "packageEvidence": index.file(EVIDENCE["package"]), "native": results}
+    return {"unitChecks": len(unit["checks"]), "nativeChecks": 33, "archive": archive, "executable": executable, "unitEvidence": index.file(EVIDENCE["desktopUnit"]), "packageEvidence": index.file(EVIDENCE["package"]), "native": results}
 
 
 
@@ -766,11 +769,13 @@ def verify_ci(index, relative, source_hash, required, artifact_root="", local_st
     verify_catalog_browser(index, source_hash, "native", artifact_root, identity["archiveSha256"], management["executableSha256"])
     committed = {}
     for name, item in sorted(index.files.items()):
+        if name in EVIDENCE_TOOLS:
+            continue  # These offline evidence tools are hashed dependencies, not CI producers.
         if name == "MotionBench.html" or name.startswith(("src/", "desktop/", "tests/", "vendor/", "scripts/")) or name in {"package.json", "package-lock.json", "electron-builder.yml", "body-map-front.png", ".github/workflows/desktop-windows.yml", STANDARDS_DOC}:
             actual = hashlib.sha256(subprocess.check_output(["git", "show", ci["commit"] + ":" + name], cwd=ROOT)).hexdigest()
             require(actual == item["sha256"], "CI commit contains another source/test/helper: " + name)
             committed[name] = actual
-    return {"status": "passed", "passed": True, "commit": ci["commit"], "run": ci["run"], "artifactRoot": artifact_root, "evidencePath": relative, "evidence": index.file(relative, base=artifact_root), "baseline": baseline_evidence, "checks": {"installerWizard": True, "installedUpgrade": True, "installedSmoke": 16, "portableWrapper": 3, "nativeManagement": 12, "nativePdf": 4, "browserPdf": 16, "catalogBrowser": CATALOG_CHECKS * 2, "genericBrowser": GENERIC_CHECKS * 2, "genericNative": GENERIC_CHECKS, "catalogNative": CATALOG_CHECKS, "uninstallPreservesData": True, "updateAssetSha512": True}, "commitBoundFiles": committed, "runtimeIdentityMatchesLocalSource": True, "installer": index.item(installer[0], artifact_root), "portable": index.item(portable, artifact_root)}
+    return {"status": "passed", "passed": True, "commit": ci["commit"], "run": ci["run"], "artifactRoot": artifact_root, "evidencePath": relative, "evidence": index.file(relative, base=artifact_root), "baseline": baseline_evidence, "checks": {"installerWizard": True, "installedUpgrade": True, "installedSmoke": 16, "portableWrapper": 3, "nativeManagement": 12, "nativePdf": 4, "browserPdf": 16, "catalogBrowser": CATALOG_CHECKS * 2, "genericBrowser": GENERIC_CHECKS * 2, "genericNative": GENERIC_CHECKS, "catalogNative": CATALOG_CHECKS, "uninstallPreservesData": True, "updateAssetSha512": True}, "commitBoundFiles": committed, "evidenceVerificationTools": {name: index.file(name) for name in sorted(EVIDENCE_TOOLS)}, "runtimeIdentityMatchesLocalSource": True, "installer": index.item(installer[0], artifact_root), "portable": index.item(portable, artifact_root)}
 
 
 def verify_ci_test_receipts(index, source_hash, base, archive_hash):
@@ -901,7 +906,7 @@ def main():
         for exported in pagination["pdfs"]:
             require(exported["file"] not in pagination_pdfs, "Duplicate pagination PDF")
             pagination_pdfs[exported["file"]] = exported
-    native_pdf = verify_pagination_native(index, artifact["sha256"], desktop["archive"]["sha256"], executable_hash=digest(ROOT / "dist-desktop/win-unpacked/MotionBench.exe"))
+    native_pdf = verify_pagination_native(index, artifact["sha256"], desktop["archive"]["sha256"], executable_hash=desktop["executable"]["sha256"])
     for exported in native_pdf["pdfs"]:
         require(exported["file"] not in pagination_pdfs, "Duplicate native pagination PDF")
         pagination_pdfs[exported["file"]] = exported
@@ -909,11 +914,11 @@ def main():
     desktop["nativeChecks"] += 4
     desktop["native"].append({"name": "nativePdf", "checks": 4, "origin": "local", **index.file(EVIDENCE["nativePdf"])})
     catalog = [verify_catalog_browser(index, artifact["sha256"], channel) for channel in ["chrome", "msedge"]]
-    catalog_native = verify_catalog_browser(index, artifact["sha256"], "native", archive_hash=desktop["archive"]["sha256"], executable_hash=digest(ROOT / "dist-desktop/win-unpacked/MotionBench.exe"))
+    catalog_native = verify_catalog_browser(index, artifact["sha256"], "native", archive_hash=desktop["archive"]["sha256"], executable_hash=desktop["executable"]["sha256"])
     desktop["native"].append({"name": "nativeCatalog", "origin": "local", **catalog_native})
     generic_pdfs, generic_screenshots, generic_runs = {}, {}, []
     for channel in ["chrome", "msedge", "native"]:
-        generic = verify_generic_channel(index, artifact["sha256"], channel, archive_hash=desktop["archive"]["sha256"] if channel == "native" else None, executable_hash=digest(ROOT / "dist-desktop/win-unpacked/MotionBench.exe") if channel == "native" else None)
+        generic = verify_generic_channel(index, artifact["sha256"], channel, archive_hash=desktop["archive"]["sha256"] if channel == "native" else None, executable_hash=desktop["executable"]["sha256"] if channel == "native" else None)
         relative = GENERIC_NATIVE if channel == "native" else GENERIC_PATTERN.format(channel=channel)
         generic_runs.append({"channel": channel, "checks": GENERIC_CHECKS, **index.file(relative)})
         if channel == "native":

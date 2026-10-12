@@ -14,6 +14,7 @@ ACCEPTANCE = "docs/acceptance-2.21.0.json"
 ACCEPTANCE_MD = "docs/acceptance-2.21.0.md"
 DESTINATION = "output/release/MotionBench-2.21.0-evidence.zip"
 RELEASE_TAG = "v2.21.0-desktop.1"
+NATIVE_EXECUTABLE = "dist-desktop/win-unpacked/MotionBench.exe"
 TEXT_EXTENSIONS = {".json", ".jsonl", ".md", ".txt", ".py", ".cjs", ".js", ".css", ".html", ".yml", ".yaml", ".cs", ".ps1", ".csv", ".tsv", ".svg", ".xml"}
 SECRET_PATTERNS = [
     re.compile(r"sk-[A-Za-z0-9_-]{32,}"),
@@ -73,6 +74,8 @@ def review_instructions(external, native_smoke=None):
 
 本包按已冻结验收清单保留相对路径，包含源码、HTML、测试回执、截图、PDF、XLSX、JSONL 和正式程序 ASAR。PDF 证据同时包括原报告、多能力回归、实际打包程序导出、逐页图像及公开旧版失败复现。两个 Windows 程序另由同一桌面发行下载；`external-artifacts.json` 记录它们的路径、文件名、字节数和 SHA256。
 
+包内的 `dist-desktop/win-unpacked/MotionBench.exe` 保留本机验收所用的原始字节，仅用于比对原生程序回执的 SHA256；它不是独立可运行的完整应用目录。验证工具按本包冻结的当前字节单独列出；生产源码、测试与 CI 工作流仍须与实际 CI 提交精确相同。
+
 1. 取得仓库完整源码并检出 `v2.21.0`（与 `v2.21.0-desktop.1` 指向同一交付提交），运行 `npm ci`。Python 需可导入 Pillow 和 pypdf；Poppler 的 `pdftoppm` 需在 PATH 中，或由 `MOTIONBENCH_PDFTOPPM` 指定。独立历史计分对比使用 Git 对象 `416897bd5022fbe3b7205c22b5d82f9078406b07`；旧 schema2 导出器测试还使用 `bdbb92cc0d6d914c6bcf5721d6eb65c2296c7d02`。旧版 PDF 失败复现还核对不可变的 `v2.20.0:MotionBench.html`；请保留该历史标签与对象。
 2. 把证据包解压到仓库根目录，保持相对路径。从 `v2.21.0-desktop.1` 发行下载以下两个程序，核对 external 清单的字节数和 SHA256，再放到指定位置：
 
@@ -116,6 +119,7 @@ def main():
         require(path.stat().st_size == item["bytes"] and file_digest(path) == item["sha256"], "Stale or altered frozen dependency: " + relative)
         dependencies[relative] = item
     require("docs/preset-tests-and-standards.md" in dependencies, "Preset protocol and standards documentation is missing from frozen dependencies")
+    require(dependencies.get(NATIVE_EXECUTABLE) == acceptance["desktop"]["executable"], "The exact locally tested native executable is missing from frozen dependencies")
     external = []
     for key, kind in [("installer", "setup"), ("portable", "portable")]:
         item = acceptance["ci"][key]
@@ -124,7 +128,7 @@ def main():
         expected = f"MotionBench-{DESKTOP_VERSION}-{'Setup' if kind == 'setup' else 'Portable'}-x64.exe"
         require(asset == expected, "Unexpected release executable name")
         external.append({**item, "assetName": asset, "releaseTag": RELEASE_TAG, "downloadUrl": f"https://github.com/ZekeNiu/MotionBench/releases/download/{RELEASE_TAG}/{asset}"})
-    require({item["path"] for item in external} == {path for path in dependencies if PurePosixPath(path).suffix.lower() == ".exe"}, "Only the two frozen CI executables may be external")
+    require({item["path"] for item in external} == {path for path in dependencies if PurePosixPath(path).suffix.lower() == ".exe" and path != NATIVE_EXECUTABLE}, "Only the two frozen CI release executables may be external; the tested native executable must be archived")
 
     entries = {relative: item for relative, item in dependencies.items() if relative not in {item["path"] for item in external}}
     generated = {

@@ -13,7 +13,7 @@ files = ["MotionBench.html", "Start_MotionBench.cmd", "scripts/serve.py", "scrip
 if (root / f"docs/acceptance-{version}.md").is_file():
     files.append(f"docs/acceptance-{version}.md")
 if version == "2.21.0":
-    files.append("docs/preset-tests-and-standards.md")
+    files.extend(["docs/preset-tests-and-standards.md", "docs/windows-desktop.md", "docs/demo.md", "docs/sprint-fvp-method.md", "assets/motionbench-demo.png"])
 
 destination.parent.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
