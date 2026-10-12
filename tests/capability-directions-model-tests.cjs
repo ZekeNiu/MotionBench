@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), vm = require("node:vm"), assert = require("node:assert/strict");
 const { createHash } = require("node:crypto");
-const root = path.resolve(__dirname, ".."), out = path.join(root, "output/capability-directions-2172");
+const root = path.resolve(__dirname, ".."), out = path.join(root, "output/tests/v2191-semantics/capability-directions");
 fs.mkdirSync(out, { recursive: true });
 const appSource = fs.readFileSync(path.join(root, "src/ringside-app.js"), "utf8");
 const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto, flushReportEdits:()=>{} }); c.window = c;
@@ -65,19 +65,21 @@ test("actual App.facts changes its selected basis when strength switches DSI to 
   assert.equal(beforeBasis, afterBasis, "selection remains separate from the measurement fingerprint");
   assert.deepEqual(json(before.capabilityAnalysis), json(after.capabilityAnalysis), "full original AI capability analysis must remain intact");
 });
-const baseline = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/capability-direction-values-v2175.json"), "utf8"));
-test("all 19 pre-change direction scenarios preserve scientific values in redesigned screen and PDF cards", () => {
+const baseline = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/capability-direction-values-v2191.json"), "utf8"));
+test("all 19 scenarios preserve scientific values and approved 2.19.1 judgments in screen and PDF cards", () => {
   const results = [];
   const escape=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   for (const example of directionScenarios()) {
     const expected = baseline.cases.find(item => item.name === example.name);
     assert.ok(expected, `captured pre-change scenario ${example.name}`);
     const report = R.build(example.record);
-    const actual=M.capabilityDirections(report.record,report.stats).map(({id,metricId,value,unit,status,judgment,digits})=>({id,metricId,value,unit,status,judgment,digits}));
+    const directions=M.capabilityDirections(report.record,report.stats);
+    const actual=directions.map(({id,metricId,value,unit,status,judgment,digits})=>({id,metricId,value,unit,status,judgment,digits}));
     assert.deepEqual(json(actual),expected.directions,example.name+" independent baseline values");
     for (const [mode, options] of [["screen", {}], ["print", { print: true }]]) {
       const html = R.renderCapabilityAnalysis(report, options);
       for (const metric of expected.directions) {
+        if (!directions.find(item => item.id === metric.id).hasData) { assert.equal(section(html,metric.id),"",`${example.name}/${mode}/${metric.id} empty category hidden`); continue; }
         const block=section(html,metric.id),formatted=metric.value===null?"—":Number(metric.value).toLocaleString("zh-CN",{minimumFractionDigits:metric.digits,maximumFractionDigits:metric.digits});
         assert.ok(block.includes(`data-direction-metric="${metric.metricId}"`),`${example.name}/${mode}/${metric.id} selected basis`);
         assert.equal(block.match(/class="capability-direction-judgment [^"]*">([\s\S]*?)<\/p>/)?.[1],escape(metric.judgment),`${example.name}/${mode}/${metric.id} judgment`);
@@ -101,7 +103,7 @@ test("shared projection and registry are pure and all selected metrics match act
     assert.equal(directions.find(item => item.id === key).metricId, id);
     assert.equal(JSON.stringify({ record, stats }), original);
     linkState(json(record));
-    assert.deepEqual(json(App.facts().selectedCapabilityDirections), json(directions));
+    assert.deepEqual(json(App.facts().selectedCapabilityDirections), json(directions.filter(item => item.hasData)));
   }
 });
 test("implicit fallback and explicit missing metric selections retain the existing behavior", () => {
@@ -225,6 +227,21 @@ async function main() {
     c.state.views.capabilitySelections.strength="eur";AI.renderNarrativeStatus();assert.equal(nodes.interpState.textContent,"已填写");
     reset();await AI.ai();AI.applyAI();const newBasis=c.state.narrative.capabilityDirectionsBasis;c.state.athlete.age=Number(c.state.athlete.age)+1;
     assert.equal(AI.capabilityDirectionsBasis(),newBasis);AI.renderNarrativeStatus();assert.equal(nodes.interpState.textContent,"AI稿");
+  });
+  await asyncTest("old AI EUR judgments require editor review without changing the saved prose or report state",async()=>{
+    for(const bound of [false,true]){
+      reset();c.state.narrative.origin="AI";
+      if(bound){const old=JSON.parse(AI.capabilityDirectionsBasis());delete old.directionRules;c.state.narrative.capabilityDirectionsBasis=JSON.stringify(old);}
+      const before=JSON.stringify([c.state.narrative,c.state.previousNarrative]);AI.renderNarrativeStatus();
+      assert.equal(nodes.editorState.textContent,"分析依据已更新 · 待复核");assert.equal(nodes.interpState.textContent,"AI稿");
+      assert.equal(nodes.interpState.className,"pill no-print gray");assert.equal(JSON.stringify([c.state.narrative,c.state.previousNarrative]),before);
+    }
+  });
+  await asyncTest("rule-only updates preserve manual drafts and unbound AI without valid EUR",async()=>{
+    reset();const old=JSON.parse(AI.capabilityDirectionsBasis());delete old.directionRules;c.state.narrative.capabilityDirectionsBasis=JSON.stringify(old);
+    const before=JSON.stringify(c.state.narrative);AI.renderNarrativeStatus();assert.equal(nodes.editorState.textContent,"已填写");assert.equal(JSON.stringify(c.state.narrative),before);
+    reset();c.state.narrative.origin="AI";c.state.enabled.cmj=false;c.state.narrative.basis=App.recordBasis();AI.renderNarrativeStatus();
+    assert.equal(nodes.editorState.textContent,"AI稿");assert.equal(nodes.interpState.textContent,"AI稿");
   });
   await asyncTest("different-record identity still prevents in-flight output and suppresses stale catch errors",async()=>{
     reset();const wait=deferred();c.requestResult=wait.promise;const running=AI.ai();await until(()=>requests.length===1);

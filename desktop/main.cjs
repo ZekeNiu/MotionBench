@@ -6,6 +6,9 @@ const crypto = require("node:crypto");
 const { APP_ORIGIN, APP_URL, CSP, isAppURL, externalURL, safeFilename, exportFilters } = require("./security.cjs");
 const { createAIService } = require("./ai-service.cjs");
 const { createAIBridge } = require("./ai-bridge.cjs");
+const { createUpdateService } = require("./update-service.cjs");
+const { createUpdateBridge } = require("./update-bridge.cjs");
+const { createWindowsUpdater } = require("./windows-updater.cjs");
 
 protocol.registerSchemesAsPrivileged([{ scheme: "motionbench", privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } }]);
 app.setName("MotionBench Desktop");
@@ -25,7 +28,9 @@ try {
 }
 const testMode = process.argv.includes("--motionbench-test");
 const testExportDirectory = testMode && process.env.MOTIONBENCH_TEST_EXPORT_DIR ? path.resolve(process.env.MOTIONBENCH_TEST_EXPORT_DIR) : null;
-let mainWindow, closing = false, allowClose = false, rendererGone = false;
+let mainWindow, updateService, closing = false, allowClose = false, rendererGone = false;
+const webVersion = require("../package.json").webVersion || require("../package.json").version;
+const desktopVersion = app.isPackaged ? app.getVersion() : require("js-yaml").load(require("node:fs").readFileSync(path.join(__dirname,"..","electron-builder.yml"),"utf8")).extraMetadata.version;
 const downloads = new Set();
 
 function notifyExport(message) {
@@ -33,9 +38,9 @@ function notifyExport(message) {
   mainWindow.webContents.executeJavaScript(`(() => { const el=document.getElementById('toast'); if(el){el.textContent=${JSON.stringify(message)};el.style.display='block';setTimeout(()=>{el.style.display='none';},5000);} })()`).catch(() => {});
 }
 async function runCommand(command) {
-  if (!mainWindow || mainWindow.isDestroyed() || closing) return;
-  try { await mainWindow.webContents.executeJavaScript(command, true); }
-  catch { await dialog.showMessageBox(mainWindow, { type: "error", message: "操作未完成，请检查页面提示后重试。" }); }
+  if (!mainWindow || mainWindow.isDestroyed() || closing) return false;
+  try { return await mainWindow.webContents.executeJavaScript(command, true) !== false; }
+  catch { await dialog.showMessageBox(mainWindow, { type: "error", message: "操作未完成，请检查页面提示后重试。" }); return false; }
 }
 function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate([
@@ -50,11 +55,38 @@ function buildMenu() {
     { label: "编辑", submenu: [{role:"undo",label:"撤销"},{role:"redo",label:"重做"},{type:"separator"},{role:"cut",label:"剪切"},{role:"copy",label:"复制"},{role:"paste",label:"粘贴"},{role:"selectAll",label:"全选"}] },
     { label: "视图", submenu: [{role:"resetZoom",label:"实际大小"},{role:"zoomIn",label:"放大"},{role:"zoomOut",label:"缩小"},{role:"togglefullscreen",label:"全屏"}] },
     { label: "帮助", submenu: [
-      { label: "桌面版使用说明", click: () => shell.openExternal("https://github.com/ZekeNiu/MotionBench/blob/desktop-windows-2.19.0-20261011/docs/windows-desktop.md") },
+      { label: "应用设置", click: () => runCommand("window.App?.openSettings('app')") },
+      { label: "检查更新", click: async () => { if (await runCommand("window.App?.openSettings('app')")) await updateService?.checkForUpdates(); } },
+      { type: "separator" },
+      { label: "桌面版使用说明", click: () => shell.openExternal(`https://github.com/ZekeNiu/MotionBench/blob/v${app.isPackaged ? app.getVersion() : webVersion}/docs/windows-desktop.md`) },
       { label: "打开本机数据目录", click: () => shell.openPath(dataDirectory) },
-      { label: "关于 MotionBench", click: () => dialog.showMessageBox(mainWindow, {type:"info",message:`MotionBench ${app.getVersion()}`,detail:"Windows 桌面版 · 离线资料库\n网页基线：v2.19.0 (e9e10bb)\n更新或卸载程序会保留本机资料；请定期导出完整备份。"}) }
+      { label: "关于 MotionBench", click: () => runCommand("window.App?.openSettings('app')") }
     ] }
   ]));
+}
+async function prepareExit(restarting = false) {
+  if (downloads.size) return {ok:false,reason:"文件正在保存，请完成或取消文件保存后重试。"};
+  await mainWindow.webContents.executeJavaScript("document.documentElement.inert=true");
+  let status = await mainWindow.webContents.executeJavaScript("window.App?.prepareDesktopClose() || ({ok:false,reason:'工作台尚未准备完成，请稍后重试。'})");
+  if (!status.ok && status.discardable) {
+    const answer = await dialog.showMessageBox(mainWindow, {type:"question",message:status.reason,detail:"已录入的有效测试数据会先保存。尚未提交的设置或管理表单将放弃。",buttons:["返回继续编辑",restarting?"放弃表单并更新":"放弃表单并退出"],defaultId:0,cancelId:0});
+    if (answer.response !== 1) return {ok:false,reason:"已返回编辑，完成设置后可重试。"};
+    status = await mainWindow.webContents.executeJavaScript("window.App.prepareDesktopClose({discardSettings:true})");
+  }
+  if (status.ok) session.defaultSession.flushStorageData();
+  return status;
+}
+function recoverRestart() {
+  allowClose = false;
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.executeJavaScript("document.documentElement.inert=false").catch(() => {});
+}
+async function prepareRestart() {
+  if (closing || rendererGone || !mainWindow || mainWindow.isDestroyed()) return {ok:false,reason:"当前工作台无法确认保存，请稍后重试。"};
+  closing = true;
+  let status;
+  try { status = await prepareExit(true); if (status.ok) allowClose = true; return status; }
+  catch { return {ok:false,reason:"退出前未能确认保存，请检查当前数据后重试。"}; }
+  finally { closing=false; if (!status?.ok) recoverRestart(); }
 }
 async function closeSafely(event) {
   if (allowClose) return;
@@ -67,24 +99,13 @@ async function closeSafely(event) {
       if (answer.response === 0) { allowClose=true;mainWindow.destroy(); }
       return;
     }
-    if (downloads.size) {
-      await dialog.showMessageBox(mainWindow, {type:"info",message:"文件正在保存，请完成或取消文件保存后再退出。"});
-      return;
-    }
     // Freeze interaction for the short save barrier, so a new edit cannot race
     // the snapshot being committed. Native confirmation remains interactive.
-    await mainWindow.webContents.executeJavaScript("document.documentElement.inert=true");
-    let status = await mainWindow.webContents.executeJavaScript("window.App?.prepareDesktopClose() || ({ok:true})");
-    if (!status.ok && status.discardable) {
-      const answer = await dialog.showMessageBox(mainWindow, {type:"question",message:status.reason,detail:"已录入的有效测试数据会先保存。尚未提交的设置或管理表单将放弃。",buttons:["返回继续编辑","放弃表单并退出"],defaultId:0,cancelId:0});
-      if (answer.response !== 1) return;
-      status = await mainWindow.webContents.executeJavaScript("window.App.prepareDesktopClose({discardSettings:true})");
-    }
+    const status = await prepareExit();
     if (!status.ok) {
       await dialog.showMessageBox(mainWindow, {type:"warning",message:status.reason || "保存未完成，请重试。"});
       return;
     }
-    session.defaultSession.flushStorageData();
     allowClose = true;
     mainWindow.destroy();
   } catch {
@@ -98,16 +119,27 @@ async function start() {
   await fs.mkdir(dataDirectory, {recursive:true});
   const ses = session.defaultSession;
   const token = crypto.randomBytes(32).toString("hex");
-  const ai = createAIService({directory:dataDirectory,safeStorage,origin:APP_ORIGIN,token,fetch:net.fetch.bind(net)});
-  const aiBridge = createAIBridge({service:ai,origin:APP_ORIGIN,token,isTrustedSender:event => {
+  const isTrustedSender = event => {
     const contents = mainWindow?.webContents;
-    return !!contents && !contents.isDestroyed() && event.sender === contents &&
+    return !!contents && !contents.isDestroyed() && event?.sender === contents &&
       event.senderFrame === contents.mainFrame && event.senderFrame?.url === APP_URL && contents.getURL() === APP_URL;
-  }});
+  };
+  const ai = createAIService({directory:dataDirectory,safeStorage,origin:APP_ORIGIN,token,fetch:net.fetch.bind(net)});
+  const aiBridge = createAIBridge({service:ai,origin:APP_ORIGIN,token,isTrustedSender});
+  updateService = createUpdateService({directory:dataDirectory,version:desktopVersion,webVersion,
+    portable:!!process.env.PORTABLE_EXECUTABLE_FILE,enabled:app.isPackaged && process.platform === "win32" && !testMode,
+    createUpdater:() => createWindowsUpdater(require("electron-updater").NsisUpdater,{provider:"github",owner:"ZekeNiu",repo:"MotionBench",channel:"desktop",private:false}),
+    openExternal:url => shell.openExternal(url),prepareRestart,recoverRestart});
+  const updateBridge = createUpdateBridge({service:updateService,isTrustedSender});
+  ipcMain.handle("motionbench:update",(event,...args) => updateBridge.handle(event,...args));
+  updateService.onUpdateState(state => {
+    const contents = mainWindow?.webContents;
+    if (contents && !contents.isDestroyed() && contents.getURL() === APP_URL && contents.mainFrame.url === APP_URL) contents.send("motionbench:update-state",state);
+  });
   ipcMain.handle("motionbench:ai-request", (event, ...args) => aiBridge.handle(event, ...args));
   ipcMain.on("motionbench:ai-cancel", (event, id) => aiBridge.cancel(event, id));
   const original = await fs.readFile(path.join(app.getAppPath(), "MotionBench.html"), "utf8");
-  const bootstrap = `<script id="motionbench-local-bootstrap">window.MotionBenchLocal=Object.freeze({native:true});window.MotionBenchDesktop=Object.freeze({version:${JSON.stringify(app.getVersion())}});</script>`;
+  const bootstrap = `<script id="motionbench-local-bootstrap">window.MotionBenchLocal=Object.freeze({native:true});window.MotionBenchDesktop=Object.freeze({version:${JSON.stringify(desktopVersion)},webVersion:${JSON.stringify(webVersion)}});</script>`;
   const html = original.replace("<head>", "<head>" + bootstrap);
   if (html === original) throw Error("MotionBench application document has no head");
   protocol.handle("motionbench", async request => {
@@ -155,9 +187,10 @@ async function start() {
   mainWindow.webContents.on("render-process-gone", () => {rendererGone=true;if(!allowClose)mainWindow.close();});
   mainWindow.on("close", closeSafely);
   mainWindow.once("ready-to-show", () => mainWindow.show());
-  mainWindow.on("closed", () => {aiBridge.cancelAll();mainWindow=null;});
+  mainWindow.on("closed", () => {aiBridge.cancelAll();updateService.dispose();mainWindow=null;});
   buildMenu();
   await mainWindow.loadURL(APP_URL);
+  void updateService.scheduleStartup(mainWindow.webContents.executeJavaScript("window.App?.ready || false"));
 }
 if (!app.requestSingleInstanceLock()) app.quit();
 else {

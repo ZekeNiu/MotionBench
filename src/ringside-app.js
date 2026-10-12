@@ -62,6 +62,7 @@
     model = "";
   let aiStatus = { kind: "idle" }, aiTicker;
   let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null, aiEditSequence = 0;
+  let desktopUpdate = null, desktopUpdateLoad = null, desktopActionBusy = false, desktopPreferencesBusy = false, desktopUpdateUnsubscribe = null, desktopUpdateRevision = 0;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -188,7 +189,23 @@
   function recordBasis() { return state ? M.fingerprint(effectiveRecord()) : ""; }
   function capabilityDirectionsBasis() { return state ? M.capabilityDirectionsBasis(effectiveRecord()) : ""; }
   function capabilityDirectionsMatch(binding) {
-    return binding?.capabilityDirectionsBasis === undefined || binding.capabilityDirectionsBasis === capabilityDirectionsBasis();
+    if (binding?.capabilityDirectionsBasis === undefined) {
+      // Older AI drafts did not bind the training-direction rule. Preserve
+      // their text, but require review when a valid EUR is part of the facts.
+      return !(binding?.origin === "AI" && state && N(M.stats(effectiveRecord()).raw.eur) !== null);
+    }
+    return binding.capabilityDirectionsBasis === capabilityDirectionsBasis();
+  }
+  function narrativeDirectionStatus(binding) {
+    if (!binding?.text || capabilityDirectionsMatch(binding)) return { changed: false, ruleOnly: false };
+    if (binding.capabilityDirectionsBasis === undefined) return { changed: true, ruleOnly: true };
+    try {
+      const previous = JSON.parse(binding.capabilityDirectionsBasis), current = JSON.parse(capabilityDirectionsBasis());
+      delete previous.directionRules; delete current.directionRules;
+      const ruleOnly = JSON.stringify(previous) === JSON.stringify(current);
+      const affectedAI = binding.origin === "AI" && N(M.stats(effectiveRecord()).raw.eur) !== null;
+      return { changed: !ruleOnly || affectedAI, ruleOnly };
+    } catch { return { changed: true, ruleOnly: false }; }
   }
   function upgradeDemo(record) {
     const linkedProfile = library.evaluationProfiles.find(profile => profile.id === record.evaluationProfileId);
@@ -679,7 +696,7 @@
     } else controls.replaceChildren();
     const canUseExcel = people.every(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived));
     if (!window.RingsideExcelFlow.isBusy()) document.querySelectorAll("[data-entry-excel-action]").forEach(el => { el.disabled = !canUseExcel; el.title = canUseExcel ? "" : "录入并保存后，运动员建档完成即可使用 Excel"; });
-    $("recordContext").textContent = context;
+    $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : context;
     $("entryIdentity").textContent = context;
     const tabs = entryTabs(),
       index = tabs.findIndex((t) => t[0] === entryTab);
@@ -855,12 +872,13 @@
     $("entryNav").hidden = ui.mode !== "entry";
     $("editButton").hidden = !state;
     $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
-    if (management || ui.mode === "creation") $("recordContext").textContent = "";
+    if (management || ui.mode === "creation" || ui.mode === "settings" && settingsTab === "app") $("recordContext").textContent = "";
     $("workspaceBack").hidden = ui.mode === "report";
     $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
     renderNavigation(); renderAIStatus(); rememberUI();
   }
   function renderNavigation() {
+    renderDesktopUpdateNavigation();
     const active = ui.mode === "management" ? window.RingsideManagement.tab() : ["entry","creation"].includes(ui.mode) ? "entry" : "";
     document.querySelectorAll("[data-workspace-nav]").forEach(button=>{
       const selected=button.dataset.workspaceNav===active;
@@ -2039,7 +2057,7 @@
     updateSelectOptions($("athleteSelect"), [["","选择运动员"],...athletes.map(x=>[x.id,`${x.name} · ${library.groups.find(g=>g.id===x.groupId)?.name||x.profile?.sport||"未分组"} · ${x.id.slice(-6)}`])],a?.id);
     updateSelectOptions($("recordSelect"), [["","选择测试记录"],...[...(a?.records||[])].filter(r=>!r.deletedAt&&!r.archived).sort((x,y)=>(y.athlete.date||"").localeCompare(x.athlete.date||"")||y.recordId.localeCompare(x.recordId)).map(r=>[r.recordId,`${r.athlete.date||"未填日期"} · ${r.title||Object.values(r.enabled).filter(Boolean).length+"个项目 · "+r.recordId.slice(-4)}`])],state?.recordId);
     $("sampleLabel").classList.toggle("hidden", !state?.demo);
-    $("recordContext").textContent = state ? `${a?.name || state.athlete.name} · ${state.athlete.date}` : a ? a.name + " · 暂无测试" : "选择一条测试记录";
+    $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : state ? `${a?.name || state.athlete.name} · ${state.athlete.date}` : a ? a.name + " · 暂无测试" : "选择一条测试记录";
 
   }
   function renderReport(preserveUI = true) {
@@ -2153,8 +2171,10 @@
     if (!state) return;
     renderAIStatus();
     const n = state.narrative,
-      directionsStale = n.text && !capabilityDirectionsMatch(n),
-      stale = directionsStale || n.text && n.basis !== recordBasis() && !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId));
+      directionStatus = narrativeDirectionStatus(n),
+      directionsStale = directionStatus.changed,
+      dataStale = n.text && n.basis !== recordBasis() && !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId)),
+      stale = directionsStale || dataStale;
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
@@ -2166,8 +2186,10 @@
             : n.origin === "AI"
               ? "AI稿"
               : "已填写";
-    $("interpState").textContent = label;
-    $("interpState").className = "pill " + (stale ? "amber" : "gray");
+    const reportLabel = directionStatus.ruleOnly && !dataStale && !n.migrationReview?.required
+      ? (n.origin === "AI" ? "AI稿" : "已填写") : label;
+    $("interpState").textContent = reportLabel;
+    $("interpState").className = "pill no-print " + (dataStale || directionsStale && !directionStatus.ruleOnly ? "amber" : "gray");
     $("editorState").textContent = job ? "AI正在生成" : label;
     $("interpUpdated").textContent = n.updated
       ? new Date(n.updated).toLocaleString("zh-CN", { hour12: false })
@@ -3092,7 +3114,8 @@
   function openSettings(tab = "ai") {
     if (creation?.submitting) return;
     if (tab === "catalog") return openManagement("catalog");
-    if (!["ai", "references"].includes(tab)) return openManagement("profiles");
+    if (tab === "app" && !window.MotionBenchDesktop) return;
+    if (!["ai", "references", "app"].includes(tab)) return openManagement("profiles");
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
@@ -3105,6 +3128,50 @@
     window.scrollTo({ top: 0, behavior: "instant" });
     focusContentTitle();
     if (tab === "ai" && window.MotionBenchLocal) loadAISettings();
+    if (tab === "app") loadDesktopUpdates();
+  }
+  function renderDesktopUpdateNavigation() {
+    const button = $("desktopSettingsButton"), badge = $("desktopUpdateBadge");
+    if (!button || !badge) return;
+    button.hidden = !window.MotionBenchDesktop;
+    const available = !!desktopUpdate?.availableVersion && ["available", "downloading", "downloaded"].includes(desktopUpdate.state);
+    badge.hidden = !available;
+    button.setAttribute("aria-label", available ? "应用设置，有新版本 " + desktopUpdate.availableVersion : "应用设置");
+  }
+  function receiveDesktopUpdate(update) {
+    if (!update || typeof update !== "object") return;
+    desktopUpdateRevision++;
+    desktopUpdate = copy(update);
+    renderDesktopUpdateNavigation();
+    if (ui.mode === "settings" && settingsTab === "app") renderSettings();
+  }
+  function loadDesktopUpdates() {
+    if (!window.MotionBenchDesktop || desktopUpdateLoad) return desktopUpdateLoad;
+    const native = window.MotionBenchNative;
+    if (typeof native?.getUpdateState !== "function") {
+      receiveDesktopUpdate({ version: window.MotionBenchDesktop.version, state: "error", checkUpdatesOnStartup: false, error: "当前程序未提供更新入口，请使用新版安装包。" });
+      return Promise.resolve();
+    }
+    const revision = desktopUpdateRevision;
+    if (!desktopUpdateUnsubscribe) desktopUpdateUnsubscribe = native.onUpdateState?.(receiveDesktopUpdate) || (() => {});
+    desktopUpdateLoad = native.getUpdateState().then(update => { if (revision === desktopUpdateRevision) receiveDesktopUpdate(update); }).catch(error => { if (revision === desktopUpdateRevision) receiveDesktopUpdate({ version: window.MotionBenchDesktop.version, state: "error", checkUpdatesOnStartup: false, error: error.message || "无法读取应用更新设置，请重试。" }); }).finally(() => { desktopUpdateLoad = null; });
+    return desktopUpdateLoad;
+  }
+  async function desktopUpdateAction(method) {
+    if (!window.MotionBenchDesktop || desktopActionBusy || typeof window.MotionBenchNative?.[method] !== "function") return;
+    desktopActionBusy = true;
+    if (ui.mode === "settings" && settingsTab === "app") renderSettings();
+    try { receiveDesktopUpdate(await window.MotionBenchNative[method]()); }
+    catch (error) { receiveDesktopUpdate({ ...desktopUpdate, state: method === "installUpdate" && desktopUpdate?.state === "downloaded" ? "downloaded" : "error", error: error.message || "更新操作未完成，请重试。" }); }
+    finally { desktopActionBusy = false; if (ui.mode === "settings" && settingsTab === "app") renderSettings(); }
+  }
+  async function setDesktopUpdatePreference(enabled) {
+    if (!window.MotionBenchDesktop || desktopPreferencesBusy || typeof window.MotionBenchNative?.setUpdatePreferences !== "function") return;
+    desktopPreferencesBusy = true;
+    if (ui.mode === "settings" && settingsTab === "app") renderSettings();
+    try { receiveDesktopUpdate(await window.MotionBenchNative.setUpdatePreferences({ checkUpdatesOnStartup: !!enabled })); }
+    catch (error) { receiveDesktopUpdate({ ...desktopUpdate, preferenceError: error.message || "启动检查设置未保存，请重试。" }); }
+    finally { desktopPreferencesBusy = false; if (ui.mode === "settings" && settingsTab === "app") renderSettings(); }
   }
   function renderSettings() {
     if (ui.mode === "management") { window.RingsideManagement.render(); return; }
@@ -3117,6 +3184,7 @@
       key,
       model,
       aiConfig, aiDirty, aiBusy,
+      desktopUpdate, desktopActionBusy, desktopPreferencesBusy,
       controls: { E, input, select, field, check, table, regionOptions },
     });
     selectedDef = component.selectedDef;
@@ -3126,7 +3194,11 @@
       ];
     $("settingsTitle").textContent = scope.title;
     $("settingsIntro").textContent = scope.note;
+    const focusedControl = settingsTab === "app" && $("settingsContent").contains(document.activeElement) ? document.activeElement.id : "";
+    const releaseNotesOpen = $("desktopReleaseNotes")?.open;
     $("settingsContent").innerHTML = component.html;
+    if (releaseNotesOpen && $("desktopReleaseNotes")) $("desktopReleaseNotes").open = true;
+    if (focusedControl) $(focusedControl)?.focus({ preventScroll: true });
     const ranges = $("rangesText");
     if (ranges) {
       ranges.dataset.editDraft = "editRanges." + selectedDef;
@@ -3141,8 +3213,8 @@
       el.dataset.editDraft = "editZones." + el.id.slice(6);
       el.setAttribute("aria-label", "LVP素质区间 m/s");
     });
-    applyInputDrafts($("settingsContent"));
-    refreshEntryChrome();
+    if (settingsTab === "app") $("recordContext").textContent = "";
+    else { applyInputDrafts($("settingsContent")); refreshEntryChrome(); }
     renderNavigation();
     renderAIStatus();
     rememberUI();
@@ -3781,7 +3853,7 @@
       })),
       evaluationResults: copy(s.evaluationResults || []),
       capabilityAnalysis: copy(s.capabilityCards || []),
-      selectedCapabilityDirections: copy(M.capabilityDirections(analysisRecord, s)),
+      selectedCapabilityDirections: copy(M.capabilityDirections(analysisRecord, s).filter(direction => direction.hasData)),
       jumpFVP: copy(Object.fromEntries(Object.entries(s.fvp || {}).filter(([, profile]) => profile.enabled))),
       sprintFVP: s.sprintFvp?.enabled ? {
         valid:s.sprintFvp.valid, reason:s.sprintFvp.reason, methodVersion:s.sprintFvp.config?.methodVersion,
@@ -4130,7 +4202,7 @@
     try {
       const messages = [
         { role: "system", content: window.RingsideInterventions.systemPrompt },
-        { role: "user", content: "生成解读与干预建议：四个能力发展方向优先采用 selectedCapabilityDirections 中选定的指标、数值和判定，其余能力参数用于综合分析背景。跳跃 FVP 弹性须绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性须绑定目标距离，并遵守有效性与静止起跑、静风条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小，不当作通用能力评分或训练比例。情景为模型预测：跳高增加表示改善，冲刺用时减少表示改善；不得替代实测或声称训练后必然达到。\n" + JSON.stringify(facts()) },
+        { role: "user", content: "生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n" + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
       let validated, pages;
@@ -4269,6 +4341,9 @@
     clone.querySelector("#creationView").hidden = true;
     clone.querySelector("#reportExportMenu").open = false;
     clone.querySelector("#settingsView").hidden = true;
+    clone.querySelector("#desktopSettingsButton")?.setAttribute("hidden", "");
+    clone.querySelector("#desktopSettingsButton")?.setAttribute("aria-label", "应用设置");
+    clone.querySelector("#desktopUpdateBadge")?.setAttribute("hidden", "");
     clone.querySelector("#managementView").hidden = true;
     clone.querySelector("#emptyReport").hidden = true;
     clone.querySelector("#startupStatus").textContent = "正在打开本机资料库…";
@@ -4639,6 +4714,7 @@
     await window.App.ready;
     if (!library || !repository) return {ok:true};
     const management = window.RingsideManagement.desktopCloseStatus?.() || {};
+    if (desktopPreferencesBusy) return {ok:false,reason:"正在保存启动检查设置，请保存完成后再退出或更新。"};
     if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || window.RingsideExcelFlow.isBusy())
       return {ok:false,reason:"正在处理资料、AI 设置或文件导出，请完成或取消当前操作后再退出。"};
     saveEditor(); saveDrafts(); saveEntrySession(); rememberUI();
@@ -4666,6 +4742,10 @@
     downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
     refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
     saveNow: persist, prepareDesktopClose,
+    setDesktopUpdatePreference,
+    checkDesktopUpdate: () => desktopUpdateAction("checkForUpdates"),
+    downloadDesktopUpdate: () => desktopUpdateAction("downloadUpdate"),
+    installDesktopUpdate: () => desktopUpdateAction("installUpdate"),
     creationNext,
     selectCreationContext, creationDateChanged, creationContextInput, reuseCreationTraining, reusePreviousTraining,
     editCurrentAthlete() { const owner=activeAthlete();if(owner)window.RingsideManagement.editAthlete(owner.id); },
@@ -4903,7 +4983,7 @@
     // that click finishes, while committing the valid value immediately.
     if(reportPointerDown){reportPatchQueued=true;return;}
     const report=window.RingsideReport.build(effectiveRecord());
-    window.RingsideReport.patchCapabilityAnalysis?.($("detailContent"),report);
+    if (window.RingsideReport.patchCapabilityAnalysis?.($("detailContent"),report) === false) renderReport(false);
     restoreReportEdits();renderNarrativeStatus();
   }
   function commitReportControl(control) {
@@ -5422,5 +5502,7 @@
     }
   }
   window.App.ready=initializeApplication();
+  if(window.MotionBenchDesktop) window.App.ready.then(ready => { if(ready) loadDesktopUpdates(); });
+  window.addEventListener("unload", () => desktopUpdateUnsubscribe?.());
   if(window.MotionBenchLocal)loadAISettings();
 })();

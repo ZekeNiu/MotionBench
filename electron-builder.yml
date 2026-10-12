@@ -6,6 +6,9 @@ asar: true
 compression: maximum
 npmRebuild: false
 forceCodeSigning: false
+extraMetadata:
+  version: 2.19.1-desktop.1
+  webVersion: 2.19.1
 directories:
   output: dist-desktop
   buildResources: desktop/assets
@@ -28,7 +31,9 @@ win:
       arch: [x64]
 nsis:
   artifactName: MotionBench-${version}-Setup-${arch}.${ext}
-  oneClick: true
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  include: desktop/installer.nsh
   perMachine: false
   allowElevation: false
   packElevateHelper: false
@@ -43,5 +48,10 @@ portable:
   # In locked builder 26.15.3, true omits UNPACK_DIR_NAME and uses NSIS's
   # per-launch $PLUGINSDIR. A fixed extraction path races repeated launches.
   unpackDirName: true
-# Releases are a deliberate later action; every build script also passes --publish never.
-publish: null
+# Build update metadata without uploading; release publication is a separate step.
+publish:
+  provider: github
+  owner: ZekeNiu
+  repo: MotionBench
+  channel: desktop
+  releaseType: prerelease

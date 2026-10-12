@@ -159,7 +159,7 @@ async function download(action, id, extension) {
       return { values, after: JSON.stringify(RingsideModel.stats(r).values) };
     });
     assert.equal(snapshot.values, snapshot.after);
-    for (const id of ["fms", "iso", "imtp"]) assert.equal(await page.locator(`#detail-${id} .test-title h3`).textContent(), "自定展示名称_" + id);
+    for (const id of ["fms", "iso", "imtp"]) assert.equal(await page.locator(`#detail-${id} .test-title h4`).textContent(), "自定展示名称_" + id);
     for (const id of ["mas", "mss", "ift"]) assert.match(await page.locator(`[data-speed-metric="${id}"]`).getAttribute("data-tooltip"), new RegExp("自定展示名称_" + id));
     assert.ok(await page.locator(".speed-reference-table th").filter({ hasText: "做功∶休息示例" }).count());
     await image(".speed-detail", "renamed-speed-projects");

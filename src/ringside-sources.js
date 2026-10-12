@@ -109,7 +109,7 @@
       url: "https://pubmed.ncbi.nlm.nih.gov/17194252/", topics: ["EUR", "CMJ", "SJ"],
       method: "EUR为CMJ与SJ同一种表现量的比值；研究分别考察垂直跳跃高度与峰值功率口径。",
       data: "142名来自橄榄球、澳式足球、足球、垒球与曲棍球的运动员；本应用采用垂直跳跃高度EUR＝CMJ垂直跳跃高度/SJ垂直跳跃高度。",
-      application: "CMJ增益＝(EUR−1)×100%。两者共用同一比较，不作为两个独立能力得分。",
+      application: "本应用的训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。CMJ增益＝(EUR−1)×100%，共用同一方向判定。",
     },
     {
       id: "eur-critique", authors: "Kozinc Ž, Smajla D, Šarabon N", year: 2024,
@@ -118,7 +118,7 @@
       url: "https://pubmed.ncbi.nlm.nih.gov/38613407/", topics: ["EUR解读", "SJ发力"],
       method: "同时考察垂直跳跃高度、峰值力及峰值功率EUR与SJ发力速率的关系。",
       data: "209名男性、104名女性；峰值力/功率EUR与SJ发力速率出现负相关。",
-      application: "较高EUR不能单独解释为能力更好；同时查看SJ和CMJ原始结果、动作策略与重复表现。",
+      application: "SJ发力速率补充分析向心发力建立，CMJ与SJ原始成绩用于同条件复测对照。",
     },
     {
       id: "dsi-context-2020", authors: "Suchomel TJ, Sole CJ, Bellon CR, Stone MH", year: 2020,

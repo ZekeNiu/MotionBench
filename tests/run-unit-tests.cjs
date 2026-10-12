@@ -18,6 +18,8 @@ const summary = { sourceHash: digest(path.join(root, 'MotionBench.html')), runne
   modules: Object.fromEntries(moduleFiles.map(name => [name, digest(path.join(root, 'src', name))])), suites: [] };
 for (const name of [
   "evaluation-v219-model-tests.cjs",
+  "report-semantics-v2191-model-tests.cjs",
+  "layout-v2191-model-tests.cjs",
   "excel-v219-contract-tests.cjs",
   "model-tests.cjs",
   "athlete-context-model-tests.cjs",
@@ -78,10 +80,11 @@ for (const name of [
   summary.suites.push({ name, sha256: suiteSha256, sourceUnchanged: digest(path.join(__dirname, name)) === suiteSha256, exitCode: result.status, checksPassed: Number(result.stdout?.match(/(\d+) [^\n]*checks passed/)?.[1] || result.stdout?.match(/PASS (\d+) athlete context (?:model|Excel) scenarios/)?.[1] || 0), stdout: result.stdout, stderr: result.stderr });
   fs.writeFileSync(path.join(resultDir, 'unit-results.json'), JSON.stringify(summary, null, 2));
   if (result.error) throw result.error;
-  if (result.status !== 0) process.exit(result.status || 1);
+  if (result.status !== 0 && !process.argv.includes('--keep-going')) process.exit(result.status || 1);
 }
 summary.sourceUnchanged = digest(path.join(root, 'MotionBench.html')) === summary.sourceHash &&
   digest(__filename) === summary.runnerSha256 && moduleFiles.every(name => digest(path.join(root, 'src', name)) === summary.modules[name]) &&
   summary.suites.every(suite => digest(path.join(__dirname, suite.name)) === suite.sha256);
 fs.writeFileSync(path.join(resultDir, 'unit-results.json'), JSON.stringify(summary, null, 2));
 if (!summary.sourceUnchanged || summary.suites.some(suite => !suite.sourceUnchanged)) throw Error('Unit test inputs changed during execution');
+if (summary.suites.some(suite => suite.exitCode !== 0)) process.exitCode = 1;

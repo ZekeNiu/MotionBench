@@ -312,7 +312,7 @@
       if (remainder.length) content += metricTable(remainder, true);
       if (includeRepeats) content += tests.map(repeatPanel).join("");
       const abilities = [...new Set(tests.flatMap((test) => test.abilities))].map(key => T.abilityLabel(state, key));
-      return `<article class="test-block" id="detail-${E(first.id)}" data-test-ids="${E(tests.map((t) => t.id).join(" "))}">${rest.map((t) => `<span class="test-anchor" id="detail-${E(t.id)}"></span>`).join("")}<div class="test-title"><div><h3>${E(title)}</h3>${meta ? `<p>${E(meta)}</p>` : ""}${abilities.length > 1 ? `<p class="ability-tags">${abilities.map(E).join(" · ")}</p>` : ""}</div></div>${content}</article>`;
+      return `<article class="test-block" id="detail-${E(first.id)}" data-test-ids="${E(tests.map((t) => t.id).join(" "))}">${rest.map((t) => `<span class="test-anchor" id="detail-${E(t.id)}"></span>`).join("")}<div class="test-title"><div><h4>${E(title)}</h4>${meta ? `<p>${E(meta)}</p>` : ""}${abilities.length > 1 ? `<p class="ability-tags">${abilities.map(E).join(" · ")}</p>` : ""}</div></div>${content}</article>`;
     }
     const chart = (html, spec) => `<div class="chart-wrap${spec ? " adaptive-chart" : ""}"${spec ? ` data-chart-kind="${E(spec.kind)}" data-chart-input="${E(JSON.stringify(spec.args))}"` : ""}>${html}</div>`;
     const pair = (figure, data, className = "", spec) =>
@@ -659,8 +659,8 @@
           }));
         return block(
           tests,
-          tests.map((t) => t.name).join(" / "),
-          "",
+          "跳跃测试",
+          tests.map((t) => t.name).join(" / ") + " · 共用对比图",
           pair(
             V.jumpBars(chartItems),
             table(["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : []), "评价"], metricRows, [], "jump-results" + (repeated ? " with-repeat-columns" : "")) +
@@ -985,7 +985,7 @@
             z.extrapolated ? "含外推" : "实测范围",
           ]),
         );
-      return `<article class="lvp-card" id="lvp-${limb}"><div class="test-title"><h3>${upper ? "上肢" : "下肢"} LVP</h3></div><div class="lvp-controls no-print">${menu}${check("views." + key + ".showPoints", opts.showPoints, "实测点")}${check("views." + key + ".showBand", opts.showBand, "95%置信带")}${check("views." + key + ".showEstimate", opts.showEstimate, "估计点")}</div><div class="detail-pair${repeated ? " wide-results" : ""}" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="lvp" data-chart-input="${E(JSON.stringify([selected.map((x) => ({ ...x, estimate: x.est })), opts]))}">${
+      return `<article class="lvp-card" id="lvp-${limb}"><div class="test-title"><h4>${upper ? "上肢" : "下肢"} LVP</h4></div><div class="lvp-controls no-print">${menu}${check("views." + key + ".showPoints", opts.showPoints, "实测点")}${check("views." + key + ".showBand", opts.showBand, "95%置信带")}${check("views." + key + ".showEstimate", opts.showEstimate, "估计点")}</div><div class="detail-pair${repeated ? " wide-results" : ""}" data-pdf-pair><div class="chart-wrap adaptive-chart" data-chart-kind="lvp" data-chart-input="${E(JSON.stringify([selected.map((x) => ({ ...x, estimate: x.est })), opts]))}">${
         selected.length
           ? V.lvp(
               selected.map((x) => ({ ...x, estimate: x.est })),
@@ -1001,9 +1001,10 @@
       metrics: (card.metrics || []).filter(metric => N(metric.value) !== null),
     })).filter(card => card.metrics.length);
     const fvp = renderFVPAnalysis(report, { print }), sprint = renderSprintFVPAnalysis(report, { print });
-    if (!cards.length && !fvp && !sprint) return "";
     const options = M.capabilityDirectionOptions;
     const directions = M.capabilityDirections(record, { ...stats, derived: stats.derived || report.derived });
+    const visibleDirections = directions.filter(direction => direction.hasData);
+    if (!visibleDirections.length && !fvp && !sprint) return "";
     const impulseName = id => options.strength.find(([key]) => key === id)?.[1];
     const impulse = id => {
       const result = (stats.derived?.results || report.derived?.results || []).find(item => item.id === id);
@@ -1020,9 +1021,8 @@
         : ["sprint_fvp", "sprint_elasticity"].includes(selected) && positive(metric.context?.targetDistanceM) ? `目标距离 ${F(metric.context.targetDistanceM, 1)} m` : "";
       const category = key === "endurance" ? "cardio" : key, parameters = cards.find(card => card.id === category);
       const folded = `<details class="capability-card-parameters" data-capability-parameters="${key}"${record.views?.capabilityExpanded?.[key] === true ? " open" : ""}><summary><span>查看相关参数</span><small>${parameters?.metrics.length || 0} 项</small></summary><div data-report-patch="parameters-${key}">${parameters ? parameterGroup(parameters) : '<p class="empty">完成相关测试后显示参数。</p>'}</div></details>`;
-      return `<article class="capability-direction-card" data-capability-direction="${key}"><h3>${E(title)}</h3><section data-report-patch="summary-${key}" data-direction-metric="${E(selected)}"><p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}</section>${selector}${folded}</article>`;
+      return `<article class="capability-direction-card" data-capability-direction="${key}"><div class="capability-card-summary"><h3>${E(title)}</h3><section data-report-patch="summary-${key}" data-direction-metric="${E(selected)}"><p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}</section>${selector}</div>${folded}</article>`;
     };
-    const cardioPrimary = directions.find(direction => direction.id === "endurance");
     const target = metric => {
       const definition = record.definitions.find(item => item.id === metric.id);
       const value = positive(metric.target) ? N(metric.target) : definition?.referenceEnabled && definition.matched !== false && positive(definition.target) ? N(definition.target) : null;
@@ -1053,7 +1053,7 @@
       const targets = (card.targets || []).filter(item => N(item.value) !== null);
       return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table" data-capability-parameter-table="${E(card.id === "cardio" ? "endurance" : card.id)}"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
     };
-    const left = `<div class="capability-direction-grid" data-capability-analysis>${[...directions.filter(direction => direction.id !== "endurance"), cardioPrimary].filter(Boolean).map(directionCard).join("")}</div>`;
+    const left = visibleDirections.length ? `<div class="capability-direction-grid" data-capability-analysis data-capability-count="${visibleDirections.length}">${visibleDirections.map(directionCard).join("")}</div>` : "";
     return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}"><div class="capability-region-heading pdf-group-heading">${E(T.analysisLabel)}</div><div class="quality-group">${left}${fvp}${sprint}${renderSprintElasticityAnalysis(report, { print })}</div></section>`;
   }
   function sprintFvpChartData(solved, confidence) {
@@ -1111,7 +1111,7 @@
     const config = solved.config || record.sprintFvpConfig || {}, conditions = [`${F(solved.mass ?? record.athlete.mass, 1)} kg`, `身高 ${F(solved.heightCm ?? config.heightCm ?? record.athlete.height, 1)} cm`, `${F(config.temperatureC, 1)} °C`, `${F(config.pressureHpa, 1)} hPa`, `风速 ${F(config.windMps, 2)} m/s`].join(" · ");
     const trials = (solved.trials || []).filter(trial => trial.present).flatMap(trial => (trial.inputSplits || trial.splits || []).filter(split => N(split.distanceM) !== null || N(split.timeS) !== null).map((split, index) => [String(trial.index + 1), F(split.distanceM, 1), F(split.timeS, 3), E(trial.excluded ? "已排除" : trial.selected ? "采用" : trial.eligible ? "保留" : trial.reason || "待复核"), index === 0 ? E([trial.notes, trial.exclusionReason].filter(Boolean).join("；")) : ""]));
     const method = `<details class="fvp-method sprint-fvp-method"><summary>拟合残差、测试条件与方法</summary><p>${E(conditions)}</p><p>${E(solved.selectionBasis || "采用同一完整冲刺试次的分段计时")}${selected ? ` · 第 ${selected.index + 1} 次` : ""}。${config.inputTimeMode === "interval" ? "分段耗时累加为累计时间" : "累计时间输入"}；固定时间修正 ${F(config.timeCorrectionS, 3)} s，起始位置修正 ${F(config.positionStartM, 2)} m。</p>${fitRows.length ? table(["距离 m", "累计时间 s", "拟合距离 m", "残差 m"], fitRows, [], "sprint-fvp-fit-table") : ""}<p>V(t) = Vmax(1 − exp(−t/τ))，x(t) = Vmax[t + τ(exp(−t/τ) − 1)]。τ ${F(solved.fit?.tau, 3)} s；距离残差 RMSE ${F(solved.fit?.rmseM, 4)} m；F–V 回归 R² ${F(model.r2, 4)}。</p><p>水平力由体重×加速度与空气阻力求得，以 0.1 s 采样至当前试次末段时间；RF = F水平/√(F水平² + (mg)²)，RF max 为 t &gt; 0.3 s 样本中的最大值，DRF 为同一窗口 RF–V 回归斜率，以百分点/(m/s)显示。</p><p>V₀ 为 F–V 外推的零力速度；Vmax 为分段速度模型的渐近值；终点速度为测试末段时间的模型值；Vopt = V₀/2 为峰值功率对应速度。</p><p>距离最优剖面由独立冲刺模型在固定 Pmax、体重与空气阻力下求最短目标距离时间。相对最优剖面 = 100·SFV/SFVopt；FVP 不平衡性 = 100·|1 − SFV/SFVopt|。${solved.optimum?.valid && solved.optimum.withinStudySimulation === false ? "当前目标距离或功率超出原研究的模拟范围。" : ""}</p><p><a href="https://doi.org/10.1111/sms.12490" target="_blank" rel="noopener noreferrer">Samozino 等 · 分段计时冲刺力–速度–功率方法（2016）</a> · <a href="https://doi.org/10.1111/sms.14097" target="_blank" rel="noopener noreferrer">Samozino 等 · 距离最优冲刺 F–V（2022）</a></p>${confidenceMethod}</details>`;
-    return `<article class="fvp-analysis-card sprint-fvp-analysis" id="detail-sprint_fvp" data-test-ids="sprint_fvp" data-sprint-fvp-panel><div class="fvp-analysis-heading test-title"><div><h3>${E(title)}</h3><p class="sprint-target-summary" data-report-patch="sprint-target-summary">${E(distanceText)}</p></div></div>${controls}<div data-report-patch="sprint-confidence-status">${confidenceStatus}</div><div class="detail-pair sprint-fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="sprint-profile-chart" data-chart-kind="sprintFvp" data-chart-input="${E(JSON.stringify([graph, view]))}">${V.sprintFvp(graph, view)}</div><div class="detail-data" data-report-patch="sprint-profile-results">${result}</div></div>${method}${trials.length ? `<details class="fvp-raw-trials" data-raw-trials="sprint_fvp" data-trial-title="${E(title)} · 原始录入分段"><summary>${E(title)} · 原始录入分段</summary>${table(["试次", "录入距离 m", "录入时间 s", "采用情况", "备注"], trials, [], "repeat-raw-table")}</details>` : ""}</article>`;
+    return `<article class="fvp-analysis-card sprint-fvp-analysis" id="detail-sprint_fvp" data-test-ids="sprint_fvp" data-sprint-fvp-panel><div class="fvp-analysis-heading test-title"><div><h4>${E(title)}</h4><p class="sprint-target-summary" data-report-patch="sprint-target-summary">${E(distanceText)}</p></div></div>${controls}<div data-report-patch="sprint-confidence-status">${confidenceStatus}</div><div class="detail-pair sprint-fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="sprint-profile-chart" data-chart-kind="sprintFvp" data-chart-input="${E(JSON.stringify([graph, view]))}">${V.sprintFvp(graph, view)}</div><div class="detail-data" data-report-patch="sprint-profile-results">${result}</div></div>${method}${trials.length ? `<details class="fvp-raw-trials" data-raw-trials="sprint_fvp" data-trial-title="${E(title)} · 原始录入分段"><summary>${E(title)} · 原始录入分段</summary>${table(["试次", "录入距离 m", "录入时间 s", "采用情况", "备注"], trials, [], "repeat-raw-table")}</details>` : ""}</article>`;
   }
   function sprintElasticityData(framework, view) {
     const compact = points => (points || []).map(point => ({ changePct: point.changePct, valid: point.valid, deltaPct: point.timeGainPct ?? -point.deltaPct }));
@@ -1141,7 +1141,7 @@
     const input = (key, text) => `<label>${text}<input type="number" data-sprint-scenario="${key}" value="${E(analysis[key] ?? 0)}" step="any" aria-label="冲刺${text}"></label>`;
     const toggle = (key, text) => `<label><input type="checkbox" data-sprint-fvp-view="${key}"${view[key] !== false ? " checked" : ""}>${text}</label>`;
     const controls = print ? `<p class="fvp-table-note">情景参数改变：F₀ ${F(analysis.deltaForcePct ?? 0, 2)}% · V₀ ${F(analysis.deltaVelocityPct ?? 0, 2)}%。</p>` : `<form class="fvp-scenario-form no-print" data-sprint-scenario-form>${input("deltaForcePct", "F₀ 改变 · %")}${input("deltaVelocityPct", "V₀ 改变 · %")}<p class="fvp-form-help">编辑完成后自动保存；0% 表示保持当前参数。</p></form><p class="fvp-draft-status no-print" data-elasticity-draft-status data-elasticity-id="sprint_fvp" role="status" hidden></p><div class="fvp-controls fvp-response-controls no-print"><label>图表视图 <select data-sprint-elasticity-view="elasticityView" aria-label="冲刺FVP弹性框架图表视图"><option value="response"${!distance ? " selected" : ""}>参数改变与表现响应</option><option value="distance"${distance ? " selected" : ""}>弹性随距离变化</option></select></label><span class="fvp-response-toggles"${distance ? " hidden" : ""}>${toggle("responseForce", "仅 F₀")}${toggle("responseVelocity", "仅 V₀")}${toggle("responseBoth", "F₀ 与 V₀ 同时")}</span></div>`;
-    return `<article class="fvp-analysis-card" data-sprint-elasticity-panel><div class="fvp-analysis-heading test-title"><div><h3>冲刺FVP弹性框架</h3><p data-report-patch="sprint-elasticity-heading">目标距离 ${F(framework.targetDistanceM ?? stats.sprintFvp?.targetDistanceM, 1)} m · 模型预测冲刺时间</p></div></div>${controls}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="sprint-elasticity-chart" data-chart-kind="${kind}" data-chart-input="${E(JSON.stringify([graph]))}">${V[kind](graph)}</div><div class="detail-data" data-report-patch="sprint-scenario-results">${sprintElasticityTable(framework)}</div></div><p class="fvp-table-note">正值表示预测冲刺时间缩短。弹性描述时间敏感性，情景结果用于比较训练方向。</p><details class="fvp-method"><summary>弹性计算与来源</summary><p>沿用当前冲刺 F₀、V₀ 与已记录的空气条件；参数改变后重新求解到达目标距离的冲刺时间。${framework.elasticity?.differenceMethod === "analytic-no-drag" ? "无空气阻力时，力量与速度弹性由解析式计算" : "含空气阻力时，力量与速度弹性分别以单端提高 1% 的冲刺时间变化估算"}；ER = Fₑ/vₑ，EN = √(Fₑ² + vₑ²)。</p><p>距离视图展示同一剖面在不同目标距离的弹性；EN 最低点与 ER = 1 的平衡点分别求解。</p><p>方法 ${E(framework.methodVersion || "待计算")} · bioRxiv 预印本</p><p><a href="https://doi.org/10.64898/2026.08.29.748040" target="_blank" rel="noopener noreferrer">Quantifying sprint force-velocity elasticity: implications for individualized training decisions</a></p></details></article>`;
+    return `<article class="fvp-analysis-card" data-sprint-elasticity-panel><div class="fvp-analysis-heading test-title"><div><h4>冲刺FVP弹性框架</h4><p data-report-patch="sprint-elasticity-heading">目标距离 ${F(framework.targetDistanceM ?? stats.sprintFvp?.targetDistanceM, 1)} m · 模型预测冲刺时间</p></div></div>${controls}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="sprint-elasticity-chart" data-chart-kind="${kind}" data-chart-input="${E(JSON.stringify([graph]))}">${V[kind](graph)}</div><div class="detail-data" data-report-patch="sprint-scenario-results">${sprintElasticityTable(framework)}</div></div><p class="fvp-table-note">正值表示预测冲刺时间缩短。弹性描述时间敏感性，情景结果用于比较训练方向。</p><details class="fvp-method"><summary>弹性计算与来源</summary><p>沿用当前冲刺 F₀、V₀ 与已记录的空气条件；参数改变后重新求解到达目标距离的冲刺时间。${framework.elasticity?.differenceMethod === "analytic-no-drag" ? "无空气阻力时，力量与速度弹性由解析式计算" : "含空气阻力时，力量与速度弹性分别以单端提高 1% 的冲刺时间变化估算"}；ER = Fₑ/vₑ，EN = √(Fₑ² + vₑ²)。</p><p>距离视图展示同一剖面在不同目标距离的弹性；EN 最低点与 ER = 1 的平衡点分别求解。</p><p>方法 ${E(framework.methodVersion || "待计算")} · bioRxiv 预印本</p><p><a href="https://doi.org/10.64898/2026.08.29.748040" target="_blank" rel="noopener noreferrer">Quantifying sprint force-velocity elasticity: implications for individualized training decisions</a></p></details></article>`;
   }
   function fvpChartData(solved) {
     const current=solved.current||solved.model||{}, profiles=[];
@@ -1240,7 +1240,7 @@
       const input=(key,text)=>`<label>${text}<input type="number" data-fvp-scenario="${key}" data-fvp-id="${id}" value="${E(analysis[key]??0)}" step="any" aria-label="${text}"></label>`;
       const scenario=print?`<p class="fvp-table-note">情景参数改变：F₀ ${F(analysis.deltaForcePct??0,2)}% · V₀ ${F(analysis.deltaVelocityPct??0,2)}%。</p>`:`<form class="fvp-scenario-form no-print" data-fvp-scenario-form data-fvp-id="${id}">${input("deltaForcePct","F₀ 改变 · %")}${input("deltaVelocityPct","V₀ 改变 · %")}<p class="fvp-form-help">编辑完成后自动保存；0% 表示保持当前参数。</p></form><p class="fvp-draft-status no-print" data-elasticity-draft-status data-elasticity-id="${id}" role="status" hidden></p><div class="fvp-scenario-shortcuts no-print">${[["force","仅 F₀ +5%"],["velocity","仅 V₀ +5%"],["both","两者 +5%"]].map(([key,text])=>`<button type="button" class="btn small" data-fvp-shortcut="${key}" data-fvp-id="${id}">${text}</button>`).join("")}</div>`;
       const responseControls=print?"":`<div class="fvp-controls fvp-response-controls no-print"><label>图表视图 <select data-fvp-view="elasticityView" data-fvp-id="${id}" aria-label="跳跃FVP弹性框架图表视图"><option value="response"${view.elasticityView!=="constraint"?" selected":""}>参数改变与表现响应</option><option value="constraint"${view.elasticityView==="constraint"?" selected":""}>固定预测跳跃高度 · ER–EN</option></select></label><span class="fvp-response-toggles"${view.elasticityView==="constraint"?" hidden":""}>${toggle("responseForce","仅 F₀")}${toggle("responseVelocity","仅 V₀")}${toggle("responseBoth","F₀ 与 V₀ 同时")}</span></div>`;
-      return `<article class="fvp-analysis-card" data-fvp-panel="${id}" data-fvp-pinned-load="${view.pinnedLoad===null?"":E(view.pinnedLoad)}"><div class="fvp-analysis-heading test-title"><div><h3>${E(profileTitle)}</h3><p data-report-patch="jump-heading-${id}">${angle===90?"90° 垂直":"30° 倾斜目标"} · ${solved.points?.length||0} 个负荷代表点</p></div></div>${common}${controls}<div class="detail-pair fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="jump-profile-chart-${id}" data-chart-kind="jumpFvp" data-chart-input="${E(JSON.stringify([graph,view]))}">${V.jumpFvp(graph,view)}</div><div class="detail-data" data-report-patch="jump-profile-results-${id}">${fvpResultTable(solved)}</div></div><p class="fvp-load-legend no-print" data-fvp-selection-summary hidden></p>${fvpLoadTable({...solved,id})}${fvpMethod(record,{...solved,id})}${fvpRawTrials(record,id,solved,displayName)}</article><article class="fvp-analysis-card" data-fvp-elasticity="${id}"><div class="fvp-analysis-heading test-title"><div><h3>跳跃FVP弹性框架 · ${label}</h3><p>90° 垂直 · 模型预测跳跃高度；与上方剖面的目标方向独立</p></div></div>${scenario}${responseControls}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="jump-elasticity-chart-${id}" data-chart-kind="${elasticityKind}" data-chart-input="${E(JSON.stringify([elasticity]))}">${V[elasticityKind](elasticity)}</div><div class="detail-data" data-report-patch="jump-scenario-results-${id}" data-fvp-scenario-results>${fvpScenarioTable({...solved,id})}</div></div><p class="fvp-table-note">弹性描述当前剖面附近的高度敏感性；情景为重新计算的模型预测。</p></article>`;
+      return `<article class="fvp-analysis-card" data-fvp-panel="${id}" data-fvp-pinned-load="${view.pinnedLoad===null?"":E(view.pinnedLoad)}"><div class="fvp-analysis-heading test-title"><div><h4>${E(profileTitle)}</h4><p data-report-patch="jump-heading-${id}">${angle===90?"90° 垂直":"30° 倾斜目标"} · ${solved.points?.length||0} 个负荷代表点</p></div></div>${common}${controls}<div class="detail-pair fvp-profile-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="jump-profile-chart-${id}" data-chart-kind="jumpFvp" data-chart-input="${E(JSON.stringify([graph,view]))}">${V.jumpFvp(graph,view)}</div><div class="detail-data" data-report-patch="jump-profile-results-${id}">${fvpResultTable(solved)}</div></div><p class="fvp-load-legend no-print" data-fvp-selection-summary hidden></p>${fvpLoadTable({...solved,id})}${fvpMethod(record,{...solved,id})}${fvpRawTrials(record,id,solved,displayName)}</article><article class="fvp-analysis-card" data-fvp-elasticity="${id}"><div class="fvp-analysis-heading test-title"><div><h4>跳跃FVP弹性框架 · ${label}</h4><p>90° 垂直 · 模型预测跳跃高度；与上方剖面的目标方向独立</p></div></div>${scenario}${responseControls}<div class="detail-pair fvp-elasticity-pair" data-pdf-pair><div class="chart-wrap adaptive-chart" data-report-patch="jump-elasticity-chart-${id}" data-chart-kind="${elasticityKind}" data-chart-input="${E(JSON.stringify([elasticity]))}">${V[elasticityKind](elasticity)}</div><div class="detail-data" data-report-patch="jump-scenario-results-${id}" data-fvp-scenario-results>${fvpScenarioTable({...solved,id})}</div></div><p class="fvp-table-note">弹性描述当前剖面附近的高度敏感性；情景为重新计算的模型预测。</p></article>`;
     }).join("")}</div>`;
   }
   function prepareFVPPrint(clone,snapshot) {
@@ -1254,11 +1254,31 @@
   }
   function patchCapabilityAnalysis(container, report) {
     const region = container.querySelector("[data-capability-region]");
-    if (!region) return false;
-    const template = region.ownerDocument.createElement("template");
+    const template = container.ownerDocument.createElement("template");
     template.innerHTML = renderCapabilityAnalysis(report);
     const fresh = template.content.querySelector("[data-capability-region]");
-    if (!fresh) return false;
+    if (!region) {
+      if (!fresh) return false;
+      container.append(fresh); observeCharts(container); return true;
+    }
+    if (!fresh) { region.remove(); return true; }
+    const currentGrid = region.querySelector(".capability-direction-grid"), nextGrid = fresh.querySelector(".capability-direction-grid");
+    if (currentGrid && nextGrid) {
+      const wanted = new Set([...nextGrid.children].map(node => node.dataset.capabilityDirection));
+      [...currentGrid.children].filter(node => !wanted.has(node.dataset.capabilityDirection)).forEach(node => node.remove());
+      let position = currentGrid.firstElementChild;
+      for (const next of nextGrid.children) {
+        const current = [...currentGrid.children].find(node => node.dataset.capabilityDirection === next.dataset.capabilityDirection) || next.cloneNode(true);
+        if (current !== position) currentGrid.insertBefore(current, position);
+        position = current.nextElementSibling;
+      }
+      currentGrid.dataset.capabilityCount = nextGrid.dataset.capabilityCount;
+    } else if (nextGrid) {
+      region.querySelector(":scope > .quality-group").prepend(nextGrid.cloneNode(true));
+      chartObservers.get(container)?.observe(region.querySelector(".capability-direction-grid"));
+    } else {
+      currentGrid?.remove();
+    }
     for (const next of fresh.querySelectorAll("[data-report-patch]")) {
       const current = [...region.querySelectorAll("[data-report-patch]")].find(node => node.dataset.reportPatch === next.dataset.reportPatch);
       if (!current) continue;
@@ -1345,9 +1365,21 @@
       }
     });
   }
+  function alignCapabilityCards(container) {
+    container.querySelectorAll(".capability-direction-grid").forEach(grid => {
+      const summaries = [...grid.querySelectorAll(":scope > .capability-direction-card .capability-card-summary")];
+      summaries.forEach(node => node.style.removeProperty("min-height"));
+      if (summaries.length < 2 || grid.getBoundingClientRect().width < 100) return;
+      // Only summaries share a height. Expanded parameters remain independent
+      // so opening one card cannot create empty space inside its neighbors.
+      const height = Math.ceil(Math.max(...summaries.map(node => node.getBoundingClientRect().height)));
+      summaries.forEach(node => node.style.minHeight = height + "px");
+    });
+  }
   function layoutCharts(container, { print = false } = {}) {
     // A wrapped mean/SD must not push the right-side statistics below the
     // corresponding right-side result and evaluation in neighboring columns.
+    alignCapabilityCards(container);
     alignIsometricSides(container);
     const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], jumpElasticityConstraint:[310,400], sprintFvp:[390,450], sprintElasticity:[310,400], sprintElasticityDistance:[310,400] };
     const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, jumpElasticityConstraint:330, sprintFvp:390, sprintElasticity:330, sprintElasticityDistance:330 };
@@ -1378,7 +1410,7 @@
       requestAnimationFrame(() => { queued = false; layoutCharts(container); });
     });
     chartObservers.set(container, observer);
-    container.querySelectorAll("[data-chart-kind],.detail-data > .table-wrap").forEach((node) => observer.observe(node));
+    container.querySelectorAll("[data-chart-kind],.detail-data > .table-wrap,.capability-direction-grid").forEach((node) => observer.observe(node));
     layoutCharts(container);
     bindFVPInteractions(container);
   }

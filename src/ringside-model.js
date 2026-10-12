@@ -5,6 +5,11 @@
     T = root.RingsideTests;
   if (!Calc || !Def) throw new Error("RingsideModel requires Calc and Def.");
   const N = Calc.num;
+  const eurDirectionRuleId = "eur-height-1.1-v1";
+  function eurDirection(value) {
+    const ratio = N(value);
+    return ratio === null ? "" : ratio > 1.1 ? "需要强调向心能力" : "需要强调利用 SSC 的能力";
+  }
   const FVP_IDS = ["fvp_sj", "fvp_cmj"];
   const ADDED_FVP_IDS = [...FVP_IDS, "sprint_fvp"];
   const capabilityDirectionOptions = Object.freeze(Object.fromEntries(Object.entries({
@@ -2138,7 +2143,7 @@
         const reference = root.RingsideIsoReferences?.effectiveReference(record, {region:pair.region,paired:!!numerator?.paired}, side, pair.reference);
         const evaluationReason = value !== null && gradeResult.status === "gray"
           ? !pair.referenceEnabled || !pair.ranges?.length
-            ? reference?.matched ? "文献均值仅作参考，尚未设置分级区间" : "尚未设置关节平衡分级区间"
+            ? "尚未设置关节平衡分级区间"
             : gradeResult.label
           : "";
         result[key] = value;
@@ -2355,17 +2360,8 @@
       : basis !== (record.imtpConfig?.impulseDefinition || "gross") ? "CMJ 与 IMTP 冲量净/总力口径不同"
       : impulse === null || duration === null ? "所选 CMJ 尝试需完整推进期冲量和时长" : "";
     const component = (label,value,unit) => ({ label, value: N(value), unit });
-    const directions = {
-      eur: "结合 CMJ 与 SJ 的绝对成绩、动作控制和纵向变化分析；单凭 EUR 高低不能确定训练优先级。",
-      gain: "与 EUR 表达同一关系；对照 CMJ、SJ 原始成绩，避免把比值上升直接解释为能力改善。",
-      idsi_matched: "与同口径历史测试比较，结合最大力量、CMJ 成绩和力时曲线判断；目前不使用通用训练界值。",
-      idsi_fixed250: "用于固定时窗下的纵向监测；与匹配时窗 iDSI 分开解释，不套用 fDSI 界值。",
-      rqr: "结合 DJ、Hop 各自的垂直跳跃高度与触地时间，识别不同反应跳任务的表现差异；当前协议须保持一致。",
-      asr: "同时查看 MSS 与 MAS，区分速度端和有氧端的变化；结合专项要求制定训练。",
-      srr: "结合 MSS、MAS 和专项要求解释；耐力章节中的参考分组须按其适用人群使用。",
-    };
     const results = T.derivedDefinitions().filter((d) => record.derivedEnabled?.[d.id] !== false).map((definition) => {
-      const result = { ...definition, enabled: true, value: null, available: false, reason: "", components: [], directionHint: directions[definition.id] || "", aggregation: record.mode === "mean" ? "各测试代表值（均值）之比；不配对独立试次" : "各测试最佳完整尝试的代表值之比" };
+      const result = { ...definition, enabled: true, value: null, available: false, reason: "", components: [], directionHint: "", aggregation: record.mode === "mean" ? "各测试代表值（均值）之比；不配对独立试次" : "各测试最佳完整尝试的代表值之比" };
       if (["eur","gain"].includes(definition.id)) {
         result.value = raw[definition.id];
         result.components = [component("CMJ 垂直跳跃高度",values.cmj_height,"cm"),component("SJ 垂直跳跃高度",values.sj_height,"cm")];
@@ -2408,7 +2404,11 @@
       result.available = Number.isFinite(result.value);
       if (result.available) {
         const percent = (n) => Math.abs(n).toFixed(1) + "%";
-        if (result.id === "fdsi") result.directionHint = result.value < .6 ? "发展弹道与快速力量" : result.value > .8 ? "发展最大力量" : "并行发展最大力量与快速力量";
+        if (["eur", "gain"].includes(result.id)) {
+          result.directionHint = eurDirection(raw.eur);
+          result.directionRuleId = eurDirectionRuleId;
+        } else if (result.id.startsWith("idsi_")) result.directionHint = `CMJ 完整推进期冲量为 IMTP ${result.id === "idsi_matched" ? "匹配时窗" : "0–250 ms "}冲量的 ${fmt(result.value * 100, 1)}%。`;
+        else if (result.id === "fdsi") result.directionHint = result.value < .6 ? "发展弹道与快速力量" : result.value > .8 ? "发展最大力量" : "并行发展最大力量与快速力量";
         else if (result.id === "rqr") result.directionHint = result.value === 1 ? "DJ 与 Hop 的腾空／触地时间比相同。" : `DJ 腾空／触地时间比较 Hop ${result.value > 1 ? "高" : "低"} ${percent((result.value - 1) * 100)}。`;
       }
       if (!result.available) { result.value = null; result.reason ||= "缺少可计算的数据或结果超出有效数值范围"; }
@@ -2522,6 +2522,9 @@
     };
     const jumpId = resolveJumpFvpProtocol(record, computed);
     const jump = computed.fvp?.[jumpId], sprint = computed.sprintFvp;
+    const hasData = key => cards.some(card => card.id === (key === "endurance" ? "cardio" : key))
+      || key === "strength" && FVP_IDS.some(id => record.enabled[id] && computed.fvp?.[id]?.valid)
+      || key === "speed" && !!(record.enabled.sprint_fvp && (sprint?.valid || computed.sprintElasticity?.valid));
     const jumpMetric = { id: "fvp", label: `${jumpId === "fvp_cmj" ? "CMJ" : "SJ"} FVP 不平衡性`,
       value: jump?.valid ? jump.imbalance?.magnitudePct : null, unit: "%", digits: 2,
       judgment: jump?.valid ? jump.imbalance?.label : "待计算", status: "gray" };
@@ -2543,17 +2546,13 @@
       if (N(metric?.value) === null) return "待计算";
       if (key === "reactive") return metric.judgment
         ? (metric.status === "red" || metric.status === "amber" ? "优先提高反应力量 · " : metric.status === "green" ? "保持并巩固反应力量 · " : "当前 RSI 标准 · ") + Def.assessmentLabel(metric.status, metric.judgment)
-        : "已测量；在评价标准中选择 RSI 参考。";
-      if (metric.id === "eur") {
-        const definition = record.definitions.find(item => item.id === "eur");
-        const grade = definition?.referenceEnabled ? evaluation(metric.value, definition, record) : null;
-        return grade?.range ? Def.assessmentLabel(grade.status, grade.label) : "结合 CMJ 与 SJ 的绝对成绩和纵向变化判断发展方向。";
-      }
+        : "已测量 · 未设置评价标准";
+      if (metric.id === "eur") return eurDirection(metric.value);
       return metric.judgment ? Def.assessmentLabel(metric.status, metric.judgment) : "待判断";
     };
     const direction = (key, title) => {
       const metricId = choice(key), metric = candidate(metricId) || { id: metricId, label: capabilityDirectionOptions[key].find(([id]) => id === metricId)?.[1], value: null };
-      return { id: key, title, metricId, label: metric.label || "", value: N(metric.value), unit: metric.unit || "",
+      return { id: key, title, hasData: hasData(key), metricId, label: metric.label || "", value: N(metric.value), unit: metric.unit || "",
         digits: Number.isInteger(metric.digits) ? metric.digits : metric.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(metric.id || "") ? 3 : metric.unit === "%" ? 1 : 2,
         status: metric.status || "gray", judgment: judgmentFor(key, metric),
         context: ["fvp","jump_elasticity"].includes(metricId) ? { protocol: jumpId, angle: metricId === "jump_elasticity" ? 90 : jump?.valid ? jump.analysis?.angle || 90 : null }
@@ -2561,17 +2560,17 @@
     };
     const cardio = cards.find(card => card.id === "cardio"), primary = cardio?.metrics.find(metric => /^cpet_vo2_/.test(metric.id)) || cardio?.metrics[0];
     return [direction("strength", "力量发展方向"), direction("reactive", "反应力量水平"), direction("speed", "速度发展方向"),
-      { id: "endurance", title: "耐力发展方向", metricId: primary?.id || "endurance", label: primary?.label || "心肺与阈值表现",
+      { id: "endurance", title: "耐力发展方向", hasData: hasData("endurance"), metricId: primary?.id || "endurance", label: primary?.label || "心肺与阈值表现",
         value: N(primary?.value), unit: primary?.unit || "", digits: Number.isInteger(primary?.digits) ? primary.digits
           : primary?.unit === "比值" || /rsi|eur|fdsi|idsi|rqr|srr/.test(primary?.id || "") ? 3 : primary?.unit === "%" ? 1 : 2,
         status: primary?.status || "gray", context: null,
-        judgment: cardio?.conclusion || (primary?.judgment ? Def.assessmentLabel(primary.status, primary.judgment) : primary ? "已测量；按当前心肺与阈值目标判断。" : "待计算") }];
+        judgment: cardio?.conclusion || (primary?.judgment ? Def.assessmentLabel(primary.status, primary.judgment) : primary ? "已测量 · 未设置适用目标" : "待计算") }];
   }
   function capabilityDirectionsBasis(record, computed = stats(record)) {
     const directions = capabilityDirections(record, computed);
     // Selection identity has its own AI binding. Measurement/reference changes
     // remain covered by fingerprint, including the existing age-only exception.
-    return JSON.stringify({ selections: directions.filter(direction => direction.id !== "endurance").map(direction => ({
+    return JSON.stringify({ directionRules: { eur: eurDirectionRuleId }, selections: directions.filter(direction => direction.id !== "endurance").map(direction => ({
       id: direction.id, metricId: direction.metricId, ...(["fvp","jump_elasticity"].includes(direction.metricId) ? { protocol: direction.context.protocol } : {}),
     })), idsiWindow: computed.capabilityCards?.find(card => card.id === "strength")?.metrics.find(metric => metric.id === "idsi")?.selectedVariant || null });
   }
@@ -5186,7 +5185,12 @@
   function upgradeOriginalDemo(input, profile) {
     if (!input?.demo || input.demoRevision >= 2 || input.narrative?.origin !== "本地" || (input.narrative?.revision || 0) !== 0) return { record:input, changed:false };
     const candidate = normalizeRecord(input), original = normalizeRecord(legacySampleRecord());
-    if (candidate.narrative.html !== original.narrative.html || candidate.narrative.text !== original.narrative.text || Object.keys(input.narrative || {}).some(key => !["html","text","updated","basis","origin","revision"].includes(key))) return { record:input, changed:false };
+    // Exact historical factory prose is another known sample identity, never a rewrite of authored text.
+    const historicalProse = value => value
+      .replace("较弱侧与方向优先训练，较强侧维持当前能力，按该方向实测力量调整阻力。", "训练重点应对应测得较弱的侧别与方向；方向比值要结合绝对力判断，避免只追求对称。")
+      .replace("活动度与控制练习围绕这些动作展开，以无代偿完成原测试动作为进阶条件。", "活动度与控制练习应围绕这些动作展开，评分本身不能确定具体受限原因。");
+    const factoryNarratives = [original.narrative, { html: historicalProse(original.narrative.html), text: historicalProse(original.narrative.text) }];
+    if (!factoryNarratives.some(n => candidate.narrative.html === n.html && candidate.narrative.text === n.text) || Object.keys(input.narrative || {}).some(key => !["html","text","updated","basis","origin","revision"].includes(key))) return { record:input, changed:false };
     const clean = (value, key = "") => {
       if (["id","date","measurementVersion","protocolIdentity"].includes(key)) return undefined;
       if (Array.isArray(value)) return value.map(item => clean(item));
@@ -5243,6 +5247,7 @@
     forceTime,
     stats,
     capabilityDirectionOptions,
+    eurDirectionRuleId,
     capabilityDirections,
     capabilityDirectionsBasis,
     fvpAnalysis,

@@ -50,6 +50,7 @@
       <div class="sidebar-bottom">
         <button class="sidebar-action" data-settings-open="ai" onclick="App.openSettings('ai')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6h14M5 12h14M5 18h14"/><path d="M9 4v4M15 10v4M11 16v4"/></svg></span> AI 服务</button>
         <button class="sidebar-action" data-settings-open="references" onclick="App.openSettings('references')"><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 4h7l1 2 1-2h7v16h-7l-1 1-1-1H4zM12 6v15"/></svg></span> 参考资料与方法</button>
+        <button id="desktopSettingsButton" class="sidebar-action desktop-settings-action" data-settings-open="app" onclick="App.openSettings('app')" hidden><span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 3h4l1 3 3 1 2 3-2 3v3l-3 2-1 3h-4l-1-3-3-1-2-3 2-3V8l3-2z"/><circle cx="12" cy="12" r="3"/></svg></span> 应用设置<span id="desktopUpdateBadge" class="desktop-update-badge" hidden>新版本</span></button>
         <button class="sidebar-action" data-workspace-nav="backup" onclick="App.saveMenu()">
           <span aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 14v6h16v-6"/></svg></span> 备份与恢复
         </button>

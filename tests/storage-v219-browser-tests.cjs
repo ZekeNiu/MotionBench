@@ -2,7 +2,11 @@
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict"),vm=require("node:vm"),crypto=require("node:crypto");
 const {execFileSync}=require("node:child_process"),{pathToFileURL}=require("node:url"),{chromium}=require("./helpers/playwright.cjs");
 const root=path.resolve(__dirname,".."),source=path.join(root,"MotionBench.html"),channel=process.argv.includes("--edge")?"msedge":"chrome";
-const out=path.join(root,"output/playwright/v2.19.0/storage");fs.mkdirSync(out,{recursive:true});
+const artifactOption=process.argv.indexOf("--artifact-dir"),artifactArg=process.argv.find(arg=>arg.startsWith("--artifact-dir="))?.slice(15) || (artifactOption>=0?process.argv[artifactOption+1]:undefined);
+if(artifactOption>=0&&(!artifactArg||artifactArg.startsWith("--")))throw Error("--artifact-dir requires a directory");
+const out=path.resolve(root,artifactArg||"output/playwright/v2.19.0/storage"),relativeOut=path.relative(path.join(root,"output"),out);
+if(!relativeOut||relativeOut.startsWith("..")||path.isAbsolute(relativeOut))throw Error("Artifacts must stay in a subdirectory of output");
+fs.mkdirSync(out,{recursive:true});
 const hash=value=>crypto.createHash("sha256").update(value).digest("hex"),sourceHash=hash(fs.readFileSync(source));
 const result={channel,sourceHash,runnerSha256:hash(fs.readFileSync(__filename)),synthetic:true,checks:[],errors:[],network:[]};
 function legacyLibrary(){
@@ -17,7 +21,7 @@ function legacyLibrary(){
   try{
     const context=await browser.newContext({offline:true}),page=await context.newPage();
     page.on("pageerror",e=>result.errors.push(e.message));page.on("request",r=>{if(/^https?:/.test(r.url()))result.network.push(r.url());});
-    page.on("dialog",dialog=>dialog.accept());await page.goto(pathToFileURL(source).href);await page.waitForFunction(()=>window.App?.ready);
+    page.on("dialog",dialog=>dialog.accept());await page.goto(pathToFileURL(source).href);assert.equal(await page.evaluate(()=>App.ready),true);
     const check=async(name,run)=>{await run();result.checks.push(name);console.log("PASS "+name);};
     await check("first metadata edit after import compares exact stored configuration",async()=>{
       const value=await page.evaluate(async()=>{const repo=await RingsideStore.Repository.open("/synthetic-219-first-edit");await repo.importLibrary(RingsideEvaluation.migrate(RingsideModel.libraryDefaults()));const next=await repo.directory(),expected=repo.metadataHashes.get("config:library");next.groups.push({id:"first",name:"first edit"});await repo.save(next,[],{},{expectedConfig:expected});const saved=await repo.values("groups");repo.close();return saved;});
@@ -91,6 +95,8 @@ function legacyLibrary(){
         const groups=await repo.values("groups",retained),backup=await(await repo.rollbackRecoveryBackupBlob()).text();repo.close();return{groups,backup};
       });assert.ok(value.groups.some(g=>g.id==="after_upgrade"));assert.ok(value.backup.trim().split("\n").map(JSON.parse).some(r=>r.type==="group"&&r.value.id==="after_upgrade"));
     });
-    assert.deepEqual(result.errors,[]);assert.deepEqual(result.network,[]);result.pass=true;
+    assert.deepEqual(result.errors,[]);assert.deepEqual(result.network,[]);
+    assert.equal(hash(fs.readFileSync(source)),sourceHash,"HTML changed during storage checks");assert.equal(hash(fs.readFileSync(__filename)),result.runnerSha256,"Runner changed during storage checks");
+    await page.screenshot({path:path.join(out,channel+"-report.png"),fullPage:false});result.pass=true;
   }finally{await browser.close();result.sourceUnchanged=hash(fs.readFileSync(source))===sourceHash;fs.writeFileSync(path.join(out,channel+".json"),JSON.stringify(result,null,2));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

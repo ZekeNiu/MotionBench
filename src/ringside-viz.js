@@ -1,15 +1,20 @@
 (function (global) {
   "use strict";
 
+  // Evaluation badges own the status palette. Resolve CSS values before writing
+  // SVG attributes so exported charts retain their colors outside this document.
+  const statusStyle = global.document?.documentElement && typeof global.getComputedStyle === "function"
+    ? global.getComputedStyle(global.document.documentElement) : null;
+  const statusColor = (name, fallback) => statusStyle?.getPropertyValue("--" + name).trim() || fallback;
   const C = {
     ink: "#262a30",
     muted: "#636b76",
     grid: "#e5e8ec",
     blue: "#365b7a",
-    green: "#187459",
-    amber: "#8a5a12",
-    red: "#b23f3d",
-    gray: "#636b76",
+    green: statusColor("green", "#187459"),
+    amber: statusColor("amber", "#8a5a12"),
+    red: statusColor("red", "#b23f3d"),
+    gray: statusColor("gray", "#66707b"),
     paper: "#f8f9fb",
     neutral: "#365b7a",
   };
@@ -689,8 +694,8 @@
       const heightLabelY=rsi===null||height===null?defaultHeightLabel:[defaultHeightLabel,heightY(height)+20,rsiY(rsi)-18,rsiY(rsi)+42].find(y=>y>top&&y<bottom-4&&Math.abs(y-rsiY(rsi))>=17&&Math.abs(y-(rsiY(rsi)+20))>=18)??defaultHeightLabel;
       if(height!==null){const tip=`${item.label} · 垂直跳跃高度 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,heightLabelY,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
       if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x,rsiY(rsi)+20,fmt(rsi,2),`text-anchor="middle" font-size="${small?11:13}" font-weight="600" fill="${dotColor}"`)}</g>`;}
-      const label=small?({cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"}[item.id]||item.label):item.label;
-      out+=text(x,bottom+31,label,`text-anchor="middle" font-size="${small?11:14}" font-weight="600" fill="${C.ink}"`);
+      const label={cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"}[item.id]||item.label;
+      out+=`<g data-jump-label="${esc(item.id||item.label)}" aria-label="${esc(item.label)}">${text(x,bottom+31,label,`text-anchor="middle" font-size="${small?11:14}" font-weight="600" fill="${C.ink}"`)}</g>`;
     });
     out+=`<rect x="${left}" y="${h-(small?47:37)}" width="17" height="12" rx="2" fill="${barColor}"/>`+text(left+26,h-(small?36:26),"垂直跳跃高度（左轴）",'font-size="12"');
     if(hasRSI)out+=circle(left+(small?8:201),h-(small?16:31),5,dotColor)+text(left+(small?26:215),h-(small?11:26),"RSI（右轴）",'font-size="12"');

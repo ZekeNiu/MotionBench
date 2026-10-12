@@ -133,7 +133,7 @@ fs.mkdirSync(out,{recursive:true});
     await check("overview shows both valid profiles first and EUR gives the intended training direction",async()=>{
       const ids=await page.locator("#directionMetrics [data-overview-metric]").evaluateAll(nodes=>nodes.map(node=>node.dataset.overviewMetric));
       assert.deepEqual(ids,["fvp_sj","fvp_sj_elasticity","fvp_cmj","fdsi","eur","srr"]);
-      assert.match(await page.locator('[data-overview-metric="eur"]').innerText(),/发展 SSC 能力/);
+      assert.match(await page.locator('[data-overview-metric="eur"]').innerText(),/需要强调利用 SSC 的能力/);
       assert.doesNotMatch(await page.locator("#directionMetrics").innerText(),/CMJ 垂直跳跃高度较 SJ|未测|待录入/);
     });
     await check("body aggregates graded tests and uses the same solid amber as the global legend",async()=>{
@@ -230,7 +230,7 @@ fs.mkdirSync(out,{recursive:true});
     });
     await check("actual downloaded PDF keeps both protocols, selected response curves and every results table",async()=>{
       const captured=await pdf("complete-report"),text=captured.pages.map(item=>item.text).join("\n");
-      assert.match(text,/FVP的不平衡性/);assert.match(text,/弹性范数 EN/);assert.match(text,/发展 SSC 能力/);assert.doesNotMatch(text,/归一弹性 EN|选择负荷点可对应查看/);
+      assert.match(text,/FVP的不平衡性/);assert.match(text,/弹性范数 EN/);assert.match(text,/需要强调利用 SSC 的能力/);assert.doesNotMatch(text,/归一弹性 EN|选择负荷点可对应查看/);
       assert.match(text,/参考目标/);assert.match(text,/达标|关注/);
       const curves=captured.pages.flatMap(item=>item.charts).filter(chart=>chart.kind==="jumpElasticity").map(chart=>JSON.parse(chart.input)[0]);assert.equal(curves.length,2);
       assert.deepEqual(curves.map(item=>[item.id,item.responseForce,item.responseVelocity,item.responseBoth]),[["fvp_sj",false,false,true],["fvp_cmj",true,false,false]]);

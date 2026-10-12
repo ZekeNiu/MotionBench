@@ -41,7 +41,9 @@ test("direction cards lead with judgment while in-card parameter tables retain c
  assert.ok(row.indexOf("0.600")<row.indexOf('class="capability-parameter-notes"'));
  assert.match(row,/data-capability-component=/);assert.match(row,/并行发展最大力量与爆发能力/);
  assert.doesNotMatch(html,/data-capability-metric="eur"|data-capability-card="reactive"|录入 CMJ 数据|录入 IMTP 数据|derived-sources|derived-formula/);
- assert.match(direction(html,"reactive"),/待计算/);assert.equal(JSON.stringify(report.record),before);
+  const reactive=M.capabilityDirections(report.record,report.stats).find(item=>item.id==="reactive");
+  assert.equal(reactive.hasData,false);assert.equal(reactive.value,null);assert.equal(reactive.judgment,"待计算");
+  assert.equal(direction(html,"reactive"),"");assert.equal(JSON.stringify(report.record),before);
 });
 
 test("both independent iDSI windows retain full names, values, components and the selected basis without entry actions",()=>{

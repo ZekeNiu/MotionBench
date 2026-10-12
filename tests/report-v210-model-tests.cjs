@@ -93,13 +93,13 @@ test("every builtin project uses its captured display name without altering metr
   r.projectSnapshots = T.snapshots(r).map(test => ({ ...test, name: "本次名称_" + test.id }));
   const report = R.build(r), html = R.render(report);
   for (const test of T.builtins) assert.ok(html.includes("本次名称_" + test.id), test.id + " missing captured display name");
-  for (const id of ["fms", "iso", "imtp", "lactate"]) assert.ok(html.includes('<h3>本次名称_' + id + '</h3>'), id + " title");
+  for (const id of ["fms", "iso", "imtp", "lactate"]) assert.ok(html.includes('<h4>本次名称_' + id + '</h4>'), id + " title");
   for (const id of ["mas", "mss", "ift"]) assert.ok(html.includes('data-speed-metric="' + id + '" class="viz-point" data-tooltip="本次名称_' + id), id + " chart");
   assert.ok(html.includes("本次名称_landmine R")); assert.ok(html.includes("本次名称_landmine L"));
   assert.deepEqual(JSON.parse(JSON.stringify(report.stats.values)), JSON.parse(JSON.stringify(before.stats.values)));
   assert.deepEqual(JSON.parse(JSON.stringify(report.speedReference.rows)), JSON.parse(JSON.stringify(before.speedReference.rows)));
   const legacy = speedRecord(); legacy.projectSnapshots = T.snapshots(legacy).map(test => test.id === "ift" ? { ...test, name: "30–15 IFT" } : test);
-  assert.match(R.render(R.build(legacy)), /<h3>MAS \/ MSS \/ 30-15VIFT<\/h3>/);
+  assert.match(R.render(R.build(legacy)), /<h4>MAS \/ MSS \/ 30-15VIFT<\/h4>/);
   const escaped = V.speed({ mas: 4, labels: { mas: '<img src=x onerror="alert(1)">' } });
   assert.doesNotMatch(escaped, /<img|onerror="alert/); assert.match(escaped, /&lt;img/);
 });

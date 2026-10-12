@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.19.0-desktop.1",
+  "version": "2.19.1",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
@@ -55,18 +55,23 @@
     "pack:desktop": "npm run build && electron-builder --config electron-builder.yml --dir --publish never",
     "dist:windows": "npm run build && electron-builder --config electron-builder.yml --win --x64 --publish never",
     "test:desktop": "node tests/desktop-smoke.cjs",
-    "test:desktop-unit": "node tests/desktop-security-tests.cjs && node tests/desktop-ai-tests.cjs && node tests/desktop-ai-bridge-tests.cjs && node tests/desktop-bridge-tests.cjs",
+    "test:desktop-settings": "node tests/desktop-settings-v2191-browser-tests.cjs && node tests/desktop-settings-v2191-browser-tests.cjs --edge",
+    "test:desktop-updates-native": "node tests/desktop-updates-native-tests.cjs",
+    "test:desktop-unit": "node tests/desktop-security-tests.cjs && node tests/desktop-ai-tests.cjs && node tests/desktop-ai-bridge-tests.cjs && node tests/desktop-bridge-tests.cjs && node tests/desktop-update-tests.cjs",
     "verify:desktop-package": "node scripts/check-desktop-package.cjs"
   },
   "devDependencies": {
-    "playwright": "1.57.0",
     "electron": "44.7.0",
-    "electron-builder": "26.15.3"
+    "electron-builder": "26.15.3",
+    "playwright": "1.57.0"
   },
   "main": "desktop/main.cjs",
   "author": "Zeke Niu",
   "license": "UNLICENSED",
   "engines": {
     "node": ">=24 <25"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.9"
   }
 }

@@ -39,7 +39,8 @@ test("switching a basis changes one summary while all in-card parameters stay in
   assert.match(section(b, "speed"), /data-direction-metric="srr"/);
   const params = html => [...html.matchAll(/<div data-report-patch="parameters-[^"]+">[\s\S]*?<\/details><\/article>/g)].map(match => match[0]);
   assert.equal(params(a).length, 4); assert.deepEqual(params(a), params(b));
-  assert.doesNotMatch(section(b, "strength"), /1\.1|发展 SSC 能力|发展纯向心能力/);
+  assert.match(section(b, "strength"), /需要强调利用 SSC 的能力/);
+  assert.doesNotMatch(section(b, "strength"), /单凭 EUR|纵向变化判断发展方向/);
 });
 
 test("both iDSI windows have independent full names, values and saved selections", () => {

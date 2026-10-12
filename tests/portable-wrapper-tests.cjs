@@ -14,8 +14,9 @@ const { chromium } = require("./helpers/playwright.cjs");
 const root = path.resolve(__dirname, "..");
 const out = path.resolve(process.env.MOTIONBENCH_PORTABLE_ARTIFACT_DIR || path.join(root, "output", "desktop-smoke", "portable"));
 const originalExecutable = process.env.MOTIONBENCH_PORTABLE_EXECUTABLE;
-const packageVersion = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
-const evidence = { synthetic: true, platform: process.platform, version: packageVersion, checks: [], launches: [], pass: false, startedAt: new Date().toISOString() };
+const webVersion = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
+const packageVersion = require("js-yaml").load(fs.readFileSync(path.join(root,"electron-builder.yml"),"utf8")).extraMetadata.version;
+const evidence = { synthetic: true, platform: process.platform, version: packageVersion, webVersion, checks: [], launches: [], pass: false, startedAt: new Date().toISOString() };
 const wrappers = new Set();
 const temporaryRoot = process.platform === "win32" ? fs.mkdtempSync(path.join(os.tmpdir(), "motionbench-便携 验收-")) : null;
 let active;
@@ -164,13 +165,15 @@ async function closeNormally(session) {
     fs.copyFileSync(originalExecutable, executable);
     assert.equal(hash(executable), hash(originalExecutable), "the moved portable executable is byte-identical to the deliverable");
     evidence.executableSha256 = hash(executable);
+    evidence.sourceHtmlSha256 = hash(path.join(root,"MotionBench.html"));
+    evidence.testScriptSha256 = hash(__filename);
     const dataDirectory = path.join(temporaryRoot, "中文路径 桌面资料");
     const firstPort = await availablePort();
     active = await connect(launchWrapper(executable, dataDirectory, firstPort), firstPort);
     let athleteId;
     await check("the actual single-file portable wrapper starts from a path containing Chinese text and spaces", async () => {
       assert.equal(await active.page.evaluate(() => MotionBenchDesktop.version), packageVersion);
-      assert.equal(await active.page.evaluate(() => RingsideBuild.version), packageVersion);
+      assert.equal(await active.page.evaluate(() => RingsideBuild.version), webVersion);
       assert.deepEqual(await active.page.evaluate(() => ({ require: typeof require, process: typeof process })), { require: "undefined", process: "undefined" });
       await active.page.evaluate(() => App.importPayload(RingsideModel.libraryDefaults(), "replace-library"));
       athleteId = await active.page.evaluate(() => App.createAthlete("便携程序真实包装器验收（合成）"));
@@ -206,6 +209,8 @@ async function closeNormally(session) {
     process.exitCode = 1;
     if (active) try { await active.page.screenshot({ path: path.join(out, "portable-wrapper-failure.png"), fullPage: true }); } catch {}
   } finally {
+    evidence.sourceUnchanged = evidence.sourceHtmlSha256 === hash(path.join(root,"MotionBench.html")) && evidence.testScriptSha256 === hash(__filename);
+    if (!evidence.sourceUnchanged) {evidence.pass=false;process.exitCode=1;}
     for (const wrapper of wrappers) {
       // Failure cleanup applies exclusively to our disposable verification
       // process trees; it never addresses another user's application process.

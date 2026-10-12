@@ -33,10 +33,11 @@
     .ringside-pdf-document .section-title>div{min-width:0!important;}
     .ringside-pdf-document .section-number{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:12px!important;line-height:1!important;color:#365b7a!important;background:#e8eef3!important;border-radius:7px!important;margin-top:2px!important;}
     .ringside-pdf-document .section-heading p,.ringside-pdf-document .test-title p{font-size:12px!important;line-height:1.65!important;margin:4px 0 0!important;color:#636b76!important;}
-    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border-left:3px solid #365b7a!important;background:#f3f5f7!important;font-size:17px!important;font-weight:600!important;}
+    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border:0!important;background:#f8f9fb!important;font-size:16px!important;font-weight:600!important;}
     .ringside-pdf-document .quality-heading p,.ringside-pdf-document .pdf-group-heading span{font-size:12px!important;color:#636b76!important;font-weight:400!important;}
     .ringside-pdf-document .pdf-group-heading span{display:block!important;margin-top:4px!important;}
     .ringside-pdf-document .test-title{display:block!important;padding:4px 0!important;margin:0!important;}
+    .ringside-pdf-document .test-title h4{font-size:15px!important;font-weight:600!important;margin:0!important;}
     .ringside-pdf-document .card{background:#fff!important;border:1px solid #e1e5e9!important;box-shadow:none!important;border-radius:8px!important;overflow:visible!important;}
     .ringside-pdf-document .micro-cards{display:flex!important;gap:9px!important;margin:0!important;}
     .ringside-pdf-document .micro-card{border:1px solid #e1e5e9!important;flex:1!important;min-width:0!important;min-height:102px!important;padding:11px!important;border-radius:8px!important;background:#f8f9fb!important;box-shadow:none!important;}
@@ -529,7 +530,7 @@
       copy.dataset.pdfBlockIndex = String(blocks.length);
       if (kind === "pair")
         copy.dataset.pdfTitle =
-          node.dataset.pdfTitle || node.closest(".test-block,.lvp-card,.fvp-analysis-card")?.querySelector("h3")
+          node.dataset.pdfTitle || node.closest(".test-block,.lvp-card,.fvp-analysis-card")?.querySelector(".test-title h4")
             ?.textContent || "测试结果";
       blocks.push({
         element: copy,
@@ -556,6 +557,10 @@
           heading.dataset.pdfPairText = node.dataset.pdfPairText;
         return push(heading, "text", true);
       }
+      // An expanded capability summary identifies the following parameter
+      // table. Keep it with that table's first row rather than orphaning a
+      // short summary when the full table moves to the next page.
+      if (node.matches(".capability-direction-print-summary")) return push(node, "atomic", true);
       if (node.matches(atomicSelectors)) return push(node, "atomic");
       if (node.matches("[data-pdf-pair]")) return push(node, "pair");
       if (node.tagName === "TABLE") return push(node, "table");

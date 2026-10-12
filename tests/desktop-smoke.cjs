@@ -15,11 +15,14 @@ const root = path.resolve(__dirname, "..");
 const out = path.resolve(root, process.env.MOTIONBENCH_DESKTOP_ARTIFACT_DIR || "output/desktop-smoke");
 const executablePath = process.env.MOTIONBENCH_EXECUTABLE || require("electron");
 const packaged = Boolean(process.env.MOTIONBENCH_EXECUTABLE);
+const {desktopArtifactIdentity} = require("./helpers/desktop-artifact-identity.cjs");
+const identity = desktopArtifactIdentity(root,executablePath,__filename);
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "motionbench-desktop-test-"));
 const downloads = path.join(out, "native-downloads");
 fs.mkdirSync(downloads, { recursive: true });
 const result = {
   synthetic: true,
+  identity,
   packaged,
   platform: process.platform,
   startedAt: new Date().toISOString(),
@@ -433,7 +436,8 @@ async function saveSyntheticAIConnection(session) {
         hasToken: Object.hasOwn(window.MotionBenchLocal || {}, "token"),
         tokenType: typeof window.MotionBenchLocal?.token,
       }));
-      assert.deepEqual(capabilities.keys, ["cancelAI", "requestAI"], "the preload exposes exactly two bounded AI operations");
+      const nativeCapabilities = ["cancelAI", "checkForUpdates", "downloadUpdate", "getUpdateState", "installUpdate", "onUpdateState", "requestAI", "setUpdatePreferences"];
+      assert.deepEqual(capabilities.keys, nativeCapabilities, "the preload exposes only named AI and update operations");
       assert.equal(capabilities.requestAI, "function");
       assert.equal(capabilities.cancelAI, "function");
       assert.deepEqual(capabilities.localKeys, ["native"]);
@@ -461,7 +465,7 @@ async function saveSyntheticAIConnection(session) {
         } finally { probe.destroy(); }
       }, randomUUID());
       assert.ok(untrustedWindow.url.startsWith("data:text/html,"));
-      assert.deepEqual(untrustedWindow.keys, ["cancelAI", "requestAI"], "the untrusted probe uses the same actual preload");
+      assert.deepEqual(untrustedWindow.keys, nativeCapabilities, "the untrusted probe uses the same actual preload");
       assert.equal(untrustedWindow.response.status, 403, "a different native window cannot use the workspace AI host");
       assert.equal(await active.electron.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length), 1, "the source-boundary probe is always destroyed");
       const forbidden = await active.page.evaluate(async () => {
@@ -649,6 +653,9 @@ async function saveSyntheticAIConnection(session) {
       result.cleanup.temporaryProfileRemoved = !fs.existsSync(temporaryRoot);
     } catch (error) { result.cleanup.errors.push({ stage: "temporary-profile", code: error.code, message: error.message }); }
     if (result.cleanup.errors.length) { result.pass = false; process.exitCode = 1; }
+    result.finalIdentity=desktopArtifactIdentity(root,executablePath,__filename);
+    result.artifactUnchanged=JSON.stringify(result.identity)===JSON.stringify(result.finalIdentity);
+    if (!result.artifactUnchanged || !identity.runtimeMatchesSourceHtml) {result.pass=false;process.exitCode=1;}
     result.finishedAt = new Date().toISOString();
     fs.writeFileSync(path.join(out, "results.json"), JSON.stringify(result, null, 2));
     console.log(`${result.checks.length} desktop checks completed; ${result.pass ? "PASS" : "FAIL"}`);

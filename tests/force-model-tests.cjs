@@ -105,7 +105,8 @@ test('a complete assessment keeps bounded findings and at most three training pr
   const findings = overview.split('\n').filter(line => line.startsWith('• '));
   assert.ok(findings.length >= 3 && findings.length <= 5, `got ${findings.length} findings`);
   assert.equal(overview.split('动作质量：').length - 1, 1);
-  assert.ok(overview.includes('活动度与控制练习') && overview.includes('评分本身不能确定具体受限原因'));
+  assert.ok(overview.includes('活动度与控制练习') && overview.includes('以无代偿完成原测试动作为进阶条件'));
+  assert.ok(!overview.includes('评分本身不能确定具体受限原因'));
   assert.ok((text.match(/^\*\*.+\*\*$/gm) || []).length <= 3); assert.ok(text.includes('**先处理疼痛**'));
   assert.ok(overview.includes('暂停ASR训练建议'));
 });
@@ -113,7 +114,8 @@ test('ungraded force measurements do not become an invented training deficit or 
   const r = record([{ peakForce: 1500, timePoints: [{ timeMs: 100, force: 500 }] }]);
   r.definitions.forEach(d => { d.target = ''; d.referenceEnabled = false; });
   const before = JSON.stringify(r), text = M.localText(r), overview = text.split('【训练优先级】')[0];
-  assert.ok(overview.includes('尚不能据此确认优势或训练不足'));
+  assert.ok(overview.includes('尚未设置适用评价标准') && overview.includes('先完成已测项目评价，再安排训练重点'));
+  assert.ok(!text.includes('维持已有训练安排') && !text.includes('将上述练习'));
   assert.ok(!overview.includes('需要加强') && !overview.includes('主要表现短板'));
   assert.equal(JSON.stringify(r), before);
 });

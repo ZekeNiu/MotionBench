@@ -33,10 +33,10 @@ test("historical defaults display one sprint name while captured custom names an
     assert.equal(record.projectSnapshots.find(project => project.id === "sprint_fvp").name, name);
     assert.match(html, /aria-label="冲刺FVP"/);
     if (name.startsWith("教练")) {
-      assert.match(html, /<h3>教练自定冲刺 &quot;&lt;测评&gt;&quot;<\/h3>/);
+      assert.match(html, /<h4>教练自定冲刺 &quot;&lt;测评&gt;&quot;<\/h4>/);
       assert.match(html, /data-trial-title="教练自定冲刺 &quot;&lt;测评&gt;&quot; · 原始录入分段"/);
     } else {
-      assert.match(html, /<h3>冲刺FVP<\/h3>/);
+      assert.match(html, /<h4>冲刺FVP<\/h4>/);
       assert.match(html, /data-trial-title="冲刺FVP · 原始录入分段"/);
       assert.doesNotMatch(html, /分段计时冲刺 F–V\/P–V/);
     }

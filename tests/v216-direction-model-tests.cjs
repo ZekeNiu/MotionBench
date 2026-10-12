@@ -8,8 +8,8 @@ const derived=(r,id)=>M.stats(r).derived.results.find(x=>x.id===id);
 const card=(r,id)=>M.stats(r).capabilityCards.find(x=>x.id===id);
 function jumps(){const r=M.defaults();r.enabled.cmj=r.enabled.sj=true;r.data.sj=[{id:"sj",height:40}];r.data.cmj=[{id:"cmj",height:44,force:1200}];return r;}
 function speeds(){const r=M.defaults();r.enabled.mas=r.enabled.mss=true;r.data.mas.speed=5;r.data.mss.speed=8.5;for(const id of ["mas_speed","mss_speed"])r.definitions.find(x=>x.id===id).referenceEnabled=false;return r;}
-test("EUR preserves source values without an unsupported universal 1.1 direction threshold",()=>{
- const r=jumps();for(const height of [43.99999,44,44.00001]){r.data.cmj[0].height=height;const value=derived(r,"eur");assert.equal(value.value,height/40);assert.match(value.directionHint,/单凭 EUR 高低不能确定训练优先级/);assert.doesNotMatch(value.directionHint,/发展 SSC|发展纯向心/);}
+test("EUR uses the approved unrounded 1.1 direction rule including equality in SSC",()=>{
+ const r=jumps();for(const [height,expected] of [[43.99999,"需要强调利用 SSC 的能力"],[44,"需要强调利用 SSC 的能力"],[44.00001,"需要强调向心能力"]]){r.data.cmj[0].height=height;const value=derived(r,"eur");assert.equal(value.value,height/40);assert.equal(value.directionHint,expected);assert.equal(derived(r,"gain").directionHint,expected);assert.equal(value.directionRuleId,M.eurDirectionRuleId);}
 });
 test("FMS normalization only removes irrelevant empty side fields and preserves every entered score",()=>{
  const r=M.defaults(),single=r.data.fms.find(x=>x.name==="深蹲");Object.assign(single,{score:2,left:0,right:1,l:"",r:null,notes:"保留原始分数"});const next=M.normalizeRecord(copy(r)),row=next.data.fms.find(x=>x.name==="深蹲");assert.equal(row.score,2);assert.equal(row.left,0);assert.equal(row.right,1);assert.equal(row.notes,"保留原始分数");assert.equal(Object.hasOwn(row,"l"),false);assert.equal(Object.hasOwn(row,"r"),false);assert.equal(ctx.Calc.fms([row]).scores[0],2);
