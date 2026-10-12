@@ -4,6 +4,8 @@
 
 HTML baseline: `e9e10bbdcf3bfbe8e4a86c31b446e1c18feb2cab`. Desktop baseline: `71e2d905a82712f04ed725868b3ce2932cb5f5f8`. The verified remote rollback tag is `rollback-v2.19.0-desktop.1-before-2.19.1-20261012`; local source archives are retained under `output/rollback/motionbench-2.19.0-before-2.19.1`.
 
+The original desktop executables and their original provenance are also retained in the permanent rollback release. Upgrade acceptance downloads the fixed baseline ZIP and verifies its size, SHA256, original installer checksum and original source commit, so subsequent builds do not depend on expiring Actions artifacts.
+
 Source package version is `2.19.1`. Desktop packaging uses `extraMetadata.version: 2.19.1-desktop.1`; the embedded HTML is identical to the standalone HTML. Source-first construction remains `scripts/build.py`.
 
 ## Report behavior
@@ -31,3 +33,5 @@ Assisted NSIS installation permits directory selection and preserves current-use
 ## Verification and release
 
 The version-specific verifier checks source/build reproducibility, source-bound test results, browser artifacts, PDFs and desktop runtime/package evidence. New evidence is kept under version-specific output directories. HTML and desktop tags use the same reviewed source commit; desktop release assets include Setup, Portable, `desktop.yml`, blockmap, SHA256 checksums and build provenance.
+
+Windows artifacts retain the original CI build provenance. The delivery commit adds verification tools and frozen acceptance documents; runtime HTML, package/build configuration and desktop module hashes are verified against the actual CI runtime and producer receipts.

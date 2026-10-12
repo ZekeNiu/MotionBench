@@ -1,0 +1,2063 @@
+{
+  "version": "2.19.1",
+  "desktopVersion": "2.19.1-desktop.1",
+  "status": "passed",
+  "pass": true,
+  "passScope": "complete",
+  "localChecksPass": true,
+  "ciChecksPass": true,
+  "implementationComplete": true,
+  "artifact": {
+    "path": "MotionBench.html",
+    "sha256": "6fcf29d3331c3e1a911615dd84ca6f1e2d3df0f9fa1afe54b01a77645c2567f8",
+    "bytes": 4642927
+  },
+  "reproducibleBuild": true,
+  "emptyEmbeddedData": true,
+  "sourceHashes": {
+    "body-map-front.png": "79f7eb61a6d838e450de6afd2dcb07f32a6c1cf75d0b1fee896a7eb6954e6e20",
+    "package.json": "b839be3b77f560618602813c5b198ac574d96b1cdb60f6767f19406fd9918872",
+    "scripts/build.py": "441d697feb8673066c991c9d2ba55e9013f41a60f87fa98d4438a3b0477470e6",
+    "src/ringside-acquisition.js": "656bed15b92949d29b076c83c3f54244d1b1eb28d26f48fb911d1ec0cbc5c2a2",
+    "src/ringside-ai-settings.js": "52bd1ceb4c1b95c9e3266476bedbb7a68dd7983650a3340fd2c5e07129600372",
+    "src/ringside-app.js": "055c9bf9f704fe989be676abb240fb8d3988c715e9b27ff2e5547df779de8c51",
+    "src/ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "src/ringside-context-ui.js": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+    "src/ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "src/ringside-definitions.js": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+    "src/ringside-entry-session.js": "11ddbb50920163ca9e19ffe413b265584270a671a4d7bf2f08e12dde863e934a",
+    "src/ringside-evaluation.js": "6a939a63f34543d9f8aeb99b7a757fdeb2180e034338f20413fc973f86b7b4f8",
+    "src/ringside-excel-flow.js": "f6b5fc3f981794bfdd668d9551f78b5b8a640f085b8e4d266514b7c828eb2b14",
+    "src/ringside-excel-v3.js": "cd631e7037e6878ce6754a3411a04f43d6a8bdac4528ad722351d10c27ff25f4",
+    "src/ringside-excel.css": "25cfe4e3bff61779bf0820a0aa94b0fb6278fd9d358b1a8a088cd74bb9de91d9",
+    "src/ringside-excel.js": "5d6339a0a523ad7b4c64f946621c7214eb527ea6be6ddc4751c1c1b57d418937",
+    "src/ringside-fvp-entry.js": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+    "src/ringside-fvp.css": "6f4186f5d9359d076beb77fa2aee9f7882f56cd89a4e807a21fb3c550a5fa5b7",
+    "src/ringside-fvp.js": "d347a4eb782843def779e002ba605480a572b60b866f8d832943d7b4fb0ce9a9",
+    "src/ringside-interventions.js": "2cb3427bbe4ba4d81b51cc93ae7d01201d72e1eb0f7a51a038a9b9e9dedf0394",
+    "src/ringside-iso-reference.js": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+    "src/ringside-management-refinement.css": "3968eef35dde87e81283debc414f8a746f443e7c66f22a0e9e9e1ede28c3d8fb",
+    "src/ringside-management.js": "4e7ac494200e9e43a930b4fb353c0ee9b0d9481d10b64d8321b07531a82c452b",
+    "src/ringside-model.js": "8a838b4b2527a953a309d9797c18577f6ce4b2341021c50dc7f6603843ec4de5",
+    "src/ringside-pdf.js": "8b0a0d22f7e204aa7ad785f944f2c9054d9781524490aae4431d751e9ca07c51",
+    "src/ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "src/ringside-profile.js": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+    "src/ringside-report-refinement.css": "bba6deb8a041295a3407221642090c6da5c44f71707edadf13aec3b503b3b34f",
+    "src/ringside-report.js": "e09bc82e58b9386ce26d0ab18c6a7f5a3271938374c594051df79b269324c48d",
+    "src/ringside-scoring.js": "5d0a46e99f7b4c94177ecfdb915857a4719716830aa1e34fe1c52c381f6f8959",
+    "src/ringside-settings.js": "e115150b7593b4593fe632537f4299c9fd7b9302d64f6a1ae61f186736cfc3c7",
+    "src/ringside-shell.html": "df17c734774ca6986e333cfeaa6d5b26659df6e5831da0ab3481e0c1e8698a63",
+    "src/ringside-sources.js": "68f1d4c2a88145077e2c1c628a44b6cb93c7e4b6c82488e9210ae9c6f1f9a3e7",
+    "src/ringside-sprint-elasticity.js": "00c4d827f92cf0261ecbd43b727b8209bdb8cbd7261c5ecf38b2713d3e5e9f27",
+    "src/ringside-sprint-fvp-confidence.js": "d307e1e3575454696c89e6520026e17e858f0970123b42effc92a71fd8ead020",
+    "src/ringside-sprint-fvp-entry.js": "86332c1ca4327af3e95f0c54ac5b6864464e74f1ab75bb61a059a17653137d7e",
+    "src/ringside-sprint-fvp.js": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+    "src/ringside-store.js": "fcf396e1fe12108daa38e0fafe5276f8d64ccf120c922190a3903f9a2972bc6a",
+    "src/ringside-tests.js": "260a78c156845db5488e1627ef7e1d193f0f776d212d1fa90c879e33bcb3651e",
+    "src/ringside-viz.js": "d2f9eb2d71a68e0002aea48d44f27dd121320a1f6eb7cd7f1070db78b40a1063",
+    "src/ringside-workflow.css": "dc958ff24c0a57d2af678011aa8fdbfecbbb9681ac896919b35fa98491ad9a0e",
+    "src/ringside.css": "6062c7d1b54d6a653369318c9a2a7c6c1d5af3b9967f7fa34861e8643b03ee1c",
+    "vendor/exceljs.LICENSE.txt": "2ed526b7e7c7681dc2347995b5036ddf73dc27d0539cdea59b6d4a72b63a57a0",
+    "vendor/exceljs.min.js": "7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9",
+    "vendor/html2canvas.LICENSE.txt": "86200ce4e92d9a22c41c8647a55f7a5fddff304ff89b4d36ecc699ed8c123d2c",
+    "vendor/html2canvas.min.js": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
+    "vendor/jspdf.LICENSE.txt": "dc388ec35ff463288cdde3588a36fd4ed12a45deff053243b37309acc9ef583b",
+    "vendor/jspdf.umd.min.js": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54",
+    "vendor/versions.json": "4f2a59a286cd6a242a4d1793a2b1c14eae2cd05182fc6d17b6eba21a14465a74"
+  },
+  "unit": {
+    "path": "output/tests/v2.19.1/unit-results.json",
+    "sha256": "c0e5fdad2601b9c3ea85e289213fb6fa0882b7099be918463b52c961960f7350",
+    "bytes": 87773,
+    "suites": 52,
+    "checks": 773
+  },
+  "browsers": [
+    {
+      "name": "settings",
+      "channel": "chrome",
+      "checks": 9,
+      "path": "output/playwright/v2191-settings/chrome.json",
+      "sha256": "b854818798113e2bf314cf2d1945bdba64b6c4250b824b02150fba05168ce9a2",
+      "bytes": 1538
+    },
+    {
+      "name": "settings",
+      "channel": "msedge",
+      "checks": 9,
+      "path": "output/playwright/v2191-settings/msedge.json",
+      "sha256": "50752702f01f53f9322a205b419ea78faf975845950e623f6417d9c8b0d0a495",
+      "bytes": 1538
+    },
+    {
+      "name": "layout",
+      "channel": "chrome",
+      "checks": 11,
+      "path": "output/playwright/v2191-layout/chrome.json",
+      "sha256": "fef4f7dcc6e4fcc4dc408a2ce7296bbffbd280daa399c172337335cedc1e4d0f",
+      "bytes": 145423
+    },
+    {
+      "name": "layout",
+      "channel": "msedge",
+      "checks": 11,
+      "path": "output/playwright/v2191-layout/msedge.json",
+      "sha256": "ca4a40855e6d3881d45e27f56c77810c9f4dc2c254de2f5fb58b08374a299fa8",
+      "bytes": 145423
+    },
+    {
+      "name": "acquisition",
+      "channel": "chrome",
+      "checks": 7,
+      "path": "output/playwright/v2191-compat/acquisition/chrome-results.json",
+      "sha256": "de11b7545ae8f177c6da5ae3a120a16a02757476c7e7c11e775009880c7e04ea",
+      "bytes": 1543
+    },
+    {
+      "name": "acquisition",
+      "channel": "msedge",
+      "checks": 7,
+      "path": "output/playwright/v2191-compat/acquisition/msedge-results.json",
+      "sha256": "383f9808a36f55b721656d8a5d1779e89fc75d4a5c4349ea9396010463a62318",
+      "bytes": 1543
+    },
+    {
+      "name": "storage",
+      "channel": "chrome",
+      "checks": 8,
+      "path": "output/playwright/v2191-compat/storage/chrome.json",
+      "sha256": "28327a000d085be41b49d30bbfb21a41ce322abf3f872153c18fac72e5c82f36",
+      "bytes": 923
+    },
+    {
+      "name": "storage",
+      "channel": "msedge",
+      "checks": 8,
+      "path": "output/playwright/v2191-compat/storage/msedge.json",
+      "sha256": "35c49da5361a1d59f8663b9a4ab07f103fb1d0d39371ee5fb9a5b204a9385dc0",
+      "bytes": 923
+    },
+    {
+      "name": "excel",
+      "channel": "chrome",
+      "checks": 15,
+      "path": "output/playwright/v2191-compat/excel/chrome-results.json",
+      "sha256": "84a1506bf3da7b2afaeba696d4d85fdc9ac7e1bdbea73ffd5c7ef14134a45ce7",
+      "bytes": 6759
+    },
+    {
+      "name": "excel",
+      "channel": "msedge",
+      "checks": 15,
+      "path": "output/playwright/v2191-compat/excel/msedge-results.json",
+      "sha256": "45de633781b95debca92f9bb3857cc5549e507387a7070fefdd3cb6b1606b50f",
+      "bytes": 6759
+    }
+  ],
+  "pdf": {
+    "files": 4,
+    "pages": 48,
+    "directlyReviewedPages": 24,
+    "pixelMatchedEdgePages": 24,
+    "supplementalIsometricPdf": {
+      "files": 1,
+      "pages": 8,
+      "directlyReviewedPages": 8,
+      "rows": 13,
+      "repeatedStatistics": 24,
+      "evidence": {
+        "path": "output/playwright/v2191-layout/isometric-pdf.json",
+        "sha256": "9a0dea158ca0cf6d513cc0cf71ef0caba0edabb25ad0a1358498d913184be4d0",
+        "bytes": 31894
+      }
+    },
+    "renderEvidence": {
+      "path": "output/playwright/v2191-layout/renders.json",
+      "sha256": "59042677cec6d8ba5695ecbeaaaded7b3291972c7bdcac9e0d2b899d2978b86c",
+      "bytes": 32832
+    },
+    "visualEvidence": {
+      "path": "output/playwright/v2191-layout/visual-review.json",
+      "sha256": "cdad066fe0bb184a8e736a55224ec950ccd70898c607e473191a50c04f71019f",
+      "bytes": 8328
+    }
+  },
+  "desktop": {
+    "unitChecks": 23,
+    "nativeChecks": 21,
+    "archive": {
+      "path": "dist-desktop/win-unpacked/resources/app.asar",
+      "sha256": "c8dee3e645bbfc40e3229fc1510394e5c2e3cca12b7458a58806b491941caed5",
+      "bytes": 6920301
+    },
+    "unitEvidence": {
+      "path": "output/tests/v2191-desktop/update-unit-results.json",
+      "sha256": "cdec9bb53eefb166e4e0c9719158f4a47ac28b514f79db2f8ed0369ad45077bb",
+      "bytes": 3006
+    },
+    "packageEvidence": {
+      "path": "output/desktop-package/package-check.json",
+      "sha256": "2d416bb8ac36d592fa9ca26e9daa6298a81ba8a49c809bfdca8c318d39f43269",
+      "bytes": 15535
+    },
+    "native": [
+      {
+        "name": "nativeSmoke",
+        "checks": 16,
+        "path": "output/tests/v2191-desktop/packaged-native-smoke/results.json",
+        "sha256": "be79e8b4bb261a505c2e4d718fa94225095dc6a4e7897c6abd152d3567a650f9",
+        "bytes": 50585
+      },
+      {
+        "name": "nativeUpdates",
+        "checks": 5,
+        "path": "output/tests/v2191-desktop/packaged-native-updates/native-update-results.json",
+        "sha256": "66b76e577962533fcbe4299553311fdb8b9fb919d09b905619e8c956995ea03e",
+        "bytes": 6206
+      }
+    ]
+  },
+  "ci": {
+    "status": "passed",
+    "passed": true,
+    "commit": "03ecd3b9f524d94199521d6b4dbdf65deb046704",
+    "run": "https://github.com/ZekeNiu/MotionBench/actions/runs/38209073759",
+    "artifactRoot": "output/ci/38209073759",
+    "evidencePath": "output/tests/v2191-desktop/ci-results.json",
+    "evidence": {
+      "path": "output/ci/38209073759/output/tests/v2191-desktop/ci-results.json",
+      "sha256": "8733f946da65ed7d2cb4115207cfed70556092890d78bc8c916f611bda1ff588",
+      "bytes": 11284
+    },
+    "baseline": {
+      "schema": 1,
+      "version": "2.19.0-desktop.1",
+      "commit": "71e2d905a82712f04ed725868b3ce2932cb5f5f8",
+      "artifactId": 11691562131,
+      "archiveUrl": "https://github.com/ZekeNiu/MotionBench/releases/download/rollback-v2.19.0-desktop.1-before-2.19.1-20261012/MotionBench-2.19.0-desktop.1-baseline.zip",
+      "archiveSha256": "3a73ba9539ad88c0427695e3a0916738a674e60b6e8fb44cb98488ca1ae0d54d",
+      "archiveSize": 226308505,
+      "fixture": {
+        "path": "tests/fixtures/desktop-upgrade-baseline.json",
+        "sha256": "8d6afacd92eb4e18bfc129319091ae5d2708cd7ce1e41692a4a49aacc323a5b8",
+        "bytes": 419
+      }
+    },
+    "checks": {
+      "installerWizard": true,
+      "installedUpgrade": true,
+      "installedSmoke": 16,
+      "portableWrapper": 3,
+      "uninstallPreservesData": true
+    },
+    "runtimeIdentityMatchesLocalSource": true,
+    "installer": {
+      "path": "output/ci/38209073759/dist-desktop/MotionBench-2.19.1-desktop.1-Setup-x64.exe",
+      "sha256": "877d6b9a6b6fb28357c50bd450f399d8738a8c5f0b1f1ccb22bb713a2d07bb38",
+      "bytes": 113615194
+    },
+    "portable": {
+      "path": "output/ci/38209073759/dist-desktop/MotionBench-2.19.1-desktop.1-Portable-x64.exe",
+      "sha256": "47b19f4f82dd1dd0b977105d1f1ba2c656467b3bc1d5442239f20149ee8cdb93",
+      "bytes": 113378789
+    }
+  },
+  "dependencies": [
+    {
+      "path": ".github/workflows/desktop-windows.yml",
+      "sha256": "32452be79dfb28c05effe1d1555436e0e3be9c9d02eb9966369a0f8d276ea867",
+      "bytes": 15379
+    },
+    {
+      "path": "MotionBench.html",
+      "sha256": "6fcf29d3331c3e1a911615dd84ca6f1e2d3df0f9fa1afe54b01a77645c2567f8",
+      "bytes": 4642927
+    },
+    {
+      "path": "body-map-front.png",
+      "sha256": "79f7eb61a6d838e450de6afd2dcb07f32a6c1cf75d0b1fee896a7eb6954e6e20",
+      "bytes": 1146947
+    },
+    {
+      "path": "desktop/ai-bridge.cjs",
+      "sha256": "21dac8bbf5fa3895f658326789b1ac3bd065e48bd991afc6f2665bd14f3bd47b",
+      "bytes": 3276
+    },
+    {
+      "path": "desktop/ai-service.cjs",
+      "sha256": "74fbec96779992ad877e785a7e69e34631459b0d48a9d6fdb49f0b9674c2de27",
+      "bytes": 18038
+    },
+    {
+      "path": "desktop/main.cjs",
+      "sha256": "3cc95c4648b19781554b16ebc0325b82e6d89b2edce1886d80df738ce97e610a",
+      "bytes": 14289
+    },
+    {
+      "path": "desktop/preferences.cjs",
+      "sha256": "686dc0a8f355d4907137b3527e491c5bca85fa6eb5c1cd7e653c089368b669a6",
+      "bytes": 2737
+    },
+    {
+      "path": "desktop/preload.cjs",
+      "sha256": "7b20d3a150b9eb0b4d962c1ff54a4943c2e599b0c64d2d19df04b1977e14d7f9",
+      "bytes": 1245
+    },
+    {
+      "path": "desktop/security.cjs",
+      "sha256": "2bf795382b30efdc22c271a62d22a73484441404991f25357a412f6071606762",
+      "bytes": 2049
+    },
+    {
+      "path": "desktop/update-bridge.cjs",
+      "sha256": "1522768ab385c34e279ca1b21e88195bc20df3769d93d2d2b121696d6edc9dea",
+      "bytes": 913
+    },
+    {
+      "path": "desktop/update-service.cjs",
+      "sha256": "7719a9201731fc16f07f7a49909ed4df7d016de41629746faaf3254516be1e72",
+      "bytes": 11229
+    },
+    {
+      "path": "desktop/windows-updater.cjs",
+      "sha256": "582ec5d4f8a11c837776821dbe72f5f33966f2b50cdd33ac6776ed3978c81a14",
+      "bytes": 2203
+    },
+    {
+      "path": "dist-desktop/win-unpacked/resources/app-update.yml",
+      "sha256": "7344be9a61c5784b3f44b2f1dee2edbbdb4567dfd58a843c56df563994d585cd",
+      "bytes": 132
+    },
+    {
+      "path": "dist-desktop/win-unpacked/resources/app.asar",
+      "sha256": "c8dee3e645bbfc40e3229fc1510394e5c2e3cca12b7458a58806b491941caed5",
+      "bytes": 6920301
+    },
+    {
+      "path": "electron-builder.yml",
+      "sha256": "1a81562dfa46da9edc482d6524336304311f7651a8085f664302089b845aa6e5",
+      "bytes": 1615
+    },
+    {
+      "path": "output/ci/38209073759/dist-desktop/MotionBench-2.19.1-desktop.1-Portable-x64.exe",
+      "sha256": "47b19f4f82dd1dd0b977105d1f1ba2c656467b3bc1d5442239f20149ee8cdb93",
+      "bytes": 113378789
+    },
+    {
+      "path": "output/ci/38209073759/dist-desktop/MotionBench-2.19.1-desktop.1-Setup-x64.exe",
+      "sha256": "877d6b9a6b6fb28357c50bd450f399d8738a8c5f0b1f1ccb22bb713a2d07bb38",
+      "bytes": 113615194
+    },
+    {
+      "path": "output/ci/38209073759/dist-desktop/MotionBench-2.19.1-desktop.1-Setup-x64.exe.blockmap",
+      "sha256": "31b349c6cad13ddd957d19ed49d3c13daaee5f47213b47a7ca295a4fe8a57bd4",
+      "bytes": 119635
+    },
+    {
+      "path": "output/ci/38209073759/dist-desktop/SHA256SUMS.txt",
+      "sha256": "1f17869b14da3fd86b6286fa37044d73bf10141d0b092ef8c37d94484a93073a",
+      "bytes": 421
+    },
+    {
+      "path": "output/ci/38209073759/dist-desktop/build-provenance.json",
+      "sha256": "b6aebd87e44d0d8337ef45e87088e1336d036f3df610b35d3eb88416b01fabdc",
+      "bytes": 1592
+    },
+    {
+      "path": "output/ci/38209073759/dist-desktop/desktop.yml",
+      "sha256": "43e0bed2f8a87ea03c11f275d4467ddaf0593185a35df729cce8feda5dd6e48e",
+      "bytes": 392
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-package/uninstall-data-check.json",
+      "sha256": "442e251e33bc9239f7ba73701719fd141f160f2a5654c4d64085bf7af50832cb",
+      "bytes": 388
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-smoke/installed/native-downloads/MotionBench_Windows_桌面验收运动员（合成）_2026-10-11_119850.pdf",
+      "sha256": "64d09101761692d77d805d4c0b6a73001ca1e0f8958cd9c021c7bc6bd133caa1",
+      "bytes": 4900931
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-smoke/installed/native-downloads/MotionBench_完整备份_2026-10-12.motionbench.jsonl",
+      "sha256": "7d2bed1216b635adf54cd6d1efa878d1eb0e056e5991eb66887fc25974cb1594",
+      "bytes": 382886
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-smoke/installed/native-downloads/MotionBench_测试录入_2026-10-11_1人.xlsx",
+      "sha256": "22a1441560ce6c91ab5465b1ade2f09a961ebd4deef12125db6b503843197f08",
+      "bytes": 48088
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-smoke/installed/native-invalid-draft-after-restart.png",
+      "sha256": "b933461f546795024d77d3faa3adfba5a99271738c8156977500d323eb2324ce",
+      "bytes": 98786
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-smoke/installed/native-report-after-restart.png",
+      "sha256": "fefe401983f4aa5e73417ad4ae4c3e4ab68b050c6fa501bc6d302170f3d2015e",
+      "bytes": 522614
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-smoke/installed/results.json",
+      "sha256": "99ffd46e440c920497775bd574a2e4d46a5ae34b700bde24f22752276793c882",
+      "bytes": 50499
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-smoke/portable/portable-wrapper-reopened.png",
+      "sha256": "574aaa7e1ae93ce38c9b2c07f03e9f0b054720b977e36a1b684ea1e366dc5b18",
+      "bytes": 21725
+    },
+    {
+      "path": "output/ci/38209073759/output/desktop-smoke/portable/results.json",
+      "sha256": "d11e0aa55fa4b89bffcc37067aed6dc68508a09ac6d763dec43b448d1708088d",
+      "bytes": 18245
+    },
+    {
+      "path": "output/ci/38209073759/output/tests/v2191-desktop/ci-results.json",
+      "sha256": "8733f946da65ed7d2cb4115207cfed70556092890d78bc8c916f611bda1ff588",
+      "bytes": 11284
+    },
+    {
+      "path": "output/ci/38209073759/output/tests/v2191-desktop/installed-upgrade/seed-results.json",
+      "sha256": "8121df1863c2450e53c69a155c858e55b8c15051014588cda5de617a966c5a3b",
+      "bytes": 489
+    },
+    {
+      "path": "output/ci/38209073759/output/tests/v2191-desktop/installed-upgrade/synthetic-seed.json",
+      "sha256": "8a53d36547dd7acb86496c02338bb1040f019216c898288949edae4e3fdc8dcf",
+      "bytes": 262072
+    },
+    {
+      "path": "output/ci/38209073759/output/tests/v2191-desktop/installed-upgrade/upgrade-results.json",
+      "sha256": "9a7997b8e860d2b5d9f1d00b2f40289a2c942416bdc2a5846ca321139923ec62",
+      "bytes": 1114
+    },
+    {
+      "path": "output/ci/38209073759/output/tests/v2191-desktop/installed-upgrade/verify-results.json",
+      "sha256": "7947942f1e5903e670c09a29986038ecb20943d02c137ed588064ed4d22e9c69",
+      "bytes": 576
+    },
+    {
+      "path": "output/ci/38209073759/output/tests/v2191-desktop/installer-wizard/installation-directory-page.bmp",
+      "sha256": "5f5da025869409a5e6277a83fbf035bc4fa9996675f6971ae16333a1d5998c79",
+      "bytes": 589734
+    },
+    {
+      "path": "output/ci/38209073759/output/tests/v2191-desktop/installer-wizard/wizard-results.json",
+      "sha256": "03bc62285701ea025ff99970aa79895ea8d64de01bfc82cd6f9dd6a5e7c155e4",
+      "bytes": 2951
+    },
+    {
+      "path": "output/desktop-package/package-check.json",
+      "sha256": "2d416bb8ac36d592fa9ca26e9daa6298a81ba8a49c809bfdca8c318d39f43269",
+      "bytes": 15535
+    },
+    {
+      "path": "output/playwright/v2191-compat/acquisition/chrome-conditions-only.xlsx",
+      "sha256": "213566af4bd990e22ce7e4bbfe8e5d967939cfcdcd7f0fbc3960a2ac7da0cad0",
+      "bytes": 38845
+    },
+    {
+      "path": "output/playwright/v2191-compat/acquisition/chrome-hop-summary.png",
+      "sha256": "bffa92a2c3e6a7fa00a6087877d50cd049e243e36b68d8ed332e385259b613ca",
+      "bytes": 97099
+    },
+    {
+      "path": "output/playwright/v2191-compat/acquisition/chrome-imtp-dynamic-times.png",
+      "sha256": "b7985da505a16a344ec37078bf3775161c26cff4a32e4d5b60cc99414c2806dd",
+      "bytes": 78284
+    },
+    {
+      "path": "output/playwright/v2191-compat/acquisition/chrome-results.json",
+      "sha256": "de11b7545ae8f177c6da5ae3a120a16a02757476c7e7c11e775009880c7e04ea",
+      "bytes": 1543
+    },
+    {
+      "path": "output/playwright/v2191-compat/acquisition/msedge-conditions-only.xlsx",
+      "sha256": "ed8aab6cf048e251bd0c00480f46d78ad238cf3e37f609d5159610d6f02be75d",
+      "bytes": 38850
+    },
+    {
+      "path": "output/playwright/v2191-compat/acquisition/msedge-hop-summary.png",
+      "sha256": "bffa92a2c3e6a7fa00a6087877d50cd049e243e36b68d8ed332e385259b613ca",
+      "bytes": 97099
+    },
+    {
+      "path": "output/playwright/v2191-compat/acquisition/msedge-imtp-dynamic-times.png",
+      "sha256": "05a8839520aa65bcb919a387b1301f0d225c9ab8b90813f97eebc6c5a8864975",
+      "bytes": 78299
+    },
+    {
+      "path": "output/playwright/v2191-compat/acquisition/msedge-results.json",
+      "sha256": "383f9808a36f55b721656d8a5d1779e89fc75d4a5c4349ea9396010463a62318",
+      "bytes": 1543
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-dsi-settings-390.png",
+      "sha256": "87d7a730b3dd3126921ede847b8bb0fc283ca21a402c998f4c04e5f96a690722",
+      "bytes": 105486
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-legacy-selected-directions.json",
+      "sha256": "38e2156ae6ac49ffec24bec4b9530c9256ba31675723d84df5dedfac4fdf3384",
+      "bytes": 117629
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-preview-1280.png",
+      "sha256": "ce145fba461948e40a808203f0eba9f8681d4ef6c4bb4c2d0987008f50ce3eff",
+      "bytes": 135406
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-preview-1440.png",
+      "sha256": "011fe8cce269eb4eb0dfb01ec684ae751e886e532468e2d02c562cde6627d81e",
+      "bytes": 141096
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-preview-390.png",
+      "sha256": "eeea836830e7768b1f22cec7950152bef1222441b07fbdf38164a77ddc5ac90e",
+      "bytes": 46452
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-preview-900.png",
+      "sha256": "4abf24a55c6b8e8bf146ff5f29fe4d5d0aeebfe349ff8531989efe1a0cd10e8b",
+      "bytes": 87756
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-preview-export.html",
+      "sha256": "033fe0c1c55f1c0b74dfaa8c143ad721e1945ba82bd6e9fef027d6b7d7ab66c0",
+      "bytes": 4933337
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-results.json",
+      "sha256": "84a1506bf3da7b2afaeba696d4d85fdc9ac7e1bdbea73ffd5c7ef14134a45ce7",
+      "bytes": 6759
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-schema3-ui-1791782395380.xlsx",
+      "sha256": "3e950c8ddc1545542adab8555bbff8a3b111cf43ae2238f8924b5929b1315dfd",
+      "bytes": 57463
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-schema3-ui-1791782405115.xlsx",
+      "sha256": "37b722887e8250fa66ce9c7b539af474c7669b60629355db9409e122597e09ca",
+      "bytes": 38174
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-schema3-ui-1791782408390.xlsx",
+      "sha256": "eea3d7f6e5e093bb82440ba10c9086dd1bb4eefa9f509c03287ab96703a07e63",
+      "bytes": 38174
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-schema3-ui-1791782411532.xlsx",
+      "sha256": "6454a8ac124d61f305717f146aef74f3810153c832bbcc7541e7858439374fae",
+      "bytes": 38174
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-schema3-ui-1791782420512.xlsx",
+      "sha256": "6166f7099a79d3523f13a52bbf83f2a7b2c919b7ccc7b5d47259d68b9296fe87",
+      "bytes": 34515
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-schema3-ui-1791782429877.xlsx",
+      "sha256": "1dfa18d8dac9db9c51080b1f044a56fab534948fdb0b3f7515bc798c847160bc",
+      "bytes": 34419
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-v2161-schema2-1791782395380.xlsx",
+      "sha256": "eaf8779cf065190932cae6f03662a48ee1b7af4c5f5fd954cefa31e3f55d258d",
+      "bytes": 57277
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-v2161-schema2-1791782405115.xlsx",
+      "sha256": "cca0612d1274d6e9a7881527148e674ece5580ce5b5c8860f860d79d82914228",
+      "bytes": 37544
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-v2161-schema2-1791782408390.xlsx",
+      "sha256": "ce6888331859f470cb12ebfc5a5da0527aa197d9a5e6398814a6ee262076f14e",
+      "bytes": 37535
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-v2161-schema2-1791782411532.xlsx",
+      "sha256": "dee4adecdeb3899cf2f4aea33567db7bde13e8cfd4cbf722f7868afb4ba53843",
+      "bytes": 37537
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-v2161-schema2-1791782420512.xlsx",
+      "sha256": "58904cd9a7c85dc5619025352b2a626946d42e5cf531f2952d89f8adb946a02f",
+      "bytes": 34497
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/chrome-v2161-schema2-1791782429877.xlsx",
+      "sha256": "4641bed8c40acc908ac58ad7eba4ddabad41a5638a0219530573f9d20c3e01cc",
+      "bytes": 34392
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-dsi-settings-390.png",
+      "sha256": "4c7592b42b817f6e335fb1948aeea9dc59a663c6beb0567961706aca460489d3",
+      "bytes": 105008
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-legacy-selected-directions.json",
+      "sha256": "50eb663095b8f18b4cc026c4b8bdc6cff91d4325ca8873752770c30e1f6386b7",
+      "bytes": 117629
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-preview-1280.png",
+      "sha256": "ca01dab5ba7c9f7171a0503e79ad4b7493fd315c78e588e0406534a1ed0cc094",
+      "bytes": 134880
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-preview-1440.png",
+      "sha256": "0769f91614791c5f690571c79ce63521508bcbaf3508735a6a9c02ad114ba12b",
+      "bytes": 140551
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-preview-390.png",
+      "sha256": "203f47d7ad6420fa251ac6bf51cae3ed8b92b9aa32d0edf999288bc7d7d2ae70",
+      "bytes": 46283
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-preview-900.png",
+      "sha256": "aa0724b70f76cfd7868551fb26541c7c1b60e0763f46aadbbc3a15e2971976d3",
+      "bytes": 87184
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-preview-export.html",
+      "sha256": "02d08041d238606263b82135df004e4bf291175758013caab278adedfbfddcad",
+      "bytes": 4933345
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-results.json",
+      "sha256": "45de633781b95debca92f9bb3857cc5549e507387a7070fefdd3cb6b1606b50f",
+      "bytes": 6759
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-schema3-ui-1791782395196.xlsx",
+      "sha256": "7130f5d1f202dc244214249a14e2e889c7d89f2e5e596e7b68433dc0cbe0948a",
+      "bytes": 57472
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-schema3-ui-1791782404816.xlsx",
+      "sha256": "e7f4a55729bdaa6b6755eca25459f1d4e6f8729952f3ce6a67cbc913d34b2f86",
+      "bytes": 38183
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-schema3-ui-1791782408050.xlsx",
+      "sha256": "2c2896704d304f62feddf6c39a9eec54a1f7e8cb923ec9fffea88a916bb6155f",
+      "bytes": 38177
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-schema3-ui-1791782411326.xlsx",
+      "sha256": "bcac9d79762bbfc5865d478e5ace32ebb79fa390e7580ea9a5d8a1fb4be42066",
+      "bytes": 38178
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-schema3-ui-1791782420366.xlsx",
+      "sha256": "b1ca6235fc75f2c6f18f56d0b6574c9c5713daa318342dfdbab548d7add50307",
+      "bytes": 34582
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-schema3-ui-1791782429493.xlsx",
+      "sha256": "6be7c5e9e4bfd7dcd2041282a202f00f46acff832046977b0450404666162ee8",
+      "bytes": 34420
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-v2161-schema2-1791782395196.xlsx",
+      "sha256": "ff5f24968f2c2483bce65853bedced97ef087f499a275efd338999a1bd5fc013",
+      "bytes": 57281
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-v2161-schema2-1791782404816.xlsx",
+      "sha256": "2243713f69605739a66bf7b82603c28110d02528ec24bb560f26632d2b3e6de3",
+      "bytes": 37542
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-v2161-schema2-1791782408050.xlsx",
+      "sha256": "73618049cb9f2483de592fa1b135e4472f343ed1c64d95ecdedf084938f5acab",
+      "bytes": 37535
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-v2161-schema2-1791782411326.xlsx",
+      "sha256": "afeb713222a7ea6eee17d27c35bf77b5b29b689119651a44b5e7ad9ec09dda4c",
+      "bytes": 37544
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-v2161-schema2-1791782420366.xlsx",
+      "sha256": "b8e383a3ba7c03bb6d61c6dc8e729f34db55db9c6f806fcc5afb17631f5d6a20",
+      "bytes": 34567
+    },
+    {
+      "path": "output/playwright/v2191-compat/excel/msedge-v2161-schema2-1791782429493.xlsx",
+      "sha256": "466092488a9506371fd62ff5ed0af209ccf9f8fda26b7018a20a587b0876e3dc",
+      "bytes": 34396
+    },
+    {
+      "path": "output/playwright/v2191-compat/storage/chrome-migration-report.json",
+      "sha256": "b102df62c6379843274acb728b700067ad065f8e0acb873942dd83551d725b52",
+      "bytes": 33620
+    },
+    {
+      "path": "output/playwright/v2191-compat/storage/chrome-raw-upgrade-backup.jsonl",
+      "sha256": "86ca99d95930d3acd93dd12ac55c89646933530ff80e01ac67459e2d986abced",
+      "bytes": 457153
+    },
+    {
+      "path": "output/playwright/v2191-compat/storage/chrome-report.png",
+      "sha256": "58d0479ad97892de2c6b7bfe2ec63ef55ef6979a9558fe09ed65d6e2babd28ab",
+      "bytes": 62665
+    },
+    {
+      "path": "output/playwright/v2191-compat/storage/chrome.json",
+      "sha256": "28327a000d085be41b49d30bbfb21a41ce322abf3f872153c18fac72e5c82f36",
+      "bytes": 923
+    },
+    {
+      "path": "output/playwright/v2191-compat/storage/msedge-migration-report.json",
+      "sha256": "5895244c0a788c4620e8969ae8da078148d2b60f436a2afbe7128255f94fce86",
+      "bytes": 33620
+    },
+    {
+      "path": "output/playwright/v2191-compat/storage/msedge-raw-upgrade-backup.jsonl",
+      "sha256": "c5b17f7138048eb45483d3810df48e0dde9eddd1f0817ea4c4d4ad246d303de0",
+      "bytes": 457153
+    },
+    {
+      "path": "output/playwright/v2191-compat/storage/msedge-report.png",
+      "sha256": "f9cc92f954bc484c29b2a0134980f7c6406bc6a9753b3cb2fc69238a0a5fbae0",
+      "bytes": 62659
+    },
+    {
+      "path": "output/playwright/v2191-compat/storage/msedge.json",
+      "sha256": "35c49da5361a1d59f8663b9a4ab07f103fb1d0d39371ee5fb9a5b204a9385dc0",
+      "bytes": 923
+    },
+    {
+      "path": "output/playwright/v2191-compat/summary.json",
+      "sha256": "e7597454cdd433b8ce5fbb43bd902f3fa45810e985f35557bb65ec5d4d527a53",
+      "bytes": 3198
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-ability-actions.png",
+      "sha256": "e1e393a0726c66514e10d0063ac40709c3167398eba75d4a80a7ca9a50a4bb1d",
+      "bytes": 86828
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards-1-1440.png",
+      "sha256": "6d27f781fe22095ab1f1193d8150866a64124d497182586ad5061d53595c7a08",
+      "bytes": 100920
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards-2-1440.png",
+      "sha256": "fee525f48ca5f51295633c757089038645f39e9888bbc0f107c6b3b680b3934e",
+      "bytes": 83662
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards-3-1440.png",
+      "sha256": "c2c0ec6d77be116d563af0e04b09858d1a581273815400469e1e8248603f251e",
+      "bytes": 109695
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards-3-390.png",
+      "sha256": "fdcd69444cc5b5932cde8341c2839c8765f82550ceb87cb0afe3f8657914e1da",
+      "bytes": 38494
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards-3-900.png",
+      "sha256": "98039e34fe0a575bb3b5db9ec75dcc9319eb1298e9a9b16cb9bf674a5acf7e3d",
+      "bytes": 94571
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards-4-1440.png",
+      "sha256": "ac34ce7a66f96601d0f6ae38fd8b1e743df1adb90209cc8deaad21deed320270",
+      "bytes": 79856
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards-expanded.png",
+      "sha256": "b14eabf4f741d34943a6ccb48511df37a3a0cb3bbc54cc42591b3390fa882605",
+      "bytes": 72887
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards-open-parameters-full.png",
+      "sha256": "2ef08168bc103487eb41aa75dab67c82c644f67e21d7ef04ce6de82e69fe7012",
+      "bytes": 54806
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-cards3-900-complete.png",
+      "sha256": "2a634e0d772c7d237a210a96716cb5c6ce0001ddb5bc7ce007261740c0281787",
+      "bytes": 16941
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-closed-parameters.pdf",
+      "sha256": "edf6f7af1b0f6c79fe7be53270d736d0480f2ff14aaadd9877520f2baec4e035",
+      "bytes": 2909447
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-isometric-1280.png",
+      "sha256": "7087567e9ea981c056e8b96ab1371cb9902a986d4d2f6f45f8211d14945f1fa8",
+      "bytes": 178423
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-isometric-390-parts.png",
+      "sha256": "aa1e07d5d33d280d0cd72b07e4e683572fee0099c8bf7bdcdf40b8335114aaee",
+      "bytes": 255603
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-isometric-390.png",
+      "sha256": "1aa9c2c55a990aa0d347f1d1a9b69d1257f002f261e72576582e75aa44108fcf",
+      "bytes": 243649
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-isometric-900.png",
+      "sha256": "8783b667bfc71699b92c49007ea1f7f0e616e9a3346bba311cc712502c51c992",
+      "bytes": 172014
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-isometric-three-trials.pdf",
+      "sha256": "f23e8db9fb7f12b014d435e04b29d410f15a95d8daa4620d40a13956d4fd1b37",
+      "bytes": 2713501
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-long-names-1920.png",
+      "sha256": "1032986220a80335f4b9ff5c5986ba20781ecc811fa0aafee10d6c76fc63f618",
+      "bytes": 79976
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome-open-parameters.pdf",
+      "sha256": "1ff58b2aac42335775171bc89c3e99ca62d3ae2a60dd1e1c84545e3e907762f9",
+      "bytes": 6207836
+    },
+    {
+      "path": "output/playwright/v2191-layout/chrome.json",
+      "sha256": "fef4f7dcc6e4fcc4dc408a2ce7296bbffbd280daa399c172337335cedc1e4d0f",
+      "bytes": 145423
+    },
+    {
+      "path": "output/playwright/v2191-layout/isometric-pdf.json",
+      "sha256": "9a0dea158ca0cf6d513cc0cf71ef0caba0edabb25ad0a1358498d913184be4d0",
+      "bytes": 31894
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-ability-actions.png",
+      "sha256": "e1e393a0726c66514e10d0063ac40709c3167398eba75d4a80a7ca9a50a4bb1d",
+      "bytes": 86828
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-cards-1-1440.png",
+      "sha256": "6d27f781fe22095ab1f1193d8150866a64124d497182586ad5061d53595c7a08",
+      "bytes": 100920
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-cards-2-1440.png",
+      "sha256": "fee525f48ca5f51295633c757089038645f39e9888bbc0f107c6b3b680b3934e",
+      "bytes": 83662
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-cards-3-1440.png",
+      "sha256": "c2c0ec6d77be116d563af0e04b09858d1a581273815400469e1e8248603f251e",
+      "bytes": 109695
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-cards-3-390.png",
+      "sha256": "fdcd69444cc5b5932cde8341c2839c8765f82550ceb87cb0afe3f8657914e1da",
+      "bytes": 38494
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-cards-3-900.png",
+      "sha256": "98039e34fe0a575bb3b5db9ec75dcc9319eb1298e9a9b16cb9bf674a5acf7e3d",
+      "bytes": 94571
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-cards-4-1440.png",
+      "sha256": "ac34ce7a66f96601d0f6ae38fd8b1e743df1adb90209cc8deaad21deed320270",
+      "bytes": 79856
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-cards-expanded.png",
+      "sha256": "b14eabf4f741d34943a6ccb48511df37a3a0cb3bbc54cc42591b3390fa882605",
+      "bytes": 72887
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-closed-parameters.pdf",
+      "sha256": "466774132d1db07018ebc31ddc583eba0ecae7d83c629909b270f1130c77d4c4",
+      "bytes": 2909447
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-isometric-1280.png",
+      "sha256": "7087567e9ea981c056e8b96ab1371cb9902a986d4d2f6f45f8211d14945f1fa8",
+      "bytes": 178423
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-isometric-390.png",
+      "sha256": "1aa9c2c55a990aa0d347f1d1a9b69d1257f002f261e72576582e75aa44108fcf",
+      "bytes": 243649
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-isometric-900.png",
+      "sha256": "8783b667bfc71699b92c49007ea1f7f0e616e9a3346bba311cc712502c51c992",
+      "bytes": 172014
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-long-names-1920.png",
+      "sha256": "1032986220a80335f4b9ff5c5986ba20781ecc811fa0aafee10d6c76fc63f618",
+      "bytes": 79976
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge-open-parameters.pdf",
+      "sha256": "802b0b1db9ebebd0c3c14b7d39d9ef59d0c1da1247d266be510d89fc022a7891",
+      "bytes": 6207836
+    },
+    {
+      "path": "output/playwright/v2191-layout/msedge.json",
+      "sha256": "ca4a40855e6d3881d45e27f56c77810c9f4dc2c254de2f5fb58b08374a299fa8",
+      "bytes": 145423
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/contact-1.png",
+      "sha256": "6e3ed0d8e6ba30463339d3890643b6770a7f1c2a94ff0101ba7e0879b7b9c67a",
+      "bytes": 354451
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/contact-2.png",
+      "sha256": "f27499b2554b6bf9a4137f8ee8a64c59d8b02609d4f6ca942190bdcc2b9eb799",
+      "bytes": 336171
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/contact-3.png",
+      "sha256": "75780a4050511296d48f73687a9fab78f9966b3726cd2f681ca466f0a467068d",
+      "bytes": 530812
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/contact-4.png",
+      "sha256": "373b06bce77147bbb570ba4e259afe00baea8dcbc77b42412156b9a70179742d",
+      "bytes": 132453
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/page-1.png",
+      "sha256": "7ceff8948ffb0aa07ed5428af97d5442dc86fc42039c20ead250a39d37887ca2",
+      "bytes": 209607
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/page-2.png",
+      "sha256": "a9c999b21a5da3daa262cecaab781e97c66acfb4e6fd8a00cf5d1b09b4f149ba",
+      "bytes": 123210
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/page-3.png",
+      "sha256": "91f300959aa91cf347bb447e422978c669d0b8ba4256d85252f609620688e493",
+      "bytes": 80450
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/page-4.png",
+      "sha256": "43ed742b730f914574f152de933ae96deaa7cabc8843d5a974089406c1cbf3da",
+      "bytes": 239897
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/page-5.png",
+      "sha256": "4030e97cdaaeda12a68af669d5ea4b1c950885d9b6c897b5a4f8f96c7d328f85",
+      "bytes": 390868
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/page-6.png",
+      "sha256": "5adb0f93459f47adc60e3f0ff0fe95b40bd8a414d1c223fc4a7d6871e8e428d0",
+      "bytes": 119203
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-closed/page-7.png",
+      "sha256": "b86dba45e1a4914df11d4f64e537a6b3449304bf7ce97a5fffdadccb8c4c9396",
+      "bytes": 120029
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/contact-1.png",
+      "sha256": "0d9962c80bdd9394d301121f87a7fe73eb7e0088505fbcd57ba5fa6da4040b65",
+      "bytes": 453833
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/contact-2.png",
+      "sha256": "80985c0f07cf6ed289a3d90bdc6bf8292b59732878c4648f8ec0141be6c8ce6e",
+      "bytes": 365114
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/contact-3.png",
+      "sha256": "22190ed6b4a7f65bca0862013f38c26500000818dc4187022d0c5acf3e2c79e6",
+      "bytes": 139419
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/contact-4.png",
+      "sha256": "779bbf754de7469cb3d1aff2c7fd561307c97e3623bb73cab7356e1f59ed00f5",
+      "bytes": 144986
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/page-1.png",
+      "sha256": "05e61d8693a0dc616b52cb586c9b74935b29946852ca306d0ec7ace517d9482c",
+      "bytes": 262903
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/page-2.png",
+      "sha256": "f800d0d2a9e3a159df0798cabe65ac2e82f9b0a5fcbd3436bc8838cdf58a6dc5",
+      "bytes": 166703
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/page-3.png",
+      "sha256": "152bfc9a4f10e03078f6f546eb16467c87366c19159d66fe8944bc979cef0964",
+      "bytes": 238650
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/page-4.png",
+      "sha256": "331422bf19c7f32b8aad205f4d66f67b229a34d520472289e6eb7c1c032d53e8",
+      "bytes": 110068
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/page-5.png",
+      "sha256": "8c98f5f917924cabe028efe791744ec94dfdc905dcea312e60f6cbe742c5c3d2",
+      "bytes": 80593
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/page-6.png",
+      "sha256": "d35d849483741668df7c66de5612c7814332135ca76a2e9ec1f27e91334f1c4c",
+      "bytes": 81130
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/page-7.png",
+      "sha256": "955ae20c24808b44cdbb344305adabf6540ef09561ca0053852e6b7568967e6d",
+      "bytes": 81890
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-iso-repeat/page-8.png",
+      "sha256": "3bb3cfe754542a0e8d34def95f1b552d6651a37007c044b08407b35b15a4229f",
+      "bytes": 82609
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-1.png",
+      "sha256": "aae7901e542f8d13321aff3cc4d53727ab4efc242b321dbb50af5cfb6156026f",
+      "bytes": 442047
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-2.png",
+      "sha256": "b663f92b182aa3e12acefc974c56dc00570f80112cac6f9d9bf0a80561f9af64",
+      "bytes": 307445
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-3.png",
+      "sha256": "46b4008eaf67c5489e0030cab2249f78a6d34a1f4cd53afd47d9cb96cefa34f7",
+      "bytes": 199663
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-4.png",
+      "sha256": "c29a270eab47df140d5ccd79234ea0199caaef1208d9d3010d2ea5042295a31a",
+      "bytes": 319913
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-5.png",
+      "sha256": "900f195059574dd62dee7657a8e9e4efdaa51c52b69308bb0b232a97742c62d8",
+      "bytes": 395002
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-6.png",
+      "sha256": "e3669e08f2a3f6ee2107d2b1d470e159905dc8f9880f881951ce3cd5ca3f2239",
+      "bytes": 232200
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-7.png",
+      "sha256": "b30b9d699f4a0f19927ab4d1c3a8a029822984cb15e9701c879af65b683c3058",
+      "bytes": 175244
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-8.png",
+      "sha256": "c863a928f77d0a583f88dfecad8f6bd111b15782a5e61952ca52cba355bb8c84",
+      "bytes": 531005
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/contact-9.png",
+      "sha256": "9b26fa921b81d2dca68bbc534cba70beb3437b57eb6d0e018bd6e3102f06644d",
+      "bytes": 156576
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-01.png",
+      "sha256": "e1a242ba02eb98fb1cfed763aeb2e38f8cebfd61f0f12c1b206fcc32690b3618",
+      "bytes": 269260
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-02.png",
+      "sha256": "8d1fcafa36b28f5443f7c7149d87fd2df484176550b5b10020a130735b981ed0",
+      "bytes": 151286
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-03.png",
+      "sha256": "d2d1bb5299a2a77a3be8fc1ea3a7e7fc8d5a9ca8fac0def663ddbc354e798308",
+      "bytes": 131445
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-04.png",
+      "sha256": "16789bca75cf840ed636875bfbecaa16ec0756c50ab51b973f26f1c0fea9854c",
+      "bytes": 159705
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-05.png",
+      "sha256": "e41b0909b82a3ecfd18df767ec408ca719d936bd0548a0d218061f350687abd5",
+      "bytes": 106374
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-06.png",
+      "sha256": "857dc35dcb720eb67380f69067ddffffb8387ede05e856d79e12ef059c332699",
+      "bytes": 84523
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-07.png",
+      "sha256": "1b785b7473141da6406c3b5424d1942a6d98e737c8a77cf1018c8691ab27be0d",
+      "bytes": 128051
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-08.png",
+      "sha256": "13a283e533b6d85fde87121022ef6f3bca8545834bbc7972c4cdd659aac50852",
+      "bytes": 172941
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-09.png",
+      "sha256": "5c0c7e7bf256d87525a7a6df5ab4e06783f51a8f3c15798a90cb4e126e5b90e8",
+      "bytes": 214491
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-10.png",
+      "sha256": "e5d4a8221d0eb141dfb404c93c0247e91ea8ab833373e714fcccc2008492f986",
+      "bytes": 163069
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-11.png",
+      "sha256": "66eb0e158bc6cd8f7d450830f105f03b771518f3243b3efeb942664dc51f6f33",
+      "bytes": 119729
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-12.png",
+      "sha256": "803fd5fff1e3533357e938d4560fbd7082e90215d3a670b4441d9ddc29129080",
+      "bytes": 100332
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-13.png",
+      "sha256": "2506f60c24ff7cf2ee1c6765dd6a514401071b33bf27d9f899e75161fbffe93a",
+      "bytes": 60057
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-14.png",
+      "sha256": "946825df63ab94753c56fb1c9e8b457578f622f9dc16866f2f26a0838b9d593f",
+      "bytes": 114405
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-15.png",
+      "sha256": "3aa0a0972d707338dd24804843dcaf3474cff24e931c3f12ee44c11340dc1179",
+      "bytes": 391046
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-16.png",
+      "sha256": "9cb34618cc74436c5c0a53b5147be1a8a5b4594d771ea6bcd7c47640911c123d",
+      "bytes": 119375
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/chrome-open/page-17.png",
+      "sha256": "34b43f6b45bcd9bd3069dfeadc698c293e3d59b7a4e661032fbaa93c63f91489",
+      "bytes": 143219
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/contact-1.png",
+      "sha256": "6e3ed0d8e6ba30463339d3890643b6770a7f1c2a94ff0101ba7e0879b7b9c67a",
+      "bytes": 354451
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/contact-2.png",
+      "sha256": "f27499b2554b6bf9a4137f8ee8a64c59d8b02609d4f6ca942190bdcc2b9eb799",
+      "bytes": 336171
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/contact-3.png",
+      "sha256": "75780a4050511296d48f73687a9fab78f9966b3726cd2f681ca466f0a467068d",
+      "bytes": 530812
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/contact-4.png",
+      "sha256": "373b06bce77147bbb570ba4e259afe00baea8dcbc77b42412156b9a70179742d",
+      "bytes": 132453
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/page-1.png",
+      "sha256": "7ceff8948ffb0aa07ed5428af97d5442dc86fc42039c20ead250a39d37887ca2",
+      "bytes": 209607
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/page-2.png",
+      "sha256": "a9c999b21a5da3daa262cecaab781e97c66acfb4e6fd8a00cf5d1b09b4f149ba",
+      "bytes": 123210
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/page-3.png",
+      "sha256": "91f300959aa91cf347bb447e422978c669d0b8ba4256d85252f609620688e493",
+      "bytes": 80450
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/page-4.png",
+      "sha256": "43ed742b730f914574f152de933ae96deaa7cabc8843d5a974089406c1cbf3da",
+      "bytes": 239897
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/page-5.png",
+      "sha256": "4030e97cdaaeda12a68af669d5ea4b1c950885d9b6c897b5a4f8f96c7d328f85",
+      "bytes": 390868
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/page-6.png",
+      "sha256": "5adb0f93459f47adc60e3f0ff0fe95b40bd8a414d1c223fc4a7d6871e8e428d0",
+      "bytes": 119203
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-closed/page-7.png",
+      "sha256": "b86dba45e1a4914df11d4f64e537a6b3449304bf7ce97a5fffdadccb8c4c9396",
+      "bytes": 120029
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-1.png",
+      "sha256": "aae7901e542f8d13321aff3cc4d53727ab4efc242b321dbb50af5cfb6156026f",
+      "bytes": 442047
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-2.png",
+      "sha256": "b663f92b182aa3e12acefc974c56dc00570f80112cac6f9d9bf0a80561f9af64",
+      "bytes": 307445
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-3.png",
+      "sha256": "46b4008eaf67c5489e0030cab2249f78a6d34a1f4cd53afd47d9cb96cefa34f7",
+      "bytes": 199663
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-4.png",
+      "sha256": "c29a270eab47df140d5ccd79234ea0199caaef1208d9d3010d2ea5042295a31a",
+      "bytes": 319913
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-5.png",
+      "sha256": "900f195059574dd62dee7657a8e9e4efdaa51c52b69308bb0b232a97742c62d8",
+      "bytes": 395002
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-6.png",
+      "sha256": "e3669e08f2a3f6ee2107d2b1d470e159905dc8f9880f881951ce3cd5ca3f2239",
+      "bytes": 232200
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-7.png",
+      "sha256": "b30b9d699f4a0f19927ab4d1c3a8a029822984cb15e9701c879af65b683c3058",
+      "bytes": 175244
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-8.png",
+      "sha256": "c863a928f77d0a583f88dfecad8f6bd111b15782a5e61952ca52cba355bb8c84",
+      "bytes": 531005
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/contact-9.png",
+      "sha256": "9b26fa921b81d2dca68bbc534cba70beb3437b57eb6d0e018bd6e3102f06644d",
+      "bytes": 156576
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-01.png",
+      "sha256": "e1a242ba02eb98fb1cfed763aeb2e38f8cebfd61f0f12c1b206fcc32690b3618",
+      "bytes": 269260
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-02.png",
+      "sha256": "8d1fcafa36b28f5443f7c7149d87fd2df484176550b5b10020a130735b981ed0",
+      "bytes": 151286
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-03.png",
+      "sha256": "d2d1bb5299a2a77a3be8fc1ea3a7e7fc8d5a9ca8fac0def663ddbc354e798308",
+      "bytes": 131445
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-04.png",
+      "sha256": "16789bca75cf840ed636875bfbecaa16ec0756c50ab51b973f26f1c0fea9854c",
+      "bytes": 159705
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-05.png",
+      "sha256": "e41b0909b82a3ecfd18df767ec408ca719d936bd0548a0d218061f350687abd5",
+      "bytes": 106374
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-06.png",
+      "sha256": "857dc35dcb720eb67380f69067ddffffb8387ede05e856d79e12ef059c332699",
+      "bytes": 84523
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-07.png",
+      "sha256": "1b785b7473141da6406c3b5424d1942a6d98e737c8a77cf1018c8691ab27be0d",
+      "bytes": 128051
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-08.png",
+      "sha256": "13a283e533b6d85fde87121022ef6f3bca8545834bbc7972c4cdd659aac50852",
+      "bytes": 172941
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-09.png",
+      "sha256": "5c0c7e7bf256d87525a7a6df5ab4e06783f51a8f3c15798a90cb4e126e5b90e8",
+      "bytes": 214491
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-10.png",
+      "sha256": "e5d4a8221d0eb141dfb404c93c0247e91ea8ab833373e714fcccc2008492f986",
+      "bytes": 163069
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-11.png",
+      "sha256": "66eb0e158bc6cd8f7d450830f105f03b771518f3243b3efeb942664dc51f6f33",
+      "bytes": 119729
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-12.png",
+      "sha256": "803fd5fff1e3533357e938d4560fbd7082e90215d3a670b4441d9ddc29129080",
+      "bytes": 100332
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-13.png",
+      "sha256": "2506f60c24ff7cf2ee1c6765dd6a514401071b33bf27d9f899e75161fbffe93a",
+      "bytes": 60057
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-14.png",
+      "sha256": "946825df63ab94753c56fb1c9e8b457578f622f9dc16866f2f26a0838b9d593f",
+      "bytes": 114405
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-15.png",
+      "sha256": "3aa0a0972d707338dd24804843dcaf3474cff24e931c3f12ee44c11340dc1179",
+      "bytes": 391046
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-16.png",
+      "sha256": "9cb34618cc74436c5c0a53b5147be1a8a5b4594d771ea6bcd7c47640911c123d",
+      "bytes": 119375
+    },
+    {
+      "path": "output/playwright/v2191-layout/pdf-review/6fcf29d3331c/msedge-open/page-17.png",
+      "sha256": "34b43f6b45bcd9bd3069dfeadc698c293e3d59b7a4e661032fbaa93c63f91489",
+      "bytes": 143219
+    },
+    {
+      "path": "output/playwright/v2191-layout/renders.json",
+      "sha256": "59042677cec6d8ba5695ecbeaaaded7b3291972c7bdcac9e0d2b899d2978b86c",
+      "bytes": 32832
+    },
+    {
+      "path": "output/playwright/v2191-layout/supplemental-visuals.json",
+      "sha256": "6596253e323bdee54980d7d9422c8ddb5f3532760acf77bff0a445fa7ef428a4",
+      "bytes": 563
+    },
+    {
+      "path": "output/playwright/v2191-layout/visual-review.json",
+      "sha256": "cdad066fe0bb184a8e736a55224ec950ccd70898c607e473191a50c04f71019f",
+      "bytes": 8328
+    },
+    {
+      "path": "output/playwright/v2191-settings/chrome-settings-1440.png",
+      "sha256": "fefd6c374fb2575ecf61fca0ab134ee644e0b466d032b9ba5cc478f18e297ba4",
+      "bytes": 63716
+    },
+    {
+      "path": "output/playwright/v2191-settings/chrome-settings-390.png",
+      "sha256": "df29aa865418277cddfd65883dab60fe139cd96e5d174158ec268df9a460db89",
+      "bytes": 40692
+    },
+    {
+      "path": "output/playwright/v2191-settings/chrome-settings-900.png",
+      "sha256": "ce6d3ed90cb6a06b956593d2757a13e108164252a3c71c0b5949c6c00a691a03",
+      "bytes": 65920
+    },
+    {
+      "path": "output/playwright/v2191-settings/chrome.json",
+      "sha256": "b854818798113e2bf314cf2d1945bdba64b6c4250b824b02150fba05168ce9a2",
+      "bytes": 1538
+    },
+    {
+      "path": "output/playwright/v2191-settings/msedge-settings-1440.png",
+      "sha256": "483e8c4a57af5b3fa25281d500b4f331e7b94c699d1f6d9247dacd2d1c60f989",
+      "bytes": 63771
+    },
+    {
+      "path": "output/playwright/v2191-settings/msedge-settings-390.png",
+      "sha256": "abc093e9806df360dd03d2cbcc7516c9e8ceb69848a50fae5bc55f0fd24e46a6",
+      "bytes": 41798
+    },
+    {
+      "path": "output/playwright/v2191-settings/msedge-settings-900.png",
+      "sha256": "361efe9cd146a0bcf614a81993fed498c605c19ba32124de0a75f9f0c3b67b3f",
+      "bytes": 65736
+    },
+    {
+      "path": "output/playwright/v2191-settings/msedge.json",
+      "sha256": "50752702f01f53f9322a205b419ea78faf975845950e623f6417d9c8b0d0a495",
+      "bytes": 1538
+    },
+    {
+      "path": "output/tests/v2.19.1/unit-results.json",
+      "sha256": "c0e5fdad2601b9c3ea85e289213fb6fa0882b7099be918463b52c961960f7350",
+      "bytes": 87773
+    },
+    {
+      "path": "output/tests/v2191-desktop/packaged-native-smoke/native-downloads/MotionBench_Windows_桌面验收运动员（合成）_2026-10-11_eff9fc.pdf",
+      "sha256": "22c8be719ad0dbf82e2e0685a7ae025f09b21c73c21aecca2a8be1b60a61448e",
+      "bytes": 4935701
+    },
+    {
+      "path": "output/tests/v2191-desktop/packaged-native-smoke/native-downloads/MotionBench_完整备份_2026-10-12.motionbench.jsonl",
+      "sha256": "c2859ff541fdb3cfe5ebbfef2915d0255e564779f8762b3654e75adf49f0233a",
+      "bytes": 382886
+    },
+    {
+      "path": "output/tests/v2191-desktop/packaged-native-smoke/native-downloads/MotionBench_测试录入_2026-10-11_1人.xlsx",
+      "sha256": "5366c32365bb9da3c38de69778e4949be8d6cfd88f742190d1a7655a83465317",
+      "bytes": 48087
+    },
+    {
+      "path": "output/tests/v2191-desktop/packaged-native-smoke/native-invalid-draft-after-restart.png",
+      "sha256": "e1c6b3214d712ae49eb5e3ac3adae69b62a00a9e670f751db0847cc5c3e3d645",
+      "bytes": 223304
+    },
+    {
+      "path": "output/tests/v2191-desktop/packaged-native-smoke/native-report-after-restart.png",
+      "sha256": "1e56508e4652bda0ce58d8c6f641c349a9dc0043f85c7fe80acbf5c444863327",
+      "bytes": 950618
+    },
+    {
+      "path": "output/tests/v2191-desktop/packaged-native-smoke/results.json",
+      "sha256": "be79e8b4bb261a505c2e4d718fa94225095dc6a4e7897c6abd152d3567a650f9",
+      "bytes": 50585
+    },
+    {
+      "path": "output/tests/v2191-desktop/packaged-native-updates/native-update-results.json",
+      "sha256": "66b76e577962533fcbe4299553311fdb8b9fb919d09b905619e8c956995ea03e",
+      "bytes": 6206
+    },
+    {
+      "path": "output/tests/v2191-desktop/update-unit-results.json",
+      "sha256": "cdec9bb53eefb166e4e0c9719158f4a47ac28b514f79db2f8ed0369ad45077bb",
+      "bytes": 3006
+    },
+    {
+      "path": "output/tests/v2191-semantics/model-results.json",
+      "sha256": "c1efc2c9536b368b786155c8bc60c307a01184325aacbf4dff472f444068e97f",
+      "bytes": 5456
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "4fb0356043d7e7eb4d1ee20926ebf1472c762d2cd82885fc8bbadcb2dc9a9895",
+      "bytes": 131072
+    },
+    {
+      "path": "package.json",
+      "sha256": "b839be3b77f560618602813c5b198ac574d96b1cdb60f6767f19406fd9918872",
+      "bytes": 7053
+    },
+    {
+      "path": "scripts/build.py",
+      "sha256": "441d697feb8673066c991c9d2ba55e9013f41a60f87fa98d4438a3b0477470e6",
+      "bytes": 3593
+    },
+    {
+      "path": "scripts/check-desktop-package.cjs",
+      "sha256": "da28d90b41bd886082629dca0ab179210c5bd3762d11a580be9de7fbefeb3f39",
+      "bytes": 6382
+    },
+    {
+      "path": "scripts/verify_delivery.py",
+      "sha256": "6fa0a93f6155e766d7d118535e38eeff21ecdc7f7c85aff1d1c6c72b109732c4",
+      "bytes": 35633
+    },
+    {
+      "path": "scripts/verify_v2191.py",
+      "sha256": "7e9ddab8bba8ad7075e8a55140be02605b09d4f58335a829f5ea7fdabaffab2d",
+      "bytes": 41889
+    },
+    {
+      "path": "src/ringside-acquisition.js",
+      "sha256": "656bed15b92949d29b076c83c3f54244d1b1eb28d26f48fb911d1ec0cbc5c2a2",
+      "bytes": 13961
+    },
+    {
+      "path": "src/ringside-ai-settings.js",
+      "sha256": "52bd1ceb4c1b95c9e3266476bedbb7a68dd7983650a3340fd2c5e07129600372",
+      "bytes": 3344
+    },
+    {
+      "path": "src/ringside-app.js",
+      "sha256": "055c9bf9f704fe989be676abb240fb8d3988c715e9b27ff2e5547df779de8c51",
+      "bytes": 292408
+    },
+    {
+      "path": "src/ringside-calc.js",
+      "sha256": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+      "bytes": 13853
+    },
+    {
+      "path": "src/ringside-context-ui.js",
+      "sha256": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+      "bytes": 4152
+    },
+    {
+      "path": "src/ringside-cpet-reference.js",
+      "sha256": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+      "bytes": 8712
+    },
+    {
+      "path": "src/ringside-definitions.js",
+      "sha256": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+      "bytes": 13976
+    },
+    {
+      "path": "src/ringside-entry-session.js",
+      "sha256": "11ddbb50920163ca9e19ffe413b265584270a671a4d7bf2f08e12dde863e934a",
+      "bytes": 9586
+    },
+    {
+      "path": "src/ringside-evaluation.js",
+      "sha256": "6a939a63f34543d9f8aeb99b7a757fdeb2180e034338f20413fc973f86b7b4f8",
+      "bytes": 59006
+    },
+    {
+      "path": "src/ringside-excel-flow.js",
+      "sha256": "f6b5fc3f981794bfdd668d9551f78b5b8a640f085b8e4d266514b7c828eb2b14",
+      "bytes": 12051
+    },
+    {
+      "path": "src/ringside-excel-v3.js",
+      "sha256": "cd631e7037e6878ce6754a3411a04f43d6a8bdac4528ad722351d10c27ff25f4",
+      "bytes": 22421
+    },
+    {
+      "path": "src/ringside-excel.css",
+      "sha256": "25cfe4e3bff61779bf0820a0aa94b0fb6278fd9d358b1a8a088cd74bb9de91d9",
+      "bytes": 4742
+    },
+    {
+      "path": "src/ringside-excel.js",
+      "sha256": "5d6339a0a523ad7b4c64f946621c7214eb527ea6be6ddc4751c1c1b57d418937",
+      "bytes": 76112
+    },
+    {
+      "path": "src/ringside-fvp-entry.js",
+      "sha256": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+      "bytes": 6283
+    },
+    {
+      "path": "src/ringside-fvp.css",
+      "sha256": "6f4186f5d9359d076beb77fa2aee9f7882f56cd89a4e807a21fb3c550a5fa5b7",
+      "bytes": 6898
+    },
+    {
+      "path": "src/ringside-fvp.js",
+      "sha256": "d347a4eb782843def779e002ba605480a572b60b866f8d832943d7b4fb0ce9a9",
+      "bytes": 16701
+    },
+    {
+      "path": "src/ringside-interventions.js",
+      "sha256": "2cb3427bbe4ba4d81b51cc93ae7d01201d72e1eb0f7a51a038a9b9e9dedf0394",
+      "bytes": 31941
+    },
+    {
+      "path": "src/ringside-iso-reference.js",
+      "sha256": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+      "bytes": 10925
+    },
+    {
+      "path": "src/ringside-management-refinement.css",
+      "sha256": "3968eef35dde87e81283debc414f8a746f443e7c66f22a0e9e9e1ede28c3d8fb",
+      "bytes": 17282
+    },
+    {
+      "path": "src/ringside-management.js",
+      "sha256": "4e7ac494200e9e43a930b4fb353c0ee9b0d9481d10b64d8321b07531a82c452b",
+      "bytes": 89482
+    },
+    {
+      "path": "src/ringside-model.js",
+      "sha256": "8a838b4b2527a953a309d9797c18577f6ce4b2341021c50dc7f6603843ec4de5",
+      "bytes": 271068
+    },
+    {
+      "path": "src/ringside-pdf.js",
+      "sha256": "8b0a0d22f7e204aa7ad785f944f2c9054d9781524490aae4431d751e9ca07c51",
+      "bytes": 72380
+    },
+    {
+      "path": "src/ringside-picker.js",
+      "sha256": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+      "bytes": 10442
+    },
+    {
+      "path": "src/ringside-profile.js",
+      "sha256": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+      "bytes": 3501
+    },
+    {
+      "path": "src/ringside-report-refinement.css",
+      "sha256": "bba6deb8a041295a3407221642090c6da5c44f71707edadf13aec3b503b3b34f",
+      "bytes": 21258
+    },
+    {
+      "path": "src/ringside-report.js",
+      "sha256": "e09bc82e58b9386ce26d0ab18c6a7f5a3271938374c594051df79b269324c48d",
+      "bytes": 117996
+    },
+    {
+      "path": "src/ringside-scoring.js",
+      "sha256": "5d0a46e99f7b4c94177ecfdb915857a4719716830aa1e34fe1c52c381f6f8959",
+      "bytes": 5657
+    },
+    {
+      "path": "src/ringside-settings.js",
+      "sha256": "e115150b7593b4593fe632537f4299c9fd7b9302d64f6a1ae61f186736cfc3c7",
+      "bytes": 8877
+    },
+    {
+      "path": "src/ringside-shell.html",
+      "sha256": "df17c734774ca6986e333cfeaa6d5b26659df6e5831da0ab3481e0c1e8698a63",
+      "bytes": 31123
+    },
+    {
+      "path": "src/ringside-sources.js",
+      "sha256": "68f1d4c2a88145077e2c1c628a44b6cb93c7e4b6c82488e9210ae9c6f1f9a3e7",
+      "bytes": 24656
+    },
+    {
+      "path": "src/ringside-sprint-elasticity.js",
+      "sha256": "00c4d827f92cf0261ecbd43b727b8209bdb8cbd7261c5ecf38b2713d3e5e9f27",
+      "bytes": 16800
+    },
+    {
+      "path": "src/ringside-sprint-fvp-confidence.js",
+      "sha256": "d307e1e3575454696c89e6520026e17e858f0970123b42effc92a71fd8ead020",
+      "bytes": 8183
+    },
+    {
+      "path": "src/ringside-sprint-fvp-entry.js",
+      "sha256": "86332c1ca4327af3e95f0c54ac5b6864464e74f1ab75bb61a059a17653137d7e",
+      "bytes": 7657
+    },
+    {
+      "path": "src/ringside-sprint-fvp.js",
+      "sha256": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+      "bytes": 21889
+    },
+    {
+      "path": "src/ringside-store.js",
+      "sha256": "fcf396e1fe12108daa38e0fafe5276f8d64ccf120c922190a3903f9a2972bc6a",
+      "bytes": 32429
+    },
+    {
+      "path": "src/ringside-tests.js",
+      "sha256": "260a78c156845db5488e1627ef7e1d193f0f776d212d1fa90c879e33bcb3651e",
+      "bytes": 23911
+    },
+    {
+      "path": "src/ringside-viz.js",
+      "sha256": "d2f9eb2d71a68e0002aea48d44f27dd121320a1f6eb7cd7f1070db78b40a1063",
+      "bytes": 94250
+    },
+    {
+      "path": "src/ringside-workflow.css",
+      "sha256": "dc958ff24c0a57d2af678011aa8fdbfecbbb9681ac896919b35fa98491ad9a0e",
+      "bytes": 13156
+    },
+    {
+      "path": "src/ringside.css",
+      "sha256": "6062c7d1b54d6a653369318c9a2a7c6c1d5af3b9967f7fa34861e8643b03ee1c",
+      "bytes": 67200
+    },
+    {
+      "path": "tests/acquisition-v219-browser-tests.cjs",
+      "sha256": "01a5c6863d57f6f5c9a0a51be99e041a42c088ea96af71eafa2455e391af8473",
+      "bytes": 12926
+    },
+    {
+      "path": "tests/athlete-context-excel-tests.cjs",
+      "sha256": "e7c96075415e390fd8a5a4356e361292b1cfa90a70f51692e6add5bba686d7cb",
+      "bytes": 7285
+    },
+    {
+      "path": "tests/athlete-context-model-tests.cjs",
+      "sha256": "f9ac143445db5a6e41c1875eceafe4ab6d5e55bbc93d378dee61ae3702ce6541",
+      "bytes": 9003
+    },
+    {
+      "path": "tests/athlete-context-report-tests.cjs",
+      "sha256": "1110fd9343d29e20c248eca82d345c68dd503e6a14e8cd31239a25118c43a249",
+      "bytes": 5065
+    },
+    {
+      "path": "tests/capability-cpet-model-tests.cjs",
+      "sha256": "e00d54f1bcffec6705b007c9a755c5ac09e5a086b0923db83ccb781b4f92f33b",
+      "bytes": 14699
+    },
+    {
+      "path": "tests/capability-directions-model-tests.cjs",
+      "sha256": "1e3add1941fb24c9319274b3bb1000bc95144df44ab22e860be88a2d0e270bc1",
+      "bytes": 23785
+    },
+    {
+      "path": "tests/catalog-body-vift-model-tests.cjs",
+      "sha256": "2dc1ff43442ee5faec48e1b9ca8608d9d772f41b7f9137e271c43c4d31729afd",
+      "bytes": 17985
+    },
+    {
+      "path": "tests/chart-ai-model-tests.cjs",
+      "sha256": "4c1d6f250b9dc62c4bae9542269acfccbffd80bf812550437b8a572284fd6600",
+      "bytes": 4676
+    },
+    {
+      "path": "tests/core-model-tests.cjs",
+      "sha256": "10014d681d5a4b277f35bf5a2f5b125f7bf930b2026ac65abbac05c75aed734e",
+      "bytes": 12227
+    },
+    {
+      "path": "tests/cpet-reference-tests.cjs",
+      "sha256": "08863a6583e0d14603f8d1b981a9b2199dad82c5a0d03435311a74ea00182619",
+      "bytes": 10012
+    },
+    {
+      "path": "tests/derived-jump-model-tests.cjs",
+      "sha256": "bad328acc1c75bb08827d65a84fe457d244de3b3bd329724a3b4858f09bb96ba",
+      "bytes": 13940
+    },
+    {
+      "path": "tests/desktop-installed-upgrade-ci.ps1",
+      "sha256": "21d8e73220cd085a4cf8337506488590d506d51fc8ab43464f0b0fec19f07a4a",
+      "bytes": 6991
+    },
+    {
+      "path": "tests/desktop-installer-wizard-ci.ps1",
+      "sha256": "3d8d900f2fd2fd8c32547512f2d8ef775080cc75c536e234e87a06f748ebdb7e",
+      "bytes": 6381
+    },
+    {
+      "path": "tests/desktop-settings-v2191-browser-tests.cjs",
+      "sha256": "d811a8fc83679bf95d4f71f557711447b2de7bdb392a658312220cbb53b901a1",
+      "bytes": 12981
+    },
+    {
+      "path": "tests/desktop-smoke.cjs",
+      "sha256": "9894313df30fbd0aeff62fd88dec8d2ba2c981d6668d554d9c14a0b12a2d06ed",
+      "bytes": 39844
+    },
+    {
+      "path": "tests/desktop-update-tests.cjs",
+      "sha256": "330a89af19c1f2728fd5c184f5404fe9339dbe8cbd2df694f6eb3cd8331ae0ab",
+      "bytes": 23626
+    },
+    {
+      "path": "tests/desktop-updates-native-tests.cjs",
+      "sha256": "649d3a90c5bfcde8588cf38709e130ba0c0c460073b692ced3699eff2c1b2fbf",
+      "bytes": 6514
+    },
+    {
+      "path": "tests/desktop-upgrade-library-ci.cjs",
+      "sha256": "5b8feb8aa212dd24a8883732d090397204e2b48e2a7a476c3f81bce73a5b15bd",
+      "bytes": 6171
+    },
+    {
+      "path": "tests/dsi-v2161-model-tests.cjs",
+      "sha256": "4fed1f770a16c665c0a14e2727672bc6c7b0e8051f0eb40e13d5a148e5a4af3d",
+      "bytes": 2997
+    },
+    {
+      "path": "tests/dual-elasticity-model-tests.cjs",
+      "sha256": "4abe4e2e4c205a823f6275aee0ebb626f59932980c009b91a75c29ee11c8fcf6",
+      "bytes": 14432
+    },
+    {
+      "path": "tests/dual-elasticity-report-model-tests.cjs",
+      "sha256": "9f34080cab1dc0fb34b7190f3fd3f764f74ec9cd79fdf0176f4041bc2b2a76e1",
+      "bytes": 6457
+    },
+    {
+      "path": "tests/entry-session-model-tests.cjs",
+      "sha256": "20deeeba54ed98df40b1bb7d64fbb166683e27597b33a746514422ccc8d4af47",
+      "bytes": 10684
+    },
+    {
+      "path": "tests/entry-session-save-model-tests.cjs",
+      "sha256": "6eaab750ae526919f6d30786e21ef3fc47cb91c59833300fa4df01d50b7611a8",
+      "bytes": 12335
+    },
+    {
+      "path": "tests/evaluation-v219-model-tests.cjs",
+      "sha256": "123c49c1dcc768e78677c71d327326268293f0d344fbbd3b69a30085e21e0541",
+      "bytes": 19370
+    },
+    {
+      "path": "tests/excel-model-tests.cjs",
+      "sha256": "c2cefb4d1c9c96c560396c4af9d126cd596653b9c0a25331088b8fb591a234da",
+      "bytes": 27372
+    },
+    {
+      "path": "tests/excel-v216-tests.cjs",
+      "sha256": "fb2db3851225c9d4268ea521b37b1bbcbb05e8792bc09f0a2be44a2989db4e63",
+      "bytes": 9575
+    },
+    {
+      "path": "tests/excel-v219-contract-tests.cjs",
+      "sha256": "410bbd7472a2156b536b71bffabc481075a56335dd97ee4330b48f7835c40d01",
+      "bytes": 15951
+    },
+    {
+      "path": "tests/excel-workflow-browser-tests.cjs",
+      "sha256": "e56df676d1d1c2bda693d7857b4598f78f973e1af54c0f8e05ca4002add382cf",
+      "bytes": 26233
+    },
+    {
+      "path": "tests/fixtures/capability-direction-values-v2175.json",
+      "sha256": "fe8aaa11880afc6135b1e57358028d5d453758ca5b7a783d97e2c996ba3feec9",
+      "bytes": 21765
+    },
+    {
+      "path": "tests/fixtures/capability-direction-values-v2191.json",
+      "sha256": "9eb5f2c1e103eaf8c1f3e0755d609a6635484ec8a83721675aaf348192a33634",
+      "bytes": 22846
+    },
+    {
+      "path": "tests/fixtures/desktop-upgrade-baseline.json",
+      "sha256": "8d6afacd92eb4e18bfc129319091ae5d2708cd7ce1e41692a4a49aacc323a5b8",
+      "bytes": 419
+    },
+    {
+      "path": "tests/force-model-tests.cjs",
+      "sha256": "071b21e69fec26803d47b44ec5ecfd94b4050b47bfd101ee6d71046aceab78b9",
+      "bytes": 11651
+    },
+    {
+      "path": "tests/fvp-excel-model-tests.cjs",
+      "sha256": "b978c815caf931b7558d3a3e4089375c6bacce2cf8b35827a0779d52e3aefee1",
+      "bytes": 14561
+    },
+    {
+      "path": "tests/fvp-model-tests.cjs",
+      "sha256": "d3a6e90b6f000bde3f4c7b7054dd0e9488ba48568576d123a61cc0dbaf549014",
+      "bytes": 17865
+    },
+    {
+      "path": "tests/fvp-report-model-tests.cjs",
+      "sha256": "fe69e293b3ef4991d65a422484cad536393156ff35f37f227fd0f1e603ce9ec2",
+      "bytes": 5312
+    },
+    {
+      "path": "tests/helpers/desktop-artifact-identity.cjs",
+      "sha256": "d7324ca09439ad29b97678d0dede39ba970396a580d5fd8b0d39f727cd149560",
+      "bytes": 1591
+    },
+    {
+      "path": "tests/helpers/desktop-installer-native.cs",
+      "sha256": "37e709b7104791dff88942dbf3cda5241bc46fba174c2b2acbc4af435abd2326",
+      "bytes": 10187
+    },
+    {
+      "path": "tests/imtp-standards-model-tests.cjs",
+      "sha256": "40122685c5eee9727cf3cbf8ee75c93d3826aed4f78e6ca613688b9ddb6f1574",
+      "bytes": 23143
+    },
+    {
+      "path": "tests/isometric-reference-model-tests.cjs",
+      "sha256": "6bb50694479860fa19903a686a6cfc4325f1580f3eacb59868021a31a15aaf00",
+      "bytes": 28429
+    },
+    {
+      "path": "tests/isometric-selection-model-tests.cjs",
+      "sha256": "7976adc935ef567babed0604a79be65504fcd9fdc665cf02f86b4e1011aeb343",
+      "bytes": 8526
+    },
+    {
+      "path": "tests/layout-v2191-browser-tests.cjs",
+      "sha256": "03841ad856e3b7bc015af01d73cbc6154df66e1053fcdd455baf43c5f6a4e645",
+      "bytes": 24189
+    },
+    {
+      "path": "tests/layout-v2191-model-tests.cjs",
+      "sha256": "538de5916f430000248462c3e9c3a69e09133382f50386ce42628a3efdf0188b",
+      "bytes": 4525
+    },
+    {
+      "path": "tests/management-model-tests.cjs",
+      "sha256": "3337d7583e32fa8e0e0d8fd4da45a51fa14e15247464043c958bcb1c50400253",
+      "bytes": 5213
+    },
+    {
+      "path": "tests/model-tests.cjs",
+      "sha256": "93d343c79f0f154cbefbc270b5cc05995571c0a4e4081024fb888d062afc4831",
+      "bytes": 24403
+    },
+    {
+      "path": "tests/ordinary-save-model-tests.cjs",
+      "sha256": "582507415973d8245835a64a84cc81cbe018e2f0385a79cf67bcfa03e804fbd2",
+      "bytes": 10687
+    },
+    {
+      "path": "tests/picker-model-tests.cjs",
+      "sha256": "6fe8fd78fc24e8b92fb2b677a31a95dbd2296e48d370d5f4f25642e8cbf192c9",
+      "bytes": 4547
+    },
+    {
+      "path": "tests/portable-wrapper-tests.cjs",
+      "sha256": "a34511ba0b19cffb982419e3401844d0dc65ca234582f06c4341681a05383a7d",
+      "bytes": 13496
+    },
+    {
+      "path": "tests/repeat-model-tests.cjs",
+      "sha256": "00f0e287023494b2ce57c3cfd7c80ff3444f1c0a2b6f09e4f64e7b3e9f316192",
+      "bytes": 13152
+    },
+    {
+      "path": "tests/report-refinement-model-tests.cjs",
+      "sha256": "31778678d03eece4edb799b7f174f27cd85972e8c103cc7e89f9a4dafc0d4e5d",
+      "bytes": 10316
+    },
+    {
+      "path": "tests/report-semantics-v2191-model-tests.cjs",
+      "sha256": "569fd046c8e103ad4cd27c03a9780833d481ef017da474a19632d4a518b1cda6",
+      "bytes": 16188
+    },
+    {
+      "path": "tests/report-v2-model-tests.cjs",
+      "sha256": "8072f5c013b826c21b4cd39ec3cf20b535231832fa796f305b37645a2650d98d",
+      "bytes": 25621
+    },
+    {
+      "path": "tests/report-v210-model-tests.cjs",
+      "sha256": "36dfdf74d1ad672efa2f5f9ea059cf40cbf6826db780f98f9f9b5edee5874482",
+      "bytes": 11739
+    },
+    {
+      "path": "tests/report-v211-model-tests.cjs",
+      "sha256": "902077fd06ee6315cd97631311ac91b9f366e2e987ae7c5376d23201e265fb3d",
+      "bytes": 13021
+    },
+    {
+      "path": "tests/report-v216-model-tests.cjs",
+      "sha256": "a206a23ec4835780c017fed6a3e6f55ab9cf4fc63a4c79bef0c9eb4113e86327",
+      "bytes": 8469
+    },
+    {
+      "path": "tests/report-v2161-model-tests.cjs",
+      "sha256": "d2cb1f4810c860d6b7f87a64cab7306a78ead8f10e9b47cbd75c37ab7650d748",
+      "bytes": 7709
+    },
+    {
+      "path": "tests/run-unit-tests.cjs",
+      "sha256": "9d76c6a998db7307c4c7927bb527376f9e6831e5db15b137f4c84e2642f86a74",
+      "bytes": 4706
+    },
+    {
+      "path": "tests/sprint-capability-report-model-tests.cjs",
+      "sha256": "b3f9f7e1d6229bf5fbeedbd3fe25cd93e0b0a363cdf8209a91abafe862957736",
+      "bytes": 12912
+    },
+    {
+      "path": "tests/sprint-elasticity-model-tests.cjs",
+      "sha256": "c2f58547623888688c06d4bb4f6871415d954997b67f6fca7e3ca86691851591",
+      "bytes": 13846
+    },
+    {
+      "path": "tests/sprint-fvp-confidence-model-tests.cjs",
+      "sha256": "68ebc15984e688865ad88ba4fe83c74e2cf44f41cc10a16125875646ae8561e5",
+      "bytes": 16234
+    },
+    {
+      "path": "tests/sprint-fvp-display-model-tests.cjs",
+      "sha256": "69ba933153ac8ac0c237e80088b075dcc58ac282dc3db9de61c2ca9c12f54efa",
+      "bytes": 19923
+    },
+    {
+      "path": "tests/sprint-fvp-display-report-model-tests.cjs",
+      "sha256": "af23d3e041c171726144b7e057008b4cd6e2e49f44e471a626bea08694bd3307",
+      "bytes": 16154
+    },
+    {
+      "path": "tests/sprint-fvp-entry-controls-tests.cjs",
+      "sha256": "03890a31afc40489cba636683809d76814eb259cc6852e91d7b302c890202688",
+      "bytes": 13826
+    },
+    {
+      "path": "tests/sprint-fvp-excel-model-tests.cjs",
+      "sha256": "30a5a5f7d6a90375ae0680eac8464cd8e9fc2e6692b04c152a3849b277db9c33",
+      "bytes": 13455
+    },
+    {
+      "path": "tests/sprint-fvp-model-tests.cjs",
+      "sha256": "d8c52086ba90683b34b35795a5aa0f2fed2171c02fb77fc8d447c7c5b470a119",
+      "bytes": 19654
+    },
+    {
+      "path": "tests/sprint-fvp-usability-model-tests.cjs",
+      "sha256": "e1c28efefc30e62638f203140da898b679257b43989506cc9b25783a7f019e40",
+      "bytes": 6064
+    },
+    {
+      "path": "tests/storage-v219-browser-tests.cjs",
+      "sha256": "3910e43a15cb94a0631463c4ceb996e5f56c622091880e6775982a87cf0d04d1",
+      "bytes": 12857
+    },
+    {
+      "path": "tests/store-catalog-model-tests.cjs",
+      "sha256": "144c3866d465458c28e91a93e9e0f5dc37e3d9ecee0311f21c1cfa51f35430f4",
+      "bytes": 10697
+    },
+    {
+      "path": "tests/v216-direction-model-tests.cjs",
+      "sha256": "262a6a81a2a155645ca2e684ef43d53f9b6700ad405b24043eec8139b4190e77",
+      "bytes": 5957
+    },
+    {
+      "path": "tests/viz-tests.cjs",
+      "sha256": "32e82dbb4efe30fcd6320ec8f926885ba122d11be013d36152190712d4a6b899",
+      "bytes": 12085
+    },
+    {
+      "path": "tests/workflow-model-tests.cjs",
+      "sha256": "0a1e62f4cfeb6b1968f34a5a8c84fa42e988b39d4c7410596a45170de83aee60",
+      "bytes": 15816
+    },
+    {
+      "path": "vendor/exceljs.LICENSE.txt",
+      "sha256": "2ed526b7e7c7681dc2347995b5036ddf73dc27d0539cdea59b6d4a72b63a57a0",
+      "bytes": 1084
+    },
+    {
+      "path": "vendor/exceljs.min.js",
+      "sha256": "7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9",
+      "bytes": 947702
+    },
+    {
+      "path": "vendor/html2canvas.LICENSE.txt",
+      "sha256": "86200ce4e92d9a22c41c8647a55f7a5fddff304ff89b4d36ecc699ed8c123d2c",
+      "bytes": 1061
+    },
+    {
+      "path": "vendor/html2canvas.min.js",
+      "sha256": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb",
+      "bytes": 198689
+    },
+    {
+      "path": "vendor/jspdf.LICENSE.txt",
+      "sha256": "dc388ec35ff463288cdde3588a36fd4ed12a45deff053243b37309acc9ef583b",
+      "bytes": 1142
+    },
+    {
+      "path": "vendor/jspdf.umd.min.js",
+      "sha256": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54",
+      "bytes": 420165
+    },
+    {
+      "path": "vendor/versions.json",
+      "sha256": "4f2a59a286cd6a242a4d1793a2b1c14eae2cd05182fc6d17b6eba21a14465a74",
+      "bytes": 1758
+    }
+  ],
+  "recordedAt": "2026-10-12T05:56:56.133602+00:00"
+}
