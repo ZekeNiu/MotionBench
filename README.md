@@ -2,11 +2,11 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**当前修订：Windows `2.20.1-desktop.1` · HTML `2.20.1`（修订已实现，发布与本机最终验收待完成）**
+**当前版本：Windows `2.20.1-desktop.1` · HTML `2.20.1`**
 
-[在线 Demo](https://zekeniu.github.io/MotionBench/) · [Windows 安装版发行入口](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Setup-x64.exe) · [便携版发行入口](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Portable-x64.exe) · [离线 HTML 发行入口](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1) · [修订说明](docs/motionbench-2.20.1.md)
+[在线 Demo](https://zekeniu.github.io/MotionBench/) · [下载 Windows 安装版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Setup-x64.exe) · [下载便携版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Portable-x64.exe) · [下载离线 HTML](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1) · [修订说明](docs/motionbench-2.20.1.md)
 
-以上 2.20.1 入口在正式发布后生效。已发布的 [2.20.0 Windows](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0-desktop.1) 与 [2.20.0 HTML](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0) 保持原成品；多轴能力图及评分明细过长时，PDF 导出会触发超页保护而中止。2.20.1 已修订过高卡片的分页，本机最终验收与公开发布尚未完成，见 [公开发布与补验记录](docs/publication-2.20.0.md)。
+2.20.1 修复多轴能力雷达图及评分明细组合过高时无法导出 PDF 的问题，过长卡片按内容分页，标题与首图保持相邻，较短卡片保持完整。原有计算与资料保持不变。详见 [修订说明](docs/motionbench-2.20.1.md) 和 [发布核验记录](docs/publication-2.20.1.md)。
 
 ![MotionBench 在线演示，全部资料为模拟数据](assets/motionbench-demo.png)
 
@@ -55,13 +55,13 @@
 - **便携版更新**：在应用设置检查并打开便携版下载，退出程序后替换 exe。
 - **资料保存**：安装版和便携版共用 `%APPDATA%\MotionBench Desktop`，与程序目录分开。升级、重装及卸载保留资料。
 
-桌面版本后缀 `desktop.1` 标识专用发行通道。完整发行资产包含 Setup、Portable、desktop.yml、安装包 blockmap、校验值与构建来源；2.20.1 仍待完成验收与发布。当前 exe 未配置数字签名，可用发行附件 `SHA256SUMS.txt` 核对下载文件。
+桌面版本后缀 `desktop.1` 标识专用发行通道。完整发行资产包含 Setup、Portable、desktop.yml、安装包 blockmap、校验值与构建来源。当前 exe 未配置数字签名，可用发行附件 `SHA256SUMS.txt` 核对下载文件。
 
 操作详情见 [桌面版使用说明](docs/windows-desktop.md)。
 
 ## HTML、本机入口与资料迁移
 
-正式发布后，下载 [2.20.1 HTML 发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1) 中的 `MotionBench.html` 可直接打开，无需安装。需要本机 AI 中转时，解压 `MotionBench-2.20.1-HTML.zip`，Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
+下载 [2.20.1 HTML 发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1) 中的 `MotionBench.html` 可直接打开，无需安装。需要本机 AI 中转时，解压 `MotionBench-2.20.1-HTML.zip`，Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
 
 本机启动器默认地址为 `http://127.0.0.1:8765/MotionBench.html`。保持原文件位置、浏览器和打开地址可继续使用原资料。浏览器、地址、路径或桌面入口变化前，请先在“备份与恢复”导出完整 JSONL，再在目标入口导入并核对。单条 JSON、HTML 和 PDF 用于报告分享，完整资料库迁移使用 JSONL。
 
@@ -77,9 +77,9 @@
 
 ## 本版验证与方法资料
 
-2.20.0 的公开下载、模拟演示、合成资料测试与真实 Windows 更新已有可复核证据。后续本机补验发现多轴能力图与明细表组合无法生成 PDF；2.20.1 已修订分页，正在完成新成品的专项 PDF、桌面、网页与本机最终验收。当前不作为已完成交付，新结果、成品校验值和构建来源将在正式发布时提供。
+2.20.1 验证包含 54 组／806 项模型检查、132 项浏览器检查、37 项原生程序检查，以及 14 份合成 PDF／101 页渲染核对。新增专项覆盖 1、3、7 轴能力图、双成员平均评分、人工正文和原始试次表分页。公开下载、真实网址、更新与本机验收的范围和结果分别记录在 [发布核验记录](docs/publication-2.20.1.md)，成品校验值与构建来源随发行附件提供。
 
-[2.20.0 历史验收](docs/acceptance-2.20.0.md) · [2.20.0 公开发布与补验](docs/publication-2.20.0.md) · [2.20.1 修订说明](docs/motionbench-2.20.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
+[2.20.1 验收](docs/acceptance-2.20.1.md) · [2.20.0 历史验收](docs/acceptance-2.20.0.md) · [2.20.0 公开发布与补验](docs/publication-2.20.0.md) · [2.20.1 修订说明](docs/motionbench-2.20.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
 
 ## 评价方案与项目目录
 
