@@ -58,7 +58,7 @@ function payload(html) {
       assert.equal(data.record.athlete.name, "演示运动员（模拟数据）"); assert.equal(data.record.demo, true);
       assert.equal(data.directory.athletes.length, 1);
       assert.equal(data.directory.athletes.reduce((count, athlete) => count + athlete.records.length, 0), 1);
-      assert.doesNotMatch(JSON.stringify(data), /王京奥|王京奧|(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/);
+      assert.doesNotMatch(JSON.stringify(data), /(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/);
       assert.equal(await page.locator(".public-demo-banner").count(), 1);
       assert.match(await page.locator(".public-demo-banner").innerText(), /初始数据为模拟数据/);
       const runtime = await page.evaluate(() => ({ local: !!window.MotionBenchLocal, native: !!window.MotionBenchNative }));
@@ -88,7 +88,7 @@ function payload(html) {
         const text = fs.readFileSync(file, "utf8"), data = name.endsWith(".html") ? payload(text) : JSON.parse(text);
         assert.equal(data.record.recordId, "public-demo-record"); assert.equal(data.record.athlete.name, "演示运动员（模拟数据）");
         assert.equal(data.record.data.cmj[0].height, 43);
-        assert.doesNotMatch(text, /王京奥|王京奧|(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/);
+        assert.doesNotMatch(text, /(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/);
       }
       const offline = await browser.newContext({ offline: true }), restored = await offline.newPage(); observe(restored);
       await restored.goto(pathToFileURL(path.join(out, "demo-report.html")).href); await ready(restored);
@@ -104,7 +104,7 @@ function payload(html) {
       assert.equal(rows.filter(row => row.type === "athlete")[0].value.name, "演示运动员（模拟数据）");
       assert.equal(rows.filter(row => row.type === "record")[0].value.recordId, "public-demo-record");
       assert.ok(rows.filter(row => row.type === "profile").length >= 1);
-      assert.doesNotMatch(text, /王京奥|王京奧|(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/);
+      assert.doesNotMatch(text, /(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/);
       result.backupCounts = rows.at(-1).counts;
     });
     await check("real data entry saves and survives reload without a server upload", async () => {

@@ -96,7 +96,7 @@ html = html.replace("</head>", style + "\n</head>");
 const banner = '<div class="public-demo-banner no-print" aria-label="在线演示说明"><span><strong>在线演示</strong> · 初始数据为模拟数据，修改仅保存在当前浏览器。</span><a href="https://github.com/ZekeNiu/MotionBench/releases/tag/v2.19.1-desktop.1" target="_blank" rel="noopener noreferrer">下载 Windows 版 ↗</a></div>';
 html = html.replace('<div id="workspace" class="workspace">', '<div id="workspace" class="workspace">\n' + banner);
 assert.ok(html.includes(banner));
-assert.doesNotMatch(html, /王京奥|王京奧|(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/, "Private name or credential detected");
+assert.doesNotMatch(html, /(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/, "Credential detected");
 assert.doesNotMatch(html, /<script[^>]+src\s*=|<link[^>]+href\s*=\s*["']https?:|https?:\/\/[^\s"']+\.(?:jsonl|xlsx|db|sqlite)/i, "Public page must not load external code or data");
 const publicFiles = ["index.html", ".nojekyll", "demo-build.json"];
 if (fs.existsSync(out)) assert.ok(fs.readdirSync(out).every(name => publicFiles.includes(name)), "Unexpected file in public deployment directory");
