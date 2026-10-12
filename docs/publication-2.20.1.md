@@ -1,6 +1,6 @@
 # MotionBench 2.20.1 发布与交付核验
 
-置信度：高。分页修订、最终共用 HTML、本地合成资料及模拟演示的验证已完成；正式 Windows CI 已通过；公开发行、Pages 实际网址和原目录正式包最终验收仍待完成。本记录按证据范围更新，不从本地候选结果推定正式发布或原目录交付成功。
+置信度：高。分页修订、最终共用 HTML、本地合成资料及模拟演示的验证已完成；正式 Windows CI、公开发行、Pages 实际网址、真实应用内升级及原目录正式包最终验收均已完成。本记录按证据范围更新，不从本地候选结果推定正式发布或原目录交付成功。
 
 ## 修订与成品
 
@@ -39,12 +39,14 @@ Demo 的模拟种子从空白结构生成，没有使用真实运动员资料。
 | 范围 | 当前结果 |
 | --- | --- |
 | 正式 Windows 构建、安装目录选择与旧版升级 CI | 已通过：[38301257293](https://github.com/ZekeNiu/MotionBench/actions/runs/38301257293)，构建提交 `329ca4799eeb9366f015b1bced4cec9dfed9f7ef` |
-| HTML 与 Windows 正式发行 | 待发布；公开后核对资产大小、摘要与链接 |
-| Pages 新版本部署及实际网址 | 待部署与 Chrome、Edge 复验 |
-| 正式公开更新通道 | 待按新发行资产核验 |
-| 原目录正式程序、版本与资料对照 | 待本机最终验收 |
-| 原目录实际资料 PDF 生成及逐页复核 | 待本机最终验收 |
+| HTML 与 Windows 正式发行 | 已发布；14份Windows附件的原始资产及补充证据均逐项核对；Setup/Portable公开无认证下载字节与CI一致 |
+| Pages 新版本部署及实际网址 | Pages [38303529991](https://github.com/ZekeNiu/MotionBench/actions/runs/38303529991) 已部署；Chrome、Edge各8项通过，index与manifest逐字节相符 |
+| 正式公开更新通道 | GitHubProvider实际选中2.20.1-desktop.1，公开Setup与desktop.yml的SHA512相符；真实旧版应用内更新CI [38305696772](https://github.com/ZekeNiu/MotionBench/actions/runs/38305696772) 通过 |
+| 原目录正式程序、版本与资料对照 | 已在原目录安装2.20.1-desktop.1；原资料与参考均值对照一致，正常无测试参数重开并关闭 |
+| 原目录实际资料 PDF 生成及逐页复核 | 2份实际PDF共37页成功导出；fresh渲染逐页与此前已目检修复样本像素完全一致，完整性诊断通过 |
 
-原目录正式包验证完成后，本表记录安装版本、资料对照及实际 PDF 是否生成和复核结果；不公开私有资料。完整公开证据只含合成资料、发布资产及核验收据。当前不声称本机最终交付已经完成。
+原目录正式包验证完成后，本表记录安装版本、资料对照及实际 PDF 是否生成和复核结果；不公开私有资料。完整公开证据只含合成资料、发布资产及核验收据。本轮2.20.1原目录修订交付已经完成。
 
 正式构建、旧版升级、普通卸载及合成资料保留已通过，完整验收见 [验收记录](acceptance-2.20.1.md)。本轮修订的公开安装包 SHA256 为 `9a80244ecd30ab23f05561b397f6c9c90b6fee28f73ed8a6ba55ca1e7037b52e`，便携包为 `8b8ad56215ef45c129c8591df1fd4e5229413bb8dc075b4165d2b0c050b052cd`；这些值来自成功 CI 的实际产物，公开下载仍须分别核验。
+
+Windows [正式发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1) 和 [HTML发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1) 均公开、非预发行。模拟演示公开16项加本地16项流程通过；85成员公开演示证据ZIP SHA256 `b735ed2f5f69cd1b430ca0e8f6f198601d973db20471c159276b14ecd51940d6`，12成员真实应用内升级证据ZIP SHA256 `b65f614f2860f62b2591c1beaad1aeb688323c1ab7e6d0ec3489e1b3d7007c0a`。
