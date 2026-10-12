@@ -511,7 +511,7 @@
     }
   }
 
-  function collectBlocks(source) {
+  function collectBlocks(source, options = {}) {
     const blocks = [];
     const headingSelectors =
       ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading";
@@ -549,6 +549,8 @@
         return;
       }
       if (node.hidden || node.classList.contains("hidden")) return;
+      if (options.keepCardHead && node.matches(".card-head"))
+        return push(node, "text", true);
       if (node.matches(headingSelectors) || /^H[1-6]$/.test(node.tagName))
         return push(node, "text", true);
       if (node.tagName === "SUMMARY") {
@@ -1023,8 +1025,7 @@
     }
     function placeAtomic(node) {
       const splittable =
-        node.matches(".summary-grid,.micro-cards,.capability-row,.capability-card") ||
-        (node.matches(".card") && node.querySelector(".ability-comparison"));
+        node.matches(".summary-grid,.micro-cards,.capability-row,.capability-card,.card");
       let tooTall = false;
       if (splittable) {
         // Measure before trying a new page; an oversized summary must split on
@@ -1077,10 +1078,10 @@
         }
         return;
       }
-      if (node.matches(".card") && node.querySelector(".ability-comparison")) {
-        // Large capability sets remain real tables, including repeated headers.
-        // The neighboring screening card can still stay together on its page.
-        for (const block of collectBlocks(node)) {
+      if (node.matches(".card")) {
+        // Oversized cards paginate their semantic children whether the
+        // capability overview is a list or a radar. Short cards stay intact.
+        for (const block of collectBlocks(node, { keepCardHead: true })) {
           block.element.dataset.pdfBlockIndex = node.dataset.pdfBlockIndex;
           addBlock(block);
         }

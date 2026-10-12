@@ -53,6 +53,8 @@ jobs:
         run: npm run test:desktop-unit
       - name: Check 2.20 management, ordinary saves and concurrent storage in both browsers
         run: npm run test:v220-management && npm run test:v220-app && npm run test:v220-storage
+      - name: Export synthetic three-axis and seven-axis PDFs in Chrome and Edge
+        run: node tests/pdf-multiaxis-v221-browser-tests.cjs && node tests/pdf-multiaxis-v221-browser-tests.cjs --edge
       - name: Check desktop settings and version notification in browsers
         run: npm run test:desktop-settings
       - name: Create the Windows x64 installer and portable executable
@@ -67,7 +69,9 @@ jobs:
           npm run test:desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $env:MOTIONBENCH_DESKTOP_V220_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-v220-management/packaged'
-          npm run test:v220-desktop-management
+          npm run test:v221-desktop-management
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/desktop-v221-pdf-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $env:MOTIONBENCH_UPDATE_NATIVE_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/tests/v220-desktop/packaged-updates'
           npm run test:desktop-updates-native
@@ -91,7 +95,7 @@ jobs:
         shell: pwsh
         run: |
           $installer = Get-ChildItem 'dist-desktop/*-Setup-x64.exe' | Select-Object -First 1
-          ./tests/desktop-installed-upgrade-v220-ci.ps1 -InstallerPath $installer.FullName
+          ./tests/desktop-installed-upgrade-v221-ci.ps1 -InstallerPath $installer.FullName
       - name: Install and exercise the per-user application
         shell: pwsh
         run: |
@@ -226,10 +230,11 @@ jobs:
             'output/desktop-smoke/portable/results.json' = 'portable'
             'output/desktop-package/uninstall-data-check.json' = 'uninstall'
             'output/desktop-v220-management/packaged/native-management-results.json' = 'management-native'
+            'output/tests/v221-desktop/packaged-pdf/native-pdf-results.json' = 'pdf-native'
           }
           foreach ($entry in $evidenceFiles.GetEnumerator()) { $artifactRows += [ordered]@{path=$entry.Key;sha256=(Get-FileHash -LiteralPath $entry.Key -Algorithm SHA256).Hash.ToLowerInvariant();kind=$entry.Value} }
           $producerScripts = @()
-          foreach ($repoPath in @('.github/workflows/desktop-windows.yml','scripts/check-desktop-package.cjs','tests/desktop-installer-wizard-ci.ps1','tests/helpers/desktop-installer-native.cs','tests/desktop-installed-upgrade-v220-ci.ps1','tests/fixtures/desktop-upgrade-baseline-v220.json','tests/desktop-upgrade-library-v220-ci.cjs','tests/desktop-smoke.cjs','tests/desktop-v220-management-tests.cjs','tests/helpers/desktop-artifact-identity.cjs','tests/portable-wrapper-tests.cjs')) {
+          foreach ($repoPath in @('.github/workflows/desktop-windows.yml','scripts/check-desktop-package.cjs','tests/desktop-installer-wizard-ci.ps1','tests/helpers/desktop-installer-native.cs','tests/desktop-installed-upgrade-v221-ci.ps1','tests/fixtures/desktop-upgrade-baseline-v220.json','tests/desktop-upgrade-library-v221-ci.cjs','tests/desktop-smoke.cjs','tests/desktop-v221-management-tests.cjs','tests/helpers/desktop-artifact-identity.cjs','tests/portable-wrapper-tests.cjs','tests/pdf-multiaxis-v221-browser-tests.cjs','tests/desktop-v221-pdf-tests.cjs')) {
             $producerScripts += [ordered]@{repoPath=$repoPath;sha256=(Get-FileHash -LiteralPath $repoPath -Algorithm SHA256).Hash.ToLowerInvariant()}
           }
           $ciResult.artifacts = $artifactRows
@@ -259,6 +264,7 @@ jobs:
             output/desktop-v220-management/
             output/playwright/v220/
             output/playwright/management-v220/
+            output/implementation-2.20.1/pdf/
             output/tests/
           if-no-files-found: warn
           retention-days: 90

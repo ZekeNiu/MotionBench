@@ -2,7 +2,9 @@
 
 桌面版通过 Windows 程序或快捷方式启动，自带运行环境。离线录入、计算、图表、Excel 和报告 PDF 可以直接使用。
 
-当前桌面版本为 **2.20.0-desktop.1**，共用工作台版本为 **2.20.0**。下载入口：[Windows 桌面发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0-desktop.1)；网页版本见 [2.20.0 发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0)。
+本次修订版本为 **2.20.1-desktop.1**，共用工作台版本为 **2.20.1**。分页修订已实现，公开发布与本机最终验收尚未完成。预备入口：[Windows 桌面发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1)；网页版本见 [2.20.1 发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)，正式发布后生效。
+
+已公开的 [2.20.0-desktop.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0-desktop.1) 保持原安装资产。其本机补验发现多轴能力图与评分明细组合过高时，PDF 导出触发超页保护而中止；2.20.1 已修订过高卡片的分页，本机最终验收尚未完成，详见 [公开发布与补验记录](publication-2.20.0.md)。
 
 ## 安装
 
@@ -10,14 +12,14 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| `MotionBench-2.20.0-desktop.1-Setup-x64.exe` | 带安装向导，可选择程序目录并创建快捷方式 |
-| `MotionBench-2.20.0-desktop.1-Portable-x64.exe` | 直接运行的便携程序 |
+| `MotionBench-2.20.1-desktop.1-Setup-x64.exe` | 正式发布后提供；带安装向导，可选择程序目录并创建快捷方式 |
+| `MotionBench-2.20.1-desktop.1-Portable-x64.exe` | 正式发布后提供；直接运行的便携程序 |
 | `SHA256SUMS.txt` | 下载文件校验值 |
 | `build-provenance.json` | 版本、构建提交和测试来源 |
 
 安装版与便携版均把资料保存在当前 Windows 用户的 `%APPDATA%\MotionBench Desktop`，与程序所在目录分开。
 
-从 **2.19.1-desktop.1** 升级时，可使用“应用设置 → 更新与版本”，或运行本版 Setup，随后核对资料并重新打开。
+修订版发布后，从 **2.19.1-desktop.1** 或 **2.20.0-desktop.1** 升级时，可使用“应用设置 → 更新与版本”，或运行新版 Setup，随后核对资料并重新打开。
 
 ## 更新与启动偏好
 
@@ -49,7 +51,7 @@
 
 返回旧程序前，先另存完整备份。程序版本回退与资料恢复分别进行；网页版回退使用原浏览器入口与相应备份。
 
-本次修改前源码已固定为 `rollback-v2.19.1-desktop.1-before-2.20.0-20261013`。本版变化见 [2.20.0 说明](motionbench-2.20.0.md)，检查记录见 [验收记录](acceptance-2.20.0.md)。
+2.20.0 之前的源码回退标签为 `rollback-v2.19.1-desktop.1-before-2.20.0-20261013`；已发布的 2.20.0 程序及历史验收保持不变。本次变化与待验收范围见 [2.20.1 修订说明](motionbench-2.20.1.md)；[2.20.0 历史验收](acceptance-2.20.0.md) 和 [公开发布与补验记录](publication-2.20.0.md) 分别记录原合成测试与后续发现。
 
 ## 开发构建
 
