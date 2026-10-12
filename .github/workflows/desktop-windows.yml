@@ -204,7 +204,8 @@ jobs:
             if ($uninstallMonitor) {
               $monitorCompleted = $uninstallMonitor | Wait-Job -Timeout 10
               if (-not $monitorCompleted) { Stop-Job -Job $uninstallMonitor; $uninstallDiagnostic.monitorCleanupTimedOut=$true }
-              $uninstallDiagnostic.monitorErrors = @($uninstallMonitor.ChildJobs | ForEach-Object { $_.Error | ForEach-Object { $_.ToString() } })
+              $uninstallDiagnostic.monitorState = $uninstallMonitor.State.ToString()
+              $uninstallDiagnostic.monitorErrors = @($uninstallMonitor.Error | ForEach-Object { $_.ToString() })
               Remove-Job -Job $uninstallMonitor -Force
             }
             $samples = @($uninstallSamples.ToArray())
