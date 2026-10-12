@@ -1,6 +1,6 @@
 # MotionBench 在线演示
 
-[打开在线演示](https://zekeniu.github.io/MotionBench/) · [下载 Windows 版](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.19.1-desktop.1)
+[打开在线演示](https://zekeniu.github.io/MotionBench/) · [下载 Windows 版](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0-desktop.1)
 
 演示版使用与 HTML、Windows 版相同的报告、计算与录入界面。首次打开时加载一名模拟运动员和一条综合测试记录，可以编辑数据、查看原始试次、切换计算方式并导出 JSON、可编辑 HTML 和 PDF。
 

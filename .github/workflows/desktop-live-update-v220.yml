@@ -1,0 +1,59 @@
+name: MotionBench 2.20.0 Real Desktop Update
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-live-update-v220-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  live-update:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      CI: true
+      CSC_IDENTITY_AUTO_DISCOVERY: false
+    steps:
+      - name: Check out the isolated integration branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Install the locked build runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install the shared HTML build runtime
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+      - name: Install exact dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build the shared production HTML
+        run: npm run build
+      - name: Build an unpublished identical-source desktop zero fixture
+        shell: pwsh
+        run: |
+          node -e "const fs=require('fs'),yaml=require('js-yaml');const config=yaml.load(fs.readFileSync('electron-builder.yml','utf8'));config.extraMetadata.version='2.20.0-desktop.0';config.directories.output='output/desktop-live-update-v220/fixture-build';fs.mkdirSync('output/desktop-live-update-v220',{recursive:true});fs.writeFileSync('output/desktop-live-update-v220/fixture-config.yml',yaml.dump(config));"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npx electron-builder --config output/desktop-live-update-v220/fixture-config.yml --win nsis --x64 --publish never
+      - name: Verify that only the fixture package version differs
+        run: node scripts/check-desktop-live-fixture-v220.cjs
+      - name: Actually download install and restart through the application update entry
+        shell: pwsh
+        run: |
+          ./tests/desktop-live-update-v220-ci.ps1 -FixtureInstaller "$env:GITHUB_WORKSPACE/output/desktop-live-update-v220/fixture-build/MotionBench-2.20.0-desktop.0-Setup-x64.exe"
+      - name: Upload all live update evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: MotionBench-2.20.0-Live-Update-Evidence-${{ github.run_number }}
+          path: |
+            output/desktop-live-update-v220/*.json
+            output/desktop-live-update-v220/*.png
+          if-no-files-found: warn
+          retention-days: 90

@@ -80,6 +80,59 @@
     const conflicts=lib().catalog.conflicts.map((c,i)=>c.resolved?"":`<section class="notice" data-catalog-conflict="${esc(c.testId)}"><h3>${esc(c.name)} · 待确认目录版本</h3><p>已有记录保留测量定义。请选择供后续新测试使用的版本。</p>${c.variants.map((v,j)=>`<div class="reference-row"><span>${esc(v.source||"导入版本")} · ${esc(v.test.name)}<small>${esc(v.protocol)} · ${esc(v.definitions.map(d=>T.metricName(d)+" ("+d.unit+")").join("、"))}</small></span>${button("采用此版本","catalog-resolve",i+":"+j)}</div>`).join("")}</section>`).join("");
     return conflicts+(lib().catalog.abilityGroupConflicts||[]).map((c,i)=>`<section class="notice" data-ability-conflict="${esc(c.key)}"><h3>能力分类名称待确认</h3><p>本机名称：<b>${esc(T.abilityLabel(lib().catalog,c.key))}</b> · 导入名称：<b>${esc(c.incomingName)}</b></p><p>当前沿用本机名称。选择只影响后续测试，已有记录保留各自名称。</p><div class="row">${button("保留本机名称","ability-conflict-local",String(i))}${button("采用导入名称","ability-conflict-incoming",String(i))}</div></section>`).join("");
   }
+  // These descriptions mirror the native measurement adapters; they never
+  // select trials, compute report values or create editable measurement rules.
+  function catalogMeasurement(project,catalog) {
+    const native=T.isNative(catalog,project.id),id=project.id;
+    if(!native){const primary=project.repeatPolicy.fields.find(d=>d.id===project.repeatPolicy.primaryMetricId);return {parameters:[],selection:primary?`最佳值：按${T.metricName(primary)}选取${project.selectionDirection==="lower"?"最小":"最大"}有效值所在试次，其他逐试次指标采用同一试次。均值：在主指标有效的试次中，各指标分别取有效值平均。`:"本次测试汇总指标直接采用录入结果；逐试次指标设置后按项目代表试次汇总。"};}
+    const record=M.recordFromCatalog(catalog,{}, {[id]:true}),contract=root.RingsideAcquisition.project(record,id);
+    const parameters=[...new Set(contract.parameters.map(p=>p.label).concat(["imtp","squat","bench","deadlift","cpet","fvp_sj","fvp_cmj","sprint_fvp"].includes(id)?["本次体重 kg"]:[],project.renderer==="lvp"?["MVT / 速度训练区间（评价方案分析设置）"]:[]))];
+    const rules={
+      cmj:"最佳值：选垂直跳跃高度最高的有效试次，其他结果采用同一试次。均值：在高度有效的试次中，各指标分别取有效值平均。",
+      sj:"最佳值：选垂直跳跃高度最高的有效试次，其他结果采用同一试次。均值：在高度有效的试次中，各指标分别取有效值平均。",
+      dj:"先逐试次计算 RSI。最佳值：选 RSI 最高的有效试次，其他结果采用同一试次。均值：在 RSI 有效的试次中，各指标分别取有效值平均。",
+      cmrj:"反弹 RSI 用于选取试次。最佳值：选反弹 RSI 最高的有效试次；均值：在反弹 RSI 有效的试次中，各指标分别取有效值平均。首跳指标单独保留。",
+      hop:"一条结果代表一次完整测试。设备汇总直接保留设备给出的平均结果；历史逐跳记录按 RSI 选最高五跳（不足五跳采用全部有效跳）。最佳值选整组平均 RSI 最高的测试；均值取各有效测试组的结果平均。RQR 的 FT/CT 另按 FT/CT 选跳。",
+      imtp:"最佳值：选峰值力最高的有效试次，时点力、RFD 和冲量采用相应试次。均值：在峰值力有效的试次中，各时点与冲量分别取有效值平均。时点力优先使用实测值；只有 RFD 时，结合明确的基线力换算。",
+      iso:"按关节方向及侧别分别汇总。最佳值各取该方向、该侧的最大有效力量；均值各取有效力量平均。各侧可以来自不同试次；任一试次的疼痛标记都会保留。",
+      landmine:"左右侧分别按负荷分组。最佳值每个负荷取最高有效速度；均值每个负荷取有效速度平均。再用各负荷的代表点拟合负荷–速度关系。",
+      squat:"先按负荷分组。最佳值每个负荷取最高有效速度；均值每个负荷取有效速度平均。再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。",
+      bench:"先按负荷分组。最佳值每个负荷取最高有效速度；均值每个负荷取有效速度平均。再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。",
+      deadlift:"先按负荷分组。最佳值每个负荷取最高有效速度；均值每个负荷取有效速度平均。再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。",
+      mb:"优势侧与非优势侧分别汇总。最佳值各取最远有效距离；均值各取有效距离平均。",
+      pushup:"每次记录 60 秒内的有效次数。最佳值取最高有效次数；均值取有效次数平均，记录的 0 次保留。",
+      mas:"速度先统一为 m/s。最佳值取最高有效速度；均值取有效速度平均，保留本次测试方法。",
+      mss:"速度先统一为 m/s。最佳值取最高有效速度；均值取有效速度平均，保留本次测量与计时方法。",
+      ift:"速度先统一为 m/s。最佳值取最高有效 VIFT；均值取有效 VIFT 平均。跑台与折返协议分别匹配评价标准。",
+      lactate:"各阶段保留速度、乳酸和心率。第一、第二阈值采用评估者填写的阈值速度与识别方法；曲线按阶段展现，不按最佳值或均值选试次。",
+      cpet:"采用本次 CPET 原报告的 VO₂peak / VO₂max 及第一、第二阈值；保留原报告名称、测试方式和单位。按本次体重换算绝对与相对摄氧量，阈值占比使用同单位的阈值与峰值之比，不选取重复试次。",
+      fms:"七个动作按固定 0–3 分规则记录。双侧动作采用较低分；疼痛为 0 分；总分为七项相加，范围 0–21 分，不按最佳值或均值选试次。",
+      fvp_sj:"每个附加负荷选跳跃高度最高的完整有效试次，保留该试次的蹬伸距离；排除的试次不参与。结合本次体重计算力与速度，再拟合 F–V 剖面；始终按各负荷最佳完整试次计算，不随最佳值 / 均值切换。",
+      fvp_cmj:"每个附加负荷选跳跃高度最高的完整有效试次，保留该试次的蹬伸距离；排除的试次不参与。结合本次体重计算力与速度，再拟合 F–V 剖面；始终按各负荷最佳完整试次计算，不随最佳值 / 均值切换。",
+      sprint_fvp:"保留原始分段距离与时间，并按所填计时方式、时间修正和空间起点换算。排除的试次不参与；在最长完整末段距离内选最快有效试次，再结合本次体重、身高及环境参数拟合冲刺模型，不随最佳值 / 均值切换。",
+    };
+    return {parameters,selection:rules[id]||"采用本项目的实测结果与测量协议。"};
+  }
+  function catalogMetricResult(project,definition,catalog) {
+    const d=definition,id=project.id;
+    if(T.isManualMetric(d))return {source:d.entryScope==="attempt"?"逐试次录入":"本次测试汇总",detail:d.entryScope==="attempt"?"随项目选定的试次汇总；均值模式取有效值平均":"直接采用本次录入结果"};
+    const field=T.attemptFields(catalog,id).find(f=>f.id===d.id);
+    if(field&&["cmj","sj","dj","cmrj"].includes(id)){
+      const formulas={rsi:"每次垂直跳跃高度(m) ÷ 触地时间(s)",flightTimeRatio:"每次腾空时间 ÷ 触地时间",firstRsiModified:"每次首跳高度(m) ÷ 首跳起跳动作时间(s)"};
+      return {source:field.computed?"逐试次换算":"逐试次实测 / 设备输出",detail:formulas[field.key]||(["rsiModified","firstHeight","firstTimeToTakeoffMs","activeStiffness"].includes(field.key)?"随选定试次汇总；主指标缺测时，按本指标的有效值单独汇总":"随项目选定的试次汇总")};
+    }
+    if(id==="hop")return {source:"完整测试组结果",detail:d.id.endsWith("_active_stiffness")?"完整测试的设备刚度结果；整组 RSI 缺测时单独保留":d.id.endsWith("_flight_time_ratio")?"设备整组汇总或所选跳的 FT/CT 平均；所选逐跳时间须完整":"设备平均结果或历史逐跳选跳汇总；再按整组 RSI 选取测试"};
+    if(id==="imtp")return {source:d.id==="imtp_relative_force"?"体重换算":/imtp_(f|rfd)\d/.test(d.id)?"时点实测 / 换算":"逐试次实测 / 设备输出",detail:d.id==="imtp_relative_force"?"代表峰值力(N) ÷ 本次体重(kg)":/imtp_(f|rfd)\d/.test(d.id)?"实测力优先；力 = 基线力 + RFD × 时间(s)，RFD = (力 − 基线力) ÷ 时间(s)":"随峰值力选定的试次汇总；冲量采用设备积分结果"};
+    if(project.renderer==="lvp")return {source:d.id.endsWith("_1rm")?"负荷–速度推算":"对应侧别与负荷的实测速度",detail:d.id.endsWith("_1rm")?"拟合速度 = 截距 + 斜率 × 负荷；MVT 对应负荷 ÷ 本次体重。结果为估计值":"每个负荷按最佳值或均值取代表速度，保留速度口径"};
+    if(id==="cpet")return {source:"本次 CPET 原报告 / 单位换算",detail:d.id.endsWith("_pct")?"同单位的阈值摄氧量 ÷ 本次峰值摄氧量 × 100%；异常阈值保留原值并提示":d.id.includes("vo2")?"相对值(mL·kg⁻¹·min⁻¹) = 绝对值(L/min) × 1000 ÷ 本次体重(kg)":"保留原报告对应阶段的实测结果"};
+    if(project.renderer==="fvp")return {source:"跳跃 F–V 模型计算",detail:d.id.endsWith("_imbalance")?"实测 F–V 斜率与所选角度的最优斜率比较":"各负荷最佳完整试次的体重、附加负荷、跳跃高度与蹬伸距离参与计算"};
+    if(project.renderer==="sprint-fvp")return {source:"分段计时冲刺模型计算",detail:d.id.endsWith("_imbalance")?"实测剖面与目标距离下的最优剖面比较":"所选完整试次的距离–时间、体重、身高与环境参数参与计算"};
+    if(id==="lactate")return {source:"评估者确认的阈值结果",detail:"采用填写的阈值速度，保留阈值识别方法；速度统一换算为 m/s"};
+    if(project.renderer==="speed")return {source:"实测速度 / 单位换算",detail:"km/h ÷ 3.6 = m/s；按项目最佳值或均值汇总"};
+    if(id==="mb")return {source:"对应侧别的实测距离",detail:"优势侧与非优势侧分别取最佳值或有效值平均"};
+    if(id==="pushup")return {source:"60 秒实测有效次数",detail:"按最佳值或均值汇总；记录的 0 次保留"};
+    return {source:"实测结果",detail:d.formula||d.protocol||"采用本项目对应的实测结果"};
+  }
   function metrics() {
     const f=filter(),q=f.q.trim().toLocaleLowerCase(),abilities=T.abilityGroups(lib().catalog),projects=T.describe(lib().catalog);
     for(const t of projects){const key=t.primaryAbility||"unclassified";if(!abilities.some(g=>g.key===key))abilities.push({key,name:t.primaryAbility?T.abilityLabel(lib().catalog,t.primaryAbility):"未分类",synthetic:true});}
@@ -91,10 +144,11 @@
     let detail='<div class="catalog-detail-empty"><h2>项目与指标</h2><p>选择一个项目，查看测量方法、录入内容和结果指标。</p></div>';
     if(project){
       const conflicted=lib().catalog.conflicts.some(c=>c.testId===project.id&&!c.resolved),definitions=project.definitions;
-      const rows=definitions.map(d=>`<tr data-library-metric="${esc(d.id)}" ${f.metricId===d.id?'class="catalog-metric-selected"':""}><td data-label="指标"><b>${esc(T.metricName(d))}</b><small>${esc(d.protocol||"")}</small></td><td data-label="单位">${esc(d.unit||"—")}</td><td data-label="数据与选值">${T.isManualMetric(d)?d.entryScope==="attempt"?"逐试次录入":"本次测试汇总":"项目固定计算"}<small>${T.isManualMetric(d)?d.entryScope==="attempt"?"采用项目的代表试次":"直接采用本次结果":esc(d.formula||"按本项目的固定方法计算")}</small></td><td data-label="操作"><div class="row">${button("编辑指标","metric-edit",d.id,conflicted?"disabled":"")}${button("评价标准","metric-standards",d.id,`data-project-id="${esc(project.id)}"`)}</div></td></tr>`).join("");
+      const measurement=catalogMeasurement(project,lib().catalog);
+      const rows=definitions.map(d=>{const result=catalogMetricResult(project,d,lib().catalog);return `<tr data-library-metric="${esc(d.id)}" ${f.metricId===d.id?'class="catalog-metric-selected"':""}><td data-label="指标"><b>${esc(T.metricName(d))}</b><small>${esc(d.protocol||"")}</small></td><td data-label="单位">${esc(d.unit||"—")}</td><td data-label="数据与选值">${esc(result.source)}<small>${esc(result.detail)}</small></td><td data-label="操作"><div class="row">${button("编辑指标","metric-edit",d.id,conflicted?"disabled":"")}${button("评价标准","metric-standards",d.id,`data-project-id="${esc(project.id)}"`)}</div></td></tr>`;}).join("");
       const fixed=project.id==="fms"?'<p class="note">七项动作固定 0–3 分；疼痛计 0 分，双侧动作保留左右侧得分并取较低分，七项合计 0–21 分。动作、侧别、疼痛和备注属于原始记录。</p>':project.id==="iso"?'<p class="note">测量按部位、方向和侧别保存。目标、参考值和关节比值分级在评价方案中设置。</p>':"";
-      const native=T.isNative(lib().catalog,project.id),test=lib().catalog.tests.find(t=>t.id===project.id),primary=definitions.find(d=>d.id===test?.primaryMetricId);
-      detail=`<article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="catalog-detail-back">${button("返回项目列表","catalog-back")}</div><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"} · ${native?"内置测量方法":"自定义项目"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量方法</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写测量方法")}</p><p class="note">协议版本 ${lib().catalog.protocolIdentities?.[project.id]?.version||1}${!native?" · 代表试次："+(primary?esc(T.metricName(primary)):"首个试次指标")+"，采用"+(test?.selectionDirection==="lower"?"较小值":"较大值"):""}</p></section><section class="catalog-definition-block"><h3>录入内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据与选值</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
+      const native=T.isNative(lib().catalog,project.id);
+      detail=`<article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="catalog-detail-back">${button("返回项目列表","catalog-back")}</div><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"} · ${native?"内置测量方法":"自定义项目"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量方法</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写测量方法")}</p><p class="note">协议版本 ${lib().catalog.protocolIdentities?.[project.id]?.version||1}</p></section><section class="catalog-definition-block" data-catalog-measurement><h3>结果来源与试次选取</h3><p>${esc(measurement.selection)}</p>${measurement.parameters.length?`<h4>本次测量与计算参数</h4><div class="catalog-input-list">${measurement.parameters.map(label=>`<span>${esc(label)}</span>`).join("")}</div>`:""}</section><section class="catalog-definition-block"><h3>录入内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据与选值</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
     }
     return catalogNotices()+search+`<div class="catalog-workspace ${project?"has-project":""}"><nav class="catalog-index" aria-label="测试项目">${index}</nav><div class="catalog-detail">${detail}</div></div>`;
   }

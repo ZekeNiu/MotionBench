@@ -883,7 +883,7 @@
     $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
     if (management || ui.mode === "creation" || ui.mode === "settings" && settingsTab === "app") $("recordContext").textContent = "";
     $("workspaceBack").hidden = ui.mode === "report";
-    $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : ui.mode === "settings" && settingsReturn?.mode === "management" ? "返回原管理页面" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
+    $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : ui.mode === "settings" && settingsReturn?.mode === "management" ? "返回原管理页面" : ui.mode === "settings" && settingsReturn?.mode === "creation" ? "返回测试设置" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
     renderNavigation(); renderAIStatus(); rememberUI();
   }
   function renderNavigation() {
@@ -991,6 +991,13 @@
       const origin = settingsReturn; settingsReturn = null;
       ui.mode = "management"; ui.returnMode = origin.returnMode;
       window.RingsideManagement.open(origin.tab); renderWorkspace(); closeMobileSidebar();
+      requestAnimationFrame(() => window.scrollTo({top:origin.scroll,behavior:"instant"}));
+      return;
+    }
+    if (ui.mode === "settings" && settingsReturn?.mode === "creation" && creation) {
+      const origin = settingsReturn; settingsReturn = null;
+      ui.mode = "creation"; ui.returnMode = origin.returnMode;
+      renderWorkspace(); closeMobileSidebar();
       requestAnimationFrame(() => window.scrollTo({top:origin.scroll,behavior:"instant"}));
       return;
     }
@@ -1560,6 +1567,7 @@
     $("creationSubmit").disabled = creation.submitting || count === 0 || (creation.enabled.iso && !creation.isoDirectionIds?.length);
   }
   async function startDataEntry(athleteId = "", newAthlete = false, requestedIds = null) {
+    if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return;
     if (!library) return;
     const wanted = requestedIds || (athleteId ? [athleteId] : []);
@@ -2416,6 +2424,7 @@
     return '<p class="note">速度统一使用 m/s。</p>';
   }
   function openEntry(tab) {
+    if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return;
     if (!state) return startDataEntry();
     if (ui.mode === "report") captureReportUI();
