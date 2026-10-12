@@ -4,7 +4,7 @@ const { pathToFileURL } = require("node:url"), { createHash } = require("node:cr
 const { chromium } = require("./helpers/playwright.cjs");
 const root = path.resolve(__dirname, ".."), source = path.join(root, "MotionBench.html");
 const channel = process.argv.includes("--edge") ? "msedge" : "chrome";
-const out = path.join(root, "output/playwright/v2191-settings");
+const out = path.resolve(process.env.MOTIONBENCH_DESKTOP_SETTINGS_ARTIFACT_DIR || path.join(root, "output/playwright/v2191-settings"));
 const hash = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 const evidence = { synthetic: true, nativeBridge: "UI contract mock", channel, sourceHash: hash(source), runnerSha256: hash(__filename), checks: [], errors: [], screenshots: [], pass: false };
 fs.mkdirSync(out, { recursive: true });

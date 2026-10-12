@@ -24,7 +24,7 @@ const result={channel,sourceHash:hash(source),runnerSha256:hash(__filename),chec
   let baseline;
   await check("report radar breakdown and AI facts use the same fixed-member scores",async()=>{
    baseline=await projection(page);assert.equal(baseline.axes.length,1);assert.equal(baseline.axes[0].value,65);assert.equal(baseline.axes[0].status,"gray");assert.deepEqual(baseline.axes[0].scores,[80,50]);assert.deepEqual(baseline.facts[0].memberScores,[80,50]);
-   assert.match(await page.locator('.ability-comparison').innerText(),/能力评分/);assert.match(await page.locator('.ability-comparison').innerText(),/65 \/ 100/);
+   assert.match(await page.locator('.ability-comparison').innerText(),/能力评分/);assert.match(await page.locator('.ability-comparison').innerText(),/65 分 \/ 100/);
    await page.locator('.ability-score-details > summary').click();const text=await page.locator('[data-ability-score]').innerText();for(const value of ["65.0","80.0","50.0","40.0","25.0"])assert.ok(text.includes(value),value);assert.ok(baseline.results.every(r=>r.scoreContributions.length===1));
   });
   await check("average composition remains readable on desktop and narrow screens",async()=>{

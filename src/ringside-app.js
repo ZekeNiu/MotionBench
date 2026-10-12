@@ -63,6 +63,7 @@
   let aiStatus = { kind: "idle" }, aiTicker;
   let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null, aiEditSequence = 0;
   let desktopUpdate = null, desktopUpdateLoad = null, desktopActionBusy = false, desktopPreferencesBusy = false, desktopUpdateUnsubscribe = null, desktopUpdateRevision = 0;
+  let settingsReturn = null;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -383,7 +384,15 @@
       reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
     } finally { libraryTransferActive = false; }
   }
+  function managementNavigationBlocked() {
+    if (window.RingsideManagement?.desktopCloseStatus?.().busy || catalogEdit?.submitting) {
+      toast("正在保存，请完成后再切换页面");
+      return true;
+    }
+    return false;
+  }
   function openManagement(tab = "athletes") {
+    if (managementNavigationBlocked()) return false;
     if (tab === "catalog") tab = "metrics";
     if (creation?.submitting) return;
     if (!library) return;
@@ -874,7 +883,7 @@
     $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
     if (management || ui.mode === "creation" || ui.mode === "settings" && settingsTab === "app") $("recordContext").textContent = "";
     $("workspaceBack").hidden = ui.mode === "report";
-    $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
+    $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : ui.mode === "settings" && settingsReturn?.mode === "management" ? "返回原管理页面" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
     renderNavigation(); renderAIStatus(); rememberUI();
   }
   function renderNavigation() {
@@ -949,6 +958,7 @@
     if (matchMedia("(max-width:1100px)").matches) toggleSidebar(false);
   }
   async function showReport(restoreScroll = true) {
+    if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return false;
     saveEditor();
     if (!await persist()) return false;
@@ -967,6 +977,7 @@
     return ui.mode;
   }
   async function back() {
+    if (managementNavigationBlocked()) return false;
     if (ui.mode === "creation") return cancelCreation();
     if (ui.mode === "entry" && entryReturn?.mode === "management") {
       const backTo = entryReturn; saveEditor(); if (!await persist()) return;
@@ -976,6 +987,13 @@
       entryReturn = null;openManagement(backTo.tab);ui.returnMode="report";renderWorkspace();return;
     }
     if (ui.mode === "management") { if (ui.returnMode === "entry" && state) { ui.mode="entry"; renderEntry();renderWorkspace();return; } return showReport(); }
+    if (ui.mode === "settings" && settingsReturn?.mode === "management") {
+      const origin = settingsReturn; settingsReturn = null;
+      ui.mode = "management"; ui.returnMode = origin.returnMode;
+      window.RingsideManagement.open(origin.tab); renderWorkspace(); closeMobileSidebar();
+      requestAnimationFrame(() => window.scrollTo({top:origin.scroll,behavior:"instant"}));
+      return;
+    }
     if (ui.mode === "settings" && ui.returnMode === "entry") {
       ui.mode = "entry";
       renderEntry();
@@ -1129,7 +1147,8 @@
     if (modified) library.updated = now();
     const sequence = ++saveSequence;
     if (modified) queuedRecords.set(record.recordId,{sequence,content});
-    const snapshot = record ? copy(record) : null, next = copy(library);
+    const snapshot = record ? copy(record) : null;
+    const selection = {activeAthleteId:library.activeAthleteId || "",activeRecordId:library.activeRecordId || ""};
     $("saveStatus").textContent = "正在保存…";
     pendingSaves++;
     const saving = entryPersistQueue.then(async () => {
@@ -1141,7 +1160,7 @@
           throw Error("此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录");
         checks = {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}};
       }
-      await repository.save(next, writeRecord ? [snapshot] : [], {}, checks);
+      await repository.saveRecords(writeRecord ? [snapshot] : [], checks, {selection});
       if (writeRecord) rememberRecordBaseline(snapshot);
     });
     const task = saving.then(() => {
@@ -1162,7 +1181,7 @@
       if (pending && !window.RingsideEntrySession.hasManualData(session, record)) { saveEntrySession(); refreshEntryChrome(); return true; }
       const content = recordContent(record);
       if (!pending && recordBaselines.get(record.recordId) === content) return true;
-      const snapshot = copy(record), next = copy(library);
+      const snapshot = copy(record), next = copy(library), newAthletes = [];
       snapshot.updated = now();
       const stored = await repository.loadRecord(record.recordId);
       if (pending ? !!stored : !stored || recordContent(stored) !== recordBaselines.get(record.recordId))
@@ -1171,7 +1190,7 @@
       let owner = next.athletes.find(a => a.id === record.athleteId && !a.deletedAt && !a.archived);
       if (!owner && pending) {
         const profile = session.pendingAthletes.find(a => a.id === record.athleteId);
-        if (profile) { owner = copy(profile); next.athletes.push(owner); }
+        if (profile) { owner = copy(profile); next.athletes.push(owner); newAthletes.push(owner); }
       }
       if (!owner) throw Error("运动员已不存在或已归档");
       M.validateRecord(snapshot);
@@ -1180,7 +1199,9 @@
       next.activeAthleteId = snapshot.athleteId; next.activeRecordId = snapshot.recordId; next.updated = now();
       pendingSaves++; $("saveStatus").textContent = "正在保存…";
       try {
-        await repository.save(next, [snapshot], {}, {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}});
+        await repository.saveRecords([snapshot], {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}}, {
+          newAthletes, selection:{activeAthleteId:snapshot.athleteId,activeRecordId:snapshot.recordId}
+        });
         library = next; record.updated = snapshot.updated;
         session.savedIds.add(record.recordId); rememberRecordBaseline(snapshot);
         storageFailed = false; $("saveStatus").textContent = "已保存到本机"; saveEntrySession(); refreshEntryChrome(); return true;
@@ -1234,6 +1255,8 @@
     )?.focus();
   }
   function close(id) {
+    if (id === "managementModal" && window.RingsideManagement.beforeModalClose?.(id) === false) return false;
+    if ((id === "catalogModal" || id === "unitModal") && catalogEdit?.submitting) return false;
     if(id==="excelModal"&&window.RingsideExcelFlow?.isBusy())return;
     if(id==="excelModal")window.RingsideExcelFlow?.cancel();
     if (id === "newAthleteModal" && ui.mode === "creation") return cancelCreation();
@@ -1243,6 +1266,7 @@
       return toast("请先修正并恢复数据，原始内容可下载保留");
     if (id === "entryModal" || id === "settingsModal") return back();
     $(id)?.classList.remove("show");
+    if (id === "managementModal") window.RingsideManagement.afterModalClose?.(id);
     if (id === "newAthleteModal") creation = null;
     if (id === "unitModal") unitChange = null;
     if (id === "catalogModal") catalogEdit = null;
@@ -3112,6 +3136,7 @@
     renderReport();
   }
   function openSettings(tab = "ai") {
+    if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return;
     if (tab === "catalog") return openManagement("catalog");
     if (tab === "app" && !window.MotionBenchDesktop) return;
@@ -3119,7 +3144,10 @@
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
-    if (ui.mode !== "settings") ui.returnMode = ui.mode;
+    if (ui.mode !== "settings") {
+      settingsReturn = {mode:ui.mode,tab:window.RingsideManagement.tab(),returnMode:ui.returnMode,scroll:window.scrollY};
+      ui.returnMode = ui.mode;
+    }
     ui.mode = "settings";
     settingsTab = tab;
     renderSettings();
@@ -3313,6 +3341,7 @@
   }
   // Insert inside the App closure; expose the five public handlers on App.
   function openCatalogItem(mode = "new-test", testId = "", definitionId = "") {
+    if (catalogEdit?.submitting) return false;
     const projectOnlyRequested = mode === "edit-project", metricOnly = mode === "edit" && !!definitionId;
     if (projectOnlyRequested) mode = "edit";
     mode =
@@ -3345,7 +3374,7 @@
             (conflict) => conflict.testId === item.id && !conflict.resolved,
           ),
       );
-    const initialProtocol = (mode === "new-metric" ? selectedTest : test)
+    const initialProtocol = metricOnly ? (definition.protocol || "") : (mode === "new-metric" ? selectedTest : test)
       ? catalog.protocol[(mode === "new-metric" ? selectedTest : test).id] || ""
       : "";
     catalogEdit = {
@@ -3354,6 +3383,8 @@
       definitionId: definition?.id || "",
       initialProtocol,
       projectOnly,
+      metricOnly,
+      scopedProject: mode === "new-metric" && !!testId,
       submitting: false,
       unit: definition && T.isManualMetric(definition) ? definition.unit : null,
       initialTestName: test?.name || "",
@@ -3367,7 +3398,7 @@
     if (mode === "new-metric") {
       fields += label(
         "所属测试项目",
-        `<select id="catalogTestId" aria-label="所属测试项目" required>${catalog.tests
+        `<select id="catalogTestId" aria-label="所属测试项目" required ${testId ? "disabled" : ""}>${catalog.tests
           .filter(
             (item) =>
               !catalog.conflicts.some(
@@ -3430,16 +3461,16 @@
         `<select id="catalogPrimaryAbility" aria-label="主能力"><option value="">自动采用首个能力</option>${abilities.map(group => `<option value="${E(group.key)}" ${primary === group.key ? "selected" : ""}>${E(group.name)}</option>`).join("")}</select>`,
       );
     fields += label(
-      "项目测试协议／设备",
+      metricOnly || mode === "new-metric" ? "指标测量说明" : "项目测试方法／设备",
       `<textarea id="catalogProtocol" rows="3" aria-label="项目测试协议／设备">${E(initialProtocol)}</textarea>`,
       true,
     );
-    if(!metricOnly && mode!=="new-metric") fields+=label("测试协议版本",`<input id="catalogProtocolVersion" type="number" min="1" step="1" required value="${catalog.protocolIdentities?.[test?.id]?.version||1}"><small>测试方法改变时增加版本；修订说明文字无需增加。</small>`);
-    if(!projectOnly) fields+=label("指标协议版本",`<input id="catalogMetricProtocolVersion" type="number" min="1" step="1" required value="${definition?.protocolIdentity?.version||1}">`);
+    if(!metricOnly && mode!=="new-metric") fields+=label("测量方法版本",`<input id="catalogProtocolVersion" type="number" min="1" step="1" readonly value="${catalog.protocolIdentities?.[test?.id]?.version||1}"><label class="row"><input id="catalogProjectMethodChanged" type="checkbox">测试方法发生改变</label><small>只修订说明时保留版本；方法改变会增加版本，用于匹配后续测试的评价标准。</small>`);
+    if(!projectOnly) fields+=label("指标测量版本",`<input id="catalogMetricProtocolVersion" type="number" min="1" step="1" readonly value="${definition?.protocolIdentity?.version||1}"><label class="row"><input id="catalogMetricMethodChanged" type="checkbox">此指标的测量方法发生改变</label>`);
     fields +=
       '</div><p class="note">速度统一使用 m/s。保存后可在本次测试计划中选择该项目。</p>';
     $("catalogFields").innerHTML = fields;
-    for (const id of [...(metricOnly ? ["catalogTestName","catalogCategory","catalogProtocol","catalogPrimaryAbility","catalogPrimaryMetric","catalogSelectionDirection"] : [])]) { const el=$(id);if(el) el.closest(".field").hidden=true; }
+    for (const id of [...(metricOnly ? ["catalogTestName","catalogCategory","catalogPrimaryAbility","catalogPrimaryMetric","catalogSelectionDirection"] : [])]) { const el=$(id);if(el?.closest(".field")) el.closest(".field").hidden=true; }
     $("catalogTitle").textContent =
       mode === "new-test"
         ? "新建测试项目"
@@ -3447,7 +3478,7 @@
           ? "新增指标"
           : projectOnly
             ? "编辑项目设置"
-            : "编辑项目与指标";
+            : metricOnly ? "编辑指标" : "编辑项目与指标";
     $("catalogError").hidden = true;
     $("catalogError").textContent = "";
     $("catalogForm").querySelector('[type="submit"]').disabled = false;
@@ -3475,6 +3506,15 @@
         catalogEdit.initialProtocol = catalog.protocol[item.id] || "";
         $("catalogCategory").value = item.category;
       });
+    organizeCatalogFields();
+    catalogEdit.initialForm = catalogFormValues();
+    $("catalogForm").oninput = renderCatalogChangePreview;
+    $("catalogForm").onchange = event => {
+      for (const [toggle, version, original] of [["catalogProjectMethodChanged","catalogProtocolVersion",catalog.protocolIdentities?.[test?.id]?.version||1],["catalogMetricMethodChanged","catalogMetricProtocolVersion",definition?.protocolIdentity?.version||1]])
+        if (event.target.id === toggle) $(version).value = original + (event.target.checked ? 1 : 0);
+      renderCatalogChangePreview();
+    };
+    renderCatalogChangePreview();
     modal("catalogModal");
     const firstField =
       mode === "new-metric" ||
@@ -3485,6 +3525,49 @@
     return true;
   }
 
+  function catalogFormValues() {
+    return Object.fromEntries([...$("catalogForm").querySelectorAll("input[id],select[id],textarea[id]")]
+      .filter(node => !node.id.includes("MethodChanged"))
+      .map(node => [node.id,node.type === "checkbox" ? node.checked : node.value]));
+  }
+  function organizeCatalogFields() {
+    const host = $("catalogFields");
+    for (const [title, ids] of [
+      ["基础资料",["catalogTestId","catalogTestName","catalogMetricName","catalogUnit","catalogCategory","catalogAbility","catalogPrimaryAbility"]],
+      ["录入与选值",["catalogEntryScope","catalogPrimaryMetric","catalogSelectionDirection","catalogProtocol","catalogProtocolVersion","catalogMetricProtocolVersion"]],
+      ["统计与换算",["catalogRatioEligible","catalogCVEligible"]]
+    ]) {
+      const fields = [...new Set(ids.map(id => $(id)?.closest(".field")).filter(node => node && !node.hidden))];
+      if (!fields.length) continue;
+      const section = document.createElement("fieldset"); section.className="catalog-edit-section";
+      const legend = document.createElement("legend"); legend.textContent=title; section.append(legend);
+      const grid = document.createElement("div"); grid.className="form-grid"; fields.forEach(node=>grid.append(node)); section.append(grid);
+      if (title === "统计与换算") {
+        const note=document.createElement("p");note.className="note";
+        note.textContent="目标比例用于有真实零点的成绩，例如距离、次数。CV 用于比较重复测量的相对波动；两个选项分别设置。";
+        section.append(note);
+      }
+      if (title === "录入与选值" && catalogEdit.definitionId && !T.isManualMetric(library.catalog.definitions.find(d=>d.id===catalogEdit.definitionId))) {
+        const note=document.createElement("p");note.className="note";note.textContent="本项结果由项目测量形成，沿用既有计算方法。";section.append(note);
+      }
+      host.append(section);
+    }
+    const preview=document.createElement("section");preview.id="catalogChangePreview";preview.className="catalog-change-preview";preview.setAttribute("aria-live","polite");host.append(preview);
+  }
+  function renderCatalogChangePreview() {
+    if (!catalogEdit || !$("catalogChangePreview")) return;
+    const current=catalogFormValues(), prior=catalogEdit.initialForm || {}, changes=[];
+    for (const [id,value] of Object.entries(current)) {
+      const field=$(id)?.closest(".field");
+      if (!field || field.hidden || value === prior[id]) continue;
+      const label=field.querySelector(":scope > span")?.textContent || "设置";
+      const readable=(node,value)=>node?.tagName==="SELECT" ? [...node.options].find(option=>option.value===value)?.textContent || value : typeof value==="boolean" ? value?"启用":"关闭" : value || "未填写";
+      changes.push(`<li><b>${E(label)}</b>：${E(readable($(id),prior[id]))} → ${E(readable($(id),value))}</li>`);
+    }
+    const methodChanged=$("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
+    const linked=methodChanged ? library.evaluationProfiles.filter(profile=>profile.standards?.some(rule=>rule.testId===catalogEdit.testId)).map(profile=>profile.name) : [];
+    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">保存后用于后续测试，已有记录保留测量快照。</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+  }
   async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
     if (
@@ -3513,8 +3596,8 @@
       )
         throw Error("请选择已确认定义的测试项目");
       const displayedTestName = value("catalogTestName"),
-        testName = edit.mode === "new-metric" ? test.name : edit.mode === "edit" && displayedTestName === edit.initialDisplayName ? edit.initialTestName : displayedTestName;
-      const category = value("catalogCategory"),
+        testName = edit.mode === "new-metric" || edit.metricOnly ? test.name : edit.mode === "edit" && displayedTestName === edit.initialDisplayName ? edit.initialTestName : displayedTestName;
+      const category = edit.mode === "new-metric" || edit.metricOnly ? test.category : value("catalogCategory"),
         protocol = value("catalogProtocol");
       if (!testName) throw Error("请填写测试项目名称");
       if (!["screen", "performance"].includes(category))
@@ -3522,7 +3605,7 @@
       if (edit.mode === "new-test") {
         test = { id: testId, name: testName, category };
         catalog.tests.push(test);
-      } else if (edit.mode === "edit") {
+      } else if (edit.mode === "edit" && !edit.metricOnly) {
         test.name = testName;
         test.category = category;
       }
@@ -3587,18 +3670,18 @@
         if (index < 0) catalog.definitions.push(definition);
         else catalog.definitions[index] = definition;
       }
-      if (edit.mode !== "new-metric")
+      if (edit.mode !== "new-metric" && !edit.metricOnly)
         test.primaryAbility = value("catalogPrimaryAbility");
-      if (edit.mode !== "new-metric" && !T.isNative(catalog, testId)) test.primaryMetricId = value("catalogPrimaryMetric") || catalog.definitions.find((d) => d.testId === testId && T.isAttemptMetric(d))?.id || "";
-      if (edit.mode !== "new-metric" && !T.isNative(catalog,testId) && $("catalogSelectionDirection")) {
+      if (edit.mode !== "new-metric" && !edit.metricOnly && !T.isNative(catalog, testId)) test.primaryMetricId = value("catalogPrimaryMetric") || catalog.definitions.find((d) => d.testId === testId && T.isAttemptMetric(d))?.id || "";
+      if (edit.mode !== "new-metric" && !edit.metricOnly && !T.isNative(catalog,testId) && $("catalogSelectionDirection")) {
         const direction=value("catalogSelectionDirection");
         if(!["higher","lower"].includes(direction))throw Error("请选择代表试次选择方式");
         test.selectionDirection=direction;
       }
-      catalog.definitions
-        .filter((d) => d.testId === testId)
-        .forEach((d) => (d.category = test.category));
-      catalog.protocol[testId] = protocol;
+      if (edit.mode === "new-test" || edit.projectOnly) {
+        catalog.definitions.filter(d => d.testId === testId).forEach(d => d.category = test.category);
+        catalog.protocol[testId] = protocol;
+      }
       if($("catalogProtocolVersion")){
         const version=Number(value("catalogProtocolVersion"));
         if(!Number.isSafeInteger(version)||version<1)throw Error("测试协议版本须为正整数");
@@ -3607,7 +3690,8 @@
       const canonical = M.normalizeCatalog(catalog);
       M.validateCatalog(canonical);
       edit.submitting = true;
-      form.querySelector('[type="submit"]').disabled = true;
+      edit.disabledControls = [...$("catalogModal").querySelectorAll("button,input,select,textarea")].map(node=>[node,node.disabled]);
+      edit.disabledControls.forEach(([node])=>node.disabled=true);
       canonical.tests.forEach(t=>{ const prior=catalog.tests.find(p=>p.id===t.id); if(prior?.disabled)t.disabled=true; });
       canonical.revision = (Number(catalog.revision) || 1) + 1;
       const expectedCatalog=JSON.stringify(previousCatalog);
@@ -3616,7 +3700,8 @@
         candidate.catalog=canonical;
       });
       committed = true;
-      close("catalogModal");
+      if (catalogEdit !== edit) throw Error("编辑会话已变化，请重新查看项目目录");
+      edit.submitting = false; edit.disabledControls.forEach(([node,disabled])=>node.disabled=disabled); close("catalogModal");
       renderSettings();
       const message = $("catalogMessage");
       if (message)
@@ -3626,6 +3711,7 @@
     } catch (error) {
       // Candidate changes are published only after the storage transaction commits.
       edit.submitting = false;
+      edit.disabledControls?.forEach(([node,disabled])=>node.disabled=disabled);
       form.querySelector('[type="submit"]').disabled = false;
       $("catalogError").textContent = error.message;
       $("catalogError").hidden = false;
@@ -3846,6 +3932,8 @@
       capabilities: s.axes.map((a) => ({
         ability: a.label,
         score: a.value,
+        scoreUnit: "分",
+        scoreRange: [0, 100],
         status: a.status,
         method: a.method,
         members: copy(a.members || []),
@@ -4738,7 +4826,16 @@
     getRepository: () => repository,
     async assignRecordProfile(id) { if (!state || !library.evaluationProfiles.some(p=>p.id===id)) return; state.evaluationProfileId=id;cancelJob();await persist();renderReport();renderEntry(); },
     viewEvaluation() { if(state) window.RingsideManagement.showEffective(effectiveRecord(),library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)); },
-    async restorePreviousLibrary() { await repository.restorePrevious();cancelJob();await loadDirectory(false);openManagement("athletes");renderReport();renderWorkspace(); },
+    async restorePreviousLibrary() {
+      if (Object.keys(draftsFor()).some(path => resolveDraftPath(path))) throw Error("请先修正当前标红输入，再恢复资料库");
+      return runLibraryTransfer(async () => {
+        saveEditor();
+        if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存，请保存后再恢复");
+        await entryPersistQueue; await repository.restorePrevious();
+        cancelJob(); await loadDirectory(false); ui.mode="management";
+        window.RingsideManagement.open("athletes"); renderReport(); renderWorkspace();
+      });
+    },
     downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
     refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
     saveNow: persist, prepareDesktopClose,
@@ -5423,7 +5520,8 @@
   window.addEventListener("beforeunload", (event) => {
     saveEditor();saveEntrySession();
     const pendingEmpty=entrySession&&state&&!entrySession.savedIds.has(state.recordId)&&!window.RingsideEntrySession.hasManualData(entrySession,state);
-    const unsaved=creation?.submitting||libraryTransferActive||storageFailed||entrySessionStorageFailed||saveTimer||pendingSaves||(!pendingEmpty&&state&&recordBaselines.get(state.recordId)!==recordContent(state));
+    const management = window.RingsideManagement.desktopCloseStatus?.() || {};
+    const unsaved=management.unsaved||management.busy||aiDirty||catalogEdit||unitChange||creation||libraryTransferActive||storageFailed||entrySessionStorageFailed||saveTimer||pendingSaves||(!pendingEmpty&&state&&recordBaselines.get(state.recordId)!==recordContent(state));
     if (unsaved) persist();
     if (job) job.controller.abort();
     if (unsaved) { event.preventDefault(); event.returnValue=""; }
@@ -5493,7 +5591,7 @@
       $("startupStatus").hidden=true;
       return true;
     } catch(error) {
-      $("startupStatus").textContent="无法打开资料库："+error.message+"。原始资料未删除，请导出旧资料或重新打开后重试。";
+      $("startupStatus").textContent="无法打开资料库："+error.message+"。请保留本机资料，导出可用备份或重新打开后重试。";
       $("startupStatus").classList.add("notice");
       const recoverButton=document.createElement("button");recoverButton.className="btn small";recoverButton.textContent="导出迁移前原始资料";recoverButton.onclick=App.downloadPreMigration;$("startupStatus").append(recoverButton);
       if(lastRestorePayload&&!lastRestorePayload.rawText)stageRecovery(lastRestorePayload,error,"startup");

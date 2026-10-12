@@ -169,7 +169,14 @@ test("all numerical measurements, scores and FVP response values match the publi
     if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, numbers(item)]).filter(([, item]) => item !== undefined));
     return undefined;
   }
-  const a = numbers(copy(previous.stats(copy(r)))), b = numbers(copy(M.stats(copy(r)))); assert.deepEqual(b, a);
+  const priorStats = copy(previous.stats(copy(r))), currentStats = copy(M.stats(copy(r)));
+  // 2.20 adds descriptive score metadata; the existing scientific values and
+  // scores still belong to the same independent numerical comparison.
+  const scoring = stats => stats.axes.map(({ key, value, scores, status, method, members }) => ({ key, value, scores, status, method, members }));
+  assert.deepEqual(scoring(currentStats), scoring(priorStats));
+  for (const axis of currentStats.axes) { assert.equal(axis.scoreUnit, "分"); assert.equal(axis.scoreMax, 100); }
+  const scientific = stats => { for (const axis of stats.axes) { delete axis.scoreMax; delete axis.transforms; } return numbers(stats); };
+  const a = scientific(priorStats), b = scientific(currentStats); assert.deepEqual(b, a);
   evidence.push({ scientificBaseline: "v2.19.0", numericalProjectionEqual: true });
 });
 

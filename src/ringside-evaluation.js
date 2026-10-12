@@ -94,7 +94,7 @@
           else if (["referenceMode", "referenceGroups"].includes(key)) delete d[key];
         }
         delete d.referenceMatch;
-        if (Array.isArray(rule.referenceGroups)) {
+        if (Array.isArray(rule.referenceGroups) && rule.referenceGroups.length) {
           const match = root.RingsideEvaluation.matchReferenceGroup?.(record, rule.referenceGroups, d.testId) || root.RingsideReferences?.matchReferenceGroup(record, rule.referenceGroups) || {group:null,eligible:false,reason:"未加载分层参考标准"};
           d.ranges = match.eligible ? clone(match.group.ranges) : [];
           // Target selection is independent of a literature table's RER eligibility.
@@ -327,7 +327,7 @@
       if (axis.method === "min") aggregations[T.axisKey(ability)] = { method: "disabled", migrationIssue: "原最低达成汇总已停用，请选择代表指标或明确计分后平均", legacy: clone(axis) };
       else if (axis.method === "mean") aggregations[T.axisKey(ability)] = Array.isArray(axis.members) && axis.transforms ? clone(axis) : { method: "mean", members: (c.definitions || []).filter(d => d.ability === ability && d.category === "performance" && d.scoring !== false && d.referenceEnabled && number(d.target) > 0).map(d => "metric:" + d.id), transforms: {}, migrationIssue: "请为已固定的参与指标设置计分规则", legacy: clone(axis) };
       else if (axis.method === "disabled") aggregations[T.axisKey(ability)] = clone(axis);
-      else aggregations[T.axisKey(ability)] = { method: "primary", primary: axis.primary ? (String(axis.primary).includes(":") ? axis.primary : "metric:" + axis.primary) : "" };
+      else aggregations[T.axisKey(ability)] = { ...clone(axis), method: "primary", primary: axis.primary ? (String(axis.primary).includes(":") ? axis.primary : "metric:" + axis.primary) : "" };
     }
     // Freeze the previous deterministic representative choice instead of making it depend on available data.
     const definitionOrder = [...record.definitions.map(d => (c.definitions || []).find(item => item.id === d.id)).filter(Boolean), ...(c.definitions || []).filter(d => !record.definitions.some(item => item.id === d.id))];
@@ -507,8 +507,12 @@
     }
     for (const axis of Object.values(p.aggregations)) {
       if (!["primary", "mean", "disabled"].includes(axis.method)) throw Error("能力展示方式无效");
+      if (axis.scoringVersion !== undefined && axis.scoringVersion !== 1) throw Error("能力计分版本无效");
       if (axis.method === "disabled") continue;
-      if (axis.method === "primary" && (typeof axis.primary !== "string" || !axis.primary)) throw Error("请选择代表指标");
+      if (axis.method === "primary") {
+        if (typeof axis.primary !== "string" || !axis.primary) throw Error("请选择代表指标");
+        if (axis.scoringVersion === 1 && Object.hasOwn(axis.transforms || {}, axis.primary)) root.RingsideScoring.validateTransform(axis.transforms[axis.primary]);
+      }
       if (axis.method === "mean") {
         const pending = axis.migrationIssue && axis.legacy?.method === "mean";
         if (!Array.isArray(axis.members) || !axis.members.length && !pending || new Set(axis.members).size !== axis.members.length || !axis.transforms) throw Error("请选择不重复的固定平均成员");

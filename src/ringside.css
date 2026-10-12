@@ -781,6 +781,11 @@ section {
   color: var(--muted);
   font-weight: 400;
 }
+.catalog-edit-section { margin:18px 0; padding:18px; border:1px solid var(--line); border-radius:10px; min-width:0; }
+.catalog-edit-section legend { padding:0 6px; font-size:14px; font-weight:600; color:var(--ink); }
+.catalog-change-preview { margin-top:18px; padding:16px; border-radius:10px; background:var(--surface-soft); }
+.catalog-change-preview h3 { font-size:14px; margin:0 0 10px; }
+.catalog-change-preview ul { padding-left:20px; margin:0 0 12px; overflow-wrap:anywhere; }
 .quality-group {
   padding: 24px;
   border-top: 1px solid var(--line);

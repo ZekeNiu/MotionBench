@@ -1,26 +1,24 @@
 /* Report content follows the selected test snapshot. */
 .capability-analysis-region { margin:0; }
 .capability-plot-region { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); margin:24px 0; overflow:hidden; }
-.capability-region-heading { display:flex; align-items:center; gap:12px; padding:16px 20px; background:#f7f9fc; font-size:17px; font-weight:600; color:#45546a; }
 .capability-plot-region > .quality-group { border-top:0; }
 .ringside-pdf-source .capability-plot-region { border:0!important; margin:0!important; box-shadow:none!important; overflow:visible!important; }
-@media (max-width:600px) { .capability-region-heading { padding:14px; font-size:16px; } }
 @media print { .capability-plot-region { border:0; } }
 /* Ability bands and action cards keep the existing report levels distinct. */
-.details-group > .quality-group { border-top:0; padding:20px 24px 24px; }
-.quality-heading { margin:0 0 14px; padding:9px 12px; border:0; border-radius:6px; background:var(--surface-soft); }
-.quality-heading h3 { margin:0; font-size:16px; font-weight:600; line-height:1.5; }
-.test-block,.lvp-card,.capability-analysis-region .fvp-analysis-card { padding:20px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:0 6px 18px #1f2c3c0a,0 1px 3px #1f2c3c04; }
+.details-group > .quality-group,.capability-analysis-region > .quality-group { border-top:0; padding:20px 24px 24px; }
+.quality-heading { margin:0 0 14px; padding:9px 12px; border:0; border-radius:6px; background:#f7f9fc; }
+.quality-heading h3 { margin:0; font-size:16px; font-weight:600; line-height:1.5; color:#45546a; }
+.test-block,.lvp-card,.capability-direction-card,.capability-analysis-region .fvp-analysis-card { padding:20px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:0 6px 18px #1f2c3c0a,0 1px 3px #1f2c3c04; }
 .test-block { margin:14px 0 18px; }
 .test-title { margin-bottom:14px; }
-.test-title h4 { margin:0; font-size:15px; font-weight:600; line-height:1.5; color:var(--ink); }
+.test-title h4,.capability-card-summary > h4 { margin:0; font-size:15px; font-weight:600; line-height:1.5; color:var(--ink); }
 .test-title p { margin:4px 0 0; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
 @media (max-width:600px) {
-  .details-group > .quality-group { padding:16px 12px; }
+  .details-group > .quality-group,.capability-analysis-region > .quality-group { padding:16px 12px; }
   .quality-heading { padding:8px 10px; }
-  .test-block,.lvp-card,.capability-analysis-region .fvp-analysis-card { padding:14px; }
+  .test-block,.lvp-card,.capability-direction-card,.capability-analysis-region .fvp-analysis-card { padding:14px; }
 }
-@media print { .test-block,.lvp-card,.capability-analysis-region .fvp-analysis-card { box-shadow:none; } }
+@media print { .test-block,.lvp-card,.capability-direction-card,.capability-analysis-region .fvp-analysis-card { box-shadow:none; } }
 .jump-detail .chart-wrap { width:100%; margin-inline:auto; }
 .jump-detail .detail-data { min-width:0; }
 .jump-detail table { table-layout:auto; }
@@ -77,9 +75,8 @@
 .capability-directions,.capability-parameter-column,.capability-parameter-groups { min-width:0; }
 .capability-parameter-column { container-type:inline-size; }
 .capability-direction-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; align-items:start; }
-.capability-direction-card { min-width:0; padding:16px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); }
+.capability-direction-card { min-width:0; }
 .capability-card-summary { min-width:0; display:flex; flex-direction:column; gap:8px; }
-.capability-card-summary h3 { margin:0; font-size:14px; font-weight:600; line-height:1.5; }
 .capability-card-summary > section { min-width:0; margin:0; flex:1; }
 .capability-selector { display:grid; gap:5px; margin:4px 0 0; color:var(--muted); font-size:12px; }
 .capability-selector select { width:100%; min-width:0; min-height:36px; padding:6px 8px; font:inherit; color:var(--ink); }
@@ -91,7 +88,7 @@
 .capability-direction-judgment.red,.capability-direction-judgment.amber { color:var(--ink); }
 .capability-parameter-groups { display:grid; grid-template-columns:minmax(0,1fr); gap:15px; align-items:start; }
 .capability-parameter-group { min-width:0; margin:0; padding:13px 16px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); }
-.capability-parameter-group h3 { margin:0 0 8px; font-size:13px; font-weight:600; line-height:1.6; }
+.capability-parameter-group h5 { margin:0 0 8px; font-size:13px; font-weight:600; line-height:1.6; }
 .capability-parameter-conclusion { margin:0 0 8px; color:var(--muted); font-size:11px; line-height:1.7; }
 .capability-parameter-table { width:100%; table-layout:fixed; font-size:11px; }
 .capability-parameter-table th:first-child { width:43%; }
@@ -101,13 +98,16 @@
 .capability-parameter-judgment,.capability-parameter-target { margin:4px 0 0; font-size:10px; line-height:1.7; }
 .capability-parameter-target { color:var(--muted); }
 .capability-parameter-notes { margin:5px 0 0; font-size:10px; line-height:1.7; }
-.capability-parameter-notes > summary { cursor:pointer; color:var(--muted); }
+.capability-parameter-notes > summary { display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--muted); list-style:none; }
+.capability-parameter-notes > summary::after { content:"+"; }
+.capability-parameter-notes[open] > summary::after { content:"−"; }
 .capability-parameter-components { display:grid; gap:5px; margin:7px 0 0; }
 .capability-parameter-components > div { min-width:0; }
 .capability-parameter-components dt { color:var(--muted); font-size:10px; }
 .capability-parameter-components dd { margin:0; color:var(--ink); font-variant-numeric:tabular-nums; }
 .capability-parameter-group .capability-targets { font-size:10px; }
-.capability-analysis-region > .quality-group { display:grid; gap:20px; padding:20px 0 0; container-type:inline-size; }
+.capability-analysis-region > .quality-group { container-type:inline-size; }
+.capability-analysis-content { display:grid; gap:20px; }
 .capability-card-parameters { margin-top:10px; border-top:1px solid var(--line); }
 .capability-card-parameters > summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:36px; padding:8px 0 0; color:var(--ink); font-size:12px; cursor:pointer; list-style:none; }
 .capability-card-parameters > summary::-webkit-details-marker { display:none; }
@@ -116,7 +116,7 @@
 .capability-card-parameters > summary small { margin-left:auto; color:var(--muted); font-size:12px; }
 .capability-card-parameters > summary:focus-visible { outline:2px solid var(--blue); outline-offset:4px; border-radius:4px; }
 .capability-card-parameters .capability-parameter-group { margin-top:12px; padding:0; border:0; border-radius:0; box-shadow:none; }
-.capability-card-parameters .capability-parameter-heading h3 { font-size:12px; margin-bottom:7px; }
+.capability-card-parameters .capability-parameter-heading h5 { font-size:12px; margin-bottom:7px; }
 .capability-card-parameters .capability-parameter-table { font-size:12px; }
 .capability-card-parameters .capability-parameter-table th:first-child { width:39%; }
 .capability-card-parameters .capability-value { font-size:17px; }
@@ -139,7 +139,7 @@
 }
 @media (max-width:600px) {
   .capability-parameter-groups { grid-template-columns:minmax(0,1fr); gap:12px; }
-  .capability-direction-card,.capability-parameter-group { padding:16px; }
+  .capability-parameter-group { padding:16px; }
   .capability-selector select { min-height:44px; }
   .capability-parameter-table,.capability-parameter-table thead,.capability-parameter-table tbody,.capability-parameter-table tr { display:table; width:100%; }
   .capability-parameter-table thead { display:table-header-group; }
@@ -154,7 +154,7 @@
 .ringside-pdf-document .capability-direction-card { padding:12px!important; border-radius:8px!important; }
 .ringside-pdf-document .capability-card-summary { gap:6px!important; }
 .ringside-pdf-document .capability-card-summary > section { margin:0!important; }
-.ringside-pdf-document .capability-card-summary h3 { font-size:12px!important; margin:0!important; }
+.ringside-pdf-document .capability-card-summary h4 { font-size:15px!important; margin:0!important; }
 .ringside-pdf-document .capability-direction-basis { font-size:10px!important; }
 .ringside-pdf-document .capability-direction-value { font-size:20px!important; }
 .ringside-pdf-document .capability-direction-value small { font-size:10px!important; }
@@ -162,7 +162,7 @@
 .ringside-pdf-document .capability-direction-judgment { margin:0 0 6px!important; padding:0!important; border:0!important; font-size:12px!important; font-weight:600!important; line-height:1.5!important; }
 .ringside-pdf-document .capability-parameter-groups { display:grid!important; grid-template-columns:minmax(0,1fr)!important; gap:10px!important; }
 .ringside-pdf-document .capability-parameter-group { margin:0!important; padding:10px 12px!important; border-radius:8px!important; }
-.ringside-pdf-document .capability-parameter-group h3 { font-size:11px!important; }
+.ringside-pdf-document .capability-parameter-group h5 { font-size:11px!important; }
 .ringside-pdf-document .capability-parameter-table { font-size:9px!important; }
 .ringside-pdf-document .capability-parameter-table th,.ringside-pdf-document .capability-parameter-table td { padding:5px 6px!important; }
 .ringside-pdf-document .capability-parameter-table .capability-value { font-size:13px!important; }
@@ -226,7 +226,11 @@
 }
 /* Fixed-member score composition belongs to the capability card. */
 #abilityScoreDetails:not(:empty){padding:18px 20px;border-top:1px solid var(--line)}
-.ability-score-details>summary{cursor:pointer;color:var(--muted);font-size:12px;font-weight:600}
+.ability-score-details>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;list-style:none}
+.ability-score-details>summary::after{content:"+"}
+.ability-score-details[open]>summary::after{content:"−"}
+.ability-score-details>summary::-webkit-details-marker,.capability-parameter-notes>summary::-webkit-details-marker{display:none}
+.ringside-pdf-document .ability-score-details>summary::after,.ringside-pdf-document .capability-parameter-notes>summary::after{content:none!important}
 .ability-score-details section{margin-top:20px}
 .ability-score-details h4{margin:0 0 12px;font-size:14px}
 .ability-score-details .note{margin:10px 0 0}

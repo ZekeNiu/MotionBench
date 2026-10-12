@@ -357,9 +357,9 @@ async function verifySaveFailureGuard(page) {
   const before = recordSubset(await page.evaluate(() => App.getState()));
   const checked = await page.evaluate(async () => {
     if (!await App.saveNow()) throw Error("initial verification save failed");
-    const repository = App.getRepository(), original = repository.save.bind(repository);
+    const repository = App.getRepository(), original = repository.saveRecords.bind(repository);
     let attempts = 0;
-    repository.save = (...args) => {
+    repository.saveRecords = (...args) => {
       attempts++;
       return attempts === 1 ? Promise.reject(Error("Synthetic one-time desktop save failure")) : original(...args);
     };
@@ -368,7 +368,7 @@ async function verifySaveFailureGuard(page) {
       const retried = await App.prepareDesktopClose();
       const stored = await repository.loadRecord(App.getState().recordId);
       return { rejected, retried, attempts, stored };
-    } finally { repository.save = original; }
+    } finally { repository.saveRecords = original; }
   });
   assert.equal(checked.rejected.ok, false, "a rejected durable write prevents native exit");
   assert.match(checked.rejected.reason, /保存/);

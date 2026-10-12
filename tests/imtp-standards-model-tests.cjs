@@ -168,7 +168,7 @@ test("test-plan snapshots normalize without mutating history and validate stable
 });
 test("a shared custom scalar enable switch gates interval and target grades without deleting either setting", () => {
   const r = record(); r.enabled.imtp = false; r.customTests.push({ id: "gate_scalar", name: "自定义测试", category: "performance" }); r.enabled.gate_scalar = true;
-  r.definitions.push({ id: "gate_value", testId: "gate_scalar", name: "数值", category: "performance", ability: "自定义能力", direction: "higher", unit: "次", target: 90, referenceEnabled: true, ranges: D.parseRanges("<60 | 预警 | red\n>=60 | 达标 | green"), source: "配置测试", protocol: "" });
+  r.definitions.push({ id: "gate_value", testId: "gate_scalar", name: "数值", category: "performance", ability: "自定义能力", direction: "higher", unit: "次", target: 90, referenceEnabled: true, ranges: D.parseRanges("<60 | 预警 | red\n>=60 | 达标 | green"), source: "配置测试", protocol: "", ratioEligible: true });
   r.customValues.gate_value = { value: 70 }; const p = E.create(r), cfg = p.criteria.definitions.find(d => d.id === "gate_value");
   let rr = E.resolve(r, p), d = rr.definitions.find(d => d.id === cfg.id), s = M.stats(rr); assert.equal(M.evaluation(70, d, rr).status, "green"); near(M.attainment(70, d), 70 / 90 * 100); assert.equal(s.axes[0].status, "green");
   cfg.referenceEnabled = false; const settings = copy(cfg); rr = E.resolve(r, p); d = rr.definitions.find(d => d.id === cfg.id); s = M.stats(rr);
@@ -194,6 +194,7 @@ test("legacy IMTP disabled time targets keep the table and ability radar consist
 
 test("new percent of peak force standards retain their strict enable guard and physical percentages", () => {
   const r = record(); r.data.imtp = [trial("a", 1000, 450, "", 100)]; const cfg = rule(r, "force_pct_peak", 100), p = profile(r, [cfg]);
+  p.criteria.axes["ability:早期发力"] = { method: "primary", primary: "imtp-time:force_pct_peak:100" };
   let rr = E.resolve(r, p), s = M.stats(rr); assert.equal(s.raw.forceTime.timeRows[0].forceEvaluation.status, "red"); assert.equal(s.axes.find(a => a.key === "早期发力").status, "red");
   cfg.referenceEnabled = false; rr = E.resolve(r, p); s = M.stats(rr); const row = s.raw.forceTime.timeRows[0]; assert.equal(row.forceEvaluation.status, "gray"); assert.equal(row.forcePercent, 45); assert.equal(row.force, 450); assert.equal(M.evaluation(45, row.forceStandard, rr).status, "gray"); assert.equal(M.attainment(45, row.forceStandard), null); assert.equal(s.axes.some(a => a.key === "早期发力"), false); assert.equal(cfg.target, 90);
   cfg.referenceEnabled = true; s = M.stats(E.resolve(r, p)); assert.equal(s.raw.forceTime.timeRows[0].forceEvaluation.status, "red"); near(s.axes.find(a => a.key === "早期发力").value, 50);

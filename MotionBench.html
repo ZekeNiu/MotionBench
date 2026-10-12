@@ -796,6 +796,11 @@ section {
   color: var(--muted);
   font-weight: 400;
 }
+.catalog-edit-section { margin:18px 0; padding:18px; border:1px solid var(--line); border-radius:10px; min-width:0; }
+.catalog-edit-section legend { padding:0 6px; font-size:14px; font-weight:600; color:var(--ink); }
+.catalog-change-preview { margin-top:18px; padding:16px; border-radius:10px; background:var(--surface-soft); }
+.catalog-change-preview h3 { font-size:14px; margin:0 0 10px; }
+.catalog-change-preview ul { padding-left:20px; margin:0 0 12px; overflow-wrap:anywhere; }
 .quality-group {
   padding: 24px;
   border-top: 1px solid var(--line);
@@ -3156,6 +3161,67 @@ body.sidebar-collapsed .workspace {
 .score-preview{display:flex;flex-wrap:wrap;align-items:center;gap:18px;padding:14px 16px;background:#edf4f8;border-radius:8px;margin-top:18px}
 .score-preview .field{max-width:190px;margin:0}
 .score-preview output{font-size:13px;color:#34536c}
+.profile-editor-header{position:sticky;top:var(--management-topbar-height,64px);z-index:5;background:var(--bg);padding:14px 0;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.profile-editor-header>.field{margin:0;min-width:180px;max-width:380px}
+.profile-edit-status{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.profile-edit-status b{color:var(--blue);font-weight:600}
+.profile-editor-header>.row{gap:8px;flex-wrap:wrap}
+.profile-workspace-nav [aria-current=page]:hover:not(:disabled),.profile-workspace-nav [aria-current=page]:focus-visible{background:var(--blue-hover);color:#fff;border-color:var(--blue-hover)}
+.ability-config-workspace{display:grid;grid-template-columns:minmax(170px,220px) minmax(0,1fr);gap:22px;align-items:start}
+.ability-index{position:sticky;top:calc(var(--management-topbar-height,64px) + var(--management-editor-height,100px) + 12px);max-height:calc(100vh - var(--management-topbar-height,64px) - var(--management-editor-height,100px) - 32px);overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#eef3f7}
+.ability-index>.btn{display:block;flex-shrink:0;white-space:normal;text-align:left;padding:13px 12px;background:transparent;border-color:transparent}
+.profile-result-list{top:calc(var(--management-topbar-height,64px) + var(--management-editor-height,100px) + 12px)}
+.profile-result-list>.btn{flex-shrink:0}
+.ability-index small{display:block;margin-top:5px;color:var(--muted);font-size:11px;font-weight:400}
+.ability-index>[aria-current=true],.ability-index>[aria-current=true]:hover:not(:disabled){background:#fff;border-color:#c1d2df;color:#1e4d70}
+.ability-mobile-select{display:none}
+.ability-config{min-width:0;padding:24px;background:#fff;border:1px solid var(--line);border-radius:12px}
+.ability-config>h2{font-size:20px;margin:0 0 20px}
+.ability-config>.field{max-width:500px}
+.aggregation-members{max-height:300px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.score-member-index{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0 8px}
+.score-member-index [aria-current=true],.score-member-index [aria-current=true]:hover:not(:disabled){background:var(--blue-soft);border-color:#a6bdce;color:var(--blue)}
+.ability-grade{margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+.ability-grade>h3{font-size:15px;margin:0}
+.record-preview>.field{max-width:700px}
+.preview-radar{max-width:560px;margin:20px auto}
+.preview-comparison{min-width:0}
+.preview-comparison>h3{margin:26px 0 14px;font-size:17px}
+.preview-table{table-layout:fixed}
+.preview-table th:first-child,.preview-table td:first-child{width:auto}
+.preview-table td{overflow-wrap:anywhere}
+.catalog-filters{grid-template-columns:minmax(200px,2fr) minmax(160px,1fr) minmax(130px,.8fr)}
+.catalog-workspace{display:grid;grid-template-columns:minmax(220px,290px) minmax(0,1fr);gap:22px;align-items:start}
+.catalog-index{max-height:calc(100vh - var(--management-topbar-height,64px) - 32px);overflow-y:auto;overscroll-behavior:contain;padding:5px 8px 18px 0;position:sticky;top:calc(var(--management-topbar-height,64px) + 12px)}
+.catalog-index-group{margin:0 0 22px}
+.catalog-index-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.catalog-index-heading h2{font-size:14px;margin:0;font-weight:650}
+.catalog-index-heading summary{font-size:11px}
+.catalog-index-item{margin:8px 0}
+.catalog-index-item>.btn{display:block;width:100%;text-align:left;white-space:normal;padding:12px 13px;background:#fff;border-color:#dde5eb}
+.catalog-index-item small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:5px}
+.catalog-index-item>[aria-current=true],.catalog-index-item>[aria-current=true]:hover:not(:disabled){background:var(--blue-soft);color:var(--blue);border-color:#a6bdce}
+.catalog-search-hits{display:grid;gap:5px;margin:5px 0 12px 10px}
+.catalog-search-hits>.btn{white-space:normal;text-align:left;font-size:11px;background:var(--surface-soft);padding:7px 9px}
+.catalog-search-hits>[aria-current=true]{border-color:var(--blue)}
+.catalog-detail{min-width:0}
+.catalog-detail-empty{border:1px dashed #cbd7e1;border-radius:12px;background:#fff;padding:40px 28px;color:var(--muted)}
+.catalog-detail-empty h2{font-size:20px;color:var(--ink);margin-top:0}
+.catalog-detail-back{display:none}
+.catalog-metric-selected td{background:#edf4f9!important}
+.catalog-project-detail .catalog-results{table-layout:fixed}
+.catalog-project-detail .catalog-results th:first-child,.catalog-project-detail .catalog-results td:first-child{width:29%}
+.catalog-project-detail .catalog-results td{overflow-wrap:anywhere}
+.catalog-project-detail .catalog-results td:last-child .btn{margin:3px 0}
+.catalog-project-detail .catalog-results td small{font-size:11px}
+@media(max-width:1100px) and (min-width:701px){.catalog-workspace{grid-template-columns:230px minmax(0,1fr);gap:14px}.catalog-project-detail{padding:20px 17px}.ability-config-workspace{grid-template-columns:185px minmax(0,1fr);gap:14px}.ability-config{padding:19px}}
+@media(max-width:700px){
+ .profile-editor-header{gap:12px;padding:12px 0}.profile-editor-header>.field{flex-basis:100%;max-width:none}.profile-edit-status{flex-direction:row;flex-wrap:wrap;gap:5px 12px}.profile-editor-header>.row{width:100%}
+ .profile-workspace-nav{gap:6px;padding:14px 0}.profile-workspace-nav>.btn{flex:1;font-size:12px;padding:9px 6px}
+ .ability-mobile-select{display:block}.ability-index{display:none}.ability-config-workspace{grid-template-columns:1fr}.ability-config{padding:18px 14px}.score-member-index>.btn{white-space:normal}.aggregation-members{grid-template-columns:1fr;max-height:260px}
+ .catalog-filters{grid-template-columns:1fr 1fr}.catalog-filters>.field:first-child{grid-column:1/-1}.catalog-workspace{grid-template-columns:1fr}.catalog-index{position:static;max-height:none;padding:0}.catalog-detail-empty{display:none}.catalog-workspace.has-project>.catalog-index{display:none}.catalog-detail-back{display:block;margin-bottom:15px}
+ .catalog-project-detail .catalog-results,.preview-table{table-layout:auto}.catalog-project-detail .catalog-results td:first-child{width:auto}.preview-table td{grid-template-columns:86px minmax(0,1fr)}
+}
 @media(max-width:1000px){.profile-project-workspace{grid-template-columns:190px minmax(0,1fr);gap:14px}.profile-standard-detail{padding:18px}.structured-ranges .management-table{min-width:500px}}
 @media(max-width:700px){
  .manager-filter-shell{padding:14px}.management-primary-filters{grid-template-columns:1fr 1fr}.management-advanced>.management-filters{grid-template-columns:1fr 1fr}
@@ -3177,26 +3243,24 @@ body.sidebar-collapsed .workspace {
 /* Report content follows the selected test snapshot. */
 .capability-analysis-region { margin:0; }
 .capability-plot-region { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); margin:24px 0; overflow:hidden; }
-.capability-region-heading { display:flex; align-items:center; gap:12px; padding:16px 20px; background:#f7f9fc; font-size:17px; font-weight:600; color:#45546a; }
 .capability-plot-region > .quality-group { border-top:0; }
 .ringside-pdf-source .capability-plot-region { border:0!important; margin:0!important; box-shadow:none!important; overflow:visible!important; }
-@media (max-width:600px) { .capability-region-heading { padding:14px; font-size:16px; } }
 @media print { .capability-plot-region { border:0; } }
 /* Ability bands and action cards keep the existing report levels distinct. */
-.details-group > .quality-group { border-top:0; padding:20px 24px 24px; }
-.quality-heading { margin:0 0 14px; padding:9px 12px; border:0; border-radius:6px; background:var(--surface-soft); }
-.quality-heading h3 { margin:0; font-size:16px; font-weight:600; line-height:1.5; }
-.test-block,.lvp-card,.capability-analysis-region .fvp-analysis-card { padding:20px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:0 6px 18px #1f2c3c0a,0 1px 3px #1f2c3c04; }
+.details-group > .quality-group,.capability-analysis-region > .quality-group { border-top:0; padding:20px 24px 24px; }
+.quality-heading { margin:0 0 14px; padding:9px 12px; border:0; border-radius:6px; background:#f7f9fc; }
+.quality-heading h3 { margin:0; font-size:16px; font-weight:600; line-height:1.5; color:#45546a; }
+.test-block,.lvp-card,.capability-direction-card,.capability-analysis-region .fvp-analysis-card { padding:20px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:0 6px 18px #1f2c3c0a,0 1px 3px #1f2c3c04; }
 .test-block { margin:14px 0 18px; }
 .test-title { margin-bottom:14px; }
-.test-title h4 { margin:0; font-size:15px; font-weight:600; line-height:1.5; color:var(--ink); }
+.test-title h4,.capability-card-summary > h4 { margin:0; font-size:15px; font-weight:600; line-height:1.5; color:var(--ink); }
 .test-title p { margin:4px 0 0; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
 @media (max-width:600px) {
-  .details-group > .quality-group { padding:16px 12px; }
+  .details-group > .quality-group,.capability-analysis-region > .quality-group { padding:16px 12px; }
   .quality-heading { padding:8px 10px; }
-  .test-block,.lvp-card,.capability-analysis-region .fvp-analysis-card { padding:14px; }
+  .test-block,.lvp-card,.capability-direction-card,.capability-analysis-region .fvp-analysis-card { padding:14px; }
 }
-@media print { .test-block,.lvp-card,.capability-analysis-region .fvp-analysis-card { box-shadow:none; } }
+@media print { .test-block,.lvp-card,.capability-direction-card,.capability-analysis-region .fvp-analysis-card { box-shadow:none; } }
 .jump-detail .chart-wrap { width:100%; margin-inline:auto; }
 .jump-detail .detail-data { min-width:0; }
 .jump-detail table { table-layout:auto; }
@@ -3253,9 +3317,8 @@ body.sidebar-collapsed .workspace {
 .capability-directions,.capability-parameter-column,.capability-parameter-groups { min-width:0; }
 .capability-parameter-column { container-type:inline-size; }
 .capability-direction-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; align-items:start; }
-.capability-direction-card { min-width:0; padding:16px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); }
+.capability-direction-card { min-width:0; }
 .capability-card-summary { min-width:0; display:flex; flex-direction:column; gap:8px; }
-.capability-card-summary h3 { margin:0; font-size:14px; font-weight:600; line-height:1.5; }
 .capability-card-summary > section { min-width:0; margin:0; flex:1; }
 .capability-selector { display:grid; gap:5px; margin:4px 0 0; color:var(--muted); font-size:12px; }
 .capability-selector select { width:100%; min-width:0; min-height:36px; padding:6px 8px; font:inherit; color:var(--ink); }
@@ -3267,7 +3330,7 @@ body.sidebar-collapsed .workspace {
 .capability-direction-judgment.red,.capability-direction-judgment.amber { color:var(--ink); }
 .capability-parameter-groups { display:grid; grid-template-columns:minmax(0,1fr); gap:15px; align-items:start; }
 .capability-parameter-group { min-width:0; margin:0; padding:13px 16px; border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); }
-.capability-parameter-group h3 { margin:0 0 8px; font-size:13px; font-weight:600; line-height:1.6; }
+.capability-parameter-group h5 { margin:0 0 8px; font-size:13px; font-weight:600; line-height:1.6; }
 .capability-parameter-conclusion { margin:0 0 8px; color:var(--muted); font-size:11px; line-height:1.7; }
 .capability-parameter-table { width:100%; table-layout:fixed; font-size:11px; }
 .capability-parameter-table th:first-child { width:43%; }
@@ -3277,13 +3340,16 @@ body.sidebar-collapsed .workspace {
 .capability-parameter-judgment,.capability-parameter-target { margin:4px 0 0; font-size:10px; line-height:1.7; }
 .capability-parameter-target { color:var(--muted); }
 .capability-parameter-notes { margin:5px 0 0; font-size:10px; line-height:1.7; }
-.capability-parameter-notes > summary { cursor:pointer; color:var(--muted); }
+.capability-parameter-notes > summary { display:flex; align-items:center; gap:6px; cursor:pointer; color:var(--muted); list-style:none; }
+.capability-parameter-notes > summary::after { content:"+"; }
+.capability-parameter-notes[open] > summary::after { content:"−"; }
 .capability-parameter-components { display:grid; gap:5px; margin:7px 0 0; }
 .capability-parameter-components > div { min-width:0; }
 .capability-parameter-components dt { color:var(--muted); font-size:10px; }
 .capability-parameter-components dd { margin:0; color:var(--ink); font-variant-numeric:tabular-nums; }
 .capability-parameter-group .capability-targets { font-size:10px; }
-.capability-analysis-region > .quality-group { display:grid; gap:20px; padding:20px 0 0; container-type:inline-size; }
+.capability-analysis-region > .quality-group { container-type:inline-size; }
+.capability-analysis-content { display:grid; gap:20px; }
 .capability-card-parameters { margin-top:10px; border-top:1px solid var(--line); }
 .capability-card-parameters > summary { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:36px; padding:8px 0 0; color:var(--ink); font-size:12px; cursor:pointer; list-style:none; }
 .capability-card-parameters > summary::-webkit-details-marker { display:none; }
@@ -3292,7 +3358,7 @@ body.sidebar-collapsed .workspace {
 .capability-card-parameters > summary small { margin-left:auto; color:var(--muted); font-size:12px; }
 .capability-card-parameters > summary:focus-visible { outline:2px solid var(--blue); outline-offset:4px; border-radius:4px; }
 .capability-card-parameters .capability-parameter-group { margin-top:12px; padding:0; border:0; border-radius:0; box-shadow:none; }
-.capability-card-parameters .capability-parameter-heading h3 { font-size:12px; margin-bottom:7px; }
+.capability-card-parameters .capability-parameter-heading h5 { font-size:12px; margin-bottom:7px; }
 .capability-card-parameters .capability-parameter-table { font-size:12px; }
 .capability-card-parameters .capability-parameter-table th:first-child { width:39%; }
 .capability-card-parameters .capability-value { font-size:17px; }
@@ -3315,7 +3381,7 @@ body.sidebar-collapsed .workspace {
 }
 @media (max-width:600px) {
   .capability-parameter-groups { grid-template-columns:minmax(0,1fr); gap:12px; }
-  .capability-direction-card,.capability-parameter-group { padding:16px; }
+  .capability-parameter-group { padding:16px; }
   .capability-selector select { min-height:44px; }
   .capability-parameter-table,.capability-parameter-table thead,.capability-parameter-table tbody,.capability-parameter-table tr { display:table; width:100%; }
   .capability-parameter-table thead { display:table-header-group; }
@@ -3330,7 +3396,7 @@ body.sidebar-collapsed .workspace {
 .ringside-pdf-document .capability-direction-card { padding:12px!important; border-radius:8px!important; }
 .ringside-pdf-document .capability-card-summary { gap:6px!important; }
 .ringside-pdf-document .capability-card-summary > section { margin:0!important; }
-.ringside-pdf-document .capability-card-summary h3 { font-size:12px!important; margin:0!important; }
+.ringside-pdf-document .capability-card-summary h4 { font-size:15px!important; margin:0!important; }
 .ringside-pdf-document .capability-direction-basis { font-size:10px!important; }
 .ringside-pdf-document .capability-direction-value { font-size:20px!important; }
 .ringside-pdf-document .capability-direction-value small { font-size:10px!important; }
@@ -3338,7 +3404,7 @@ body.sidebar-collapsed .workspace {
 .ringside-pdf-document .capability-direction-judgment { margin:0 0 6px!important; padding:0!important; border:0!important; font-size:12px!important; font-weight:600!important; line-height:1.5!important; }
 .ringside-pdf-document .capability-parameter-groups { display:grid!important; grid-template-columns:minmax(0,1fr)!important; gap:10px!important; }
 .ringside-pdf-document .capability-parameter-group { margin:0!important; padding:10px 12px!important; border-radius:8px!important; }
-.ringside-pdf-document .capability-parameter-group h3 { font-size:11px!important; }
+.ringside-pdf-document .capability-parameter-group h5 { font-size:11px!important; }
 .ringside-pdf-document .capability-parameter-table { font-size:9px!important; }
 .ringside-pdf-document .capability-parameter-table th,.ringside-pdf-document .capability-parameter-table td { padding:5px 6px!important; }
 .ringside-pdf-document .capability-parameter-table .capability-value { font-size:13px!important; }
@@ -3402,7 +3468,11 @@ body.sidebar-collapsed .workspace {
 }
 /* Fixed-member score composition belongs to the capability card. */
 #abilityScoreDetails:not(:empty){padding:18px 20px;border-top:1px solid var(--line)}
-.ability-score-details>summary{cursor:pointer;color:var(--muted);font-size:12px;font-weight:600}
+.ability-score-details>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;list-style:none}
+.ability-score-details>summary::after{content:"+"}
+.ability-score-details[open]>summary::after{content:"−"}
+.ability-score-details>summary::-webkit-details-marker,.capability-parameter-notes>summary::-webkit-details-marker{display:none}
+.ringside-pdf-document .ability-score-details>summary::after,.ringside-pdf-document .capability-parameter-notes>summary::after{content:none!important}
 .ability-score-details section{margin-top:20px}
 .ability-score-details h4{margin:0 0 12px;font-size:14px}
 .ability-score-details .note{margin:10px 0 0}
@@ -3585,7 +3655,7 @@ body.sidebar-collapsed .workspace {
           <button data-workspace-nav="athletes" onclick="App.openManagement('athletes')">运动员管理</button>
           <span class="nav-label">测试配置</span>
           <button data-workspace-nav="plans" onclick="App.openManagement('plans')">测试方案</button>
-          <button data-workspace-nav="metrics" onclick="App.openManagement('metrics')">指标库</button>
+          <button data-workspace-nav="metrics" onclick="App.openManagement('metrics')">项目与指标库</button>
           <button data-workspace-nav="profiles" onclick="App.openManagement('profiles')">评价方案</button>
         </nav>
       </div>
@@ -3698,7 +3768,7 @@ body.sidebar-collapsed .workspace {
               <div class="card-head">
                 <div>
                   <h3>运动表现概览</h3>
-                  <p>能力评分 · 点色表示已配置的评价等级</p>
+                  <p>按评价方案给分，满分 100 分；可查看各项成绩与给分方式</p>
                 </div>
                 <span id="referenceLabel" class="pill">待评价</span>
               </div>
@@ -4055,7 +4125,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.19.1"});
+window.RingsideBuild=Object.freeze({"version": "2.20.0"});
 </script>
 <script>
 (function (root) {
@@ -9855,11 +9925,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       });
     const aggregationIssues = [];
     const axes = [...groups].map(([label, defs]) => {
-      const cfg = T.axisConfig(state, label) || {
+      const cfg = T.axisConfig(state, label) || (state.evaluationProfileFormat === 2 ? { method: "disabled" } : {
           method: "primary",
           primary: defs.find(d => d.referenceEnabled && positive(d.target) !== null)?.id || "",
-        };
+        });
       const missing = reason => { aggregationIssues.push({ ability: label, reason }); return null; };
+      if (cfg.method === "disabled" && !cfg.migrationIssue) return null;
       if (!["primary", "mean"].includes(cfg.method)) return missing(cfg.migrationIssue || "原汇总方式已停用");
       const findMember = id => {
         const plain = String(id).replace(/^metric:/, "");
@@ -9876,23 +9947,25 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const selected = members.map(findMember);
       if (selected.some(member => !member || N(member.value) === null)) return missing("选定指标缺少有效结果");
       const chosen = selected.map(member => member.definition);
-      let scores, status;
-      if (cfg.method === "primary") {
-        scores = [attainment(selected[0].value, chosen[0])];
-        if (scores[0] === null) return missing("代表指标未配置适用目标");
-        status = targetStatus(selected[0].value, chosen[0], state);
-      } else {
-        const transformed = selected.map((member, index) => {
-          const d = member.definition, transform = cfg.transforms?.[members[index]];
+      const transforms = {};
+      const transformed = selected.map((member, index) => {
+          const d = member.definition, transform = cfg.method === "mean" || cfg.scoringVersion === 1 ? cfg.transforms?.[members[index]] : undefined;
           const match = state.evaluationStandards?.find(standard => standard.subjectId === member.subjectId);
-          return root.RingsideScoring?.evaluate(member.value, transform, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
+          const effective = transform === undefined && cfg.method === "primary" ? { kind: "ratio", direction: d.direction || "higher" } : transform;
+          transforms[member.subjectId] = effective;
+          // Unlinked legacy calculations retain their previous ratio behavior.
+          if (state.evaluationProfileFormat !== 2 && cfg.method === "primary" && transform === undefined) {
+            const score = attainment(member.value, d);
+            return { valid: score !== null, score, reason: "代表指标未配置适用目标" };
+          }
+          return root.RingsideScoring?.evaluate(member.value, effective, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
             applicable: match ? match.enabled && match.applicable : d.referenceEnabled,
             subject: { measurementScale: root.RingsideEvaluation?.measurementScale(d) || d.measurementScale || "unknown", zeroValid: d.zeroValid === true || d.id === "pushup_reps" } }) || { valid: false, reason: "计分模块未加载" };
         });
-        if (transformed.some(result => !result.valid)) return missing(transformed.find(result => !result.valid).reason);
-        scores = transformed.map(result => result.score);
-        status = cfg.ranges?.length ? grade(scores.reduce((a,b) => a+b,0)/scores.length, { referenceEnabled: true, ranges: cfg.ranges }).status : "gray";
-      }
+      if (transformed.some(result => !result.valid)) return missing(transformed.find(result => !result.valid).reason);
+      const scores = transformed.map(result => result.score);
+      const status = cfg.method === "primary" ? targetStatus(selected[0].value, chosen[0], state)
+        : cfg.ranges?.length ? grade(scores.reduce((a,b) => a+b,0)/scores.length, { referenceEnabled: true, ranges: cfg.ranges }).status : "gray";
       const value = scores.reduce((a,b) => a+b,0)/scores.length;
       return {
         key: label,
@@ -9902,6 +9975,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         method: cfg.method,
         scores,
         members: selected.map(member => member.subjectId),
+        transforms: clone(transforms),
+        scoreUnit: "分",
+        scoreMax: 100,
         status,
         tooltip: chosen
           .map((d) => T.metricName(d) + " " + fmt(axisValues[d.id]) + " " + d.unit)
@@ -10222,7 +10298,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   function evaluationResults(record, computed) {
     const results = [], standards = new Map((record.evaluationStandards || []).map(rule => [rule.subjectId, rule]));
     function add(subjectId, value) {
-      const rule = standards.get(subjectId), contributions = computed.axes.flatMap(axis => axis.members.flatMap((id, index) => id === subjectId ? [{ ability: axis.key, method: axis.method, score: axis.scores[index], transform: clone(T.axisConfig(record, axis.key)?.transforms?.[id] || { kind: "ratio", direction: value.direction || "higher" }) }] : []));
+      const rule = standards.get(subjectId), contributions = computed.axes.flatMap(axis => axis.members.flatMap((id, index) => id === subjectId ? [{ ability: axis.key, method: axis.method, score: axis.scores[index], transform: clone(axis.transforms?.[id] || T.axisConfig(record, axis.key)?.transforms?.[id] || { kind: "ratio", direction: value.direction || "higher" }) }] : []));
       results.push({ subjectId, kind: subjectId.split(":")[0], value: null, unit: "", target: null, attainment: null,
         grade: { status: "gray", label: "未设置评价", range: null }, applicable: rule ? rule.enabled && rule.applicable : record.evaluationProfileFormat !== 2,
         targetApplicable: rule?.targetApplicable ?? record.evaluationProfileFormat !== 2, rangesApplicable: rule?.rangesApplicable ?? record.evaluationProfileFormat !== 2,
@@ -10519,8 +10595,29 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         const timeRule=fingerprintRecord.imtpTimeStandards.find(rule=>d.id==="imtp_"+(rule.kind==="force_pct_peak"?"f":"rfd")+rule.timeMs),effective=timeRule || d;
         return T.axisKey(d.ability)===key && d.category==="performance" && d.scoring!==false && effective.referenceEnabled && positive(effective.target)!==null;
       });
-      if (axis.method === "primary" && axis.primary === primary?.id) delete fingerprintAxes[key];
+      if (axis.method === "primary") {
+        const subject = axis.primary.startsWith("imtp-time:") ? axis.primary : "metric:" + axis.primary;
+        const [, timeKind, timeMs] = subject.split(":");
+        const selected = fingerprintRecord.definitions.find(d => d.id === axis.primary)
+          || (subject.startsWith("imtp-time:") ? fingerprintRecord.imtpTimeStandards.find(rule => rule.kind === timeKind && rule.timeMs === Number(timeMs)) : null);
+        const transform = axis.scoringVersion === 1 ? axis.transforms?.[subject] || axis.transforms?.[axis.primary] : null;
+        const defaultTransform = { kind: "ratio", direction: selected?.direction || "higher" };
+        const equivalent = !transform || canonicalJSON(transform) === canonicalJSON(defaultTransform);
+        const legalRatio = record.evaluationProfileFormat !== 2 || subject.startsWith("imtp-time:") || root.RingsideEvaluation?.measurementScale(selected || {}) === "ratio";
+        if (axis.primary === primary?.id && equivalent && legalRatio) delete fingerprintAxes[key];
+        else if (axis.scoringVersion === 1) {
+          delete axis.scoringVersion;
+          if (equivalent) delete axis.transforms;
+          else axis.transforms = { [subject]: clone(transform) };
+        }
+      }
     }
+    // Removing the old runtime fallback must invalidate narratives that included
+    // a v2 ability which was never actually configured in its shared scheme.
+    const unconfiguredAbilities = record.evaluationProfileFormat === 2 ? [...new Set(fingerprintRecord.definitions.filter(d => {
+      const timeRule = fingerprintRecord.imtpTimeStandards.find(rule => d.id === "imtp_" + (rule.kind === "force_pct_peak" ? "f" : "rfd") + rule.timeMs), effective = timeRule || d;
+      return record.enabled[d.testId] && d.category === "performance" && d.scoring !== false && T.abilityName(d.ability) && effective.referenceEnabled && positive(effective.target) !== null && !T.axisConfig(record, d.ability);
+    }).map(d => T.axisKey(d.ability)))].sort() : [];
     const fingerprintProjects = record.projectSnapshots?.filter(t => !invisible.has(t.id)).map(test => {
       const result = { ...test }, primary = record.definitions.find(d => d.id === test.primaryMetricId) || record.definitions.find(d => d.testId === test.id && T.isAttemptMetric(d));
       const priorDirection = T.isNative(record,test.id) ? "higher" : primary?.direction || "higher";
@@ -10542,6 +10639,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       data,
       ...(changedIsoEvaluation ? { isoEvaluationBasis: "single-target-amber-green-v1" } : {}),
       ...(changedDisabledEvaluation ? { evaluationSwitchBasis: "disabled-extension-standards-v1" } : {}),
+      ...(unconfiguredAbilities.length ? { unconfiguredAbilityScoring: unconfiguredAbilities } : {}),
       definitions,
       custom: record.customValues,
       projects: fingerprintProjects,
@@ -12383,7 +12481,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           else if (["referenceMode", "referenceGroups"].includes(key)) delete d[key];
         }
         delete d.referenceMatch;
-        if (Array.isArray(rule.referenceGroups)) {
+        if (Array.isArray(rule.referenceGroups) && rule.referenceGroups.length) {
           const match = root.RingsideEvaluation.matchReferenceGroup?.(record, rule.referenceGroups, d.testId) || root.RingsideReferences?.matchReferenceGroup(record, rule.referenceGroups) || {group:null,eligible:false,reason:"未加载分层参考标准"};
           d.ranges = match.eligible ? clone(match.group.ranges) : [];
           // Target selection is independent of a literature table's RER eligibility.
@@ -12616,7 +12714,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (axis.method === "min") aggregations[T.axisKey(ability)] = { method: "disabled", migrationIssue: "原最低达成汇总已停用，请选择代表指标或明确计分后平均", legacy: clone(axis) };
       else if (axis.method === "mean") aggregations[T.axisKey(ability)] = Array.isArray(axis.members) && axis.transforms ? clone(axis) : { method: "mean", members: (c.definitions || []).filter(d => d.ability === ability && d.category === "performance" && d.scoring !== false && d.referenceEnabled && number(d.target) > 0).map(d => "metric:" + d.id), transforms: {}, migrationIssue: "请为已固定的参与指标设置计分规则", legacy: clone(axis) };
       else if (axis.method === "disabled") aggregations[T.axisKey(ability)] = clone(axis);
-      else aggregations[T.axisKey(ability)] = { method: "primary", primary: axis.primary ? (String(axis.primary).includes(":") ? axis.primary : "metric:" + axis.primary) : "" };
+      else aggregations[T.axisKey(ability)] = { ...clone(axis), method: "primary", primary: axis.primary ? (String(axis.primary).includes(":") ? axis.primary : "metric:" + axis.primary) : "" };
     }
     // Freeze the previous deterministic representative choice instead of making it depend on available data.
     const definitionOrder = [...record.definitions.map(d => (c.definitions || []).find(item => item.id === d.id)).filter(Boolean), ...(c.definitions || []).filter(d => !record.definitions.some(item => item.id === d.id))];
@@ -12796,8 +12894,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     for (const axis of Object.values(p.aggregations)) {
       if (!["primary", "mean", "disabled"].includes(axis.method)) throw Error("能力展示方式无效");
+      if (axis.scoringVersion !== undefined && axis.scoringVersion !== 1) throw Error("能力计分版本无效");
       if (axis.method === "disabled") continue;
-      if (axis.method === "primary" && (typeof axis.primary !== "string" || !axis.primary)) throw Error("请选择代表指标");
+      if (axis.method === "primary") {
+        if (typeof axis.primary !== "string" || !axis.primary) throw Error("请选择代表指标");
+        if (axis.scoringVersion === 1 && Object.hasOwn(axis.transforms || {}, axis.primary)) root.RingsideScoring.validateTransform(axis.transforms[axis.primary]);
+      }
       if (axis.method === "mean") {
         const pending = axis.migrationIssue && axis.legacy?.method === "mean";
         if (!Array.isArray(axis.members) || !axis.members.length && !pending || new Set(axis.members).size !== axis.members.length || !axis.transforms) throw Error("请选择不重复的固定平均成员");
@@ -13040,6 +13142,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       db.onversionchange=()=>db.close(); return repo;
     }
     async meta(id) { return request(this.db.transaction("meta").objectStore("meta").get(id)); }
+    async versionState() {
+      const tx=this.db.transaction("meta"),store=tx.objectStore("meta");
+      const [active,previous,revision]=await Promise.all(["active","previous","revision"].map(id=>request(store.get(id))));
+      return {active:active?.value||"",previous:previous?.value||"",revision:revision?.value};
+    }
+    sameVersion(left,right) { return left.active===right.active && left.previous===right.previous && left.revision===right.revision; }
+    async stableRead(generation,operation,{requireActive=generation===this.generation}={}) {
+      const before=await this.versionState();
+      if(requireActive && before.active!==generation)throw Error("资料库已在其他页面切换，请重新打开后再导出");
+      if(!generation || !await this.get("config","library",generation))throw Error("待读取的资料库配置缺失，请核对后重试");
+      const value=await operation();
+      if(!this.sameVersion(before,await this.versionState()))throw Error("资料在读取期间已被其他页面修改，请停止其他页面的操作后重新备份或导出");
+      return value;
+    }
     async get(table,id,generation=this.generation) { return (await request(this.db.transaction(table).objectStore(table).get([generation,id])))?.value; }
     async values(table,generation=this.generation) { return (await request(this.db.transaction(table).objectStore(table).getAll(keyRange(generation)))).map(row=>row.value); }
     async directory(generation=this.generation) {
@@ -13058,6 +13174,60 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     loadRecord(id) { return this.get("records",id); }
     enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
     flush() { return this.queue; }
+    saveRecords(records=[],checks={},options={}) {
+      const generation=this.generation,expected=clone(checks),selection=options.selection?clone(options.selection):null,updated=options.updated;
+      const snapshots=records.map(record=>{validateEntity("record",record);return clone(record);});
+      const newAthletes=(options.newAthletes||[]).map(owner=>{const value=athleteMetadata(owner);validateEntity("athlete",value);return value;});
+      const recordIds=new Set(),ownerIds=new Set();
+      for(const record of snapshots){
+        if(recordIds.has(record.recordId))throw Error("测试编号重复");recordIds.add(record.recordId);
+        if(typeof expected.expectedRecords?.[record.recordId]!=="string")throw Error("保存测试缺少原记录校验依据，请重新打开后保存");
+      }
+      for(const owner of newAthletes){if(ownerIds.has(owner.id))throw Error("运动员编号重复");ownerIds.add(owner.id);if(!snapshots.some(record=>record.athleteId===owner.id))throw Error("新运动员需要随首次测试一起保存");}
+      if(selection && (typeof selection.activeAthleteId!=="string" || typeof selection.activeRecordId!=="string"))throw Error("当前资料选择无效");
+      return this.enqueue(async()=>{
+        const tx=this.db.transaction(["meta","records","recordIndex","athletes","profiles","groups","config"],"readwrite"),done=completed(tx);
+        try {
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开后保存");
+          const storedConfig=(await request(tx.objectStore("config").get([generation,"library"])))?.value;
+          if(!storedConfig)throw Error("资料库配置缺失");
+          const owners=new Map();
+          for(const owner of newAthletes){
+            if(await request(tx.objectStore("athletes").get([generation,owner.id])))throw Error("运动员已在其他页面建立，请重新核对后保存");
+            if(owner.groupId && !await request(tx.objectStore("groups").get([generation,owner.groupId])))throw Error("运动员所属队伍已不存在，请重新选择");
+            owners.set(owner.id,owner);
+          }
+          for(const record of snapshots){
+            const stored=(await request(tx.objectStore("records").get([generation,record.recordId])))?.value;
+            if(JSON.stringify(stored??null)!==expected.expectedRecords[record.recordId])throw Error("此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录");
+            const owner=owners.get(record.athleteId)||(await request(tx.objectStore("athletes").get([generation,record.athleteId])))?.value;
+            if(!owner || owner.deletedAt)throw Error("运动员已不存在，请重新打开后保存");
+            if(!stored && owner.archived)throw Error("运动员已在其他页面归档，请恢复档案后再创建测试");
+            if((owner.profile?.birthDate||"")!==(record.athlete.birthDate||""))throw Error("运动员生日已更新，请重新打开本次记录后保存");
+            if(!await request(tx.objectStore("profiles").get([generation,record.evaluationProfileId])))throw Error("测试的评价方案已不存在，请重新选择");
+          }
+          const nextConfig={...storedConfig};
+          if(selection){
+            const selectedRecord=snapshots.find(record=>record.recordId===selection.activeRecordId)||(selection.activeRecordId?(await request(tx.objectStore("records").get([generation,selection.activeRecordId])))?.value:null);
+            const selectedOwner=owners.get(selection.activeAthleteId)||(selection.activeAthleteId?(await request(tx.objectStore("athletes").get([generation,selection.activeAthleteId])))?.value:null);
+            if(selection.activeAthleteId && (!selectedOwner || selectedOwner.deletedAt) || selection.activeRecordId && (!selectedRecord || selectedRecord.deletedAt || selectedRecord.athleteId!==selection.activeAthleteId))throw Error("当前运动员或记录已不存在，请重新打开");
+            nextConfig.activeAthleteId=selection.activeAthleteId;nextConfig.activeRecordId=selection.activeRecordId;
+          }
+          if(snapshots.length){nextConfig.updated=updated||new Date().toISOString();nextConfig.version=root.RingsideBuild?.version||storedConfig.version;}
+          const configChanged=JSON.stringify(nextConfig)!==JSON.stringify(storedConfig);
+          for(const owner of newAthletes)tx.objectStore("athletes").put({generation,id:owner.id,value:owner});
+          for(const record of snapshots){tx.objectStore("records").put({generation,id:record.recordId,value:record});tx.objectStore("recordIndex").put({generation,id:record.recordId,value:summary(record)});}
+          if(configChanged)tx.objectStore("config").put({generation,id:"library",value:nextConfig});
+          if(snapshots.length||newAthletes.length||configChanged)tx.objectStore("meta").put({id:"revision",value:uid()});
+          await done;
+          for(const owner of newAthletes)this.metadataHashes.set("athletes:"+owner.id,JSON.stringify(owner));
+          // Do not adopt unrelated metadata from another page as this caller's
+          // baseline: later management edits must still detect its stale view.
+          const baseline=this.metadataHashes.get("config:library");
+          if(baseline===JSON.stringify(storedConfig))this.metadataHashes.set("config:library",JSON.stringify(nextConfig));
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
     save(lib,records=[],removals={},checks={}) {
       const generation=this.generation;
       const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles.map(p=>E.serializeProfile ? E.serializeProfile(p) : p)],["config",[{...configuration(lib),id:"library"}]]].map(([table,items])=>[table,clone(items)]);
@@ -13137,15 +13307,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     backupBlob(onProgress=()=>{}) { return this.enqueue(() => this.createBackupBlob(onProgress)); }
     async createBackupBlob(onProgress=()=>{},generation=this.generation) {
-      const chunks=[];let records=0;
-      for await(const row of this.rows(generation)) {chunks.push(new Blob([JSON.stringify(row)+"\n"],{type:"application/x-ndjson"}));if(row.type==="record"&&++records%100===0)onProgress(records);}
-      return new Blob(chunks,{type:"application/x-ndjson"});
+      return this.stableRead(generation,async()=>{
+        const chunks=[];let records=0;
+        for await(const row of this.rows(generation)) {chunks.push(new Blob([JSON.stringify(row)+"\n"],{type:"application/x-ndjson"}));if(row.type==="record"&&++records%100===0)onProgress(records);}
+        return new Blob(chunks,{type:"application/x-ndjson"});
+      });
     }
     exportLibrary() { return this.enqueue(() => this.createLibrary()); }
     async createLibrary(generation=this.generation) {
-      const lib=await this.directory(generation), owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
-      for await(const batch of this.batches("records",generation))for(const r of batch)owners.get(r.athleteId).records.push(r);
-      return lib;
+      return this.stableRead(generation,async()=>{
+        const lib=await this.directory(generation),owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
+        for await(const batch of this.batches("records",generation))for(const record of batch){
+          const owner=owners.get(record.athleteId);if(!owner)throw Error("资料在读取期间已更改或记录归属缺失，请核对资料后重新导出");owner.records.push(record);
+        }
+        return lib;
+      });
     }
     upgradeMeasurementContract() {
       return this.enqueue(async()=>{
@@ -13171,24 +13347,35 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if(!generation||!await this.get("config","library",generation))throw Error("没有回退前的新版资料副本");
       return this.createBackupBlob(()=>{},generation);
     }
-    async restoreUpgradeCheckpoint() {
-      await this.flush();
-      const checkpoint=(await this.meta("upgrade-2.19.0"))?.value,target=checkpoint?.generation;
-      if(!target||!await this.get("config","library",target))throw Error("没有可恢复的升级前资料");
-      const current=this.generation,tx=this.db.transaction("meta","readwrite"),done=completed(tx);
+    restoreUpgradeCheckpoint() {
+      return this.enqueue(async()=>{
+        const expected=await this.versionState(),checkpoint=(await this.meta("upgrade-2.19.0"))?.value,target=checkpoint?.generation;
+        if(expected.active!==this.generation)throw Error("资料库已在其他页面切换，请重新打开后恢复");
+        const targetConfig=target?await this.get("config","library",target):null;
+        if(!targetConfig)throw Error("没有可恢复的升级前资料");
+        await this.restorePointers(expected,target,targetConfig,checkpoint,true);
+      });
+    }
+    async restorePointers(expected,target,targetConfig,checkpoint,upgrade=false) {
+      if(target===expected.active)throw Error("目标资料库与当前资料库相同，无需恢复");
+      const tx=this.db.transaction(["meta","config"],"readwrite"),done=completed(tx);
       try {
-        if((await request(tx.objectStore("meta").get("active")))?.value!==current)throw Error("资料库已在其他页面切换，请重新打开后恢复");
-        if(current!==target){const rollbackGenerations=[...(checkpoint.rollbackGenerations||[])];if(!rollbackGenerations.some(item=>item.generation===current))rollbackGenerations.push({generation:current,created:new Date().toISOString()});tx.objectStore("meta").put({id:"upgrade-2.19.0",value:{...checkpoint,rollbackGenerations}});}
-        tx.objectStore("meta").put({id:"active",value:target});tx.objectStore("meta").put({id:"previous",value:current});tx.objectStore("meta").put({id:"revision",value:uid()});await done;
-        this.generation=target;this.metadataHashes.clear();
-      } catch(error) {try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+        const [active,previous,revision,actualCheckpoint,actualConfig]=await Promise.all([
+          ...["active","previous","revision","upgrade-2.19.0"].map(id=>request(tx.objectStore("meta").get(id))),
+          request(tx.objectStore("config").get([target,"library"]))
+        ]);
+        const actual={active:active?.value||"",previous:previous?.value||"",revision:revision?.value};
+        if(!this.sameVersion(expected,actual)||JSON.stringify(actualCheckpoint?.value??null)!==JSON.stringify(checkpoint??null)||JSON.stringify(actualConfig?.value??null)!==JSON.stringify(targetConfig))throw Error("资料库已在其他页面修改，请重新打开并核对后恢复");
+        if(upgrade){const rollbackGenerations=[...(checkpoint.rollbackGenerations||[])];if(!rollbackGenerations.some(item=>item.generation===actual.active))rollbackGenerations.push({generation:actual.active,created:new Date().toISOString()});tx.objectStore("meta").put({id:"upgrade-2.19.0",value:{...checkpoint,rollbackGenerations}});}
+        tx.objectStore("meta").put({id:"active",value:target});tx.objectStore("meta").put({id:"previous",value:actual.active});tx.objectStore("meta").put({id:"revision",value:uid()});
+        await done;this.generation=target;this.metadataHashes.clear();
+      }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
     }
     async importLibrary(lib,options={}) {return this.importRows(libraryRows(lib),options);}
     importRows(iterable,options={}) { return this.enqueue(() => this.stageImport(iterable,options)); }
-    async stageImport(iterable,{merge=false,onProgress=()=>{},upgradeCheckpoint=null,expectedRevision}={}) {
-      const generation="generation_"+uid(),oldGeneration=this.generation,obsoleteGeneration=(await this.meta("previous"))?.value;
-      const revision=(await this.meta("revision"))?.value;
-      if(upgradeCheckpoint && revision!==expectedRevision)throw Error("资料已在其他页面修改，请重新打开后升级");
+    async stageImport(iterable,{merge=false,onProgress=()=>{},upgradeCheckpoint=null,expectedRevision,expectedState}={}) {
+      const generation="generation_"+uid(),oldGeneration=this.generation,initial=await this.versionState(),obsoleteGeneration=initial.previous,revision=initial.revision;
+      if(initial.active!==oldGeneration || expectedState&&!this.sameVersion(initial,expectedState) || expectedRevision!==undefined&&revision!==expectedRevision)throw Error("资料已在其他页面修改，请重新打开后升级或导入");
       const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
       let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
@@ -13284,8 +13471,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         if(actual[0].length>2000||actual[1].length>10000)throw Error("合并后资料超过容量边界");
         const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
         try {
-          const [active,currentRevision]=await Promise.all([request(tx.objectStore("meta").get("active")),request(tx.objectStore("meta").get("revision"))]);
-          if((active?.value||"")!==oldGeneration || currentRevision?.value!==revision) throw Error("资料已在其他页面修改，请重新预览后导入");
+          const [active,previous,currentRevision]=await Promise.all(["active","previous","revision"].map(id=>request(tx.objectStore("meta").get(id))));
+          if(!this.sameVersion(initial,{active:active?.value||"",previous:previous?.value||"",revision:currentRevision?.value})) throw Error("资料已在其他页面修改，请重新预览后导入");
         } catch(error) { try {tx.abort();} catch(_) {} await done.catch(()=>{}); throw error; }
         tx.objectStore("meta").put({id:"active",value:generation});
         tx.objectStore("meta").put({id:"revision",value:uid()});
@@ -13294,21 +13481,31 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         this.generation=generation;this.metadataHashes.clear();
         if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
         return{added:imported,skipped:counts.record-imported,recordMap};
-      }catch(error){await this.discardGeneration(generation);throw error;}
+      }catch(error){await this.discardGeneration(generation).catch(()=>{});throw error;}
     }
     async discardGeneration(generation) {
-      if(!generation||generation===this.generation)return;
-      const checkpoint=(await this.meta("upgrade-2.19.0"))?.value;
-      if(checkpoint?.generation===generation||checkpoint?.rollbackGenerations?.some(item=>item.generation===generation))return;
-      const tx=this.db.transaction(tables,"readwrite"),done=completed(tx);
-      for(const table of tables)tx.objectStore(table).delete(keyRange(generation));await done;
+      if(!generation)return false;
+      const tx=this.db.transaction(["meta",...tables],"readwrite"),done=completed(tx);
+      try {
+        const [active,previous,storedCheckpoint]=await Promise.all(["active","previous","upgrade-2.19.0"].map(id=>request(tx.objectStore("meta").get(id)))),checkpoint=storedCheckpoint?.value;
+        const protectedGenerations=new Set([active?.value,previous?.value,checkpoint?.generation,checkpoint?.upgradedGeneration,...(checkpoint?.rollbackGenerations||[]).map(item=>item.generation)].filter(Boolean));
+        if(protectedGenerations.has(generation)){await done;return false;}
+        for(const table of tables)tx.objectStore(table).delete(keyRange(generation));await done;return true;
+      }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
     }
-    async restorePrevious() {
-      await this.flush();const previous=(await this.meta("previous"))?.value;
-      if(!previous||!await this.get("config","library",previous))throw Error("没有可恢复的迁移前资料库");
-      if((await this.meta("upgrade-2.19.0"))?.value?.generation===previous)return this.importLibrary(E.migrate(await this.createLibrary(previous)));
-      const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
-      tx.objectStore("meta").put({id:"active",value:previous});tx.objectStore("meta").put({id:"previous",value:this.generation});tx.objectStore("meta").put({id:"revision",value:uid()});await done;this.generation=previous;this.metadataHashes.clear();
+    restorePrevious() {
+      return this.enqueue(async()=>{
+        const expected=await this.versionState();
+        if(expected.active!==this.generation)throw Error("资料库已在其他页面切换，请重新打开后恢复");
+        const previous=expected.previous,targetConfig=previous?await this.get("config","library",previous):null,checkpoint=(await this.meta("upgrade-2.19.0"))?.value;
+        if(!targetConfig)throw Error("没有可恢复的迁移前资料库");
+        if(previous===expected.active)throw Error("目标资料库与当前资料库相同，无需恢复");
+        if(checkpoint?.generation===previous){
+          const before=await this.createLibrary(previous);
+          return this.stageImport(libraryRows(E.migrate(before)),{expectedState:expected});
+        }
+        await this.restorePointers(expected,previous,targetConfig,checkpoint);
+      });
     }
     close(){this.db.close();}
   }
@@ -14404,7 +14601,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       out += text(
         p[0],
         p[1] + (parts.length > 1 ? 38 : 24),
-        v === null ? "—" : `${fmt(v, 0)} / 100`,
+        v === null ? "—" : `${fmt(v, 0)} 分 / 100`,
         `class="radar-score" text-anchor="${anchor}" font-size="14" fill="${c}"`,
       );
       if (points[i])
@@ -14413,7 +14610,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           points[i][1],
           5,
           c,
-          `${label}：${fmt(v, 1)} / 100${item.tooltip ? " · " + item.tooltip : ""}`,
+          `${label}：${fmt(v, 1)} 分 / 100${item.tooltip ? " · " + item.tooltip : ""}`,
         );
     });
     return svg(w, h, "运动表现能力雷达图", out);
@@ -14430,7 +14627,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
             '</td><td><strong style="color:' +
             color(item.status) +
             '">' +
-            (num(item.value) === null ? "—" : fmt(num(item.value), 0) + " / 100") +
+            (num(item.value) === null ? "—" : fmt(num(item.value), 0) + " 分 / 100") +
             "</strong></td></tr>",
         )
         .join("") +
@@ -16247,15 +16444,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function abilityDetails(report) {
     const {record,stats}=report,results=stats.evaluationResults||[];
-    const axes=stats.axes.filter(axis=>axis.method==="mean");
+    const axes=stats.axes.filter(axis=>["primary","mean"].includes(axis.method));
     if(!axes.length)return "";
-    return `<details class="ability-score-details"><summary>查看能力平均分的组成</summary>${axes.map(axis=>{
+    return `<details class="ability-score-details"><summary>查看能力评分的计算</summary>${axes.map(axis=>{
       const ids=axis.members||[],n=ids.length;
       const rows=ids.map((id,index)=>{
         const result=results.find(item=>item.subjectId===id),definition=record.definitions.find(d=>d.id===(result?.metricId||id.replace(/^metric:/,"")));
-        return [E(definition?.name||result?.name||id),F(result?.value??stats.values[definition?.id],2)+" "+E(result?.unit||definition?.unit||""),E(result?.grade?.label||"—"),F(axis.scores?.[index],1),F(n?axis.scores?.[index]/n:null,1)];
+        const transform=axis.transforms?.[id]||result?.scoreContributions?.find(item=>item.ability===axis.key)?.transform;
+        const method={ratio:"按目标换算",anchors:"分数对应点",table:"评分区间"}[transform?.kind]||"—";
+        return [E(definition?.name||result?.name||id),F(result?.value??stats.values[definition?.id],2)+" "+E(result?.unit||definition?.unit||""),E(result?.grade?.label||"—"),method,F(axis.scores?.[index],1)+" 分",...(axis.method==="mean"?[F(n?axis.scores?.[index]/n:null,1)+" 分"]:[])];
       });
-      return `<section data-ability-score="${E(axis.key)}"><h4>${E(axis.label)} · ${F(axis.value,1)} 分</h4>${table(["成员","原始成绩","单项分级","换算得分","平均贡献"],rows,ids)}<p class="note">${n} 个固定成员等权平均。</p></section>`;
+      return `<section data-ability-score="${E(axis.key)}" data-ability-score-method="${E(axis.method)}"><h4>${E(axis.label)} · ${F(axis.value,1)} 分 / 100</h4>${table(["指标","原始成绩","单项分级","给分方式","换算得分",...(axis.method==="mean"?["平均贡献"]:[])],rows,ids)}<p class="note">${axis.method==="mean"?`${n} 个固定成员等权平均。`:"使用代表指标的给分结果。"}满分 100 分。</p></section>`;
     }).join("")}</details>`;
   }
   function overview(report) {
@@ -17057,7 +17256,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         : ["sprint_fvp", "sprint_elasticity"].includes(selected) && positive(metric.context?.targetDistanceM) ? `目标距离 ${F(metric.context.targetDistanceM, 1)} m` : "";
       const category = key === "endurance" ? "cardio" : key, parameters = cards.find(card => card.id === category);
       const folded = `<details class="capability-card-parameters" data-capability-parameters="${key}"${record.views?.capabilityExpanded?.[key] === true ? " open" : ""}><summary><span>查看相关参数</span><small>${parameters?.metrics.length || 0} 项</small></summary><div data-report-patch="parameters-${key}">${parameters ? parameterGroup(parameters) : '<p class="empty">完成相关测试后显示参数。</p>'}</div></details>`;
-      return `<article class="capability-direction-card" data-capability-direction="${key}"><div class="capability-card-summary"><h3>${E(title)}</h3><section data-report-patch="summary-${key}" data-direction-metric="${E(selected)}"><p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}</section>${selector}</div>${folded}</article>`;
+      return `<article class="capability-direction-card" data-capability-direction="${key}"><div class="capability-card-summary"><h4>${E(title)}</h4><section data-report-patch="summary-${key}" data-direction-metric="${E(selected)}"><p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}</section>${selector}</div>${folded}</article>`;
     };
     const target = metric => {
       const definition = record.definitions.find(item => item.id === metric.id);
@@ -17087,10 +17286,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
       const labels = { strength: "力量参数", reactive: "反应力量参数", speed: "速度与速度储备参数", cardio: "心肺与阈值参数" };
       const targets = (card.targets || []).filter(item => N(item.value) !== null);
-      return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table" data-capability-parameter-table="${E(card.id === "cardio" ? "endurance" : card.id)}"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
+      return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h5>${E(labels[card.id] || card.title)}</h5>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table" data-capability-parameter-table="${E(card.id === "cardio" ? "endurance" : card.id)}"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
     };
     const left = visibleDirections.length ? `<div class="capability-direction-grid" data-capability-analysis data-capability-count="${visibleDirections.length}">${visibleDirections.map(directionCard).join("")}</div>` : "";
-    return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}"><div class="capability-region-heading pdf-group-heading">${E(T.analysisLabel)}</div><div class="quality-group">${left}${fvp}${sprint}${renderSprintElasticityAnalysis(report, { print })}</div></section>`;
+    return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}"><div class="quality-group"><div class="quality-heading"><h3>${E(T.analysisLabel)}</h3></div><div class="capability-analysis-content">${left}${fvp}${sprint}${renderSprintElasticityAnalysis(report, { print })}</div></div></section>`;
   }
   function sprintFvpChartData(solved, confidence) {
     const profiles = [], add = (profile, kind, label) => {
@@ -17310,7 +17509,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
       currentGrid.dataset.capabilityCount = nextGrid.dataset.capabilityCount;
     } else if (nextGrid) {
-      region.querySelector(":scope > .quality-group").prepend(nextGrid.cloneNode(true));
+      (region.querySelector(".capability-analysis-content") || region.querySelector(":scope > .quality-group")).prepend(nextGrid.cloneNode(true));
       chartObservers.get(container)?.observe(region.querySelector(".capability-direction-grid"));
     } else {
       currentGrid?.remove();
@@ -17658,7 +17857,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     .ringside-pdf-document .section-title>div{min-width:0!important;}
     .ringside-pdf-document .section-number{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:12px!important;line-height:1!important;color:#365b7a!important;background:#e8eef3!important;border-radius:7px!important;margin-top:2px!important;}
     .ringside-pdf-document .section-heading p,.ringside-pdf-document .test-title p{font-size:12px!important;line-height:1.65!important;margin:4px 0 0!important;color:#636b76!important;}
-    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border:0!important;background:#f8f9fb!important;font-size:16px!important;font-weight:600!important;}
+    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border:0!important;background:#f7f9fc!important;color:#45546a!important;font-size:16px!important;font-weight:600!important;}
+    .ringside-pdf-document .quality-heading h3{margin:0!important;font-size:16px!important;font-weight:600!important;line-height:1.5!important;color:#45546a!important;}
     .ringside-pdf-document .quality-heading p,.ringside-pdf-document .pdf-group-heading span{font-size:12px!important;color:#636b76!important;font-weight:400!important;}
     .ringside-pdf-document .pdf-group-heading span{display:block!important;margin-top:4px!important;}
     .ringside-pdf-document .test-title{display:block!important;padding:4px 0!important;margin:0!important;}
@@ -20110,8 +20310,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const $=id=>document.getElementById(id), clone=v=>JSON.parse(JSON.stringify(v));
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID(), now=()=>new Date().toISOString(), lib=()=>App.getLibrary();
-  const sections=[["athletes","运动员管理"],["teams","队伍管理"],["records","测试记录"],["plans","测试方案"],["metrics","指标库"],["profiles","评价方案"],["backup","备份与恢复"]];
+  const sections=[["athletes","运动员管理"],["teams","队伍管理"],["records","测试记录"],["plans","测试方案"],["metrics","项目与指标库"],["profiles","评价方案"],["backup","备份与恢复"]];
   let current="athletes", selected=new Set(), selections={}, filters={}, editor=null, planDraft=null, planBaseline="", formBaseline="", formAction=null, pendingReview=null, busy=false, filterTimer;
+  let formSession=null, formSequence=0, previewSequence=0, profileOrigin=null, activeAction="";
   const pathKey=value=>encodeURIComponent(value).replace(/\./g,"%2E");
   const freshFilters=()=>({q:"",group:"",sport:"",status:"active",from:"",to:"",test:"",page:1,sort:"recent",athleteId:"",advanced:false});
   const filter=()=>filters[current] ||= freshFilters();
@@ -20188,19 +20389,20 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function metrics() {
     const f=filter(),q=f.q.trim().toLocaleLowerCase(),abilities=T.abilityGroups(lib().catalog),projects=T.describe(lib().catalog);
     for(const t of projects){const key=t.primaryAbility||"unclassified";if(!abilities.some(g=>g.key===key))abilities.push({key,name:t.primaryAbility?T.abilityLabel(lib().catalog,t.primaryAbility):"未分类",synthetic:true});}
-    const project=projects.find(t=>t.id===f.test);
+    const project=projects.find(t=>t.id===f.test),status=f.catalogStatus||"active";
+    const filtered=projects.filter(t=>(!f.ability||(t.primaryAbility||"unclassified")===f.ability)&&(status==="all"||status==="disabled"?status==="all"||t.disabled:status==="conflict"?lib().catalog.conflicts.some(c=>c.testId===t.id&&!c.resolved):!t.disabled)&&(!q||[t.name,T.abilityLabel(lib().catalog,t.primaryAbility),...t.definitions.map(T.metricName)].join(" ").toLocaleLowerCase().includes(q)));
+    const search=`<div class="management-filters catalog-filters">${field("查找项目或指标",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="名称或指标">`)}${field("能力分类",`<select data-manager-filter="ability">${option("","全部能力",f.ability)}${abilities.map(g=>option(g.key,g.name,f.ability)).join("")}${option("training-analysis",T.analysisLabel,f.ability)}</select>`)}${field("项目状态",`<select data-manager-filter="catalogStatus">${[["active","在用"],["disabled","已停用"],["conflict","待确认"],["all","全部"]].map(([v,n])=>option(v,n,status)).join("")}</select>`)}</div>`;
+    if(f.ability==="training-analysis")return catalogNotices()+search+derivedLibrary(q);
+    const index=abilities.map(g=>{const items=filtered.filter(t=>(t.primaryAbility||"unclassified")===g.key);if(!items.length)return "";return `<section class="catalog-index-group" data-metric-ability="${esc(g.key)}"><div class="catalog-index-heading"><h2>${esc(g.name)}</h2>${g.synthetic?"":more(button("改名","ability-edit",g.key)+button("上移","ability-up",g.key)+button("下移","ability-down",g.key),"分类")}</div>${items.map(t=>{const hits=q?t.definitions.filter(d=>T.metricName(d).toLocaleLowerCase().includes(q)):[],conflict=lib().catalog.conflicts.some(c=>c.testId===t.id&&!c.resolved);return `<article class="catalog-index-item" data-metric-project="${esc(t.id)}">${button(`${esc(t.name)}<small>${t.definitions.length} 个结果指标 · ${conflict?"待确认":t.disabled?"已停用":"在用"}</small>`,"catalog-open",t.id,t.id===f.test?'aria-current="true"':"")}${hits.length?`<div class="catalog-search-hits">${hits.map(d=>button(`${esc(T.metricName(d))} · ${esc(d.unit||"无单位")}`,"catalog-metric",encodeURIComponent(t.id)+"/"+encodeURIComponent(d.id),d.id===f.metricId?'aria-current="true"':"")).join("")}</div>`:""}</article>`;}).join("")}</section>`;}).join("")||'<p class="empty">没有符合条件的项目。</p>';
+    let detail='<div class="catalog-detail-empty"><h2>项目与指标</h2><p>选择一个项目，查看测量方法、录入内容和结果指标。</p></div>';
     if(project){
       const conflicted=lib().catalog.conflicts.some(c=>c.testId===project.id&&!c.resolved),definitions=project.definitions;
-      const rows=definitions.map(d=>`<tr data-library-metric="${esc(d.id)}"><td data-label="指标"><b>${esc(T.metricName(d))}</b></td><td data-label="单位">${esc(d.unit||"—")}</td><td data-label="数据方式">${T.isManualMetric(d)?d.entryScope==="attempt"?"逐试次录入":"本次测试汇总":"计算结果"}</td><td data-label="操作">${button("编辑指标","metric-edit",d.id,conflicted?"disabled":"")}</td></tr>`).join("");
-      const fixed=project.id==="fms"?'<p class="note">七项动作保留左右侧分数、疼痛和备注；0–3 分及双侧取低规则固定。</p>':project.id==="iso"?'<p class="note">测量按部位、方向和侧别保存。目标、参考值和关节比值分级在评价方案中设置。</p>':"";
-      return catalogNotices()+`<div class="management-scope">${button("返回项目列表","catalog-back")}</div><article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量协议</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写协议")}</p></section><section class="catalog-definition-block"><h3>测量内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据方式</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">定义修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
+      const rows=definitions.map(d=>`<tr data-library-metric="${esc(d.id)}" ${f.metricId===d.id?'class="catalog-metric-selected"':""}><td data-label="指标"><b>${esc(T.metricName(d))}</b><small>${esc(d.protocol||"")}</small></td><td data-label="单位">${esc(d.unit||"—")}</td><td data-label="数据与选值">${T.isManualMetric(d)?d.entryScope==="attempt"?"逐试次录入":"本次测试汇总":"项目固定计算"}<small>${T.isManualMetric(d)?d.entryScope==="attempt"?"采用项目的代表试次":"直接采用本次结果":esc(d.formula||"按本项目的固定方法计算")}</small></td><td data-label="操作"><div class="row">${button("编辑指标","metric-edit",d.id,conflicted?"disabled":"")}${button("评价标准","metric-standards",d.id,`data-project-id="${esc(project.id)}"`)}</div></td></tr>`).join("");
+      const fixed=project.id==="fms"?'<p class="note">七项动作固定 0–3 分；疼痛计 0 分，双侧动作保留左右侧得分并取较低分，七项合计 0–21 分。动作、侧别、疼痛和备注属于原始记录。</p>':project.id==="iso"?'<p class="note">测量按部位、方向和侧别保存。目标、参考值和关节比值分级在评价方案中设置。</p>':"";
+      const native=T.isNative(lib().catalog,project.id),test=lib().catalog.tests.find(t=>t.id===project.id),primary=definitions.find(d=>d.id===test?.primaryMetricId);
+      detail=`<article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="catalog-detail-back">${button("返回项目列表","catalog-back")}</div><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"} · ${native?"内置测量方法":"自定义项目"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量方法</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写测量方法")}</p><p class="note">协议版本 ${lib().catalog.protocolIdentities?.[project.id]?.version||1}${!native?" · 代表试次："+(primary?esc(T.metricName(primary)):"首个试次指标")+"，采用"+(test?.selectionDirection==="lower"?"较小值":"较大值"):""}</p></section><section class="catalog-definition-block"><h3>录入内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据与选值</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
     }
-    const filtered=projects.filter(t=>(!f.ability||(t.primaryAbility||"unclassified")===f.ability)&&(!q||[t.name,T.abilityLabel(lib().catalog,t.primaryAbility),...t.definitions.map(T.metricName)].join(" ").toLocaleLowerCase().includes(q)));
-    const groups=abilities.filter(g=>!f.ability||f.ability===g.key).map((g,i)=>{
-      const items=filtered.filter(t=>(t.primaryAbility||"unclassified")===g.key);if(q&&!items.length)return "";
-      return `<section class="metric-ability-group" data-metric-ability="${esc(g.key)}"><div class="metric-ability-heading"><h2>${esc(g.name)}</h2>${g.synthetic?"":more(button("改名","ability-edit",g.key)+button("上移","ability-up",g.key,i===0?"disabled":"")+button("下移","ability-down",g.key,i===abilities.length-1?"disabled":""),"管理分类")}</div><div class="catalog-project-grid">${items.map(t=>`<article class="catalog-project-card" data-metric-project="${esc(t.id)}"><h3>${esc(t.name)}</h3><p>${t.definitions.length} 个结果指标${t.disabled?" · 已停用":""}</p>${button("查看项目","catalog-open",t.id)}</article>`).join("")||`<p class="note">此分类暂无项目。${button("新建项目","new-test",g.synthetic?"":g.key)}</p>`}</div></section>`;
-    }).join("");
-    return catalogNotices()+`<div class="management-filters catalog-filters">${field("搜索",`<input type="search" data-manager-filter="q" value="${esc(f.q)}" placeholder="项目或指标名称">`)}${field("能力分类",`<select data-manager-filter="ability">${option("","全部能力",f.ability)}${abilities.map(g=>option(g.key,g.name,f.ability)).join("")}${option("training-analysis",T.analysisLabel,f.ability)}</select>`)}</div>${f.ability==="training-analysis"?derivedLibrary(q):groups||'<p class="empty">没有符合条件的项目。</p>'}`;
+    return catalogNotices()+search+`<div class="catalog-workspace ${project?"has-project":""}"><nav class="catalog-index" aria-label="测试项目">${index}</nav><div class="catalog-detail">${detail}</div></div>`;
   }
   function planPickerOptions() {
     return {source:lib().catalog,selection:planDraft,isoRows:M.isoRows(),context:"plan",showOrder:true,blockedIds:lib().catalog.conflicts.filter(conflict=>!conflict.resolved).map(conflict=>conflict.testId),onChange(next){planDraft.testIds=next.testIds;planDraft.isoDirectionIds=next.isoDirectionIds;const error=$("testPlanError");if(error)error.textContent="";}};
@@ -20237,9 +20439,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function profiles() {
     if(editor)return profileEditor();
     const q=filter().q.trim().toLocaleLowerCase();
-    return field("搜索评价方案",`<input type="search" data-manager-filter="q" value="${esc(filter().q)}" placeholder="方案名称">`)+lib().evaluationProfiles.filter(p=>!q||p.name.toLocaleLowerCase().includes(q)).map(p=>{
+    return (profileOrigin?`<div class="management-scope">${button("返回项目与指标库","profile-origin")}</div>`:"")+field("搜索评价方案",`<input type="search" data-manager-filter="q" value="${esc(filter().q)}" placeholder="方案名称">`)+lib().evaluationProfiles.filter(p=>!q||p.name.toLocaleLowerCase().includes(q)).map(p=>{
       const count=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===p.id).length,0);
-      return `<article class="management-catalog-item" data-evaluation-profile="${esc(p.id)}"><div><h3>${esc(p.name)} ${p.id===lib().defaultEvaluationProfileId?'<span class="pill">默认</span>':""}${p.disabled?'<span class="pill">已停用</span>':""}</h3><p class="note">版本 ${p.revision} · 关联 ${count} 条记录</p></div><div class="row">${button("编辑","profile-edit",p.id)}${more(button("复制","profile-copy",p.id)+button("设为默认","profile-default",p.id,p.disabled?"disabled":"")+button("关联记录","profile-records",p.id)+button(p.disabled?"启用":"停用","profile-toggle",p.id,p.id===lib().defaultEvaluationProfileId?"disabled":"")+(p.previous||p.releases?.length?button("版本历史","profile-history",p.id)+button("恢复上一版","profile-revert",p.id):""))}</div></article>`;
+      const standards=p.standards||[],enabled=standards.filter(s=>s.enabled!==false),abilityCount=Object.values(p.aggregations||{}).filter(a=>a.method!=="disabled").length;
+      return `<article class="management-catalog-item" data-evaluation-profile="${esc(p.id)}"><div><h3>${esc(p.name)} ${p.id===lib().defaultEvaluationProfileId?'<span class="pill">默认</span>':""}${p.disabled?'<span class="pill">已停用</span>':""}</h3><p class="note">版本 ${p.revision} · 关联 ${count} 条记录</p><p class="note">${new Set(enabled.map(s=>s.testId)).size} 个项目 · ${enabled.length} 项启用标准 · ${abilityCount} 个能力配置</p></div><div class="row">${button("编辑","profile-edit",p.id)}${more(button("复制","profile-copy",p.id)+button("设为默认","profile-default",p.id,p.disabled?"disabled":"")+button("关联记录","profile-records",p.id)+button(p.disabled?"启用":"停用","profile-toggle",p.id,p.id===lib().defaultEvaluationProfileId?"disabled":"")+(p.previous||p.releases?.length?button("版本历史","profile-history",p.id)+button("恢复上一版","profile-revert",p.id):""))}</div></article>`;
     }).join("");
   }
   function structuredRanges(path,items=[],scores=false) {
@@ -20276,34 +20479,68 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function previewScore(subject,transform,value) {
     if(value===""||value===undefined)return "输入实测值查看转换结果";
     const rule=editor.profile.standards.find(r=>r.id===subject.id);if(!rule)return "请先为此结果设置评价标准";const result=Eval.previewTransform(rule,transform,Number(value),subject);
-    return result.valid?`转换分数：${Number(result.score.toFixed(4))}`:result.reason||"无法转换";
+    return result.valid?`换算结果：${Number(result.score.toFixed(4))} 分`:result.reason||"无法换算";
   }
   function transformEditor(axis,subject,transform) {
     const path="aggregations."+pathKey(axis)+".transforms."+pathKey(subject.id),value=editor.previewValues?.[axis+"/"+subject.id]??"";
-    let h=`<section class="score-transform" data-transform-subject="${esc(subject.id)}"><h4>${esc(subject.name)} · ${esc(subject.unit)}</h4>${field("转换方式",select(path+".kind",transform.kind,[...(subject.measurementScale==="ratio"||transform.kind==="ratio"?[["ratio","相对参考目标"]]:[]),["anchors","数值与分数对应点"],["table","分数区间表"]]))}`;
+    let h=`<section class="score-transform" data-transform-subject="${esc(subject.id)}"><h4>${esc(subject.name)} · ${esc(subject.unit)}</h4>${field("怎样换算成分数",select(path+".kind",transform.kind,[...(subject.measurementScale==="ratio"||transform.kind==="ratio"?[["ratio","按目标换算"]]:[]),...(subject.measurementScale!=="ordinal"?[["anchors","按数值对应换算"]]:[]),["table","按区间给分"]]))}<p class="note">换算结果为 0–100 分。单项成绩的等级与能力分数分别计算。</p>`;
     if(transform.kind==="ratio")h+=field("转换方向",select(path+".direction",transform.direction||"higher",[["higher","数值越高分数越高"],["lower","数值越低分数越高"]]));
     if(transform.kind==="anchors")h+=field("分数变化",select(path+".shape",transform.shape||"higher",[["higher","随数值递增"],["lower","随数值递减"],["range","中间范围较高"]]))+`<div class="score-anchor-list">${(transform.points||[]).map((p,i)=>`<div class="row">${field("实测值",input(path+".points."+i+".value",p.value))}${field("对应分数",input(path+".points."+i+".score",p.score))}${button("删除","rule-range-delete",path+".points."+i)}</div>`).join("")}</div>${button("添加对应点","score-anchor-add",path+".points")}`;
     if(transform.kind==="table")h+=structuredRanges(path+".ranges",transform.ranges||[],true);
-    return h+`<div class="score-preview">${field("试算实测值",`<input type="number" step="any" data-score-preview-axis="${esc(axis)}" data-score-preview-subject="${esc(subject.id)}" value="${esc(value)}">`)}<output data-score-output-axis="${esc(axis)}" data-score-output-subject="${esc(subject.id)}">${esc(previewScore(subject,transform,value))}</output></div></section>`;
+    return h+`<div class="score-preview">${field("输入成绩试算",`<input type="number" step="any" data-score-preview-axis="${esc(axis)}" data-score-preview-subject="${esc(subject.id)}" value="${esc(value)}">`)}<output data-score-output-axis="${esc(axis)}" data-score-output-subject="${esc(subject.id)}">${esc(previewScore(subject,transform,value))}</output></div></section>`;
   }
   function aggregationsEditor(subjects) {
     const eligible=subjects.filter(s=>!s.locked&&s.ability&&s.kind!=="iso"&&s.kind!=="balance"),abilities=[...new Set(eligible.map(s=>s.ability))];
-    return `<section class="profile-aggregations"><p class="note">代表指标缺测时不替换为其他指标。平均分只使用明确选定的成员，全部成员有效后才计算。</p><div class="form-grid">${["scoreAmber","scoreGreen"].map(k=>field(ruleLabels[k],input("settings.thresholds."+k,editor.profile.settings.thresholds[k]))).join("")}</div>${abilities.map(ability=>{const axis=T.axisKey(ability),cfg=editor.profile.aggregations[axis]||{method:"disabled"},available=eligible.filter(s=>s.ability===ability),path="aggregations."+pathKey(axis);
-      let h=`<details class="ability-aggregation" ${cfg.method!=="disabled"?"open":""}><summary>${esc(T.abilityLabel(lib().catalog,ability))} · ${{primary:"代表指标",mean:"固定成员平均分",disabled:"未启用"}[cfg.method]||"待配置"}</summary>${cfg.migrationIssue?`<p class="notice">${esc(cfg.migrationIssue)}</p>`:""}${field("汇总方式",select(path+".method",cfg.method,[["disabled","不显示此能力"],["primary","代表指标"],["mean","固定成员平均分"]]))}`;
-      if(cfg.method==="primary")h+=field("代表指标",select(path+".primary",cfg.primary||"",[["","请选择代表指标"],...available.map(s=>[s.id,s.name+" · "+s.unit])]));
-      if(cfg.method==="mean")h+=`<div class="aggregation-members">${available.map(s=>`<label class="check-line"><input type="checkbox" data-aggregation-axis="${esc(axis)}" data-aggregation-member="${esc(s.id)}" ${(cfg.members||[]).includes(s.id)?"checked":""}>${esc(s.name)} · ${esc(s.unit)}</label>`).join("")}</div>${(cfg.members||[]).map(id=>{const subject=subjects.find(s=>s.id===id);return subject?transformEditor(axis,subject,cfg.transforms?.[id]||{kind:"ratio",direction:"higher"}):`<p class="notice">未找到成员 ${esc(id)}</p>`;}).join("")}<details class="rule-conditions"><summary>平均分的分级区间（可选）</summary>${structuredRanges(path+".ranges",cfg.ranges||[])}</details>`;
-      return h+'</details>';
-    }).join("")}</section>`;
+    if(!abilities.includes(editor.ability))editor.ability=abilities[0]||"";
+    if(!abilities.length)return '<p class="empty">当前目录暂无可配置的能力指标。</p>';
+    const ability=editor.ability,axis=T.axisKey(ability),cfg=editor.profile.aggregations[axis]||{method:"disabled"},available=eligible.filter(s=>s.ability===ability),path="aggregations."+pathKey(axis),members=cfg.method==="primary"?[cfg.primary].filter(Boolean):cfg.members||[];
+    const nav=`<nav class="ability-index" aria-label="选择能力">${abilities.map(a=>{const c=editor.profile.aggregations[T.axisKey(a)]||{method:"disabled"};return button(`${esc(T.abilityLabel(lib().catalog,a))}<small>${{primary:"用一个指标的分数",mean:"多个指标的分数取平均",disabled:"不显示"}[c.method]||"待配置"}</small>`,"profile-ability",a,a===ability?'aria-current="true"':"");}).join("")}</nav>`;
+    let h=`<section class="ability-config" data-ability-config="${esc(axis)}"><h2>${esc(T.abilityLabel(lib().catalog,ability))}</h2>${cfg.migrationIssue?`<p class="notice">${esc(cfg.migrationIssue)}</p>`:""}${field("这个能力怎样计分",select(path+".method",cfg.method,[["disabled","不显示此能力"],["primary","用一个指标的分数"],["mean","多个指标的分数取平均"]]))}`;
+    if(cfg.method==="primary")h+=field("采用的指标",select(path+".primary",cfg.primary||"",[["","请选择指标"],...available.map(s=>[s.id,s.name+" · "+s.unit])]));
+    if(cfg.method==="mean")h+=`<p class="note">各项成绩先换算为 0–100 分，再等权平均。所有选定指标都有效时才显示；缺测时不替换指标。</p><div class="aggregation-members">${available.map(s=>`<label class="check-line"><input type="checkbox" data-aggregation-axis="${esc(axis)}" data-aggregation-member="${esc(s.id)}" ${members.includes(s.id)?"checked":""}>${esc(s.name)} · ${esc(s.unit)}</label>`).join("")}</div>`;
+    if(cfg.method!=="disabled"){
+      if(!members.includes(editor.transformId))editor.transformId=members[0]||"";
+      h+=`<div class="score-member-index">${members.map(id=>button(esc(available.find(s=>s.id===id)?.name||id),"profile-transform",id,id===editor.transformId?'aria-current="true"':"")).join("")}</div>`;
+      const subject=available.find(s=>s.id===editor.transformId),rule=subject&&editor.profile.standards.find(r=>r.id===subject.id);
+      if(subject)h+=transformEditor(axis,subject,cfg.method==="primary"&&cfg.scoringVersion!==1?defaultTransform(subject,rule):cfg.transforms?.[subject.id]||defaultTransform(subject,rule));
+      if(cfg.method==="mean")h+=`<section class="ability-grade"><h3>平均分的等级（可选）</h3>${structuredRanges(path+".ranges",cfg.ranges||[])}</section>`;
+    }else h+='<p class="note">此能力不出现在报告能力图中。原始成绩及单项等级继续保留。</p>';
+    return `<section class="profile-aggregations"><div class="ability-mobile-select">${field("选择能力",`<select id="profileAbilitySelect">${abilities.map(a=>option(a,T.abilityLabel(lib().catalog,a),ability)).join("")}</select>`)}</div><div class="ability-config-workspace">${nav}${h}</section></div></section>`;
   }
+  function defaultTransform(subject,rule){return subject.measurementScale==="ratio"?{kind:"ratio",direction:rule?.direction||"higher"}:subject.measurementScale==="ordinal"?{kind:"table",ranges:[]}:{kind:"anchors",shape:"higher",points:[]};}
   function profileEditor() {
     const p=editor.profile,subjects=Eval.ruleSubjects(lib().catalog,p),projects=T.describe(lib().catalog),ids=[...new Set(subjects.map(s=>s.testId))];
     if(!ids.includes(editor.projectId))editor.projectId=ids[0]||"";
     const projectSubjects=subjects.filter(s=>s.testId===editor.projectId);if(!projectSubjects.some(s=>s.id===editor.subjectId))editor.subjectId=projectSubjects[0]?.id;
     const active=projectSubjects.find(s=>s.id===editor.subjectId);
-    let h=`<div class="profile-editor-header">${field("方案名称",`<input id="profileName" value="${esc(p.name)}" maxlength="120" ${editor.readOnly?"readonly":""}>`)}<div class="row">${button("返回方案列表","profile-close")}${!editor.readOnly?button("查看变更并保存","profile-review"):button("复制为新方案","profile-copy",p.id)}</div></div><div class="profile-workspace-nav">${button("项目标准","profile-view","projects",editor.view!=="aggregations"?'aria-current="page"':"")}${button("能力图与目标达成","profile-view","aggregations",editor.view==="aggregations"?'aria-current="page"':"")}</div><div id="profileEditorFields">`;
+    const count=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===p.id).length,0);
+    let h=`<div class="profile-editor-header">${field("方案名称",`<input id="profileName" value="${esc(p.name)}" maxlength="120" ${editor.readOnly?"readonly":""}>`)}<div class="profile-edit-status"><span>发布版本 ${editor.isNew?"尚未发布":editor.baseRevision}</span><span>${count} 条关联记录</span><b id="profileDraftStatus" role="status">${editorDirty()?"有未保存修改":"已保存"}</b></div><div class="row">${profileOrigin?button("返回项目与指标库","profile-origin"):""}${button("返回方案列表","profile-close")}${!editor.readOnly?button("审阅并发布","profile-review"):button("复制为新方案","profile-copy",p.id)}</div></div><div class="profile-workspace-nav" aria-label="评价方案内容">${[["projects","项目标准"],["aggregations","能力图设置"],["preview","记录预览"]].map(([id,label])=>button(label,"profile-view",id,editor.view===id?'aria-current="page"':"")).join("")}</div><div id="profileEditorFields">`;
     if(editor.view==="aggregations")h+=aggregationsEditor(subjects);
-    else h+=`<div class="profile-project-select">${field("测试项目",`<select id="profileProjectSelect">${ids.map(id=>option(id,(projects.find(t=>t.id===id)?.name||id)+` · ${p.standards.filter(s=>s.testId===id).length} 项标准`,editor.projectId)).join("")}</select>`)}</div>${editor.projectId==="imtp"?`<div class="row">${button("添加时点标准","profile-time-new")}</div>`:""}${editor.projectId==="iso"?`<details class="project-analysis-settings"><summary>双侧差异评价</summary><div class="form-grid">${["asymAmber","asymRed"].map(k=>field(ruleLabels[k],input("settings.thresholds."+k,p.settings.thresholds[k]))).join("")}</div></details>`:""}<div class="profile-project-workspace"><nav class="profile-result-list" aria-label="项目结果">${projectSubjects.map(s=>button(`${esc(s.name)}<small>${esc(s.unit||"固定评分")} · ${s.locked?(s.historical?"历史标准 · 只读":"固定规则"):p.standards.some(r=>r.id===s.id)?"已配置":"未配置"}</small>`,"profile-subject",s.id,s.id===editor.subjectId?'aria-current="true"':"")).join("")}</nav><div>${active?standardEditor(active):'<p class="empty">此项目暂无可配置结果。</p>'}${lvpSettings(editor.projectId)}</div></div>`;
+    else if(editor.view==="preview")h+=recordPreview();
+    else h+=`<details class="project-analysis-settings"><summary>统一目标比较</summary><p class="note">用于项目的目标比较；单项区间等级和能力平均分等级分别设置。</p><div class="form-grid">${["scoreAmber","scoreGreen"].map(k=>field(ruleLabels[k],input("settings.thresholds."+k,p.settings.thresholds[k]))).join("")}</div></details><div class="profile-project-select">${field("测试项目",`<select id="profileProjectSelect">${ids.map(id=>option(id,(projects.find(t=>t.id===id)?.name||id)+` · ${p.standards.filter(s=>s.testId===id).length} 项标准`,editor.projectId)).join("")}</select>`)}</div>${editor.projectId==="imtp"?`<div class="row">${button("添加时点标准","profile-time-new")}</div>`:""}${editor.projectId==="iso"?`<details class="project-analysis-settings"><summary>双侧差异评价</summary><div class="form-grid">${["asymAmber","asymRed"].map(k=>field(ruleLabels[k],input("settings.thresholds."+k,p.settings.thresholds[k]))).join("")}</div></details>`:""}<div class="profile-project-workspace"><nav class="profile-result-list" aria-label="项目结果">${projectSubjects.map(s=>button(`${esc(s.name)}<small>${esc(s.unit||"固定评分")} · ${standardStatus(s,p)}</small>`,"profile-subject",s.id,s.id===editor.subjectId?'aria-current="true"':"")).join("")}</nav><div>${active?standardEditor(active):'<p class="empty">此项目暂无可配置结果。</p>'}${lvpSettings(editor.projectId)}</div></div>`;
     return h+'</div><p id="profileEditorError" class="field-error" role="alert"></p>';
+  }
+  function standardStatus(subject,profile){if(subject.locked)return subject.historical?"历史标准 · 只读":"固定规则";const rule=profile.standards.find(r=>r.id===subject.id);return !rule?"未配置":rule.enabled===false?"已停用":[rule.targetEnabled?"目标比较":"",rule.rangesEnabled?"区间分级":""].filter(Boolean).join(" / ")||"已配置";}
+  const previewNumber=value=>value==null||value===""?"—":Number(value).toLocaleString("zh-CN",{maximumFractionDigits:2});
+  function previewOptions(){return lib().athletes.filter(a=>!a.deletedAt).flatMap(a=>a.records.filter(r=>!r.deletedAt).map(r=>({id:r.recordId,label:a.name+" · "+(r.athlete?.date||"未填日期")+(r.title?" · "+r.title:""),linked:r.evaluationProfileId===editor.profile.id}))).sort((a,b)=>Number(b.linked)-Number(a.linked));}
+  async function loadPreview(id){
+    if(!editor)return;const target=editor,sequence=++previewSequence;target.previewRecordId=id;target.previewRaw=null;target.previewError="";target.previewBusy=!!id;render();if(!id)return;
+    try{const raw=await App.getRepository().loadRecord(id);if(editor!==target||sequence!==previewSequence)return;if(!raw)throw Error("记录已不存在，请重新选择");target.previewRaw=clone(raw);}
+    catch(error){if(editor===target&&sequence===previewSequence)target.previewError=error.message;}
+    finally{if(editor===target&&sequence===previewSequence){target.previewBusy=false;if(current==="profiles")render();}}
+  }
+  function comparePreview(raw,profile,projectFilter="scheme"){
+    const released=lib().evaluationProfiles.find(p=>p.id===profile.id),draftReport=root.RingsideReport.build(Eval.resolve(clone(raw),clone(profile))),oldReport=released?root.RingsideReport.build(Eval.resolve(clone(raw),clone(released))):null;
+    const axes=new Map((oldReport?.stats.axes||[]).map(a=>[a.key,a])),nextAxes=new Map(draftReport.stats.axes.map(a=>[a.key,a])),keys=new Set([...axes.keys(),...nextAxes.keys(),...(draftReport.stats.aggregationIssues||[]).map(i=>i.ability)]);
+    const abilityRows=[...keys].map(key=>{const prior=axes.get(key),next=nextAxes.get(key),reason=draftReport.stats.aggregationIssues?.find(i=>i.ability===key)?.reason||"未显示";return `<tr><td data-label="能力">${esc(next?.label||prior?.label||T.abilityLabel(lib().catalog,key))}</td><td data-label="已发布">${prior?previewNumber(prior.value)+" 分":"—"}</td><td data-label="当前草稿">${next?previewNumber(next.value)+" 分":"—"}</td><td data-label="依据">${esc(next?(next.method==="mean"?next.members.length+" 项等权平均":"采用一个指标的分数"):reason)}</td></tr>`;}).join("");
+    const schemeProjects=new Set(profile.standards.map(r=>r.testId)),priorResults=new Map((oldReport?.stats.evaluationResults||[]).map(r=>[r.subjectId+"/"+(r.side||""),r])),metricRows=(draftReport.stats.evaluationResults||[]).filter(r=>projectFilter==="all"||projectFilter==="scheme"?projectFilter==="all"||schemeProjects.has(r.testId):(r.testId||(r.subjectId.startsWith("fms:")?"fms":""))===projectFilter).map(r=>{const prior=priorResults.get(r.subjectId+"/"+(r.side||"")),basis=[r.applicable===false?r.reason||"规则不适用":"",r.target!=null?"目标 "+previewNumber(r.target)+" "+r.unit:"",r.source||""].filter(Boolean).join(" · ");return `<tr><td data-label="指标">${esc(r.name||r.subjectId)}${r.side?" · "+esc(r.side):""}</td><td data-label="实测">${previewNumber(r.value)} ${esc(r.unit)}</td><td data-label="已发布等级">${esc(prior?.grade?.label||"—")}</td><td data-label="草稿等级">${esc(r.grade?.label||"—")}</td><td data-label="生效依据">${esc(basis||"未设置目标或分级")}</td></tr>`;}).join("");
+    return `<div class="preview-comparison" data-record-preview="${esc(raw.recordId)}"><h3>能力分数</h3><div class="preview-radar">${draftReport.stats.axes.length?root.RingsideViz.radar(draftReport.stats.axes):'<p class="empty">本次没有可显示的能力分数。</p>'}</div><div class="management-table-wrap"><table class="management-table preview-table"><thead><tr><th>能力</th><th>已发布</th><th>当前草稿</th><th>依据</th></tr></thead><tbody>${abilityRows||'<tr><td colspan="4">本次没有参与评分的能力。</td></tr>'}</tbody></table></div><h3>单项成绩与等级</h3><div class="management-table-wrap"><table class="management-table preview-table"><thead><tr><th>指标</th><th>实测</th><th>已发布等级</th><th>草稿等级</th><th>生效依据</th></tr></thead><tbody>${metricRows||'<tr><td colspan="5">当前范围内没有单项结果。</td></tr>'}</tbody></table></div></div>`;
+  }
+  function recordPreview(){
+    const choices=previewOptions();let result=editor.previewError?`<p class="notice" role="alert">${esc(editor.previewError)}</p>`:editor.previewBusy?'<p role="status">正在读取记录…</p>':!editor.previewRaw?'<p class="empty">选择一条记录，查看当前草稿的实际结果。</p>':"";
+    if(editor.previewRaw)try{result=comparePreview(editor.previewRaw,editor.profile,editor.previewProject||"scheme");}catch(error){result=`<p class="notice" role="alert">${esc(error.message)}</p>`;}
+    const projects=editor.previewRaw?T.describe(editor.previewRaw).filter(t=>editor.previewRaw.enabled[t.id]):[];
+    return `<section class="record-preview"><p class="note">预览按当前草稿计算，与已发布版本并列；不会修改记录。关联本方案的记录排在前面。</p>${field("选择测试记录",`<select id="profilePreviewRecord">${option("","请选择记录",editor.previewRecordId||"")}${choices.map(c=>option(c.id,c.label+(c.linked?" · 关联本方案":""),editor.previewRecordId)).join("")}</select>`)}${editor.previewRecordId?button("重新读取记录","profile-preview-refresh","",editor.previewBusy?"disabled":""):""}${projects.length?field("筛选单项成绩",`<select id="profilePreviewProject">${[["scheme","本方案设置标准的项目"],["all","全部已选项目"],...projects.map(t=>[t.id,t.name])].map(([id,name])=>option(id,name,editor.previewProject||"scheme")).join("")}</select>`):""}${result}</section>`;
   }
   function openStandard(kind,id){
     const profile=lib().evaluationProfiles.find(p=>p.id===lib().defaultEvaluationProfileId);if(!profile)throw Error("请先创建评价方案");if(!viewProfile(profile.id))return;App.openManagement("profiles");
@@ -20316,7 +20553,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(!lib())return;
     const focused=document.activeElement, key=focused?.dataset.managerFilter, caret=focused?.selectionStart;
     const title=sections.find(([id])=>id===current)[1];
-    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"&&!filter().test?button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new"),"管理分类"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
+    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new"),"管理分类"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
     const content=$("managementContent"),html=`<div class="management-heading"><div><h1>${title}</h1></div><div class="row">${action}</div></div>`+(current==="athletes"||current==="records"?lists():current==="teams"?teams():current==="plans"?testPlans():current==="metrics"?metrics():current==="profiles"?profiles():backup());
     const filterBar=node=>{const control=node.querySelector("[data-manager-filter]");return control?.closest(".manager-filter-shell")||control?.closest(".management-filters")||control?.closest(".field");};
     const retained=options.preserveFilters&&filterBar(content);
@@ -20333,7 +20570,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(current==="plans"&&planDraft)root.RingsidePicker.bind($("testPlanPicker"),planPickerOptions());
     if(editor?.readOnly&&current==="profiles") $("profileEditorFields")?.querySelectorAll("input,select,textarea,button").forEach(el=>{if(el.id!=="profileProjectSelect"&&el.dataset.managerAction!=="profile-subject")el.disabled=true;});
     if(key){const el=$("managementContent").querySelector(`[data-manager-filter="${key}"]`);el?.focus({preventScroll:true});if(caret!==null&&el?.setSelectionRange)try{el.setSelectionRange(caret,caret);}catch{}}
+    updateStickyOffsets();requestAnimationFrame(updateStickyOffsets);
   }
+  function updateStickyOffsets(){const content=$("managementContent"),topbar=document.querySelector('.topbar');if(!content||!topbar)return;content.style.setProperty("--management-topbar-height",topbar.getBoundingClientRect().height+"px");content.style.setProperty("--management-editor-height",(content.querySelector('.profile-editor-header')?.getBoundingClientRect().height||0)+"px");}
   function formSnapshot() {
     return JSON.stringify([...$("managementFields").querySelectorAll("input,select,textarea")]
       .filter(control=>!control.disabled&&!control.readOnly&&control.type!=="search"&&!['submit','button','reset'].includes(control.type))
@@ -20342,6 +20581,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         !!control.validity?.badInput]));
   }
   function showForm(title,html,action) {
+    if(formSession?.submitting)throw Error("请等待当前保存完成");
+    formSession={token:++formSequence,submitting:false,completed:false};
     formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
     formBaseline=formSnapshot();
   }
@@ -20389,9 +20630,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function editorDirty(){return !!editor&&!editor.readOnly&&(editor.isNew||editorSnapshot()!==editor.baseline);}
   function desktopCloseStatus() {
     const modalOpen=$("managementModal")?.classList.contains("show"), submit=$("managementForm")?.querySelector('[type="submit"]');
-    return {busy:busy||!!(modalOpen&&submit?.disabled),
+    const writing=busy&&["archive","unarchive","trash","restore","purge","team-remove","group-delete","plan-save","plan-toggle","plan-delete","ability-up","ability-down","ability-conflict-local","ability-conflict-incoming","derived-toggle","catalog-resolve","catalog-toggle","profile-default","profile-toggle","restore-library"].includes(activeAction);
+    return {busy:writing||!!formSession?.submitting||!!(modalOpen&&submit?.disabled),
       unsaved:editorDirty()||!!(!editor?.readOnly&&editor?.invalid?.size)||!!(planDraft&&Eval.canonical(planDraft)!==planBaseline)||!!(modalOpen&&formSnapshot()!==formBaseline)};
   }
+  function beforeModalClose(id){
+    if(id!=="managementModal")return true;
+    if(formSession?.submitting)return false;
+    if(!formSession?.completed&&$("managementModal")?.classList.contains("show")&&formSnapshot()!==formBaseline&&!confirm("当前表单有未保存内容，放弃这些内容？"))return false;
+    return true;
+  }
+  function afterModalClose(id){if(id==="managementModal"&&!formSession?.submitting){formSession=null;formAction=null;formBaseline="";$("managementFields").inert=false;}}
   function discardEditor(){if(editorDirty()&&!confirm("当前评价方案有未保存修改，放弃这些修改？"))return false;editor=null;return true;}
   function parseProfile() {
     if(editor.invalid?.size)throw Error("请修正未完成的数值输入");
@@ -20432,7 +20681,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function reviewProfile() {
     const next=parseProfile(),original=lib().evaluationProfiles.find(p=>p.id===next.id),diff=changesBetween(original||{...next,standards:[],aggregations:{},settings:{thresholds:{},lvp:{}}},next),baseRevision=editor.baseRevision;
     const affected=lib().athletes.reduce((n,a)=>n+a.records.filter(r=>r.evaluationProfileId===next.id).length,0);pendingReview=next;
-    showForm("保存评价方案",`<p><b>${esc(next.name)}</b> · ${affected} 条关联记录将使用此版本。</p>${diffTable(diff)}`,async()=>{await publishProfile(next,baseRevision);editor=null;pendingReview=null;});
+    const editing=editor;
+    showForm("发布评价方案",`<p><b>${esc(next.name)}</b> · ${affected} 条关联记录将使用此版本。</p>${diffTable(diff)}${editing.previewRaw?`<h3>所选记录的结果变化</h3>${comparePreview(editing.previewRaw,next,editing.previewProject||"scheme")}`:'<p class="note">可在记录预览中选择一条记录，核对发布前后的结果。</p>'}`,async()=>{await publishProfile(next,baseRevision);if(editor===editing)editor=null;pendingReview=null;});
   }
   function reviewHistory(id,latest=false){
     const profile=lib().evaluationProfiles.find(p=>p.id===id),versions=profileHistory(profile);if(!versions.length)throw Error("暂无历史版本");
@@ -20493,7 +20743,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       planBaseline=Eval.canonical(planDraft);
       if(name==="plan-copy"){planDraft.id="plan_"+uid();planDraft.name+=" 副本";planDraft.disabled=false;}return render();
     }
-    if(name==="plan-close"){planDraft=null;planBaseline="";return render();}
+    if(name==="plan-close"){if(planDraft&&Eval.canonical(planDraft)!==planBaseline&&!confirm("测试方案有未保存修改，放弃这些修改？"))return;planDraft=null;planBaseline="";return render();}
     if(name==="plan-save"){
       const draft=clone(planDraft);draft.name=draft.name.trim();if(!draft.name)throw Error("请填写测试方案名称");
       if(!draft.testIds.length)throw Error("请至少添加一个测试项目");if(draft.testIds.some(id=>!lib().catalog.tests.some(t=>t.id===id)))throw Error("请移除已不存在的项目");
@@ -20524,24 +20774,31 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     if(name==="new-test"){const opened=App.openCatalogItem("new-test");if(opened!==false&&id){if($("catalogPrimaryAbility"))$("catalogPrimaryAbility").value=id;if($("catalogAbility"))$("catalogAbility").value=id;}return opened;}
     if(name==="derived-toggle"){const catalog=clone(lib().catalog);catalog.derivedEnabled||={};catalog.derivedEnabled[id]=catalog.derivedEnabled[id]===false;await saveCatalog(catalog);return render();}
-    if(name==="catalog-open"||name==="project-metrics"){filter().test=id;return render();}
-    if(name==="catalog-back"){filter().test="";return render();}
+    if(name==="catalog-open"||name==="project-metrics"){filter().test=id;filter().metricId="";return render();}
+    if(name==="catalog-metric"){const [projectId,metricId]=id.split("/").map(decodeURIComponent);filter().test=projectId;filter().metricId=metricId;render();requestAnimationFrame(()=>$("managementContent").querySelector('.catalog-metric-selected')?.scrollIntoView({block:"nearest"}));return;}
+    if(name==="metric-standards"){filter().metricId=id;return action("project-standards",filter().test);}
+    if(name==="catalog-back"){filter().test="";filter().metricId="";return render();}
     if(name==="new-metric")return App.openCatalogItem("new-metric",id||filter().test||"");
     if(name==="catalog-edit")return App.openCatalogItem("edit-project",id);
     if(name==="catalog-resolve"){await App.resolveCatalogConflict(...id.split(":").map(Number));return render();}
     if(name==="metric-edit"){const d=lib().catalog.definitions.find(d=>d.id===id);return App.openCatalogItem("edit",d.testId,d.id);}
     if(name==="catalog-toggle"){const catalog=clone(lib().catalog),test=catalog.tests.find(t=>t.id===id);test.disabled=!test.disabled;await saveCatalog(catalog);return render();}
     if(name==="project-standards"){
-      return showForm("选择评价方案",field("评价方案",`<select name="profile">${profileOptions(lib().defaultEvaluationProfileId)}</select>`),async form=>{const profileId=new FormData(form).get("profile");if(viewProfile(profileId)){editor.projectId=id;App.openManagement("profiles");}});
+      const origin={filter:clone(filter()),scroll:scrollY},metric=origin.filter.metricId;
+      return showForm("选择评价方案",field("评价方案",`<select name="profile">${profileOptions(lib().defaultEvaluationProfileId)}</select>`),async form=>{const profileId=new FormData(form).get("profile");if(viewProfile(profileId)){profileOrigin=origin;editor.projectId=id;if(metric)editor.subjectId="metric:"+metric;return{afterClose:()=>App.openManagement("profiles")};}});
     }
-    if(name==="profile-edit")return viewProfile(id);
+    if(name==="profile-origin"){if(editor&&!discardEditor())return;const origin=profileOrigin;profileOrigin=null;if(origin)filters.metrics=clone(origin.filter);App.openManagement("metrics");if(origin)requestAnimationFrame(()=>window.scrollTo({top:origin.scroll,behavior:"instant"}));return;}
+    if(name==="profile-edit"){profileOrigin=null;return viewProfile(id);}
     if(name==="profile-new"||name==="profile-copy"){
       if(!discardEditor())return;
       const source=name==="profile-copy"?lib().evaluationProfiles.find(p=>p.id===id):null,profile=source?Eval.serializeProfile(Eval.normalizeProfile(source)):{formatVersion:2,standards:[],aggregations:{},settings:{thresholds:clone(M.defaults().rules),lvp:{}}};
       Object.assign(profile,{id:"evaluation_"+uid(),name:source?source.name+" 副本":"新评价方案",revision:1,updated:now(),disabled:false});delete profile.previous;delete profile.releases;makeEditor(profile,{isNew:true,baseRevision:null});return render();
     }
     if(name==="profile-close"){if(discardEditor())render();return;}
-    if(name==="profile-view"){editor.view=id;return render();}
+    if(name==="profile-view"){editor.view=id;if(id==="preview"&&!editor.previewBusy){const choices=previewOptions(),choice=choices.find(c=>c.id===editor.previewRecordId)||choices[0];if(choice)return loadPreview(choice.id);}return render();}
+    if(name==="profile-preview-refresh")return loadPreview(editor.previewRecordId);
+    if(name==="profile-ability"){editor.ability=id;editor.transformId="";return render();}
+    if(name==="profile-transform"){editor.transformId=id;return render();}
     if(name==="profile-review")return reviewProfile();
     if(name==="profile-subject"){editor.subjectId=id;return render();}
     if(name==="profile-standard-add"){
@@ -20585,20 +20842,26 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function profileInput(control){
     if(!editor||editor.readOnly||!control.dataset.profilePath)return;
     const path=control.dataset.profilePath;let value=control.type==="checkbox"?control.checked:control.type==="number"?control.value===""?null:Number(control.value):control.value;
-    if(control.validity.badInput)editor.invalid.add(path);else editor.invalid.delete(path);setPath(editor.profile,path,value);
     const segments=path.split(".").map(decodeURIComponent);
+    const axisCfg=segments[0]==="aggregations"?editor.profile.aggregations[segments[1]]:null;
+    if(axisCfg?.method==="primary"&&segments[2]==="transforms"&&axisCfg.scoringVersion!==1){const subject=Eval.ruleSubjects(lib().catalog,editor.profile).find(s=>s.id===segments[3]),rule=editor.profile.standards.find(r=>r.id===segments[3]);axisCfg.transforms||={};if(subject)axisCfg.transforms[segments[3]]=defaultTransform(subject,rule);axisCfg.scoringVersion=1;}
+    if(control.validity.badInput)editor.invalid.add(path);else editor.invalid.delete(path);setPath(editor.profile,path,value);
     if(segments[0]==="aggregations"){
       const cfg=editor.profile.aggregations[segments[1]];delete cfg.migrationIssue;
-      if(segments.at(-1)==="method"){if(value==="mean"){cfg.members||=[];cfg.transforms||={};}if(value==="primary")cfg.primary||="";delete cfg.migrationIssue;}
+      if(segments.at(-1)==="method"){if(value==="mean"){cfg.members||=[];cfg.transforms||={};}if(value==="primary"){cfg.primary||="";cfg.scoringVersion=1;}delete cfg.migrationIssue;}
+      if(segments.at(-1)==="primary"&&value){cfg.transforms||={};cfg.scoringVersion=1;const subject=Eval.ruleSubjects(lib().catalog,editor.profile).find(s=>s.id===value),rule=editor.profile.standards.find(r=>r.id===value);if(subject&&!cfg.transforms[value])cfg.transforms[value]=defaultTransform(subject,rule);}
       if(segments.at(-1)==="kind"){const transform=getPath(editor.profile,path.slice(0,-5));if(value==="anchors"){transform.points||=[];transform.shape||="higher";}if(value==="table")transform.ranges||=[];if(value==="ratio")transform.direction||="higher";}
     }
     updateScorePreviews();
+    updateDraftStatus();
   }
+  function updateDraftStatus(){const node=$("profileDraftStatus");if(node)node.textContent=editorDirty()?"有未保存修改":"已保存";}
+  function revealCatalogFilterResults(){if(current==="metrics"&&matchMedia("(max-width:700px)").matches){filter().test="";filter().metricId="";}}
   function init() {
     document.addEventListener("click",async event=>{
       const target=event.target.closest("[data-manager-action]");if(!target||busy)return;
-      event.preventDefault();target.closest(".management-more")?.removeAttribute("open");busy=true;
-      try{await action(target.dataset.managerAction,target.dataset.id);}catch(error){showError(error);}finally{busy=false;}
+      event.preventDefault();target.closest(".management-more")?.removeAttribute("open");busy=true;activeAction=target.dataset.managerAction;
+      try{await action(target.dataset.managerAction,target.dataset.id);}catch(error){showError(error);}finally{busy=false;activeAction="";}
     });
     document.addEventListener("toggle",event=>{
       const detail=event.target;
@@ -20615,34 +20878,39 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const t=event.target;
       if(t.id==="teamMemberSearch"){const q=t.value.trim().toLocaleLowerCase();$("managementFields").querySelectorAll("[data-team-candidate]").forEach(el=>el.hidden=!!q&&!el.dataset.teamCandidate.includes(q));}
       if(t.id==="testPlanName"&&planDraft)planDraft.name=t.value;
-      if(t.dataset.managerFilter&&t.tagName!=="SELECT"){filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();clearTimeout(filterTimer);const tab=current;filterTimer=setTimeout(()=>{if(current===tab&&App.getUIState().mode==="management")render({preserveFilters:true});},140);}
+      if(t.dataset.managerFilter&&t.tagName!=="SELECT"){filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();revealCatalogFilterResults();clearTimeout(filterTimer);const tab=current;filterTimer=setTimeout(()=>{if(current===tab&&App.getUIState().mode==="management")render({preserveFilters:true});},140);}
       if(t.id==="profileName"&&editor)editor.profile.name=t.value;
       profileInput(t);
       if(t.dataset.scorePreviewSubject&&editor){editor.previewValues[t.dataset.scorePreviewAxis+"/"+t.dataset.scorePreviewSubject]=t.value;updateScorePreviews();}
+      updateDraftStatus();
     });
     document.addEventListener("change",event=>{
       const t=event.target;
-      if(t.dataset.managerFilter&&t.tagName==="SELECT"){clearTimeout(filterTimer);filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();render({preserveFilters:true});}
+      if(t.dataset.managerFilter&&t.tagName==="SELECT"){clearTimeout(filterTimer);filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();revealCatalogFilterResults();render({preserveFilters:true});}
       if(t.dataset.managerSelect){if(t.checked)selected.add(t.dataset.managerSelect);else selected.delete(t.dataset.managerSelect);render();}
       if(t.id==="selectManagementPage"){const f=filter();allRows().slice((f.page-1)*30,f.page*30).forEach(r=>t.checked?selected.add(r.id):selected.delete(r.id));render();}
       if(t.id==="profileProjectSelect"){editor.projectId=t.value;editor.subjectId="";render();}
+      if(t.id==="profileAbilitySelect"){editor.ability=t.value;editor.transformId="";render();}
+      if(t.id==="profilePreviewRecord")loadPreview(t.value);
+      if(t.id==="profilePreviewProject"){editor.previewProject=t.value;render();}
       if(t.id==="testPlanProfile"&&planDraft)planDraft.defaultEvaluationProfileId=t.value;
-      if(t.dataset.profilePath&&t.tagName==="SELECT"){profileInput(t);if(/\.(method|kind|shape)$/.test(t.dataset.profilePath))render();}
+      if(t.dataset.profilePath&&t.tagName==="SELECT"){profileInput(t);if(/\.(method|kind|shape|primary)$/.test(t.dataset.profilePath))render();}
       if(t.dataset.aggregationMember&&editor){
         const axis=t.dataset.aggregationAxis,id=t.dataset.aggregationMember,cfg=editor.profile.aggregations[axis];cfg.members||=[];cfg.transforms||={};
-        if(t.checked){if(!cfg.members.includes(id))cfg.members.push(id);const subject=Eval.ruleSubjects(lib().catalog,editor.profile).find(s=>s.id===id),rule=editor.profile.standards.find(r=>r.id===id);cfg.transforms[id]||=subject?.measurementScale==="ratio"?{kind:"ratio",direction:rule?.direction||"higher"}:{kind:"anchors",shape:"higher",points:[]};}
+         if(t.checked){if(!cfg.members.includes(id))cfg.members.push(id);const subject=Eval.ruleSubjects(lib().catalog,editor.profile).find(s=>s.id===id),rule=editor.profile.standards.find(r=>r.id===id);cfg.transforms[id]||=defaultTransform(subject,rule);}
         else cfg.members=cfg.members.filter(x=>x!==id);delete cfg.migrationIssue;render();
       }
     });
     $("managementForm").addEventListener("submit",async event=>{
-      event.preventDefault();const form=event.target,submit=form.querySelector('[type="submit"]');if(submit.disabled)return;
-      if(!form.reportValidity())return;submit.disabled=true;
-      try{await formAction(form);App.close("managementModal");render();App.refreshWorkspace();}
+      event.preventDefault();const form=event.target,submit=form.querySelector('[type="submit"]'),session=formSession,action=formAction;if(submit.disabled||!session||session.submitting||!action)return;
+      if(!form.reportValidity())return;submit.disabled=true;session.submitting=true;busy=true;$("managementFields").inert=true;const cancelButtons=[...$("managementModal").querySelectorAll('.close,.modal-foot [type="button"]')];cancelButtons.forEach(b=>b.disabled=true);
+      try{const outcome=await action(form);if(formSession!==session)return;session.completed=true;session.submitting=false;busy=false;App.close("managementModal");outcome?.afterClose?.();render();App.refreshWorkspace();}
       catch(error){$("managementError").textContent=error.message;$("managementError").hidden=false;}
-      finally{submit.disabled=false;}
+      finally{if(formSession===session)session.submitting=false;busy=false;submit.disabled=false;$("managementFields").inert=false;cancelButtons.forEach(b=>b.disabled=false);}
     });
     window.addEventListener("scroll",()=>{if(App.getUIState().mode==="management")filter().scroll=scrollY;},{passive:true});
-    window.addEventListener("beforeunload",event=>{if(editorDirty()){event.preventDefault();event.returnValue="";}});
+    window.addEventListener("resize",()=>{if(App.getUIState().mode==="management")updateStickyOffsets();},{passive:true});
+    window.addEventListener("beforeunload",event=>{const status=desktopCloseStatus();if(status.unsaved||status.busy){event.preventDefault();event.returnValue="";}});
   }
   function showError(error) {
     const target=$("testPlanError")||$("profileEditorError")||$("managementError");target.textContent=error.message;target.hidden=false;
@@ -20662,7 +20930,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}${imtp}<h3>目标达成与双侧差异</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});
     $("managementForm").querySelector('[type="submit"]').textContent="关闭";
   }
-  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective,desktopCloseStatus};
+  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective,desktopCloseStatus,beforeModalClose,afterModalClose};
 })(window);
 
 </script>
@@ -21092,6 +21360,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   let aiStatus = { kind: "idle" }, aiTicker;
   let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null, aiEditSequence = 0;
   let desktopUpdate = null, desktopUpdateLoad = null, desktopActionBusy = false, desktopPreferencesBusy = false, desktopUpdateUnsubscribe = null, desktopUpdateRevision = 0;
+  let settingsReturn = null;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -21412,7 +21681,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       reportDirty = true; renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace();
     } finally { libraryTransferActive = false; }
   }
+  function managementNavigationBlocked() {
+    if (window.RingsideManagement?.desktopCloseStatus?.().busy || catalogEdit?.submitting) {
+      toast("正在保存，请完成后再切换页面");
+      return true;
+    }
+    return false;
+  }
   function openManagement(tab = "athletes") {
+    if (managementNavigationBlocked()) return false;
     if (tab === "catalog") tab = "metrics";
     if (creation?.submitting) return;
     if (!library) return;
@@ -21903,7 +22180,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
     if (management || ui.mode === "creation" || ui.mode === "settings" && settingsTab === "app") $("recordContext").textContent = "";
     $("workspaceBack").hidden = ui.mode === "report";
-    $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
+    $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : ui.mode === "settings" && settingsReturn?.mode === "management" ? "返回原管理页面" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
     renderNavigation(); renderAIStatus(); rememberUI();
   }
   function renderNavigation() {
@@ -21978,6 +22255,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (matchMedia("(max-width:1100px)").matches) toggleSidebar(false);
   }
   async function showReport(restoreScroll = true) {
+    if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return false;
     saveEditor();
     if (!await persist()) return false;
@@ -21996,6 +22274,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return ui.mode;
   }
   async function back() {
+    if (managementNavigationBlocked()) return false;
     if (ui.mode === "creation") return cancelCreation();
     if (ui.mode === "entry" && entryReturn?.mode === "management") {
       const backTo = entryReturn; saveEditor(); if (!await persist()) return;
@@ -22005,6 +22284,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       entryReturn = null;openManagement(backTo.tab);ui.returnMode="report";renderWorkspace();return;
     }
     if (ui.mode === "management") { if (ui.returnMode === "entry" && state) { ui.mode="entry"; renderEntry();renderWorkspace();return; } return showReport(); }
+    if (ui.mode === "settings" && settingsReturn?.mode === "management") {
+      const origin = settingsReturn; settingsReturn = null;
+      ui.mode = "management"; ui.returnMode = origin.returnMode;
+      window.RingsideManagement.open(origin.tab); renderWorkspace(); closeMobileSidebar();
+      requestAnimationFrame(() => window.scrollTo({top:origin.scroll,behavior:"instant"}));
+      return;
+    }
     if (ui.mode === "settings" && ui.returnMode === "entry") {
       ui.mode = "entry";
       renderEntry();
@@ -22158,7 +22444,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (modified) library.updated = now();
     const sequence = ++saveSequence;
     if (modified) queuedRecords.set(record.recordId,{sequence,content});
-    const snapshot = record ? copy(record) : null, next = copy(library);
+    const snapshot = record ? copy(record) : null;
+    const selection = {activeAthleteId:library.activeAthleteId || "",activeRecordId:library.activeRecordId || ""};
     $("saveStatus").textContent = "正在保存…";
     pendingSaves++;
     const saving = entryPersistQueue.then(async () => {
@@ -22170,7 +22457,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           throw Error("此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录");
         checks = {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}};
       }
-      await repository.save(next, writeRecord ? [snapshot] : [], {}, checks);
+      await repository.saveRecords(writeRecord ? [snapshot] : [], checks, {selection});
       if (writeRecord) rememberRecordBaseline(snapshot);
     });
     const task = saving.then(() => {
@@ -22191,7 +22478,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (pending && !window.RingsideEntrySession.hasManualData(session, record)) { saveEntrySession(); refreshEntryChrome(); return true; }
       const content = recordContent(record);
       if (!pending && recordBaselines.get(record.recordId) === content) return true;
-      const snapshot = copy(record), next = copy(library);
+      const snapshot = copy(record), next = copy(library), newAthletes = [];
       snapshot.updated = now();
       const stored = await repository.loadRecord(record.recordId);
       if (pending ? !!stored : !stored || recordContent(stored) !== recordBaselines.get(record.recordId))
@@ -22200,7 +22487,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       let owner = next.athletes.find(a => a.id === record.athleteId && !a.deletedAt && !a.archived);
       if (!owner && pending) {
         const profile = session.pendingAthletes.find(a => a.id === record.athleteId);
-        if (profile) { owner = copy(profile); next.athletes.push(owner); }
+        if (profile) { owner = copy(profile); next.athletes.push(owner); newAthletes.push(owner); }
       }
       if (!owner) throw Error("运动员已不存在或已归档");
       M.validateRecord(snapshot);
@@ -22209,7 +22496,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       next.activeAthleteId = snapshot.athleteId; next.activeRecordId = snapshot.recordId; next.updated = now();
       pendingSaves++; $("saveStatus").textContent = "正在保存…";
       try {
-        await repository.save(next, [snapshot], {}, {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}});
+        await repository.saveRecords([snapshot], {expectedRecords:{[record.recordId]:JSON.stringify(stored ?? null)}}, {
+          newAthletes, selection:{activeAthleteId:snapshot.athleteId,activeRecordId:snapshot.recordId}
+        });
         library = next; record.updated = snapshot.updated;
         session.savedIds.add(record.recordId); rememberRecordBaseline(snapshot);
         storageFailed = false; $("saveStatus").textContent = "已保存到本机"; saveEntrySession(); refreshEntryChrome(); return true;
@@ -22263,6 +22552,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     )?.focus();
   }
   function close(id) {
+    if (id === "managementModal" && window.RingsideManagement.beforeModalClose?.(id) === false) return false;
+    if ((id === "catalogModal" || id === "unitModal") && catalogEdit?.submitting) return false;
     if(id==="excelModal"&&window.RingsideExcelFlow?.isBusy())return;
     if(id==="excelModal")window.RingsideExcelFlow?.cancel();
     if (id === "newAthleteModal" && ui.mode === "creation") return cancelCreation();
@@ -22272,6 +22563,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       return toast("请先修正并恢复数据，原始内容可下载保留");
     if (id === "entryModal" || id === "settingsModal") return back();
     $(id)?.classList.remove("show");
+    if (id === "managementModal") window.RingsideManagement.afterModalClose?.(id);
     if (id === "newAthleteModal") creation = null;
     if (id === "unitModal") unitChange = null;
     if (id === "catalogModal") catalogEdit = null;
@@ -24141,6 +24433,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     renderReport();
   }
   function openSettings(tab = "ai") {
+    if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return;
     if (tab === "catalog") return openManagement("catalog");
     if (tab === "app" && !window.MotionBenchDesktop) return;
@@ -24148,7 +24441,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
-    if (ui.mode !== "settings") ui.returnMode = ui.mode;
+    if (ui.mode !== "settings") {
+      settingsReturn = {mode:ui.mode,tab:window.RingsideManagement.tab(),returnMode:ui.returnMode,scroll:window.scrollY};
+      ui.returnMode = ui.mode;
+    }
     ui.mode = "settings";
     settingsTab = tab;
     renderSettings();
@@ -24342,6 +24638,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   // Insert inside the App closure; expose the five public handlers on App.
   function openCatalogItem(mode = "new-test", testId = "", definitionId = "") {
+    if (catalogEdit?.submitting) return false;
     const projectOnlyRequested = mode === "edit-project", metricOnly = mode === "edit" && !!definitionId;
     if (projectOnlyRequested) mode = "edit";
     mode =
@@ -24374,7 +24671,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
             (conflict) => conflict.testId === item.id && !conflict.resolved,
           ),
       );
-    const initialProtocol = (mode === "new-metric" ? selectedTest : test)
+    const initialProtocol = metricOnly ? (definition.protocol || "") : (mode === "new-metric" ? selectedTest : test)
       ? catalog.protocol[(mode === "new-metric" ? selectedTest : test).id] || ""
       : "";
     catalogEdit = {
@@ -24383,6 +24680,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       definitionId: definition?.id || "",
       initialProtocol,
       projectOnly,
+      metricOnly,
+      scopedProject: mode === "new-metric" && !!testId,
       submitting: false,
       unit: definition && T.isManualMetric(definition) ? definition.unit : null,
       initialTestName: test?.name || "",
@@ -24396,7 +24695,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (mode === "new-metric") {
       fields += label(
         "所属测试项目",
-        `<select id="catalogTestId" aria-label="所属测试项目" required>${catalog.tests
+        `<select id="catalogTestId" aria-label="所属测试项目" required ${testId ? "disabled" : ""}>${catalog.tests
           .filter(
             (item) =>
               !catalog.conflicts.some(
@@ -24459,16 +24758,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         `<select id="catalogPrimaryAbility" aria-label="主能力"><option value="">自动采用首个能力</option>${abilities.map(group => `<option value="${E(group.key)}" ${primary === group.key ? "selected" : ""}>${E(group.name)}</option>`).join("")}</select>`,
       );
     fields += label(
-      "项目测试协议／设备",
+      metricOnly || mode === "new-metric" ? "指标测量说明" : "项目测试方法／设备",
       `<textarea id="catalogProtocol" rows="3" aria-label="项目测试协议／设备">${E(initialProtocol)}</textarea>`,
       true,
     );
-    if(!metricOnly && mode!=="new-metric") fields+=label("测试协议版本",`<input id="catalogProtocolVersion" type="number" min="1" step="1" required value="${catalog.protocolIdentities?.[test?.id]?.version||1}"><small>测试方法改变时增加版本；修订说明文字无需增加。</small>`);
-    if(!projectOnly) fields+=label("指标协议版本",`<input id="catalogMetricProtocolVersion" type="number" min="1" step="1" required value="${definition?.protocolIdentity?.version||1}">`);
+    if(!metricOnly && mode!=="new-metric") fields+=label("测量方法版本",`<input id="catalogProtocolVersion" type="number" min="1" step="1" readonly value="${catalog.protocolIdentities?.[test?.id]?.version||1}"><label class="row"><input id="catalogProjectMethodChanged" type="checkbox">测试方法发生改变</label><small>只修订说明时保留版本；方法改变会增加版本，用于匹配后续测试的评价标准。</small>`);
+    if(!projectOnly) fields+=label("指标测量版本",`<input id="catalogMetricProtocolVersion" type="number" min="1" step="1" readonly value="${definition?.protocolIdentity?.version||1}"><label class="row"><input id="catalogMetricMethodChanged" type="checkbox">此指标的测量方法发生改变</label>`);
     fields +=
       '</div><p class="note">速度统一使用 m/s。保存后可在本次测试计划中选择该项目。</p>';
     $("catalogFields").innerHTML = fields;
-    for (const id of [...(metricOnly ? ["catalogTestName","catalogCategory","catalogProtocol","catalogPrimaryAbility","catalogPrimaryMetric","catalogSelectionDirection"] : [])]) { const el=$(id);if(el) el.closest(".field").hidden=true; }
+    for (const id of [...(metricOnly ? ["catalogTestName","catalogCategory","catalogPrimaryAbility","catalogPrimaryMetric","catalogSelectionDirection"] : [])]) { const el=$(id);if(el?.closest(".field")) el.closest(".field").hidden=true; }
     $("catalogTitle").textContent =
       mode === "new-test"
         ? "新建测试项目"
@@ -24476,7 +24775,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           ? "新增指标"
           : projectOnly
             ? "编辑项目设置"
-            : "编辑项目与指标";
+            : metricOnly ? "编辑指标" : "编辑项目与指标";
     $("catalogError").hidden = true;
     $("catalogError").textContent = "";
     $("catalogForm").querySelector('[type="submit"]').disabled = false;
@@ -24504,6 +24803,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         catalogEdit.initialProtocol = catalog.protocol[item.id] || "";
         $("catalogCategory").value = item.category;
       });
+    organizeCatalogFields();
+    catalogEdit.initialForm = catalogFormValues();
+    $("catalogForm").oninput = renderCatalogChangePreview;
+    $("catalogForm").onchange = event => {
+      for (const [toggle, version, original] of [["catalogProjectMethodChanged","catalogProtocolVersion",catalog.protocolIdentities?.[test?.id]?.version||1],["catalogMetricMethodChanged","catalogMetricProtocolVersion",definition?.protocolIdentity?.version||1]])
+        if (event.target.id === toggle) $(version).value = original + (event.target.checked ? 1 : 0);
+      renderCatalogChangePreview();
+    };
+    renderCatalogChangePreview();
     modal("catalogModal");
     const firstField =
       mode === "new-metric" ||
@@ -24514,6 +24822,49 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return true;
   }
 
+  function catalogFormValues() {
+    return Object.fromEntries([...$("catalogForm").querySelectorAll("input[id],select[id],textarea[id]")]
+      .filter(node => !node.id.includes("MethodChanged"))
+      .map(node => [node.id,node.type === "checkbox" ? node.checked : node.value]));
+  }
+  function organizeCatalogFields() {
+    const host = $("catalogFields");
+    for (const [title, ids] of [
+      ["基础资料",["catalogTestId","catalogTestName","catalogMetricName","catalogUnit","catalogCategory","catalogAbility","catalogPrimaryAbility"]],
+      ["录入与选值",["catalogEntryScope","catalogPrimaryMetric","catalogSelectionDirection","catalogProtocol","catalogProtocolVersion","catalogMetricProtocolVersion"]],
+      ["统计与换算",["catalogRatioEligible","catalogCVEligible"]]
+    ]) {
+      const fields = [...new Set(ids.map(id => $(id)?.closest(".field")).filter(node => node && !node.hidden))];
+      if (!fields.length) continue;
+      const section = document.createElement("fieldset"); section.className="catalog-edit-section";
+      const legend = document.createElement("legend"); legend.textContent=title; section.append(legend);
+      const grid = document.createElement("div"); grid.className="form-grid"; fields.forEach(node=>grid.append(node)); section.append(grid);
+      if (title === "统计与换算") {
+        const note=document.createElement("p");note.className="note";
+        note.textContent="目标比例用于有真实零点的成绩，例如距离、次数。CV 用于比较重复测量的相对波动；两个选项分别设置。";
+        section.append(note);
+      }
+      if (title === "录入与选值" && catalogEdit.definitionId && !T.isManualMetric(library.catalog.definitions.find(d=>d.id===catalogEdit.definitionId))) {
+        const note=document.createElement("p");note.className="note";note.textContent="本项结果由项目测量形成，沿用既有计算方法。";section.append(note);
+      }
+      host.append(section);
+    }
+    const preview=document.createElement("section");preview.id="catalogChangePreview";preview.className="catalog-change-preview";preview.setAttribute("aria-live","polite");host.append(preview);
+  }
+  function renderCatalogChangePreview() {
+    if (!catalogEdit || !$("catalogChangePreview")) return;
+    const current=catalogFormValues(), prior=catalogEdit.initialForm || {}, changes=[];
+    for (const [id,value] of Object.entries(current)) {
+      const field=$(id)?.closest(".field");
+      if (!field || field.hidden || value === prior[id]) continue;
+      const label=field.querySelector(":scope > span")?.textContent || "设置";
+      const readable=(node,value)=>node?.tagName==="SELECT" ? [...node.options].find(option=>option.value===value)?.textContent || value : typeof value==="boolean" ? value?"启用":"关闭" : value || "未填写";
+      changes.push(`<li><b>${E(label)}</b>：${E(readable($(id),prior[id]))} → ${E(readable($(id),value))}</li>`);
+    }
+    const methodChanged=$("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
+    const linked=methodChanged ? library.evaluationProfiles.filter(profile=>profile.standards?.some(rule=>rule.testId===catalogEdit.testId)).map(profile=>profile.name) : [];
+    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">保存后用于后续测试，已有记录保留测量快照。</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+  }
   async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
     if (
@@ -24542,8 +24893,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       )
         throw Error("请选择已确认定义的测试项目");
       const displayedTestName = value("catalogTestName"),
-        testName = edit.mode === "new-metric" ? test.name : edit.mode === "edit" && displayedTestName === edit.initialDisplayName ? edit.initialTestName : displayedTestName;
-      const category = value("catalogCategory"),
+        testName = edit.mode === "new-metric" || edit.metricOnly ? test.name : edit.mode === "edit" && displayedTestName === edit.initialDisplayName ? edit.initialTestName : displayedTestName;
+      const category = edit.mode === "new-metric" || edit.metricOnly ? test.category : value("catalogCategory"),
         protocol = value("catalogProtocol");
       if (!testName) throw Error("请填写测试项目名称");
       if (!["screen", "performance"].includes(category))
@@ -24551,7 +24902,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (edit.mode === "new-test") {
         test = { id: testId, name: testName, category };
         catalog.tests.push(test);
-      } else if (edit.mode === "edit") {
+      } else if (edit.mode === "edit" && !edit.metricOnly) {
         test.name = testName;
         test.category = category;
       }
@@ -24616,18 +24967,18 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         if (index < 0) catalog.definitions.push(definition);
         else catalog.definitions[index] = definition;
       }
-      if (edit.mode !== "new-metric")
+      if (edit.mode !== "new-metric" && !edit.metricOnly)
         test.primaryAbility = value("catalogPrimaryAbility");
-      if (edit.mode !== "new-metric" && !T.isNative(catalog, testId)) test.primaryMetricId = value("catalogPrimaryMetric") || catalog.definitions.find((d) => d.testId === testId && T.isAttemptMetric(d))?.id || "";
-      if (edit.mode !== "new-metric" && !T.isNative(catalog,testId) && $("catalogSelectionDirection")) {
+      if (edit.mode !== "new-metric" && !edit.metricOnly && !T.isNative(catalog, testId)) test.primaryMetricId = value("catalogPrimaryMetric") || catalog.definitions.find((d) => d.testId === testId && T.isAttemptMetric(d))?.id || "";
+      if (edit.mode !== "new-metric" && !edit.metricOnly && !T.isNative(catalog,testId) && $("catalogSelectionDirection")) {
         const direction=value("catalogSelectionDirection");
         if(!["higher","lower"].includes(direction))throw Error("请选择代表试次选择方式");
         test.selectionDirection=direction;
       }
-      catalog.definitions
-        .filter((d) => d.testId === testId)
-        .forEach((d) => (d.category = test.category));
-      catalog.protocol[testId] = protocol;
+      if (edit.mode === "new-test" || edit.projectOnly) {
+        catalog.definitions.filter(d => d.testId === testId).forEach(d => d.category = test.category);
+        catalog.protocol[testId] = protocol;
+      }
       if($("catalogProtocolVersion")){
         const version=Number(value("catalogProtocolVersion"));
         if(!Number.isSafeInteger(version)||version<1)throw Error("测试协议版本须为正整数");
@@ -24636,7 +24987,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const canonical = M.normalizeCatalog(catalog);
       M.validateCatalog(canonical);
       edit.submitting = true;
-      form.querySelector('[type="submit"]').disabled = true;
+      edit.disabledControls = [...$("catalogModal").querySelectorAll("button,input,select,textarea")].map(node=>[node,node.disabled]);
+      edit.disabledControls.forEach(([node])=>node.disabled=true);
       canonical.tests.forEach(t=>{ const prior=catalog.tests.find(p=>p.id===t.id); if(prior?.disabled)t.disabled=true; });
       canonical.revision = (Number(catalog.revision) || 1) + 1;
       const expectedCatalog=JSON.stringify(previousCatalog);
@@ -24645,7 +24997,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         candidate.catalog=canonical;
       });
       committed = true;
-      close("catalogModal");
+      if (catalogEdit !== edit) throw Error("编辑会话已变化，请重新查看项目目录");
+      edit.submitting = false; edit.disabledControls.forEach(([node,disabled])=>node.disabled=disabled); close("catalogModal");
       renderSettings();
       const message = $("catalogMessage");
       if (message)
@@ -24655,6 +25008,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     } catch (error) {
       // Candidate changes are published only after the storage transaction commits.
       edit.submitting = false;
+      edit.disabledControls?.forEach(([node,disabled])=>node.disabled=disabled);
       form.querySelector('[type="submit"]').disabled = false;
       $("catalogError").textContent = error.message;
       $("catalogError").hidden = false;
@@ -24875,6 +25229,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       capabilities: s.axes.map((a) => ({
         ability: a.label,
         score: a.value,
+        scoreUnit: "分",
+        scoreRange: [0, 100],
         status: a.status,
         method: a.method,
         members: copy(a.members || []),
@@ -25767,7 +26123,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     getRepository: () => repository,
     async assignRecordProfile(id) { if (!state || !library.evaluationProfiles.some(p=>p.id===id)) return; state.evaluationProfileId=id;cancelJob();await persist();renderReport();renderEntry(); },
     viewEvaluation() { if(state) window.RingsideManagement.showEffective(effectiveRecord(),library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)); },
-    async restorePreviousLibrary() { await repository.restorePrevious();cancelJob();await loadDirectory(false);openManagement("athletes");renderReport();renderWorkspace(); },
+    async restorePreviousLibrary() {
+      if (Object.keys(draftsFor()).some(path => resolveDraftPath(path))) throw Error("请先修正当前标红输入，再恢复资料库");
+      return runLibraryTransfer(async () => {
+        saveEditor();
+        if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存，请保存后再恢复");
+        await entryPersistQueue; await repository.restorePrevious();
+        cancelJob(); await loadDirectory(false); ui.mode="management";
+        window.RingsideManagement.open("athletes"); renderReport(); renderWorkspace();
+      });
+    },
     downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
     refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
     saveNow: persist, prepareDesktopClose,
@@ -26452,7 +26817,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   window.addEventListener("beforeunload", (event) => {
     saveEditor();saveEntrySession();
     const pendingEmpty=entrySession&&state&&!entrySession.savedIds.has(state.recordId)&&!window.RingsideEntrySession.hasManualData(entrySession,state);
-    const unsaved=creation?.submitting||libraryTransferActive||storageFailed||entrySessionStorageFailed||saveTimer||pendingSaves||(!pendingEmpty&&state&&recordBaselines.get(state.recordId)!==recordContent(state));
+    const management = window.RingsideManagement.desktopCloseStatus?.() || {};
+    const unsaved=management.unsaved||management.busy||aiDirty||catalogEdit||unitChange||creation||libraryTransferActive||storageFailed||entrySessionStorageFailed||saveTimer||pendingSaves||(!pendingEmpty&&state&&recordBaselines.get(state.recordId)!==recordContent(state));
     if (unsaved) persist();
     if (job) job.controller.abort();
     if (unsaved) { event.preventDefault(); event.returnValue=""; }
@@ -26522,7 +26888,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       $("startupStatus").hidden=true;
       return true;
     } catch(error) {
-      $("startupStatus").textContent="无法打开资料库："+error.message+"。原始资料未删除，请导出旧资料或重新打开后重试。";
+      $("startupStatus").textContent="无法打开资料库："+error.message+"。请保留本机资料，导出可用备份或重新打开后重试。";
       $("startupStatus").classList.add("notice");
       const recoverButton=document.createElement("button");recoverButton.className="btn small";recoverButton.textContent="导出迁移前原始资料";recoverButton.onclick=App.downloadPreMigration;$("startupStatus").append(recoverButton);
       if(lastRestorePayload&&!lastRestorePayload.rawText)stageRecovery(lastRestorePayload,error,"startup");

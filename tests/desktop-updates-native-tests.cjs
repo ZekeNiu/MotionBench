@@ -6,6 +6,8 @@ const os = require("node:os");
 const {_electron} = require("playwright");
 const {desktopArtifactIdentity} = require("./helpers/desktop-artifact-identity.cjs");
 const root = path.resolve(__dirname,"..");
+const expectedWebVersion = require(path.join(root,"package.json")).version;
+const expectedDesktopVersion = require("js-yaml").load(require("node:fs").readFileSync(path.join(root,"electron-builder.yml"),"utf8")).extraMetadata.version;
 const out = path.resolve(process.env.MOTIONBENCH_UPDATE_NATIVE_ARTIFACT_DIR || path.join(root,"output/tests/v2191-desktop/native-updates"));
 const result = {synthetic:true,packaged:!!process.env.MOTIONBENCH_EXECUTABLE,checks:[],passed:false};
 const executablePath=process.env.MOTIONBENCH_EXECUTABLE || require("electron");
@@ -29,7 +31,7 @@ const check = async (name,action) => {await action();result.checks.push(name);co
     await check("actual preload and host return matching desktop and web versions after storage/draft restore",async()=>{
       const state=await page.evaluate(()=>MotionBenchNative.getUpdateState());
       const marker=await page.evaluate(()=>({desktop:MotionBenchDesktop.version,web:MotionBenchDesktop.webVersion,build:RingsideBuild.version}));
-      assert.equal(state.version,"2.19.1-desktop.1");assert.equal(state.version,marker.desktop);assert.equal(state.webVersion,"2.19.1");assert.equal(state.webVersion,marker.web);assert.equal(marker.build,"2.19.1");
+      assert.equal(state.version,expectedDesktopVersion);assert.equal(state.version,marker.desktop);assert.equal(state.webVersion,expectedWebVersion);assert.equal(state.webVersion,marker.web);assert.equal(marker.build,expectedWebVersion);
       assert.equal(state.checkUpdatesOnStartup,true);assert.equal(state.state,"idle");result.versions=marker;
     });
     await check("native state subscription forwards only snapshots and cleanup stops later preference events",async()=>{

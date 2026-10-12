@@ -222,7 +222,7 @@ class FakeUpdater extends EventEmitter {
       assert.deepEqual(received,[{state:"available"}]);await native.getUpdateState();await native.setUpdatePreferences({checkUpdatesOnStartup:false});
       assert.equal(calls[0][0],"motionbench:update");assert.equal(calls[0][1],"getUpdateState");assert.equal(calls[1][1],"setUpdatePreferences");
     });
-    const out=path.resolve(__dirname,"../output/tests/v2191-desktop");await fs.mkdir(out,{recursive:true});
+    const out=path.resolve(process.env.MOTIONBENCH_UPDATE_UNIT_ARTIFACT_DIR || path.resolve(__dirname,"../output/tests/v2191-desktop"));await fs.mkdir(out,{recursive:true});
     const sha256=bytes=>require("node:crypto").createHash("sha256").update(bytes).digest("hex"),sourceHashes={};
     for(const file of ["desktop/preferences.cjs","desktop/update-service.cjs","desktop/update-bridge.cjs","desktop/windows-updater.cjs","desktop/preload.cjs"])sourceHashes[file]=sha256(await fs.readFile(path.resolve(__dirname,"..",file)));
     await fs.writeFile(path.join(out,"update-unit-results.json"),JSON.stringify({synthetic:true,passed:true,checkedAt:new Date().toISOString(),checks,sourceHashes,testScriptSha256:sha256(await fs.readFile(__filename)),updater:require("electron-updater/package.json").version},null,2)+"\n");

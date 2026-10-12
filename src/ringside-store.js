@@ -102,6 +102,20 @@
       db.onversionchange=()=>db.close(); return repo;
     }
     async meta(id) { return request(this.db.transaction("meta").objectStore("meta").get(id)); }
+    async versionState() {
+      const tx=this.db.transaction("meta"),store=tx.objectStore("meta");
+      const [active,previous,revision]=await Promise.all(["active","previous","revision"].map(id=>request(store.get(id))));
+      return {active:active?.value||"",previous:previous?.value||"",revision:revision?.value};
+    }
+    sameVersion(left,right) { return left.active===right.active && left.previous===right.previous && left.revision===right.revision; }
+    async stableRead(generation,operation,{requireActive=generation===this.generation}={}) {
+      const before=await this.versionState();
+      if(requireActive && before.active!==generation)throw Error("资料库已在其他页面切换，请重新打开后再导出");
+      if(!generation || !await this.get("config","library",generation))throw Error("待读取的资料库配置缺失，请核对后重试");
+      const value=await operation();
+      if(!this.sameVersion(before,await this.versionState()))throw Error("资料在读取期间已被其他页面修改，请停止其他页面的操作后重新备份或导出");
+      return value;
+    }
     async get(table,id,generation=this.generation) { return (await request(this.db.transaction(table).objectStore(table).get([generation,id])))?.value; }
     async values(table,generation=this.generation) { return (await request(this.db.transaction(table).objectStore(table).getAll(keyRange(generation)))).map(row=>row.value); }
     async directory(generation=this.generation) {
@@ -120,6 +134,60 @@
     loadRecord(id) { return this.get("records",id); }
     enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
     flush() { return this.queue; }
+    saveRecords(records=[],checks={},options={}) {
+      const generation=this.generation,expected=clone(checks),selection=options.selection?clone(options.selection):null,updated=options.updated;
+      const snapshots=records.map(record=>{validateEntity("record",record);return clone(record);});
+      const newAthletes=(options.newAthletes||[]).map(owner=>{const value=athleteMetadata(owner);validateEntity("athlete",value);return value;});
+      const recordIds=new Set(),ownerIds=new Set();
+      for(const record of snapshots){
+        if(recordIds.has(record.recordId))throw Error("测试编号重复");recordIds.add(record.recordId);
+        if(typeof expected.expectedRecords?.[record.recordId]!=="string")throw Error("保存测试缺少原记录校验依据，请重新打开后保存");
+      }
+      for(const owner of newAthletes){if(ownerIds.has(owner.id))throw Error("运动员编号重复");ownerIds.add(owner.id);if(!snapshots.some(record=>record.athleteId===owner.id))throw Error("新运动员需要随首次测试一起保存");}
+      if(selection && (typeof selection.activeAthleteId!=="string" || typeof selection.activeRecordId!=="string"))throw Error("当前资料选择无效");
+      return this.enqueue(async()=>{
+        const tx=this.db.transaction(["meta","records","recordIndex","athletes","profiles","groups","config"],"readwrite"),done=completed(tx);
+        try {
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开后保存");
+          const storedConfig=(await request(tx.objectStore("config").get([generation,"library"])))?.value;
+          if(!storedConfig)throw Error("资料库配置缺失");
+          const owners=new Map();
+          for(const owner of newAthletes){
+            if(await request(tx.objectStore("athletes").get([generation,owner.id])))throw Error("运动员已在其他页面建立，请重新核对后保存");
+            if(owner.groupId && !await request(tx.objectStore("groups").get([generation,owner.groupId])))throw Error("运动员所属队伍已不存在，请重新选择");
+            owners.set(owner.id,owner);
+          }
+          for(const record of snapshots){
+            const stored=(await request(tx.objectStore("records").get([generation,record.recordId])))?.value;
+            if(JSON.stringify(stored??null)!==expected.expectedRecords[record.recordId])throw Error("此记录已在其他页面修改或删除，当前输入已保留，请核对后重新打开记录");
+            const owner=owners.get(record.athleteId)||(await request(tx.objectStore("athletes").get([generation,record.athleteId])))?.value;
+            if(!owner || owner.deletedAt)throw Error("运动员已不存在，请重新打开后保存");
+            if(!stored && owner.archived)throw Error("运动员已在其他页面归档，请恢复档案后再创建测试");
+            if((owner.profile?.birthDate||"")!==(record.athlete.birthDate||""))throw Error("运动员生日已更新，请重新打开本次记录后保存");
+            if(!await request(tx.objectStore("profiles").get([generation,record.evaluationProfileId])))throw Error("测试的评价方案已不存在，请重新选择");
+          }
+          const nextConfig={...storedConfig};
+          if(selection){
+            const selectedRecord=snapshots.find(record=>record.recordId===selection.activeRecordId)||(selection.activeRecordId?(await request(tx.objectStore("records").get([generation,selection.activeRecordId])))?.value:null);
+            const selectedOwner=owners.get(selection.activeAthleteId)||(selection.activeAthleteId?(await request(tx.objectStore("athletes").get([generation,selection.activeAthleteId])))?.value:null);
+            if(selection.activeAthleteId && (!selectedOwner || selectedOwner.deletedAt) || selection.activeRecordId && (!selectedRecord || selectedRecord.deletedAt || selectedRecord.athleteId!==selection.activeAthleteId))throw Error("当前运动员或记录已不存在，请重新打开");
+            nextConfig.activeAthleteId=selection.activeAthleteId;nextConfig.activeRecordId=selection.activeRecordId;
+          }
+          if(snapshots.length){nextConfig.updated=updated||new Date().toISOString();nextConfig.version=root.RingsideBuild?.version||storedConfig.version;}
+          const configChanged=JSON.stringify(nextConfig)!==JSON.stringify(storedConfig);
+          for(const owner of newAthletes)tx.objectStore("athletes").put({generation,id:owner.id,value:owner});
+          for(const record of snapshots){tx.objectStore("records").put({generation,id:record.recordId,value:record});tx.objectStore("recordIndex").put({generation,id:record.recordId,value:summary(record)});}
+          if(configChanged)tx.objectStore("config").put({generation,id:"library",value:nextConfig});
+          if(snapshots.length||newAthletes.length||configChanged)tx.objectStore("meta").put({id:"revision",value:uid()});
+          await done;
+          for(const owner of newAthletes)this.metadataHashes.set("athletes:"+owner.id,JSON.stringify(owner));
+          // Do not adopt unrelated metadata from another page as this caller's
+          // baseline: later management edits must still detect its stale view.
+          const baseline=this.metadataHashes.get("config:library");
+          if(baseline===JSON.stringify(storedConfig))this.metadataHashes.set("config:library",JSON.stringify(nextConfig));
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
     save(lib,records=[],removals={},checks={}) {
       const generation=this.generation;
       const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles.map(p=>E.serializeProfile ? E.serializeProfile(p) : p)],["config",[{...configuration(lib),id:"library"}]]].map(([table,items])=>[table,clone(items)]);
@@ -199,15 +267,21 @@
     }
     backupBlob(onProgress=()=>{}) { return this.enqueue(() => this.createBackupBlob(onProgress)); }
     async createBackupBlob(onProgress=()=>{},generation=this.generation) {
-      const chunks=[];let records=0;
-      for await(const row of this.rows(generation)) {chunks.push(new Blob([JSON.stringify(row)+"\n"],{type:"application/x-ndjson"}));if(row.type==="record"&&++records%100===0)onProgress(records);}
-      return new Blob(chunks,{type:"application/x-ndjson"});
+      return this.stableRead(generation,async()=>{
+        const chunks=[];let records=0;
+        for await(const row of this.rows(generation)) {chunks.push(new Blob([JSON.stringify(row)+"\n"],{type:"application/x-ndjson"}));if(row.type==="record"&&++records%100===0)onProgress(records);}
+        return new Blob(chunks,{type:"application/x-ndjson"});
+      });
     }
     exportLibrary() { return this.enqueue(() => this.createLibrary()); }
     async createLibrary(generation=this.generation) {
-      const lib=await this.directory(generation), owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
-      for await(const batch of this.batches("records",generation))for(const r of batch)owners.get(r.athleteId).records.push(r);
-      return lib;
+      return this.stableRead(generation,async()=>{
+        const lib=await this.directory(generation),owners=new Map(lib.athletes.map(a=>{a.records=[];return[a.id,a];}));
+        for await(const batch of this.batches("records",generation))for(const record of batch){
+          const owner=owners.get(record.athleteId);if(!owner)throw Error("资料在读取期间已更改或记录归属缺失，请核对资料后重新导出");owner.records.push(record);
+        }
+        return lib;
+      });
     }
     upgradeMeasurementContract() {
       return this.enqueue(async()=>{
@@ -233,24 +307,35 @@
       if(!generation||!await this.get("config","library",generation))throw Error("没有回退前的新版资料副本");
       return this.createBackupBlob(()=>{},generation);
     }
-    async restoreUpgradeCheckpoint() {
-      await this.flush();
-      const checkpoint=(await this.meta("upgrade-2.19.0"))?.value,target=checkpoint?.generation;
-      if(!target||!await this.get("config","library",target))throw Error("没有可恢复的升级前资料");
-      const current=this.generation,tx=this.db.transaction("meta","readwrite"),done=completed(tx);
+    restoreUpgradeCheckpoint() {
+      return this.enqueue(async()=>{
+        const expected=await this.versionState(),checkpoint=(await this.meta("upgrade-2.19.0"))?.value,target=checkpoint?.generation;
+        if(expected.active!==this.generation)throw Error("资料库已在其他页面切换，请重新打开后恢复");
+        const targetConfig=target?await this.get("config","library",target):null;
+        if(!targetConfig)throw Error("没有可恢复的升级前资料");
+        await this.restorePointers(expected,target,targetConfig,checkpoint,true);
+      });
+    }
+    async restorePointers(expected,target,targetConfig,checkpoint,upgrade=false) {
+      if(target===expected.active)throw Error("目标资料库与当前资料库相同，无需恢复");
+      const tx=this.db.transaction(["meta","config"],"readwrite"),done=completed(tx);
       try {
-        if((await request(tx.objectStore("meta").get("active")))?.value!==current)throw Error("资料库已在其他页面切换，请重新打开后恢复");
-        if(current!==target){const rollbackGenerations=[...(checkpoint.rollbackGenerations||[])];if(!rollbackGenerations.some(item=>item.generation===current))rollbackGenerations.push({generation:current,created:new Date().toISOString()});tx.objectStore("meta").put({id:"upgrade-2.19.0",value:{...checkpoint,rollbackGenerations}});}
-        tx.objectStore("meta").put({id:"active",value:target});tx.objectStore("meta").put({id:"previous",value:current});tx.objectStore("meta").put({id:"revision",value:uid()});await done;
-        this.generation=target;this.metadataHashes.clear();
-      } catch(error) {try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+        const [active,previous,revision,actualCheckpoint,actualConfig]=await Promise.all([
+          ...["active","previous","revision","upgrade-2.19.0"].map(id=>request(tx.objectStore("meta").get(id))),
+          request(tx.objectStore("config").get([target,"library"]))
+        ]);
+        const actual={active:active?.value||"",previous:previous?.value||"",revision:revision?.value};
+        if(!this.sameVersion(expected,actual)||JSON.stringify(actualCheckpoint?.value??null)!==JSON.stringify(checkpoint??null)||JSON.stringify(actualConfig?.value??null)!==JSON.stringify(targetConfig))throw Error("资料库已在其他页面修改，请重新打开并核对后恢复");
+        if(upgrade){const rollbackGenerations=[...(checkpoint.rollbackGenerations||[])];if(!rollbackGenerations.some(item=>item.generation===actual.active))rollbackGenerations.push({generation:actual.active,created:new Date().toISOString()});tx.objectStore("meta").put({id:"upgrade-2.19.0",value:{...checkpoint,rollbackGenerations}});}
+        tx.objectStore("meta").put({id:"active",value:target});tx.objectStore("meta").put({id:"previous",value:actual.active});tx.objectStore("meta").put({id:"revision",value:uid()});
+        await done;this.generation=target;this.metadataHashes.clear();
+      }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
     }
     async importLibrary(lib,options={}) {return this.importRows(libraryRows(lib),options);}
     importRows(iterable,options={}) { return this.enqueue(() => this.stageImport(iterable,options)); }
-    async stageImport(iterable,{merge=false,onProgress=()=>{},upgradeCheckpoint=null,expectedRevision}={}) {
-      const generation="generation_"+uid(),oldGeneration=this.generation,obsoleteGeneration=(await this.meta("previous"))?.value;
-      const revision=(await this.meta("revision"))?.value;
-      if(upgradeCheckpoint && revision!==expectedRevision)throw Error("资料已在其他页面修改，请重新打开后升级");
+    async stageImport(iterable,{merge=false,onProgress=()=>{},upgradeCheckpoint=null,expectedRevision,expectedState}={}) {
+      const generation="generation_"+uid(),oldGeneration=this.generation,initial=await this.versionState(),obsoleteGeneration=initial.previous,revision=initial.revision;
+      if(initial.active!==oldGeneration || expectedState&&!this.sameVersion(initial,expectedState) || expectedRevision!==undefined&&revision!==expectedRevision)throw Error("资料已在其他页面修改，请重新打开后升级或导入");
       const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
       let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
@@ -346,8 +431,8 @@
         if(actual[0].length>2000||actual[1].length>10000)throw Error("合并后资料超过容量边界");
         const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
         try {
-          const [active,currentRevision]=await Promise.all([request(tx.objectStore("meta").get("active")),request(tx.objectStore("meta").get("revision"))]);
-          if((active?.value||"")!==oldGeneration || currentRevision?.value!==revision) throw Error("资料已在其他页面修改，请重新预览后导入");
+          const [active,previous,currentRevision]=await Promise.all(["active","previous","revision"].map(id=>request(tx.objectStore("meta").get(id))));
+          if(!this.sameVersion(initial,{active:active?.value||"",previous:previous?.value||"",revision:currentRevision?.value})) throw Error("资料已在其他页面修改，请重新预览后导入");
         } catch(error) { try {tx.abort();} catch(_) {} await done.catch(()=>{}); throw error; }
         tx.objectStore("meta").put({id:"active",value:generation});
         tx.objectStore("meta").put({id:"revision",value:uid()});
@@ -356,21 +441,31 @@
         this.generation=generation;this.metadataHashes.clear();
         if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
         return{added:imported,skipped:counts.record-imported,recordMap};
-      }catch(error){await this.discardGeneration(generation);throw error;}
+      }catch(error){await this.discardGeneration(generation).catch(()=>{});throw error;}
     }
     async discardGeneration(generation) {
-      if(!generation||generation===this.generation)return;
-      const checkpoint=(await this.meta("upgrade-2.19.0"))?.value;
-      if(checkpoint?.generation===generation||checkpoint?.rollbackGenerations?.some(item=>item.generation===generation))return;
-      const tx=this.db.transaction(tables,"readwrite"),done=completed(tx);
-      for(const table of tables)tx.objectStore(table).delete(keyRange(generation));await done;
+      if(!generation)return false;
+      const tx=this.db.transaction(["meta",...tables],"readwrite"),done=completed(tx);
+      try {
+        const [active,previous,storedCheckpoint]=await Promise.all(["active","previous","upgrade-2.19.0"].map(id=>request(tx.objectStore("meta").get(id)))),checkpoint=storedCheckpoint?.value;
+        const protectedGenerations=new Set([active?.value,previous?.value,checkpoint?.generation,checkpoint?.upgradedGeneration,...(checkpoint?.rollbackGenerations||[]).map(item=>item.generation)].filter(Boolean));
+        if(protectedGenerations.has(generation)){await done;return false;}
+        for(const table of tables)tx.objectStore(table).delete(keyRange(generation));await done;return true;
+      }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
     }
-    async restorePrevious() {
-      await this.flush();const previous=(await this.meta("previous"))?.value;
-      if(!previous||!await this.get("config","library",previous))throw Error("没有可恢复的迁移前资料库");
-      if((await this.meta("upgrade-2.19.0"))?.value?.generation===previous)return this.importLibrary(E.migrate(await this.createLibrary(previous)));
-      const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
-      tx.objectStore("meta").put({id:"active",value:previous});tx.objectStore("meta").put({id:"previous",value:this.generation});tx.objectStore("meta").put({id:"revision",value:uid()});await done;this.generation=previous;this.metadataHashes.clear();
+    restorePrevious() {
+      return this.enqueue(async()=>{
+        const expected=await this.versionState();
+        if(expected.active!==this.generation)throw Error("资料库已在其他页面切换，请重新打开后恢复");
+        const previous=expected.previous,targetConfig=previous?await this.get("config","library",previous):null,checkpoint=(await this.meta("upgrade-2.19.0"))?.value;
+        if(!targetConfig)throw Error("没有可恢复的迁移前资料库");
+        if(previous===expected.active)throw Error("目标资料库与当前资料库相同，无需恢复");
+        if(checkpoint?.generation===previous){
+          const before=await this.createLibrary(previous);
+          return this.stageImport(libraryRows(E.migrate(before)),{expectedState:expected});
+        }
+        await this.restorePointers(expected,previous,targetConfig,checkpoint);
+      });
     }
     close(){this.db.close();}
   }

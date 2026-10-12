@@ -93,7 +93,7 @@ for (const name of namespaces) { assert.ok(html.includes('"' + name + '"')); htm
 html = html.replace("<title>MotionBench · 运动表现评估</title>", "<title>MotionBench 在线演示 · 模拟数据</title>");
 const style = '<style id="public-demo-style">.public-demo-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;background:#eef3f8;border-bottom:1px solid #dae4ed;color:#496075;font-size:12px;line-height:1.6}.public-demo-banner strong{font-weight:650;color:#365b80}.public-demo-banner a{color:#365b80;text-decoration:none;white-space:nowrap}.public-demo-banner a:hover{text-decoration:underline}@media(max-width:519px){.public-demo-banner{padding:9px 16px;align-items:flex-start;flex-wrap:wrap;gap:4px}.public-demo-banner span{flex-basis:100%}}</style>';
 html = html.replace("</head>", style + "\n</head>");
-const banner = '<div class="public-demo-banner no-print" aria-label="在线演示说明"><span><strong>在线演示</strong> · 初始数据为模拟数据，修改仅保存在当前浏览器。</span><a href="https://github.com/ZekeNiu/MotionBench/releases/tag/v2.19.1-desktop.1" target="_blank" rel="noopener noreferrer">下载 Windows 版 ↗</a></div>';
+const banner = '<div class="public-demo-banner no-print" aria-label="在线演示说明"><span><strong>在线演示</strong> · 初始数据为模拟数据，修改仅保存在当前浏览器。</span><a href="https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0-desktop.1" target="_blank" rel="noopener noreferrer">下载 Windows 版 ↗</a></div>';
 html = html.replace('<div id="workspace" class="workspace">', '<div id="workspace" class="workspace">\n' + banner);
 assert.ok(html.includes(banner));
 assert.doesNotMatch(html, /(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/, "Credential detected");

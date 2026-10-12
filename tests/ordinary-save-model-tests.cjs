@@ -17,6 +17,7 @@ function harness(baseline){
     pendingSaves:0,saveSequence:0,saveTimer:null,storageFailed:false,libraryTransferActive:false,entrySession:null,state:null,reportDirty:false,
     T:model.RingsideTests,M,$:()=>status,refreshEntryChrome:()=>{},upgradeDemo:()=>({changed:false}),library,
     repository:{directory:async()=>copy(library),
+      saveRecords(records,checks) { return this.save(null,records,{},checks); },
       loadRecord:async id=>{const value=copy(stored);loads.push(id);if(loadHook)await loadHook(value,loads.length);return value;},
       save:async(next,records,removals,checks)=>{
         const snapshots=copy(records);saves.push({snapshots,checks:copy(checks)});if(saveHook)await saveHook(snapshots,saves.length);

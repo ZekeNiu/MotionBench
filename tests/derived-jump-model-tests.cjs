@@ -114,7 +114,12 @@ test("2.10 source fixtures retain measurements, scoring, manual text and narrati
   for(const source of [old.RingsideModel.defaults(),old.RingsideModel.sampleRecord()].map(old.RingsideModel.normalizeRecord)) {
     source.narrative.summary="保留的手动分析";const before=old.RingsideModel.stats(source), baseline=old.RingsideModel.fingerprint(source), r=M.normalizeRecord(copy(source)), after=M.stats(r);
     const expectedAxes=copy(before.axes);for(const axis of expectedAxes)for(const definition of axis.defs){definition.name=c.Def.factoryText(definition.id,"name",definition.name);definition.protocol=c.Def.factoryText(definition.id,"protocol",definition.protocol);}
-    const axisValues=axes=>copy(axes).map(({members,scores,method,...axis})=>({...axis,defs:axis.defs.map(({protocolIdentity,...d})=>d)}));
+    const axisValues=axes=>copy(axes).map(({members,scores,method,scoreUnit,scoreMax,transforms,...axis})=>({...axis,defs:axis.defs.map(({protocolIdentity,...d})=>d)}));
+    for (const [i,axis] of after.axes.entries()) {
+      assert.equal(axis.scoreUnit,"分");assert.equal(axis.scoreMax,100);assert.deepEqual(Object.keys(axis.transforms),copy(axis.members));
+      const prior=before.axes[i];assert.equal(axis.value,prior.value);
+      for(const key of ["scores","members","method"])if(prior[key]!==undefined)assert.deepEqual(copy(axis[key]),copy(prior[key]));
+    }
     assert.deepEqual(copy(after.values),copy(before.values));assert.deepEqual(axisValues(after.axes),axisValues(expectedAxes));assert.deepEqual(copy(after.findings),copy(before.findings));assert.equal(r.narrative.summary,"保留的手动分析");
     if(M.fingerprint(r)!==baseline){const a=JSON.parse(M.fingerprint(r)),b=JSON.parse(baseline);for(const key of Object.keys(a))assert.deepEqual(a[key],b[key],"fingerprint differs at "+key);}
     assert.equal(M.fingerprint(r)===baseline,true,"fingerprint retains exact serialized order");

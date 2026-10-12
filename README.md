@@ -2,9 +2,9 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**当前正式版：Windows `2.19.1-desktop.1` · HTML `2.19.1`**
+**当前正式版：Windows `2.20.0-desktop.1` · HTML `2.20.0`**
 
-[在线 Demo](https://zekeniu.github.io/MotionBench/) · [下载 Windows 安装版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.19.1-desktop.1/MotionBench-2.19.1-desktop.1-Setup-x64.exe) · [下载便携版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.19.1-desktop.1/MotionBench-2.19.1-desktop.1-Portable-x64.exe) · [离线 HTML 下载](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.19.1) · [版本说明](docs/motionbench-2.19.1.md)
+[在线 Demo](https://zekeniu.github.io/MotionBench/) · [下载 Windows 安装版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.0-desktop.1/MotionBench-2.20.0-desktop.1-Setup-x64.exe) · [下载便携版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.0-desktop.1/MotionBench-2.20.0-desktop.1-Portable-x64.exe) · [离线 HTML 下载](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0) · [版本说明](docs/motionbench-2.20.0.md)
 
 ![MotionBench 在线演示，全部资料为模拟数据](assets/motionbench-demo.png)
 
@@ -48,7 +48,7 @@
 
 适用于 Windows 10 / 11 x64。Setup 包含完整 Electron 运行环境，安装向导可选择中文、含空格及非系统盘目录。Portable 首次启动会解包运行环境。
 
-- **从 `2.19.0-desktop.1` 升级**：手动运行新版 Setup。此后在侧栏底部“应用设置”检查、下载并重启更新。
+- **从 `2.19.1-desktop.1` 升级**：手动运行新版 Setup。此后在侧栏底部“应用设置”检查、下载并重启更新。
 - **安装版更新**：沿用原安装目录。启动检查默认开启，可关闭；下载和安装均需点击，普通退出不会自动安装。
 - **便携版更新**：在应用设置检查并打开便携版下载，退出程序后替换 exe。
 - **资料保存**：安装版和便携版共用 `%APPDATA%\MotionBench Desktop`，与程序目录分开。升级、重装及卸载保留资料。
@@ -59,7 +59,7 @@
 
 ## HTML、本机入口与资料迁移
 
-下载 [HTML 发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.19.1) 中的 `MotionBench.html` 可直接打开，无需安装。需要本机 AI 中转时，解压 `MotionBench-2.19.1-HTML.zip`，Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
+下载 [HTML 发行](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.0) 中的 `MotionBench.html` 可直接打开，无需安装。需要本机 AI 中转时，解压 `MotionBench-2.20.0-HTML.zip`，Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
 
 本机启动器默认地址为 `http://127.0.0.1:8765/MotionBench.html`。保持原文件位置、浏览器和打开地址可继续使用原资料。浏览器、地址、路径或桌面入口变化前，请先在“备份与恢复”导出完整 JSONL，再在目标入口导入并核对。单条 JSON、HTML 和 PDF 用于报告分享，完整资料库迁移使用 JSONL。
 
@@ -75,13 +75,17 @@
 
 ## 本版验证与方法资料
 
-2.19.1 的冻结验收包括 52 个单元套件、773 项检查、100 项两浏览器检查、实际 PDF 导出及逐页核验、真实 Windows 安装目录选择、旧版升级、便携程序、重装与卸载后资料保留。验收记录与构建来源随发行提供。
+本版验收覆盖统一计分、评价方案与项目目录、跨页面保存和备份恢复、两浏览器与真实 Windows 程序、PDF、旧版升级及资料保留。各项结果、成品校验值和构建来源随发行提供。
 
-[验收记录](docs/acceptance-2.19.1.md) · [公开发布验收](docs/publication-2.19.1.md) · [发行说明](docs/motionbench-2.19.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
+[验收记录](docs/acceptance-2.20.0.md) · [公开发布验收](docs/publication-2.20.0.md) · [发行说明](docs/motionbench-2.20.0.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
 
-## 已确认的优化项
+## 评价方案与项目目录
 
-在同一资料库的多个页面同时操作时，“恢复上一份资料库”可能丢失新资料库的恢复指针；备份期间另一页面新增资料可能生成无法恢复的备份。备份或恢复前，请先关闭同一资料库的其他页面。两项问题已用 2.19.1 合成资料在 Chrome、Edge 复现，具体触发条件、影响与下一补丁修复范围见 [项目审查](docs/project-review-20261012.md)。
+评价方案分为项目标准、能力图设置和记录预览。按能力选择一个指标或固定成员平均，设置给分方法并试算；发布前比较已发布标准与草稿对已有记录的影响。
+
+“项目与指标库”按项目主能力组织，支持搜索具体指标、查看测量和结果规则、独立编辑项目及指标，再进入选定评价方案配置标准。能力图分数为 0–100 分；目标、等级和参考均值各自保留原有用途。
+
+普通成绩保存独立于共享配置；跨页面恢复与资料清理受事务保护，备份过程检测版本变化，避免生成混合版本资料库。此次修复对应的原始审查记录见 [项目审查](docs/project-review-20261012.md)。
 
 ## 开发与构建
 

@@ -211,15 +211,17 @@
   }
   function abilityDetails(report) {
     const {record,stats}=report,results=stats.evaluationResults||[];
-    const axes=stats.axes.filter(axis=>axis.method==="mean");
+    const axes=stats.axes.filter(axis=>["primary","mean"].includes(axis.method));
     if(!axes.length)return "";
-    return `<details class="ability-score-details"><summary>查看能力平均分的组成</summary>${axes.map(axis=>{
+    return `<details class="ability-score-details"><summary>查看能力评分的计算</summary>${axes.map(axis=>{
       const ids=axis.members||[],n=ids.length;
       const rows=ids.map((id,index)=>{
         const result=results.find(item=>item.subjectId===id),definition=record.definitions.find(d=>d.id===(result?.metricId||id.replace(/^metric:/,"")));
-        return [E(definition?.name||result?.name||id),F(result?.value??stats.values[definition?.id],2)+" "+E(result?.unit||definition?.unit||""),E(result?.grade?.label||"—"),F(axis.scores?.[index],1),F(n?axis.scores?.[index]/n:null,1)];
+        const transform=axis.transforms?.[id]||result?.scoreContributions?.find(item=>item.ability===axis.key)?.transform;
+        const method={ratio:"按目标换算",anchors:"分数对应点",table:"评分区间"}[transform?.kind]||"—";
+        return [E(definition?.name||result?.name||id),F(result?.value??stats.values[definition?.id],2)+" "+E(result?.unit||definition?.unit||""),E(result?.grade?.label||"—"),method,F(axis.scores?.[index],1)+" 分",...(axis.method==="mean"?[F(n?axis.scores?.[index]/n:null,1)+" 分"]:[])];
       });
-      return `<section data-ability-score="${E(axis.key)}"><h4>${E(axis.label)} · ${F(axis.value,1)} 分</h4>${table(["成员","原始成绩","单项分级","换算得分","平均贡献"],rows,ids)}<p class="note">${n} 个固定成员等权平均。</p></section>`;
+      return `<section data-ability-score="${E(axis.key)}" data-ability-score-method="${E(axis.method)}"><h4>${E(axis.label)} · ${F(axis.value,1)} 分 / 100</h4>${table(["指标","原始成绩","单项分级","给分方式","换算得分",...(axis.method==="mean"?["平均贡献"]:[])],rows,ids)}<p class="note">${axis.method==="mean"?`${n} 个固定成员等权平均。`:"使用代表指标的给分结果。"}满分 100 分。</p></section>`;
     }).join("")}</details>`;
   }
   function overview(report) {
@@ -1021,7 +1023,7 @@
         : ["sprint_fvp", "sprint_elasticity"].includes(selected) && positive(metric.context?.targetDistanceM) ? `目标距离 ${F(metric.context.targetDistanceM, 1)} m` : "";
       const category = key === "endurance" ? "cardio" : key, parameters = cards.find(card => card.id === category);
       const folded = `<details class="capability-card-parameters" data-capability-parameters="${key}"${record.views?.capabilityExpanded?.[key] === true ? " open" : ""}><summary><span>查看相关参数</span><small>${parameters?.metrics.length || 0} 项</small></summary><div data-report-patch="parameters-${key}">${parameters ? parameterGroup(parameters) : '<p class="empty">完成相关测试后显示参数。</p>'}</div></details>`;
-      return `<article class="capability-direction-card" data-capability-direction="${key}"><div class="capability-card-summary"><h3>${E(title)}</h3><section data-report-patch="summary-${key}" data-direction-metric="${E(selected)}"><p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}</section>${selector}</div>${folded}</article>`;
+      return `<article class="capability-direction-card" data-capability-direction="${key}"><div class="capability-card-summary"><h4>${E(title)}</h4><section data-report-patch="summary-${key}" data-direction-metric="${E(selected)}"><p class="capability-direction-judgment ${E(metric.status || "gray")}">${E(metric.judgment)}</p><p class="capability-direction-basis">${E(metric.label)}</p><p class="capability-direction-value">${format(metric)}${unit(metric)}</p>${basis ? `<p class="capability-direction-context">${E(basis)}</p>` : ""}</section>${selector}</div>${folded}</article>`;
     };
     const target = metric => {
       const definition = record.definitions.find(item => item.id === metric.id);
@@ -1051,10 +1053,10 @@
       }
       const labels = { strength: "力量参数", reactive: "反应力量参数", speed: "速度与速度储备参数", cardio: "心肺与阈值参数" };
       const targets = (card.targets || []).filter(item => N(item.value) !== null);
-      return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h3>${E(labels[card.id] || card.title)}</h3>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table" data-capability-parameter-table="${E(card.id === "cardio" ? "endurance" : card.id)}"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
+      return `<section class="capability-parameter-group" data-capability-card="${E(card.id)}"><div class="capability-parameter-heading"><h5>${E(labels[card.id] || card.title)}</h5>${card.conclusion ? `<p class="capability-parameter-conclusion">${E(card.conclusion)}</p>` : ""}</div><div class="table-wrap"><table class="capability-parameter-table" data-capability-parameter-table="${E(card.id === "cardio" ? "endurance" : card.id)}"><thead><tr><th scope="col">参数</th><th scope="col">结果与参考</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>${targets.length ? `<div class="capability-targets">${targets.map(item => `<p>${E(item.label)} ${F(item.value, 1)} ${E(item.unit)}</p>`).join("")}</div>` : ""}</section>`;
     };
     const left = visibleDirections.length ? `<div class="capability-direction-grid" data-capability-analysis data-capability-count="${visibleDirections.length}">${visibleDirections.map(directionCard).join("")}</div>` : "";
-    return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}"><div class="capability-region-heading pdf-group-heading">${E(T.analysisLabel)}</div><div class="quality-group">${left}${fvp}${sprint}${renderSprintElasticityAnalysis(report, { print })}</div></section>`;
+    return `<section class="capability-analysis-region" data-capability-region aria-label="${E(T.analysisLabel)}"><div class="quality-group"><div class="quality-heading"><h3>${E(T.analysisLabel)}</h3></div><div class="capability-analysis-content">${left}${fvp}${sprint}${renderSprintElasticityAnalysis(report, { print })}</div></div></section>`;
   }
   function sprintFvpChartData(solved, confidence) {
     const profiles = [], add = (profile, kind, label) => {
@@ -1274,7 +1276,7 @@
       }
       currentGrid.dataset.capabilityCount = nextGrid.dataset.capabilityCount;
     } else if (nextGrid) {
-      region.querySelector(":scope > .quality-group").prepend(nextGrid.cloneNode(true));
+      (region.querySelector(".capability-analysis-content") || region.querySelector(":scope > .quality-group")).prepend(nextGrid.cloneNode(true));
       chartObservers.get(container)?.observe(region.querySelector(".capability-direction-grid"));
     } else {
       currentGrid?.remove();

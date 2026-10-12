@@ -102,7 +102,7 @@ test("sprint chart labels the sprint model and remains finite at narrow and prin
 test("parameter group titles and conclusions remain one heading unit before their first table row", () => {
   const report = R.build(fixture()); report.stats.capabilityCards = [{ id: "cardio", title: "心肺发展方向", conclusion: "优先提高 VT2。", metrics: [{ id: "cpet_vo2_relative", label: "VO₂peak", value: 50, unit: "mL·kg⁻¹·min⁻¹", status: "green", judgment: "原始自定义等级" }] }];
   const before = JSON.stringify(report), html = R.renderCapabilityAnalysis(report, { print: true });
-  assert.match(html, /class="capability-parameter-heading"><h3>心肺与阈值参数<\/h3><p class="capability-parameter-conclusion">优先提高 VT2。<\/p><\/div><div class="table-wrap"><table/);
+  assert.match(html, /class="capability-parameter-heading"><h5>心肺与阈值参数<\/h5><p class="capability-parameter-conclusion">优先提高 VT2。<\/p><\/div><div class="table-wrap"><table/);
   assert.match(html, /capability-parameter-judgment green/); assert.ok(html.includes(c.Def.assessmentLabel("green"))); assert.doesNotMatch(html, /原始自定义等级/);
   assert.equal(JSON.stringify(report), before);
 });
@@ -121,7 +121,7 @@ test("four independently folded cards precede both FVP and elasticity regions", 
   assert.doesNotMatch(html, /trainingAnalysisDetail|能力发展方向与参数|data-pdf-title="能力发展方向/);
   assert.deepEqual([...html.matchAll(/data-capability-parameters="([^"]+)"/g)].map(m => m[1]), ["strength", "reactive", "speed", "endurance"]);
   assert.doesNotMatch(html, /data-capability-parameters="[^"]+" open/);
-  assert.equal((html.match(/class="capability-region-heading pdf-group-heading"/g) || []).length, 1);
+  assert.equal((html.match(/class="quality-heading"><h3>能力结构分析<\/h3>/g) || []).length, 1);
   for (const key of ["strength", "reactive", "speed", "endurance"]) assert.match(html.slice(cards, profile), new RegExp(`data-capability-direction="${key}"`));
   assert.match(html, /data-fvp-protocol/); assert.match(html, /data-fvp-scenario-form/);
   assert.match(html, /data-raw-trials="fvp_cmj"/); assert.match(html, /data-raw-trials="sprint_fvp"/);

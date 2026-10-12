@@ -1,0 +1,41 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),crypto=require("node:crypto"),{pathToFileURL}=require("node:url"),{chromium}=require("./helpers/playwright.cjs");
+const root=path.resolve(__dirname,".."),arg=(key,fallback)=>process.argv.includes(key)?process.argv[process.argv.indexOf(key)+1]:fallback;
+const file=path.resolve(root,arg("--source","MotionBench.html")),channel=process.argv.includes("--edge")?"msedge":"chrome",out=path.resolve(root,arg("--artifact-dir","output/playwright/v220/app"));
+const digest=value=>crypto.createHash("sha256").update(value).digest("hex");
+const result={synthetic:true,channel,sourceHash:digest(fs.readFileSync(file)),runnerSha256:digest(fs.readFileSync(__filename)),checks:[],errors:[],network:[],pass:false};
+(async()=>{
+ const browser=await chromium.launch({channel,headless:true}),context=await browser.newContext({offline:true,reducedMotion:"reduce",viewport:{width:1440,height:1000}});
+ const open=async()=>{const page=await context.newPage();page.on("dialog",dialog=>dialog.accept());page.on("pageerror",e=>result.errors.push(e.message));page.on("request",r=>{if(/^https?:/.test(r.url()))result.network.push(r.url());});page.setDefaultTimeout(15000);await page.goto(pathToFileURL(file).href);await page.waitForFunction(()=>!!window.App?.ready);assert.equal(await page.evaluate(()=>App.ready),true);return page;};
+ const check=async(name,fn)=>{await fn();result.checks.push(name);console.log("PASS "+name);};
+ try{
+  const a=await open();await a.evaluate(async()=>{const r=RingsideModel.sampleRecord();r.demo=false;r.athlete.name="Synthetic 2.20 app integration";await App.importPayload(RingsideModel.recordEnvelope(r),"replace-library");await App.openEntry();App.entry("cmj");});
+  const b=await open();
+  await check("ordinary entry UI preserves a test plan committed by another page",async()=>{
+   await b.evaluate(()=>App.openManagement("plans"));await b.locator('[data-manager-action="plan-new"]').click();await b.locator("#testPlanName").fill("Synthetic concurrent plan 2.20");await b.locator('[data-picker-project="cmj"]').check();await b.locator('[data-manager-action="plan-save"]').click();await b.waitForFunction(()=>App.getLibrary().testPlans.some(p=>p.name==="Synthetic concurrent plan 2.20"));
+   await a.locator('[data-path="data.cmj.0.height"]').fill("52");assert.equal(await a.evaluate(()=>App.saveNow()),true);
+   const stored=await b.evaluate(async()=>({config:await App.getRepository().get("config","library"),record:await App.getRepository().loadRecord(App.getState().recordId)}));
+   assert.ok(stored.config.testPlans.some(p=>p.name==="Synthetic concurrent plan 2.20"));assert.equal(Number(stored.record.data.cmj[0].height),52);
+   const reopened=await open();assert.ok(await reopened.evaluate(()=>App.getLibrary().testPlans.some(p=>p.name==="Synthetic concurrent plan 2.20")));await reopened.close();
+   await b.evaluate(async()=>{await App.loadDirectory();App.refreshWorkspace();});
+  });
+  await check("settings return restores the management editor and unsaved draft",async()=>{
+   await b.evaluate(()=>App.openManagement("profiles"));await b.locator('[data-manager-action="profile-edit"]').first().click();await b.locator("#profileName").fill("Synthetic preserved management draft");await b.evaluate(()=>App.openSettings("references"));assert.equal(await b.locator("#workspaceBack").innerText(),"返回原管理页面");await b.locator("#workspaceBack").click();assert.equal(await b.evaluate(()=>App.getUIState().mode),"management");assert.equal(await b.locator("#profileName").inputValue(),"Synthetic preserved management draft");
+  });
+  await check("metric editor saves only its own fields and displays scoped change review",async()=>{
+   await b.evaluate(()=>App.openManagement("metrics"));await b.evaluate(()=>App.openCatalogItem("edit","cmj","cmj_height"));
+   const before=await b.evaluate(()=>({test:JSON.stringify(App.getLibrary().catalog.tests.find(t=>t.id==="cmj")),protocol:App.getLibrary().catalog.protocol.cmj,metrics:App.getLibrary().catalog.definitions.filter(d=>d.testId==="cmj"&&d.id!=="cmj_height").map(d=>JSON.stringify(d))}));
+   await b.locator("#catalogMetricName").fill("CMJ Synthetic Display");assert.match(await b.locator("#catalogChangePreview").innerText(),/CMJ Synthetic Display/);await b.locator('#catalogForm [type="submit"]').click();await b.locator("#catalogModal").waitFor({state:"hidden"});
+   const after=await b.evaluate(()=>({test:JSON.stringify(App.getLibrary().catalog.tests.find(t=>t.id==="cmj")),protocol:App.getLibrary().catalog.protocol.cmj,metrics:App.getLibrary().catalog.definitions.filter(d=>d.testId==="cmj"&&d.id!=="cmj_height").map(d=>JSON.stringify(d)),name:App.getLibrary().catalog.definitions.find(d=>d.id==="cmj_height").name}));assert.equal(after.name,"CMJ Synthetic Display");assert.deepEqual({...after,name:undefined},{...before,name:undefined});
+   await b.evaluate(()=>App.openCatalogItem("new-metric","cmj"));assert.equal(await b.locator("#catalogTestId").isDisabled(),true);assert.equal(await b.locator("#catalogTestId").inputValue(),"cmj");await b.evaluate(()=>App.close("catalogModal"));
+  });
+  await check("a pending catalog write locks cancellation and navigation and retains the submitted editor",async()=>{
+   await b.evaluate(()=>App.openCatalogItem("edit","cmj","cmj_height"));await b.locator("#catalogMetricName").fill("CMJ Synthetic Published");
+   await b.evaluate(()=>{const repo=App.getRepository();window.__catalogSave=repo.save;window.__catalogStarted=false;const gate=new Promise(resolve=>window.__catalogRelease=resolve);repo.save=async function(...args){window.__catalogStarted=true;await gate;return __catalogSave.apply(this,args);};});
+   await b.locator('#catalogForm [type="submit"]').click();await b.waitForFunction(()=>__catalogStarted);
+   assert.equal(await b.locator("#catalogMetricName").isDisabled(),true);await b.evaluate(()=>{App.close("catalogModal");App.openManagement("profiles");});assert.equal(await b.locator("#catalogModal").isVisible(),true);assert.equal(await b.evaluate(()=>RingsideManagement.tab()),"metrics");
+   await b.evaluate(()=>__catalogRelease());await b.locator("#catalogModal").waitFor({state:"hidden"});await b.evaluate(()=>{App.getRepository().save=__catalogSave;});assert.equal(await b.evaluate(()=>App.getLibrary().catalog.definitions.find(d=>d.id==="cmj_height").name),"CMJ Synthetic Published");
+  });
+  assert.deepEqual(result.errors,[]);assert.deepEqual(result.network,[]);result.pass=true;
+ }catch(error){result.error=error.stack;throw error;}finally{fs.mkdirSync(out,{recursive:true});result.sourceUnchanged=digest(fs.readFileSync(file))===result.sourceHash;fs.writeFileSync(path.join(out,channel+"-results.json"),JSON.stringify(result,null,2));await browser.close();}
+})().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

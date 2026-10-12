@@ -387,7 +387,7 @@
       out += text(
         p[0],
         p[1] + (parts.length > 1 ? 38 : 24),
-        v === null ? "—" : `${fmt(v, 0)} / 100`,
+        v === null ? "—" : `${fmt(v, 0)} 分 / 100`,
         `class="radar-score" text-anchor="${anchor}" font-size="14" fill="${c}"`,
       );
       if (points[i])
@@ -396,7 +396,7 @@
           points[i][1],
           5,
           c,
-          `${label}：${fmt(v, 1)} / 100${item.tooltip ? " · " + item.tooltip : ""}`,
+          `${label}：${fmt(v, 1)} 分 / 100${item.tooltip ? " · " + item.tooltip : ""}`,
         );
     });
     return svg(w, h, "运动表现能力雷达图", out);
@@ -413,7 +413,7 @@
             '</td><td><strong style="color:' +
             color(item.status) +
             '">' +
-            (num(item.value) === null ? "—" : fmt(num(item.value), 0) + " / 100") +
+            (num(item.value) === null ? "—" : fmt(num(item.value), 0) + " 分 / 100") +
             "</strong></td></tr>",
         )
         .join("") +

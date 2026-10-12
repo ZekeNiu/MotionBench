@@ -5,6 +5,7 @@ on:
     branches:
       - desktop-windows-*
       - codex/motionbench-2.19.*
+      - codex/motionbench-2.20.*
       - main
     tags:
       - v*-desktop.*
@@ -25,6 +26,8 @@ jobs:
     env:
       CI: true
       CSC_IDENTITY_AUTO_DISCOVERY: false
+      MOTIONBENCH_UPDATE_UNIT_ARTIFACT_DIR: output/tests/v220-desktop
+      MOTIONBENCH_DESKTOP_SETTINGS_ARTIFACT_DIR: output/playwright/v220/settings
     steps:
       - name: Check out the reviewed desktop branch
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -45,9 +48,11 @@ jobs:
       - name: Build the shared offline application
         run: npm run build
       - name: Check existing application calculations and models
-        run: npm test
+        run: node tests/run-unit-tests.cjs --artifact-dir output/tests/v220
       - name: Check desktop security and embedded AI service
         run: npm run test:desktop-unit
+      - name: Check 2.20 management, ordinary saves and concurrent storage in both browsers
+        run: npm run test:v220-management && npm run test:v220-app && npm run test:v220-storage
       - name: Check desktop settings and version notification in browsers
         run: npm run test:desktop-settings
       - name: Create the Windows x64 installer and portable executable
@@ -61,7 +66,10 @@ jobs:
           $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-smoke/packaged'
           npm run test:desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:MOTIONBENCH_UPDATE_NATIVE_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/tests/v2191-desktop/packaged-updates'
+          $env:MOTIONBENCH_DESKTOP_V220_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-v220-management/packaged'
+          npm run test:v220-desktop-management
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:MOTIONBENCH_UPDATE_NATIVE_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/tests/v220-desktop/packaged-updates'
           npm run test:desktop-updates-native
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Exercise the actual single-file portable wrapper
@@ -78,12 +86,12 @@ jobs:
         run: |
           $installer = Get-ChildItem 'dist-desktop/*-Setup-x64.exe' | Select-Object -First 1
           $directory = Join-Path $env:RUNNER_TEMP ('MotionBench 目录选择\验证 MotionBench-' + [guid]::NewGuid().ToString('N'))
-          ./tests/desktop-installer-wizard-ci.ps1 -InstallerPath $installer.FullName -ProposedDirectory $directory -ResultDirectory "$env:GITHUB_WORKSPACE/output/tests/v2191-desktop/installer-wizard"
+          ./tests/desktop-installer-wizard-ci.ps1 -InstallerPath $installer.FullName -ProposedDirectory $directory -ResultDirectory "$env:GITHUB_WORKSPACE/output/tests/v220-desktop/installer-wizard"
       - name: Upgrade the fixed previous installer and preserve the default synthetic library
         shell: pwsh
         run: |
           $installer = Get-ChildItem 'dist-desktop/*-Setup-x64.exe' | Select-Object -First 1
-          ./tests/desktop-installed-upgrade-ci.ps1 -InstallerPath $installer.FullName
+          ./tests/desktop-installed-upgrade-v220-ci.ps1 -InstallerPath $installer.FullName
       - name: Install and exercise the per-user application
         shell: pwsh
         run: |
@@ -155,9 +163,9 @@ jobs:
             "$hash  $($file.Name)"
           }
           $checksums | Set-Content 'dist-desktop/SHA256SUMS.txt' -Encoding utf8
-          $wizard = Get-Content 'output/tests/v2191-desktop/installer-wizard/wizard-results.json' -Raw | ConvertFrom-Json
-          $upgrade = Get-Content 'output/tests/v2191-desktop/installed-upgrade/upgrade-results.json' -Raw | ConvertFrom-Json
-          $upgradeVerified = Get-Content 'output/tests/v2191-desktop/installed-upgrade/verify-results.json' -Raw | ConvertFrom-Json
+          $wizard = Get-Content 'output/tests/v220-desktop/installer-wizard/wizard-results.json' -Raw | ConvertFrom-Json
+          $upgrade = Get-Content 'output/tests/v220-desktop/installed-upgrade/upgrade-results.json' -Raw | ConvertFrom-Json
+          $upgradeVerified = Get-Content 'output/tests/v220-desktop/installed-upgrade/verify-results.json' -Raw | ConvertFrom-Json
           if (-not $wizard.passed -or -not $upgrade.passed -or -not $upgradeVerified.passed) { throw 'Actual guided installation or old-to-new upgrade checks did not pass' }
           $hostHashes = [ordered]@{}
           foreach ($file in (Get-ChildItem 'desktop/*.cjs' | Sort-Object Name)) { $hostHashes['desktop/' + $file.Name] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
@@ -209,23 +217,24 @@ jobs:
           $evidenceFiles = [ordered]@{
             'dist-desktop/SHA256SUMS.txt' = 'checksums'
             'dist-desktop/build-provenance.json' = 'provenance'
-            'output/tests/v2191-desktop/installer-wizard/wizard-results.json' = 'wizard'
-            'output/tests/v2191-desktop/installer-wizard/installation-directory-page.bmp' = 'wizard-screenshot'
-            'output/tests/v2191-desktop/installed-upgrade/upgrade-results.json' = 'upgrade'
-            'output/tests/v2191-desktop/installed-upgrade/seed-results.json' = 'upgrade-seed'
-            'output/tests/v2191-desktop/installed-upgrade/verify-results.json' = 'upgrade-library'
+            'output/tests/v220-desktop/installer-wizard/wizard-results.json' = 'wizard'
+            'output/tests/v220-desktop/installer-wizard/installation-directory-page.bmp' = 'wizard-screenshot'
+            'output/tests/v220-desktop/installed-upgrade/upgrade-results.json' = 'upgrade'
+            'output/tests/v220-desktop/installed-upgrade/seed-results.json' = 'upgrade-seed'
+            'output/tests/v220-desktop/installed-upgrade/verify-results.json' = 'upgrade-library'
             'output/desktop-smoke/installed/results.json' = 'installed-smoke'
             'output/desktop-smoke/portable/results.json' = 'portable'
             'output/desktop-package/uninstall-data-check.json' = 'uninstall'
+            'output/desktop-v220-management/packaged/native-management-results.json' = 'management-native'
           }
           foreach ($entry in $evidenceFiles.GetEnumerator()) { $artifactRows += [ordered]@{path=$entry.Key;sha256=(Get-FileHash -LiteralPath $entry.Key -Algorithm SHA256).Hash.ToLowerInvariant();kind=$entry.Value} }
           $producerScripts = @()
-          foreach ($repoPath in @('.github/workflows/desktop-windows.yml','scripts/check-desktop-package.cjs','tests/desktop-installer-wizard-ci.ps1','tests/helpers/desktop-installer-native.cs','tests/desktop-installed-upgrade-ci.ps1','tests/fixtures/desktop-upgrade-baseline.json','tests/desktop-upgrade-library-ci.cjs','tests/desktop-smoke.cjs','tests/helpers/desktop-artifact-identity.cjs','tests/portable-wrapper-tests.cjs')) {
+          foreach ($repoPath in @('.github/workflows/desktop-windows.yml','scripts/check-desktop-package.cjs','tests/desktop-installer-wizard-ci.ps1','tests/helpers/desktop-installer-native.cs','tests/desktop-installed-upgrade-v220-ci.ps1','tests/fixtures/desktop-upgrade-baseline-v220.json','tests/desktop-upgrade-library-v220-ci.cjs','tests/desktop-smoke.cjs','tests/desktop-v220-management-tests.cjs','tests/helpers/desktop-artifact-identity.cjs','tests/portable-wrapper-tests.cjs')) {
             $producerScripts += [ordered]@{repoPath=$repoPath;sha256=(Get-FileHash -LiteralPath $repoPath -Algorithm SHA256).Hash.ToLowerInvariant()}
           }
           $ciResult.artifacts = $artifactRows
           $ciResult.producerScripts = $producerScripts
-          $ciResult | ConvertTo-Json -Depth 12 | Set-Content 'output/tests/v2191-desktop/ci-results.json' -Encoding utf8
+          $ciResult | ConvertTo-Json -Depth 12 | Set-Content 'output/tests/v220-desktop/ci-results.json' -Encoding utf8
       - name: Upload verified Windows downloads
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
@@ -247,6 +256,9 @@ jobs:
           path: |
             output/desktop-smoke/
             output/desktop-package/
+            output/desktop-v220-management/
+            output/playwright/v220/
+            output/playwright/management-v220/
             output/tests/
           if-no-files-found: warn
           retention-days: 90

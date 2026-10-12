@@ -2971,11 +2971,12 @@
       });
     const aggregationIssues = [];
     const axes = [...groups].map(([label, defs]) => {
-      const cfg = T.axisConfig(state, label) || {
+      const cfg = T.axisConfig(state, label) || (state.evaluationProfileFormat === 2 ? { method: "disabled" } : {
           method: "primary",
           primary: defs.find(d => d.referenceEnabled && positive(d.target) !== null)?.id || "",
-        };
+        });
       const missing = reason => { aggregationIssues.push({ ability: label, reason }); return null; };
+      if (cfg.method === "disabled" && !cfg.migrationIssue) return null;
       if (!["primary", "mean"].includes(cfg.method)) return missing(cfg.migrationIssue || "原汇总方式已停用");
       const findMember = id => {
         const plain = String(id).replace(/^metric:/, "");
@@ -2992,23 +2993,25 @@
       const selected = members.map(findMember);
       if (selected.some(member => !member || N(member.value) === null)) return missing("选定指标缺少有效结果");
       const chosen = selected.map(member => member.definition);
-      let scores, status;
-      if (cfg.method === "primary") {
-        scores = [attainment(selected[0].value, chosen[0])];
-        if (scores[0] === null) return missing("代表指标未配置适用目标");
-        status = targetStatus(selected[0].value, chosen[0], state);
-      } else {
-        const transformed = selected.map((member, index) => {
-          const d = member.definition, transform = cfg.transforms?.[members[index]];
+      const transforms = {};
+      const transformed = selected.map((member, index) => {
+          const d = member.definition, transform = cfg.method === "mean" || cfg.scoringVersion === 1 ? cfg.transforms?.[members[index]] : undefined;
           const match = state.evaluationStandards?.find(standard => standard.subjectId === member.subjectId);
-          return root.RingsideScoring?.evaluate(member.value, transform, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
+          const effective = transform === undefined && cfg.method === "primary" ? { kind: "ratio", direction: d.direction || "higher" } : transform;
+          transforms[member.subjectId] = effective;
+          // Unlinked legacy calculations retain their previous ratio behavior.
+          if (state.evaluationProfileFormat !== 2 && cfg.method === "primary" && transform === undefined) {
+            const score = attainment(member.value, d);
+            return { valid: score !== null, score, reason: "代表指标未配置适用目标" };
+          }
+          return root.RingsideScoring?.evaluate(member.value, effective, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
             applicable: match ? match.enabled && match.applicable : d.referenceEnabled,
             subject: { measurementScale: root.RingsideEvaluation?.measurementScale(d) || d.measurementScale || "unknown", zeroValid: d.zeroValid === true || d.id === "pushup_reps" } }) || { valid: false, reason: "计分模块未加载" };
         });
-        if (transformed.some(result => !result.valid)) return missing(transformed.find(result => !result.valid).reason);
-        scores = transformed.map(result => result.score);
-        status = cfg.ranges?.length ? grade(scores.reduce((a,b) => a+b,0)/scores.length, { referenceEnabled: true, ranges: cfg.ranges }).status : "gray";
-      }
+      if (transformed.some(result => !result.valid)) return missing(transformed.find(result => !result.valid).reason);
+      const scores = transformed.map(result => result.score);
+      const status = cfg.method === "primary" ? targetStatus(selected[0].value, chosen[0], state)
+        : cfg.ranges?.length ? grade(scores.reduce((a,b) => a+b,0)/scores.length, { referenceEnabled: true, ranges: cfg.ranges }).status : "gray";
       const value = scores.reduce((a,b) => a+b,0)/scores.length;
       return {
         key: label,
@@ -3018,6 +3021,9 @@
         method: cfg.method,
         scores,
         members: selected.map(member => member.subjectId),
+        transforms: clone(transforms),
+        scoreUnit: "分",
+        scoreMax: 100,
         status,
         tooltip: chosen
           .map((d) => T.metricName(d) + " " + fmt(axisValues[d.id]) + " " + d.unit)
@@ -3338,7 +3344,7 @@
   function evaluationResults(record, computed) {
     const results = [], standards = new Map((record.evaluationStandards || []).map(rule => [rule.subjectId, rule]));
     function add(subjectId, value) {
-      const rule = standards.get(subjectId), contributions = computed.axes.flatMap(axis => axis.members.flatMap((id, index) => id === subjectId ? [{ ability: axis.key, method: axis.method, score: axis.scores[index], transform: clone(T.axisConfig(record, axis.key)?.transforms?.[id] || { kind: "ratio", direction: value.direction || "higher" }) }] : []));
+      const rule = standards.get(subjectId), contributions = computed.axes.flatMap(axis => axis.members.flatMap((id, index) => id === subjectId ? [{ ability: axis.key, method: axis.method, score: axis.scores[index], transform: clone(axis.transforms?.[id] || T.axisConfig(record, axis.key)?.transforms?.[id] || { kind: "ratio", direction: value.direction || "higher" }) }] : []));
       results.push({ subjectId, kind: subjectId.split(":")[0], value: null, unit: "", target: null, attainment: null,
         grade: { status: "gray", label: "未设置评价", range: null }, applicable: rule ? rule.enabled && rule.applicable : record.evaluationProfileFormat !== 2,
         targetApplicable: rule?.targetApplicable ?? record.evaluationProfileFormat !== 2, rangesApplicable: rule?.rangesApplicable ?? record.evaluationProfileFormat !== 2,
@@ -3635,8 +3641,29 @@
         const timeRule=fingerprintRecord.imtpTimeStandards.find(rule=>d.id==="imtp_"+(rule.kind==="force_pct_peak"?"f":"rfd")+rule.timeMs),effective=timeRule || d;
         return T.axisKey(d.ability)===key && d.category==="performance" && d.scoring!==false && effective.referenceEnabled && positive(effective.target)!==null;
       });
-      if (axis.method === "primary" && axis.primary === primary?.id) delete fingerprintAxes[key];
+      if (axis.method === "primary") {
+        const subject = axis.primary.startsWith("imtp-time:") ? axis.primary : "metric:" + axis.primary;
+        const [, timeKind, timeMs] = subject.split(":");
+        const selected = fingerprintRecord.definitions.find(d => d.id === axis.primary)
+          || (subject.startsWith("imtp-time:") ? fingerprintRecord.imtpTimeStandards.find(rule => rule.kind === timeKind && rule.timeMs === Number(timeMs)) : null);
+        const transform = axis.scoringVersion === 1 ? axis.transforms?.[subject] || axis.transforms?.[axis.primary] : null;
+        const defaultTransform = { kind: "ratio", direction: selected?.direction || "higher" };
+        const equivalent = !transform || canonicalJSON(transform) === canonicalJSON(defaultTransform);
+        const legalRatio = record.evaluationProfileFormat !== 2 || subject.startsWith("imtp-time:") || root.RingsideEvaluation?.measurementScale(selected || {}) === "ratio";
+        if (axis.primary === primary?.id && equivalent && legalRatio) delete fingerprintAxes[key];
+        else if (axis.scoringVersion === 1) {
+          delete axis.scoringVersion;
+          if (equivalent) delete axis.transforms;
+          else axis.transforms = { [subject]: clone(transform) };
+        }
+      }
     }
+    // Removing the old runtime fallback must invalidate narratives that included
+    // a v2 ability which was never actually configured in its shared scheme.
+    const unconfiguredAbilities = record.evaluationProfileFormat === 2 ? [...new Set(fingerprintRecord.definitions.filter(d => {
+      const timeRule = fingerprintRecord.imtpTimeStandards.find(rule => d.id === "imtp_" + (rule.kind === "force_pct_peak" ? "f" : "rfd") + rule.timeMs), effective = timeRule || d;
+      return record.enabled[d.testId] && d.category === "performance" && d.scoring !== false && T.abilityName(d.ability) && effective.referenceEnabled && positive(effective.target) !== null && !T.axisConfig(record, d.ability);
+    }).map(d => T.axisKey(d.ability)))].sort() : [];
     const fingerprintProjects = record.projectSnapshots?.filter(t => !invisible.has(t.id)).map(test => {
       const result = { ...test }, primary = record.definitions.find(d => d.id === test.primaryMetricId) || record.definitions.find(d => d.testId === test.id && T.isAttemptMetric(d));
       const priorDirection = T.isNative(record,test.id) ? "higher" : primary?.direction || "higher";
@@ -3658,6 +3685,7 @@
       data,
       ...(changedIsoEvaluation ? { isoEvaluationBasis: "single-target-amber-green-v1" } : {}),
       ...(changedDisabledEvaluation ? { evaluationSwitchBasis: "disabled-extension-standards-v1" } : {}),
+      ...(unconfiguredAbilities.length ? { unconfiguredAbilityScoring: unconfiguredAbilities } : {}),
       definitions,
       custom: record.customValues,
       projects: fingerprintProjects,

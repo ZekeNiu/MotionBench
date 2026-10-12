@@ -17,6 +17,7 @@ function harness(baseline){
     library:{athletes:[{id:record.athleteId,records:[{recordId:record.recordId}]}]},
     sessionStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
     repository:{
+      saveRecords(records,checks) { return this.save(null,records,{},checks); },
       loadRecord:async id=>{const value=copy(stored);loads.push(id);if(loadHook)await loadHook(value,loads.length);return value;},
       save:async(next,records,removals,checks)=>{
         const snapshot=copy(records[0]);saves.push({snapshot,checks:copy(checks)});if(saveHook)await saveHook(snapshot,saves.length);
