@@ -6,7 +6,7 @@ const { createHash } = require("node:crypto");
 const root = path.resolve(__dirname, '..');
 const artifactIndex = process.argv.indexOf('--artifact-dir');
 const artifactArg = process.argv.find(arg => arg.startsWith('--artifact-dir='))?.slice(15);
-const artifactDir = artifactArg || (artifactIndex >= 0 ? process.argv[artifactIndex + 1] : 'output/tests/v2.19.0');
+const artifactDir = artifactArg || (artifactIndex >= 0 ? process.argv[artifactIndex + 1] : 'output/tests/v' + require('../package.json').version);
 if (!artifactDir || artifactDir.startsWith('--')) throw Error('--artifact-dir requires a directory');
 const resultDir = path.resolve(root, artifactDir);
 const outputRelative = path.relative(path.join(root, 'output'), resultDir);

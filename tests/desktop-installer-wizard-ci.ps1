@@ -22,12 +22,13 @@ try {
         foreach ($window in $private.Windows()) {
             $children=@([MotionBenchInstallerDesktop]::Children($window))
             $candidate=@($children | Where-Object { [MotionBenchInstallerDesktop]::ClassName($_) -eq 'Edit' -and [MotionBenchInstallerDesktop]::Text($_) -match '^[A-Za-z]:[\\/]' })
-            if ($candidate.Count) { $dialog=$window; $edit=$candidate[0]; $browse=@($children | Where-Object { [MotionBenchInstallerDesktop]::ClassName($_) -eq 'Button' -and [MotionBenchInstallerDesktop]::Text($_) -match 'Browse|浏览' })[0]; break }
+            if ($candidate.Count) { $dialog=$window; $edit=$candidate[0]; $browse=@($children | Where-Object { [MotionBenchInstallerDesktop]::ClassName($_) -eq 'Button' -and ([MotionBenchInstallerDesktop]::Text($_) -replace '&','') -match 'Browse|浏览' })[0]; break }
             $next=[MotionBenchInstallerDesktop]::GetDlgItem($window,1)
             if ($next -ne [IntPtr]::Zero -and [MotionBenchInstallerDesktop]::Text($next) -match 'Next|下一步') { [MotionBenchInstallerDesktop]::Click($next) }
         }
         if ($edit -eq [IntPtr]::Zero) { Start-Sleep -Milliseconds 150 }
     }
+    if ($dialog -ne [IntPtr]::Zero) { $result.directoryPageControls=@([MotionBenchInstallerDesktop]::Children($dialog) | ForEach-Object { [ordered]@{class=[MotionBenchInstallerDesktop]::ClassName($_);text=[MotionBenchInstallerDesktop]::Text($_);enabled=[MotionBenchInstallerDesktop]::IsWindowEnabled($_)} }) }
     if ($edit -eq [IntPtr]::Zero -or $null -eq $browse -or $browse -eq [IntPtr]::Zero -or -not [MotionBenchInstallerDesktop]::IsWindowEnabled($browse)) { throw 'The actual installer did not show an editable path and enabled Browse button.' }
     $result.ownedGuiProcessIds=@($private.WindowProcessIds())
     $result.originalDisplayedPath=[MotionBenchInstallerDesktop]::Text($edit)
@@ -48,5 +49,12 @@ try {
     $after = if (Test-Path $registryKey) { (Get-ItemProperty $registryKey).InstallLocation } else { '' }
     if ($after -ne $before -or (Test-Path -LiteralPath (Join-Path $proposed 'MotionBench.exe'))) { throw 'Cancelling the directory page changed the installation.' }
     $result.cancelledBeforeInstall=$true; $result.passed=$true
-} catch { $result.error=$_.Exception.Message; throw }
+} catch {
+    $result.error=$_.Exception.Message
+    if ($null -ne $private) {
+        $result.failureWindows=@($private.Windows() | ForEach-Object { $window=$_; [ordered]@{class=[MotionBenchInstallerDesktop]::ClassName($window);text=[MotionBenchInstallerDesktop]::Text($window);controls=@([MotionBenchInstallerDesktop]::Children($window) | ForEach-Object { [ordered]@{class=[MotionBenchInstallerDesktop]::ClassName($_);text=[MotionBenchInstallerDesktop]::Text($_);enabled=[MotionBenchInstallerDesktop]::IsWindowEnabled($_)} })} })
+        if ($dialog -ne [IntPtr]::Zero) { try { [MotionBenchInstallerDesktop]::Screenshot($dialog,(Join-Path $outputFolder 'failure-directory-page.bmp')) } catch { $result.failureCaptureError=$_.Exception.Message } }
+    }
+    throw
+}
 finally { if ($null -ne $private) { $private.Dispose(); $result.privateDesktopClosed=$private.DesktopClosed }; $result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $outputFolder 'wizard-results.json') -Encoding utf8 }
