@@ -13,7 +13,15 @@ const bounded=async(fn,timeout=180000)=>{const until=Date.now()+timeout;while(Da
   try {
     const config=yaml.load(await fs.readFile(path.join(path.dirname(exe),"resources/app-update.yml"),"utf8"));
     const cache=path.join(require("electron-updater/out/AppAdapter").getAppCacheDir(),config.updaterCacheDirName,"pending");
-    if(mode==="update") {try {await fs.stat(path.dirname(cache));throw Error("Refusing an existing updater cache; this must be a fresh CI user");}catch(error){if(error.code!=="ENOENT")throw error;}}
+    if(mode==="update") {
+      // A fresh NSIS install caches its own installer before the app first runs.
+      // The PowerShell owner checked absence before installation; permit exactly
+      // that pinned fixture, while rejecting pre-existing pending downloads.
+      const fixture=JSON.parse(await fs.readFile(path.join(out,"fixture-package.json"),"utf8"));assert.equal(config.updaterCacheDirName,fixture.updaterCacheDirName);
+      assert.deepEqual((await fs.readdir(path.dirname(cache))).sort(),["installer.exe"]);
+      const fixtureCache=path.join(path.dirname(cache),"installer.exe");assert.equal(await readHash(fixtureCache),fixture.installerSha256);
+      result.initialInstallerCache={sha256:fixture.installerSha256,pendingAbsent:true};
+    }
     const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
     app=await _electron.launch({executablePath:exe,args:mode==="verify"?["--motionbench-test"]:[],env,timeout:45000});page=await app.firstWindow();page.setDefaultTimeout(30000);
     await page.waitForFunction(()=>!!window.App?.ready);assert.equal(await page.evaluate(()=>App.ready),true);

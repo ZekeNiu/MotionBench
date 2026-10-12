@@ -5,6 +5,10 @@ $workspace=[IO.Path]::GetFullPath($env:GITHUB_WORKSPACE);$temporary=[IO.Path]::G
 if (-not $fixture.StartsWith($workspace+'\output\desktop-live-update\',[StringComparison]::OrdinalIgnoreCase)) { throw 'The unpublished fixture installer is outside its owned output folder.' }
 $registryKey='HKCU:\Software\7ab680cb-2a51-5387-9959-bfceb2c524d6';$profile=Join-Path $env:APPDATA 'MotionBench Desktop'
 if ((Test-Path $registryKey) -or (Test-Path -LiteralPath $profile)) { throw 'Refusing an existing installation or profile; the live update requires a fresh CI user.' }
+$fixturePackage=Get-Content -LiteralPath (Join-Path $workspace 'output\desktop-live-update\fixture-package.json') -Raw | ConvertFrom-Json
+if ($fixturePackage.updaterCacheDirName -notmatch '^[A-Za-z0-9_-]+$' -or (Get-FileHash -LiteralPath $fixture -Algorithm SHA256).Hash.ToLowerInvariant() -ne $fixturePackage.installerSha256) { throw 'The unpublished fixture installer identity is invalid.' }
+$cacheRoot=Join-Path $env:LOCALAPPDATA $fixturePackage.updaterCacheDirName
+if (Test-Path -LiteralPath $cacheRoot) { throw 'Refusing a pre-existing updater cache before installation; this must be a fresh CI user.' }
 $ownedRoot=Join-Path $temporary ('MotionBench-live-update-'+[guid]::NewGuid().ToString('N'));$installDirectory=Join-Path $ownedRoot '中文 应用内更新\MotionBench';$executable=Join-Path $installDirectory 'MotionBench.exe';$out=Join-Path $workspace 'output\desktop-live-update'
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 $result=[ordered]@{synthetic=$true;passed=$false;commit=$env:GITHUB_SHA;run="https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID";fixtureVersion='2.19.1-desktop.0';targetVersion='2.19.1-desktop.1';fixturePublished=$false;scriptSha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant();windowHelperSha256=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'helpers\desktop-live-update-window.cs') -Algorithm SHA256).Hash.ToLowerInvariant()}
