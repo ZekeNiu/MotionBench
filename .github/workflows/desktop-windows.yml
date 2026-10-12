@@ -157,12 +157,14 @@ jobs:
           $monitorControl = [hashtable]::Synchronized(@{ stop=$false; ready=$false; polls=0 })
           $uninstallMonitor = $null
           $uninstall = $null
+          $captureSource = $captureUninstallState.ToString()
           try {
             # Observe while preserving Start-Process -Wait and the normal /S lifecycle.
             # Process metadata stays in memory until it is filtered to this owned
             # install directory and the actual bootstrap's observed descendants.
-            $uninstallMonitor = Start-ThreadJob -ArgumentList $captureUninstallState,$installDirectory,$installedExecutable,$uninstaller.FullName,$registryPath,$uninstallSamples,$monitorControl -ScriptBlock {
-              param($capture, $directory, $application, $originalUninstaller, $registry, $samples, $control)
+            $uninstallMonitor = Start-ThreadJob -ArgumentList $captureSource,$installDirectory,$installedExecutable,$uninstaller.FullName,$registryPath,$uninstallSamples,$monitorControl -ScriptBlock {
+              param($captureSource, $directory, $application, $originalUninstaller, $registry, $samples, $control)
+              $capture = [scriptblock]::Create($captureSource)
               $deadline = [DateTime]::UtcNow.AddSeconds(180)
               while (-not $control.stop -and [DateTime]::UtcNow -lt $deadline) {
                 $samples.Enqueue([ordered]@{ at=[DateTime]::UtcNow.ToString('o'); state=(& $capture $directory $application $originalUninstaller $registry $true) })
