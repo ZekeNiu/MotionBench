@@ -6,6 +6,7 @@ on:
       - desktop-windows-*
       - codex/motionbench-2.19.*
       - codex/motionbench-2.20.*
+      - codex/motionbench-2.21.*
       - main
     tags:
       - v*-desktop.*
@@ -26,8 +27,8 @@ jobs:
     env:
       CI: true
       CSC_IDENTITY_AUTO_DISCOVERY: false
-      MOTIONBENCH_UPDATE_UNIT_ARTIFACT_DIR: output/tests/v220-desktop
-      MOTIONBENCH_DESKTOP_SETTINGS_ARTIFACT_DIR: output/playwright/v220/settings
+      MOTIONBENCH_UPDATE_UNIT_ARTIFACT_DIR: output/tests/v2210-desktop
+      MOTIONBENCH_DESKTOP_SETTINGS_ARTIFACT_DIR: output/playwright/v2210/settings
     steps:
       - name: Check out the reviewed desktop branch
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -43,18 +44,24 @@ jobs:
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.12'
+      - name: Install the tested PDF evidence parser
+        run: python -m pip install --disable-pip-version-check pypdf==6.10.2
       - name: Install locked build and production dependencies
         run: npm ci --no-audit --no-fund
       - name: Build the shared offline application
         run: npm run build
       - name: Check existing application calculations and models
-        run: node tests/run-unit-tests.cjs --artifact-dir output/tests/v220
+        run: node tests/run-unit-tests.cjs --artifact-dir output/tests/v2210
       - name: Check desktop security and embedded AI service
         run: npm run test:desktop-unit
       - name: Check 2.20 management, ordinary saves and concurrent storage in both browsers
         run: npm run test:v220-management && npm run test:v220-app && npm run test:v220-storage
       - name: Export synthetic three-axis and seven-axis PDFs in Chrome and Edge
-        run: node tests/pdf-multiaxis-v221-browser-tests.cjs && node tests/pdf-multiaxis-v221-browser-tests.cjs --edge
+        run: node tests/pdf-multiaxis-v221-browser-tests.cjs --artifact-dir output/implementation-2.21.0/pdf && node tests/pdf-multiaxis-v221-browser-tests.cjs --edge --artifact-dir output/implementation-2.21.0/pdf
+      - name: Exercise 2.21.0 common presets and chart-selection management in both browsers
+        run: node tests/catalog-v2210-browser-tests.cjs --artifact-dir output/implementation-2.21.0/catalog && node tests/catalog-v2210-browser-tests.cjs --edge --artifact-dir output/implementation-2.21.0/catalog
+      - name: Export generic chart PDFs and exercise optional plots in both browsers
+        run: node tests/generic-viz-v2210-browser-tests.cjs --source MotionBench.html --artifact-dir output/implementation-2.21.0/generic --pdf && node tests/generic-viz-v2210-browser-tests.cjs --source MotionBench.html --artifact-dir output/implementation-2.21.0/generic --pdf --edge
       - name: Check desktop settings and version notification in browsers
         run: npm run test:desktop-settings
       - name: Create the Windows x64 installer and portable executable
@@ -68,10 +75,15 @@ jobs:
           $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-smoke/packaged'
           npm run test:desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:MOTIONBENCH_DESKTOP_V220_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-v220-management/packaged'
-          npm run test:v221-desktop-management
+          $env:MOTIONBENCH_DESKTOP_V220_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/desktop-v2210-management/packaged'
+          node tests/desktop-v2210-management-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:MOTIONBENCH_V221_PDF_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/tests/v2210-desktop/packaged-pdf'
           node tests/desktop-v221-pdf-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/catalog-v2210-browser-tests.cjs --source MotionBench.html --exe $env:MOTIONBENCH_EXECUTABLE --artifact-dir output/tests/v2210-desktop/packaged-catalog
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/generic-viz-v2210-browser-tests.cjs --source MotionBench.html --exe $env:MOTIONBENCH_EXECUTABLE --artifact-dir output/tests/v2210-desktop/packaged-generic --pdf
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $env:MOTIONBENCH_UPDATE_NATIVE_ARTIFACT_DIR = Join-Path $env:GITHUB_WORKSPACE 'output/tests/v220-desktop/packaged-updates'
           npm run test:desktop-updates-native
@@ -95,7 +107,7 @@ jobs:
         shell: pwsh
         run: |
           $installer = Get-ChildItem 'dist-desktop/*-Setup-x64.exe' | Select-Object -First 1
-          ./tests/desktop-installed-upgrade-v221-ci.ps1 -InstallerPath $installer.FullName
+          ./tests/desktop-installed-upgrade-v2210-ci.ps1 -InstallerPath $installer.FullName
       - name: Install and exercise the per-user application
         shell: pwsh
         run: |
@@ -258,8 +270,8 @@ jobs:
           }
           $checksums | Set-Content 'dist-desktop/SHA256SUMS.txt' -Encoding utf8
           $wizard = Get-Content 'output/tests/v220-desktop/installer-wizard/wizard-results.json' -Raw | ConvertFrom-Json
-          $upgrade = Get-Content 'output/tests/v220-desktop/installed-upgrade/upgrade-results.json' -Raw | ConvertFrom-Json
-          $upgradeVerified = Get-Content 'output/tests/v220-desktop/installed-upgrade/verify-results.json' -Raw | ConvertFrom-Json
+          $upgrade = Get-Content 'output/tests/v2210-desktop/installed-upgrade/upgrade-results.json' -Raw | ConvertFrom-Json
+          $upgradeVerified = Get-Content 'output/tests/v2210-desktop/installed-upgrade/verify-results.json' -Raw | ConvertFrom-Json
           if (-not $wizard.passed -or -not $upgrade.passed -or -not $upgradeVerified.passed) { throw 'Actual guided installation or old-to-new upgrade checks did not pass' }
           $hostHashes = [ordered]@{}
           foreach ($file in (Get-ChildItem 'desktop/*.cjs' | Sort-Object Name)) { $hostHashes['desktop/' + $file.Name] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
@@ -313,24 +325,30 @@ jobs:
             'dist-desktop/build-provenance.json' = 'provenance'
             'output/tests/v220-desktop/installer-wizard/wizard-results.json' = 'wizard'
             'output/tests/v220-desktop/installer-wizard/installation-directory-page.bmp' = 'wizard-screenshot'
-            'output/tests/v220-desktop/installed-upgrade/upgrade-results.json' = 'upgrade'
-            'output/tests/v220-desktop/installed-upgrade/seed-results.json' = 'upgrade-seed'
-            'output/tests/v220-desktop/installed-upgrade/verify-results.json' = 'upgrade-library'
+            'output/tests/v2210-desktop/installed-upgrade/upgrade-results.json' = 'upgrade'
+            'output/tests/v2210-desktop/installed-upgrade/seed-results.json' = 'upgrade-seed'
+            'output/tests/v2210-desktop/installed-upgrade/verify-results.json' = 'upgrade-library'
             'output/desktop-smoke/installed/results.json' = 'installed-smoke'
             'output/desktop-smoke/portable/results.json' = 'portable'
             'output/desktop-package/uninstall-data-check.json' = 'uninstall'
             'output/desktop-package/uninstall-diagnostic.json' = 'uninstall-diagnostic'
-            'output/desktop-v220-management/packaged/native-management-results.json' = 'management-native'
-            'output/tests/v221-desktop/packaged-pdf/native-pdf-results.json' = 'pdf-native'
+            'output/desktop-v2210-management/packaged/native-management-results.json' = 'management-native'
+            'output/tests/v2210-desktop/packaged-pdf/native-pdf-results.json' = 'pdf-native'
+            'output/tests/v2210-desktop/packaged-generic/native.json' = 'generic-native'
+            'output/tests/v2210-desktop/packaged-catalog/native.json' = 'catalog-native'
+            'output/implementation-2.21.0/catalog/chrome.json' = 'catalog-browser'
+            'output/implementation-2.21.0/catalog/msedge.json' = 'catalog-browser'
+            'output/implementation-2.21.0/generic/chrome.json' = 'generic-browser'
+            'output/implementation-2.21.0/generic/msedge.json' = 'generic-browser'
           }
           foreach ($entry in $evidenceFiles.GetEnumerator()) { $artifactRows += [ordered]@{path=$entry.Key;sha256=(Get-FileHash -LiteralPath $entry.Key -Algorithm SHA256).Hash.ToLowerInvariant();kind=$entry.Value} }
           $producerScripts = @()
-          foreach ($repoPath in @('.github/workflows/desktop-windows.yml','scripts/check-desktop-package.cjs','tests/desktop-installer-wizard-ci.ps1','tests/helpers/desktop-installer-native.cs','tests/desktop-installed-upgrade-v221-ci.ps1','tests/fixtures/desktop-upgrade-baseline-v220.json','tests/desktop-upgrade-library-v221-ci.cjs','tests/desktop-smoke.cjs','tests/desktop-v221-management-tests.cjs','tests/helpers/desktop-artifact-identity.cjs','tests/portable-wrapper-tests.cjs','tests/pdf-multiaxis-v221-browser-tests.cjs','tests/desktop-v221-pdf-tests.cjs')) {
+          foreach ($repoPath in @('.github/workflows/desktop-windows.yml','scripts/check-desktop-package.cjs','tests/desktop-installer-wizard-ci.ps1','tests/helpers/desktop-installer-native.cs','tests/desktop-installed-upgrade-v2210-ci.ps1','tests/fixtures/desktop-upgrade-baseline-v220.json','tests/desktop-upgrade-library-v2210-ci.cjs','tests/desktop-smoke.cjs','tests/desktop-v2210-management-tests.cjs','tests/helpers/desktop-artifact-identity.cjs','tests/portable-wrapper-tests.cjs','tests/pdf-multiaxis-v221-browser-tests.cjs','tests/desktop-v221-pdf-tests.cjs','tests/catalog-v2210-browser-tests.cjs','tests/generic-viz-v2210-browser-tests.cjs')) {
             $producerScripts += [ordered]@{repoPath=$repoPath;sha256=(Get-FileHash -LiteralPath $repoPath -Algorithm SHA256).Hash.ToLowerInvariant()}
           }
           $ciResult.artifacts = $artifactRows
           $ciResult.producerScripts = $producerScripts
-          $ciResult | ConvertTo-Json -Depth 12 | Set-Content 'output/tests/v220-desktop/ci-results.json' -Encoding utf8
+          $ciResult | ConvertTo-Json -Depth 12 | Set-Content 'output/tests/v2210-desktop/ci-results.json' -Encoding utf8
       - name: Upload verified Windows downloads
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
@@ -352,10 +370,13 @@ jobs:
           path: |
             output/desktop-smoke/
             output/desktop-package/
-            output/desktop-v220-management/
+            output/desktop-v2210-management/
             output/playwright/v220/
+            output/playwright/v2210/settings/
             output/playwright/management-v220/
-            output/implementation-2.20.1/pdf/
+            output/implementation-2.21.0/pdf/
+            output/implementation-2.21.0/catalog/
+            output/implementation-2.21.0/generic/
             output/tests/
           if-no-files-found: warn
           retention-days: 90

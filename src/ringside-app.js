@@ -3060,6 +3060,14 @@
     );
   }
   function addRow(t, groupIndex = -1, sprintTemplate = "four") {
+    if (state && !T.isNative(state, t)) {
+      const fields = T.attemptFields(state, t);
+      if (!fields.length || !Array.isArray(state.data[t])) return;
+      state.data[t].push({id:uid(),metrics:Object.fromEntries(fields.map(field=>[field.id,""])),notes:""});
+      changed(false);renderEntry();
+      rowFocus(`data.${t}.${state.data[t].length - 1}.metrics.${fields[0].id}`);
+      return;
+    }
     if (t === "sprint_fvp" && T.isNative(state, t)) {
       const templates = {four:[5, 10, 20, 30], six:[5, 10, 15, 20, 25, 30]};
       if (!Object.hasOwn(templates, sprintTemplate)) return;
@@ -3106,13 +3114,15 @@
       mb: { side: "D", distance: "" },
       lactate: { speed: "", lactate: "", hr: "" },
     };
+    const template = ["cmj","sj","dj","cmrj"].includes(t) ? M.newJumpAttempt(t) : templates[t];
+    if (!template || !Array.isArray(state?.data?.[t])) return;
     const group = state.data[t][groupIndex];
-    state.data[t].push({ id: uid(), ...(["cmj","sj","dj","cmrj"].includes(t)?M.newJumpAttempt(t):templates[t]), ...(group && ["landmine", "squat", "bench", "deadlift"].includes(t) ? { load: group.load, ...(t === "landmine" ? { side: group.side } : {}) } : {}) });
+    state.data[t].push({ id: uid(), ...template, ...(group && ["landmine", "squat", "bench", "deadlift"].includes(t) ? { load: group.load, ...(t === "landmine" ? { side: group.side } : {}) } : {}) });
     persist();
     renderEntry();
     renderReport();
     rowFocus(
-      `data.${t}.${state.data[t].length - 1}.${Object.keys(templates[t])[0]}`,
+      `data.${t}.${state.data[t].length - 1}.${Object.keys(template).find(key=>!["id","metrics","notes"].includes(key))}`,
     );
   }
   function addIso() {
@@ -3455,7 +3465,9 @@
         `<select id="catalogEntryScope" aria-label="录入层级" ${definition ? "disabled" : ""}><option value="record">本次测试汇总</option><option value="attempt" ${definition?.entryScope === "attempt" || mode === "new-test" || (mode === "new-metric" && !T.isNative(catalog, selectedTest?.id)) ? "selected" : ""}>每次试次</option></select>`,
       );
     if (!projectOnly && !builtIn) fields += label("变异系数 CV", `<label class="row"><input id="catalogCVEligible" type="checkbox" ${definition?.cvEligible === true ? "checked" : ""}>该指标有真实零点，适合计算 CV</label>`);
+    if (!projectOnly && !builtIn) fields += label("单指标选值方向", `<select id="catalogMetricSelectionDirection"><option value="higher" ${(definition?.selectionDirection || definition?.direction || test?.selectionDirection || "higher") === "higher" ? "selected" : ""}>较大值</option><option value="lower" ${(definition?.selectionDirection || definition?.direction || test?.selectionDirection) === "lower" ? "selected" : ""}>较小值</option></select><small>各指标独立选值时使用；评价等级方向在评价方案中单独设置。</small>`);
     if (mode !== "new-metric" && !T.isNative(catalog, test?.id || "")) {
+      if (!metricOnly) fields += label("各指标如何选值", `<select id="catalogMetricSelection"><option value="trial" ${test?.metricSelection !== "independent" ? "selected" : ""}>采用同一次代表试次</option><option value="independent" ${test?.metricSelection === "independent" ? "selected" : ""}>各指标独立选取</option></select><small>左右握力等可分别选取各侧最好结果；同次联动测量则采用整次试次。</small>`);
       const candidates = catalog.definitions.filter((d) => d.testId === test?.id && T.isAttemptMetric(d));
       fields += label("最佳试次主指标", `<select id="catalogPrimaryMetric" aria-label="最佳试次主指标"><option value="">首个试次指标</option>${candidates.map((d) => `<option value="${E(d.id)}" ${test?.primaryMetricId === d.id ? "selected" : ""}>${E(d.name)}</option>`).join("")}</select>`);
       fields += label("代表试次选择", `<select id="catalogSelectionDirection" aria-label="代表试次选择" required><option value="" ${!test?.selectionDirection?"selected":""}>请选择</option><option value="higher" ${test?.selectionDirection==="higher"?"selected":""}>主指标较大值</option><option value="lower" ${test?.selectionDirection==="lower"?"selected":""}>主指标较小值</option></select>`);
@@ -3514,10 +3526,26 @@
           $("catalogProtocol").value = catalog.protocol[item.id] || "";
         catalogEdit.initialProtocol = catalog.protocol[item.id] || "";
         $("catalogCategory").value = item.category;
+        $("catalogFields").querySelector(".catalog-visualization-settings")?.remove();
+        if (!T.isNative(catalog, item.id)) addCatalogVisualizationFields(item, null, mode);
       });
     organizeCatalogFields();
+    const visualizationProject = mode === "new-metric" ? selectedTest : test;
+    if (mode === "new-test" || (visualizationProject && !T.isNative(catalog, visualizationProject.id)))
+      addCatalogVisualizationFields(visualizationProject, definition, mode);
+    const updateSelectionControls=()=>{
+      const independent=($("catalogMetricSelection")?.value || visualizationProject?.metricSelection)==="independent";
+      if($("catalogMetricSelection"))for(const id of ["catalogPrimaryMetric","catalogSelectionDirection"]){if($(id))$(id).disabled=independent;}
+      if($("catalogMetricSelectionDirection"))$("catalogMetricSelectionDirection").disabled=!independent;
+    };
+    $("catalogMetricSelection")?.addEventListener("change",updateSelectionControls);
+    updateSelectionControls();
     catalogEdit.initialForm = catalogFormValues();
-    $("catalogForm").oninput = renderCatalogChangePreview;
+    $("catalogForm").oninput = () => {
+      const pending = $("catalogVisualizationMetrics")?.querySelector('[data-visual-metric="__pending_metric__"] + span');
+      if (pending) pending.textContent = ($("catalogMetricName")?.value.trim() || "新指标") + ($("catalogUnit")?.value.trim() ? " · " + $("catalogUnit").value.trim() : "");
+      renderCatalogChangePreview();
+    };
     $("catalogForm").onchange = event => {
       for (const [toggle, version, original] of [["catalogProjectMethodChanged","catalogProtocolVersion",catalog.protocolIdentities?.[test?.id]?.version||1],["catalogMetricMethodChanged","catalogMetricProtocolVersion",definition?.protocolIdentity?.version||1]])
         if (event.target.id === toggle) $(version).value = original + (event.target.checked ? 1 : 0);
@@ -3539,11 +3567,34 @@
       .filter(node => !node.id.includes("MethodChanged"))
       .map(node => [node.id,node.type === "checkbox" ? node.checked : node.value]));
   }
+  function addCatalogVisualizationFields(project, definition, mode) {
+    const module = window.RingsideGenericViz;
+    if (!module) return;
+    const config = module.normalizeConfig(project?.visualization);
+    const metrics = library.catalog.definitions.filter(item => item.testId === project?.id);
+    const addingMetric = mode === "new-test" || mode === "new-metric";
+    if (addingMetric) metrics.push({id:"__pending_metric__",name:"新指标",unit:""});
+    const selected = new Set(config.metricIds);
+    if (addingMetric) selected.add("__pending_metric__");
+    const section = document.createElement("fieldset");
+    section.className = "catalog-edit-section catalog-visualization-settings";
+    section.innerHTML = `<legend>报告图表</legend><p class="note">结果表格始终保留。图表设置用于本项目后续测试，已有记录保留创建时的设置。</p><label class="field"><span>是否显示图表</span><label class="row"><input id="catalogVisualizationEnabled" type="checkbox" ${config.enabled ? "checked" : ""}>在报告中显示图表</label></label><div class="form-grid"><label class="field"><span>图表样式</span><select id="catalogVisualizationKind">${module.kinds().map(item => `<option value="${E(item.id)}" ${item.id === config.kind ? "selected" : ""}>${E(item.label)}</option>`).join("")}</select><small id="catalogVisualizationHelp"></small></label><div class="field"><span>展示指标</span><div id="catalogVisualizationMetrics" class="catalog-visualization-metrics">${metrics.map((item, index) => `<label class="check-line"><input id="catalogVisualizationMetric${index}" type="checkbox" data-visual-metric="${E(item.id)}" ${selected.has(item.id) ? "checked" : ""}><span>${E(item.name)}${item.unit ? " · " + E(item.unit) : ""}</span></label>`).join("") || '<p class="note">先添加指标后即可选择。</p>'}</div></div></div><p class="note">不同单位分别绘图；试次图只展示实际录入的试次；目标图使用本次适用的评价目标。</p>`;
+    $("catalogFields").insertBefore(section, $("catalogChangePreview"));
+    const update = () => {
+      const enabled = $("catalogVisualizationEnabled").checked;
+      $("catalogVisualizationKind").disabled = !enabled;
+      section.querySelectorAll("[data-visual-metric]").forEach(input => { input.disabled = !enabled; });
+      $("catalogVisualizationHelp").textContent = module.kinds().find(item => item.id === $("catalogVisualizationKind").value)?.description || "";
+    };
+    $("catalogVisualizationEnabled").addEventListener("change", update);
+    $("catalogVisualizationKind").addEventListener("change", update);
+    update();
+  }
   function organizeCatalogFields() {
     const host = $("catalogFields");
     for (const [title, ids] of [
       ["基础资料",["catalogTestId","catalogTestName","catalogMetricName","catalogUnit","catalogCategory","catalogAbility","catalogPrimaryAbility"]],
-      ["录入与选值",["catalogEntryScope","catalogPrimaryMetric","catalogSelectionDirection","catalogProtocol","catalogProtocolVersion","catalogMetricProtocolVersion"]],
+      ["录入与选值",["catalogEntryScope","catalogMetricSelection","catalogPrimaryMetric","catalogSelectionDirection","catalogMetricSelectionDirection","catalogProtocol","catalogProtocolVersion","catalogMetricProtocolVersion"]],
       ["统计与换算",["catalogRatioEligible","catalogCVEligible"]]
     ]) {
       const fields = [...new Set(ids.map(id => $(id)?.closest(".field")).filter(node => node && !node.hidden))];
@@ -3565,6 +3616,11 @@
   }
   function renderCatalogChangePreview() {
     if (!catalogEdit || !$("catalogChangePreview")) return;
+    const selectionChange=catalogSelectionChange();
+    for (const [id,toggle,automatic,original] of [
+      ["catalogProtocolVersion","catalogProjectMethodChanged",selectionChange.projectChanged,library.catalog.protocolIdentities?.[catalogEdit.testId]?.version||1],
+      ["catalogMetricProtocolVersion","catalogMetricMethodChanged",selectionChange.metricChanged,library.catalog.definitions.find(d=>d.id===catalogEdit.definitionId)?.protocolIdentity?.version||1],
+    ]) if($(id)) $(id).value=original+(automatic||$(toggle)?.checked?1:0);
     const current=catalogFormValues(), prior=catalogEdit.initialForm || {}, changes=[];
     for (const [id,value] of Object.entries(current)) {
       const field=$(id)?.closest(".field");
@@ -3573,9 +3629,20 @@
       const readable=(node,value)=>node?.tagName==="SELECT" ? [...node.options].find(option=>option.value===value)?.textContent || value : typeof value==="boolean" ? value?"启用":"关闭" : value || "未填写";
       changes.push(`<li><b>${E(label)}</b>：${E(readable($(id),prior[id]))} → ${E(readable($(id),value))}</li>`);
     }
-    const methodChanged=$("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
+    const methodChanged=selectionChange.projectChanged || selectionChange.metricChanged || $("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
     const linked=methodChanged ? library.evaluationProfiles.filter(profile=>profile.standards?.some(rule=>rule.testId===catalogEdit.testId)).map(profile=>profile.name) : [];
-    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">保存后用于后续测试，已有记录保留测量快照。</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">保存后用于后续测试，已有记录保留测量快照。</p>${methodChanged?`<p class="note">${selectionChange.projectChanged||selectionChange.metricChanged?"选值依据改变，":""}测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+  }
+  function catalogSelectionChange() {
+    const test=library.catalog.tests.find(item=>item.id===catalogEdit?.testId),metric=library.catalog.definitions.find(item=>item.id===catalogEdit?.definitionId);
+    if(!test || T.isNative(library.catalog,test.id)) return {projectChanged:false,metricChanged:false};
+    const selection=$("catalogMetricSelection")?.value || test.metricSelection || "trial";
+    const priorPrimary=test.primaryMetricId || library.catalog.definitions.find(item=>item.testId===test.id&&T.isAttemptMetric(item))?.id || "";
+    const firstMetric=library.catalog.definitions.find(item=>item.testId===test.id&&T.isAttemptMetric(item))?.id || "";
+    const primary=$("catalogPrimaryMetric") ? $("catalogPrimaryMetric").value || firstMetric : priorPrimary;
+    const projectChanged=!!$("catalogMetricSelection") && (selection !== (test.metricSelection||"trial") || (selection==="trial" && (primary!==priorPrimary || $("catalogSelectionDirection")?.value!==test.selectionDirection)));
+    const metricChanged=!!metric && selection==="independent" && !!$("catalogMetricSelectionDirection") && $("catalogMetricSelectionDirection").value!==catalogEdit.initialForm?.catalogMetricSelectionDirection;
+    return {projectChanged,metricChanged};
   }
   async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
@@ -3587,10 +3654,11 @@
       return false;
     }
     const form = $("catalogForm");
+    renderCatalogChangePreview();
     if (!form.reportValidity()) return false;
     const edit = catalogEdit,
       catalog = copy(library.catalog), previousCatalog = library.catalog, previousUpdated = library.updated;
-    let committed = false;
+    let committed = false, editedMetricId = "";
     try {
       const value = (id) => ($(id)?.value || "").trim();
       const testId =
@@ -3670,6 +3738,13 @@
               ? existing.protocol || ""
               : protocol,
         };
+        editedMetricId = definition.id;
+        if ($("catalogMetricSelectionDirection")) {
+          const selectedDirection = value("catalogMetricSelectionDirection");
+          if (!["higher","lower"].includes(selectedDirection)) throw Error("请选择单指标选值方向");
+          if (!existing || existing.selectionDirection || selectedDirection !== edit.initialForm.catalogMetricSelectionDirection)
+            definition.selectionDirection = selectedDirection;
+        }
         const metricVersion=Number(value("catalogMetricProtocolVersion")||1);
         if(!Number.isSafeInteger(metricVersion)||metricVersion<1)throw Error("指标协议版本须为正整数");
         definition.protocolIdentity={id:existing?.protocolIdentity?.id||"protocol_metric_"+definition.id,version:metricVersion};
@@ -3683,9 +3758,18 @@
         test.primaryAbility = value("catalogPrimaryAbility");
       if (edit.mode !== "new-metric" && !edit.metricOnly && !T.isNative(catalog, testId)) test.primaryMetricId = value("catalogPrimaryMetric") || catalog.definitions.find((d) => d.testId === testId && T.isAttemptMetric(d))?.id || "";
       if (edit.mode !== "new-metric" && !edit.metricOnly && !T.isNative(catalog,testId) && $("catalogSelectionDirection")) {
-        const direction=value("catalogSelectionDirection");
+        const direction=value("catalogSelectionDirection") || (value("catalogMetricSelection")==="independent" ? test.selectionDirection || "higher" : "");
         if(!["higher","lower"].includes(direction))throw Error("请选择代表试次选择方式");
         test.selectionDirection=direction;
+      }
+      if ($("catalogMetricSelection")) {
+        const selection = value("catalogMetricSelection");
+        if (!["trial","independent"].includes(selection)) throw Error("请选择指标选值方式");
+        const priorTest = previousCatalog.tests.find(item=>item.id===testId);
+        const priorPrimary = priorTest?.primaryMetricId || previousCatalog.definitions.find(item=>item.testId===testId&&T.isAttemptMetric(item))?.id || "";
+        const primary = test.primaryMetricId || catalog.definitions.find(item=>item.testId===testId&&T.isAttemptMetric(item))?.id || "";
+        const changedSelection = !priorTest || primary !== priorPrimary || test.selectionDirection !== priorTest.selectionDirection;
+        if (test.metricSelection || selection !== "trial" || changedSelection) test.metricSelection = selection;
       }
       if (edit.mode === "new-test" || edit.projectOnly) {
         catalog.definitions.filter(d => d.testId === testId).forEach(d => d.category = test.category);
@@ -3695,6 +3779,16 @@
         const version=Number(value("catalogProtocolVersion"));
         if(!Number.isSafeInteger(version)||version<1)throw Error("测试协议版本须为正整数");
         catalog.protocolIdentities||={};catalog.protocolIdentities[testId]={id:catalog.protocolIdentities[testId]?.id||"protocol_project_"+testId,version};
+      }
+      if ($("catalogVisualizationEnabled")) {
+        const visualization = {
+          version:1, enabled:$("catalogVisualizationEnabled").checked,
+          kind:value("catalogVisualizationKind"),
+          metricIds:[...$("catalogVisualizationMetrics").querySelectorAll("[data-visual-metric]:checked")].map(input => input.dataset.visualMetric === "__pending_metric__" ? editedMetricId : input.dataset.visualMetric),
+        };
+        const issues = window.RingsideGenericViz.validateConfig(visualization, catalog.definitions, {testId,repeatable:catalog.definitions.some(item => item.testId === testId && T.isAttemptMetric(item))});
+        if (issues.length) throw Error(issues.map(issue => issue.message).join("；"));
+        test.visualization = window.RingsideGenericViz.normalizeConfig(visualization);
       }
       const canonical = M.normalizeCatalog(catalog);
       M.validateCatalog(canonical);

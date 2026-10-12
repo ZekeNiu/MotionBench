@@ -1988,7 +1988,83 @@
     return layoutSVG(w,h,title,out,"Fₑ、vₑ、EN 读取左轴，ER 读取右轴；各指标均为无量纲。当前剖面保持不变，分别求解各目标距离的冲刺时间与弹性。竖虚线标记当前目标距离；EN 最低点与 ER = 1 的平衡点分别求解。",layout);
   }
 
+  function genericChart(data, layout = {}) {
+    const w = Math.max(240, layout.width || 620), unit = data.unit || "单位未填写";
+    const fullNumber = value => num(value) === null ? "—" : Number(value).toLocaleString("zh-CN", { useGrouping: false, maximumFractionDigits: 6 });
+    const wrapLabel = (label, available) => {
+      const lines = [""], capacity = Math.max(12, Math.floor(available / 12));
+      let size = 0;
+      for (const character of String(label)) {
+        const weight = /[^\x00-\x7f]/.test(character) ? 1 : .55;
+        if (size + weight > capacity) { lines.push(""); size = 0; }
+        lines[lines.length - 1] += character; size += weight;
+      }
+      return lines;
+    };
+    if (data.kind === "trials") {
+      const titleLines = wrapLabel(data.title, (w - 36) * 12 / 14);
+      const legendLines = wrapLabel("试次（录入顺序） · 实心点参与本次成绩选取", (w - 36) * 12 / 10);
+      const titleExtra = (titleLines.length - 1) * 17, legendExtra = (legendLines.length - 1) * 14;
+      const h = 286 + titleExtra + legendExtra, left = 54, right = w - 22, top = 74 + titleExtra, bottom = h - 58 - legendExtra;
+      const points = data.points || [], valid = points.filter(p => num(p.value) !== null);
+      let [min, max] = data.range || [0, 1];
+      const span = max - min || Math.max(1, Math.abs(max) * .1); min -= span * .12; max += span * .18;
+      const y = value => bottom - (value - min) / (max - min) * (bottom - top);
+      const x = index => left + (index + .5) / Math.max(1, points.length) * (right - left);
+      let out = titleLines.map((label, index) => text(18, 24 + index * 17, label, 'font-size="14" fill="' + C.ink + '"')).join("")
+        + text(18, 43 + titleExtra, `${unit}${data.pageLabel ? " · " + data.pageLabel : ""}`, 'font-size="11"');
+      ticks(min, max, 4).forEach(value => { out += line(left, y(value), right, y(value))
+        + text(left - 8, y(value) + 4, fmt(value, 2), 'text-anchor="end" font-size="10"'); });
+      points.forEach((p, index) => {
+        out += text(x(index), bottom + 20, p.index, 'text-anchor="middle" font-size="11"');
+        if (num(p.value) === null) out += text(x(index), top + 24, "—", 'text-anchor="middle" font-size="12"');
+        else {
+          const label = `${data.title} · 第 ${p.index} 次 · ${fullNumber(p.value)} ${data.unit || ""} · ${p.selected ? "参与本次成绩选取" : "未参与本次成绩选取"}`;
+          out += `<g class="viz-point" tabindex="0" data-generic-point="${esc(p.id)}" data-value="${esc(p.value)}" data-selected="${p.selected}" data-tooltip="${esc(label)}">`
+            + circle(x(index), y(p.value), 4.5, p.selected ? C.blue : "white", `stroke="${C.blue}" stroke-width="2"`)
+            + text(x(index), y(p.value) - 10, fmt(p.value, 2), 'text-anchor="middle" font-size="10"') + "</g>";
+        }
+      });
+      legendLines.forEach((label, index) => { out += text(18, h - 12 - legendExtra + index * 14, label, 'font-size="10"'); });
+      return layoutSVG(w, h, `${data.title} · 重复试次`, out,
+        `${data.selection}。横轴为真实试次序号；点不连接为趋势。${valid.length} 次有效值，缺测位置不以零替代。`, layout);
+    }
+    const rows = data.rows || [], rowLayouts = rows.map(row => ({ row, labels: wrapLabel(row.name + (row.sideLabel ? " · " + row.sideLabel : ""), w - 38),
+      targets: data.kind === "target" ? wrapLabel(`参考目标 ${row.direction === "lower" ? "≤" : "≥"} ${fullNumber(row.target)} ${row.unit} · ${row.direction === "lower" ? "越小越好" : "越大越好"}`, (w - 38) * 12 / 11) : [] }));
+    const titleLines = wrapLabel(`${data.title} · ${unit}`, (w - 36) * 12 / 14);
+    const left = 20, right = w - 22, top = 49 + (titleLines.length - 1) * 17;
+    const heights = rowLayouts.map(item => Math.max(data.kind === "target" ? 100 : 78, item.labels.length * 17 + (data.kind === "target" ? 73 + (item.targets.length - 1) * 15 : 48)));
+    const h = top + heights.reduce((sum, value) => sum + value, 0) + 40;
+    let [min, max] = data.range || [0, 1];
+    if (min === max) max = min + Math.max(1, Math.abs(min) * .1);
+    const x = value => left + (value - min) / (max - min) * (right - left);
+    let out = titleLines.map((label, index) => text(18, 25 + index * 17, label, 'font-size="14" fill="' + C.ink + '"')).join("");
+    const tickValues = ticks(min, max, 4);
+    tickValues.forEach(value => { out += line(x(value), top, x(value), h - 31, 'stroke-dasharray="2 4"')
+      + text(x(value), h - 12, fmt(value, 2), `text-anchor="${value === tickValues[0] ? "start" : value === tickValues[tickValues.length - 1] ? "end" : "middle"}" font-size="10"`); });
+    out += line(x(0), top, x(0), h - 31, `stroke="${C.muted}"`);
+    let rowTop = top;
+    for (const [index, { row, labels, targets }] of rowLayouts.entries()) {
+      const barTop = rowTop + labels.length * 17 + 22, barValue = x(row.value), zero = x(0), fill = row.side === "right" ? SERIES[1] : C.blue;
+      out += `<g data-generic-metric="${esc(row.metricId)}" data-value="${esc(row.value)}"${row.side ? ` data-side="${esc(row.side)}"` : ""}>`;
+      labels.forEach((label, lineIndex) => { out += text(left, rowTop + 14 + lineIndex * 17, label, 'font-size="12" fill="' + C.ink + '"'); });
+      out += text(right, barTop - 7, `${fullNumber(row.value)}${row.unit ? " " + row.unit : ""}`, 'text-anchor="end" font-size="12" fill="' + C.ink + '"')
+        + `<rect x="${fmt(Math.min(zero, barValue))}" y="${fmt(barTop)}" width="${fmt(Math.abs(barValue - zero))}" height="12" rx="3" fill="${fill}"/>`;
+      if (row.value === 0) out += circle(zero, barTop + 6, 3, fill);
+      if (data.kind === "target") {
+        const targetX = x(row.target);
+        out += `<g data-generic-target="${esc(row.metricId)}" data-target="${esc(row.target)}" data-target-direction="${esc(row.direction)}">`
+          + line(targetX, barTop - 3, targetX, barTop + 17, `stroke="${C.ink}" stroke-width="2"`)
+          + targets.map((label, lineIndex) => text(left, barTop + 35 + lineIndex * 15, label, 'font-size="11"')).join("") + "</g>";
+      }
+      out += "</g>"; rowTop += heights[index];
+    }
+    return layoutSVG(w, h, `${data.title} · ${unit}`, out,
+      `${data.selection}。横轴为原始数值和单位；不同单位分别绘图。${data.kind === "target" ? "竖线标记当前适用的参考目标，比较方向由标准决定。" : "缺测不绘制为零。"}`, layout);
+  }
+
   global.RingsideViz = {
+    genericChart,
     body,
     bodyTooltip,
     radar,

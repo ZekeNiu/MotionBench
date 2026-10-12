@@ -9,10 +9,20 @@
     return v;
   }
   function measurementContext(record, d) {
+    const project = (record.projectSnapshots || record.tests || record.customTests || []).find(test => test.id === d.testId);
+    const attemptDefinitions = (record.definitions || []).filter(metric => metric.testId === d.testId && root.RingsideTests.isAttemptMetric(metric));
+    const defaultPrimary = attemptDefinitions[0], primary = attemptDefinitions.find(metric => metric.id === project?.primaryMetricId) || defaultPrimary;
+    // Only active selection settings belong to the measurement contract. An
+    // explicit default whole-trial policy is equivalent to the legacy policy.
+    const selection = root.RingsideTests.isAttemptMetric(d) && project?.metricSelection === "independent"
+      ? { kind: "independent", direction: d.selectionDirection || d.direction || "higher" }
+      : project?.metricSelection === "trial" && primary && (primary.id !== defaultPrimary?.id || (project.selectionDirection || "higher") !== (primary.direction === "lower" ? "lower" : "higher"))
+        ? { kind: "trial", primaryMetricId: primary.id, direction: project.selectionDirection || "higher" }
+        : null;
     const forceMetric = /(?:force|impulse|^imtp_(?:f|rfd)\d)/.test(d.id);
     const config = !forceMetric ? null : d.testId === "cmj" ? { definition: record.cmjConfig?.definition || "gross" } : d.testId === "imtp" ? { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } : null;
     if (config && /impulse/.test(d.id)) config.impulseDefinition = (d.testId === "cmj" ? record.cmjConfig : record.imtpConfig)?.impulseDefinition || "gross";
-    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", protocolIdentity: record.protocolIdentities?.[d.testId] || M.protocolIdentity("test:" + d.testId, record.protocol?.[d.testId]), metricProtocol: d.protocol || "", metricProtocolIdentity: d.protocolIdentity || M.protocolIdentity("metric:" + d.id,d.protocol), ...(config ? { force: clone(config) } : {}), ...(d.id === "rqr" ? { pairedProtocol: record.protocol?.hop || "", pairedProtocolIdentity: record.protocolIdentities?.hop || M.protocolIdentity("test:hop",record.protocol?.hop) } : {}) };
+    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", protocolIdentity: record.protocolIdentities?.[d.testId] || M.protocolIdentity("test:" + d.testId, record.protocol?.[d.testId]), metricProtocol: d.protocol || "", metricProtocolIdentity: d.protocolIdentity || M.protocolIdentity("metric:" + d.id,d.protocol), ...(selection ? { measurementSelection: selection } : {}), ...(config ? { force: clone(config) } : {}), ...(d.id === "rqr" ? { pairedProtocol: record.protocol?.hop || "", pairedProtocolIdentity: record.protocolIdentities?.hop || M.protocolIdentity("test:hop",record.protocol?.hop) } : {}) };
   }
   function isoContext(row, record) {
     return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit, protocol: row.protocol || record.protocol?.iso || "", protocolIdentity: row.protocolIdentity || M.protocolIdentity("iso:" + row.id,row.protocol || record.protocol?.iso), projectProtocolIdentity: record.protocolIdentities?.iso || M.protocolIdentity("test:iso",record.protocol?.iso) };

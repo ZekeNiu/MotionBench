@@ -3235,6 +3235,16 @@ body.sidebar-collapsed .workspace {
 }
 
 .management-more:not([open])>.management-more-menu{display:none}
+.catalog-visualization-metrics{display:grid;gap:8px;max-height:240px;overflow:auto;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-soft)}
+.catalog-visualization-metrics .check-line{display:flex;align-items:flex-start;gap:8px;padding:4px 0;overflow-wrap:anywhere}
+.catalog-visualization-metrics input{flex-shrink:0;margin-top:3px}
+.catalog-visualization-settings .form-grid{align-items:start}
+.catalog-preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.catalog-preset-item{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--line);border-radius:9px;padding:13px;background:var(--surface-soft)}
+.catalog-preset-item input{flex-shrink:0;margin-top:3px}
+.catalog-preset-item small{display:block;margin-top:6px;line-height:1.6;color:var(--muted)}
+.catalog-preset-heading{display:flex;gap:10px;justify-content:space-between;align-items:center;margin:18px 0 12px}
+@media(max-width:700px){.catalog-preset-grid{grid-template-columns:minmax(0,1fr)}.catalog-preset-heading{align-items:flex-start;flex-wrap:wrap}}
 .profile-diff{width:100%;table-layout:fixed}
 .profile-diff td,.profile-diff th{overflow-wrap:anywhere;vertical-align:top}
 .profile-diff th:first-child{width:44%}
@@ -3477,6 +3487,14 @@ body.sidebar-collapsed .workspace {
 .ability-score-details h4{margin:0 0 12px;font-size:14px}
 .ability-score-details .note{margin:10px 0 0}
 @media(max-width:600px){#abilityScoreDetails:not(:empty){padding:16px 12px}}
+
+/* Generic charts keep the established result card, palette and persistent table. */
+.generic-visualizations { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-bottom:18px; align-items:start; }
+.generic-visualizations>.chart-wrap,.generic-result-pair>.chart-wrap { min-width:0; width:100%; }
+.generic-chart-notes { margin-top:12px; }
+.generic-chart-notes .note { margin:6px 0; overflow-wrap:anywhere; }
+@media(max-width:760px) { .generic-visualizations { grid-template-columns:minmax(0,1fr); } }
+.ringside-pdf-document .generic-visualizations { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 
 .excel-modal{width:min(1080px,calc(100vw - 32px));max-width:none}
 .creation-people-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:13px}
@@ -4125,7 +4143,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.20.1"});
+window.RingsideBuild=Object.freeze({"version": "2.21.0"});
 </script>
 <script>
 (function (root) {
@@ -6618,6 +6636,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       primaryMetricId: primary?.id || null,
       selectionDirection: test?.selectionDirection || "higher",
       direction: primary?.direction || "higher",
+      ...(test?.metricSelection !== undefined ? { metricSelection: test.metricSelection } : {}),
       fields,
     };
   }
@@ -6798,19 +6817,24 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         repeatPolicy: repeatPolicy(source, test.id),
         primaryMetricId: test.primaryMetricId || "",
         selectionDirection: test.selectionDirection || "higher",
+        ...(test.metricSelection !== undefined ? { metricSelection: test.metricSelection } : {}),
+        ...(test.visualization !== undefined ? { visualization: JSON.parse(JSON.stringify(test.visualization)) } : {}),
       };
     });
   }
   function snapshots(source) {
     return describe(source).map(({ id, name, category, primaryAbility, primaryMetricId, selectionDirection }) => {
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
+      const settings = prior || (source.tests || source.customTests || []).find(test => test.id === id) || {};
       // Display aliases must not rewrite measurement snapshots or catalog names.
       const rawFvpName=["fvp_sj","fvp_cmj","sprint_fvp"].includes(id)&&isNative(source,id)?(source.tests||source.projectSnapshots||builtins).find(test=>test.id===id)?.name:undefined;
       return { id, name: prior?.name ?? rawFvpName ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
         selectionDirection: prior?.selectionDirection ?? selectionDirection,
         ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj", "sprint_fvp"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
-        ...(primaryMetricId ? { primaryMetricId } : {}) };
+        ...(primaryMetricId ? { primaryMetricId } : {}),
+        ...(settings.metricSelection !== undefined ? { metricSelection: settings.metricSelection } : {}),
+        ...(settings.visualization !== undefined ? { visualization: JSON.parse(JSON.stringify(settings.visualization)) } : {}) };
     });
   }
   function groups(projects, source) {
@@ -6878,6 +6902,136 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     groups,
     fmsAbilities,
   });
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (global) {
+  "use strict";
+  const KINDS = [
+    { id: "bars", label: "成绩条形图", description: "按原始数值展示；不同单位分别绘图。" },
+    { id: "trials", label: "重复试次点图", description: "显示真实试次，不连接成趋势线。" },
+    { id: "target", label: "实测与目标", description: "仅比较当前适用且有效的参考目标。" },
+  ];
+  const safeId = value => typeof value === "string" && /^[A-Za-z0-9_-]+$/.test(value)
+    && !["__proto__", "prototype", "constructor"].includes(value);
+  const plain = value => value && typeof value === "object" && !Array.isArray(value)
+    && Object.prototype.toString.call(value) === "[object Object]";
+  const copy = value => JSON.parse(JSON.stringify(value));
+  function kinds() { return copy(KINDS); }
+  function normalizeConfig(raw) {
+    const config = plain(raw) ? raw : {};
+    return { version: 1, enabled: config.enabled === true,
+      kind: KINDS.some(kind => kind.id === config.kind) ? config.kind : "bars",
+      metricIds: [...new Set((Array.isArray(config.metricIds) ? config.metricIds : []).filter(safeId))] };
+  }
+  function validateConfig(raw, definitions = [], options = {}) {
+    if (raw === undefined || raw === null) return [];
+    const issues = [], issue = (path, code, message) => issues.push({ path: "visualization." + path, code, message });
+    if (!plain(raw)) { issue("", "invalid-object", "图表设置必须是对象。"); return issues; }
+    if (raw.version !== undefined && raw.version !== 1) issue("version", "unsupported-version", "暂不支持此图表设置版本。");
+    if (typeof raw.enabled !== "boolean") issue("enabled", "invalid-enabled", "请选择是否显示图表。");
+    if (!KINDS.some(kind => kind.id === raw.kind)) issue("kind", "invalid-kind", "请选择支持的图表样式。");
+    if (!Array.isArray(raw.metricIds)) issue("metricIds", "invalid-metrics", "请选择要展示的指标。");
+    else {
+      if (raw.metricIds.some(id => !safeId(id))) issue("metricIds", "unsafe-id", "图表指标编号无效。");
+      if (new Set(raw.metricIds).size !== raw.metricIds.length) issue("metricIds", "duplicate-id", "图表指标不能重复选择。");
+      if (raw.enabled === true) {
+        if (!raw.metricIds.length) issue("metricIds", "empty-metrics", "请至少选择一个图表指标。");
+        const metrics = definitions.filter(metric => !options.testId || metric.testId === options.testId);
+        if (raw.metricIds.some(id => !metrics.some(metric => metric.id === id)))
+          issue("metricIds", "unknown-metric", "所选图表指标不属于本项目，或已被移除。");
+        if (raw.kind === "trials" && options.repeatable === false)
+          issue("kind", "not-repeatable", "本项目不保存重复试次，请选择其他图表样式。");
+      }
+    }
+    return issues;
+  }
+  const number = value => {
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value !== "string" || !value.trim() || !/^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/.test(value.trim())) return null;
+    return Number.isFinite(Number(value)) ? Number(value) : null;
+  };
+  const side = value => ["left", "right", "L", "R"].includes(value) ? ({ L: "left", R: "right" }[value] || value) : null;
+  const sideLabel = value => value === "left" ? "左侧" : value === "right" ? "右侧" : "";
+  const chunks = (items, size) => Array.from({ length: Math.ceil(items.length / size) }, (_, index) => items.slice(index * size, (index + 1) * size));
+  function buildProject(record, stats, project) {
+    const config = normalizeConfig(project?.visualization), figures = [], issues = [];
+    const result = { enabled: config.enabled, kind: config.kind, figures, issues };
+    if (!config.enabled) return result;
+    if (project?.renderer !== "scalar") {
+      issues.push({ code: "fixed-native-chart", message: "本项目使用固定图表，通用图表设置不替换其计算与展示。" });
+      return result;
+    }
+    const definitions = (project.definitions || []).filter(metric => metric.testId === project.id);
+    const invalid = validateConfig(project.visualization, definitions, { testId: project.id });
+    if (invalid.length) { issues.push(...invalid); return result; }
+    const selected = config.metricIds.map(id => definitions.find(metric => metric.id === id));
+    const issue = (metric, code, message) => issues.push({ metricId: metric.id, name: metric.name, code, message });
+    const entry = metric => ({ metricId: metric.id, name: metric.name || metric.id, unit: String(metric.unit || ""),
+      value: number(stats.values?.[metric.id]), side: side(metric.side), sideLabel: sideLabel(side(metric.side)) });
+    if (config.kind === "trials") {
+      for (const metric of selected) {
+        const groups = (stats.repetitions || []).filter(group => group.testId === project.id && group.fields?.some(field => field.id === metric.id));
+        if (!groups.length) { issue(metric, "no-attempt-data", "未保存该指标的重复试次，无法绘制试次点图。"); continue; }
+        let available = false;
+        for (const group of groups) {
+          const points = (group.attempts || []).map(attempt => ({ id: attempt.id, index: attempt.index,
+            value: number(attempt.observations?.[metric.id]), selected: (group.selectedIds || []).includes(attempt.id),
+            missing: number(attempt.observations?.[metric.id]) === null,
+            reason: number(attempt.observations?.[metric.id]) !== null ? "" : attempt.values?.[metric.id] === "" || attempt.values?.[metric.id] == null ? "未填写" : "数值无效" }));
+          const valid = points.filter(point => point.value !== null);
+          if (!valid.length) { issue(metric, "no-valid-attempts", "已保存试次，但没有有效数值，无法绘制试次点图。"); continue; }
+          available = true;
+          const missing = points.filter(point => point.missing);
+          if (missing.length) issue(metric, "missing-attempts", `第 ${missing.map(point => point.index).join("、")} 次未填写或数值无效，图中保留试次位置，不绘制数值。`);
+          const batches = chunks(points, 6);
+          for (const [index, batch] of batches.entries()) figures.push({ kind: "trials", metricId: metric.id,
+            title: metric.name || metric.id, unit: String(metric.unit || ""), side: side(metric.side),
+            groupKey: group.key, points: batch, range: [Math.min(...valid.map(point => point.value)), Math.max(...valid.map(point => point.value))],
+            selection: record.mode === "mean" ? "本次使用有效试次平均" : "本次按项目规则选取代表试次",
+            pageLabel: batches.length > 1 ? `试次 ${batch[0].index}–${batch[batch.length - 1].index}` : "" });
+        }
+        if (!available) continue;
+      }
+      return result;
+    }
+    const byUnit = new Map();
+    for (const metric of selected) {
+      const row = entry(metric);
+      if (row.value === null) {
+        const group = (stats.repetitions || []).find(group => group.testId === project.id && group.fields?.some(field => field.id === metric.id));
+        const hasRaw = group?.attempts?.some(attempt => number(attempt.observations?.[metric.id]) !== null);
+        const reason = hasRaw && !group.selectedIds?.length ? "主指标没有有效试次，未能选出本次成绩。"
+          : hasRaw ? "按项目规则选中的代表试次缺少该指标，本次结果缺测。" : "本次没有有效成绩。";
+        issue(metric, "missing-result", reason + "图中不以零代替缺测。"); continue;
+      }
+      if (config.kind === "target") {
+        const evaluation = (stats.evaluationResults || []).find(item => item.kind === "metric" && item.metricId === metric.id);
+        if (!evaluation || evaluation.applicable === false || evaluation.targetApplicable !== true || evaluation.reference?.eligible === false) {
+          issue(metric, "inapplicable-target", evaluation?.reason || evaluation?.reference?.reason || "本次没有启用且适用的参考目标。"); continue;
+        }
+        const target = number(evaluation.target);
+        if (target === null || target <= 0) { issue(metric, "missing-target", "本次未设置有效参考目标，无法绘制目标比较。"); continue; }
+        if (String(evaluation.unit || "") !== row.unit) { issue(metric, "target-unit-mismatch", "成绩与参考目标单位不一致，无法直接比较。"); continue; }
+        if (!["higher", "lower"].includes(evaluation.direction)) { issue(metric, "invalid-target-direction", "参考目标的比较方向无效。"); continue; }
+        Object.assign(row, { target, direction: evaluation.direction, source: evaluation.source || "" });
+      }
+      const key = row.unit || "unknown-unit:" + row.metricId;
+      if (!byUnit.has(key)) byUnit.set(key, []);
+      byUnit.get(key).push(row);
+      if (!row.unit) issue(metric, "missing-unit", "未填写单位；该指标单独绘图，不与其他指标合并。");
+    }
+    for (const rows of byUnit.values()) {
+      const rangeValues = rows.flatMap(row => config.kind === "target" ? [row.value, row.target] : [row.value]);
+      const range = [Math.min(0, ...rangeValues), Math.max(0, ...rangeValues)];
+      for (const batch of chunks(rows, 6)) figures.push({ kind: config.kind, title: config.kind === "target" ? "实测与参考目标" : "本次成绩",
+        unit: batch[0].unit, rows: batch, range, paired: batch.some(row => row.side === "left") && batch.some(row => row.side === "right"),
+        selection: record.mode === "mean" ? "本次成绩按项目规则取平均" : "本次成绩按项目规则选取" });
+    }
+    return result;
+  }
+  global.RingsideGenericViz = { normalizeConfig, validateConfig, kinds, buildProject };
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -9173,7 +9327,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       id, key, label, unit, cvEligible: true, minimum: 0, ...options,
     });
     const extra = (testId) => T.repeatPolicy(record, testId).fields.map((d) => field(d.id, "metrics." + d.id, d.name, d.unit,
-      { cvEligible: d.cvEligible === true, minimum: null, direction: d.direction }));
+      { cvEligible: d.cvEligible === true, minimum: Number.isFinite(d.valueMinimum) ? d.valueMinimum : null,
+        ...(d.valueMinimum === 0 && d.zeroValid === false ? { positive: true } : {}), direction: d.selectionDirection || d.direction }));
     const rawValue = (row, f) => f.read ? f.read(row) : f.key.startsWith("metrics.") ? row.metrics?.[f.id] : row[f.key];
     const validValue = (value, f) => {
       const v = N(value);
@@ -9253,6 +9408,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       } else if (test.renderer === "speed") {
         const metricId = id === "ift" ? record.data.ift.protocol === "treadmill" ? "ift_treadmill" : "ift_shuttle" : id + "_speed";
         add(id, id, test.name, [field(metricId, "speed", id === "ift" ? "VIFT" : "速度", "m/s", { positive: true, read: (row) => speedMS(row, record.data[id].unit) }), ...extras], rows, metricId);
+      } else if (test.repeatPolicy.metricSelection === "independent") {
+        extras.forEach(f => add(id, id + ":" + f.id, f.label, [f], rows, f.id, f.direction || "higher"));
       } else {
         add(id, id, test.name, extras, rows, test.repeatPolicy.primaryMetricId, options.legacySelection ? test.repeatPolicy.direction || "higher" : test.repeatPolicy.selectionDirection || "higher");
       }
@@ -10575,6 +10732,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
     const projection = definition => {
       const { referenceMatch, referenceGroups, targetEnabled, rangesEnabled, protocolIdentity, ...result } = definition;
+      const project = (record.projectSnapshots || record.customTests || []).find(test => test.id === definition.testId);
+      if (project?.metricSelection !== "independent" || !T.isAttemptMetric(definition)) delete result.selectionDirection;
       if (protocolIdentity?.version > 1) result.protocolIdentity = protocolIdentity;
       if (!T.isManualMetric(result) && result.measurementScale === "ratio") delete result.measurementScale;
       if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
@@ -10620,6 +10779,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }).map(d => T.axisKey(d.ability)))].sort() : [];
     const fingerprintProjects = record.projectSnapshots?.filter(t => !invisible.has(t.id)).map(test => {
       const result = { ...test }, primary = record.definitions.find(d => d.id === test.primaryMetricId) || record.definitions.find(d => d.testId === test.id && T.isAttemptMetric(d));
+      delete result.visualization;
+      if (result.metricSelection === "trial") delete result.metricSelection;
+      if (test.metricSelection === "independent") { delete result.primaryMetricId; delete result.selectionDirection; }
       const priorDirection = T.isNative(record,test.id) ? "higher" : primary?.direction || "higher";
       if (test.selectionDirection === priorDirection) delete result.selectionDirection;
       delete result.selectionNeedsReview;
@@ -11167,8 +11329,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (/^data\.cpet\.(?:thresholds\.(?:first|second)\.)?(vo2|peakHr|rer|hr|speed|power)$/.test(path)) return bounds(0, null, false, true);
     if (/^data\.hop\.summary\.(suppliedCount|validCount|selectedCount)$/.test(path)) return bounds(0, null, true);
     if (/^data\.imtp\.\d+\.(impulse250|matchedImpulse|matchedDurationMs)$/.test(path)) return bounds(0, null, false, true);
-    if (/^data\.[\w-]+\.(?:\d+\.)?metrics\.[\w-]+$/.test(path))
-      return empty ? "" : requireNumber();
+    if (/^data\.[\w-]+\.(?:\d+\.)?metrics\.[\w-]+$/.test(path)) {
+      const definition = record.definitions?.find(d => d.id === path.split(".").at(-1));
+      return Number.isFinite(definition?.valueMinimum) ? bounds(definition.valueMinimum, null, false, definition.valueMinimum === 0 && definition.zeroValid === false) : empty ? "" : requireNumber();
+    }
     if (
       /^data\.imtp\.\d+\.(peakForce|f100|f200|rfd100|rfd200|baselineForce)$/.test(
         path,
@@ -11411,6 +11575,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (source.impulseConfig !== undefined && (!plainObject(source.impulseConfig) || typeof source.impulseConfig.confirmed !== "boolean")) throw new Error("冲量可比性确认无效");
     ["cmjConfig","imtpConfig"].forEach((key) => { if (source[key]?.impulseDefinition !== undefined && !["gross","net"].includes(source[key].impulseDefinition)) throw new Error("冲量力口径无效"); });
   }
+  function validateProjectSettings(source, test) {
+    if (test.metricSelection !== undefined && !["trial", "independent"].includes(test.metricSelection)) throw Error("指标选值方式无效");
+    if (test.metricSelection === "independent" && T.isNative(source, test.id)) throw Error("原生专用项目不能使用通用独立选值");
+    if (test.visualization === undefined) return;
+    if (T.isNative(source, test.id)) throw Error("原生专用项目不支持通用图表设置");
+    if (!root.RingsideGenericViz) throw Error("通用图表模块未加载");
+    const issues = root.RingsideGenericViz.validateConfig(test.visualization, source.definitions, { testId: test.id, repeatable: true })
+      .filter(issue => (source.tests || source.enabled?.[test.id]) ? true : issue.code !== "unknown-metric");
+    if (issues.length) throw Error(issues[0].message);
+  }
   function validateCatalog(catalog) {
     validateDerivedOptions(catalog);
     if (
@@ -11439,6 +11613,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       )
         throw new Error("目录项目 ID 或类型无效");
       testIds.add(test.id);
+      validateProjectSettings(catalog, test);
     });
     const validateDefinitions = (definitions, knownTests) =>
       definitions.forEach((definition) => {
@@ -11454,7 +11629,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             !["record", "attempt"].includes(definition.entryScope)) ||
           (definition.entryScope === "attempt" &&
             !T.supportsAttemptMetrics(definition.testId) && !definition.legacyManual) ||
-          (definition.cvEligible !== undefined && typeof definition.cvEligible !== "boolean")
+          (definition.cvEligible !== undefined && typeof definition.cvEligible !== "boolean") ||
+          (definition.selectionDirection !== undefined && !["higher", "lower"].includes(definition.selectionDirection)) ||
+          (definition.valueMinimum !== undefined && !Number.isFinite(definition.valueMinimum))
         )
           throw new Error("目录指标定义无效");
         Def.parseRanges(Def.rangeText(definition.ranges));
@@ -11652,6 +11829,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       throw new Error("项目快照结构无效");
     if (input.definitions.length > 300 || (input.customTests || []).length > 60)
       throw new Error("定义数量超出限制");
+    (input.projectSnapshots || []).forEach(test => validateProjectSettings(input, test));
     if (input.customTests !== undefined && !Array.isArray(input.customTests))
       throw new Error("自定义测试结构无效");
     const customIds = new Set();
@@ -11666,6 +11844,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       )
         throw new Error("自定义测试 ID 或类型无效");
       customIds.add(test.id);
+      validateProjectSettings(input, test);
     });
     const ids = new Set();
     input.definitions.forEach((d) => {
@@ -11679,7 +11858,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         (d.entryScope !== undefined &&
           !["record", "attempt"].includes(d.entryScope)) ||
         (d.entryScope === "attempt" && !T.supportsAttemptMetrics(d.testId) && !d.legacyManual) ||
-        (d.cvEligible !== undefined && typeof d.cvEligible !== "boolean")
+        (d.cvEligible !== undefined && typeof d.cvEligible !== "boolean") ||
+        (d.selectionDirection !== undefined && !["higher", "lower"].includes(d.selectionDirection)) ||
+        (d.valueMinimum !== undefined && !Number.isFinite(d.valueMinimum))
       )
         throw new Error("指标定义无效或 ID 重复");
       ids.add(d.id);
@@ -12396,10 +12577,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return v;
   }
   function measurementContext(record, d) {
+    const project = (record.projectSnapshots || record.tests || record.customTests || []).find(test => test.id === d.testId);
+    const attemptDefinitions = (record.definitions || []).filter(metric => metric.testId === d.testId && root.RingsideTests.isAttemptMetric(metric));
+    const defaultPrimary = attemptDefinitions[0], primary = attemptDefinitions.find(metric => metric.id === project?.primaryMetricId) || defaultPrimary;
+    // Only active selection settings belong to the measurement contract. An
+    // explicit default whole-trial policy is equivalent to the legacy policy.
+    const selection = root.RingsideTests.isAttemptMetric(d) && project?.metricSelection === "independent"
+      ? { kind: "independent", direction: d.selectionDirection || d.direction || "higher" }
+      : project?.metricSelection === "trial" && primary && (primary.id !== defaultPrimary?.id || (project.selectionDirection || "higher") !== (primary.direction === "lower" ? "lower" : "higher"))
+        ? { kind: "trial", primaryMetricId: primary.id, direction: project.selectionDirection || "higher" }
+        : null;
     const forceMetric = /(?:force|impulse|^imtp_(?:f|rfd)\d)/.test(d.id);
     const config = !forceMetric ? null : d.testId === "cmj" ? { definition: record.cmjConfig?.definition || "gross" } : d.testId === "imtp" ? { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } : null;
     if (config && /impulse/.test(d.id)) config.impulseDefinition = (d.testId === "cmj" ? record.cmjConfig : record.imtpConfig)?.impulseDefinition || "gross";
-    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", protocolIdentity: record.protocolIdentities?.[d.testId] || M.protocolIdentity("test:" + d.testId, record.protocol?.[d.testId]), metricProtocol: d.protocol || "", metricProtocolIdentity: d.protocolIdentity || M.protocolIdentity("metric:" + d.id,d.protocol), ...(config ? { force: clone(config) } : {}), ...(d.id === "rqr" ? { pairedProtocol: record.protocol?.hop || "", pairedProtocolIdentity: record.protocolIdentities?.hop || M.protocolIdentity("test:hop",record.protocol?.hop) } : {}) };
+    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", protocolIdentity: record.protocolIdentities?.[d.testId] || M.protocolIdentity("test:" + d.testId, record.protocol?.[d.testId]), metricProtocol: d.protocol || "", metricProtocolIdentity: d.protocolIdentity || M.protocolIdentity("metric:" + d.id,d.protocol), ...(selection ? { measurementSelection: selection } : {}), ...(config ? { force: clone(config) } : {}), ...(d.id === "rqr" ? { pairedProtocol: record.protocol?.hop || "", pairedProtocolIdentity: record.protocolIdentities?.hop || M.protocolIdentity("test:hop",record.protocol?.hop) } : {}) };
   }
   function isoContext(row, record) {
     return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit, protocol: row.protocol || record.protocol?.iso || "", protocolIdentity: row.protocolIdentity || M.protocolIdentity("iso:" + row.id,row.protocol || record.protocol?.iso), projectProtocolIdentity: record.protocolIdentities?.iso || M.protocolIdentity("test:iso",record.protocol?.iso) };
@@ -13034,6 +13225,211 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const library = legacy.migrate(input); library.evaluationProfiles = library.evaluationProfiles.map(p => normalizeProfile(p, library.catalog)); library.catalog = M.normalizeCatalog(library.catalog); return library;
     }
   });
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  const entries = [
+    { id: "student-2014", title: "国家学生体质健康标准（2014年修订）", authors: "教育部", year: 2014,
+      url: "https://www.moe.gov.cn/jyb_xxgk/xxgk/neirong/fenlei/sxml_twyjy/twyjy_tyws/tyws_xgzc/201407/t20140708_171692.html",
+      tableUrl: "https://jwc.hnust.edu.cn/docs/2024-06/3ad7c9c4e8324cf2ac818e98d081dd0c.pdf",
+      alternateTableUrl: "https://pe.hust.edu.cn/__local/9/2E/2D/0F91263BFBAB75BC56993A2C64D_5441D5AA_6CDE3.pdf",
+      publication: "教体艺〔2014〕5号；湖南科技大学教务处公布的标准表（附件9），华中科技大学原表交叉核对",
+      topics: ["50米跑", "立定跳远", "800米跑", "1000米跑"],
+      method: "按大学男/女生及大一大二/大三大四分别选表；跑步以秒录入，跳远以厘米录入。",
+      data: "仅采用单项评分表中90、80、60分对应的优秀、良好、及格边界；湖南科技大学PDF物理页22、23、24–25的大学评分表。",
+      application: "四个独立、主动选用的大学生单项等级方案；没有年龄代替学年、完整体测加权总分、加分项或自拟能力分数。",
+      currentUseUrl: "https://www.ahpu.edu.cn/2026/0907/c5a277812/page.htm" },
+    { id: "student-methods-fudan", title: "国家学生体质健康标准测试方法（参考执行）", authors: "复旦大学体育教学部", year: 2019,
+      url: "https://fdty.fudan.edu.cn/b0/dc/c29202a307420/page.htm", publication: "高校官方测试流程",
+      topics: ["50米跑", "立定跳远", "800米跑", "1000米跑"],
+      method: "50米站立式口令起跑；立定跳远双脚同时起跳、无垫步/连跳、三次；800/1000米站立式起跑，记录正式成绩。",
+      data: "流程来源，不增加或改变国家评分阈值。", application: "预设保留完整动作和计时说明；自行修改测试方法后不能继续沿用旧协议标准。" },
+    { id: "nsca-speed-2017", title: "Assessing Speed and Agility Related to Sport Performance", authors: "NSCA", year: 2017,
+      url: "https://www.nsca.com/education/articles/kinetic-select/assessing-speed-and-agility-related-to-sport-performance/",
+      publication: "NSCA Coach / Kinetic Select", topics: ["10米冲刺", "20米冲刺"],
+      method: "固定距离、起跑姿势及计时触发；2–3次全速有效试次，间隔3–5分钟。",
+      data: "计时方式会影响结果；不提供适用于任意人群和设备的成绩等级。", application: "默认采用站立静止起跑、首次动作触发的完整距离计时；修改起跑或触发方式需记录新协议。" },
+    { id: "clarke-505", title: "Phases of the Traditional 505 Test: Between Session and Direction Reliability", authors: "Clarke, Read, De Ste Croix & Hughes", year: 2020,
+      url: "https://www.open-access.bcu.ac.uk/10104/1/Phases%20of%20the%20Traditional%20505%20Test.pdf",
+      publication: "原始研究作者稿，Birmingham City University资料库", topics: ["传统505变向"],
+      method: "10米助跑后计时5米往返、15米线单脚180度转向；左右转向各三次，至少2分钟间隔；每个方向分别取最快有效试次。",
+      data: "21名男性青少年橄榄球运动员的可靠性研究；样本均值不作为通用等级。",
+      application: "保存左脚/右脚触线转向的独立成绩；不是无助跑的modified505，也不自动推算COD deficit。" },
+    { id: "ace-t-test", title: "T-Test Speed, Agility, and Quickness Assessment Protocol", authors: "American Council on Exercise", year: null,
+      url: "https://contentcdn.eacefitness.com/assets/certification/ace-answers/forms/pt/33_T-Test_Speed_Agility_and_Quickness_Assessment_Protocol.pdf",
+      publication: "ACE正式测试协议", topics: ["T形变向"],
+      method: "前跑10码、侧滑5/10/5码、倒退10码；保持面朝前，不交叉步、按规定手触锥。两次测试，充分恢复，取最快有效成绩。",
+      data: "协议以码布置：10码=9.144米、5码=4.572米；不是10米/5米修改版。",
+      application: "预设只记录计时成绩，不将研究样本百分位或其他T-test版本的阈值作为普适等级。" },
+    { id: "nhanes-grip-2011", title: "NHANES Muscle Strength Procedures Manual", authors: "CDC / National Center for Health Statistics", year: 2011,
+      url: "https://wwwn.cdc.gov/nchs/data/nhanes/public/2011/manuals/Muscle_Strength_Proc_Manual.pdf",
+      publication: "NHANES官方肌力测量手册", topics: ["握力"],
+      method: "站立、手臂自然伸直在体侧、握距适合手型；左右交替各三次，同一只手至少间隔60秒；分别保存两侧最大值。",
+      data: "物理页32、34。附录规范使用左右最大值之和，不能转套至单侧最大值。",
+      application: "预设仅测量左右握力（kgf），不搬用不匹配的总握力等级，也不按优势手名称猜左右。" },
+    { id: "grgic-1rm-2020", title: "Test-Retest Reliability of the One-Repetition Maximum (1RM) Strength Assessment", authors: "Grgic, Lazinica, Schoenfeld & Pedisic", year: 2020,
+      url: "https://pubmed.ncbi.nlm.nih.gov/32681399/", publication: "Sports Medicine - Open 6:31；doi:10.1186/s40798-020-00260-z",
+      topics: ["实测1RM", "重复测量"], method: "记录同一规范动作能够完成一次的最大外负荷；器械、动作范围及辅助条件保持一致。",
+      data: "32项可靠性研究；可靠性证据不等于任意人群的通用力量等级。",
+      application: "深蹲、卧推、传统硬拉分别注册实测外负荷；不混用现有LVP预估1RM/体重指标。" },
+  ];
+  const thresholds = {
+    male_y12: { sprint50: [6.9, 7.1, 9.1], longJump: [263, 248, 208], run: [207, 222, 272] },
+    male_y34: { sprint50: [6.8, 7.0, 9.0], longJump: [265, 250, 210], run: [205, 220, 270] },
+    female_y12: { sprint50: [7.7, 8.3, 10.3], longJump: [195, 181, 151], run: [210, 224, 274] },
+    female_y34: { sprint50: [7.6, 8.2, 10.2], longJump: [196, 182, 152], run: [208, 222, 272] },
+  };
+  const copy = value => JSON.parse(JSON.stringify(value));
+  root.RingsidePresetSources = Object.freeze({
+    entries: () => copy(entries),
+    get: id => copy(entries.find(source => source.id === id) || null),
+    studentThresholds: () => copy(thresholds),
+  });
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  const copy = value => JSON.parse(JSON.stringify(value));
+  const project = (id, name, ability, direction, protocol, sourceIds, metrics, independent = false) => ({
+    id: "preset_" + id, kind: "project", name, primaryAbility: ability, description: protocol, protocol, sourceIds,
+    testIds: ["preset_" + id], metricSelection: independent ? "independent" : "trial", selectionDirection: direction,
+    metrics: metrics.map(([suffix, label, unit, side]) => ({ id: "preset_" + id + "_" + suffix, name: label, unit,
+      ...(side ? { side, pairId: "preset_" + id } : {}) })),
+  });
+  const projects = [
+    ...[10, 20].map(distance => project("sprint_" + distance + "m", distance + "米冲刺", "冲刺速度", "lower",
+      "站立静止起跑；从首次推进动作至躯干越过" + distance + "米终点计时，单位秒。2–3次有效试次、充分恢复，取最短时间。起跑姿势、触发方式和计时设备须一致。",
+      ["nsca-speed-2017"], [["time", "完成时间", "s"]])),
+    project("sprint_50m", "50米跑 · 学生体测", "冲刺速度", "lower",
+      "学生体测50米：站立式口令起跑，从发令至躯干部到达50米终点计时；录入正式登记成绩（秒），不是飞行冲刺或10/20米分段时间。最佳模式取最短有效成绩。",
+      ["student-2014", "student-methods-fudan"], [["time", "完成时间", "s"]]),
+    project("standing_long_jump", "立定跳远", "下肢爆发力", "higher",
+      "起跳线后双脚同时原地起跳；无助跑、垫步或连跳；测量起跳线后缘至最近落地点的垂直距离（厘米）。保存三次有效试跳，最佳模式取最远距离。",
+      ["student-2014", "student-methods-fudan"], [["distance", "跳跃距离", "cm"]]),
+    project("cod_505", "传统505变向 · 左右", "变向能力", "lower",
+      "10米助跑后越过计时门，继续5米至15米线，指定左脚或右脚触线后180度转向并返回计时门；记录5米往返计时（秒）。左右各三次、充分恢复，两侧分别取最快有效试次。",
+      ["clarke-505"], [["left_time", "左脚转向时间", "s", "left"], ["right_time", "右脚转向时间", "s", "right"]], true),
+    project("t_test", "T形变向 · 码制", "变向能力", "lower",
+      "按ACE协议布置10码（9.144米）前进、5/10/5码侧滑、10码倒退的T形路线。面朝前、不得交叉步，按规定手触锥；两次有效测试，充分恢复，取最快时间（秒）。",
+      ["ace-t-test"], [["time", "完成时间", "s"]]),
+    project("handgrip", "握力 · 左右", "最大力量", "higher",
+      "采用NHANES站立、手臂伸直在体侧的握力协议；调整握距，左右交替各三次，同一手至少间隔60秒。录入kgf，两侧分别取最大有效值；不是左右之和。",
+      ["nhanes-grip-2011"], [["left_force", "左手握力", "kgf", "left"], ["right_force", "右手握力", "kgf", "right"]], true),
+    ...[["squat", "杠铃背蹲"], ["bench", "卧推"], ["deadlift", "传统硬拉"]].map(([id, name]) => project(id + "_1rm", name + " · 实测1RM", "最大力量", "higher",
+      name + "每行记录一次完整1RM测试的最大成功外负荷（kg，含杠铃杆），不把热身组或失败试举记为测次。保持动作范围、器械和辅助条件一致；最佳模式取各完整测次最大值，均值模式比较完整测次的平均结果；不由重复次数或速度公式估算。",
+      ["grgic-1rm-2020"], [["load", "实测1RM外负荷", "kg"]])),
+    ...[800, 1000].map(distance => project("run_" + distance + "m", distance + "米跑 · 学生体测", "有氧代谢能力", "lower",
+      "学生体测" + distance + "米全程跑：站立式口令起跑，完成准确距离后记录正式登记成绩；用总秒数录入（例如4分30秒输入270），不录入4.30。最佳模式取最短有效全程时间。",
+      ["student-2014", "student-methods-fudan"], [["time", "全程完成时间", "s"]])),
+  ];
+  const profiles = ["male", "female"].flatMap(sex => ["y12", "y34"].map(years => ({
+    id: "preset_student_2014_" + sex + "_" + years, kind: "profile",
+    name: "大学生体测单项等级 · " + (sex === "male" ? "男生" : "女生") + " · " + (years === "y12" ? "大一/大二" : "大三/大四") + "（2014）",
+    description: "仅评价50米、立定跳远和" + (sex === "male" ? "1000" : "800") + "米的单项等级；按实际学年主动选择。使用正式体测成绩及最佳模式，不计算完整体测总评或能力分数。",
+    testIds: ["preset_sprint_50m", "preset_standing_long_jump", "preset_run_" + (sex === "male" ? "1000" : "800") + "m"],
+    sourceIds: ["student-2014", "student-methods-fudan"], sex, years,
+  })));
+  const items = [...projects, ...profiles], byId = new Map(items.map(item => [item.id, item]));
+  function list() { return copy(items.map(({ metrics, protocol, metricSelection, selectionDirection, sex, years, ...item }) => item)); }
+  function definitions(item) {
+    return item.metrics.map(metric => ({ ...copy(metric), testId: item.id, category: "performance", ability: item.primaryAbility,
+      entryScope: "attempt", direction: item.selectionDirection, selectionDirection: item.selectionDirection,
+      measurementScale: "ratio", ratioEligible: true, zeroValid: false, valueMinimum: 0, cvEligible: true,
+      target: null, ranges: [], referenceEnabled: false, protocol: item.protocol,
+      source: item.sourceIds.map(id => root.RingsidePresetSources.get(id).title).join("；") }));
+  }
+  function testDefinition(item) {
+    return { id: item.id, name: item.name, category: "performance", primaryAbility: item.primaryAbility,
+      primaryMetricId: item.metrics[0].id, selectionDirection: item.selectionDirection, metricSelection: item.metricSelection,
+      visualization: { version: 1, enabled: true, kind: item.metricSelection === "independent" ? "bars" : "trials", metricIds: item.metrics.map(metric => metric.id) } };
+  }
+  function ranges(bounds, higher) {
+    const [excellent, good, pass] = bounds;
+    const row = (min, max, includeMin, includeMax, label, status) => ({ min, max, includeMin, includeMax, label, status });
+    return higher ? [
+      row(excellent, null, true, true, "优秀", "green"),
+      row(good, excellent, true, false, "良好", "green"),
+      row(pass, good, true, false, "及格", "amber"),
+      row(0, pass, false, false, "不及格", "red"),
+    ] : [
+      row(0, excellent, false, true, "优秀", "green"),
+      row(excellent, good, false, true, "良好", "green"),
+      row(good, pass, false, true, "及格", "amber"),
+      row(pass, null, false, true, "不及格", "red"),
+    ];
+  }
+  function makeProfile(item) {
+    const M = root.RingsideModel, E = root.RingsideEvaluation, catalog = M.normalizeCatalog();
+    for (const id of item.testIds) {
+      const project = byId.get(id);
+      catalog.tests.push(testDefinition(project)); catalog.definitions.push(...definitions(project)); catalog.protocol[id] = project.protocol;
+      catalog.protocolIdentities[id] = M.protocolIdentity("test:" + id, project.protocol);
+    }
+    const subjects = E.ruleSubjects(catalog), thresholds = root.RingsidePresetSources.studentThresholds()[item.sex + "_" + item.years];
+    const profile = { formatVersion: 2, id: item.id, name: item.name, revision: 1, updated: "2026-10-13T00:00:00.000Z",
+      disabled: false, standards: [], aggregations: {}, settings: { thresholds: copy(M.defaults().rules), lvp: {} } };
+    for (const [id, key, higher] of [[item.testIds[0], "sprint50", false], [item.testIds[1], "longJump", true], [item.testIds[2], "run", false]]) {
+      const metricId = byId.get(id).metrics[0].id, subject = subjects.find(subject => subject.id === "metric:" + metricId);
+      const rule = E.ensureStandard(profile, subject);
+      Object.assign(rule, { enabled: true, targetEnabled: false, target: null, rangesEnabled: true,
+        ranges: ranges(thresholds[key], higher), direction: higher ? "higher" : "lower",
+        conditions: { sex: item.sex, mode: "best" }, source: "教育部教体艺〔2014〕5号；" + item.name + "；仅此单项等级。" });
+    }
+    E.validateProfile(profile); return E.serializeProfile(profile);
+  }
+  function preview(library, selectedIds) {
+    if (!library?.catalog || !Array.isArray(library.catalog.tests) || !Array.isArray(library.catalog.definitions)) throw Error("请先加载共用项目目录");
+    if (!Array.isArray(selectedIds) || selectedIds.some(id => !byId.has(id))) throw Error("请选择有效的常用项目或评价方案");
+    const ids = [...new Set(selectedIds)], projectIds = new Set(), skipped = [], conflicts = [];
+    ids.forEach(id => byId.get(id).testIds.forEach(testId => projectIds.add(testId)));
+    const additions = { tests: [], definitions: [], profiles: [], protocol: {} };
+    for (const id of projectIds) {
+      const item = byId.get(id);
+      if (library.catalog.tests.some(test => test.id === id)) { skipped.push({ id, kind: "project", reason: "已存在，保留当前项目及全部设置" }); continue; }
+      const collision = item.metrics.find(metric => library.catalog.definitions.some(definition => definition.id === metric.id));
+      if (collision) { conflicts.push({ id, kind: "project", reason: "指标编号" + collision.id + "已被其他项目使用，未覆盖" }); continue; }
+      additions.tests.push(testDefinition(item)); additions.definitions.push(...definitions(item)); additions.protocol[id] = item.protocol;
+    }
+    for (const id of ids.filter(id => byId.get(id).kind === "profile")) {
+      if ((library.evaluationProfiles || []).some(profile => profile.id === id)) { skipped.push({ id, kind: "profile", reason: "已存在，保留当前方案和用户编辑" }); continue; }
+      const item = byId.get(id);
+      if (item.testIds.some(testId => conflicts.some(conflict => conflict.id === testId))) continue;
+      const missingMetric = item.testIds.find(testId => library.catalog.tests.some(test => test.id === testId) &&
+        !byId.get(testId).metrics.every(metric => library.catalog.definitions.some(definition => definition.id === metric.id && definition.testId === testId)));
+      if (missingMetric) { conflicts.push({ id, kind: "profile", reason: "现有同编号项目缺少对应测量定义，未替换或套用标准" }); continue; }
+      additions.profiles.push(makeProfile(item));
+    }
+    if (library.catalog.tests.length + additions.tests.length > 75 || library.catalog.definitions.length + additions.definitions.length > 300)
+      conflicts.push({ id: "catalog-capacity", kind: "project", reason: "新增后超过项目目录容量，请减少所选项目" });
+    const manifest = { testIds: additions.tests.map(test => test.id), metricIds: additions.definitions.map(definition => definition.id),
+      profileIds: additions.profiles.map(profile => profile.id), dependencyTestIds: additions.tests.filter(test => !ids.includes(test.id)).map(test => test.id) };
+    return { selectedIds: ids, additions, skipped, conflicts, manifest };
+  }
+  function apply(library, selectedIds) {
+    const review = preview(library, selectedIds);
+    if (review.conflicts.length) throw Error(review.conflicts.map(conflict => conflict.reason).join("；"));
+    const next = copy(library), M = root.RingsideModel, additions = review.additions;
+    next.catalog.tests.push(...copy(additions.tests)); next.catalog.definitions.push(...copy(additions.definitions));
+    next.catalog.protocolIdentities ||= {};
+    for (const [id, protocol] of Object.entries(additions.protocol)) {
+      next.catalog.protocol[id] = protocol; next.catalog.protocolIdentities[id] = M.protocolIdentity("test:" + id, protocol);
+    }
+    if (additions.tests.length) {
+      next.catalog.revision = (next.catalog.revision || 1) + 1;
+      next.catalog.abilityGroups ||= [];
+      for (const test of additions.tests) if (!next.catalog.abilityGroups.some(group => group.key === test.primaryAbility))
+        next.catalog.abilityGroups.push({ key: test.primaryAbility, name: test.primaryAbility });
+    }
+    if (additions.profiles.length) { next.evaluationProfiles ||= []; next.evaluationProfiles.push(...copy(additions.profiles)); }
+    M.validateCatalog(next.catalog);
+    return { library: next, manifest: copy(review.manifest), preview: review };
+  }
+  root.RingsidePresets = Object.freeze({ list, preview, apply });
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -16202,7 +16598,83 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return layoutSVG(w,h,title,out,"Fₑ、vₑ、EN 读取左轴，ER 读取右轴；各指标均为无量纲。当前剖面保持不变，分别求解各目标距离的冲刺时间与弹性。竖虚线标记当前目标距离；EN 最低点与 ER = 1 的平衡点分别求解。",layout);
   }
 
+  function genericChart(data, layout = {}) {
+    const w = Math.max(240, layout.width || 620), unit = data.unit || "单位未填写";
+    const fullNumber = value => num(value) === null ? "—" : Number(value).toLocaleString("zh-CN", { useGrouping: false, maximumFractionDigits: 6 });
+    const wrapLabel = (label, available) => {
+      const lines = [""], capacity = Math.max(12, Math.floor(available / 12));
+      let size = 0;
+      for (const character of String(label)) {
+        const weight = /[^\x00-\x7f]/.test(character) ? 1 : .55;
+        if (size + weight > capacity) { lines.push(""); size = 0; }
+        lines[lines.length - 1] += character; size += weight;
+      }
+      return lines;
+    };
+    if (data.kind === "trials") {
+      const titleLines = wrapLabel(data.title, (w - 36) * 12 / 14);
+      const legendLines = wrapLabel("试次（录入顺序） · 实心点参与本次成绩选取", (w - 36) * 12 / 10);
+      const titleExtra = (titleLines.length - 1) * 17, legendExtra = (legendLines.length - 1) * 14;
+      const h = 286 + titleExtra + legendExtra, left = 54, right = w - 22, top = 74 + titleExtra, bottom = h - 58 - legendExtra;
+      const points = data.points || [], valid = points.filter(p => num(p.value) !== null);
+      let [min, max] = data.range || [0, 1];
+      const span = max - min || Math.max(1, Math.abs(max) * .1); min -= span * .12; max += span * .18;
+      const y = value => bottom - (value - min) / (max - min) * (bottom - top);
+      const x = index => left + (index + .5) / Math.max(1, points.length) * (right - left);
+      let out = titleLines.map((label, index) => text(18, 24 + index * 17, label, 'font-size="14" fill="' + C.ink + '"')).join("")
+        + text(18, 43 + titleExtra, `${unit}${data.pageLabel ? " · " + data.pageLabel : ""}`, 'font-size="11"');
+      ticks(min, max, 4).forEach(value => { out += line(left, y(value), right, y(value))
+        + text(left - 8, y(value) + 4, fmt(value, 2), 'text-anchor="end" font-size="10"'); });
+      points.forEach((p, index) => {
+        out += text(x(index), bottom + 20, p.index, 'text-anchor="middle" font-size="11"');
+        if (num(p.value) === null) out += text(x(index), top + 24, "—", 'text-anchor="middle" font-size="12"');
+        else {
+          const label = `${data.title} · 第 ${p.index} 次 · ${fullNumber(p.value)} ${data.unit || ""} · ${p.selected ? "参与本次成绩选取" : "未参与本次成绩选取"}`;
+          out += `<g class="viz-point" tabindex="0" data-generic-point="${esc(p.id)}" data-value="${esc(p.value)}" data-selected="${p.selected}" data-tooltip="${esc(label)}">`
+            + circle(x(index), y(p.value), 4.5, p.selected ? C.blue : "white", `stroke="${C.blue}" stroke-width="2"`)
+            + text(x(index), y(p.value) - 10, fmt(p.value, 2), 'text-anchor="middle" font-size="10"') + "</g>";
+        }
+      });
+      legendLines.forEach((label, index) => { out += text(18, h - 12 - legendExtra + index * 14, label, 'font-size="10"'); });
+      return layoutSVG(w, h, `${data.title} · 重复试次`, out,
+        `${data.selection}。横轴为真实试次序号；点不连接为趋势。${valid.length} 次有效值，缺测位置不以零替代。`, layout);
+    }
+    const rows = data.rows || [], rowLayouts = rows.map(row => ({ row, labels: wrapLabel(row.name + (row.sideLabel ? " · " + row.sideLabel : ""), w - 38),
+      targets: data.kind === "target" ? wrapLabel(`参考目标 ${row.direction === "lower" ? "≤" : "≥"} ${fullNumber(row.target)} ${row.unit} · ${row.direction === "lower" ? "越小越好" : "越大越好"}`, (w - 38) * 12 / 11) : [] }));
+    const titleLines = wrapLabel(`${data.title} · ${unit}`, (w - 36) * 12 / 14);
+    const left = 20, right = w - 22, top = 49 + (titleLines.length - 1) * 17;
+    const heights = rowLayouts.map(item => Math.max(data.kind === "target" ? 100 : 78, item.labels.length * 17 + (data.kind === "target" ? 73 + (item.targets.length - 1) * 15 : 48)));
+    const h = top + heights.reduce((sum, value) => sum + value, 0) + 40;
+    let [min, max] = data.range || [0, 1];
+    if (min === max) max = min + Math.max(1, Math.abs(min) * .1);
+    const x = value => left + (value - min) / (max - min) * (right - left);
+    let out = titleLines.map((label, index) => text(18, 25 + index * 17, label, 'font-size="14" fill="' + C.ink + '"')).join("");
+    const tickValues = ticks(min, max, 4);
+    tickValues.forEach(value => { out += line(x(value), top, x(value), h - 31, 'stroke-dasharray="2 4"')
+      + text(x(value), h - 12, fmt(value, 2), `text-anchor="${value === tickValues[0] ? "start" : value === tickValues[tickValues.length - 1] ? "end" : "middle"}" font-size="10"`); });
+    out += line(x(0), top, x(0), h - 31, `stroke="${C.muted}"`);
+    let rowTop = top;
+    for (const [index, { row, labels, targets }] of rowLayouts.entries()) {
+      const barTop = rowTop + labels.length * 17 + 22, barValue = x(row.value), zero = x(0), fill = row.side === "right" ? SERIES[1] : C.blue;
+      out += `<g data-generic-metric="${esc(row.metricId)}" data-value="${esc(row.value)}"${row.side ? ` data-side="${esc(row.side)}"` : ""}>`;
+      labels.forEach((label, lineIndex) => { out += text(left, rowTop + 14 + lineIndex * 17, label, 'font-size="12" fill="' + C.ink + '"'); });
+      out += text(right, barTop - 7, `${fullNumber(row.value)}${row.unit ? " " + row.unit : ""}`, 'text-anchor="end" font-size="12" fill="' + C.ink + '"')
+        + `<rect x="${fmt(Math.min(zero, barValue))}" y="${fmt(barTop)}" width="${fmt(Math.abs(barValue - zero))}" height="12" rx="3" fill="${fill}"/>`;
+      if (row.value === 0) out += circle(zero, barTop + 6, 3, fill);
+      if (data.kind === "target") {
+        const targetX = x(row.target);
+        out += `<g data-generic-target="${esc(row.metricId)}" data-target="${esc(row.target)}" data-target-direction="${esc(row.direction)}">`
+          + line(targetX, barTop - 3, targetX, barTop + 17, `stroke="${C.ink}" stroke-width="2"`)
+          + targets.map((label, lineIndex) => text(left, barTop + 35 + lineIndex * 15, label, 'font-size="11"')).join("") + "</g>";
+      }
+      out += "</g>"; rowTop += heights[index];
+    }
+    return layoutSVG(w, h, `${data.title} · ${unit}`, out,
+      `${data.selection}。横轴为原始数值和单位；不同单位分别绘图。${data.kind === "target" ? "竖线标记当前适用的参考目标，比较方向由标准决定。" : "缺测不绘制为零。"}`, layout);
+  }
+
   global.RingsideViz = {
+    genericChart,
     body,
     bodyTooltip,
     radar,
@@ -16359,7 +16831,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const results = projects.map((test) => ({
       ...test,
       metrics: test.definitions
-        .filter((d) => N(stats.values[d.id]) !== null)
+        .filter((d) => N(stats.values[d.id]) !== null || test.renderer === "scalar" && global.RingsideGenericViz?.normalizeConfig(test.visualization).enabled)
         .map((d) => ({
           ...d,
           unit:
@@ -16375,6 +16847,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       sprintFvpConfidence,
       isoRadar: M.isoRadar(stats.isoAnalyses, snapshot),
       diagnostics: [],
+      genericVisuals: Object.fromEntries(projects.filter(test => test.renderer === "scalar").map(test => [test.id, global.RingsideGenericViz?.buildProject(snapshot, stats, test) || { enabled:false, figures:[], issues:[] }])),
       projects: results,
       groups: T.groups(results, snapshot),
       derived: stats.derived || { results: [] },
@@ -16929,20 +17402,19 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const meta = [measured?.modality === "treadmill" ? "跑台" : measured?.modality === "cycle" ? "功率车" : "", measured?.protocol, N(measured?.peak.rer) !== null ? "RER " + F(measured.peak.rer, 2) : ""].filter(Boolean).join(" · ");
         return block(tests, tests[0].name, meta, metricTable(metrics, true));
       },
-      scalar: (tests) =>
-        block(
-          tests,
-          tests[0].name,
-          state.protocol[tests[0].id] || "",
-          metricTable(tests[0].metrics, true) +
-            tests[0].metrics
-              .filter((d) => state.customValues[d.id]?.notes)
-              .map(
-                (d) =>
-                  `<p class="metric-note"><b>${E(d.name)}</b>：${E(state.customValues[d.id].notes)}</p>`,
-              )
-              .join(""),
-        ),
+      scalar: (tests) => {
+        const test = tests[0], visualization = report.genericVisuals?.[test.id];
+        const data = metricTable(test.metrics, true);
+        const figures = visualization?.enabled ? visualization.figures || [] : [];
+        const issues = visualization?.enabled && visualization.issues?.length
+          ? `<div class="generic-chart-notes" data-generic-chart-issues="${E(test.id)}">${visualization.issues.map(issue => `<p class="note" data-chart-issue="${E(issue.code)}">${issue.name ? `<b>${E(issue.name)}</b>：` : ""}${E(issue.message)}</p>`).join("")}</div>` : "";
+        const body = figures.length === 1
+          ? pair(V.genericChart(figures[0]), data, "generic-result-pair", {kind:"genericChart",args:[figures[0]]})
+          : (figures.length ? `<div class="generic-visualizations">${figures.map(figure => chart(V.genericChart(figure), {kind:"genericChart",args:[figure]})).join("")}</div>` : "") + data;
+        const notes = test.metrics.filter(d => state.customValues[d.id]?.notes)
+          .map(d => `<p class="metric-note"><b>${E(d.name)}</b>：${E(state.customValues[d.id].notes)}</p>`).join("");
+        return block(tests, test.name, state.protocol[test.id] || "", body + issues + notes);
+      },
       imtp: (tests) => {
         const force = { ...r.forceTime, yAxis: state.views.imtp.yAxis };
         const metrics = consume(tests[0].metrics);
@@ -17090,7 +17562,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     };
     const consumed = new Set(),
       grouped = new Map(),
-      measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t));
+      measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t) || report.genericVisuals?.[t.id]?.enabled);
     for (const test of measured.filter((t) => !["lvp","fvp","sprint-fvp"].includes(t.renderer))) {
       if (consumed.has(test.id)) continue;
       const peers =
@@ -17621,7 +18093,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);
-      if (width < 100 || !limits[kind] || !pair) return;
+      if (width < 100) return;
+      if (kind === "genericChart") {
+        const key = [width, print].join(":");
+        if (node.dataset.chartLayout !== key) {
+          node.innerHTML = V.genericChart(...JSON.parse(node.dataset.chartInput), {width, print});
+          node.dataset.chartLayout = key;
+        }
+        return;
+      }
+      if (!limits[kind] || !pair) return;
       const tables = [...pair.querySelectorAll(":scope > .detail-data > .table-wrap")],
         rects = tables.map((table) => table.getBoundingClientRect()),
         target = rects.length ? Math.max(...rects.map((r) => r.bottom)) - Math.min(...rects.map((r) => r.top)) : 0,
@@ -20391,7 +20872,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   // select trials, compute report values or create editable measurement rules.
   function catalogMeasurement(project,catalog) {
     const native=T.isNative(catalog,project.id),id=project.id;
-    if(!native){const primary=project.repeatPolicy.fields.find(d=>d.id===project.repeatPolicy.primaryMetricId);return {parameters:[],selection:primary?`最佳值：按${T.metricName(primary)}选取${project.selectionDirection==="lower"?"最小":"最大"}有效值所在试次，其他逐试次指标采用同一试次。均值：在主指标有效的试次中，各指标分别取有效值平均。`:"本次测试汇总指标直接采用录入结果；逐试次指标设置后按项目代表试次汇总。"};}
+    if(!native){
+      if(catalog.tests.find(test=>test.id===id)?.metricSelection==="independent")return {parameters:[],selection:"各指标在自身有效试次中独立选值："+project.repeatPolicy.fields.map(d=>T.metricName(d)+"取"+((d.selectionDirection||d.direction)==="lower"?"最小":"最大")+"有效值").join("；")+"。均值模式各自采用本指标有效值平均，左右结果可来自不同试次。"};
+      const primary=project.repeatPolicy.fields.find(d=>d.id===project.repeatPolicy.primaryMetricId);return {parameters:[],selection:primary?`最佳值：按${T.metricName(primary)}选取${project.selectionDirection==="lower"?"最小":"最大"}有效值所在试次，其他逐试次指标采用同一试次。均值：在主指标有效的试次中，各指标分别取有效值平均。`:"本次测试汇总指标直接采用录入结果；逐试次指标设置后按项目代表试次汇总。"};
+    }
     const record=M.recordFromCatalog(catalog,{}, {[id]:true}),contract=root.RingsideAcquisition.project(record,id);
     const parameters=[...new Set(contract.parameters.map(p=>p.label).concat(["imtp","squat","bench","deadlift","cpet","fvp_sj","fvp_cmj","sprint_fvp"].includes(id)?["本次体重 kg"]:[],project.renderer==="lvp"?["MVT / 速度训练区间（评价方案分析设置）"]:[]))];
     const rules={
@@ -20422,7 +20906,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function catalogMetricResult(project,definition,catalog) {
     const d=definition,id=project.id;
-    if(T.isManualMetric(d))return {source:d.entryScope==="attempt"?"逐试次录入":"本次测试汇总",detail:d.entryScope==="attempt"?"随项目选定的试次汇总；均值模式取有效值平均":"直接采用本次录入结果"};
+    if(T.isManualMetric(d))return {source:d.entryScope==="attempt"?"逐试次录入":"本次测试汇总",detail:d.entryScope==="attempt"?catalog.tests.find(test=>test.id===id)?.metricSelection==="independent"?`本指标独立取${(d.selectionDirection||d.direction)==="lower"?"最小":"最大"}有效值；均值模式取本指标有效值平均`:"随项目选定的试次汇总；均值模式取有效值平均":"直接采用本次录入结果"};
     const field=T.attemptFields(catalog,id).find(f=>f.id===d.id);
     if(field&&["cmj","sj","dj","cmrj"].includes(id)){
       const formulas={rsi:"每次垂直跳跃高度(m) ÷ 触地时间(s)",flightTimeRatio:"每次腾空时间 ÷ 触地时间",firstRsiModified:"每次首跳高度(m) ÷ 首跳起跳动作时间(s)"};
@@ -20456,6 +20940,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const fixed=project.id==="fms"?'<p class="note">七项动作固定 0–3 分；疼痛计 0 分，双侧动作保留左右侧得分并取较低分，七项合计 0–21 分。动作、侧别、疼痛和备注属于原始记录。</p>':project.id==="iso"?'<p class="note">测量按部位、方向和侧别保存。目标、参考值和关节比值分级在评价方案中设置。</p>':"";
       const native=T.isNative(lib().catalog,project.id);
       detail=`<article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="catalog-detail-back">${button("返回项目列表","catalog-back")}</div><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"} · ${native?"内置测量方法":"自定义项目"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量方法</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写测量方法")}</p><p class="note">协议版本 ${lib().catalog.protocolIdentities?.[project.id]?.version||1}</p></section><section class="catalog-definition-block" data-catalog-measurement><h3>结果来源与试次选取</h3><p>${esc(measurement.selection)}</p>${measurement.parameters.length?`<h4>本次测量与计算参数</h4><div class="catalog-input-list">${measurement.parameters.map(label=>`<span>${esc(label)}</span>`).join("")}</div>`:""}</section><section class="catalog-definition-block"><h3>录入内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据与选值</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
+    }
+    if(project&&!T.isNative(lib().catalog,project.id)){
+      const config=root.RingsideGenericViz.normalizeConfig(lib().catalog.tests.find(test=>test.id===project.id)?.visualization),kind=root.RingsideGenericViz.kinds().find(item=>item.id===config.kind);
+      const visual=`<section class="catalog-definition-block"><h3>报告图表</h3><p>${config.enabled?esc(kind.label):"仅显示结果表格"}</p>${config.enabled?`<p class="note">展示指标：${config.metricIds.map(id=>esc(project.definitions.find(d=>d.id===id)?.name||"指标已移除")).join("、")||"尚未选择"}。结果表格保留。</p>`:""}<p class="note">在编辑项目或指标时设置图表，后续测试采用新设置。</p></section>`;
+      detail=detail.replace('<section class="catalog-definition-block"><h3>结果指标</h3>',visual+'<section class="catalog-definition-block"><h3>结果指标</h3>');
     }
     return catalogNotices()+search+`<div class="catalog-workspace ${project?"has-project":""}"><nav class="catalog-index" aria-label="测试项目">${index}</nav><div class="catalog-detail">${detail}</div></div>`;
   }
@@ -20608,7 +21097,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(!lib())return;
     const focused=document.activeElement, key=focused?.dataset.managerFilter, caret=focused?.selectionStart;
     const title=sections.find(([id])=>id===current)[1];
-    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new"),"管理分类"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
+    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("添加常用项目","preset-add")+button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new"),"管理分类"):current==="profiles"&&!editor?button("添加参考方案","preset-profiles")+button("＋ 新建方案","profile-new"):"";
     const content=$("managementContent"),html=`<div class="management-heading"><div><h1>${title}</h1></div><div class="row">${action}</div></div>`+(current==="athletes"||current==="records"?lists():current==="teams"?teams():current==="plans"?testPlans():current==="metrics"?metrics():current==="profiles"?profiles():backup());
     const filterBar=node=>{const control=node.querySelector("[data-manager-filter]");return control?.closest(".manager-filter-shell")||control?.closest(".management-filters")||control?.closest(".field");};
     const retained=options.preserveFilters&&filterBar(content);
@@ -20640,6 +21129,24 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     formSession={token:++formSequence,submitting:false,completed:false};
     formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
     formBaseline=formSnapshot();
+  }
+  function showPresetLibrary(profilesOnly=false) {
+    const presets=root.RingsidePresets,items=presets.list();
+    const group=(kind,title)=>`<div class="catalog-preset-heading"><h3>${title}</h3>${kind==="project"?'<button type="button" class="btn small" id="presetSelectProjects">选择全部项目</button>':""}</div><div class="catalog-preset-grid">${items.filter(item=>item.kind===kind).map(item=>`<label class="catalog-preset-item"><input type="checkbox" name="presetIds" value="${esc(item.id)}" data-preset-kind="${kind}" ${kind==="project"&&!profilesOnly?"checked":""}><span><b>${esc(item.name)}</b><small>${esc(item.description)}</small></span></label>`).join("")}</div>`;
+    showForm(profilesOnly?"添加参考评价方案":"添加常用测试项目",'<p class="note">测量项目与评价方案分别选择。添加后可在后续测试中使用；已存在的定义与标准继续保留。</p>'+(!profilesOnly?group("project","常用测量项目"):"")+group("profile","有适用人群的参考方案")+'<p class="note">参考方案按名称所列人群与测试协议使用。添加方案不会切换现有记录的评价方案。</p><section id="presetPreview" class="catalog-change-preview" aria-live="polite"></section>',async form=>{
+      const ids=new FormData(form).getAll("presetIds");if(!ids.length)throw Error("请选择要添加的项目或方案");
+      await commit(candidate=>{const applied=presets.apply(candidate,ids);Object.assign(candidate,applied.library);});
+    });
+    $("managementForm").querySelector('[type="submit"]').textContent="添加所选";
+    const preview=()=>{
+      try{
+        const ids=[...$("managementFields").querySelectorAll('[name="presetIds"]:checked')].map(input=>input.value),result=presets.preview(lib(),ids),additions=result.additions;
+        $("presetPreview").innerHTML=`<h3>添加内容</h3><p>${additions.tests.length} 个项目 · ${additions.definitions.length} 个指标 · ${additions.profiles.length} 个参考方案</p>${result.manifest.dependencyTestIds.length?`<p class="note">方案所需项目将一并加入：${result.manifest.dependencyTestIds.map(id=>esc(additions.tests.find(test=>test.id===id)?.name||lib().catalog.tests.find(test=>test.id===id)?.name||id)).join("、")}</p>`:""}${result.skipped.length?'<p class="note">已添加的条目继续保留，不重复创建。</p>':""}${result.conflicts.length?`<p class="error">${result.conflicts.map(item=>esc(item.reason)).join("；")}</p>`:""}`;
+      }catch(error){$("presetPreview").textContent=error.message;}
+    };
+    $("managementFields").querySelectorAll('[name="presetIds"]').forEach(input=>input.addEventListener("change",preview));
+    $("presetSelectProjects")?.addEventListener("click",()=>{$("managementFields").querySelectorAll('[data-preset-kind="project"]').forEach(input=>{input.checked=true;});preview();});
+    preview();
   }
   function editAthlete(id="",groupId="") {
     const a=lib().athletes.find(a=>a.id===id)||(id?App.getAthlete?.(id):null),p=a?.profile||{};
@@ -20833,6 +21340,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(name==="catalog-metric"){const [projectId,metricId]=id.split("/").map(decodeURIComponent);filter().test=projectId;filter().metricId=metricId;render();requestAnimationFrame(()=>$("managementContent").querySelector('.catalog-metric-selected')?.scrollIntoView({block:"nearest"}));return;}
     if(name==="metric-standards"){filter().metricId=id;return action("project-standards",filter().test);}
     if(name==="catalog-back"){filter().test="";filter().metricId="";return render();}
+    if(name==="preset-add"||name==="preset-profiles")return showPresetLibrary(name==="preset-profiles");
     if(name==="new-metric")return App.openCatalogItem("new-metric",id||filter().test||"");
     if(name==="catalog-edit")return App.openCatalogItem("edit-project",id);
     if(name==="catalog-resolve"){await App.resolveCatalogConflict(...id.split(":").map(Number));return render();}
@@ -24412,6 +24920,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     );
   }
   function addRow(t, groupIndex = -1, sprintTemplate = "four") {
+    if (state && !T.isNative(state, t)) {
+      const fields = T.attemptFields(state, t);
+      if (!fields.length || !Array.isArray(state.data[t])) return;
+      state.data[t].push({id:uid(),metrics:Object.fromEntries(fields.map(field=>[field.id,""])),notes:""});
+      changed(false);renderEntry();
+      rowFocus(`data.${t}.${state.data[t].length - 1}.metrics.${fields[0].id}`);
+      return;
+    }
     if (t === "sprint_fvp" && T.isNative(state, t)) {
       const templates = {four:[5, 10, 20, 30], six:[5, 10, 15, 20, 25, 30]};
       if (!Object.hasOwn(templates, sprintTemplate)) return;
@@ -24458,13 +24974,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       mb: { side: "D", distance: "" },
       lactate: { speed: "", lactate: "", hr: "" },
     };
+    const template = ["cmj","sj","dj","cmrj"].includes(t) ? M.newJumpAttempt(t) : templates[t];
+    if (!template || !Array.isArray(state?.data?.[t])) return;
     const group = state.data[t][groupIndex];
-    state.data[t].push({ id: uid(), ...(["cmj","sj","dj","cmrj"].includes(t)?M.newJumpAttempt(t):templates[t]), ...(group && ["landmine", "squat", "bench", "deadlift"].includes(t) ? { load: group.load, ...(t === "landmine" ? { side: group.side } : {}) } : {}) });
+    state.data[t].push({ id: uid(), ...template, ...(group && ["landmine", "squat", "bench", "deadlift"].includes(t) ? { load: group.load, ...(t === "landmine" ? { side: group.side } : {}) } : {}) });
     persist();
     renderEntry();
     renderReport();
     rowFocus(
-      `data.${t}.${state.data[t].length - 1}.${Object.keys(templates[t])[0]}`,
+      `data.${t}.${state.data[t].length - 1}.${Object.keys(template).find(key=>!["id","metrics","notes"].includes(key))}`,
     );
   }
   function addIso() {
@@ -24807,7 +25325,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         `<select id="catalogEntryScope" aria-label="录入层级" ${definition ? "disabled" : ""}><option value="record">本次测试汇总</option><option value="attempt" ${definition?.entryScope === "attempt" || mode === "new-test" || (mode === "new-metric" && !T.isNative(catalog, selectedTest?.id)) ? "selected" : ""}>每次试次</option></select>`,
       );
     if (!projectOnly && !builtIn) fields += label("变异系数 CV", `<label class="row"><input id="catalogCVEligible" type="checkbox" ${definition?.cvEligible === true ? "checked" : ""}>该指标有真实零点，适合计算 CV</label>`);
+    if (!projectOnly && !builtIn) fields += label("单指标选值方向", `<select id="catalogMetricSelectionDirection"><option value="higher" ${(definition?.selectionDirection || definition?.direction || test?.selectionDirection || "higher") === "higher" ? "selected" : ""}>较大值</option><option value="lower" ${(definition?.selectionDirection || definition?.direction || test?.selectionDirection) === "lower" ? "selected" : ""}>较小值</option></select><small>各指标独立选值时使用；评价等级方向在评价方案中单独设置。</small>`);
     if (mode !== "new-metric" && !T.isNative(catalog, test?.id || "")) {
+      if (!metricOnly) fields += label("各指标如何选值", `<select id="catalogMetricSelection"><option value="trial" ${test?.metricSelection !== "independent" ? "selected" : ""}>采用同一次代表试次</option><option value="independent" ${test?.metricSelection === "independent" ? "selected" : ""}>各指标独立选取</option></select><small>左右握力等可分别选取各侧最好结果；同次联动测量则采用整次试次。</small>`);
       const candidates = catalog.definitions.filter((d) => d.testId === test?.id && T.isAttemptMetric(d));
       fields += label("最佳试次主指标", `<select id="catalogPrimaryMetric" aria-label="最佳试次主指标"><option value="">首个试次指标</option>${candidates.map((d) => `<option value="${E(d.id)}" ${test?.primaryMetricId === d.id ? "selected" : ""}>${E(d.name)}</option>`).join("")}</select>`);
       fields += label("代表试次选择", `<select id="catalogSelectionDirection" aria-label="代表试次选择" required><option value="" ${!test?.selectionDirection?"selected":""}>请选择</option><option value="higher" ${test?.selectionDirection==="higher"?"selected":""}>主指标较大值</option><option value="lower" ${test?.selectionDirection==="lower"?"selected":""}>主指标较小值</option></select>`);
@@ -24866,10 +25386,26 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           $("catalogProtocol").value = catalog.protocol[item.id] || "";
         catalogEdit.initialProtocol = catalog.protocol[item.id] || "";
         $("catalogCategory").value = item.category;
+        $("catalogFields").querySelector(".catalog-visualization-settings")?.remove();
+        if (!T.isNative(catalog, item.id)) addCatalogVisualizationFields(item, null, mode);
       });
     organizeCatalogFields();
+    const visualizationProject = mode === "new-metric" ? selectedTest : test;
+    if (mode === "new-test" || (visualizationProject && !T.isNative(catalog, visualizationProject.id)))
+      addCatalogVisualizationFields(visualizationProject, definition, mode);
+    const updateSelectionControls=()=>{
+      const independent=($("catalogMetricSelection")?.value || visualizationProject?.metricSelection)==="independent";
+      if($("catalogMetricSelection"))for(const id of ["catalogPrimaryMetric","catalogSelectionDirection"]){if($(id))$(id).disabled=independent;}
+      if($("catalogMetricSelectionDirection"))$("catalogMetricSelectionDirection").disabled=!independent;
+    };
+    $("catalogMetricSelection")?.addEventListener("change",updateSelectionControls);
+    updateSelectionControls();
     catalogEdit.initialForm = catalogFormValues();
-    $("catalogForm").oninput = renderCatalogChangePreview;
+    $("catalogForm").oninput = () => {
+      const pending = $("catalogVisualizationMetrics")?.querySelector('[data-visual-metric="__pending_metric__"] + span');
+      if (pending) pending.textContent = ($("catalogMetricName")?.value.trim() || "新指标") + ($("catalogUnit")?.value.trim() ? " · " + $("catalogUnit").value.trim() : "");
+      renderCatalogChangePreview();
+    };
     $("catalogForm").onchange = event => {
       for (const [toggle, version, original] of [["catalogProjectMethodChanged","catalogProtocolVersion",catalog.protocolIdentities?.[test?.id]?.version||1],["catalogMetricMethodChanged","catalogMetricProtocolVersion",definition?.protocolIdentity?.version||1]])
         if (event.target.id === toggle) $(version).value = original + (event.target.checked ? 1 : 0);
@@ -24891,11 +25427,34 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       .filter(node => !node.id.includes("MethodChanged"))
       .map(node => [node.id,node.type === "checkbox" ? node.checked : node.value]));
   }
+  function addCatalogVisualizationFields(project, definition, mode) {
+    const module = window.RingsideGenericViz;
+    if (!module) return;
+    const config = module.normalizeConfig(project?.visualization);
+    const metrics = library.catalog.definitions.filter(item => item.testId === project?.id);
+    const addingMetric = mode === "new-test" || mode === "new-metric";
+    if (addingMetric) metrics.push({id:"__pending_metric__",name:"新指标",unit:""});
+    const selected = new Set(config.metricIds);
+    if (addingMetric) selected.add("__pending_metric__");
+    const section = document.createElement("fieldset");
+    section.className = "catalog-edit-section catalog-visualization-settings";
+    section.innerHTML = `<legend>报告图表</legend><p class="note">结果表格始终保留。图表设置用于本项目后续测试，已有记录保留创建时的设置。</p><label class="field"><span>是否显示图表</span><label class="row"><input id="catalogVisualizationEnabled" type="checkbox" ${config.enabled ? "checked" : ""}>在报告中显示图表</label></label><div class="form-grid"><label class="field"><span>图表样式</span><select id="catalogVisualizationKind">${module.kinds().map(item => `<option value="${E(item.id)}" ${item.id === config.kind ? "selected" : ""}>${E(item.label)}</option>`).join("")}</select><small id="catalogVisualizationHelp"></small></label><div class="field"><span>展示指标</span><div id="catalogVisualizationMetrics" class="catalog-visualization-metrics">${metrics.map((item, index) => `<label class="check-line"><input id="catalogVisualizationMetric${index}" type="checkbox" data-visual-metric="${E(item.id)}" ${selected.has(item.id) ? "checked" : ""}><span>${E(item.name)}${item.unit ? " · " + E(item.unit) : ""}</span></label>`).join("") || '<p class="note">先添加指标后即可选择。</p>'}</div></div></div><p class="note">不同单位分别绘图；试次图只展示实际录入的试次；目标图使用本次适用的评价目标。</p>`;
+    $("catalogFields").insertBefore(section, $("catalogChangePreview"));
+    const update = () => {
+      const enabled = $("catalogVisualizationEnabled").checked;
+      $("catalogVisualizationKind").disabled = !enabled;
+      section.querySelectorAll("[data-visual-metric]").forEach(input => { input.disabled = !enabled; });
+      $("catalogVisualizationHelp").textContent = module.kinds().find(item => item.id === $("catalogVisualizationKind").value)?.description || "";
+    };
+    $("catalogVisualizationEnabled").addEventListener("change", update);
+    $("catalogVisualizationKind").addEventListener("change", update);
+    update();
+  }
   function organizeCatalogFields() {
     const host = $("catalogFields");
     for (const [title, ids] of [
       ["基础资料",["catalogTestId","catalogTestName","catalogMetricName","catalogUnit","catalogCategory","catalogAbility","catalogPrimaryAbility"]],
-      ["录入与选值",["catalogEntryScope","catalogPrimaryMetric","catalogSelectionDirection","catalogProtocol","catalogProtocolVersion","catalogMetricProtocolVersion"]],
+      ["录入与选值",["catalogEntryScope","catalogMetricSelection","catalogPrimaryMetric","catalogSelectionDirection","catalogMetricSelectionDirection","catalogProtocol","catalogProtocolVersion","catalogMetricProtocolVersion"]],
       ["统计与换算",["catalogRatioEligible","catalogCVEligible"]]
     ]) {
       const fields = [...new Set(ids.map(id => $(id)?.closest(".field")).filter(node => node && !node.hidden))];
@@ -24917,6 +25476,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function renderCatalogChangePreview() {
     if (!catalogEdit || !$("catalogChangePreview")) return;
+    const selectionChange=catalogSelectionChange();
+    for (const [id,toggle,automatic,original] of [
+      ["catalogProtocolVersion","catalogProjectMethodChanged",selectionChange.projectChanged,library.catalog.protocolIdentities?.[catalogEdit.testId]?.version||1],
+      ["catalogMetricProtocolVersion","catalogMetricMethodChanged",selectionChange.metricChanged,library.catalog.definitions.find(d=>d.id===catalogEdit.definitionId)?.protocolIdentity?.version||1],
+    ]) if($(id)) $(id).value=original+(automatic||$(toggle)?.checked?1:0);
     const current=catalogFormValues(), prior=catalogEdit.initialForm || {}, changes=[];
     for (const [id,value] of Object.entries(current)) {
       const field=$(id)?.closest(".field");
@@ -24925,9 +25489,20 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const readable=(node,value)=>node?.tagName==="SELECT" ? [...node.options].find(option=>option.value===value)?.textContent || value : typeof value==="boolean" ? value?"启用":"关闭" : value || "未填写";
       changes.push(`<li><b>${E(label)}</b>：${E(readable($(id),prior[id]))} → ${E(readable($(id),value))}</li>`);
     }
-    const methodChanged=$("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
+    const methodChanged=selectionChange.projectChanged || selectionChange.metricChanged || $("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
     const linked=methodChanged ? library.evaluationProfiles.filter(profile=>profile.standards?.some(rule=>rule.testId===catalogEdit.testId)).map(profile=>profile.name) : [];
-    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">保存后用于后续测试，已有记录保留测量快照。</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">保存后用于后续测试，已有记录保留测量快照。</p>${methodChanged?`<p class="note">${selectionChange.projectChanged||selectionChange.metricChanged?"选值依据改变，":""}测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+  }
+  function catalogSelectionChange() {
+    const test=library.catalog.tests.find(item=>item.id===catalogEdit?.testId),metric=library.catalog.definitions.find(item=>item.id===catalogEdit?.definitionId);
+    if(!test || T.isNative(library.catalog,test.id)) return {projectChanged:false,metricChanged:false};
+    const selection=$("catalogMetricSelection")?.value || test.metricSelection || "trial";
+    const priorPrimary=test.primaryMetricId || library.catalog.definitions.find(item=>item.testId===test.id&&T.isAttemptMetric(item))?.id || "";
+    const firstMetric=library.catalog.definitions.find(item=>item.testId===test.id&&T.isAttemptMetric(item))?.id || "";
+    const primary=$("catalogPrimaryMetric") ? $("catalogPrimaryMetric").value || firstMetric : priorPrimary;
+    const projectChanged=!!$("catalogMetricSelection") && (selection !== (test.metricSelection||"trial") || (selection==="trial" && (primary!==priorPrimary || $("catalogSelectionDirection")?.value!==test.selectionDirection)));
+    const metricChanged=!!metric && selection==="independent" && !!$("catalogMetricSelectionDirection") && $("catalogMetricSelectionDirection").value!==catalogEdit.initialForm?.catalogMetricSelectionDirection;
+    return {projectChanged,metricChanged};
   }
   async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
@@ -24939,10 +25514,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       return false;
     }
     const form = $("catalogForm");
+    renderCatalogChangePreview();
     if (!form.reportValidity()) return false;
     const edit = catalogEdit,
       catalog = copy(library.catalog), previousCatalog = library.catalog, previousUpdated = library.updated;
-    let committed = false;
+    let committed = false, editedMetricId = "";
     try {
       const value = (id) => ($(id)?.value || "").trim();
       const testId =
@@ -25022,6 +25598,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
               ? existing.protocol || ""
               : protocol,
         };
+        editedMetricId = definition.id;
+        if ($("catalogMetricSelectionDirection")) {
+          const selectedDirection = value("catalogMetricSelectionDirection");
+          if (!["higher","lower"].includes(selectedDirection)) throw Error("请选择单指标选值方向");
+          if (!existing || existing.selectionDirection || selectedDirection !== edit.initialForm.catalogMetricSelectionDirection)
+            definition.selectionDirection = selectedDirection;
+        }
         const metricVersion=Number(value("catalogMetricProtocolVersion")||1);
         if(!Number.isSafeInteger(metricVersion)||metricVersion<1)throw Error("指标协议版本须为正整数");
         definition.protocolIdentity={id:existing?.protocolIdentity?.id||"protocol_metric_"+definition.id,version:metricVersion};
@@ -25035,9 +25618,18 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         test.primaryAbility = value("catalogPrimaryAbility");
       if (edit.mode !== "new-metric" && !edit.metricOnly && !T.isNative(catalog, testId)) test.primaryMetricId = value("catalogPrimaryMetric") || catalog.definitions.find((d) => d.testId === testId && T.isAttemptMetric(d))?.id || "";
       if (edit.mode !== "new-metric" && !edit.metricOnly && !T.isNative(catalog,testId) && $("catalogSelectionDirection")) {
-        const direction=value("catalogSelectionDirection");
+        const direction=value("catalogSelectionDirection") || (value("catalogMetricSelection")==="independent" ? test.selectionDirection || "higher" : "");
         if(!["higher","lower"].includes(direction))throw Error("请选择代表试次选择方式");
         test.selectionDirection=direction;
+      }
+      if ($("catalogMetricSelection")) {
+        const selection = value("catalogMetricSelection");
+        if (!["trial","independent"].includes(selection)) throw Error("请选择指标选值方式");
+        const priorTest = previousCatalog.tests.find(item=>item.id===testId);
+        const priorPrimary = priorTest?.primaryMetricId || previousCatalog.definitions.find(item=>item.testId===testId&&T.isAttemptMetric(item))?.id || "";
+        const primary = test.primaryMetricId || catalog.definitions.find(item=>item.testId===testId&&T.isAttemptMetric(item))?.id || "";
+        const changedSelection = !priorTest || primary !== priorPrimary || test.selectionDirection !== priorTest.selectionDirection;
+        if (test.metricSelection || selection !== "trial" || changedSelection) test.metricSelection = selection;
       }
       if (edit.mode === "new-test" || edit.projectOnly) {
         catalog.definitions.filter(d => d.testId === testId).forEach(d => d.category = test.category);
@@ -25047,6 +25639,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const version=Number(value("catalogProtocolVersion"));
         if(!Number.isSafeInteger(version)||version<1)throw Error("测试协议版本须为正整数");
         catalog.protocolIdentities||={};catalog.protocolIdentities[testId]={id:catalog.protocolIdentities[testId]?.id||"protocol_project_"+testId,version};
+      }
+      if ($("catalogVisualizationEnabled")) {
+        const visualization = {
+          version:1, enabled:$("catalogVisualizationEnabled").checked,
+          kind:value("catalogVisualizationKind"),
+          metricIds:[...$("catalogVisualizationMetrics").querySelectorAll("[data-visual-metric]:checked")].map(input => input.dataset.visualMetric === "__pending_metric__" ? editedMetricId : input.dataset.visualMetric),
+        };
+        const issues = window.RingsideGenericViz.validateConfig(visualization, catalog.definitions, {testId,repeatable:catalog.definitions.some(item => item.testId === testId && T.isAttemptMetric(item))});
+        if (issues.length) throw Error(issues.map(issue => issue.message).join("；"));
+        test.visualization = window.RingsideGenericViz.normalizeConfig(visualization);
       }
       const canonical = M.normalizeCatalog(catalog);
       M.validateCatalog(canonical);

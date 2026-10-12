@@ -7,11 +7,14 @@ import zipfile
 
 root = Path(__file__).resolve().parents[1]
 version = json.loads((root / "package.json").read_text(encoding="utf-8"))["version"]
-suffix = "-HTML.zip" if version in {"2.19.1", "2.20.0", "2.20.1"} else "-Windows.zip"
+suffix = "-HTML.zip" if version in {"2.19.1", "2.20.0", "2.20.1", "2.21.0"} else "-Windows.zip"
 destination = root / "output/release" / ("MotionBench-" + version + suffix)
 files = ["MotionBench.html", "Start_MotionBench.cmd", "scripts/serve.py", "scripts/ai_credentials.py", "README.md", f"docs/motionbench-{version}.md", f"docs/acceptance-{version}.json", "docs/speed-reference.md", "docs/architecture.md", "assets/motionbench-logo.svg", "examples/three-trials.json", "vendor/versions.json", "vendor/html2canvas.LICENSE.txt", "vendor/jspdf.LICENSE.txt", "vendor/exceljs.LICENSE.txt"]
 if (root / f"docs/acceptance-{version}.md").is_file():
     files.append(f"docs/acceptance-{version}.md")
+if version == "2.21.0":
+    files.append("docs/preset-tests-and-standards.md")
+
 destination.parent.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as archive:
     for name in files:

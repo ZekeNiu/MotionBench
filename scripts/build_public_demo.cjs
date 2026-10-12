@@ -14,7 +14,7 @@ const context = vm.createContext({ console, Intl, Date: DemoDate,
   crypto: { randomUUID: () => "00000000-0000-4000-8000-" + String(++nextId).padStart(12, "0") } });
 context.window = context;
 for (const name of ["calc", "fvp", "sprint-fvp", "sprint-elasticity", "sprint-fvp-confidence",
-  "sources", "cpet-reference", "iso-reference", "definitions", "tests", "scoring", "model", "evaluation", "interventions"])
+  "sources", "cpet-reference", "iso-reference", "definitions", "tests", "generic-viz", "scoring", "model", "evaluation", "preset-sources", "presets", "interventions"])
   vm.runInContext(fs.readFileSync(path.join(root, `src/ringside-${name}.js`), "utf8"), context);
 const M = context.RingsideModel, r = M.defaults();
 r.athleteId = "public-demo-athlete-000001"; r.recordId = "public-demo-record";
@@ -73,12 +73,25 @@ r.data.cpet = { ...r.data.cpet, modality: "treadmill", protocol: "模拟跑台�
     second: { ...r.data.cpet.thresholds.second, vo2: 47, hr: 172, speed: 4.4 } } };
 r.views.capabilitySelections = { strength: "eur", reactive: "dj_rsi", speed: "srr" };
 for (const definition of r.definitions) if (definition.scoring !== false) definition.referenceEnabled = true;
+const commonIds=["preset_handgrip","preset_cod_505","preset_standing_long_jump"];
+const common=context.RingsidePresets.apply(M.libraryDefaults(),commonIds).library.catalog;
+r.customTests=common.tests.filter(test=>commonIds.includes(test.id));
+r.projectSnapshots=context.RingsideTests.snapshots(common);
+r.abilityGroupSnapshot=context.RingsideTests.abilityGroups(common);
+r.definitions.push(...common.definitions.filter(metric=>commonIds.includes(metric.testId)));
+r.protocol={...r.protocol,...Object.fromEntries(commonIds.map(id=>[id,common.protocol[id]]))};
+r.protocolIdentities={...r.protocolIdentities,...Object.fromEntries(commonIds.map(id=>[id,common.protocolIdentities[id]]))};
+const commonMeasurements={preset_handgrip:[[40,42],[43,41],[41,45]],preset_cod_505:[[2.55,2.42],[2.48,2.45],[2.51,2.43]],preset_standing_long_jump:[[225],[233],[229]]};
+for(const id of commonIds){
+  r.enabled[id]=true;const metrics=common.definitions.filter(metric=>metric.testId===id);
+  r.data[id]=commonMeasurements[id].map((values,index)=>({id:`public-${id}-${index}`,metrics:Object.fromEntries(metrics.map((metric,column)=>[metric.id,values[column]])),notes:"模拟测量"}));
+}
 const record = M.normalizeRecord(r); M.validateRecord(record);
 record.narrative = { text: "本报告为模拟示例。可查看能力结构、具体数据与原始试次，也可编辑和导出。",
   html: "<p>本报告为模拟示例。可查看能力结构、具体数据与原始试次，也可编辑和导出。</p>",
   origin: "manual", revision: 1, updated: instant, basis: M.fingerprint(record) };
 const profile = context.RingsideEvaluation.create(record, "模拟示例评价方案");
-const envelope = M.recordEnvelope(record, profile);
+const envelope = M.recordEnvelope(record, profile, common);
 assert.equal(envelope.record.athlete.name, "演示运动员（模拟数据）");
 assert.equal(envelope.record.athlete.injuryHistory, "");
 const source = fs.readFileSync(path.join(root, "MotionBench.html"), "utf8");
@@ -93,7 +106,7 @@ for (const name of namespaces) { assert.ok(html.includes('"' + name + '"')); htm
 html = html.replace("<title>MotionBench · 运动表现评估</title>", "<title>MotionBench 在线演示 · 模拟数据</title>");
 const style = '<style id="public-demo-style">.public-demo-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 24px;background:#eef3f8;border-bottom:1px solid #dae4ed;color:#496075;font-size:12px;line-height:1.6}.public-demo-banner strong{font-weight:650;color:#365b80}.public-demo-banner a{color:#365b80;text-decoration:none;white-space:nowrap}.public-demo-banner a:hover{text-decoration:underline}@media(max-width:519px){.public-demo-banner{padding:9px 16px;align-items:flex-start;flex-wrap:wrap;gap:4px}.public-demo-banner span{flex-basis:100%}}</style>';
 html = html.replace("</head>", style + "\n</head>");
-const banner = '<div class="public-demo-banner no-print" aria-label="在线演示说明"><span><strong>在线演示</strong> · 初始数据为模拟数据，修改仅保存在当前浏览器。</span><a href="https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1" target="_blank" rel="noopener noreferrer">下载 Windows 版 ↗</a></div>';
+const banner = '<div class="public-demo-banner no-print" aria-label="在线演示说明"><span><strong>在线演示</strong> · 初始数据为模拟数据，修改仅保存在当前浏览器。</span><a href="https://github.com/ZekeNiu/MotionBench/releases/tag/v2.21.0-desktop.1" target="_blank" rel="noopener noreferrer">下载 Windows 版 ↗</a></div>';
 html = html.replace('<div id="workspace" class="workspace">', '<div id="workspace" class="workspace">\n' + banner);
 assert.ok(html.includes(banner));
 assert.doesNotMatch(html, /(?:sk-|ghp_|github_pat_)[A-Za-z0-9_-]{20,}/, "Credential detected");
