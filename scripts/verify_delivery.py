@@ -9,6 +9,9 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 HTML = ROOT / "Ringside_Boxing_Assessment.html"
 version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+if version == "2.20.1":
+    subprocess.run([sys.executable, str(ROOT / "scripts/verify_v221.py"), *sys.argv[1:]], cwd=ROOT, check=True)
+    sys.exit(0)
 if version == "2.20.0":
     subprocess.run([sys.executable, str(ROOT / "scripts/verify_v220.py"), *sys.argv[1:]], cwd=ROOT, check=True)
     sys.exit(0)
