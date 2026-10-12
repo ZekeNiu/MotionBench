@@ -1,0 +1,68 @@
+name: MotionBench Public Demo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'scripts/build.py'
+      - 'scripts/build_public_demo.cjs'
+      - 'tests/public-demo-browser-tests.cjs'
+      - 'tests/helpers/playwright.cjs'
+      - 'vendor/**'
+      - 'body-map-front.png'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/public-demo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: motionbench-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.12'
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build clean HTML and synthetic public demo
+        run: |
+          python scripts/build.py
+          node scripts/build_public_demo.cjs
+      - name: Install the test browser
+        run: npx playwright install --with-deps chromium
+      - name: Validate privacy and actual demo interactions
+        run: node tests/public-demo-browser-tests.cjs --chromium
+      - name: Upload only the public deployment directory
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+        with:
+          path: output/public-demo/site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy verified public demo
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
