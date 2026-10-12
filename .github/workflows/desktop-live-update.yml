@@ -38,7 +38,11 @@ jobs:
       - name: Build the shared production HTML
         run: npm run build
       - name: Build an unpublished identical-source desktop zero fixture
-        run: npx electron-builder --config electron-builder.yml --win nsis --x64 --publish never -c.extraMetadata.version=2.19.1-desktop.0 -c.directories.output=output/desktop-live-update/fixture-build
+        shell: pwsh
+        run: |
+          node -e "const fs=require('fs'),yaml=require('js-yaml');const config=yaml.load(fs.readFileSync('electron-builder.yml','utf8'));config.extraMetadata.version='2.19.1-desktop.0';config.directories.output='output/desktop-live-update/fixture-build';fs.mkdirSync('output/desktop-live-update',{recursive:true});fs.writeFileSync('output/desktop-live-update/fixture-config.yml',yaml.dump(config));"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npx electron-builder --config output/desktop-live-update/fixture-config.yml --win nsis --x64 --publish never
       - name: Verify that only the fixture package version differs
         run: node scripts/check-desktop-live-fixture.cjs
       - name: Actually download install and restart through the application update entry
