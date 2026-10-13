@@ -8,9 +8,9 @@
     let selection = {groupId:"",athleteIds:[],dates:[],recordChoices:{},basis:{}}, model = null, documentValue = null;
     let inputSnapshot = null, expectedConfig = null, sequence = 0, saveQueue = Promise.resolve(true), saveTimer = null;
     let suspended = false, editing = false, dirty = false, saveError = false, switching = false, requestedSelection = null, editorRevisionSaved = false, computationToken = null;
-    const uiKey = "ringside-comparison-ui-v1:" + location.pathname;
+    const uiKey = "ringside-personal-longitudinal-ui-v1:" + location.pathname;
     const api = {
-      get active() { return !suspended && (selection.athleteIds.length > 1 || selection.dates.length > 1); },
+      get active() { return !suspended && selection.athleteIds.length === 1 && selection.dates.length > 1; },
       get editing() { return editing; }, get switching() { return switching; },
       get selection() { return copy(selection); }, get model() { return model; }, get document() { return documentValue; },
       get saveError() { return saveError; },
@@ -37,6 +37,7 @@
     }
     function findDocument(next) { return (host.library()?.comparisonReports||[]).find(doc=>identity(doc.selection)===identity(next)); }
     async function select(input,{restoreDocument=false,documentId="",duringTransfer=false}={}) {
+      if ([...new Set(input.athleteIds||[])].length > 1) {host.toast("纵向分析一次选择一名运动员");return false;}
       const token=++sequence;
       requestedSelection=canonical(input);
       host.saveEditor();
@@ -116,12 +117,12 @@
       }).catch(error=>{dirty=true;saveError=true;$("saveStatus").textContent="保存失败 · "+error.message;try{localStorage.setItem(uiKey+":draft",JSON.stringify(snapshot));}catch{}return false;});
       saveQueue=saving;return saving;
     }
-    function label() {const ids=selectedIds();return ids.length>1?`已选 ${ids.length} 名队员`:owner(ids[0])?.name||"";}
+    function label() {return owner(selectedIds()[0])?.name||"";}
     function renderSelectors() {
       if(!host.library())return;
       if(selection.groupId&&host.library().groups.some(group=>group.id===selection.groupId))$("reportGroupFilter").value=selection.groupId;
       const ids=selectedIds();
-      $("reportAthleteSearch").setAttribute("aria-label","搜索并多选队员");
+      $("reportAthleteSearch").setAttribute("aria-label","搜索并选择运动员");
       if(!$("reportAthleteOptions").hidden && document.activeElement===$("reportAthleteSearch"))return renderRecordChoices();
       $("reportAthleteSearch").value=label();
       renderRecordChoices();
@@ -130,28 +131,27 @@
       const ids=selectedIds(), dates=[...new Set([...selection.dates,...ids.flatMap(id=>offeredRecords(id).map(r=>r.athlete.date)).filter(Boolean)])].sort().reverse();
       const currentDates=selection.dates.length?selection.dates:host.state()?[host.state().athlete.date]:[];
       const container=$("reportRecordChoices");if(!container)return;
-      const title=api.active?`${selection.dates.length} 个测试日期 · ${ids.length} 名队员`:host.state()?`${host.state().athlete.date} · ${host.state().title||"测试记录"}`:"选择测试记录";
+      const title=api.active?`${selection.dates.length} 个测试日期`:host.state()?`${host.state().athlete.date} · ${host.state().title||"测试记录"}`:"选择测试记录";
       $("reportRecordSummary").textContent=title;
       $("reportRecordOptions").innerHTML=dates.length?dates.map(date=>{
-        const count=ids.filter(id=>offeredRecords(id).some(r=>r.athlete.date===date)).length;
+        const count=offeredRecords(ids[0]).filter(r=>r.athlete.date===date).length;
         const checked=currentDates.includes(date);
         const duplicates=checked?ids.filter(id=>{const candidates=offeredRecords(id).filter(r=>r.athlete.date===date),chosen=selection.recordChoices[id]?.[date];return candidates.length>1||chosen&&!candidates.some(r=>r.recordId===chosen);}).map(id=>{
           const candidates=offeredRecords(id).filter(r=>r.athlete.date===date),selected=selection.recordChoices[id]?.[date]||(ids.length===1&&host.state()?.athlete.date===date?host.state().recordId:"");
           return `<label class="comparison-record-conflict">${escape(owner(id)?.name||"所选队员")} · ${candidates.some(r=>r.recordId===selected)?"当日 "+candidates.length+" 条":"核对采用的记录"}<select data-report-record-person="${escape(id)}" data-report-record-date="${date}" onchange="App.chooseComparisonRecord(this.dataset.reportRecordPerson,this.dataset.reportRecordDate,this.value)"><option value="">指定本次采用的记录</option>${candidates.map(r=>`<option value="${escape(r.recordId)}" ${r.recordId===selected?"selected":""}>${escape(r.title||"测试记录")}${r.archived?"（已归档）":""} · ${escape(r.recordId.slice(-6))}</option>`).join("")}</select></label>`;
         }).join(""):"";
         const archived=ids.some(id=>offeredRecords(id).some(r=>r.athlete.date===date&&(r.archived||owner(id)?.archived)));
-        return `<div class="comparison-date-option"><label><input type="checkbox" data-report-date="${date}" ${checked?"checked":""} onchange="App.toggleComparisonDate(this.dataset.reportDate,this.checked)"><span>${date}</span><small>${count} / ${ids.length} 人有记录${archived?" · 含已归档资料":""}</small></label>${duplicates}</div>`;
+        return `<div class="comparison-date-option"><label><input type="checkbox" data-report-date="${date}" ${checked?"checked":""} onchange="App.toggleComparisonDate(this.dataset.reportDate,this.checked)"><span>${date}</span><small>${count} 条记录${archived?" · 含已归档资料":""}</small></label>${duplicates}</div>`;
       }).join(""):'<p class="note">所选队员暂无有日期的测试记录。</p>';
       $("recordSelect").classList.add("sr-only");$("recordSelect").setAttribute("aria-hidden","true");
       $("recordSelect").tabIndex=-1;
     }
     function athleteOptions(rows) {
       const ids=selectedIds();
-      return `<div class="comparison-chooser-tools"><button type="button" class="btn small" onclick="App.selectAllReportAthletes()">全选当前结果</button><button type="button" class="btn small" onclick="App.clearReportSelection()">清空</button></div>`+rows.map((a,i)=>`<button type="button" id="reportAthleteOption-${i}" class="athlete-option" role="option" aria-selected="${ids.includes(a.id)}" data-athlete-choice="${escape(a.id)}" onclick="App.toggleReportAthlete(this.dataset.athleteChoice)"><span class="comparison-check">${ids.includes(a.id)?"✓":""}</span><span>${escape(host.athleteLabel(a))}</span></button>`).join("");
+      return rows.map((a,i)=>`<button type="button" id="reportAthleteOption-${i}" class="athlete-option" role="option" aria-selected="${ids.includes(a.id)}" data-athlete-choice="${escape(a.id)}" onclick="App.chooseReportAthlete(this.dataset.athleteChoice)">${escape(host.athleteLabel(a))}</button>`).join("");
     }
-    async function toggleAthlete(id) {
-      const ids=selectedIds(),next=ids.includes(id)?ids.filter(x=>x!==id):[...ids,id];
-      return select({...requestedSelection||selection,groupId:$("reportGroupFilter").value,athleteIds:next});
+    async function chooseAthlete(id) {
+      return select({groupId:$("reportGroupFilter").value,athleteIds:[id],dates:[],recordChoices:{},basis:{}});
     }
     function toggleDate(date,checked) {
       const draft=requestedSelection||selection, ids=selectedIds(),dates=draft.dates.length?[...draft.dates]:host.state()?[host.state().athlete.date]:[];
@@ -165,7 +165,7 @@
       if(!api.active)return false;
       renderSelectors();const R=root.RingsideComparisonReport;
       $("reportView").classList.add("comparison-report-view");
-      $("reportTitle").textContent=title();$("athleteMeta").innerHTML=[selection.dates.length===1?selection.dates[0]:`${selection.dates[0]} — ${selection.dates.at(-1)}`,`${selection.athleteIds.length} 名队员`,model?.entries?.length?`${model.entries.length} 条测试记录`:""].filter(Boolean).map(x=>`<span>${escape(x)}</span>`).join("");
+      $("reportTitle").textContent=title();$("athleteMeta").innerHTML=[`${selection.dates[0]} — ${selection.dates.at(-1)}`,model?.entries?.length?`${model.entries.length} 条测试记录`:""].filter(Boolean).map(x=>`<span>${escape(x)}</span>`).join("");
       $("aggMode").closest("label").hidden=true;$("migrationReviewNotice").hidden=true;
       $("editButton").textContent="选择记录编辑";$("comparisonNarrativeButton").hidden=false;
       $("sampleLabel").classList.toggle("hidden",!model?.entries?.every(e=>e.record?.demo));
@@ -173,15 +173,15 @@
       if(!model||model.ready===false){$("microCards").innerHTML="";$("bodyChart").innerHTML="";$("radarChart").innerHTML="";$("screenItems").innerHTML="";$("directionMetrics").innerHTML="";$("detailContent").innerHTML=`<div class="card comparison-issues"><h3>核对本次采用的记录</h3>${(model?.issues||[]).map(issue=>`<p>${escape(typeof issue==="string"?issue:issue.message||issue.reason||JSON.stringify(issue))}</p>`).join("")}<p>请在上方测试记录选择区指定同日记录。</p></div>`;return true;}
       $("microCards").innerHTML=R.summary(model);$("bodyChart").innerHTML=R.body(model,{bodyImage:root.RingsideBodyImage,views:documentValue.views});
       $("screenItems").innerHTML=R.screenItems(model,{views:documentValue.views});$("radarChart").innerHTML=R.radar(model,documentValue.views);
-      $("referenceLabel").textContent="个人系列 · 均值 ± SD";$("radarLegend").textContent="每个能力轴按有效队员计算";
-      $("screenPill").className="pill gray";$("screenPill").textContent="队员分布";
+      $("referenceLabel").textContent="各期能力结果";$("radarLegend").textContent="按测试日期对照能力结构";
+      $("screenPill").className="pill gray";$("screenPill").textContent="按日期对照";
       $("directionMetrics").innerHTML=R.overview(model);
       const callbacks={model,prefs:documentValue.views,onPreferences(next){if(api.computing||!documentValue)return;documentValue.views=copy(next);markDirty();host.render();},onEditRecord:editRecord,onBasis:changeBasis};
       $("detailContent").innerHTML=R.render(model,documentValue.views,{bodyImage:root.RingsideBodyImage});
       R.bind($("detailContent"),callbacks);R.bindOverview?.($("reportView"),callbacks);
       renderNarrative();return true;
     }
-    function title() {const group=host.library()?.groups.find(g=>g.id===selection.groupId)?.name||"所选队员";return selection.athleteIds.length===1?`${owner(selection.athleteIds[0])?.name||"运动员"} · 纵向比较`:`${group} · ${selection.dates.length>1?"团队纵向比较":"团队报告"}`;}
+    function title() {return `${owner(selection.athleteIds[0])?.name||"运动员"} · 纵向分析`;}
     function renderNarrative() {
       if(!api.active||!documentValue)return;
       const n=documentValue.narrative||{},stale=!!n.text&&n.basis!==model?.fingerprint;
@@ -212,19 +212,20 @@
     const scalars=value=>Object.fromEntries(Object.entries(value||{}).filter(([,item])=>item===null||["string","number","boolean"].includes(typeof item)));
     function compactResults() {
       return {
-        metrics:model.metrics.map(metric=>({...scalars(metric),identity:copy(metric.identity),cohortIds:[...metric.cohortIds],
+        metrics:model.metrics.map(metric=>({...scalars(metric),identity:copy(metric.identity),
           observations:metric.observations.map(scalars),
           periods:metric.periods.map(period=>({...scalars(period),...(period.distribution?{distribution:copy(period.distribution)}:{})})),
           changes:metric.changes.map(scalars),trend:{...scalars(metric.trend),points:(metric.trend?.points||[]).map(scalars)}})),
-        summary:{periods:model.summary.periods.map(period=>({...scalars(period),red:copy(period.red),amber:copy(period.amber),advantage:copy(period.advantage),
-          regions:Object.fromEntries(Object.entries(period.regions||{}).map(([key,region])=>[key,{...scalars(region),members:region.members.map(scalars)}]))})),latest:scalars(model.summary.latest),transitions:model.summary.transitions.map(scalars)},
-        capabilities:model.capabilities.map(capability=>({...scalars(capability),cohortIds:capability.cohortIds||[],periods:capability.periods.map(period=>({...scalars(period),groups:copy(period.groups||[]),members:(period.members||[]).map(scalars),parameters:(period.parameters||[]).map(scalars)})),transitions:(capability.transitions||[]).map(scalars)})),
+        summary:{periods:model.summary.periods.map(period=>({...scalars(period),
+          regions:Object.fromEntries(Object.entries(period.regions||{}).map(([key,region])=>[key,{...scalars(region),members:(region.members||[]).map(scalars)}]))})),latest:scalars(model.summary.latest),transitions:model.summary.transitions.map(scalars)},
+        capabilities:model.capabilities.map(capability=>({...scalars(capability),periods:capability.periods.map(period=>({...scalars(period),members:(period.members||[]).map(scalars),parameters:(period.parameters||[]).map(scalars)})),transitions:(capability.transitions||[]).map(scalars)})),
       };
     }
     function envelope() {
       if(api.computing)throw Error("比较报告正在计算，请完成后导出");
       if(!api.active||model?.ready===false)throw Error("请先完成记录选择");
       const library=copy(inputSnapshot.library);library.comparisonReports=[copy(documentValue)];
+      library.athletes=library.athletes.filter(a=>a.id===selection.athleteIds[0]);
       const selected=new Set(model.entries.map(e=>e.recordId));library.athletes.forEach(a=>a.records=a.records.filter(r=>selected.has(r.recordId)));
       const profileIds=new Set(library.athletes.flatMap(a=>a.records.map(r=>r.evaluationProfileId||library.defaultEvaluationProfileId)));
       if(!profileIds.size)profileIds.add(library.defaultEvaluationProfileId);
@@ -234,25 +235,19 @@
       library.activeAthleteId=model.entries[0]?.athleteId||"";library.activeRecordId=model.entries[0]?.recordId||"";
       return {kind:"comparison-report",schema:1,library,report:copy(documentValue),statistics:copy(model.statistics||{}),
         displayRules:{screening:{scale:"ordinal",maximum:3,statusLevels:{green:3,amber:2,red:1},unknown:null,
-          date:model.dates.includes(documentValue.views.screeningDate)?documentValue.views.screeningDate:model.dates.at(-1)}},results:compactResults()};
+          dates:[...model.dates],highlightDate:model.dates.includes(documentValue.views.highlightDate)?documentValue.views.highlightDate:null}},results:compactResults()};
     }
     function facts() {
       if(api.computing)throw Error("比较报告正在计算，请完成后生成解读");
       const frozen=compactResults();
-      const athletes=selection.athleteIds, dates=selection.dates, reasons=[""], statuses=[""], titles=[], subjects=[];
-      const intern=(dictionary,value)=>{value=value??"";let index=dictionary.indexOf(value);if(index<0){index=dictionary.length;dictionary.push(value);}return index;};
-      const row=values=>{while(values.length&&values.at(-1)===null)values.pop();return values;};
-      const summary={...frozen.summary,transitionColumns:["athleteIndex","fromDateIndex","toDateIndex","subjectIndex","titleIndex","fromStatusIndex","toStatusIndex","state","reasonIndex"],
-        transitions:frozen.summary.transitions.map(t=>[athletes.indexOf(t.athleteId),dates.indexOf(t.fromDate),dates.indexOf(t.toDate),intern(subjects,t.key),intern(titles,t.title),intern(statuses,t.from),intern(statuses,t.to),t.state,intern(reasons,t.reason)])};
-      const metrics=frozen.metrics.map((m,index)=>({key:"metric-"+index,label:m.label,unit:m.unit,direction:m.direction,identity:m.identity,cohortAthleteIndices:m.cohortIds.map(id=>athletes.indexOf(id)),
-        observations:m.observations.map(o=>row([athletes.indexOf(o.athleteId),dates.indexOf(o.date),o.value,intern(reasons,o.reason),o.pain??null,o.status?intern(statuses,o.status):null,o.notes||null])),periods:m.periods,changes:m.changes,trend:m.trend}));
-      return {factsVersion:1,reportType:model.kind,title:title(),dates,baseline:dates[0],statistics:model.statistics,
-        indexing:{observationColumns:["athleteIndex","dateIndex","value","reasonIndex","pain","statusIndex","notes"],reasons,statuses,transitionSubjects:subjects,transitionTitles:titles,
-          selectedRecordIds:athletes.map(id=>dates.map(date=>selection.recordChoices[id]?.[date]||null)),explanation:"数组按columns读取，Index从0开始，athleteIndex对应athletes，dateIndex对应dates，尾部省略项为null。reasonIndex/statusIndex/subjectIndex/titleIndex分别查对应字典。不要把数组索引当成测量值。"},
-        summary,trainingDirections:frozen.capabilities,metrics,
-        athletes:selection.athleteIds.map(id=>{const a=owner(id),entries=model.entries.filter(e=>e.athleteId===id),last=entries.at(-1);return {id,name:a.name,profile:a.profile,testContext:last?.record.athlete,trainingContext:last?.record.trainingContext,directions:entries.map(e=>({date:e.date,directions:e.directions}))};}),
+      const id=selection.athleteIds[0],a=owner(id),last=model.entries.at(-1);
+      return {factsVersion:2,reportType:"personal-longitudinal",title:title(),dates:[...selection.dates],baseline:selection.dates[0],statistics:copy(model.statistics),
+        selectedRecordIds:selection.dates.map(date=>({date,recordId:selection.recordChoices[id]?.[date]||null})),
+        summary:frozen.summary,trainingDirections:frozen.capabilities,metrics:frozen.metrics,
+        athlete:{id,name:a.name,profile:copy(a.profile||{}),testContext:last?.record.athlete,trainingContext:last?.record.trainingContext,
+          periods:model.entries.map(e=>({date:e.date,recordId:e.recordId,directions:e.directions,testContext:e.record.athlete,trainingContext:e.record.trainingContext}))},
         existingIndividualPlans:individualPlans(),
-        interpretation:"采用已计算数值，按共同重点、方向分组、具体安排和复测条件组织；方向转变按原含义表述，统计显著性不等于训练价值。每个指标只用全程完整的固定队员，n是队员人数。"};
+        interpretation:"采用已经计算的个人各期原值、相对最早日期的变化和描述性趋势。按主要变化、末次训练重点、具体安排及复测条件组织；方向转变按原含义表述。缺测与不兼容按具体原因保留，不代替基线，不根据单人的多个日期估计配对显著性或队员间效果量。"};
     }
     function individualPlans() {
       return model.entries.filter(entry=>entry.date===model.dates.at(-1)).map(entry=>{
@@ -262,31 +257,27 @@
     }
     function localText() {
       const lines=["## 主要发现",`${title()}，测试日期：${selection.dates.join("、")}。`];
-      for(const metric of model.metrics.filter(m=>m.periods?.some(p=>p.n)).slice(0,8)){const latest=metric.periods.at(-1),change=metric.changes?.at(-1);lines.push(`${metric.label}：${root.Calc.num(latest.mean)===null?"待测":latest.mean.toFixed(2)} ${metric.unit}，有效 ${latest.n} 人${change&&root.Calc.num(change.delta)!==null?`，较基线变化 ${change.delta.toFixed(2)} ${metric.unit}`:""}。`);}
-      lines.push("## 共同重点与分组安排");
-      for(const capability of model.capabilities||[]){const latest=capability.periods?.at(-1);for(const group of latest?.groups||latest?.categories||[]){const names=(group.athleteIds||group.members||[]).map(id=>typeof id==="string"?owner(id)?.name:id.name).filter(Boolean);lines.push(`${capability.title}：${group.label||group.judgment||group.direction}，${names.join("、")||group.count+" 人"}。`);}}
-      const groups=new Map();
-      for(const plan of individualPlans())for(const item of plan.items)for(const action of item.actions){
-        const {id,sourceIds,...prescription}=action,key=JSON.stringify(prescription),group=groups.get(key)||{action:prescription,athletes:[],rank:item.rank};
-        if(!group.athletes.includes(plan.name))group.athletes.push(plan.name);groups.set(key,group);
+      const number=value=>root.Calc.num(value)===null?"待测":value!==0&&Math.abs(value)<.01?Number(value.toPrecision(3)).toString():Number(value.toFixed(2)).toString();
+      for(const metric of model.metrics.filter(m=>m.periods?.some(p=>p.n)).slice(0,8)){const latest=metric.periods.at(-1),change=metric.changes?.at(-1);lines.push(`${metric.label}：${number(latest.value??latest.mean)} ${metric.unit}${change&&root.Calc.num(change.delta)!==null?`，较基线变化 ${number(change.delta)} ${metric.unit}`:""}${latest.reason?`（${latest.reason}）`:""}。`);}
+      lines.push("## 本次训练重点");
+      for(const capability of model.capabilities||[]){const latest=capability.periods?.at(-1),member=latest?.members?.[0];if(member?.judgment)lines.push(`${capability.title}：${member.judgment}。`);}
+      for(const plan of individualPlans())for(const item of plan.items){
+        lines.push(`### ${item.title}`);
+        for(const a of item.actions)lines.push(`${a.exercise}${a.side?"（"+a.side+"）":""}：${a.load}，${a.sets}组×${a.repsMin}${a.repsMax!==a.repsMin?"–"+a.repsMax:""}次${a.holdSec?"，每次保持"+a.holdSec+"秒":""}，组间休息${a.restSec}秒，每周${a.weekly}次。${a.progression||""}`);
       }
-      const prescriptions=[...groups.values()].sort((a,b)=>b.athletes.length-a.athletes.length||a.rank-b.rank);
-      if(prescriptions.length)lines.push("## 具体执行安排");
-      for(const {action:a,athletes} of prescriptions){lines.push(`${athletes.join("、")}：${a.exercise}${a.side?"（"+a.side+"）":""}，${a.load}，${a.sets}组×${a.repsMin}${a.repsMax!==a.repsMin?"–"+a.repsMax:""}次${a.holdSec?"，每次保持"+a.holdSec+"秒":""}，组间休息${a.restSec}秒，每周${a.weekly}次。${a.progression||""}`);}
       return lines.join("\n\n");
     }
     async function restore() {
-      let saved=null;try{saved=JSON.parse(localStorage.getItem(uiKey)||"null");}catch{}
+      let saved=null;try{saved=JSON.parse(localStorage.getItem(uiKey)||localStorage.getItem("ringside-comparison-ui-v1:"+location.pathname)||"null");}catch{}
       const embeddedId=root.RingsideEmbeddedComparisonId;
       const doc=(host.library()?.comparisonReports||[]).find(d=>d.id===embeddedId);
-      if(doc)return select(doc.selection,{restoreDocument:true,documentId:doc.id});
-      if(saved?.active&&!saved.editingRecord)return select(saved.selection,{restoreDocument:true,documentId:saved.documentId});
+      if(doc?.selection?.athleteIds?.length===1&&doc.selection.dates.length>1)return select(doc.selection,{restoreDocument:true,documentId:doc.id});
+      if(saved?.active&&!saved.editingRecord&&saved.selection?.athleteIds?.length===1&&saved.selection.dates.length>1)return select(saved.selection,{restoreDocument:true,documentId:saved.documentId});
       resetForSingle(owner(host.state()?.athleteId),host.state());return false;
     }
     function leaveNarrative(){updateEditor();editing=false;$("reportView").before($("aiProgress"));$("comparisonNarrativeModal").classList.remove("show");flush();}
-    Object.assign(api,{select,refresh,flush,label,renderSelectors,athleteOptions,toggleAthlete,toggleDate,chooseRecord,render,renderNarrative,editRecord,resume,resetForSingle,changeBasis,setNarrative,updateEditor,openNarrative,closeNarrative,leaveNarrative,snapshot,matches,envelope,facts,localText,restore,title,
+    Object.assign(api,{select,refresh,flush,label,renderSelectors,athleteOptions,chooseAthlete,toggleDate,chooseRecord,render,renderNarrative,editRecord,resume,resetForSingle,changeBasis,setNarrative,updateEditor,openNarrative,closeNarrative,leaveNarrative,snapshot,matches,envelope,facts,localText,restore,title,
       clear:()=>select({groupId:$("reportGroupFilter").value,athleteIds:[],dates:[],recordChoices:{},basis:{}}),
-      selectAll:rows=>select({...selection,groupId:$("reportGroupFilter").value,athleteIds:rows.map(a=>a.id)}),
       selectGroup:groupId=>select({...selection,groupId,athleteIds:selectedIds().filter(id=>!groupId||owner(id)?.groupId===groupId),dates:[],recordChoices:{}}),
       filename:ext=>`MotionBench_${title().replace(/[<>:"/\\|?*\s]/g,"_")}_${selection.dates[0]}_${selection.dates.at(-1)}.${ext}`,
     });return api;

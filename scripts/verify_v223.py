@@ -78,7 +78,7 @@ def proof(relative, runner, minimum, native=False):
             require(key in data, 'Check helper attribution missing: ' + relative)
         if key in data:
             require(data[key] == digest(ROOT / helper), 'Check helper changed: ' + relative)
-    if comparison or runner == 'tests/comparison-storage-browser-tests.cjs':
+    if comparison:
         require(data.get('fixtureSha256') == digest(ROOT / 'output/comparison-demo/团队与纵向模拟资料库.json'), 'Comparison fixture differs: ' + relative)
     if not native:
         require(data['sourceHash'] == source_hash and data['sourceUnchanged'], 'Stale evidence: ' + relative)

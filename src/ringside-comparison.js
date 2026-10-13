@@ -5,7 +5,7 @@
   const order = value => Array.isArray(value) ? value.map(order) : value && typeof value === "object"
     ? Object.fromEntries(Object.keys(value).sort().map(key => [key, order(value[key])])) : value;
   const canonical = value => JSON.stringify(order(value));
-  const statisticsVersion = "comparison-record-statistics-v1", statisticsCache = new Map(), criticalCache = new Map(), preparedInputs = new WeakMap(), cachedMetadata = new WeakMap();
+  const statisticsVersion = "comparison-record-statistics-v2", statisticsCache = new Map(), preparedInputs = new WeakMap(), cachedMetadata = new WeakMap();
   const statisticsCacheLimit = 160;
   function cloneStats(value, seen = new Map()) {
     if (!value || typeof value !== "object") return value;
@@ -108,7 +108,7 @@
   }
   // This reader is pure. Store supplies its version-consistent directory and complete records.
   function readComparisonInputs(source, selection = source?.selection || {}) {
-    const library = source?.library || source, selected = normalizeSelection(selection), issues = [], entries = [], athletes = [];
+    const library = source?.library || source, selected = assertPersonalSelection(normalizeSelection(selection)), issues = [], entries = [], athletes = [];
     const pool = source?.records || (library?.athletes || []).flatMap(athlete => athlete.records || []);
     for (const athleteId of selected.athleteIds) {
       const athlete = (library?.athletes || source?.athletes || []).find(item => item.id === athleteId);
@@ -137,105 +137,55 @@
       }
     }
     return { version: 1, selection: selected, athletes, dates: selected.dates, entries, issues,
-      ready: selected.athleteIds.length > 0 && selected.dates.length > 0 && !issues.some(item => ["ambiguous-record", "missing-record", "missing-athlete"].includes(item.kind)),
+      ready: !issues.some(item => ["ambiguous-record", "missing-record", "missing-athlete"].includes(item.kind)),
       catalog: copy(library.catalog || source?.catalog || {}), evaluationProfiles: copy(library.evaluationProfiles || source?.evaluationProfiles || []),
       revision: source?.versionState || library.updated || null, expectedConfig: source?.expectedConfig || null };
   }
-  function quantile(values, probability) {
-    const sorted = values.filter(value => N(value) !== null).map(N).sort((a, b) => a - b);
-    if (!sorted.length) return null;
-    const index = (sorted.length - 1) * probability, lower = Math.floor(index), fraction = index - lower;
-    return sorted[lower] + (sorted[Math.min(lower + 1, sorted.length - 1)] - sorted[lower]) * fraction;
+  const comparisonMethodVersion = "personal-longitudinal-v2";
+  const roundoffFactor = 16;
+  const roundoffTolerance = scale => roundoffFactor * Number.EPSILON * Math.abs(scale);
+  function compensatedSum(values) {
+    let sum = 0, correction = 0;
+    for (const value of values) { const adjusted = value - correction, next = sum + adjusted; correction = (next - sum) - adjusted; sum = next; }
+    return sum;
   }
-  function descriptive(values, allowCV = false) {
-    const xs = values.map(N).filter(value => value !== null), stats = root.Calc.descriptive(xs, allowCV);
-    const q1 = quantile(xs, .25), q3 = quantile(xs, .75);
-    return { ...stats, median: quantile(xs, .5), q1, q3, iqr: q1 === null ? null : q3 - q1,
-      min: xs.length ? Math.min(...xs) : null, max: xs.length ? Math.max(...xs) : null };
+  function numericMean(values) {
+    const xs = values.map(N).filter(value => value !== null);
+    if (!xs.length) return null;
+    const mean = xs[0] + compensatedSum(xs.map(value => (value - xs[0]) / xs.length));
+    return Number.isFinite(mean) ? mean === 0 ? 0 : mean : null;
   }
-  // Lanczos log-gamma and continued-fraction incomplete beta give exact Student-t tails.
-  function logGamma(z) {
-    const coefficients = [676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
-      12.507343278686905, -.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
-    if (z < .5) return Math.log(Math.PI) - Math.log(Math.sin(Math.PI * z)) - logGamma(1 - z);
-    z -= 1;
-    let x = .99999999999980993;
-    coefficients.forEach((value, index) => { x += value / (z + index + 1); });
-    const t = z + coefficients.length - .5;
-    return .5 * Math.log(2 * Math.PI) + (z + .5) * Math.log(t) - t + Math.log(x);
+  function numericDifference(current, baseline) {
+    current = N(current); baseline = N(baseline);
+    if (current === null || baseline === null) return null;
+    const delta = current - baseline;
+    return Math.abs(delta) <= roundoffTolerance(Math.max(Math.abs(current), Math.abs(baseline))) ? 0 : delta;
   }
-  function betaFraction(a, b, x) {
-    const tiny = 1e-300, qab = a + b, qap = a + 1, qam = a - 1;
-    let c = 1, d = 1 - qab * x / qap;
-    if (Math.abs(d) < tiny) d = tiny;
-    d = 1 / d;
-    let result = d;
-    for (let m = 1; m <= 250; m++) {
-      let aa = m * (b - m) * x / ((qam + 2 * m) * (a + 2 * m));
-      d = 1 + aa * d; if (Math.abs(d) < tiny) d = tiny;
-      c = 1 + aa / c; if (Math.abs(c) < tiny) c = tiny;
-      d = 1 / d; result *= d * c;
-      aa = -(a + m) * (qab + m) * x / ((a + 2 * m) * (qap + 2 * m));
-      d = 1 + aa * d; if (Math.abs(d) < tiny) d = tiny;
-      c = 1 + aa / c; if (Math.abs(c) < tiny) c = tiny;
-      d = 1 / d;
-      const delta = d * c; result *= delta;
-      if (Math.abs(delta - 1) < 3e-14) break;
+  function assertPersonalSelection(selection) {
+    if (selection.athleteIds.length !== 1 || selection.dates.length < 2)
+      throw new Error("个人纵向报告须选择一名队员和至少两个不同测试日期");
+    return selection;
+  }
+  function assertPersonalEntries(inputs) {
+    const athleteId = inputs.selection.athleteIds[0], seenDates = new Set();
+    for (const entry of inputs.entries || []) {
+      if (entry.athleteId !== athleteId || entry.record?.athleteId !== athleteId || !inputs.selection.dates.includes(entry.date)
+        || entry.record?.athlete?.date !== entry.date || seenDates.has(entry.date))
+        throw new Error("个人纵向输入的队员、日期或所选记录不一致");
+      seenDates.add(entry.date);
     }
-    return result;
-  }
-  function regularizedBeta(x, a, b) {
-    if (x <= 0) return 0; if (x >= 1) return 1;
-    const front = Math.exp(logGamma(a + b) - logGamma(a) - logGamma(b) + a * Math.log(x) + b * Math.log1p(-x));
-    return x < (a + 1) / (a + b + 2) ? front * betaFraction(a, b, x) / a : 1 - front * betaFraction(b, a, 1 - x) / b;
-  }
-  function studentP(t, df) {
-    if (N(t) === null || N(df) === null || df < 1) return null;
-    return Math.max(0, Math.min(1, regularizedBeta(df / (df + t * t), df / 2, .5)));
-  }
-  function criticalT(df, alpha = .05) {
-    if (!Number.isInteger(df) || df < 1 || !(alpha > 0 && alpha < 1)) return null;
-    const key = df + "|" + alpha;
-    if (criticalCache.has(key)) return criticalCache.get(key);
-    let low = 0, high = 1;
-    while (studentP(high, df) > alpha && high < 1e12) high *= 2;
-    for (let i = 0; i < 80; i++) { const mid = (low + high) / 2; if (studentP(mid, df) > alpha) low = mid; else high = mid; }
-    const value = (low + high) / 2;
-    criticalCache.set(key, value);
-    if (criticalCache.size > 256) criticalCache.delete(criticalCache.keys().next().value);
-    return value;
-  }
-  function paired(base, current, { infer = true, allowPercent = false, unit = "", continuous = true } = {}) {
-    const pairs = base.map((value, index) => [N(value), N(current[index])]).filter(pair => pair.every(value => value !== null));
-    const differences = pairs.map(([before, after]) => after - before), distribution = descriptive(differences);
-    const baseline = descriptive(pairs.map(pair => pair[0])), latest = descriptive(pairs.map(pair => pair[1]));
-    const delta = distribution.mean, percentChange = allowPercent && baseline.mean > 0 && delta !== null ? 100 * delta / baseline.mean : null;
-    const result = { n: pairs.length, baselineMean: baseline.mean, currentMean: latest.mean, delta, meanChange: delta,
-      percentChange, deltaUnit: /^(?:%|%PF)$/.test(unit) ? "百分点" : unit, sdChange: distribution.sd,
-      ciLow: null, ciHigh: null, t: null, df: null, p: null, pAdjusted: null, dz: null, reason: "", differences };
-    if (!continuous) { result.reason = "序数或分类结果按原值和状态转移展示"; return result; }
-    if (!infer) { result.reason = "个人纵向采用实测变化，不估计队员间的配对检验"; return result; }
-    if (pairs.length < 2) { result.reason = "有效配对少于2人，无法估计差值的标准差与推断统计"; return result; }
-    if (!(distribution.sd > 0)) { result.reason = "配对差值零方差，t与Cohen’s dz无法估计"; return result; }
-    const se = distribution.sd / Math.sqrt(pairs.length), df = pairs.length - 1, t = delta / se, half = criticalT(df) * se;
-    Object.assign(result, { t, df, p: studentP(t, df), dz: delta / distribution.sd, ciLow: delta - half, ciHigh: delta + half });
-    return result;
-  }
-  function holm(values, familySize = values.length) {
-    const usable = values.map((p, index) => ({ p: N(p), index })).filter(item => item.p !== null && item.p >= 0 && item.p <= 1).sort((a, b) => a.p - b.p);
-    const results = values.map(() => null), m = Math.max(familySize, usable.length);
-    let maximum = 0;
-    usable.forEach(({ p, index }, rank) => { maximum = Math.max(maximum, Math.min(1, (m - rank) * p)); results[index] = maximum; });
-    return results;
   }
   function trend(periods) {
     const points = periods.filter(item => day(item.date) !== null && N(item.mean) !== null).map(item => ({ date: item.date, value: item.mean, n: item.n }));
     if (points.length < 3) return { available: false, reason: "至少三个不同测试日期才绘制描述性线性趋势", points, slopePer30Days: null, r2: null };
     const origin = day(points[0].date), xs = points.map(point => (day(point.date) - origin) / 86400000), ys = points.map(point => point.value);
-    const meanX = descriptive(xs).mean, meanY = descriptive(ys).mean;
-    const sxx = xs.reduce((sum, x) => sum + (x - meanX) ** 2, 0), sxy = xs.reduce((sum, x, index) => sum + (x - meanX) * (ys[index] - meanY), 0);
+    const meanX = numericMean(xs), meanY = numericMean(ys);
+    if (ys.every(y => numericDifference(y, ys[0]) === 0)) return { available: true, reason: "", origin: points[0].date,
+      intercept: meanY, slopePerDay: 0, slopePer30Days: 0, r2: null,
+      points: points.map((point, index) => ({ ...point, day: xs[index], fitted: meanY })) };
+    const sxx = compensatedSum(xs.map(x => (x - meanX) ** 2)), sxy = compensatedSum(xs.map((x, index) => (x - meanX) * (ys[index] - meanY)));
     const slope = sxy / sxx, intercept = meanY - slope * meanX;
-    const sst = ys.reduce((sum, y) => sum + (y - meanY) ** 2, 0), residual = ys.reduce((sum, y, index) => sum + (y - intercept - slope * xs[index]) ** 2, 0);
+    const sst = compensatedSum(ys.map(y => (y - meanY) ** 2)), residual = compensatedSum(ys.map((y, index) => (y - intercept - slope * xs[index]) ** 2));
     return { available: true, reason: "", origin: points[0].date, intercept, slopePerDay: slope, slopePer30Days: slope * 30,
       r2: sst > 0 ? Math.max(0, Math.min(1, 1 - residual / sst)) : null,
       points: points.map((point, index) => ({ ...point, day: xs[index], fitted: intercept + slope * xs[index] })) };
@@ -251,6 +201,52 @@
     const excluded = new Set(["mass", "massKg", "height", "heightCm", "distanceCm", "positionStartM", "temperatureC", "pressureHpa", "windMps"]);
     return Object.fromEntries(Object.entries(input || {}).filter(([key]) => !excluded.has(key)));
   }
+  function descriptiveInterpretation(reason = "未形成可追溯的有效评价依据，仅描述数值变化") {
+    return { changeInterpretation: "descriptive", changeDirection: "", changeInterpretationBasis: reason,
+      changeInterpretationKey: "", changeInterpretationRule: "", changeGrade: "" };
+  }
+  function evaluatedInterpretation(entry, definition, subjectId, eligible = true, side) {
+    if (!definition || !eligible || definition.referenceEnabled !== true || definition.referenceMatch?.eligible === false)
+      return descriptiveInterpretation("未启用、未匹配或不适用于本指标的评价标准，仅描述数值变化");
+    const standard = entry.record.evaluationStandards?.find(rule => rule.subjectId === subjectId);
+    const appraisal = entry.stats.evaluationResults.find(result => result.subjectId === subjectId && (side === undefined || (result.side || "") === side));
+    if ((standard && (!standard.enabled || !standard.applicable)) || (!standard && entry.record.evaluationProfileFormat === 2)
+      || !appraisal || !appraisal.applicable)
+      return descriptiveInterpretation("未形成适用的原评价依据，仅描述数值变化");
+    const target = N(definition.target), hasTarget = target !== null && target > 0 && definition.targetEnabled !== false
+      && (!standard || standard.targetApplicable === true) && appraisal.targetApplicable !== false;
+    const ranges = (definition.ranges || []).filter(range => ["red", "amber", "green"].includes(range.status)
+      && (N(range.min) !== null || N(range.max) !== null)
+      && (N(range.min) === null || N(range.max) === null || N(range.min) <= N(range.max)))
+      .map(range => ({ min: N(range.min), max: N(range.max), includeMin: range.includeMin !== false, includeMax: range.includeMax !== false, status: range.status }));
+    const hasRanges = ranges.length > 0 && definition.rangesEnabled !== false
+      && (!standard || standard.rangesApplicable === true) && appraisal.rangesApplicable !== false;
+    if (hasRanges) {
+      if (!["red", "amber", "green"].includes(appraisal.grade?.status) || appraisal.grade?.ambiguous === true)
+        return descriptiveInterpretation("已启用的等级区间未形成可判定等级，仅描述数值变化");
+      return { changeInterpretation: "evaluation-standard", changeDirection: "",
+        changeInterpretationBasis: "本指标适用且已启用的等级区间；改善或下降仅依据原评价等级变化，未跨等级时只描述数值",
+        changeInterpretationKey: hash({ subjectId, rule: "ranges", ranges, unit: definition.unit || appraisal.unit || "" }),
+        changeInterpretationRule: "ranges", changeGrade: appraisal.grade.status };
+    }
+    if (hasTarget && N(appraisal.target) === target && ["higher", "lower"].includes(definition.direction)) {
+      const direction = definition.direction;
+      return { changeInterpretation: "evaluation-standard", changeDirection: direction,
+        changeInterpretationBasis: "本指标适用且已启用的目标规则：" + (direction === "higher" ? "较高值" : "较低值") + "方向，目标 " + target + " " + (definition.unit || appraisal.unit || ""),
+        changeInterpretationKey: hash({ subjectId, rule: "target", direction, target, unit: definition.unit || appraisal.unit || "" }),
+        changeInterpretationRule: "target", changeGrade: appraisal.grade?.status || "" };
+    }
+    return descriptiveInterpretation("没有有效目标或可判定的等级区间，仅描述数值变化");
+  }
+  function metricInterpretation(entry, id, definition, extra) {
+    if (extra.originalChangeRule) {
+      const rule = extra.originalChangeRule;
+      return { changeInterpretation: "original-rule", changeDirection: rule.direction, changeInterpretationBasis: rule.basis,
+        changeInterpretationKey: hash({ id, rule: rule.identity }), changeInterpretationRule: "original", changeGrade: "" };
+    }
+    return evaluatedInterpretation(entry, extra.evaluationDefinition || definition, extra.evaluationSubjectId || "metric:" + id,
+      extra.evaluationEligible !== false, extra.evaluationSide);
+  }
   function extraction(entry) {
     const { record, stats } = entry, items = [], ids = new Set();
     const add = (id, testId, label, value, unit, extra = {}) => {
@@ -264,9 +260,10 @@
         ...(extra.protocol ? { protocol: extra.protocol } : {}) };
       const scale = extra.measurementScale || definition?.measurementScale || E?.measurementScale?.(definition || { unit }) || "ratio";
       const continuous = extra.continuous !== false && !["ordinal", "nominal", "categorical", "binary"].includes(scale);
+      const { originalChangeRule, evaluationDefinition, evaluationSubjectId, evaluationEligible, evaluationSide, ...publicExtra } = extra;
       items.push({ id, testId, label, unit: unit || "", key: canonical(identity), identity, direction: extra.direction || definition?.direction || "higher",
         measurementScale: scale, continuous, allowCV: continuous && scale === "ratio" && definition?.cvEligible !== false && !/^(?:%|%PF|分)$/.test(unit || ""),
-        value: N(value), reason: extra.reason || (N(value) === null ? "缺少有效结果" : ""), ...extra });
+        value: N(value), reason: extra.reason || (N(value) === null ? "缺少有效结果" : ""), ...publicExtra, ...metricInterpretation(entry, id, definition, extra) });
     };
     const timeIds = new Set(stats.imtpTimeResults.map(item => item.id));
     for (const definition of record.definitions) {
@@ -287,15 +284,27 @@
       add(definition.id, definition.testId, T.metricName(definition), stats.values[definition.id], unit, { definition, ...extra });
     }
     for (const result of stats.imtpTimeResults) {
-      add(result.id, "imtp", result.name, result.value, result.unit, { timeMs: result.timeMs, context: { ...measurementContext(record, { id: result.id, testId: "imtp", unit: result.unit }), force: M.imtpTimeContext(record) } });
+      const timeSubject = result.standard ? "imtp-time:" + (result.kind === "force" ? "force_pct_peak" : "rfd") + ":" + result.timeMs : "metric:" + result.id;
+      add(result.id, "imtp", result.name, result.value, result.unit, { timeMs: result.timeMs,
+        evaluationDefinition: result.standard, evaluationSubjectId: timeSubject,
+        evaluationEligible: result.evaluationValid && result.evaluationUnit === result.unit && result.standard?.matched !== false,
+        context: { ...measurementContext(record, { id: result.id, testId: "imtp", unit: result.unit }), force: M.imtpTimeContext(record) } });
       if (result.kind === "force") add(result.id + "_pct_peak", "imtp", "IMTP " + result.timeMs + " ms / PF", stats.raw.forceTime?.timeRows.find(point => point.timeMs === result.timeMs)?.forcePercentValid === false ? null : result.forcePercent, "%PF",
-        { timeMs: result.timeMs, context: { ...M.imtpTimeContext(record), kind: "force_pct_peak" } });
+        { timeMs: result.timeMs, evaluationDefinition: result.standard, evaluationSubjectId: timeSubject,
+          evaluationEligible: result.evaluationValid && result.evaluationUnit === "%PF" && result.standard?.kind === "force_pct_peak" && result.standard?.matched !== false,
+          context: { ...M.imtpTimeContext(record), kind: "force_pct_peak" } });
     }
     for (const row of stats.isoAnalyses) {
       const sourceRow = record.data.iso.find(item => item.id === row.id), context = E?.isoContext ? E.isoContext(sourceRow, record) : { direction: row.direction, region: row.region, unit: row.unit };
       for (const side of row.sides) add("iso_" + row.id + "_" + (side.side || "C"), "iso", row.direction + " " + (side.side || ""), side.value, row.unit,
-        { side: side.side || "C", context, aggregation: "record", pain: side.pain === true, status: side.status });
-      if (row.paired) add("iso_" + row.id + "_asym", "iso", row.direction + " 双侧差异", row.asym, "%", { context, direction: "lower", aggregation: "record" });
+        { side: side.side || "C", context, aggregation: "record", pain: side.pain === true, status: side.status,
+          evaluationDefinition: { referenceEnabled: side.target !== null, targetEnabled: true, target: side.target, direction: "higher", unit: row.unit },
+          evaluationSubjectId: "iso:" + row.id, evaluationSide: side.side || "", evaluationEligible: side.target > 0 && side.targetKind !== "none" });
+      if (row.paired) {
+        const amber = N(record.rules.asymAmber), red = N(record.rules.asymRed), hasRule = amber !== null && red !== null && amber >= 0 && red >= amber;
+        add("iso_" + row.id + "_asym", "iso", row.direction + " 双侧差异", row.asym, "%", { context, direction: "lower", aggregation: "record",
+          ...(hasRule ? { originalChangeRule: { direction: "lower", identity: { asymAmber: amber, asymRed: red }, basis: "原双侧差异预警规则：差异较小的方向；关注 " + amber + "%，预警 " + red + "%（仅指该侧差指标）" } } : {}) });
+      }
     }
     for (const pair of stats.balanceResults) {
       const sourcePair = record.balancePairs.find(item => item.id === pair.id), contexts = sourcePair ? [sourcePair.numeratorId, sourcePair.denominatorId].map(id => {
@@ -304,7 +313,8 @@
       for (const side of pair.results) add("balance_" + pair.id + "_" + (side.side || "C"), "iso", pair.label + " " + (side.side || ""), side.value, "比值", { side: side.side || "C", context: contexts, aggregation: "record" });
     }
     for (const [index, item] of (stats.raw.fms?.items || []).entries()) {
-      const extra = { continuous: false, measurementScale: "ordinal", aggregation: "record", pain: item.pain === true, notes: item.notes || "" };
+      const extra = { continuous: false, measurementScale: "ordinal", aggregation: "record", pain: item.pain === true, notes: item.notes || "",
+        originalChangeRule: { direction: "higher", identity: "fms-original-item-score-0-3", basis: "原FMS分项0–3评分定义：较高分表示动作评分提高；疼痛与左右原分另行保留" } };
       add("fms_" + index, "fms", item.name, item.value, "分", extra);
       if (item.bilateral) for (const side of ["left", "right"]) add("fms_" + index + "_" + side, "fms", item.name + (side === "left" ? " 左" : " 右"), item[side], "分", { ...extra, side: side === "left" ? "L" : "R" });
     }
@@ -345,39 +355,66 @@
     }
     return items;
   }
-  function buildMetric(metadata, entries, selection, indexes) {
-    const byEntry = new Map();
+  const interpretationFields = ["changeInterpretation", "changeDirection", "changeInterpretationBasis", "changeInterpretationKey", "changeInterpretationRule", "changeGrade"];
+  function interpretationOf(observation) {
+    return Object.fromEntries(interpretationFields.map(field => [field, observation[field] || ""]));
+  }
+  function compatibleInterpretations(before, after) {
+    return before.changeInterpretation !== "descriptive" && after.changeInterpretation !== "descriptive"
+      && !!before.changeInterpretationKey && before.changeInterpretationKey === after.changeInterpretationKey
+      && before.changeInterpretationRule === after.changeInterpretationRule && before.changeDirection === after.changeDirection;
+  }
+  function interpretChange(baseline, current, delta, reason) {
+    const compatible = compatibleInterpretations(baseline, current), policy = delta === null
+      ? descriptiveInterpretation(reason || "缺少前后可比值，无法判定变化")
+      : compatible ? interpretationOf(current) : descriptiveInterpretation("基线与本期没有兼容、有效的评价依据，仅描述数值变化");
+    let improvement = delta === null ? "unknown" : delta === 0 ? "unchanged" : delta > 0 ? "increased" : "decreased";
+    if (delta !== null && delta !== 0 && compatible) {
+      if (policy.changeInterpretationRule === "ranges") {
+        const gradeRank = { red: 0, amber: 1, green: 2 }, beforeRank = gradeRank[baseline.changeGrade], afterRank = gradeRank[current.changeGrade];
+        if (afterRank > beforeRank) improvement = "improved";
+        else if (afterRank < beforeRank) improvement = "declined";
+      } else if (["higher", "lower"].includes(policy.changeDirection)) {
+        improvement = (policy.changeDirection === "higher" ? delta > 0 : delta < 0) ? "improved" : "declined";
+      }
+    }
+    return { ...policy, improvement, baselineInterpretationKey: baseline.changeInterpretationKey || "", currentInterpretationKey: current.changeInterpretationKey || "",
+      baselineGrade: baseline.changeGrade || "", currentGrade: current.changeGrade || "" };
+  }
+  function buildMetric(metadata, entries, selection, indexes, issues = []) {
+    const athleteId = selection.athleteIds[0], byDate = new Map();
     for (const entry of entries) {
       const index = indexes?.get(entry), exact = index ? index.byKey.get(metadata.key) : entry.extracted.find(item => item.key === metadata.key),
         sibling = index ? index.byId.get(metadata.id) : entry.extracted.find(item => item.id === metadata.id);
       const mismatch = !sibling ? "本记录未测此指标" : sibling.unit !== metadata.unit ? "单位不一致：本记录为 " + (sibling.unit || "无单位") + "，此指标为 " + (metadata.unit || "无单位")
         : sibling.identity.aggregation !== metadata.identity.aggregation ? "代表成绩取值口径不一致：本记录为 " + sibling.identity.aggregation + "，此指标为 " + metadata.identity.aggregation
         : "测量协议或测量条件不一致";
-      byEntry.set(entry.athleteId + "|" + entry.date, { athleteId: entry.athleteId, date: entry.date, recordId: entry.recordId,
-        value: exact ? exact.value : null, reason: exact ? exact.reason || "" : mismatch,
-        pain: exact?.pain || false, status: exact?.status || "gray" });
+      byDate.set(entry.date, { athleteId, date: entry.date, recordId: entry.recordId, value: exact ? exact.value : null,
+        reason: exact ? exact.reason || "" : mismatch, pain: exact?.pain || false, status: exact?.status || "gray", notes: exact?.notes || "",
+        ...(exact ? interpretationOf(exact) : descriptiveInterpretation(mismatch)) });
     }
-    const observations = selection.athleteIds.flatMap(athleteId => selection.dates.map(date => byEntry.get(athleteId + "|" + date) || { athleteId, date, recordId: "", value: null, reason: "本日没有有效记录" }));
-    const cells = new Map(observations.map(item => [item.athleteId + "|" + item.date, item]));
-    const cohortIds = selection.athleteIds.filter(id => selection.dates.every(date => cells.get(id + "|" + date).value !== null));
-    const longitudinal = selection.dates.length > 1;
-    const periods = selection.dates.map(date => {
-      const all = observations.filter(item => item.date === date), included = all.filter(item => item.value !== null && (!longitudinal || cohortIds.includes(item.athleteId)));
-      const stats = descriptive(included.map(item => item.value), metadata.allowCV);
-      const distribution = metadata.continuous ? null : Object.fromEntries(unique(included.map(item => String(item.value))).sort().map(value => [value, included.filter(item => String(item.value) === value).length]));
-      return { date, ...stats, observations: included, allObservations: all, distribution, painCount: included.filter(item => item.pain).length };
-    });
-    const base = periods[0], changes = periods.slice(1).map(period => {
-      const first = cohortIds.map(id => cells.get(id + "|" + base.date)?.value);
-      const current = cohortIds.map(id => cells.get(id + "|" + period.date)?.value);
-      const result = paired(first, current, { infer: selection.athleteIds.length > 1, continuous: metadata.continuous, unit: metadata.unit,
-        allowPercent: metadata.measurementScale === "ratio" && !/^(?:%|%PF|分)$/.test(metadata.unit) });
-      return { date: period.date, baselineDate: base.date, ...result, improvement: result.delta === null ? "unknown" : result.delta === 0 ? "unchanged" : metadata.direction === "lower" ? result.delta < 0 ? "improved" : "declined" : metadata.direction === "higher" ? result.delta > 0 ? "improved" : "declined" : "changed" };
+    const observations = selection.dates.map(date => byDate.get(date) || { athleteId, date,
+      recordId: selection.recordChoices[athleteId]?.[date] || "", value: null,
+      reason: issues.find(issue => issue.date === date)?.reason || "本日没有有效记录", pain: false, status: "gray", notes: "", ...descriptiveInterpretation("本日没有可比结果") });
+    const periods = observations.map(observation => ({ date: observation.date, value: observation.value, mean: observation.value,
+      n: observation.value === null ? 0 : 1, observations: observation.value === null ? [] : [observation], allObservations: [observation],
+      reason: observation.reason, painCount: observation.pain ? 1 : 0 }));
+    const baseline = observations[0], changes = observations.slice(1).map(current => {
+      const delta = numericDifference(current.value, baseline.value), reason = current.value === null ? current.reason
+        : baseline.value === null ? "基线缺少可比结果：" + baseline.reason : "";
+      const percentChange = metadata.measurementScale === "ratio" && !/^(?:%|%PF|分)$/.test(metadata.unit) && baseline.value > 0 && delta !== null
+        ? 100 * delta / baseline.value : null;
+      return { date: current.date, baselineDate: baseline.date, baselineValue: baseline.value, currentValue: current.value,
+        delta, percentChange, deltaUnit: /^(?:%|%PF)$/.test(metadata.unit) ? "百分点" : metadata.unit,
+        ...interpretChange(baseline, current, delta, reason), reason };
     });
     const { value, reason, definition, ...descriptor } = metadata;
-    return { ...descriptor, observations, cohortIds, periods, changes, trend: metadata.continuous ? trend(periods) : { available: false, points: [], slopePer30Days: null, reason: "序数和分类数据按原值与状态展示" } };
+    const valid = observations.filter(item => item.value !== null), commonInterpretation = valid.length > 0 && valid.every(item => compatibleInterpretations(valid[0], item))
+      ? { ...interpretationOf(valid[0]), changeGrade: "" } : descriptiveInterpretation("各期没有统一、有效的评价依据；各次变化分别核对基线与本期，仅有数值依据时显示增加或减少");
+    return { ...descriptor, ...commonInterpretation, observations, periods, changes, trend: metadata.continuous ? trend(periods)
+      : { available: false, points: [], slopePer30Days: null, reason: "序数和分类数据按原值与状态展示" } };
   }
-  function aggregateAxes(entries, selection) {
+  function buildAxes(entries, selection) {
     const metadata = new Map();
     for (const entry of entries) for (const axis of entry.stats.axes) {
       const identity = { key: axis.key, method: axis.method, members: axis.members, transforms: axis.transforms,
@@ -387,13 +424,14 @@
       if (!metadata.has(key)) metadata.set(key, { id: axis.key, key, label: axis.label, unit: "分", identity, observations: [] });
       metadata.get(key).observations.push({ athleteId: entry.athleteId, recordId: entry.recordId, date: entry.date, value: axis.value, status: axis.status });
     }
-    return [...metadata.values()].map(axis => {
-      const cohortIds = selection.athleteIds.filter(id => selection.dates.every(date => axis.observations.some(item => item.athleteId === id && item.date === date)));
-      return { ...axis, cohortIds, periods: selection.dates.map(date => { const observations = axis.observations.filter(item => item.date === date && (selection.dates.length === 1 || cohortIds.includes(item.athleteId))); return { date, ...descriptive(observations.map(item => item.value)), observations }; }) };
-    });
+    return [...metadata.values()].map(axis => ({ ...axis, periods: selection.dates.map(date => {
+      const observation = axis.observations.find(item => item.date === date), value = N(observation?.value);
+      return { date, value, mean: value, n: value === null ? 0 : 1, observations: observation && value !== null ? [observation] : [],
+        reason: value === null ? "本期缺少同口径能力评分" : "" };
+    }) }));
   }
   function buildSummary(entries, selection) {
-    const cells = new Map(entries.map(entry => [entry.athleteId + "|" + entry.date, entry]));
+    const athleteId = selection.athleteIds[0], cells = new Map(entries.map(entry => [entry.date, entry]));
     const evaluations = new Map(entries.map(entry => [entry, new Map(entry.stats.evaluationResults.map(item => [item.subjectId + "|" + (item.side || ""), item]))]));
     const measurements = new Map(entries.map(entry => [entry, new Map(entry.extracted.map(item => [item.id, item]))]));
     const appraisals = new Map(entries.map(entry => {
@@ -402,111 +440,89 @@
     }));
     const measure = (entry, id) => measurements.get(entry)?.get(id);
     const periods = selection.dates.map(date => {
-      const present = entries.filter(entry => entry.date === date), counted = status => present.filter(entry => entry.stats.findings.some(item => item.status === status)).map(entry => entry.athleteId);
-      const red = counted("red"), amber = counted("amber"), advantage = present.filter(entry => entry.stats.advantages.items.some(item => !item.relative)).map(entry => entry.athleteId);
+      const entry = cells.get(date), findings = copy(entry?.stats.findings || []), advantages = copy((entry?.stats.advantages.items || []).filter(item => !item.relative));
       const regions = {};
-      for (const entry of present) for (const [key, region] of Object.entries(entry.stats.signals.regions || {})) {
-        const out = regions[key] ||= { key, name: key, label: region.label, n: 0, count: 0, redCount: 0, amberCount: 0, greenCount: 0, status: "gray", members: [], tests: [] };
-        if (!region.hasMeasured) continue;
-        out.n++; out.members.push({ athleteId: entry.athleteId, recordId: entry.recordId, status: region.status, tests: copy(region.tests || []) });
-        if (["red", "amber", "green"].includes(region.status)) out[region.status + "Count"]++;
-        if (["red", "amber"].includes(region.status)) out.count++;
-        out.tests.push(...(region.tests || []).map(test => ({ ...copy(test), athleteId: entry.athleteId, recordId: entry.recordId })));
-        const severity = { gray: 0, green: 1, amber: 2, red: 3 }; if (severity[region.status] > severity[out.status]) out.status = region.status;
+      for (const [key, region] of Object.entries(entry?.stats.signals.regions || {})) {
+        regions[key] = { key, name: key, label: region.label, status: region.hasMeasured ? region.status : "gray", measured: !!region.hasMeasured,
+          members: region.hasMeasured ? [{ athleteId, recordId: entry.recordId, status: region.status, tests: copy(region.tests || []) }] : [],
+          tests: copy(region.tests || []) };
       }
-      return { date, selectedCount: selection.athleteIds.length, resultCount: present.filter(entry => entry.stats.validTests.size > 0).length,
-        redCount: red.length, amberCount: amber.length, advantageCount: advantage.length,
-        red: { count: red.length, athleteIds: red }, amber: { count: amber.length, athleteIds: amber }, advantage: { count: advantage.length, athleteIds: advantage }, regions };
+      return { date, athleteId, recordId: entry?.recordId || "", hasResults: !!entry?.stats.validTests.size,
+        redCount: findings.filter(item => item.status === "red").length, amberCount: findings.filter(item => item.status === "amber").length,
+        advantageCount: advantages.length, findings, advantages, regions };
     });
-    const transitions = [], baselineDate = selection.dates[0];
-    for (const athleteId of selection.athleteIds) {
-      const baseline = cells.get(athleteId + "|" + baselineDate);
-      for (const date of selection.dates.slice(1)) {
-        const latest = cells.get(athleteId + "|" + date);
-        for (const key of unique([...(evaluations.get(baseline)?.keys() || []), ...(evaluations.get(latest)?.keys() || [])])) {
-          const find = entry => evaluations.get(entry)?.get(key);
-          const before = find(baseline), after = find(latest);
-          const metricIds = item => item ? item.metricId ? [item.metricId] : item.directionId ? ["iso_" + item.directionId + "_" + (item.side || "C")] : item.kind === "fixed" ? [item.subjectId.replace(":", "_")] : [] : [];
-          const a = measure(baseline, metricIds(before)[0]), b = measure(latest, metricIds(after)[0]);
-          const fullHistory = selection.dates.map(historyDate => cells.get(athleteId + "|" + historyDate));
-          const canCompare = before && after && before.value !== null && after.value !== null && a && b && a.key === b.key
-            && fullHistory.every(entry => {
-              const result = find(entry), measurement = measure(entry, metricIds(result)[0]);
-              return result && N(result.value) !== null && result.grade?.status !== "gray" && measurement && measurement.key === a.key;
-            });
-          const from = before?.grade?.status || "unknown", to = after?.grade?.status || "unknown";
-          const concern = status => ["red", "amber"].includes(status);
-          const state = !canCompare ? "unknown" : !concern(from) && concern(to) ? "new" : concern(from) && !concern(to) ? "resolved" : concern(from) && concern(to) ? "persistent" : "unchanged";
-          transitions.push({ athleteId, fromDate: baselineDate, toDate: date, key, title: after?.name || before?.name || key, from, to, state, reason: canCompare ? "" : "前后缺测、评价不可判定或测量内容不一致" });
-        }
-        const advantageSubjects = unique([...(baseline?.stats.advantages.items || []).map(item => item.id), ...(latest?.stats.advantages.items || []).map(item => item.id)]);
-        for (const id of advantageSubjects) {
-          const before = measure(baseline, id), after = measure(latest, id), canCompare = before && after && before.value !== null && after.value !== null && before.key === after.key
-            && selection.dates.every(historyDate => {
-              const entry = cells.get(athleteId + "|" + historyDate), measurement = measure(entry, id);
-              const appraisal = appraisals.get(entry)?.get(id);
-              return measurement && measurement.key === before.key && N(measurement.value) !== null && appraisal && appraisal.grade?.status !== "gray";
-            });
-          const from = !!baseline?.stats.advantages.items.some(item => item.id === id && !item.relative), to = !!latest?.stats.advantages.items.some(item => item.id === id && !item.relative);
-          transitions.push({ athleteId, fromDate: baselineDate, toDate: date, key: "advantage:" + id, title: after?.label || before?.label || id, from, to,
-            state: !canCompare ? "unknown" : !from && to ? "entered" : from && !to ? "exited" : from && to ? "persistent" : "unchanged", reason: canCompare ? "" : "前后缺测或测量不一致" });
-        }
+    const transitions = [], baselineDate = selection.dates[0], baseline = cells.get(baselineDate);
+    const judged = item => item && N(item.value) !== null && ["red", "amber", "green"].includes(item.grade?.status);
+    for (const date of selection.dates.slice(1)) {
+      const latest = cells.get(date);
+      for (const key of unique([...(evaluations.get(baseline)?.keys() || []), ...(evaluations.get(latest)?.keys() || [])])) {
+        const before = evaluations.get(baseline)?.get(key), after = evaluations.get(latest)?.get(key);
+        const metricIds = item => item ? item.metricId ? [item.metricId] : item.directionId ? ["iso_" + item.directionId + "_" + (item.side || "C")]
+          : item.kind === "fixed" ? [item.subjectId.replace(":", "_")] : [] : [];
+        const a = measure(baseline, metricIds(before)[0]), b = measure(latest, metricIds(after)[0]);
+        const canCompare = judged(before) && judged(after) && a && b && a.key === b.key;
+        const from = before?.grade?.status || "unknown", to = after?.grade?.status || "unknown", concern = status => ["red", "amber"].includes(status);
+        const state = !canCompare ? "unknown" : !concern(from) && concern(to) ? "new" : concern(from) && !concern(to) ? "resolved"
+          : concern(from) && concern(to) ? "persistent" : "unchanged";
+        transitions.push({ athleteId, fromDate: baselineDate, toDate: date, key, title: after?.name || before?.name || key, from, to, state,
+          reason: canCompare ? "" : "前后缺测、评价不可判定或测量内容不一致" });
+      }
+      const subjects = unique([...(baseline?.stats.advantages.items || []).map(item => item.id), ...(latest?.stats.advantages.items || []).map(item => item.id)]);
+      for (const id of subjects) {
+        const before = measure(baseline, id), after = measure(latest, id);
+        const canCompare = before && after && before.value !== null && after.value !== null && before.key === after.key
+          && judged(appraisals.get(baseline)?.get(id)) && judged(appraisals.get(latest)?.get(id));
+        const from = !!baseline?.stats.advantages.items.some(item => item.id === id && !item.relative), to = !!latest?.stats.advantages.items.some(item => item.id === id && !item.relative);
+        transitions.push({ athleteId, fromDate: baselineDate, toDate: date, key: "advantage:" + id, title: after?.label || before?.label || id, from, to,
+          state: !canCompare ? "unknown" : !from && to ? "entered" : from && !to ? "exited" : from && to ? "persistent" : "unchanged",
+          reason: canCompare ? "" : "前后缺测或测量不一致" });
       }
     }
     return { periods, latest: periods[periods.length - 1] || null, transitions };
   }
   function buildCapabilities(entries, selection) {
+    const athleteId = selection.athleteIds[0];
     return ["strength", "reactive", "speed", "endurance"].map(id => {
-      const sourceMembers = date => entries.filter(entry => entry.date === date).map(entry => ({ athleteId: entry.athleteId, recordId: entry.recordId, name: entry.record.athlete.name,
-        ...entry.directions.find(direction => direction.id === id), entry })).filter(item => item.hasData);
+      const sourceMember = date => {
+        const entry = entries.find(item => item.date === date), direction = entry?.directions.find(item => item.id === id);
+        return entry && direction ? { athleteId, recordId: entry.recordId, name: entry.record.athlete.name, ...direction, entry }
+          : { athleteId, recordId: "", value: null, hasData: false, status: "gray", judgment: "本期未测", reason: "本日没有有效记录" };
+      };
       const memberIdentity = member => {
-        if (!member) return null;
         const metricId = member.metricId === "fvp" ? (member.context?.protocol || selection.basis.jumpProtocol) + "_imbalance"
           : member.metricId === "sprint_fvp" ? "sprint_fvp_imbalance"
           : member.metricId === "jump_elasticity" ? (member.context?.protocol || selection.basis.jumpProtocol) + "_elasticity_er"
           : member.metricId === "sprint_elasticity" ? "sprint_fvp_elasticity_er" : member.metricId;
         return canonical({ metricId: member.metricId, context: member.context, measure: member.entry?.extracted.find(item => item.id === metricId)?.key || null });
       };
-      const availableByDate = selection.dates.map(date => sourceMembers(date)), cohortIds = selection.athleteIds.filter(athleteId => {
-        const history = availableByDate.map(members => members.find(member => member.athleteId === athleteId)), first = history[0];
-        return first && history.every(member => member && N(member.value) !== null && member.judgment && !/待计算|待判断|未设置|未测/.test(member.judgment) && memberIdentity(member) === memberIdentity(first));
-      });
-      const parameterTemplates = new Map();
+      const sources = new Map(selection.dates.map(date => [date, sourceMember(date)])), templates = new Map();
       for (const entry of entries) {
         const card = entry.stats.capabilityCards.find(card => card.id === (id === "endurance" ? "cardio" : id));
         for (const parameter of card?.metrics || []) {
           const parameterId = parameter.selectedVariant || (parameter.id.startsWith("sprint_elasticity_") ? parameter.id.replace("sprint_elasticity_", "sprint_fvp_elasticity_")
             : /^(?:fvp_sj|fvp_cmj)_(?:fe|ve|er|en)$/.test(parameter.id) ? parameter.id.replace(/_(fe|ve|er|en)$/, "_elasticity_$1") : parameter.id);
-          const descriptor = entry.extracted.find(item => item.id === parameterId), identity = descriptor?.key || canonical({ id: parameterId, unit: parameter.unit, contexts: (parameter.components || []).map(component => ({ id: component.id, unit: component.unit })) });
-          if (!parameterTemplates.has(identity)) parameterTemplates.set(identity, { id: parameter.id, key: identity, label: parameter.label, unit: parameter.unit, observations: [] });
-          parameterTemplates.get(identity).observations.push({ athleteId: entry.athleteId, date: entry.date, value: parameter.value });
+          const descriptor = entry.extracted.find(item => item.id === parameterId), identity = descriptor?.key
+            || canonical({ id: parameterId, unit: parameter.unit, contexts: (parameter.components || []).map(component => ({ id: component.id, unit: component.unit })) });
+          if (!templates.has(identity)) templates.set(identity, { id: parameter.id, key: identity, label: parameter.label, unit: parameter.unit, observations: [] });
+          templates.get(identity).observations.push({ athleteId, recordId: entry.recordId, date: entry.date, value: N(parameter.value) });
         }
       }
-      for (const parameter of parameterTemplates.values()) parameter.cohortIds = selection.athleteIds.filter(athleteId => cohortIds.includes(athleteId)
-        && selection.dates.every(date => parameter.observations.some(item => item.athleteId === athleteId && item.date === date && N(item.value) !== null)));
       const periods = selection.dates.map(date => {
-        const availableMembers = sourceMembers(date).map(({ entry, ...member }) => member);
-        const members = availableMembers.filter(member => selection.dates.length === 1 || cohortIds.includes(member.athleteId));
-        const groups = unique(members.map(item => canonical([item.metricId, item.context, item.judgment, item.status]))).map(key => {
-          const items = members.filter(item => canonical([item.metricId, item.context, item.judgment, item.status]) === key), first = items[0];
-          return { judgment: first.judgment, status: first.status, metricId: first.metricId, context: first.context, count: items.length, athleteIds: items.map(item => item.athleteId), names: items.map(item => item.name) };
+        const { entry, ...member } = sources.get(date), parameters = [...templates.values()].map(parameter => {
+          const observations = parameter.observations.filter(item => item.date === date), value = observations[0]?.value ?? null;
+          return { id: parameter.id, key: parameter.key, label: parameter.label, unit: parameter.unit, value, mean: value,
+            n: value === null ? 0 : 1, observations, reason: value === null ? "本期缺少此参数结果" : "" };
         });
-        const parameters = [...parameterTemplates.values()].map(parameter => {
-          const observations = parameter.observations.filter(item => item.date === date && (selection.dates.length === 1 || parameter.cohortIds.includes(item.athleteId)));
-          return { ...parameter, observations, ...descriptive(observations.map(item => item.value), false) };
-        });
-        return { date, n: members.filter(item => item.value !== null).length, members, availableMembers, availableCount: availableMembers.filter(item => item.value !== null).length,
-          groups, parameters };
+        return { date, n: N(member.value) === null ? 0 : 1, members: [member], parameters };
       });
-      const transitions = [];
-      for (const athleteId of selection.athleteIds) {
-        const before = periods[0]?.members.find(item => item.athleteId === athleteId);
-        for (const period of periods.slice(1)) {
-          const after = period.members.find(item => item.athleteId === athleteId), compatible = before && after && before.value !== null && after.value !== null && before.metricId === after.metricId && canonical(before.context) === canonical(after.context);
-          transitions.push({ athleteId, fromDate: periods[0].date, toDate: period.date, from: before?.judgment || "待计算", to: after?.judgment || "待计算", state: !compatible ? "unknown" : before.judgment === after.judgment ? "unchanged" : "changed" });
-        }
-      }
-      return { id, title: { strength: "力量发展方向", reactive: "反应力量水平", speed: "速度发展方向", endurance: "耐力发展方向" }[id], basis: selection.basis[id] || "endurance", cohortIds, periods, transitions };
+      const before = sources.get(selection.dates[0]), transitions = periods.slice(1).map(period => {
+        const after = sources.get(period.date), compatible = before.hasData && after.hasData && N(before.value) !== null && N(after.value) !== null
+          && memberIdentity(before) === memberIdentity(after) && !/待计算|待判断|未设置|未测/.test(before.judgment || "") && !/待计算|待判断|未设置|未测/.test(after.judgment || "");
+        return { athleteId, fromDate: selection.dates[0], toDate: period.date, from: before.judgment || "待计算", to: after.judgment || "待计算",
+          state: !compatible ? "unknown" : before.judgment === after.judgment ? "unchanged" : "changed", reason: compatible ? "" : "前后缺测或测量口径不一致" };
+      });
+      return { id, title: { strength: "力量发展方向", reactive: "反应力量水平", speed: "速度发展方向", endurance: "耐力发展方向" }[id],
+        basis: selection.basis[id] || "endurance", periods, transitions };
     });
   }
   function finishSteps(steps) { let next = steps.next(); while (!next.done) next = steps.next(); return next.value; }
@@ -518,7 +534,7 @@
       const { seriesModel, ...curveMetadata } = extra;
       const key = canonical({ testId, kind, unit, xUnit, context }), curve = curves.get(key) || { key, testId, kind, title, unit, xUnit,
         xLabel: xUnit, yLabel: title + (unit ? "（" + unit + "）" : ""), protocol: context, series: [], common: [], ...curveMetadata };
-      curve.series.push({ athleteId: entry.athleteId, date: entry.date, recordId: entry.recordId, label: entry.record.athlete.name,
+      curve.series.push({ athleteId: entry.athleteId, date: entry.date, recordId: entry.recordId, label: entry.date,
         points, rawPoints: rawPoints || points, model: seriesModel || null,
         supportedMin: support?.[0] ?? Math.min(...points.map(point => point.x)), supportedMax: support?.[1] ?? Math.max(...points.map(point => point.x)) });
       curves.set(key, curve);
@@ -564,45 +580,13 @@
       }
       if ((entryIndex + 1) % 4 === 0) yield { stage: "curve-series", completed: entryIndex + 1, count: entries.length };
     }
-    const interpolate = (series, x) => {
-      if (series.model) { const y = series.model.a + series.model.b * x; return series.model.transform === "power" ? y * x : y; }
-      const points = series.points.slice().sort((a, b) => a.x - b.x), exact = points.find(point => Math.abs(point.x - x) < 1e-10);
-      if (exact) return exact.y;
-      const index = points.findIndex(point => point.x > x);
-      if (index < 1) return null;
-      const a = points[index - 1], b = points[index]; return a.y + (b.y - a.y) * (x - a.x) / (b.x - a.x);
-    };
-    for (const curve of curves.values()) {
-      const fixedIds = selection.athleteIds.filter(id => selection.dates.every(date => curve.series.some(series => series.athleteId === id && series.date === date)));
-      curve.cohortIds = fixedIds;
-      const fixedSeries = curve.series.filter(series => selection.dates.length === 1 || fixedIds.includes(series.athleteId));
-      const fixedLow = fixedSeries.length ? Math.max(...fixedSeries.map(series => series.supportedMin)) : null;
-      const fixedHigh = fixedSeries.length ? Math.min(...fixedSeries.map(series => series.supportedMax)) : null;
-      const measuredXs = unique(curve.series.flatMap(series => series.points.map(point => point.x))).sort((a, b) => a - b);
-      for (const date of selection.dates) {
-        const series = curve.series.filter(series => series.date === date && (selection.dates.length === 1 || fixedIds.includes(series.athleteId)));
-        if (!series.length) continue;
-        const low = fixedLow, high = fixedHigh;
-        const xs = curve.fitted ? high >= low ? Array.from({ length: 41 }, (_, index) => low + (high - low) * index / 40) : [] : measuredXs;
-        for (const x of xs) {
-          const pointIds = curve.fitted ? fixedIds : selection.athleteIds.filter(id => selection.dates.every(historyDate => {
-            const line = curve.series.find(line => line.athleteId === id && line.date === historyDate);
-            return line && line.points.some(point => Math.abs(point.x - x) < 1e-10 && N(point.y) !== null);
-          }));
-          const included = series.filter(line => pointIds.includes(line.athleteId));
-          if (!included.length || !curve.fitted && selection.dates.length === 1 && included.length < series.length) continue;
-          const values = included.map(line => curve.fitted ? interpolate(line, x) : line.points.find(point => Math.abs(point.x - x) < 1e-10)?.y);
-          curve.common.push({ date, x, ...descriptive(values), source: curve.fitted ? "模型共同支持区间" : "共同实测坐标", athleteIds: included.map(line => line.athleteId) });
-        }
-      }
-      yield { stage: "curve-summary", key: curve.key };
-    }
     return [...curves.values()];
   }
   function* comparisonSteps(input, selection) {
     const prepared = preparedInputs.get(input);
     const inputs = prepared ? input : input?.entries ? copy(input) : readComparisonInputs(input, selection || input?.selection || {});
-    inputs.selection = normalizeSelection(selection || inputs.selection);
+    inputs.selection = assertPersonalSelection(normalizeSelection(selection || inputs.selection));
+    assertPersonalEntries(inputs);
     applyExplicitBasis(inputs);
     const basis = inputs.selection.basis;
     const measurementDigests = new Map();
@@ -637,12 +621,9 @@
     }));
     const metrics = [];
     for (const item of metadata.values()) {
-      metrics.push(buildMetric(item, entries, inputs.selection, indexes));
+      metrics.push(buildMetric(item, entries, inputs.selection, indexes, inputs.issues));
       if (metrics.length % 8 === 0) yield { stage: "metric-statistics", completed: metrics.length, count: metadata.size };
     }
-    const family = metrics.filter(metric => metric.continuous && metric.cohortIds.length > 1).flatMap(metric => metric.changes.map(change => ({ metric, change })));
-    const adjusted = holm(family.map(item => item.change.p), family.length);
-    family.forEach((item, index) => { item.change.pAdjusted = adjusted[index]; item.change.comparisonCount = family.length; });
     const descriptors = new Map(); for (const entry of entries) for (const project of T.describe(entry.record)) if (!descriptors.has(project.id)) descriptors.set(project.id, project);
     const projects = unique(metrics.map(metric => metric.testId)).map(id => {
       const descriptor = descriptors.get(id);
@@ -650,7 +631,7 @@
         renderer: descriptor?.renderer || "scalar", metrics: metrics.filter(metric => metric.testId === id),
         reportView: descriptor?.renderer === "scalar" && entries[0] ? root.RingsideGenericReport?.resolveView(entries.find(entry => entry.record.enabled[id])?.record || entries[0].record, id, inputs.catalog) : undefined };
     });
-    const selectionValue = inputs.selection, kind = selectionValue.athleteIds.length === 1 ? selectionValue.dates.length === 1 ? "individual" : "personal-longitudinal" : selectionValue.dates.length === 1 ? "team" : "team-longitudinal";
+    const selectionValue = inputs.selection, kind = "personal-longitudinal";
     const fingerprints = [], profileDigests = new Map();
     for (const [index, entry] of entries.entries()) {
       let profile = null;
@@ -662,21 +643,23 @@
       fingerprints.push({ athleteId: entry.athleteId, recordId: entry.recordId, data: measurementDigests.get(entry) || hash(M.fingerprint(entry.record)), basis: M.capabilityDirectionsBasis(entry.record, entry.stats), profile });
       if ((index + 1) % 4 === 0) yield { stage: "fingerprint", completed: index + 1, count: entries.length };
     }
-    const fingerprint = hash({ selection: selectionValue, records: fingerprints });
+    const fingerprint = hash({ statistics: comparisonMethodVersion, selection: selectionValue, records: fingerprints });
     yield { stage: "summary" }; const summary = buildSummary(entries, selectionValue);
     yield { stage: "capabilities" }; const capabilities = buildCapabilities(entries, selectionValue);
-    yield { stage: "axes" }; const axes = aggregateAxes(entries, selectionValue);
+    yield { stage: "axes" }; const axes = buildAxes(entries, selectionValue);
     yield { stage: "curves" }; const curves = yield* curveSteps(entries, selectionValue);
     return { version: 1, kind, selection: selectionValue, athletes: inputs.athletes || [], dates: selectionValue.dates, entries, metrics, projects, catalog: inputs.catalog || {},
       ready: inputs.ready !== false, issues: inputs.issues || [], summary, capabilities, axes, curves, fingerprint, inputFingerprint: fingerprint,
-      statistics: { version: "paired-t-holm-v1", pairedTest: "双侧配对 t 检验", effectSize: "Cohen’s dz", correction: "Holm", confidenceLevel: .95,
-        confidenceInterval: "配对平均变化的单项未校正95% CI", comparisonCount: family.length, estimatedCount: family.filter(item => item.change.p !== null).length,
-        cohort: "每指标所有选中日期均有效可比的固定队员集合", quantile: "R type 7", trend: "真实日期普通最小二乘描述性线性趋势" } };
+      statistics: { version: comparisonMethodVersion, numericalRoundoff: { relativeFactor: roundoffFactor, epsilon: Number.EPSILON,
+        scale: "实际参与运算的原值尺度", absoluteTolerance: 0, purpose: "仅处理IEEE-754机器舍入，不作为测量误差或训练意义阈值" },
+        baselineDate: selectionValue.dates[0], change: "本期代表值减最早所选日期代表值；缺测或口径不兼容时不计算",
+        changeInterpretation: "仅在基线与本期具有兼容且有效的原评价依据时解释改善或下降；其余非零变化仅描述增加或减少",
+        percentChange: "比例尺度且基线为正；百分数指标使用百分点变化", trend: "真实日期普通最小二乘描述性线性趋势" } };
   }
   function deriveComparison(input, selection) { return finishSteps(comparisonSteps(input, selection)); }
   async function deriveComparisonAsync(input, { onProgress, isCurrent = () => true } = {}) {
     const inputs = input?.entries ? copy(input) : readComparisonInputs(input, input?.selection || {});
-    inputs.selection = normalizeSelection(inputs.selection); applyExplicitBasis(inputs);
+    inputs.selection = assertPersonalSelection(normalizeSelection(inputs.selection)); assertPersonalEntries(inputs); applyExplicitBasis(inputs);
     const checkCurrent = () => {
       if (!isCurrent()) { const error = new Error("比较计算已取消"); error.name = "AbortError"; throw error; }
     };
@@ -703,5 +686,5 @@
     } finally { preparedInputs.delete(inputs); }
   }
   root.RingsideComparison = Object.freeze({ normalizeSelection, selectionKey, readComparisonInputs, deriveComparison,
-    deriveComparisonAsync, descriptive, quantile, studentP, criticalT, paired, holm, trend, extractMetrics: extraction, canonical, hash });
+    deriveComparisonAsync, numericDifference, trend, extractMetrics: extraction, canonical, hash });
 })(typeof window !== "undefined" ? window : globalThis);

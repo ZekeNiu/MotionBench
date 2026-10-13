@@ -3646,9 +3646,9 @@ body.sidebar-collapsed .workspace {
   .fvp-scenario-shortcuts button { min-height:40px; }
 }
 
-/* Comparison surfaces inherit the established MotionBench report palette. */
+/* Personal longitudinal reports inherit the established MotionBench palette. */
 .comparison-report { min-width:0; }
-.summary-grid:has(.comparison-body-facets),.summary-grid:has(.comparison-screening-chart) { align-items:start; }
+.summary-grid:has(.comparison-screening-chart) { align-items:start; }
 .comparison-report .quality-heading { align-items:baseline; flex-wrap:wrap; }
 .comparison-report .quality-heading p { margin:0; }
 .comparison-controls { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:0 0 18px; }
@@ -3668,54 +3668,34 @@ body.sidebar-collapsed .workspace {
 .comparison-chart-panel h5 { margin:0 0 10px; font-size:13px; font-weight:600; color:var(--ink); }
 .comparison-chart-panel > svg { display:block; width:100%; height:auto; max-height:620px; }
 .comparison-chart-caption { margin:8px 0 0; color:var(--muted); font-size:11px; line-height:1.6; }
-.comparison-legend { display:flex; flex-wrap:wrap; gap:5px; margin:6px 0 2px; }
-.comparison-legend-person { display:flex; align-items:center; gap:5px; max-width:100%; padding:3px 6px; color:var(--muted); font-size:11px; background:transparent; border:1px solid transparent; border-radius:5px; }
-.comparison-legend-person i { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.comparison-legend { display:flex; flex-wrap:wrap; gap:5px; margin:7px 0 2px; }
+.comparison-legend-date { display:flex; align-items:center; gap:6px; max-width:100%; padding:4px 6px; color:var(--muted); font-size:11px; background:transparent; border:1px solid transparent; border-radius:5px; }
+.comparison-legend-date[aria-pressed="true"] { border-color:var(--blue); color:var(--ink); background:var(--blue-soft); }
+.comparison-line-key { display:inline-block; flex:0 0 24px; width:24px; height:0; border-top:2px solid var(--comparison-line-color,var(--muted)); }
+.comparison-line-pattern-1,.comparison-line-pattern-3,.comparison-line-pattern-4 { border-top-style:dashed; }
+.comparison-line-pattern-2,.comparison-line-pattern-5 { border-top-style:dotted; }
 .comparison-print-legend { display:none; }
-.ringside-pdf-document .comparison-print-legend { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:10px; margin:6px 0; }
 .comparison-print-legend span { display:flex; align-items:center; gap:5px; }
-.comparison-print-legend i { width:7px; height:7px; border-radius:50%; }
-.comparison-legend-person[aria-pressed="true"] { border-color:var(--blue); color:var(--ink); background:var(--blue-soft); }
-.comparison-chart-key { display:flex; flex-wrap:wrap; align-items:center; gap:5px 14px; margin:7px 0; color:var(--muted); font-size:10px; }
-.comparison-chart-key span { display:flex; align-items:center; gap:5px; }
-.comparison-chart-key .comparison-line-key { display:inline-block; flex:0 0 28px; width:28px; height:0; border-top:2px solid var(--comparison-line-color,var(--muted)); }
-.comparison-chart-key .comparison-line-pattern-1,.comparison-chart-key .comparison-line-pattern-3,.comparison-chart-key .comparison-line-pattern-4 { border-top-style:dashed; }
-.comparison-chart-key .comparison-line-pattern-2,.comparison-chart-key .comparison-line-pattern-5 { border-top-style:dotted; }
-.comparison-chart-viewport { overflow:auto; max-width:100%; }
-.comparison-chart-viewport > svg { display:block; width:100%; height:auto; }
-.comparison-chart-scroll-hint { margin:0 0 7px; font-size:11px; color:var(--muted); }
-.ringside-pdf-document .comparison-chart-viewport { overflow:visible; }
-.ringside-pdf-document .comparison-chart-viewport > svg { min-width:0!important; }
-.comparison-chart-key b { color:var(--blue); }
+.ringside-pdf-document .comparison-print-legend { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:10px; margin:7px 0; }
 .comparison-series { transition:opacity .12s; }
 .comparison-series.comparison-dimmed { opacity:.12; }
 .comparison-series.comparison-highlighted { opacity:1; }
-.comparison-highlighted polyline { stroke-width:3; stroke-opacity:1; }
+.comparison-highlighted polyline { stroke-width:3; }
 .comparison-data { margin-top:20px; min-width:0; }
-.comparison-statistics-table,.comparison-distribution-table { width:100%; font-size:12px; font-variant-numeric:tabular-nums; }
-.comparison-statistics-table th,.comparison-statistics-table td,.comparison-distribution-table th,.comparison-distribution-table td { padding:9px 10px; vertical-align:top; overflow-wrap:anywhere; }
+.comparison-statistics-table { width:100%; font-size:12px; font-variant-numeric:tabular-nums; }
+.comparison-statistics-table th,.comparison-statistics-table td { padding:9px 10px; vertical-align:top; overflow-wrap:anywhere; }
 .comparison-statistics-table th { white-space:normal; }
-.comparison-statistics-table td:first-child { min-width:150px; }
+.comparison-statistics-table td:first-child { min-width:140px; }
 .comparison-statistics-table small { display:block; margin-top:3px; color:var(--muted); font-size:10px; }
-.comparison-significant { font-weight:600; }
 .comparison-person-row { cursor:pointer; }
 .comparison-person-row.comparison-highlighted { background:var(--blue-soft); }
 .comparison-person-row.comparison-dimmed { color:var(--muted); }
 .comparison-edit-record { white-space:nowrap; }
-.comparison-distribution,.comparison-method,.comparison-raw-details { margin-top:14px; color:var(--muted); font-size:12px; }
-.comparison-distribution > summary,.comparison-method > summary,.comparison-raw-details > summary { padding:8px 0; cursor:pointer; }
-.comparison-method { padding:16px 24px; border-top:1px solid var(--line); }
-.comparison-method p { margin:8px 0; }
+.comparison-raw-details,.comparison-ability-values { margin-top:14px; color:var(--muted); font-size:12px; }
+.comparison-ability-values { grid-column:1 / -1; min-width:0; }
+.comparison-raw-details > summary,.comparison-ability-values > summary { padding:8px 0; cursor:pointer; }
 .comparison-axis-list { display:grid; gap:5px; color:var(--muted); font-size:12px; }
-.comparison-axis-counts { display:flex; flex-wrap:wrap; gap:3px 12px; margin:0 0 7px; color:var(--muted); font-size:11px; }
-.comparison-axis-counts b { font-weight:500; }
-.screen-layout:has(.comparison-body-facets) { align-items:start; align-content:start; padding-top:14px; }
-.comparison-body-facets { display:flex; gap:8px; overflow:auto; align-items:start; }
-.comparison-body-facets figure { margin:0; min-width:130px; flex:0 0 130px; }
-.comparison-body-facets figcaption { margin:0 0 5px; text-align:center; color:var(--muted); font-size:11px; }
-.comparison-body-date-hint { margin:0 0 8px; color:var(--muted); font-size:10px; }
 .radar:has(.comparison-radar-facet) > .comparison-radar-facet > svg { height:245px; max-height:245px; }
-.comparison-body-facets svg { display:block; width:100%; height:300px; max-height:300px; }
 .screen-layout:has(.comparison-screening-chart) { display:block; min-height:0; padding-top:12px; }
 .screen-layout:has(.comparison-screening-chart) .body-art { width:100%; }
 .screen-layout:has(.comparison-screening-chart) .screen-items { margin-top:14px; padding:0; }
@@ -3723,28 +3703,12 @@ body.sidebar-collapsed .workspace {
 .body-art .comparison-screening-chart svg { display:block; width:100%; min-width:0; height:auto; max-height:none; }
 .comparison-screening-chart p { color:var(--muted); font-size:11px; line-height:1.6; margin:0 0 8px; }
 .comparison-screening-chart .comparison-screening-caption { margin:8px 0 0; }
-.comparison-screening-chart .comparison-screening-scroll { font-size:10px; margin-top:7px; }
 .comparison-screening-row { cursor:pointer; outline:none; }
 .comparison-screening-row:focus circle,.comparison-screening-row:hover circle { stroke:var(--blue); stroke-width:3; }
 .comparison-screening-series.comparison-dimmed { pointer-events:none; }
-.comparison-screening-series.comparison-highlighted line { stroke-width:3; stroke-opacity:1; }
 .comparison-screening-axis { cursor:pointer; outline:none; }
 .comparison-screening-axis:hover text,.comparison-screening-axis:focus text { fill:var(--blue); }
-.comparison-screening-date-picker { display:flex; flex-wrap:wrap; margin-bottom:10px; }
-.comparison-screening-date-picker button { flex:1 1 auto; font-size:10px; }
-.comparison-screening-date-picker:has(button:nth-child(4)) { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
-.comparison-screening-date-picker button:nth-child(n+4) { border-top:1px solid var(--line); }
 .comparison-screening-active-date { text-align:center; }
-.ringside-pdf-document .summary-grid:has(.comparison-screening-chart),.ringside-pdf-document .summary-grid:has(.comparison-body-facets) { display:block!important; }
-.ringside-pdf-document .summary-grid:has(.comparison-screening-chart) > .card,.ringside-pdf-document .summary-grid:has(.comparison-body-facets) > .card { width:100%!important; }
-.ringside-pdf-document .screen-layout:has(.comparison-screening-chart),.ringside-pdf-document .screen-layout:has(.comparison-body-facets) { display:block!important; }
-.ringside-pdf-document .screen-layout:has(.comparison-screening-chart) .body-art,.ringside-pdf-document .screen-layout:has(.comparison-body-facets) .body-art { width:100%!important; flex:none!important; }
-.ringside-pdf-document .screen-layout:has(.comparison-screening-chart) .screen-items,.ringside-pdf-document .screen-layout:has(.comparison-body-facets) .screen-items { width:100%!important; padding:0!important; margin-top:10px!important; }
-.ringside-pdf-document .comparison-screening-viewport { overflow:visible!important; }
-.ringside-pdf-document .body-art .comparison-screening-chart svg { min-width:0!important; height:auto!important; max-height:430px!important; }
-.ringside-pdf-document .body-art .comparison-screening-chart img { height:auto!important; max-height:none!important; }
-.ringside-pdf-document .comparison-body-facets { display:grid!important; grid-template-columns:repeat(3,minmax(0,1fr))!important; overflow:visible!important; }
-.ringside-pdf-document .comparison-body-facets figure { min-width:0!important; }
 .comparison-region-members { padding:0; }
 .comparison-region-members summary { cursor:pointer; }
 .comparison-region-members summary strong { display:block; color:var(--ink); font-size:12px; }
@@ -3753,42 +3717,42 @@ body.sidebar-collapsed .workspace {
 .comparison-more-regions { font-size:11px; color:var(--muted); }
 .comparison-more-regions > summary { cursor:pointer; }
 .comparison-more-regions .screen-item { margin-top:10px; }
-.comparison-person-link { padding:0; background:none; border:0; font:inherit; color:var(--blue); text-decoration:underline; }
+.comparison-date-link { padding:0; background:none; border:0; font:inherit; color:var(--blue); text-decoration:underline; }
 .comparison-capabilities .capability-direction-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
 .comparison-capabilities .capability-card-parameters .table-wrap { margin-top:10px; }
 .comparison-capabilities .comparison-statistics-table { font-size:11px; }
 .comparison-capabilities .capability-direction-judgment { margin-top:7px; }
-.comparison-capabilities .capability-direction-judgment small { color:var(--muted); font-size:11px; font-weight:400; }
+.ringside-pdf-document .summary-grid:has(.comparison-screening-chart) { display:block!important; }
+.ringside-pdf-document .summary-grid:has(.comparison-screening-chart) > .card { width:100%!important; }
+.ringside-pdf-document .screen-layout:has(.comparison-screening-chart) { display:block!important; }
+.ringside-pdf-document .screen-layout:has(.comparison-screening-chart) .body-art { width:100%!important; flex:none!important; }
+.ringside-pdf-document .screen-layout:has(.comparison-screening-chart) .screen-items { width:100%!important; padding:0!important; margin-top:10px!important; }
+.ringside-pdf-document .comparison-screening-viewport { overflow:visible!important; }
+.ringside-pdf-document .body-art .comparison-screening-chart svg { min-width:0!important; height:auto!important; max-height:430px!important; }
+.ringside-pdf-document .body-art .comparison-screening-chart img { height:auto!important; max-height:none!important; }
 @media (max-width:720px) {
-  .body-art .comparison-screening-chart svg { min-width:0; }
   .comparison-controls { align-items:stretch; }
   .comparison-segment { flex:1; }
   .comparison-segment button { flex:1; padding:6px 7px; }
   .comparison-chart-panel { padding:10px 7px; }
   .comparison-capabilities .capability-direction-grid { grid-template-columns:minmax(0,1fr); }
-  .comparison-statistics-table { min-width:650px; }
-  .comparison-statistics-table .comparison-person-row { min-width:650px; }
+  .comparison-statistics-table { min-width:580px; }
 }
 @media print {
-  .comparison-chart-viewport { overflow:visible; }
-  .comparison-chart-viewport > svg { min-width:0!important; width:100%!important; }
   .comparison-print-legend { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:9px; margin:6px 0; }
-  .comparison-body-facets { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); overflow:visible; }
-  .comparison-body-facets figure { min-width:0; }
   .comparison-chart-panel { break-inside:avoid; padding:10px; box-shadow:none; }
   .comparison-chart-panel svg { max-height:460px; }
   .comparison-series.comparison-dimmed { opacity:.22; }
   .comparison-data .table-wrap { overflow:visible; }
-  .comparison-statistics-table,.comparison-distribution-table { font-size:9px; min-width:0; }
-  .comparison-statistics-table th,.comparison-statistics-table td,.comparison-distribution-table th,.comparison-distribution-table td { padding:5px 6px; }
+  .comparison-statistics-table { font-size:9px; min-width:0; }
+  .comparison-statistics-table th,.comparison-statistics-table td { padding:5px 6px; }
   .comparison-statistics-table td:first-child { min-width:0; }
   .comparison-statistics-table thead { display:table-header-group; }
-  .comparison-statistics-table tr,.comparison-distribution-table tr { break-inside:avoid; }
-  .comparison-distribution:not([open]) > :not(summary),.comparison-raw-details:not([open]) > :not(summary),.comparison-method:not([open]) > :not(summary) { display:none!important; }
+  .comparison-statistics-table tr { break-inside:avoid; }
+  .comparison-raw-details:not([open]) > :not(summary),.comparison-ability-values:not([open]) > :not(summary) { display:none!important; }
   .comparison-capabilities .capability-direction-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .comparison-capabilities .capability-direction-card { break-inside:avoid; }
 }
-
 
 .comparison-record-chooser{position:relative;min-width:0;width:100%}
 .comparison-record-chooser>summary{list-style:none;cursor:pointer;display:block;border:1px solid var(--line,#dce3e9);background:var(--surface,#fff);border-radius:8px;padding:9px 30px 9px 11px;font-size:12px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3798,8 +3762,6 @@ body.sidebar-collapsed .workspace {
 .comparison-date-option{border-bottom:1px solid #edf0f3;padding:5px 0}.comparison-date-option:last-child{border-bottom:0}
 .comparison-date-option>label{display:flex;align-items:center;gap:9px;min-height:38px;cursor:pointer;font-size:12px}.comparison-date-option input{width:16px;height:16px;accent-color:#416985}.comparison-date-option small{margin-left:auto;color:#73808f;font-size:11px}
 .comparison-record-conflict{display:block;font-size:11px;color:#5f6d7b;padding:6px 6px 8px 27px}.comparison-record-conflict select{width:100%;margin-top:5px;font-size:11px}
-.comparison-chooser-tools{display:flex;gap:7px;padding:8px;border-bottom:1px solid #edf0f3;position:sticky;top:0;background:#fff;z-index:1}
-.comparison-check{flex:0 0 17px;width:17px;height:17px;border:1px solid #b7c4cf;border-radius:4px;color:#fff;text-align:center;line-height:16px;font-size:12px}.athlete-option[aria-selected=true] .comparison-check{background:#416985;border-color:#416985}.athlete-option{gap:9px}
 #comparisonNarrativeModal .modal{max-width:850px}#comparisonEditor{display:block;width:100%;min-height:360px;padding:18px;border:1px solid #dce3e9;border-radius:10px;font:14px/1.85 'Segoe UI','Microsoft YaHei',sans-serif;resize:vertical;background:#fff}#comparisonNarrativeModal .draft-options{margin-bottom:15px}#comparisonEditorState{font-size:12px;color:#72808f}
 .comparison-report-view .screen-layout{align-items:flex-start}.comparison-report-view .body-art{min-width:0}.comparison-report-view .screen-items{min-width:0}.comparison-report-view .performance-layout{height:auto;min-height:0}
 @media(max-width:600px){.comparison-record-options{width:calc(100vw - 40px);right:auto;left:0}#comparisonEditor{min-height:320px}.comparison-report-view .summary-grid{display:block}.comparison-report-view .summary-grid>.card{margin-bottom:15px}.comparison-report-view .screen-layout{flex-direction:column}.comparison-report-view .body-art,.comparison-report-view .screen-items{width:100%}}
@@ -3875,7 +3837,7 @@ body.sidebar-collapsed .workspace {
         <div class="report-field report-team"><label for="reportGroupFilter">队伍</label><select id="reportGroupFilter" onchange="App.selectReportGroup(this.value)"><option value="">全部队伍</option></select></div>
         <div class="report-field report-athlete">
           <label for="reportAthleteSearch">运动员</label>
-          <div class="athlete-combobox"><input id="reportAthleteSearch" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="reportAthleteOptions" autocomplete="off" placeholder="搜索姓名、专项或编号" onfocus="App.openAthleteChooser()" oninput="App.filterAthleteChooser()" onkeydown="App.athleteChooserKey(event)"><button type="button" class="athlete-clear" aria-label="清空运动员" onclick="App.clearReportSelection()">×</button><div id="reportAthleteOptions" class="athlete-options" role="listbox" aria-label="运动员搜索结果" aria-multiselectable="true" hidden></div></div>
+          <div class="athlete-combobox"><input id="reportAthleteSearch" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="reportAthleteOptions" autocomplete="off" placeholder="搜索姓名、专项或编号" onfocus="App.openAthleteChooser()" oninput="App.filterAthleteChooser()" onkeydown="App.athleteChooserKey(event)"><button type="button" class="athlete-clear" aria-label="清空运动员" onclick="App.clearReportSelection()">×</button><div id="reportAthleteOptions" class="athlete-options" role="listbox" aria-label="运动员搜索结果" hidden></div></div>
           <select id="athleteSelect" class="sr-only" aria-hidden="true" tabindex="-1" onchange="App.selectAthlete(this.value)"></select>
         </div>
         <div class="report-field report-record">
@@ -4301,12 +4263,12 @@ body.sidebar-collapsed .workspace {
     <div id="toast" role="status"></div>
     <div id="tooltip" role="tooltip"></div>
     <div id="bodyRegionTooltip" class="body-region-tooltip no-print" role="tooltip" hidden tabindex="-1"></div>
-    <div id="comparisonNarrativeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="comparisonNarrativeTitle"><div class="modal"><header class="modal-head"><h2 id="comparisonNarrativeTitle">比较报告 · 解读与建议</h2><button type="button" class="close" aria-label="保存并关闭比较解读" onclick="App.closeComparisonNarrative()">×</button></header><div class="settings-content"><div class="draft-options"><div><button class="btn small" data-local-draft onclick="App.localDraft()">生成离线摘要</button><p>按本次比较结果整理主要发现与方向分组。</p></div><div><button class="btn small primary" data-ai-generate onclick="App.ai()">生成 AI 综合建议</button><p>共同重点、分组训练、具体安排和复测条件。</p></div></div><div id="comparisonAIStatusMount"></div><label for="comparisonEditor" class="sr-only">比较报告正文</label><textarea id="comparisonEditor" oninput="App.updateComparisonEditor()" placeholder="写下主要发现、共同重点和分组训练安排。"></textarea><p id="comparisonEditorState" role="status"></p></div><footer class="modal-foot"><button type="button" class="btn primary" onclick="App.closeComparisonNarrative()">保存并返回报告</button></footer></div></div>
+    <div id="comparisonNarrativeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="comparisonNarrativeTitle"><div class="modal"><header class="modal-head"><h2 id="comparisonNarrativeTitle">纵向分析 · 解读与建议</h2><button type="button" class="close" aria-label="保存并关闭比较解读" onclick="App.closeComparisonNarrative()">×</button></header><div class="settings-content"><div class="draft-options"><div><button class="btn small" data-local-draft onclick="App.localDraft()">生成离线摘要</button><p>按各期结果整理主要变化与末次重点。</p></div><div><button class="btn small primary" data-ai-generate onclick="App.ai()">生成 AI 综合建议</button><p>个人趋势、当前重点、具体安排和复测条件。</p></div></div><div id="comparisonAIStatusMount"></div><label for="comparisonEditor" class="sr-only">比较报告正文</label><textarea id="comparisonEditor" oninput="App.updateComparisonEditor()" placeholder="写下主要变化、个人重点和训练安排。"></textarea><p id="comparisonEditorState" role="status"></p></div><footer class="modal-foot"><button type="button" class="btn primary" onclick="App.closeComparisonNarrative()">保存并返回报告</button></footer></div></div>
     <script id="embedded-data" type="application/json">
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.23.0"});
+window.RingsideBuild=Object.freeze({"version": "2.23.1"});
 </script>
 <script>
 (function (root) {
@@ -13527,6 +13489,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if(JSON.stringify(document).length>16*1024*1024)throw Error("单份比较报告过大");
     return true;
   }
+  function validatePersonalLongitudinalSelection(selection) {
+    validateComparisonSelection(selection,true);
+    if(selection.athleteIds.length!==1)throw Error("个人纵向报告只能选择一名队员");
+    if(selection.dates.length<2)throw Error("个人纵向报告需要至少两个测试日期");
+    return true;
+  }
   function normalizeComparisonDocument(input) {
     validateComparisonDocument(input);
     const document=clone(input);
@@ -13565,6 +13533,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     validateComparisonTree(envelope);
     if(!plain(envelope)||envelope.kind!=="comparison-report"||envelope.schema!==1||!plain(envelope.library)||envelope.library.kind!=="athlete-library"||envelope.library.schema!==3)throw Error("比较报告备份格式无效");
     const document=normalizeComparisonDocument(envelope.report),lib=clone(envelope.library);
+    validatePersonalLongitudinalSelection(document.selection);
     if(!Array.isArray(lib.athletes)||!Array.isArray(lib.groups)||!Array.isArray(lib.evaluationProfiles))throw Error("比较报告原始资料不完整");
     const owners=new Map(lib.athletes.map(owner=>[owner.id,owner])),records=new Map();
     for(const owner of lib.athletes){validateEntity("athlete",owner);for(const record of owner.records||[]){validateEntity("record",record);if(record.athleteId!==owner.id||records.has(record.recordId))throw Error("比较报告测试记录归属无效或重复");records.set(record.recordId,record);}}
@@ -13641,7 +13610,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     loadRecord(id) { return this.get("records",id); }
     readComparisonInputs(selection) {
-      validateComparisonTree(selection);validateComparisonSelection(selection);
+      validateComparisonTree(selection);validatePersonalLongitudinalSelection(selection);
       const selected=clone(selection),generation=this.generation;
       return this.enqueue(()=>this.stableRead(generation,async()=>{
         const library=await this.directory(generation),config=await this.get("config","library",generation),owners=new Set(selected.athleteIds),dates=new Set(selected.dates);
@@ -13656,6 +13625,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     saveComparisonReport(input,expectedConfig) {
       const document=normalizeComparisonDocument(input),generation=this.generation;
+      validatePersonalLongitudinalSelection(document.selection);
       if(typeof expectedConfig!=="string")throw Error("保存比较报告缺少原配置校验依据，请重新打开报告");
       return this.enqueue(async()=>{
         const tx=this.db.transaction(["meta","config","records","athletes"],"readwrite"),done=completed(tx);
@@ -13671,6 +13641,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           }
           const nextConfig={...config,comparisonReports:clone(config.comparisonReports||[])};
           const index=nextConfig.comparisonReports.findIndex(report=>report.id===document.id);
+          if(index>=0){const previous=nextConfig.comparisonReports[index].selection;if(previous.athleteIds.length!==1||previous.dates.length<2)throw Error("历史比较正文已保留，请为个人纵向报告使用独立编号");}
           if(index<0)nextConfig.comparisonReports.push(document);else nextConfig.comparisonReports[index]=document;
           validateComparisonReports(nextConfig.comparisonReports);
           nextConfig.updated=document.updated||new Date().toISOString();nextConfig.version=root.RingsideBuild?.version||config.version;
@@ -14039,7 +14010,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if(buffer.length>16*1024*1024)throw Error("单条备份记录过大");if(done)break;
     }if(buffer.trim()){line++;yield JSON.parse(buffer);}}finally{reader.releaseLock();}
   }
-  root.RingsideStore={Repository,summary,athleteMetadata,configuration,validateEntity,validateTestPlans,validateComparisonSelection,validateComparisonDocument,validateComparisonReports,normalizeComparisonDocument,mergeComparisonReports,comparisonEnvelopeLibrary,libraryRows,fileRows};
+  root.RingsideStore={Repository,summary,athleteMetadata,configuration,validateEntity,validateTestPlans,validateComparisonSelection,validatePersonalLongitudinalSelection,validateComparisonDocument,validateComparisonReports,normalizeComparisonDocument,mergeComparisonReports,comparisonEnvelopeLibrary,libraryRows,fileRows};
 })(typeof window!=="undefined"?window:globalThis);
 
 </script>
@@ -18293,7 +18264,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const order = value => Array.isArray(value) ? value.map(order) : value && typeof value === "object"
     ? Object.fromEntries(Object.keys(value).sort().map(key => [key, order(value[key])])) : value;
   const canonical = value => JSON.stringify(order(value));
-  const statisticsVersion = "comparison-record-statistics-v1", statisticsCache = new Map(), criticalCache = new Map(), preparedInputs = new WeakMap(), cachedMetadata = new WeakMap();
+  const statisticsVersion = "comparison-record-statistics-v2", statisticsCache = new Map(), preparedInputs = new WeakMap(), cachedMetadata = new WeakMap();
   const statisticsCacheLimit = 160;
   function cloneStats(value, seen = new Map()) {
     if (!value || typeof value !== "object") return value;
@@ -18396,7 +18367,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   // This reader is pure. Store supplies its version-consistent directory and complete records.
   function readComparisonInputs(source, selection = source?.selection || {}) {
-    const library = source?.library || source, selected = normalizeSelection(selection), issues = [], entries = [], athletes = [];
+    const library = source?.library || source, selected = assertPersonalSelection(normalizeSelection(selection)), issues = [], entries = [], athletes = [];
     const pool = source?.records || (library?.athletes || []).flatMap(athlete => athlete.records || []);
     for (const athleteId of selected.athleteIds) {
       const athlete = (library?.athletes || source?.athletes || []).find(item => item.id === athleteId);
@@ -18425,105 +18396,55 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
     }
     return { version: 1, selection: selected, athletes, dates: selected.dates, entries, issues,
-      ready: selected.athleteIds.length > 0 && selected.dates.length > 0 && !issues.some(item => ["ambiguous-record", "missing-record", "missing-athlete"].includes(item.kind)),
+      ready: !issues.some(item => ["ambiguous-record", "missing-record", "missing-athlete"].includes(item.kind)),
       catalog: copy(library.catalog || source?.catalog || {}), evaluationProfiles: copy(library.evaluationProfiles || source?.evaluationProfiles || []),
       revision: source?.versionState || library.updated || null, expectedConfig: source?.expectedConfig || null };
   }
-  function quantile(values, probability) {
-    const sorted = values.filter(value => N(value) !== null).map(N).sort((a, b) => a - b);
-    if (!sorted.length) return null;
-    const index = (sorted.length - 1) * probability, lower = Math.floor(index), fraction = index - lower;
-    return sorted[lower] + (sorted[Math.min(lower + 1, sorted.length - 1)] - sorted[lower]) * fraction;
+  const comparisonMethodVersion = "personal-longitudinal-v2";
+  const roundoffFactor = 16;
+  const roundoffTolerance = scale => roundoffFactor * Number.EPSILON * Math.abs(scale);
+  function compensatedSum(values) {
+    let sum = 0, correction = 0;
+    for (const value of values) { const adjusted = value - correction, next = sum + adjusted; correction = (next - sum) - adjusted; sum = next; }
+    return sum;
   }
-  function descriptive(values, allowCV = false) {
-    const xs = values.map(N).filter(value => value !== null), stats = root.Calc.descriptive(xs, allowCV);
-    const q1 = quantile(xs, .25), q3 = quantile(xs, .75);
-    return { ...stats, median: quantile(xs, .5), q1, q3, iqr: q1 === null ? null : q3 - q1,
-      min: xs.length ? Math.min(...xs) : null, max: xs.length ? Math.max(...xs) : null };
+  function numericMean(values) {
+    const xs = values.map(N).filter(value => value !== null);
+    if (!xs.length) return null;
+    const mean = xs[0] + compensatedSum(xs.map(value => (value - xs[0]) / xs.length));
+    return Number.isFinite(mean) ? mean === 0 ? 0 : mean : null;
   }
-  // Lanczos log-gamma and continued-fraction incomplete beta give exact Student-t tails.
-  function logGamma(z) {
-    const coefficients = [676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059,
-      12.507343278686905, -.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
-    if (z < .5) return Math.log(Math.PI) - Math.log(Math.sin(Math.PI * z)) - logGamma(1 - z);
-    z -= 1;
-    let x = .99999999999980993;
-    coefficients.forEach((value, index) => { x += value / (z + index + 1); });
-    const t = z + coefficients.length - .5;
-    return .5 * Math.log(2 * Math.PI) + (z + .5) * Math.log(t) - t + Math.log(x);
+  function numericDifference(current, baseline) {
+    current = N(current); baseline = N(baseline);
+    if (current === null || baseline === null) return null;
+    const delta = current - baseline;
+    return Math.abs(delta) <= roundoffTolerance(Math.max(Math.abs(current), Math.abs(baseline))) ? 0 : delta;
   }
-  function betaFraction(a, b, x) {
-    const tiny = 1e-300, qab = a + b, qap = a + 1, qam = a - 1;
-    let c = 1, d = 1 - qab * x / qap;
-    if (Math.abs(d) < tiny) d = tiny;
-    d = 1 / d;
-    let result = d;
-    for (let m = 1; m <= 250; m++) {
-      let aa = m * (b - m) * x / ((qam + 2 * m) * (a + 2 * m));
-      d = 1 + aa * d; if (Math.abs(d) < tiny) d = tiny;
-      c = 1 + aa / c; if (Math.abs(c) < tiny) c = tiny;
-      d = 1 / d; result *= d * c;
-      aa = -(a + m) * (qab + m) * x / ((a + 2 * m) * (qap + 2 * m));
-      d = 1 + aa * d; if (Math.abs(d) < tiny) d = tiny;
-      c = 1 + aa / c; if (Math.abs(c) < tiny) c = tiny;
-      d = 1 / d;
-      const delta = d * c; result *= delta;
-      if (Math.abs(delta - 1) < 3e-14) break;
+  function assertPersonalSelection(selection) {
+    if (selection.athleteIds.length !== 1 || selection.dates.length < 2)
+      throw new Error("个人纵向报告须选择一名队员和至少两个不同测试日期");
+    return selection;
+  }
+  function assertPersonalEntries(inputs) {
+    const athleteId = inputs.selection.athleteIds[0], seenDates = new Set();
+    for (const entry of inputs.entries || []) {
+      if (entry.athleteId !== athleteId || entry.record?.athleteId !== athleteId || !inputs.selection.dates.includes(entry.date)
+        || entry.record?.athlete?.date !== entry.date || seenDates.has(entry.date))
+        throw new Error("个人纵向输入的队员、日期或所选记录不一致");
+      seenDates.add(entry.date);
     }
-    return result;
-  }
-  function regularizedBeta(x, a, b) {
-    if (x <= 0) return 0; if (x >= 1) return 1;
-    const front = Math.exp(logGamma(a + b) - logGamma(a) - logGamma(b) + a * Math.log(x) + b * Math.log1p(-x));
-    return x < (a + 1) / (a + b + 2) ? front * betaFraction(a, b, x) / a : 1 - front * betaFraction(b, a, 1 - x) / b;
-  }
-  function studentP(t, df) {
-    if (N(t) === null || N(df) === null || df < 1) return null;
-    return Math.max(0, Math.min(1, regularizedBeta(df / (df + t * t), df / 2, .5)));
-  }
-  function criticalT(df, alpha = .05) {
-    if (!Number.isInteger(df) || df < 1 || !(alpha > 0 && alpha < 1)) return null;
-    const key = df + "|" + alpha;
-    if (criticalCache.has(key)) return criticalCache.get(key);
-    let low = 0, high = 1;
-    while (studentP(high, df) > alpha && high < 1e12) high *= 2;
-    for (let i = 0; i < 80; i++) { const mid = (low + high) / 2; if (studentP(mid, df) > alpha) low = mid; else high = mid; }
-    const value = (low + high) / 2;
-    criticalCache.set(key, value);
-    if (criticalCache.size > 256) criticalCache.delete(criticalCache.keys().next().value);
-    return value;
-  }
-  function paired(base, current, { infer = true, allowPercent = false, unit = "", continuous = true } = {}) {
-    const pairs = base.map((value, index) => [N(value), N(current[index])]).filter(pair => pair.every(value => value !== null));
-    const differences = pairs.map(([before, after]) => after - before), distribution = descriptive(differences);
-    const baseline = descriptive(pairs.map(pair => pair[0])), latest = descriptive(pairs.map(pair => pair[1]));
-    const delta = distribution.mean, percentChange = allowPercent && baseline.mean > 0 && delta !== null ? 100 * delta / baseline.mean : null;
-    const result = { n: pairs.length, baselineMean: baseline.mean, currentMean: latest.mean, delta, meanChange: delta,
-      percentChange, deltaUnit: /^(?:%|%PF)$/.test(unit) ? "百分点" : unit, sdChange: distribution.sd,
-      ciLow: null, ciHigh: null, t: null, df: null, p: null, pAdjusted: null, dz: null, reason: "", differences };
-    if (!continuous) { result.reason = "序数或分类结果按原值和状态转移展示"; return result; }
-    if (!infer) { result.reason = "个人纵向采用实测变化，不估计队员间的配对检验"; return result; }
-    if (pairs.length < 2) { result.reason = "有效配对少于2人，无法估计差值的标准差与推断统计"; return result; }
-    if (!(distribution.sd > 0)) { result.reason = "配对差值零方差，t与Cohen’s dz无法估计"; return result; }
-    const se = distribution.sd / Math.sqrt(pairs.length), df = pairs.length - 1, t = delta / se, half = criticalT(df) * se;
-    Object.assign(result, { t, df, p: studentP(t, df), dz: delta / distribution.sd, ciLow: delta - half, ciHigh: delta + half });
-    return result;
-  }
-  function holm(values, familySize = values.length) {
-    const usable = values.map((p, index) => ({ p: N(p), index })).filter(item => item.p !== null && item.p >= 0 && item.p <= 1).sort((a, b) => a.p - b.p);
-    const results = values.map(() => null), m = Math.max(familySize, usable.length);
-    let maximum = 0;
-    usable.forEach(({ p, index }, rank) => { maximum = Math.max(maximum, Math.min(1, (m - rank) * p)); results[index] = maximum; });
-    return results;
   }
   function trend(periods) {
     const points = periods.filter(item => day(item.date) !== null && N(item.mean) !== null).map(item => ({ date: item.date, value: item.mean, n: item.n }));
     if (points.length < 3) return { available: false, reason: "至少三个不同测试日期才绘制描述性线性趋势", points, slopePer30Days: null, r2: null };
     const origin = day(points[0].date), xs = points.map(point => (day(point.date) - origin) / 86400000), ys = points.map(point => point.value);
-    const meanX = descriptive(xs).mean, meanY = descriptive(ys).mean;
-    const sxx = xs.reduce((sum, x) => sum + (x - meanX) ** 2, 0), sxy = xs.reduce((sum, x, index) => sum + (x - meanX) * (ys[index] - meanY), 0);
+    const meanX = numericMean(xs), meanY = numericMean(ys);
+    if (ys.every(y => numericDifference(y, ys[0]) === 0)) return { available: true, reason: "", origin: points[0].date,
+      intercept: meanY, slopePerDay: 0, slopePer30Days: 0, r2: null,
+      points: points.map((point, index) => ({ ...point, day: xs[index], fitted: meanY })) };
+    const sxx = compensatedSum(xs.map(x => (x - meanX) ** 2)), sxy = compensatedSum(xs.map((x, index) => (x - meanX) * (ys[index] - meanY)));
     const slope = sxy / sxx, intercept = meanY - slope * meanX;
-    const sst = ys.reduce((sum, y) => sum + (y - meanY) ** 2, 0), residual = ys.reduce((sum, y, index) => sum + (y - intercept - slope * xs[index]) ** 2, 0);
+    const sst = compensatedSum(ys.map(y => (y - meanY) ** 2)), residual = compensatedSum(ys.map((y, index) => (y - intercept - slope * xs[index]) ** 2));
     return { available: true, reason: "", origin: points[0].date, intercept, slopePerDay: slope, slopePer30Days: slope * 30,
       r2: sst > 0 ? Math.max(0, Math.min(1, 1 - residual / sst)) : null,
       points: points.map((point, index) => ({ ...point, day: xs[index], fitted: intercept + slope * xs[index] })) };
@@ -18539,6 +18460,52 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const excluded = new Set(["mass", "massKg", "height", "heightCm", "distanceCm", "positionStartM", "temperatureC", "pressureHpa", "windMps"]);
     return Object.fromEntries(Object.entries(input || {}).filter(([key]) => !excluded.has(key)));
   }
+  function descriptiveInterpretation(reason = "未形成可追溯的有效评价依据，仅描述数值变化") {
+    return { changeInterpretation: "descriptive", changeDirection: "", changeInterpretationBasis: reason,
+      changeInterpretationKey: "", changeInterpretationRule: "", changeGrade: "" };
+  }
+  function evaluatedInterpretation(entry, definition, subjectId, eligible = true, side) {
+    if (!definition || !eligible || definition.referenceEnabled !== true || definition.referenceMatch?.eligible === false)
+      return descriptiveInterpretation("未启用、未匹配或不适用于本指标的评价标准，仅描述数值变化");
+    const standard = entry.record.evaluationStandards?.find(rule => rule.subjectId === subjectId);
+    const appraisal = entry.stats.evaluationResults.find(result => result.subjectId === subjectId && (side === undefined || (result.side || "") === side));
+    if ((standard && (!standard.enabled || !standard.applicable)) || (!standard && entry.record.evaluationProfileFormat === 2)
+      || !appraisal || !appraisal.applicable)
+      return descriptiveInterpretation("未形成适用的原评价依据，仅描述数值变化");
+    const target = N(definition.target), hasTarget = target !== null && target > 0 && definition.targetEnabled !== false
+      && (!standard || standard.targetApplicable === true) && appraisal.targetApplicable !== false;
+    const ranges = (definition.ranges || []).filter(range => ["red", "amber", "green"].includes(range.status)
+      && (N(range.min) !== null || N(range.max) !== null)
+      && (N(range.min) === null || N(range.max) === null || N(range.min) <= N(range.max)))
+      .map(range => ({ min: N(range.min), max: N(range.max), includeMin: range.includeMin !== false, includeMax: range.includeMax !== false, status: range.status }));
+    const hasRanges = ranges.length > 0 && definition.rangesEnabled !== false
+      && (!standard || standard.rangesApplicable === true) && appraisal.rangesApplicable !== false;
+    if (hasRanges) {
+      if (!["red", "amber", "green"].includes(appraisal.grade?.status) || appraisal.grade?.ambiguous === true)
+        return descriptiveInterpretation("已启用的等级区间未形成可判定等级，仅描述数值变化");
+      return { changeInterpretation: "evaluation-standard", changeDirection: "",
+        changeInterpretationBasis: "本指标适用且已启用的等级区间；改善或下降仅依据原评价等级变化，未跨等级时只描述数值",
+        changeInterpretationKey: hash({ subjectId, rule: "ranges", ranges, unit: definition.unit || appraisal.unit || "" }),
+        changeInterpretationRule: "ranges", changeGrade: appraisal.grade.status };
+    }
+    if (hasTarget && N(appraisal.target) === target && ["higher", "lower"].includes(definition.direction)) {
+      const direction = definition.direction;
+      return { changeInterpretation: "evaluation-standard", changeDirection: direction,
+        changeInterpretationBasis: "本指标适用且已启用的目标规则：" + (direction === "higher" ? "较高值" : "较低值") + "方向，目标 " + target + " " + (definition.unit || appraisal.unit || ""),
+        changeInterpretationKey: hash({ subjectId, rule: "target", direction, target, unit: definition.unit || appraisal.unit || "" }),
+        changeInterpretationRule: "target", changeGrade: appraisal.grade?.status || "" };
+    }
+    return descriptiveInterpretation("没有有效目标或可判定的等级区间，仅描述数值变化");
+  }
+  function metricInterpretation(entry, id, definition, extra) {
+    if (extra.originalChangeRule) {
+      const rule = extra.originalChangeRule;
+      return { changeInterpretation: "original-rule", changeDirection: rule.direction, changeInterpretationBasis: rule.basis,
+        changeInterpretationKey: hash({ id, rule: rule.identity }), changeInterpretationRule: "original", changeGrade: "" };
+    }
+    return evaluatedInterpretation(entry, extra.evaluationDefinition || definition, extra.evaluationSubjectId || "metric:" + id,
+      extra.evaluationEligible !== false, extra.evaluationSide);
+  }
   function extraction(entry) {
     const { record, stats } = entry, items = [], ids = new Set();
     const add = (id, testId, label, value, unit, extra = {}) => {
@@ -18552,9 +18519,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         ...(extra.protocol ? { protocol: extra.protocol } : {}) };
       const scale = extra.measurementScale || definition?.measurementScale || E?.measurementScale?.(definition || { unit }) || "ratio";
       const continuous = extra.continuous !== false && !["ordinal", "nominal", "categorical", "binary"].includes(scale);
+      const { originalChangeRule, evaluationDefinition, evaluationSubjectId, evaluationEligible, evaluationSide, ...publicExtra } = extra;
       items.push({ id, testId, label, unit: unit || "", key: canonical(identity), identity, direction: extra.direction || definition?.direction || "higher",
         measurementScale: scale, continuous, allowCV: continuous && scale === "ratio" && definition?.cvEligible !== false && !/^(?:%|%PF|分)$/.test(unit || ""),
-        value: N(value), reason: extra.reason || (N(value) === null ? "缺少有效结果" : ""), ...extra });
+        value: N(value), reason: extra.reason || (N(value) === null ? "缺少有效结果" : ""), ...publicExtra, ...metricInterpretation(entry, id, definition, extra) });
     };
     const timeIds = new Set(stats.imtpTimeResults.map(item => item.id));
     for (const definition of record.definitions) {
@@ -18575,15 +18543,27 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       add(definition.id, definition.testId, T.metricName(definition), stats.values[definition.id], unit, { definition, ...extra });
     }
     for (const result of stats.imtpTimeResults) {
-      add(result.id, "imtp", result.name, result.value, result.unit, { timeMs: result.timeMs, context: { ...measurementContext(record, { id: result.id, testId: "imtp", unit: result.unit }), force: M.imtpTimeContext(record) } });
+      const timeSubject = result.standard ? "imtp-time:" + (result.kind === "force" ? "force_pct_peak" : "rfd") + ":" + result.timeMs : "metric:" + result.id;
+      add(result.id, "imtp", result.name, result.value, result.unit, { timeMs: result.timeMs,
+        evaluationDefinition: result.standard, evaluationSubjectId: timeSubject,
+        evaluationEligible: result.evaluationValid && result.evaluationUnit === result.unit && result.standard?.matched !== false,
+        context: { ...measurementContext(record, { id: result.id, testId: "imtp", unit: result.unit }), force: M.imtpTimeContext(record) } });
       if (result.kind === "force") add(result.id + "_pct_peak", "imtp", "IMTP " + result.timeMs + " ms / PF", stats.raw.forceTime?.timeRows.find(point => point.timeMs === result.timeMs)?.forcePercentValid === false ? null : result.forcePercent, "%PF",
-        { timeMs: result.timeMs, context: { ...M.imtpTimeContext(record), kind: "force_pct_peak" } });
+        { timeMs: result.timeMs, evaluationDefinition: result.standard, evaluationSubjectId: timeSubject,
+          evaluationEligible: result.evaluationValid && result.evaluationUnit === "%PF" && result.standard?.kind === "force_pct_peak" && result.standard?.matched !== false,
+          context: { ...M.imtpTimeContext(record), kind: "force_pct_peak" } });
     }
     for (const row of stats.isoAnalyses) {
       const sourceRow = record.data.iso.find(item => item.id === row.id), context = E?.isoContext ? E.isoContext(sourceRow, record) : { direction: row.direction, region: row.region, unit: row.unit };
       for (const side of row.sides) add("iso_" + row.id + "_" + (side.side || "C"), "iso", row.direction + " " + (side.side || ""), side.value, row.unit,
-        { side: side.side || "C", context, aggregation: "record", pain: side.pain === true, status: side.status });
-      if (row.paired) add("iso_" + row.id + "_asym", "iso", row.direction + " 双侧差异", row.asym, "%", { context, direction: "lower", aggregation: "record" });
+        { side: side.side || "C", context, aggregation: "record", pain: side.pain === true, status: side.status,
+          evaluationDefinition: { referenceEnabled: side.target !== null, targetEnabled: true, target: side.target, direction: "higher", unit: row.unit },
+          evaluationSubjectId: "iso:" + row.id, evaluationSide: side.side || "", evaluationEligible: side.target > 0 && side.targetKind !== "none" });
+      if (row.paired) {
+        const amber = N(record.rules.asymAmber), red = N(record.rules.asymRed), hasRule = amber !== null && red !== null && amber >= 0 && red >= amber;
+        add("iso_" + row.id + "_asym", "iso", row.direction + " 双侧差异", row.asym, "%", { context, direction: "lower", aggregation: "record",
+          ...(hasRule ? { originalChangeRule: { direction: "lower", identity: { asymAmber: amber, asymRed: red }, basis: "原双侧差异预警规则：差异较小的方向；关注 " + amber + "%，预警 " + red + "%（仅指该侧差指标）" } } : {}) });
+      }
     }
     for (const pair of stats.balanceResults) {
       const sourcePair = record.balancePairs.find(item => item.id === pair.id), contexts = sourcePair ? [sourcePair.numeratorId, sourcePair.denominatorId].map(id => {
@@ -18592,7 +18572,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       for (const side of pair.results) add("balance_" + pair.id + "_" + (side.side || "C"), "iso", pair.label + " " + (side.side || ""), side.value, "比值", { side: side.side || "C", context: contexts, aggregation: "record" });
     }
     for (const [index, item] of (stats.raw.fms?.items || []).entries()) {
-      const extra = { continuous: false, measurementScale: "ordinal", aggregation: "record", pain: item.pain === true, notes: item.notes || "" };
+      const extra = { continuous: false, measurementScale: "ordinal", aggregation: "record", pain: item.pain === true, notes: item.notes || "",
+        originalChangeRule: { direction: "higher", identity: "fms-original-item-score-0-3", basis: "原FMS分项0–3评分定义：较高分表示动作评分提高；疼痛与左右原分另行保留" } };
       add("fms_" + index, "fms", item.name, item.value, "分", extra);
       if (item.bilateral) for (const side of ["left", "right"]) add("fms_" + index + "_" + side, "fms", item.name + (side === "left" ? " 左" : " 右"), item[side], "分", { ...extra, side: side === "left" ? "L" : "R" });
     }
@@ -18633,39 +18614,66 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     return items;
   }
-  function buildMetric(metadata, entries, selection, indexes) {
-    const byEntry = new Map();
+  const interpretationFields = ["changeInterpretation", "changeDirection", "changeInterpretationBasis", "changeInterpretationKey", "changeInterpretationRule", "changeGrade"];
+  function interpretationOf(observation) {
+    return Object.fromEntries(interpretationFields.map(field => [field, observation[field] || ""]));
+  }
+  function compatibleInterpretations(before, after) {
+    return before.changeInterpretation !== "descriptive" && after.changeInterpretation !== "descriptive"
+      && !!before.changeInterpretationKey && before.changeInterpretationKey === after.changeInterpretationKey
+      && before.changeInterpretationRule === after.changeInterpretationRule && before.changeDirection === after.changeDirection;
+  }
+  function interpretChange(baseline, current, delta, reason) {
+    const compatible = compatibleInterpretations(baseline, current), policy = delta === null
+      ? descriptiveInterpretation(reason || "缺少前后可比值，无法判定变化")
+      : compatible ? interpretationOf(current) : descriptiveInterpretation("基线与本期没有兼容、有效的评价依据，仅描述数值变化");
+    let improvement = delta === null ? "unknown" : delta === 0 ? "unchanged" : delta > 0 ? "increased" : "decreased";
+    if (delta !== null && delta !== 0 && compatible) {
+      if (policy.changeInterpretationRule === "ranges") {
+        const gradeRank = { red: 0, amber: 1, green: 2 }, beforeRank = gradeRank[baseline.changeGrade], afterRank = gradeRank[current.changeGrade];
+        if (afterRank > beforeRank) improvement = "improved";
+        else if (afterRank < beforeRank) improvement = "declined";
+      } else if (["higher", "lower"].includes(policy.changeDirection)) {
+        improvement = (policy.changeDirection === "higher" ? delta > 0 : delta < 0) ? "improved" : "declined";
+      }
+    }
+    return { ...policy, improvement, baselineInterpretationKey: baseline.changeInterpretationKey || "", currentInterpretationKey: current.changeInterpretationKey || "",
+      baselineGrade: baseline.changeGrade || "", currentGrade: current.changeGrade || "" };
+  }
+  function buildMetric(metadata, entries, selection, indexes, issues = []) {
+    const athleteId = selection.athleteIds[0], byDate = new Map();
     for (const entry of entries) {
       const index = indexes?.get(entry), exact = index ? index.byKey.get(metadata.key) : entry.extracted.find(item => item.key === metadata.key),
         sibling = index ? index.byId.get(metadata.id) : entry.extracted.find(item => item.id === metadata.id);
       const mismatch = !sibling ? "本记录未测此指标" : sibling.unit !== metadata.unit ? "单位不一致：本记录为 " + (sibling.unit || "无单位") + "，此指标为 " + (metadata.unit || "无单位")
         : sibling.identity.aggregation !== metadata.identity.aggregation ? "代表成绩取值口径不一致：本记录为 " + sibling.identity.aggregation + "，此指标为 " + metadata.identity.aggregation
         : "测量协议或测量条件不一致";
-      byEntry.set(entry.athleteId + "|" + entry.date, { athleteId: entry.athleteId, date: entry.date, recordId: entry.recordId,
-        value: exact ? exact.value : null, reason: exact ? exact.reason || "" : mismatch,
-        pain: exact?.pain || false, status: exact?.status || "gray" });
+      byDate.set(entry.date, { athleteId, date: entry.date, recordId: entry.recordId, value: exact ? exact.value : null,
+        reason: exact ? exact.reason || "" : mismatch, pain: exact?.pain || false, status: exact?.status || "gray", notes: exact?.notes || "",
+        ...(exact ? interpretationOf(exact) : descriptiveInterpretation(mismatch)) });
     }
-    const observations = selection.athleteIds.flatMap(athleteId => selection.dates.map(date => byEntry.get(athleteId + "|" + date) || { athleteId, date, recordId: "", value: null, reason: "本日没有有效记录" }));
-    const cells = new Map(observations.map(item => [item.athleteId + "|" + item.date, item]));
-    const cohortIds = selection.athleteIds.filter(id => selection.dates.every(date => cells.get(id + "|" + date).value !== null));
-    const longitudinal = selection.dates.length > 1;
-    const periods = selection.dates.map(date => {
-      const all = observations.filter(item => item.date === date), included = all.filter(item => item.value !== null && (!longitudinal || cohortIds.includes(item.athleteId)));
-      const stats = descriptive(included.map(item => item.value), metadata.allowCV);
-      const distribution = metadata.continuous ? null : Object.fromEntries(unique(included.map(item => String(item.value))).sort().map(value => [value, included.filter(item => String(item.value) === value).length]));
-      return { date, ...stats, observations: included, allObservations: all, distribution, painCount: included.filter(item => item.pain).length };
-    });
-    const base = periods[0], changes = periods.slice(1).map(period => {
-      const first = cohortIds.map(id => cells.get(id + "|" + base.date)?.value);
-      const current = cohortIds.map(id => cells.get(id + "|" + period.date)?.value);
-      const result = paired(first, current, { infer: selection.athleteIds.length > 1, continuous: metadata.continuous, unit: metadata.unit,
-        allowPercent: metadata.measurementScale === "ratio" && !/^(?:%|%PF|分)$/.test(metadata.unit) });
-      return { date: period.date, baselineDate: base.date, ...result, improvement: result.delta === null ? "unknown" : result.delta === 0 ? "unchanged" : metadata.direction === "lower" ? result.delta < 0 ? "improved" : "declined" : metadata.direction === "higher" ? result.delta > 0 ? "improved" : "declined" : "changed" };
+    const observations = selection.dates.map(date => byDate.get(date) || { athleteId, date,
+      recordId: selection.recordChoices[athleteId]?.[date] || "", value: null,
+      reason: issues.find(issue => issue.date === date)?.reason || "本日没有有效记录", pain: false, status: "gray", notes: "", ...descriptiveInterpretation("本日没有可比结果") });
+    const periods = observations.map(observation => ({ date: observation.date, value: observation.value, mean: observation.value,
+      n: observation.value === null ? 0 : 1, observations: observation.value === null ? [] : [observation], allObservations: [observation],
+      reason: observation.reason, painCount: observation.pain ? 1 : 0 }));
+    const baseline = observations[0], changes = observations.slice(1).map(current => {
+      const delta = numericDifference(current.value, baseline.value), reason = current.value === null ? current.reason
+        : baseline.value === null ? "基线缺少可比结果：" + baseline.reason : "";
+      const percentChange = metadata.measurementScale === "ratio" && !/^(?:%|%PF|分)$/.test(metadata.unit) && baseline.value > 0 && delta !== null
+        ? 100 * delta / baseline.value : null;
+      return { date: current.date, baselineDate: baseline.date, baselineValue: baseline.value, currentValue: current.value,
+        delta, percentChange, deltaUnit: /^(?:%|%PF)$/.test(metadata.unit) ? "百分点" : metadata.unit,
+        ...interpretChange(baseline, current, delta, reason), reason };
     });
     const { value, reason, definition, ...descriptor } = metadata;
-    return { ...descriptor, observations, cohortIds, periods, changes, trend: metadata.continuous ? trend(periods) : { available: false, points: [], slopePer30Days: null, reason: "序数和分类数据按原值与状态展示" } };
+    const valid = observations.filter(item => item.value !== null), commonInterpretation = valid.length > 0 && valid.every(item => compatibleInterpretations(valid[0], item))
+      ? { ...interpretationOf(valid[0]), changeGrade: "" } : descriptiveInterpretation("各期没有统一、有效的评价依据；各次变化分别核对基线与本期，仅有数值依据时显示增加或减少");
+    return { ...descriptor, ...commonInterpretation, observations, periods, changes, trend: metadata.continuous ? trend(periods)
+      : { available: false, points: [], slopePer30Days: null, reason: "序数和分类数据按原值与状态展示" } };
   }
-  function aggregateAxes(entries, selection) {
+  function buildAxes(entries, selection) {
     const metadata = new Map();
     for (const entry of entries) for (const axis of entry.stats.axes) {
       const identity = { key: axis.key, method: axis.method, members: axis.members, transforms: axis.transforms,
@@ -18675,13 +18683,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (!metadata.has(key)) metadata.set(key, { id: axis.key, key, label: axis.label, unit: "分", identity, observations: [] });
       metadata.get(key).observations.push({ athleteId: entry.athleteId, recordId: entry.recordId, date: entry.date, value: axis.value, status: axis.status });
     }
-    return [...metadata.values()].map(axis => {
-      const cohortIds = selection.athleteIds.filter(id => selection.dates.every(date => axis.observations.some(item => item.athleteId === id && item.date === date)));
-      return { ...axis, cohortIds, periods: selection.dates.map(date => { const observations = axis.observations.filter(item => item.date === date && (selection.dates.length === 1 || cohortIds.includes(item.athleteId))); return { date, ...descriptive(observations.map(item => item.value)), observations }; }) };
-    });
+    return [...metadata.values()].map(axis => ({ ...axis, periods: selection.dates.map(date => {
+      const observation = axis.observations.find(item => item.date === date), value = N(observation?.value);
+      return { date, value, mean: value, n: value === null ? 0 : 1, observations: observation && value !== null ? [observation] : [],
+        reason: value === null ? "本期缺少同口径能力评分" : "" };
+    }) }));
   }
   function buildSummary(entries, selection) {
-    const cells = new Map(entries.map(entry => [entry.athleteId + "|" + entry.date, entry]));
+    const athleteId = selection.athleteIds[0], cells = new Map(entries.map(entry => [entry.date, entry]));
     const evaluations = new Map(entries.map(entry => [entry, new Map(entry.stats.evaluationResults.map(item => [item.subjectId + "|" + (item.side || ""), item]))]));
     const measurements = new Map(entries.map(entry => [entry, new Map(entry.extracted.map(item => [item.id, item]))]));
     const appraisals = new Map(entries.map(entry => {
@@ -18690,111 +18699,89 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }));
     const measure = (entry, id) => measurements.get(entry)?.get(id);
     const periods = selection.dates.map(date => {
-      const present = entries.filter(entry => entry.date === date), counted = status => present.filter(entry => entry.stats.findings.some(item => item.status === status)).map(entry => entry.athleteId);
-      const red = counted("red"), amber = counted("amber"), advantage = present.filter(entry => entry.stats.advantages.items.some(item => !item.relative)).map(entry => entry.athleteId);
+      const entry = cells.get(date), findings = copy(entry?.stats.findings || []), advantages = copy((entry?.stats.advantages.items || []).filter(item => !item.relative));
       const regions = {};
-      for (const entry of present) for (const [key, region] of Object.entries(entry.stats.signals.regions || {})) {
-        const out = regions[key] ||= { key, name: key, label: region.label, n: 0, count: 0, redCount: 0, amberCount: 0, greenCount: 0, status: "gray", members: [], tests: [] };
-        if (!region.hasMeasured) continue;
-        out.n++; out.members.push({ athleteId: entry.athleteId, recordId: entry.recordId, status: region.status, tests: copy(region.tests || []) });
-        if (["red", "amber", "green"].includes(region.status)) out[region.status + "Count"]++;
-        if (["red", "amber"].includes(region.status)) out.count++;
-        out.tests.push(...(region.tests || []).map(test => ({ ...copy(test), athleteId: entry.athleteId, recordId: entry.recordId })));
-        const severity = { gray: 0, green: 1, amber: 2, red: 3 }; if (severity[region.status] > severity[out.status]) out.status = region.status;
+      for (const [key, region] of Object.entries(entry?.stats.signals.regions || {})) {
+        regions[key] = { key, name: key, label: region.label, status: region.hasMeasured ? region.status : "gray", measured: !!region.hasMeasured,
+          members: region.hasMeasured ? [{ athleteId, recordId: entry.recordId, status: region.status, tests: copy(region.tests || []) }] : [],
+          tests: copy(region.tests || []) };
       }
-      return { date, selectedCount: selection.athleteIds.length, resultCount: present.filter(entry => entry.stats.validTests.size > 0).length,
-        redCount: red.length, amberCount: amber.length, advantageCount: advantage.length,
-        red: { count: red.length, athleteIds: red }, amber: { count: amber.length, athleteIds: amber }, advantage: { count: advantage.length, athleteIds: advantage }, regions };
+      return { date, athleteId, recordId: entry?.recordId || "", hasResults: !!entry?.stats.validTests.size,
+        redCount: findings.filter(item => item.status === "red").length, amberCount: findings.filter(item => item.status === "amber").length,
+        advantageCount: advantages.length, findings, advantages, regions };
     });
-    const transitions = [], baselineDate = selection.dates[0];
-    for (const athleteId of selection.athleteIds) {
-      const baseline = cells.get(athleteId + "|" + baselineDate);
-      for (const date of selection.dates.slice(1)) {
-        const latest = cells.get(athleteId + "|" + date);
-        for (const key of unique([...(evaluations.get(baseline)?.keys() || []), ...(evaluations.get(latest)?.keys() || [])])) {
-          const find = entry => evaluations.get(entry)?.get(key);
-          const before = find(baseline), after = find(latest);
-          const metricIds = item => item ? item.metricId ? [item.metricId] : item.directionId ? ["iso_" + item.directionId + "_" + (item.side || "C")] : item.kind === "fixed" ? [item.subjectId.replace(":", "_")] : [] : [];
-          const a = measure(baseline, metricIds(before)[0]), b = measure(latest, metricIds(after)[0]);
-          const fullHistory = selection.dates.map(historyDate => cells.get(athleteId + "|" + historyDate));
-          const canCompare = before && after && before.value !== null && after.value !== null && a && b && a.key === b.key
-            && fullHistory.every(entry => {
-              const result = find(entry), measurement = measure(entry, metricIds(result)[0]);
-              return result && N(result.value) !== null && result.grade?.status !== "gray" && measurement && measurement.key === a.key;
-            });
-          const from = before?.grade?.status || "unknown", to = after?.grade?.status || "unknown";
-          const concern = status => ["red", "amber"].includes(status);
-          const state = !canCompare ? "unknown" : !concern(from) && concern(to) ? "new" : concern(from) && !concern(to) ? "resolved" : concern(from) && concern(to) ? "persistent" : "unchanged";
-          transitions.push({ athleteId, fromDate: baselineDate, toDate: date, key, title: after?.name || before?.name || key, from, to, state, reason: canCompare ? "" : "前后缺测、评价不可判定或测量内容不一致" });
-        }
-        const advantageSubjects = unique([...(baseline?.stats.advantages.items || []).map(item => item.id), ...(latest?.stats.advantages.items || []).map(item => item.id)]);
-        for (const id of advantageSubjects) {
-          const before = measure(baseline, id), after = measure(latest, id), canCompare = before && after && before.value !== null && after.value !== null && before.key === after.key
-            && selection.dates.every(historyDate => {
-              const entry = cells.get(athleteId + "|" + historyDate), measurement = measure(entry, id);
-              const appraisal = appraisals.get(entry)?.get(id);
-              return measurement && measurement.key === before.key && N(measurement.value) !== null && appraisal && appraisal.grade?.status !== "gray";
-            });
-          const from = !!baseline?.stats.advantages.items.some(item => item.id === id && !item.relative), to = !!latest?.stats.advantages.items.some(item => item.id === id && !item.relative);
-          transitions.push({ athleteId, fromDate: baselineDate, toDate: date, key: "advantage:" + id, title: after?.label || before?.label || id, from, to,
-            state: !canCompare ? "unknown" : !from && to ? "entered" : from && !to ? "exited" : from && to ? "persistent" : "unchanged", reason: canCompare ? "" : "前后缺测或测量不一致" });
-        }
+    const transitions = [], baselineDate = selection.dates[0], baseline = cells.get(baselineDate);
+    const judged = item => item && N(item.value) !== null && ["red", "amber", "green"].includes(item.grade?.status);
+    for (const date of selection.dates.slice(1)) {
+      const latest = cells.get(date);
+      for (const key of unique([...(evaluations.get(baseline)?.keys() || []), ...(evaluations.get(latest)?.keys() || [])])) {
+        const before = evaluations.get(baseline)?.get(key), after = evaluations.get(latest)?.get(key);
+        const metricIds = item => item ? item.metricId ? [item.metricId] : item.directionId ? ["iso_" + item.directionId + "_" + (item.side || "C")]
+          : item.kind === "fixed" ? [item.subjectId.replace(":", "_")] : [] : [];
+        const a = measure(baseline, metricIds(before)[0]), b = measure(latest, metricIds(after)[0]);
+        const canCompare = judged(before) && judged(after) && a && b && a.key === b.key;
+        const from = before?.grade?.status || "unknown", to = after?.grade?.status || "unknown", concern = status => ["red", "amber"].includes(status);
+        const state = !canCompare ? "unknown" : !concern(from) && concern(to) ? "new" : concern(from) && !concern(to) ? "resolved"
+          : concern(from) && concern(to) ? "persistent" : "unchanged";
+        transitions.push({ athleteId, fromDate: baselineDate, toDate: date, key, title: after?.name || before?.name || key, from, to, state,
+          reason: canCompare ? "" : "前后缺测、评价不可判定或测量内容不一致" });
+      }
+      const subjects = unique([...(baseline?.stats.advantages.items || []).map(item => item.id), ...(latest?.stats.advantages.items || []).map(item => item.id)]);
+      for (const id of subjects) {
+        const before = measure(baseline, id), after = measure(latest, id);
+        const canCompare = before && after && before.value !== null && after.value !== null && before.key === after.key
+          && judged(appraisals.get(baseline)?.get(id)) && judged(appraisals.get(latest)?.get(id));
+        const from = !!baseline?.stats.advantages.items.some(item => item.id === id && !item.relative), to = !!latest?.stats.advantages.items.some(item => item.id === id && !item.relative);
+        transitions.push({ athleteId, fromDate: baselineDate, toDate: date, key: "advantage:" + id, title: after?.label || before?.label || id, from, to,
+          state: !canCompare ? "unknown" : !from && to ? "entered" : from && !to ? "exited" : from && to ? "persistent" : "unchanged",
+          reason: canCompare ? "" : "前后缺测或测量不一致" });
       }
     }
     return { periods, latest: periods[periods.length - 1] || null, transitions };
   }
   function buildCapabilities(entries, selection) {
+    const athleteId = selection.athleteIds[0];
     return ["strength", "reactive", "speed", "endurance"].map(id => {
-      const sourceMembers = date => entries.filter(entry => entry.date === date).map(entry => ({ athleteId: entry.athleteId, recordId: entry.recordId, name: entry.record.athlete.name,
-        ...entry.directions.find(direction => direction.id === id), entry })).filter(item => item.hasData);
+      const sourceMember = date => {
+        const entry = entries.find(item => item.date === date), direction = entry?.directions.find(item => item.id === id);
+        return entry && direction ? { athleteId, recordId: entry.recordId, name: entry.record.athlete.name, ...direction, entry }
+          : { athleteId, recordId: "", value: null, hasData: false, status: "gray", judgment: "本期未测", reason: "本日没有有效记录" };
+      };
       const memberIdentity = member => {
-        if (!member) return null;
         const metricId = member.metricId === "fvp" ? (member.context?.protocol || selection.basis.jumpProtocol) + "_imbalance"
           : member.metricId === "sprint_fvp" ? "sprint_fvp_imbalance"
           : member.metricId === "jump_elasticity" ? (member.context?.protocol || selection.basis.jumpProtocol) + "_elasticity_er"
           : member.metricId === "sprint_elasticity" ? "sprint_fvp_elasticity_er" : member.metricId;
         return canonical({ metricId: member.metricId, context: member.context, measure: member.entry?.extracted.find(item => item.id === metricId)?.key || null });
       };
-      const availableByDate = selection.dates.map(date => sourceMembers(date)), cohortIds = selection.athleteIds.filter(athleteId => {
-        const history = availableByDate.map(members => members.find(member => member.athleteId === athleteId)), first = history[0];
-        return first && history.every(member => member && N(member.value) !== null && member.judgment && !/待计算|待判断|未设置|未测/.test(member.judgment) && memberIdentity(member) === memberIdentity(first));
-      });
-      const parameterTemplates = new Map();
+      const sources = new Map(selection.dates.map(date => [date, sourceMember(date)])), templates = new Map();
       for (const entry of entries) {
         const card = entry.stats.capabilityCards.find(card => card.id === (id === "endurance" ? "cardio" : id));
         for (const parameter of card?.metrics || []) {
           const parameterId = parameter.selectedVariant || (parameter.id.startsWith("sprint_elasticity_") ? parameter.id.replace("sprint_elasticity_", "sprint_fvp_elasticity_")
             : /^(?:fvp_sj|fvp_cmj)_(?:fe|ve|er|en)$/.test(parameter.id) ? parameter.id.replace(/_(fe|ve|er|en)$/, "_elasticity_$1") : parameter.id);
-          const descriptor = entry.extracted.find(item => item.id === parameterId), identity = descriptor?.key || canonical({ id: parameterId, unit: parameter.unit, contexts: (parameter.components || []).map(component => ({ id: component.id, unit: component.unit })) });
-          if (!parameterTemplates.has(identity)) parameterTemplates.set(identity, { id: parameter.id, key: identity, label: parameter.label, unit: parameter.unit, observations: [] });
-          parameterTemplates.get(identity).observations.push({ athleteId: entry.athleteId, date: entry.date, value: parameter.value });
+          const descriptor = entry.extracted.find(item => item.id === parameterId), identity = descriptor?.key
+            || canonical({ id: parameterId, unit: parameter.unit, contexts: (parameter.components || []).map(component => ({ id: component.id, unit: component.unit })) });
+          if (!templates.has(identity)) templates.set(identity, { id: parameter.id, key: identity, label: parameter.label, unit: parameter.unit, observations: [] });
+          templates.get(identity).observations.push({ athleteId, recordId: entry.recordId, date: entry.date, value: N(parameter.value) });
         }
       }
-      for (const parameter of parameterTemplates.values()) parameter.cohortIds = selection.athleteIds.filter(athleteId => cohortIds.includes(athleteId)
-        && selection.dates.every(date => parameter.observations.some(item => item.athleteId === athleteId && item.date === date && N(item.value) !== null)));
       const periods = selection.dates.map(date => {
-        const availableMembers = sourceMembers(date).map(({ entry, ...member }) => member);
-        const members = availableMembers.filter(member => selection.dates.length === 1 || cohortIds.includes(member.athleteId));
-        const groups = unique(members.map(item => canonical([item.metricId, item.context, item.judgment, item.status]))).map(key => {
-          const items = members.filter(item => canonical([item.metricId, item.context, item.judgment, item.status]) === key), first = items[0];
-          return { judgment: first.judgment, status: first.status, metricId: first.metricId, context: first.context, count: items.length, athleteIds: items.map(item => item.athleteId), names: items.map(item => item.name) };
+        const { entry, ...member } = sources.get(date), parameters = [...templates.values()].map(parameter => {
+          const observations = parameter.observations.filter(item => item.date === date), value = observations[0]?.value ?? null;
+          return { id: parameter.id, key: parameter.key, label: parameter.label, unit: parameter.unit, value, mean: value,
+            n: value === null ? 0 : 1, observations, reason: value === null ? "本期缺少此参数结果" : "" };
         });
-        const parameters = [...parameterTemplates.values()].map(parameter => {
-          const observations = parameter.observations.filter(item => item.date === date && (selection.dates.length === 1 || parameter.cohortIds.includes(item.athleteId)));
-          return { ...parameter, observations, ...descriptive(observations.map(item => item.value), false) };
-        });
-        return { date, n: members.filter(item => item.value !== null).length, members, availableMembers, availableCount: availableMembers.filter(item => item.value !== null).length,
-          groups, parameters };
+        return { date, n: N(member.value) === null ? 0 : 1, members: [member], parameters };
       });
-      const transitions = [];
-      for (const athleteId of selection.athleteIds) {
-        const before = periods[0]?.members.find(item => item.athleteId === athleteId);
-        for (const period of periods.slice(1)) {
-          const after = period.members.find(item => item.athleteId === athleteId), compatible = before && after && before.value !== null && after.value !== null && before.metricId === after.metricId && canonical(before.context) === canonical(after.context);
-          transitions.push({ athleteId, fromDate: periods[0].date, toDate: period.date, from: before?.judgment || "待计算", to: after?.judgment || "待计算", state: !compatible ? "unknown" : before.judgment === after.judgment ? "unchanged" : "changed" });
-        }
-      }
-      return { id, title: { strength: "力量发展方向", reactive: "反应力量水平", speed: "速度发展方向", endurance: "耐力发展方向" }[id], basis: selection.basis[id] || "endurance", cohortIds, periods, transitions };
+      const before = sources.get(selection.dates[0]), transitions = periods.slice(1).map(period => {
+        const after = sources.get(period.date), compatible = before.hasData && after.hasData && N(before.value) !== null && N(after.value) !== null
+          && memberIdentity(before) === memberIdentity(after) && !/待计算|待判断|未设置|未测/.test(before.judgment || "") && !/待计算|待判断|未设置|未测/.test(after.judgment || "");
+        return { athleteId, fromDate: selection.dates[0], toDate: period.date, from: before.judgment || "待计算", to: after.judgment || "待计算",
+          state: !compatible ? "unknown" : before.judgment === after.judgment ? "unchanged" : "changed", reason: compatible ? "" : "前后缺测或测量口径不一致" };
+      });
+      return { id, title: { strength: "力量发展方向", reactive: "反应力量水平", speed: "速度发展方向", endurance: "耐力发展方向" }[id],
+        basis: selection.basis[id] || "endurance", periods, transitions };
     });
   }
   function finishSteps(steps) { let next = steps.next(); while (!next.done) next = steps.next(); return next.value; }
@@ -18806,7 +18793,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const { seriesModel, ...curveMetadata } = extra;
       const key = canonical({ testId, kind, unit, xUnit, context }), curve = curves.get(key) || { key, testId, kind, title, unit, xUnit,
         xLabel: xUnit, yLabel: title + (unit ? "（" + unit + "）" : ""), protocol: context, series: [], common: [], ...curveMetadata };
-      curve.series.push({ athleteId: entry.athleteId, date: entry.date, recordId: entry.recordId, label: entry.record.athlete.name,
+      curve.series.push({ athleteId: entry.athleteId, date: entry.date, recordId: entry.recordId, label: entry.date,
         points, rawPoints: rawPoints || points, model: seriesModel || null,
         supportedMin: support?.[0] ?? Math.min(...points.map(point => point.x)), supportedMax: support?.[1] ?? Math.max(...points.map(point => point.x)) });
       curves.set(key, curve);
@@ -18852,45 +18839,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
       if ((entryIndex + 1) % 4 === 0) yield { stage: "curve-series", completed: entryIndex + 1, count: entries.length };
     }
-    const interpolate = (series, x) => {
-      if (series.model) { const y = series.model.a + series.model.b * x; return series.model.transform === "power" ? y * x : y; }
-      const points = series.points.slice().sort((a, b) => a.x - b.x), exact = points.find(point => Math.abs(point.x - x) < 1e-10);
-      if (exact) return exact.y;
-      const index = points.findIndex(point => point.x > x);
-      if (index < 1) return null;
-      const a = points[index - 1], b = points[index]; return a.y + (b.y - a.y) * (x - a.x) / (b.x - a.x);
-    };
-    for (const curve of curves.values()) {
-      const fixedIds = selection.athleteIds.filter(id => selection.dates.every(date => curve.series.some(series => series.athleteId === id && series.date === date)));
-      curve.cohortIds = fixedIds;
-      const fixedSeries = curve.series.filter(series => selection.dates.length === 1 || fixedIds.includes(series.athleteId));
-      const fixedLow = fixedSeries.length ? Math.max(...fixedSeries.map(series => series.supportedMin)) : null;
-      const fixedHigh = fixedSeries.length ? Math.min(...fixedSeries.map(series => series.supportedMax)) : null;
-      const measuredXs = unique(curve.series.flatMap(series => series.points.map(point => point.x))).sort((a, b) => a - b);
-      for (const date of selection.dates) {
-        const series = curve.series.filter(series => series.date === date && (selection.dates.length === 1 || fixedIds.includes(series.athleteId)));
-        if (!series.length) continue;
-        const low = fixedLow, high = fixedHigh;
-        const xs = curve.fitted ? high >= low ? Array.from({ length: 41 }, (_, index) => low + (high - low) * index / 40) : [] : measuredXs;
-        for (const x of xs) {
-          const pointIds = curve.fitted ? fixedIds : selection.athleteIds.filter(id => selection.dates.every(historyDate => {
-            const line = curve.series.find(line => line.athleteId === id && line.date === historyDate);
-            return line && line.points.some(point => Math.abs(point.x - x) < 1e-10 && N(point.y) !== null);
-          }));
-          const included = series.filter(line => pointIds.includes(line.athleteId));
-          if (!included.length || !curve.fitted && selection.dates.length === 1 && included.length < series.length) continue;
-          const values = included.map(line => curve.fitted ? interpolate(line, x) : line.points.find(point => Math.abs(point.x - x) < 1e-10)?.y);
-          curve.common.push({ date, x, ...descriptive(values), source: curve.fitted ? "模型共同支持区间" : "共同实测坐标", athleteIds: included.map(line => line.athleteId) });
-        }
-      }
-      yield { stage: "curve-summary", key: curve.key };
-    }
     return [...curves.values()];
   }
   function* comparisonSteps(input, selection) {
     const prepared = preparedInputs.get(input);
     const inputs = prepared ? input : input?.entries ? copy(input) : readComparisonInputs(input, selection || input?.selection || {});
-    inputs.selection = normalizeSelection(selection || inputs.selection);
+    inputs.selection = assertPersonalSelection(normalizeSelection(selection || inputs.selection));
+    assertPersonalEntries(inputs);
     applyExplicitBasis(inputs);
     const basis = inputs.selection.basis;
     const measurementDigests = new Map();
@@ -18925,12 +18880,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }));
     const metrics = [];
     for (const item of metadata.values()) {
-      metrics.push(buildMetric(item, entries, inputs.selection, indexes));
+      metrics.push(buildMetric(item, entries, inputs.selection, indexes, inputs.issues));
       if (metrics.length % 8 === 0) yield { stage: "metric-statistics", completed: metrics.length, count: metadata.size };
     }
-    const family = metrics.filter(metric => metric.continuous && metric.cohortIds.length > 1).flatMap(metric => metric.changes.map(change => ({ metric, change })));
-    const adjusted = holm(family.map(item => item.change.p), family.length);
-    family.forEach((item, index) => { item.change.pAdjusted = adjusted[index]; item.change.comparisonCount = family.length; });
     const descriptors = new Map(); for (const entry of entries) for (const project of T.describe(entry.record)) if (!descriptors.has(project.id)) descriptors.set(project.id, project);
     const projects = unique(metrics.map(metric => metric.testId)).map(id => {
       const descriptor = descriptors.get(id);
@@ -18938,7 +18890,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         renderer: descriptor?.renderer || "scalar", metrics: metrics.filter(metric => metric.testId === id),
         reportView: descriptor?.renderer === "scalar" && entries[0] ? root.RingsideGenericReport?.resolveView(entries.find(entry => entry.record.enabled[id])?.record || entries[0].record, id, inputs.catalog) : undefined };
     });
-    const selectionValue = inputs.selection, kind = selectionValue.athleteIds.length === 1 ? selectionValue.dates.length === 1 ? "individual" : "personal-longitudinal" : selectionValue.dates.length === 1 ? "team" : "team-longitudinal";
+    const selectionValue = inputs.selection, kind = "personal-longitudinal";
     const fingerprints = [], profileDigests = new Map();
     for (const [index, entry] of entries.entries()) {
       let profile = null;
@@ -18950,21 +18902,23 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       fingerprints.push({ athleteId: entry.athleteId, recordId: entry.recordId, data: measurementDigests.get(entry) || hash(M.fingerprint(entry.record)), basis: M.capabilityDirectionsBasis(entry.record, entry.stats), profile });
       if ((index + 1) % 4 === 0) yield { stage: "fingerprint", completed: index + 1, count: entries.length };
     }
-    const fingerprint = hash({ selection: selectionValue, records: fingerprints });
+    const fingerprint = hash({ statistics: comparisonMethodVersion, selection: selectionValue, records: fingerprints });
     yield { stage: "summary" }; const summary = buildSummary(entries, selectionValue);
     yield { stage: "capabilities" }; const capabilities = buildCapabilities(entries, selectionValue);
-    yield { stage: "axes" }; const axes = aggregateAxes(entries, selectionValue);
+    yield { stage: "axes" }; const axes = buildAxes(entries, selectionValue);
     yield { stage: "curves" }; const curves = yield* curveSteps(entries, selectionValue);
     return { version: 1, kind, selection: selectionValue, athletes: inputs.athletes || [], dates: selectionValue.dates, entries, metrics, projects, catalog: inputs.catalog || {},
       ready: inputs.ready !== false, issues: inputs.issues || [], summary, capabilities, axes, curves, fingerprint, inputFingerprint: fingerprint,
-      statistics: { version: "paired-t-holm-v1", pairedTest: "双侧配对 t 检验", effectSize: "Cohen’s dz", correction: "Holm", confidenceLevel: .95,
-        confidenceInterval: "配对平均变化的单项未校正95% CI", comparisonCount: family.length, estimatedCount: family.filter(item => item.change.p !== null).length,
-        cohort: "每指标所有选中日期均有效可比的固定队员集合", quantile: "R type 7", trend: "真实日期普通最小二乘描述性线性趋势" } };
+      statistics: { version: comparisonMethodVersion, numericalRoundoff: { relativeFactor: roundoffFactor, epsilon: Number.EPSILON,
+        scale: "实际参与运算的原值尺度", absoluteTolerance: 0, purpose: "仅处理IEEE-754机器舍入，不作为测量误差或训练意义阈值" },
+        baselineDate: selectionValue.dates[0], change: "本期代表值减最早所选日期代表值；缺测或口径不兼容时不计算",
+        changeInterpretation: "仅在基线与本期具有兼容且有效的原评价依据时解释改善或下降；其余非零变化仅描述增加或减少",
+        percentChange: "比例尺度且基线为正；百分数指标使用百分点变化", trend: "真实日期普通最小二乘描述性线性趋势" } };
   }
   function deriveComparison(input, selection) { return finishSteps(comparisonSteps(input, selection)); }
   async function deriveComparisonAsync(input, { onProgress, isCurrent = () => true } = {}) {
     const inputs = input?.entries ? copy(input) : readComparisonInputs(input, input?.selection || {});
-    inputs.selection = normalizeSelection(inputs.selection); applyExplicitBasis(inputs);
+    inputs.selection = assertPersonalSelection(normalizeSelection(inputs.selection)); assertPersonalEntries(inputs); applyExplicitBasis(inputs);
     const checkCurrent = () => {
       if (!isCurrent()) { const error = new Error("比较计算已取消"); error.name = "AbortError"; throw error; }
     };
@@ -18991,7 +18945,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     } finally { preparedInputs.delete(inputs); }
   }
   root.RingsideComparison = Object.freeze({ normalizeSelection, selectionKey, readComparisonInputs, deriveComparison,
-    deriveComparisonAsync, descriptive, quantile, studentP, criticalT, paired, holm, trend, extractMetrics: extraction, canonical, hash });
+    deriveComparisonAsync, numericDifference, trend, extractMetrics: extraction, canonical, hash });
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -19020,7 +18974,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const copy = value => JSON.parse(JSON.stringify(value));
   const people = model => new Map((model.athletes || []).map(a => [a.id, a.name || a.profile?.name || "未命名队员"]));
   const nameOf = (model, id) => people(model).get(id) || id || "队员";
-  const toneOf = (model, id) => PALETTE[Math.max(0, model.athletes.findIndex(a => a.id === id)) % PALETTE.length];
+  const toneOf = (model, date) => PALETTE[Math.max(0, model.dates.indexOf(date)) % PALETTE.length];
   const dashOf = (model, date) => DASHES[Math.max(0, model.dates.indexOf(date)) % DASHES.length];
   const basisLabel = (key, value) => M.capabilityDirectionOptions[key]?.find(([id]) => id === value)?.[1] || (key === "endurance" ? "心肺与阈值表现" : value || "");
   const labelOf = (model, series) => nameOf(model, series.athleteId) + (model.dates.length > 1 ? " · " + series.date : "");
@@ -19030,7 +18984,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const poly = (points, attrs) => `<polyline points="${points.map(p => p.map(v => F(v)).join(",")).join(" ")}" fill="none" ${attrs}/>`;
   const svg = (w, h, title, markup, description = "") => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${E(title)}"><desc>${E(description || title)}</desc>${markup}</svg>`;
   const point = (x, y, value, series, model, attrs = "", shape = "circle") => {
-    const tone = toneOf(model, series.athleteId), tip = labelOf(model, series) + " · " + value;
+    const tone = toneOf(model, series.date), tip = labelOf(model, series) + " · " + value;
     const mark = shape === "diamond" ? `<polygon points="${F(x)},${F(y - 5)} ${F(x + 5)},${F(y)} ${F(x)},${F(y + 5)} ${F(x - 5)},${F(y)}" fill="${tone}"/>` : `<circle cx="${F(x)}" cy="${F(y)}" r="4" fill="${tone}" stroke="white" stroke-width="1"/>`;
     return `<g class="viz-point comparison-series" data-athlete-id="${E(series.athleteId)}" data-date="${E(series.date)}" data-tooltip="${E(tip)}" tabindex="0" ${attrs}>${mark}<title>${E(tip)}</title></g>`;
   };
@@ -19065,124 +19019,81 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     out += text(left, 18, yLabel, `fill="${C.ink}" font-size="12"`) + text(right, h - 7, xLabel, 'text-anchor="end" font-size="12"');
     return { out, x, y, left, right, top, bottom };
   }
-  function errorBar(x, mean, sd, grid, tone, horizontal = false, tip = "") {
-    if (N(mean) === null) return "";
-    const lo = mean - (N(sd) === null ? 0 : sd), hi = mean + (N(sd) === null ? 0 : sd);
-    const marker = horizontal ? `<circle cx="${F(grid.x(mean))}" cy="${F(x)}" r="5" fill="${tone}"/>` : `<circle cx="${F(x)}" cy="${F(grid.y(mean))}" r="5" fill="${tone}"/>`;
-    const bars = N(sd) === null ? "" : horizontal ? line(grid.x(lo), x, grid.x(hi), x, `stroke="${tone}" stroke-width="2.5"`) + line(grid.x(lo), x - 5, grid.x(lo), x + 5, `stroke="${tone}" stroke-width="2"`) + line(grid.x(hi), x - 5, grid.x(hi), x + 5, `stroke="${tone}" stroke-width="2"`) : line(x, grid.y(lo), x, grid.y(hi), `stroke="${tone}" stroke-width="2.5"`) + line(x - 5, grid.y(lo), x + 5, grid.y(lo), `stroke="${tone}" stroke-width="2"`) + line(x - 5, grid.y(hi), x + 5, grid.y(hi), `stroke="${tone}" stroke-width="2"`);
-    return `<g class="comparison-mean" data-tooltip="${E(tip)}"><title>${E(tip)}</title>${bars}${marker}</g>`;
+  function legend(model) {
+    return `<div class="comparison-legend no-print" aria-label="测试日期图例">${model.dates.map(date => `<button type="button" class="comparison-legend-date" data-comparison-date-highlight="${E(date)}" aria-pressed="false"><i class="comparison-line-key comparison-line-pattern-${model.dates.indexOf(date) % DASHES.length}" style="--comparison-line-color:${toneOf(model, date)}"></i>${E(date)}</button>`).join("")}</div><div class="comparison-print-legend">${model.dates.map(date => `<span><i class="comparison-line-key comparison-line-pattern-${model.dates.indexOf(date) % DASHES.length}" style="--comparison-line-color:${toneOf(model, date)}"></i>${E(date)}</span>`).join("")}</div>`;
   }
-  function legend(model, series, { mean = true } = {}) {
-    const members = [...new Set(series.map(s => s.athleteId))];
-    const number = id => model.athletes.length > 12 ? String(model.athletes.findIndex(a => a.id === id) + 1).padStart(2, "0") + " · " : "";
-    return `<div class="comparison-legend no-print" aria-label="图例">${members.map(id => `<button type="button" class="comparison-legend-person" data-comparison-highlight="${E(id)}" aria-pressed="false"><i style="background:${toneOf(model, id)}"></i>${E(number(id) + nameOf(model, id))}</button>`).join("")}</div><div class="comparison-print-legend">${members.map(id => `<span><i style="background:${toneOf(model, id)}"></i>${E(number(id) + nameOf(model, id))}</span>`).join("")}</div><div class="comparison-chart-key">${model.dates.length > 1 ? model.dates.map((date, i) => `<span><i class="comparison-line-key comparison-line-pattern-${i % DASHES.length}" style="--comparison-line-color:${mean ? dateMean(model, date) : C.muted}" aria-hidden="true"></i>${E(date)}</span>`).join("") : ""}${mean ? "<span><b>●</b> 均值 ± 样本 SD</span>" : ""}</div>`;
-  }
-  const dateMean = (model, date) => PALETTE[Math.max(0, model.dates.indexOf(date)) % PALETTE.length];
   function curveChart(model, curve, layout = {}) {
-    const w = layout.width || 700, h = layout.height || 330, series = (curve.series || []).filter(s => s.points?.length), common = curve.common || [];
+    const w = layout.width || 700, h = layout.height || 330, series = (curve.series || []).filter(s => s.points?.length);
     if (!series.length) return `<p class="empty">${E(curve.reason || "暂无有效曲线")}</p>`;
     const all = series.flatMap(s => [...s.points, ...(s.rawPoints || [])]).filter(p => N(p.x) !== null && N(p.y) !== null);
-    const xr = range(all.map(p => p.x)), yr = range([...all.map(p => p.y), ...common.flatMap(p => [p.mean - (p.sd || 0), p.mean + (p.sd || 0)])]);
-    const grid = frame(w, h, xr, yr, { xLabel: curve.xLabel || curve.xUnit || "", yLabel: curve.yLabel || curve.unit || "" });
+    const grid = frame(w, h, range(all.map(p => p.x)), range(all.map(p => p.y)), { xLabel: curve.xLabel || curve.xUnit || "", yLabel: curve.yLabel || curve.unit || "" });
     let out = grid.out;
-    model.dates.forEach(date => {
-      const means = common.filter(p => p.date === date && N(p.mean) !== null).sort((a, b) => a.x - b.x), tone = dateMean(model, date);
-      if (!curve.noConnect && means.length > 1 && means.every(p => N(p.sd) !== null)) out += `<polygon class="comparison-sd-band" data-date="${E(date)}" points="${means.map(p => [grid.x(p.x), grid.y(p.mean + p.sd)]).concat(means.slice().reverse().map(p => [grid.x(p.x), grid.y(p.mean - p.sd)])).map(p => p.map(v => F(v)).join(",")).join(" ")}" fill="${tone}" fill-opacity=".12"/>`;
-    });
     series.forEach(s => {
-      const points = s.points.filter(p => N(p.x) !== null && N(p.y) !== null).slice().sort((a, b) => a.x - b.x), dash = dashOf(model, s.date), tone = toneOf(model, s.athleteId);
-      if (!curve.noConnect) out += `<g class="comparison-series" data-athlete-id="${E(s.athleteId)}" data-date="${E(s.date)}">${poly(points.map(p => [grid.x(p.x), grid.y(p.y)]), `stroke="${tone}" stroke-opacity=".65" stroke-width="1.6"${dash ? ` stroke-dasharray="${dash}"` : ""}`)}</g>`;
+      const points = s.points.filter(p => N(p.x) !== null && N(p.y) !== null).slice().sort((a,b) => a.x-b.x), dash = dashOf(model,s.date), tone = toneOf(model,s.date);
+      if (!curve.noConnect) out += `<g class="comparison-series" data-date="${E(s.date)}">${poly(points.map(p => [grid.x(p.x),grid.y(p.y)]), `stroke="${tone}" stroke-width="2"${dash ? ` stroke-dasharray="${dash}"` : ""}`)}</g>`;
       const measured = curve.fitted && curve.testId === "sprint_fvp" ? [] : Array.isArray(s.rawPoints) ? s.rawPoints : s.points;
       measured.forEach(p => { if (N(p.x) !== null && N(p.y) !== null) out += point(grid.x(p.x), grid.y(p.y), `${F(p.x)} ${curve.xUnit || ""} · ${F(p.y)} ${curve.unit || ""}${p.derived ? " · 推算" : s.rawPoints?.length ? " · 实测" : ""}`, s, model, `data-comparison-x="${p.x}"`, p.derived ? "diamond" : "circle"); });
     });
-    model.dates.forEach(date => {
-      const means = common.filter(p => p.date === date && N(p.mean) !== null).sort((a, b) => a.x - b.x), tone = dateMean(model, date), dash = dashOf(model, date);
-      if (means.length > 1 && !curve.noConnect) out += poly(means.map(p => [grid.x(p.x), grid.y(p.mean)]), `class="comparison-mean-line" stroke="${tone}" stroke-width="3.2"${dash ? ` stroke-dasharray="${dash}"` : ""}`);
-      if (!curve.fitted) means.forEach(p => { out += errorBar(grid.x(p.x), p.mean, p.sd, grid, tone, false, `${date} · ${F(p.x)} ${curve.xUnit || ""} · 均值 ${F(p.mean)} ± ${F(p.sd)} ${curve.unit || ""} · n=${p.n}`); if (N(p.xSd) !== null) out += errorBar(grid.y(p.mean), p.x, p.xSd, grid, tone, true, `${date} · X 均值 ${F(p.x)} ± ${F(p.xSd)} ${curve.xUnit || ""} · n=${p.n}`); });
-    });
     const protocol = typeof curve.protocol === "string" ? curve.protocol : model.entries.find(e => e.record?.enabled?.[curve.testId])?.record.protocol?.[curve.testId] || "";
-    return svg(w, h, curve.title, out, curve.description || "个人曲线与各日期均值；阴影及误差棒为队员间样本标准差。") + legend(model, series, { mean: common.length > 0 }) + `<p class="comparison-chart-caption">${E(protocol)}${common.length ? " · 阴影与误差棒：队员间样本 SD" : ""}${curve.fitted ? " · 均值仅显示共同适用区间" : ""}</p>`;
+    return svg(w,h,curve.title,out,curve.description || "各测试日期保留原始坐标、实测点与各期拟合曲线。") + legend(model) + (protocol ? `<p class="comparison-chart-caption">${E(protocol)}</p>` : "");
   }
   function metricChart(model, metric, kind = "column", layout = {}) {
-    const horizontal = kind === "bar" || kind === "target", valid = metric.observations.filter(o => N(o.value) !== null), count = Math.max(1, model.athletes.length), crowded = !horizontal && count > 12, w = Math.max(layout.width || 700, crowded ? count * 52 + 90 : 0);
-    const h = horizontal ? Math.max(280, Math.min(750, count * 27 + 105)) : layout.height || 330;
+    const horizontal = kind === "bar" || kind === "target", valid = metric.observations.filter(o => N(o.value) !== null), count = model.dates.length, w = layout.width || 700, h = layout.height || 330;
     if (!valid.length) return `<p class="empty">${E(metric.label)}：${E(metric.reason || "缺少有效结果")}</p>`;
-    const values = valid.map(o => o.value).concat(metric.periods.flatMap(p => N(p.mean) === null ? [] : [p.mean - (p.sd || 0), p.mean + (p.sd || 0)]));
-    const vr = range(values, kind === "column" || kind === "bar" || kind === "target"), cr = { min: -.6, max: count - .4 };
-    const labels = model.athletes.map((a, i) => crowded ? String(i + 1).padStart(2, "0") : a.name), grid = frame(w, h, horizontal ? vr : cr, horizontal ? cr : vr, { categories: labels, horizontal, xLabel: horizontal ? metric.unit : crowded ? "队员编号 · 对应下方图例" : "队员", yLabel: horizontal ? metric.label : metric.label + (metric.unit ? " · " + metric.unit : "") });
-    let out = grid.out;
+    const vr = range(valid.map(o => o.value), ["column","bar","target"].includes(kind)), cr = {min:-.6,max:count-.4};
+    const grid = frame(w,h,horizontal ? vr : cr,horizontal ? cr : vr,{categories:model.dates,horizontal,xLabel:horizontal ? metric.unit : "测试日期",yLabel:horizontal ? metric.label : metric.label+(metric.unit ? " · "+metric.unit : "")});
+    let out=grid.out;
     valid.forEach(o => {
-      const index = model.athletes.findIndex(a => a.id === o.athleteId), dateIndex = model.dates.indexOf(o.date), offset = (dateIndex - (model.dates.length - 1) / 2) * .52 / Math.max(1, model.dates.length), cat = index + offset, tone = toneOf(model, o.athleteId), label = labelOf(model, o) + ` · ${metric.label}：${F(o.value)} ${metric.unit}`;
-      if (kind === "column" || kind === "bar" || kind === "target") {
-        const barWidth = Math.min(18, (grid.right - grid.left) / count * .48 / Math.max(1, model.dates.length)), px = horizontal ? grid.x(Math.min(0, o.value)) : grid.x(cat) - barWidth / 2, py = horizontal ? grid.y(cat) - 4 : grid.y(Math.max(0, o.value)), rw = horizontal ? Math.abs(grid.x(o.value) - grid.x(0)) : barWidth, rh = horizontal ? 8 : Math.abs(grid.y(o.value) - grid.y(0));
-        out += `<rect class="comparison-series" data-athlete-id="${E(o.athleteId)}" data-date="${E(o.date)}" x="${F(px)}" y="${F(py)}" width="${F(rw)}" height="${F(rh)}" fill="${tone}" opacity="${F(.4 + .6 * (dateIndex + 1) / model.dates.length)}"><title>${E(label)}</title></rect>`;
+      const index=model.dates.indexOf(o.date), tone=toneOf(model,o.date), label=`${o.date} · ${metric.label}：${F(o.value)} ${metric.unit}`;
+      if (["column","bar","target"].includes(kind)) {
+        const width=Math.min(32,(grid.right-grid.left)/count*.45), px=horizontal ? grid.x(Math.min(0,o.value)) : grid.x(index)-width/2, py=horizontal ? grid.y(index)-7 : grid.y(Math.max(0,o.value)), rw=horizontal ? Math.abs(grid.x(o.value)-grid.x(0)) : width, rh=horizontal ? 14 : Math.abs(grid.y(o.value)-grid.y(0));
+        out+=`<rect class="comparison-series" data-date="${E(o.date)}" x="${F(px)}" y="${F(py)}" width="${F(rw)}" height="${F(rh)}" fill="${tone}"><title>${E(label)}</title></rect>`;
       }
-      out += point(horizontal ? grid.x(o.value) : grid.x(cat), horizontal ? grid.y(cat) : grid.y(o.value), `${metric.label}：${F(o.value)} ${metric.unit}`, o, model);
+      out+=point(horizontal ? grid.x(o.value) : grid.x(index),horizontal ? grid.y(index) : grid.y(o.value),`${metric.label}：${F(o.value)} ${metric.unit}`,o,model);
       if (kind === "target") {
-        const entry = model.entries.find(e => e.recordId === o.recordId), evaluation = entry?.stats?.evaluationResults?.find(e => e.metricId === metric.id), target = evaluation?.targetApplicable ? N(evaluation.target) : null;
-        if (target !== null) out += line(grid.x(target), grid.y(cat) - 9, grid.x(target), grid.y(cat) + 9, `stroke="${tone}" stroke-width="2" stroke-dasharray="3 2"`);
+        const entry=model.entries.find(e=>e.recordId===o.recordId), evaluation=entry?.stats?.evaluationResults?.find(e=>e.metricId===metric.id), target=evaluation?.targetApplicable ? N(evaluation.target) : null;
+        if (target !== null) out+=line(grid.x(target),grid.y(index)-11,grid.x(target),grid.y(index)+11,`stroke="${tone}" stroke-width="2" stroke-dasharray="3 2"`);
       }
     });
-    metric.periods.forEach((p, i) => {
-      if (N(p.mean) === null) return;
-      const tone = dateMean(model, p.date), tip = `${p.date} · 均值 ${F(p.mean)} ± ${F(p.sd)} ${metric.unit} · n=${p.n}`;
-      if (horizontal) { out += line(grid.x(p.mean), grid.top, grid.x(p.mean), grid.bottom, `stroke="${tone}" stroke-width="2" stroke-dasharray="${dashOf(model, p.date) || "6 4"}"`) + errorBar(grid.top + 13 + i * 17, p.mean, p.sd, grid, tone, true, tip); }
-      else { out += line(grid.left, grid.y(p.mean), grid.right, grid.y(p.mean), `stroke="${tone}" stroke-width="2" stroke-dasharray="${dashOf(model, p.date) || "6 4"}"`) + errorBar(grid.right - 10 - i * 13, p.mean, p.sd, grid, tone, false, tip); }
-    });
-    const figure = svg(w, h, metric.label, out, "每名队员使用本记录代表成绩；均值与样本 SD 由实际有效队员计算。");
-    return (crowded ? `<p class="comparison-chart-scroll-hint no-print">左右滑动查看全部队员 · 编号对应下方图例</p><div class="comparison-chart-viewport">${figure.replace('<svg ', `<svg style="min-width:${w}px" `)}</div>` : figure) + legend(model, valid);
+    return svg(w,h,metric.label,out,"按测试日期显示本记录的代表成绩；缺测日期留空。")+legend(model);
   }
   function trendChart(model, metric, layout = {}) {
-    const w = layout.width || 700, h = layout.height || 330, periods = metric.periods, cohort = new Set(metric.cohortIds || []), observations = metric.observations.filter(o => cohort.has(o.athleteId) && N(o.value) !== null);
-    const days = model.dates.map(stamp), xr = range(days), yr = range(observations.map(o => o.value).concat(periods.flatMap(p => N(p.mean) === null ? [] : [p.mean - (p.sd || 0), p.mean + (p.sd || 0)])));
-    const grid = frame(w, h, xr, yr, { dates: model.dates, xLabel: "测试日期", yLabel: metric.label + (metric.unit ? " · " + metric.unit : "") });
-    let out = grid.out;
-    model.athletes.forEach(a => {
-      const samples = observations.filter(o => o.athleteId === a.id).sort((a, b) => stamp(a.date) - stamp(b.date));
-      if (samples.length > 1) out += poly(samples.map(o => [grid.x(stamp(o.date)), grid.y(o.value)]), `class="comparison-series" data-athlete-id="${E(a.id)}" stroke="${toneOf(model, a.id)}" stroke-width="1.5" stroke-opacity=".55"`);
-      samples.forEach(o => { out += point(grid.x(stamp(o.date)), grid.y(o.value), `${metric.label}：${F(o.value)} ${metric.unit}`, o, model); });
+    const w=layout.width||700,h=layout.height||330, byDate=new Map(metric.observations.map(o=>[o.date,o])), valid=metric.observations.filter(o=>N(o.value)!==null);
+    if (!valid.length) return `<p class="empty">${E(metric.label)}：缺少有效结果</p>`;
+    const grid=frame(w,h,range(model.dates.map(stamp)),range(valid.map(o=>o.value)),{dates:model.dates,xLabel:"测试日期",yLabel:metric.label+(metric.unit ? " · "+metric.unit : "")});
+    let out=grid.out;
+    model.dates.forEach((date,i)=>{
+      const o=byDate.get(date), next=byDate.get(model.dates[i+1]);
+      if (N(o?.value)===null) return;
+      if (N(next?.value)!==null) out+=line(grid.x(stamp(date)),grid.y(o.value),grid.x(stamp(next.date)),grid.y(next.value),`class="comparison-observed-connector" stroke="${C.blue}" stroke-width="2"`);
+      out+=point(grid.x(stamp(date)),grid.y(o.value),`${metric.label}：${F(o.value)} ${metric.unit}`,o,model);
     });
-    const means = periods.filter(p => N(p.mean) !== null);
-    if (means.length > 1) out += poly(means.map(p => [grid.x(stamp(p.date)), grid.y(p.mean)]), `class="comparison-mean-line" stroke="${C.blue}" stroke-width="3"`);
-    means.forEach(p => { out += errorBar(grid.x(stamp(p.date)), p.mean, p.sd, grid, C.blue, false, `${p.date} · 均值 ${F(p.mean)} ± ${F(p.sd)} · n=${p.n}`); });
-    const trend = metric.trend;
-    if (model.dates.length >= 3 && N(trend?.slopePer30Days) !== null && N(trend?.intercept) !== null) {
-      const origin = stamp(model.dates[0]), first = trend.intercept, last = first + trend.slopePer30Days / 30 * (stamp(model.dates.at(-1)) - origin);
-      out += line(grid.x(origin), grid.y(first), grid.x(stamp(model.dates.at(-1))), grid.y(last), `class="comparison-trend-fit" stroke="${C.ink}" stroke-width="2" stroke-dasharray="7 5"`);
+    const trend=metric.trend;
+    if (model.dates.length>=3 && N(trend?.slopePer30Days)!==null && N(trend?.intercept)!==null) {
+      const origin=stamp(trend.origin||model.dates[0]), first=trend.intercept+trend.slopePer30Days/30*(stamp(model.dates[0])-origin), last=trend.intercept+trend.slopePer30Days/30*(stamp(model.dates.at(-1))-origin);
+      out+=line(grid.x(stamp(model.dates[0])),grid.y(first),grid.x(stamp(model.dates.at(-1))),grid.y(last),`class="comparison-trend-fit" stroke="${C.ink}" stroke-width="2" stroke-dasharray="7 5"`);
     }
-    const tail = trend && N(trend.slopePer30Days) !== null ? `描述性线性趋势：${signed(trend.slopePer30Days)} ${metric.unit || "单位"}／30天${N(trend.r2) !== null ? " · R² " + F(trend.r2, 3) : ""}` : model.dates.length === 2 ? "实线连接两期实测结果" : "";
-    return svg(w, h, metric.label + "趋势", out, "横轴为真实测试日期；全部日期采用同一组有效队员。") + legend(model, observations) + `<p class="comparison-chart-caption">固定队员 n=${cohort.size}${tail ? " · " + E(tail) : ""}</p>`;
+    const tail=N(trend?.slopePer30Days)!==null ? `描述性线性趋势：${signed(trend.slopePer30Days)} ${metric.unit||"单位"}／30天${N(trend.r2)!==null ? " · R² "+F(trend.r2,3) : ""}` : model.dates.length===2 ? "实线连接两期实测结果" : trend?.reason || "有效日期不足三期，保留实测结果";
+    return svg(w,h,metric.label+"趋势",out,"横轴为真实测试日期；缺测日期保留空白，实测连线在缺测处断开。")+legend(model)+`<p class="comparison-chart-caption">${E(tail)}</p>`;
   }
-  function radarChart(model, axes, series, { title = "能力评分", maximum = 100, unit = "分", width = 560 } = {}) {
+  function radarChart(model, axes, series, {title="能力评分",maximum=100,unit="分",width=560}={}) {
     if (!axes.length) return '<p class="empty">暂无可比较的能力评分</p>';
-    if (axes.length < 3) return series.map(s => `<div class="comparison-axis-list">${axes.map((a, i) => `<span>${E(a.label)} · ${E(labelOf(model, s))}：${F(s.values[i])} ${E(unit)}</span>`).join("")}</div>`).join("");
-    const w = width, h = 410, cx = w / 2, cy = 190, r = Math.min(125, w * .23), polar = (i, v) => [cx + Math.cos(-Math.PI / 2 + i * Math.PI * 2 / axes.length) * r * v / maximum, cy + Math.sin(-Math.PI / 2 + i * Math.PI * 2 / axes.length) * r * v / maximum];
-    let out = "";
-    [maximum / 4, maximum / 2, maximum * .75, maximum].forEach(v => { out += `<polygon points="${axes.map((a, i) => polar(i, v).map(x => F(x)).join(",")).join(" ")}" fill="none" stroke="${C.grid}"/>` + text(cx + 5, cy - r * v / maximum + 4, F(v, 0), 'font-size="10"'); });
-    axes.forEach((a, i) => { const p = polar(i, maximum * 1.19); out += line(cx, cy, ...polar(i, maximum)) + text(p[0], p[1], a.label, `text-anchor="middle" fill="${C.ink}" font-size="16"`); });
-    series.forEach(s => {
-      const tone = s.mean ? dateMean(model, s.date) : toneOf(model, s.athleteId), values = s.values;
-      out += `<g class="${s.mean ? "comparison-mean-line" : "comparison-series"}"${s.athleteId ? ` data-athlete-id="${E(s.athleteId)}"` : ""} data-date="${E(s.date)}">`;
-      values.forEach((v, i) => { const next = (i + 1) % values.length; if (N(v) !== null && N(values[next]) !== null) out += line(...polar(i, Math.max(0, v)), ...polar(next, Math.max(0, values[next])), `stroke="${tone}" stroke-width="${s.mean ? 3 : 1.3}" stroke-opacity="${s.mean ? 1 : .45}"${dashOf(model, s.date) ? ` stroke-dasharray="${dashOf(model, s.date)}"` : ""}`); });
-      values.forEach((v, i) => {
-        if (N(v) === null) return;
-        const p = polar(i, Math.max(0, v)), tip = `${axes[i].label} · ${s.mean ? s.date + " 均值" : labelOf(model, s)}：${F(v)} ${unit}${s.mean ? " ± " + F(s.sds?.[i]) + " · n=" + (s.ns?.[i] || 0) : ""}`;
-        out += `<g data-tooltip="${E(tip)}"><title>${E(tip)}</title><circle cx="${F(p[0])}" cy="${F(p[1])}" r="${s.mean ? 4 : 2.8}" fill="${tone}"/></g>`;
-        if (s.mean && N(s.sds?.[i]) !== null) out += line(...polar(i, Math.max(0, v - s.sds[i])), ...polar(i, v + s.sds[i]), `stroke="${tone}" stroke-width="2"`);
-      });
-      out += "</g>";
+    if (axes.length<3) return series.map(s=>`<div class="comparison-axis-list">${axes.map((a,i)=>`<span>${E(a.label)} · ${E(s.date)}：${F(s.values[i])} ${E(unit)}</span>`).join("")}</div>`).join("");
+    const w=width,h=410,cx=w/2,cy=190,r=Math.min(125,w*.23),polar=(i,v)=>[cx+Math.cos(-Math.PI/2+i*Math.PI*2/axes.length)*r*v/maximum,cy+Math.sin(-Math.PI/2+i*Math.PI*2/axes.length)*r*v/maximum];
+    let out=maximum===3?text(cx+5,cy+4,"0",'class="comparison-radar-tick" data-value="0" font-size="10"'):"";
+    const ticks=maximum===3?[1,2,3]:[maximum/4,maximum/2,maximum*.75,maximum];
+    ticks.forEach(v=>{out+=`<polygon points="${axes.map((a,i)=>polar(i,v).map(v=>F(v)).join(",")).join(" ")}" fill="none" stroke="${C.grid}"/>`+text(cx+5,cy-r*v/maximum+4,F(v,0),`class="comparison-radar-tick" data-value="${v}" font-size="10"`);});
+    axes.forEach((a,i)=>{const p=polar(i,maximum*1.19);out+=line(cx,cy,...polar(i,maximum))+text(p[0],p[1],a.label,`text-anchor="middle" fill="${C.ink}" font-size="16"`);});
+    series.forEach(s=>{
+      const tone=toneOf(model,s.date),dash=dashOf(model,s.date),values=s.values;
+      out+=`<g class="comparison-series" data-date="${E(s.date)}">`;
+      values.forEach((v,i)=>{const next=(i+1)%values.length;if(N(v)!==null&&N(values[next])!==null)out+=line(...polar(i,Math.max(0,v)),...polar(next,Math.max(0,values[next])),`stroke="${tone}" stroke-width="2"${dash ? ` stroke-dasharray="${dash}"` : ""}`);});
+      values.forEach((v,i)=>{if(N(v)===null)return;const p=polar(i,Math.max(0,v)),tip=`${axes[i].label} · ${s.date}：${F(v)} ${unit}`;out+=`<g data-tooltip="${E(tip)}"><title>${E(tip)}</title><circle cx="${F(p[0])}" cy="${F(p[1])}" r="3.5" fill="${tone}"/></g>`;});out+="</g>";
     });
-    const last = series.filter(s => s.mean).at(-1);
-    const counts = last ? `<div class="comparison-axis-counts">${axes.map((a, i) => `<span>${E(a.label)} <b>n=${last.ns[i]}</b> · ${F(last.values[i])} ± ${F(last.sds[i])}</span>`).join("")}</div>` : "";
-    return svg(w, h, title, out, "个人系列、各日期均值与轴向样本标准差；缺测轴保持空白。") + counts + legend(model, series.filter(s => !s.mean));
+    return svg(w,h,title,out,"每个测试日期保留个人系列与原评分量尺；缺测轴留空并断开线段。")+legend(model);
   }
-  function axisSeries(model, axes) {
-    const series = [];
-    model.dates.forEach(date => {
-      model.athletes.forEach(a => { const values = axes.map(axis => axis.periods?.find(p => p.date === date)?.observations?.find(o => o.athleteId === a.id)?.value ?? null); if (values.some(v => N(v) !== null)) series.push({ athleteId: a.id, date, values }); });
-      series.push({ mean: true, date, values: axes.map(a => a.periods?.find(p => p.date === date)?.mean ?? null), sds: axes.map(a => a.periods?.find(p => p.date === date)?.sd ?? null), ns: axes.map(a => a.periods?.find(p => p.date === date)?.n || 0) });
-    });
-    return series;
+  function axisSeries(model,axes) {
+    return model.dates.map(date=>({athleteId:model.athletes[0].id,date,values:axes.map(axis=>{const p=axis.periods?.find(p=>p.date===date);return N(p?.value) ?? N(p?.observations?.[0]?.value) ?? N(p?.mean);})}));
   }
   function radar(model) {
     const axes = model.axes || [];
@@ -19190,69 +19101,56 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return Array.from({ length: Math.ceil(axes.length / 7) }, (_, i) => { const group = axes.slice(i * 7, (i + 1) * 7); return `<div class="comparison-radar-facet" data-pdf-atomic>${radarChart(model, group, axisSeries(model, group))}</div>`; }).join("");
   }
   function summary(model) {
-    const s = model.summary?.latest || {}, card = (label, value, note, status = "gray") => `<article class="micro-card"><div class="micro-head"><h3>${E(label)}</h3></div><div class="micro-value ${status}">${value}<small> 人</small></div><p>${E(note)}</p></article>`;
-    const transitions = model.summary?.transitions || [], counts = state => transitions.filter(t => t.state === state && t.toDate === model.dates.at(-1) && !t.key?.startsWith("advantage:")).length;
-    return card("所选队员", s.selectedCount ?? model.athletes.length, `${s.resultCount || 0} 人有结果 · ${model.dates.at(-1) || ""}`) + card("预警", s.redCount || 0, model.dates.length > 1 ? `末次相对基线：新增 ${counts("new")} 项 · 解除 ${counts("resolved")} 项 · 持续 ${counts("persistent")} 项` : "末次测试有预警的队员", s.redCount ? "red" : "gray") + card("关注", s.amberCount || 0, "每位队员计一次", s.amberCount ? "amber" : "gray") + card("优势", s.advantageCount || 0, "具有已评价优势的队员", s.advantageCount ? "green" : "gray");
+    const latest=model.entries.find(e=>e.date===model.dates.at(-1)),findings=latest?.stats?.findings||[],advantage=latest?.stats?.advantages?.items||[],transitions=model.summary?.transitions||[];
+    const counts=state=>transitions.filter(t=>t.state===state&&t.toDate===model.dates.at(-1)&&!t.key?.startsWith("advantage:")).length;
+    const card=(label,value,note,status="gray",unit="项")=>`<article class="micro-card"><div class="micro-head"><h3>${E(label)}</h3></div><div class="micro-value ${status}">${value}<small> ${unit}</small></div><p>${E(note)}</p></article>`;
+    const red=findings.filter(f=>f.status==="red").length,amber=findings.filter(f=>f.status==="amber").length,green=advantage.filter(a=>!a.relative).length;
+    return card("测试日期",model.dates.length,`末次 ${model.dates.at(-1)} · 基线 ${model.dates[0]}`,"gray","期")+card("预警",red,`末次相对基线：新增 ${counts("new")} 项 · 解除 ${counts("resolved")} 项 · 持续 ${counts("persistent")} 项`,red?"red":"gray")+card("关注",amber,"末次测试的关注项目",amber?"amber":"gray")+card("优势",green,"末次已评价的优势项目",green?"green":"gray");
   }
-  function body(model, { bodyImage = global.RingsideBodyImage, views = {} } = {}) {
-    if (model.athletes.length > 1) return screeningChart(model, views);
-    const periods = model.summary?.periods || [];
-    return `${periods.length > 1 ? `<p class="comparison-body-date-hint no-print">共 ${periods.length} 个测试日期 · 左右滑动查看</p>` : ""}<div class="comparison-body-facets">${periods.map(period => {
-      const regions = Object.fromEntries((Array.isArray(period.regions) ? period.regions : Object.values(period.regions || {})).map(region => {
-        const tests = (region.members || []).flatMap(member => (member.tests || []).map(t => ({ ...t, name: nameOf(model, member.athleteId) + " · " + (t.name || t.title || "测试") })));
-        const status = region.redCount ? "red" : region.amberCount ? "amber" : region.greenCount ? "green" : "neutral";
-        const label = REGIONS[region.key] || region.name || region.label || region.key;
-        return [region.key, { name: label, status, hasMeasured: region.n > 0, tests, label: `${region.redCount || 0} 预警 / ${region.amberCount || 0} 关注 · ${region.n || 0} 人有效`, detail: `${label}：${region.redCount || 0} 人预警，${region.amberCount || 0} 人关注；${region.n || 0} 人有可判断结果` }];
-      }));
-      return `<figure data-pdf-atomic><figcaption>${E(period.date)}</figcaption>${V.body(regions, bodyImage)}</figure>`;
-    }).join("")}</div>`;
-  }
-  function screeningChart(model, views = {}) {
-    const periods = model.summary?.periods || [], lookup = period => Array.isArray(period?.regions) ? period.regions : Object.values(period?.regions || {}), date = model.dates.includes(views.screeningDate) ? views.screeningDate : model.dates.at(-1), period = periods.find(p => p.date === date), regions = lookup(period);
-    const keys = [...new Set(periods.flatMap(p => lookup(p).map(region => region.key)))], score = { green: 3, amber: 2, red: 1 }, labels = { green: "达标", amber: "关注", red: "预警", gray: "未知" };
-    if (!keys.length) return '<p class="empty comparison-screening-chart">暂无可判断的筛查结果</p>';
-    const w = 640, h = 540, cx = 320, cy = 255, radius = 160, polar = (index, value) => { const angle = -Math.PI / 2 + index * 2 * Math.PI / keys.length; return [cx + Math.cos(angle) * radius * value / 3, cy + Math.sin(angle) * radius * value / 3]; };
-    const memberAt = (athleteId, key) => regions.find(region => region.key === key)?.members?.find(member => member.athleteId === athleteId), valuesOf = id => keys.map(key => score[memberAt(id, key)?.status] ?? null);
-    let out = [3, 2, 1].map(value => `<polygon class="comparison-screening-grade-ring" data-grade="${value}" points="${keys.map((_, i) => polar(i, value).map(v => F(v)).join(",")).join(" ")}" fill="${C[{ 3: "green", 2: "amber", 1: "red" }[value]]}" fill-opacity=".055" stroke="${C.grid}"/>`).join("");
-    [1, 2, 3].forEach(value => { out += text(cx + 8, cy - radius * value / 3 - 5, `${value} · ${labels[{ 1: "red", 2: "amber", 3: "green" }[value]]}`, `font-size="13" fill="${C[{ 1: "red", 2: "amber", 3: "green" }[value]]}"`); });
-    keys.forEach((key, index) => {
-      const point = polar(index, 3), labelPoint = polar(index, 3.75), label = REGIONS[key] || regions.find(r => r.key === key)?.label || key, cos = (labelPoint[0] - cx) / radius, anchor = cos > .2 ? "start" : cos < -.2 ? "end" : "middle", region = regions.find(r => r.key === key), n = (region?.redCount || 0) + (region?.amberCount || 0) + (region?.greenCount || 0), parts = label.length > 6 ? [label.slice(0, 6), label.slice(6)] : [label];
-      out += line(cx, cy, point[0], point[1]);
-      const details = { name: label + " · " + date, status: "gray", hasMeasured: !!region?.n, tests: model.athletes.map(athlete => { const member = memberAt(athlete.id, key); return { name: nameOf(model, athlete.id), value: score[member?.status] ?? null, unit: "级", status: member?.status || "gray", missing: !member, label: labels[member?.status] || (member ? "已测未判定" : "未测"), notes: (member?.tests || []).map(t => t.name || t.title).filter(Boolean).join("、") }; }) };
-      let axis = parts.map((part, lineIndex) => text(labelPoint[0], labelPoint[1] + lineIndex * 18, part, `class="comparison-screening-axis-label" text-anchor="${anchor}" font-size="18" fill="${C.ink}"`)).join("");
-      axis += text(labelPoint[0], labelPoint[1] + parts.length * 18, "n=" + n, `text-anchor="${anchor}" font-size="12"`);
-      out += `<g class="comparison-screening-axis" data-region="${E(key)}" data-body-detail="${E(JSON.stringify(details))}" data-overview-detail="${E(JSON.stringify(details))}" data-tooltip="${E(label + ' · ' + date + ' · 可判定 ' + n + ' 人')}" tabindex="0" role="button">${axis}</g>`;
+  const regionList=period=>Array.isArray(period?.regions)?period.regions:Object.values(period?.regions||{});
+  function body(model) { return screeningChart(model); }
+  function screeningChart(model) {
+    const periods=model.summary?.periods||[],known=periods.flatMap(p=>regionList(p).map(r=>r.key)),keys=[...new Set([...Object.keys(REGIONS),...known])],score={green:3,amber:2,red:1},labels={green:"达标",amber:"关注",red:"预警",gray:"已测未判定"};
+    const w=640,h=540,cx=320,cy=255,radius=160,polar=(index,value)=>{const angle=-Math.PI/2+index*2*Math.PI/keys.length;return [cx+Math.cos(angle)*radius*value/3,cy+Math.sin(angle)*radius*value/3];};
+    const regionAt=(date,key)=>regionList(periods.find(p=>p.date===date)).find(r=>r.key===key), memberAt=(date,key)=>regionAt(date,key)?.members?.find(m=>m.athleteId===model.athletes[0].id);
+    const detailAt=(date,key)=>{
+      const member=memberAt(date,key),region=regionAt(date,key),status=member?.status||"gray",grade=score[status]??null,measured=!!member||region?.measured===true||region?.hasMeasured===true,label=grade===null?(measured?"已测未判定":"未测"):labels[status];
+      return {name:`${REGIONS[key]||region?.label||key} · ${date}`,status,hasMeasured:measured,label,tests:[{name:"筛查状态",value:grade,unit:"级",status,missing:!measured,label},...(member?.tests||region?.tests||[])]};
+    };
+    let out=[3,2,1].map(value=>`<polygon class="comparison-screening-grade-ring" data-grade="${value}" points="${keys.map((_,i)=>polar(i,value).map(v=>F(v)).join(",")).join(" ")}" fill="${C[{3:"green",2:"amber",1:"red"}[value]]}" fill-opacity=".055" stroke="${C.grid}"/>`).join("");
+    [1,2,3].forEach(value=>{out+=text(cx+8,cy-radius*value/3-5,`${value} · ${labels[{1:"red",2:"amber",3:"green"}[value]]}`,`font-size="13" fill="${C[{1:"red",2:"amber",3:"green"}[value]]}"`);});
+    keys.forEach((key,index)=>{
+      const p=polar(index,3),labelPoint=polar(index,3.75),label=REGIONS[key]||regionAt(model.dates.at(-1),key)?.label||key,cos=(labelPoint[0]-cx)/radius,anchor=cos>.2?"start":cos<-.2?"end":"middle",parts=label.length>6?[label.slice(0,6),label.slice(6)]:[label];
+      const detail={name:label,status:"gray",hasMeasured:model.dates.some(date=>detailAt(date,key).hasMeasured),tests:model.dates.flatMap(date=>detailAt(date,key).tests.map(t=>({...t,name:date+" · "+(t.name||t.title||"测试")})))};
+      out+=line(cx,cy,p[0],p[1]);
+      out+=`<g class="comparison-screening-axis" data-region="${E(key)}" data-body-detail="${E(JSON.stringify(detail))}" data-overview-detail="${E(JSON.stringify(detail))}" tabindex="0" role="button">${parts.map((part,i)=>text(labelPoint[0],labelPoint[1]+i*18,part,`class="comparison-screening-axis-label" text-anchor="${anchor}" font-size="18" fill="${C.ink}"`)).join("")}</g>`;
     });
-    model.athletes.forEach(athlete => {
-      const values = valuesOf(athlete.id), color = toneOf(model, athlete.id);
-      let series = values.every(value => value !== null) ? `<polygon points="${values.map((value, index) => polar(index, value).map(v => F(v)).join(",")).join(" ")}" fill="${color}" fill-opacity="${model.athletes.length <= 8 ? .025 : 0}" stroke="none"/>` : "";
-      values.forEach((value, index) => { const next = (index + 1) % keys.length; if (value !== null && values[next] !== null) { const a = polar(index, value), b = polar(next, values[next]); series += line(a[0], a[1], b[0], b[1], `class="comparison-screening-segment" data-screening-from="${E(keys[index])}" data-screening-to="${E(keys[next])}" stroke="${color}" stroke-width="1.5" stroke-opacity=".6"`); } });
-      keys.forEach((key, index) => {
-        const label = REGIONS[key] || regions.find(r => r.key === key)?.label || key, member = memberAt(athlete.id, key), entry = model.entries.find(e => e.athleteId === athlete.id && e.date === date), status = member?.status || "gray", grade = score[status] ?? null, recordId = member?.recordId || entry?.recordId || "", region = regions.find(r => r.key === key), measured = region?.n || 0, assessed = (region?.redCount || 0) + (region?.amberCount || 0) + (region?.greenCount || 0);
-        const stateLabel = grade === null ? member ? "已测未判定" : "未测" : labels[status], tests = [{ name: "筛查状态", value: grade, unit: "级", status, missing: !member, label: stateLabel }, ...(member?.tests || []).map(test => ({ ...test, name: nameOf(model, athlete.id) + " · " + (test.name || test.title || "测试") }))], detail = { name: nameOf(model, athlete.id) + " · " + label + " · " + date, status, hasMeasured: !!member, label: stateLabel, tests };
-        const tooltip = `${nameOf(model, athlete.id)} · ${date} · ${label}：${grade === null ? stateLabel : grade + '级 · ' + stateLabel}`;
-        const coords = grade === null ? null : polar(index, grade), marks = coords ? `<circle class="comparison-screening-point viz-hotspot" cx="${F(coords[0])}" cy="${F(coords[1])}" r="4" fill="${C[status]}" stroke="white" stroke-width="1.2"/>` : "";
-        series += `<g class="viz-region comparison-screening-row${grade === null ? " comparison-screening-unknown" : ""}" data-athlete-id="${E(athlete.id)}" data-record-id="${E(recordId)}" data-region="${E(key)}" data-date="${E(date)}" data-status="${E(status)}" data-value="${grade ?? ""}" data-valid-n="${assessed}" data-measured-n="${measured}" data-assessed-n="${assessed}" data-unknown-count="${model.athletes.length - assessed}" data-body-detail="${E(JSON.stringify(detail))}" data-tooltip="${E(tooltip)}" role="button" tabindex="0" aria-label="${E(tooltip)}">${marks}<title>${E(tooltip)}</title></g>`;
+    model.dates.forEach(date=>{
+      const values=keys.map(key=>score[memberAt(date,key)?.status]??null),tone=toneOf(model,date),dash=dashOf(model,date);let marks="";
+      values.forEach((value,index)=>{const next=(index+1)%keys.length;if(value!==null&&values[next]!==null)marks+=line(...polar(index,value),...polar(next,values[next]),`class="comparison-screening-segment" data-screening-from="${E(keys[index])}" data-screening-to="${E(keys[next])}" stroke="${tone}" stroke-width="2"${dash?` stroke-dasharray="${dash}"`:""}`);});
+      keys.forEach((key,index)=>{
+        const member=memberAt(date,key),entry=model.entries.find(e=>e.date===date),detail=detailAt(date,key),grade=score[detail.status]??null,recordId=member?.recordId||entry?.recordId||"",tooltip=`${date} · ${REGIONS[key]||key}：${grade===null?detail.label:grade+'级 · '+detail.label}`,p=grade===null?null:polar(index,grade);
+        marks+=`<g class="viz-region comparison-screening-row${grade===null?' comparison-screening-unknown':''}" data-date="${E(date)}" data-region="${E(key)}" data-record-id="${E(recordId)}" data-status="${E(detail.status)}" data-value="${grade??''}" data-body-detail="${E(JSON.stringify(detail))}" data-tooltip="${E(tooltip)}" role="button" tabindex="0" aria-label="${E(tooltip)}">${p?`<circle class="comparison-screening-point viz-hotspot" cx="${F(p[0])}" cy="${F(p[1])}" r="3.5" fill="${C[detail.status]}" stroke="white" stroke-width="1.2"/>`:""}<title>${E(tooltip)}</title></g>`;
       });
-      out += `<g class="comparison-series comparison-screening-series" data-athlete-id="${E(athlete.id)}" data-date="${E(date)}">${series}</g>`;
+      out+=`<g class="comparison-series comparison-screening-series" data-date="${E(date)}">${marks}</g>`;
     });
-    const unknown = id => valuesOf(id).every(value => value === null), personLabel = athlete => (model.athletes.length > 12 ? String(model.athletes.indexOf(athlete) + 1).padStart(2, "0") + " · " : "") + nameOf(model, athlete.id) + (unknown(athlete.id) ? "（未知）" : "");
-    const legend = `<div class="comparison-legend no-print">${model.athletes.map(athlete => `<button class="comparison-legend-person" type="button" data-comparison-highlight="${E(athlete.id)}" aria-pressed="false"><i style="background:${toneOf(model, athlete.id)}"></i>${E(personLabel(athlete))}</button>`).join("")}</div><div class="comparison-print-legend">${model.athletes.map(athlete => `<span><i style="background:${toneOf(model, athlete.id)}"></i>${E(personLabel(athlete))}</span>`).join("")}</div>`;
-    const dates = model.dates.length > 1 ? `<div class="comparison-segment comparison-screening-date-picker no-print" aria-label="筛查测试日期">${model.dates.map(d => `<button type="button" data-comparison-screening-date="${E(d)}" aria-pressed="${d === date}">${E(d)}</button>`).join("")}</div>` : "";
-    const chart = svg(w, h, "团队队员身体部位筛查雷达", out, "每名队员保留独立系列。原评价状态达标、关注、预警分别展示为 3、2、1；未知无点且相邻线段断开，不替换为零。").replace("<svg ", `<svg data-center-x="${cx}" data-center-y="${cy}" data-max-radius="${radius}" data-max-value="3" `);
-    return `<div class="comparison-screening-chart" data-screening-date="${E(date)}" data-pdf-atomic>${dates}<p class="comparison-screening-active-date">${E(date)} · ${model.athletes.length} 名队员</p><div class="comparison-screening-viewport">${chart}</div>${legend}<p class="comparison-screening-caption">显示等级：绿色 3 达标 · 黄色 2 关注 · 红色 1 预警。未判定留空；n 为该日期可判定人数。点击队员图例突出个人，点击图点或部位名称查看判定依据。</p></div>`;
+    const chart=svg(w,h,"个人纵向身体部位筛查雷达",out,"同一名队员各测试日期分别形成系列；达标、关注、预警显示为3、2、1。未判定部位留空，线段在缺测处断开。").replace("<svg ",`<svg data-center-x="${cx}" data-center-y="${cy}" data-max-radius="${radius}" data-max-value="3" `);
+    return `<div class="comparison-screening-chart" data-pdf-atomic><p class="comparison-screening-active-date">${E(model.dates[0])} — ${E(model.dates.at(-1))}</p><div class="comparison-screening-viewport">${chart}</div>${legend(model)}<p class="comparison-screening-caption">显示等级：绿色 3 达标 · 黄色 2 关注 · 红色 1 预警。未判定留空。点击日期图例突出该期，点击图点或部位名称查看原项目与判定依据。</p></div>`;
   }
-  function screenItems(model, { views = {} } = {}) {
-    const date = model.dates.includes(views.screeningDate) ? views.screeningDate : model.dates.at(-1), latest = model.summary?.periods?.find(p => p.date === date) || model.summary?.latest, regions = Array.isArray(latest?.regions) ? latest.regions : Object.values(latest?.regions || {});
-    const sorted = regions.filter(r => r.n > 0).sort((a, b) => b.redCount - a.redCount || b.amberCount - a.amberCount), item = r => `<details class="screen-item comparison-region-members" data-region="${E(r.key)}" data-date="${E(date)}"><summary><strong>${E(REGIONS[r.key] || r.name || r.label || r.key)}</strong><span>${r.redCount || 0} 预警 · ${r.amberCount || 0} 关注 · ${r.n} 人实测</span></summary>${(r.members || []).map(member => `<p data-athlete-id="${E(member.athleteId)}" data-record-id="${E(member.recordId)}"><button class="comparison-person-link" data-comparison-highlight="${E(member.athleteId)}">${E(nameOf(model, member.athleteId))}</button> · ${E({ red: "预警", amber: "关注", green: "达标", gray: "已测未评" }[member.status] || "已测")}${member.tests?.length ? " · " + E(member.tests.map(t => t.name || t.title).filter(Boolean).join("、")) : ""}</p>`).join("")}</details>`;
-    return sorted.slice(0, 4).map(item).join("") + (sorted.length > 4 ? `<details class="comparison-more-regions"><summary>查看其余 ${sorted.length - 4} 个部位</summary>${sorted.slice(4).map(item).join("")}</details>` : "") || '<div class="screen-item"><h4>暂无可判断的筛查结果</h4></div>';
+  function screenItems(model) {
+    const periods=model.summary?.periods||[],keys=[...new Set(periods.flatMap(p=>regionList(p).filter(r=>r.members?.length||r.measured||r.hasMeasured).map(r=>r.key)))];
+    const item=key=>`<details class="screen-item comparison-region-members" data-region="${E(key)}"><summary><strong>${E(REGIONS[key]||key)}</strong><span>各期筛查结果</span></summary>${model.dates.map(date=>{const r=regionList(periods.find(p=>p.date===date)).find(r=>r.key===key),m=r?.members?.[0],status=m?.status||r?.status,entry=model.entries.find(e=>e.date===date),measured=!!m||r?.measured||r?.hasMeasured;return `<p data-date="${E(date)}" data-record-id="${E(m?.recordId||entry?.recordId||'')}"><button class="comparison-date-link" data-comparison-date-highlight="${E(date)}">${E(date)}</button> · ${E(measured?({red:'预警',amber:'关注',green:'达标',gray:'已测未判定'}[status]||'已测未判定'):'未测')}${m?.tests?.length?' · '+E(m.tests.map(t=>t.name||t.title).filter(Boolean).join('、')):''}</p>`;}).join('')}</details>`;
+    return keys.slice(0,4).map(item).join('')+(keys.length>4?`<details class="comparison-more-regions"><summary>查看其余 ${keys.length-4} 个部位</summary>${keys.slice(4).map(item).join('')}</details>`:'')||'<div class="screen-item"><h4>暂无可判断的筛查结果</h4></div>';
   }
   function overview(model) {
-    return (model.capabilities || []).map(c => { const p = c.periods?.at(-1); return `<div class="aux-metric"><span class="aux-label">${E(c.title)}</span><strong class="aux-judgment">${E((p?.groups || []).map(g => g.judgment + " " + g.count + "人").join("；") || "暂无结果")}</strong><span class="aux-data">${E(basisLabel(c.id, c.basis))}</span></div>`; }).join("");
+    const axes=model.axes||[];
+    if(!axes.length)return '';
+    return `<details class="comparison-ability-values"><summary>查看各期能力数值</summary>${table(["能力",...model.dates],axes.map(axis=>[E(axis.label),...model.dates.map(date=>{const p=axis.periods?.find(p=>p.date===date);return F(N(p?.value)??N(p?.observations?.[0]?.value)??N(p?.mean))+" 分";})]))}</details>`;
   }
   function preferences(model, views = {}) {
     const next = copy(views); next.projects ||= {}; next.capabilityExpanded ||= {};
-    next.screeningDate = model.dates.includes(next.screeningDate) ? next.screeningDate : model.dates.at(-1);
+    delete next.screeningDate; delete next.highlightAthleteId;
+    next.highlightDate = model.dates.includes(next.highlightDate) ? next.highlightDate : "";
     for (const project of model.projects || []) {
       const saved = next.projects[project.id] || {}, keys = new Set(project.metrics.map(m => m.key));
       const native = model.entries.find(e => e.record?.enabled?.[project.id]);
@@ -19266,25 +19164,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function table(headers, rows, attrs = "", className = "comparison-statistics-table") {
     return `<div class="table-wrap"><table class="${className}"><thead><tr>${headers.map(h => `<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(row => `<tr${row.attrs || ""}>${(row.cells || row).map((cell, i) => `<td data-label="${E(headers[i])}">${cell ?? "—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   }
-  const meanSD = p => `${F(p.mean)}${N(p.sd) !== null ? " ± " + F(p.sd) : ""}`;
-  const changeLabel = (metric, change) => change ? `${signed(change.delta)} ${E(metric.unit)}${N(change.percentChange) !== null ? `<small>${signed(change.percentChange)}%</small>` : /^(%|%PF)$/.test(metric.unit) && N(change.delta) !== null ? "<small>百分点变化</small>" : ""}${change.improvement && change.improvement !== "unknown" ? `<small>${E({ improved: "改善", declined: "下降", unchanged: "持平", changed: "变化" }[change.improvement] || "")}</small>` : ""}` : "—";
-  function projectTable(model, project, prefs) {
-    const longitudinal = model.dates.length > 1, team = model.athletes.length > 1;
-    if (prefs.tableMode === "individual") {
-      const rows = project.metrics.flatMap(metric => metric.observations.map(o => {
-        const baseline = metric.observations.find(x => x.athleteId === o.athleteId && x.date === model.dates[0]), delta = longitudinal && o.date !== model.dates[0] && N(o.value) !== null && N(baseline?.value) !== null ? o.value - baseline.value : null;
-        return { attrs: ` class="comparison-person-row" data-athlete-id="${E(o.athleteId)}" data-comparison-highlight="${E(o.athleteId)}" tabindex="0" role="button" aria-label="突出${E(nameOf(model, o.athleteId))}的图中数据"`, cells: [E(metric.label) + `<small>${E(metric.unit)}</small>`, E(nameOf(model, o.athleteId)), E(o.date), F(o.value), ...(longitudinal ? [signed(delta)] : []), E(o.reason || ""), o.recordId ? `<button class="btn small comparison-edit-record no-print" data-comparison-edit-record="${E(o.recordId)}">编辑记录</button>` : "—"] };
-      }));
-      return table(["指标", "队员", "测试日期", "代表结果", ...(longitudinal ? ["相对基线变化"] : []), "说明", "记录"], rows);
-    }
-    const rows = project.metrics.flatMap(metric => metric.periods.map(p => {
-      const change = metric.changes?.find(c => c.date === p.date), infer = team && longitudinal && metric.continuous !== false;
-      const distribution = metric.continuous === false && p.observations?.length ? p.observations.reduce((map, o) => { if (N(o.value) !== null) map.set(o.value, (map.get(o.value) || 0) + 1); return map; }, new Map()) : null;
-      return { attrs: ` data-metric-key="${E(metric.key)}" data-date="${E(p.date)}"`, cells: [E(metric.label) + `<small>${E(metric.unit)}</small>`, E(p.date), p.n, distribution ? [...distribution].sort((a, b) => a[0] - b[0]).map(([v, n]) => `${F(v)}分：${n}人`).join(" · ") : meanSD(p), ...(longitudinal ? [changeLabel(metric, change)] : []), ...(team && longitudinal ? [infer && N(change?.ciLow) !== null ? `[${F(change.ciLow)}, ${F(change.ciHigh)}]` : "—", infer ? F(change?.dz, 3) : "—", infer && N(change?.pAdjusted) !== null ? `<span${change.pAdjusted < .05 ? ' class="comparison-significant"' : ""}>${change.pAdjusted < .001 ? "<0.001" : F(change.pAdjusted, 4)}</span>` : "—"] : [])] };
+  const changeLabel = (metric,change) => change ? `${signed(change.delta)}${N(change.delta)!==null ? " "+E(change.deltaUnit||metric.unit) : ""}${N(change.percentChange)!==null ? `<small>${signed(change.percentChange)}%</small>` : /^(%|%PF)$/.test(metric.unit)&&N(change.delta)!==null ? '<small>百分点变化</small>' : ''}${change.improvement&&change.improvement!=="unknown" ? `<small>${E({improved:'改善',declined:'下降',increased:'增加',decreased:'减少',unchanged:'持平',changed:'变化'}[change.improvement]||'')}</small>` : ''}${change.reason ? `<small>${E(change.reason)}</small>`:''}` : '—';
+  function projectTable(model,project,prefs) {
+    const rows=project.metrics.flatMap(metric=>model.dates.map(date=>{
+      const o=metric.observations.find(o=>o.date===date),period=metric.periods.find(p=>p.date===date),value=N(o?.value)??N(period?.value)??N(period?.mean),change=metric.changes?.find(c=>c.date===date),reason=o?.reason||period?.reason||'',recordId=o?.recordId||model.entries.find(e=>e.date===date)?.recordId;
+      return {attrs:` class="comparison-person-row" data-metric-key="${E(metric.key)}" data-date="${E(date)}" data-comparison-date-highlight="${E(date)}" tabindex="0" role="button" aria-label="突出${E(date)}的图中数据"`,cells:[E(metric.label)+`<small>${E(metric.unit)}</small>`,E(date),F(value,metric.continuous===false?0:2),changeLabel(metric,change),E(reason),...(prefs.tableMode==='individual'?[recordId?`<button class="btn small comparison-edit-record no-print" data-comparison-edit-record="${E(recordId)}">编辑记录</button>`:'—']:[])]};
     }));
-    const output = table(["指标", "测试日期", "n", "均值 ± SD／分布", ...(longitudinal ? ["相对基线变化"] : []), ...(team && longitudinal ? ["变化95% CI", "Cohen’s dz", "Holm p"] : [])], rows);
-    const expanded = project.metrics.flatMap(metric => metric.periods.map(p => { const change = metric.changes?.find(c => c.date === p.date); return [E(metric.label), E(p.date), F(p.median), `[${F(p.q1)}, ${F(p.q3)}]`, `${F(p.min)}–${F(p.max)}`, N(p.cv) !== null ? F(p.cv, 1) + "%" : "—", ...(longitudinal && team ? [F(change?.t, 3), N(change?.df) === null ? "—" : change.df, N(change?.p) !== null ? F(change.p, 5) : "—", E(change?.reason || "")] : [])]; }));
-    return output + `<details class="comparison-distribution" data-comparison-expanded="${E(project.id)}"${prefs.expanded ? " open" : ""}><summary>查看完整分布${longitudinal && team ? "与检验详情" : ""}</summary>${table(["指标", "测试日期", "中位数", "Q1–Q3", "范围", "CV", ...(longitudinal && team ? ["t", "df", "原始 p", "说明"] : [])], expanded, "", "comparison-distribution-table")}</details>`;
+    return table(['指标','测试日期','代表结果','相对基线变化','说明',...(prefs.tableMode==='individual'?['记录']:[])],rows);
   }
   function genericPanels(model, project, keys) {
     const nativeEntries = model.entries.filter(e => e.record?.enabled?.[project.id]), panels = [];
@@ -19314,55 +19200,25 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
     }
     for (const group of grouped.values()) {
-      if (group.kind === "radar") {
-        model.dates.forEach(date => {
-          const summaries = group.axes.map((a, i) => { const fixed = model.athletes.filter(person => model.dates.every(d => group.series.some(s => s.athleteId === person.id && s.date === d && N(s.values[i]) !== null))).map(person => person.id); return global.Calc.descriptive(group.series.filter(s => s.date === date && (model.dates.length === 1 || fixed.includes(s.athleteId))).map(s => s.values[i]), false); });
-          group.series.push({ mean: true, date, values: summaries.map(s => s.mean), sds: summaries.map(s => s.sd), ns: summaries.map(s => s.n) });
-        });
-        output.push(`<div class="comparison-chart-panel" data-pdf-atomic><h5>评分雷达</h5>${radarChart(model, group.axes, group.series)}</div>`);
-      } else {
-        const indices = [...new Set(group.series.flatMap(s => s.points.map(p => group.kind === "trials" ? p.x : p.trial)))];
-        indices.forEach(index => {
-          const pointAt = series => series.points.find(p => (group.kind === "trials" ? p.x : p.trial) === index), fixed = model.athletes.filter(person => model.dates.every(date => group.series.some(s => s.athleteId === person.id && s.date === date && pointAt(s)))).map(person => person.id);
-          model.dates.forEach(date => {
-            const series = group.series.filter(s => s.date === date && (model.dates.length === 1 || fixed.includes(s.athleteId))), points = series.map(pointAt).filter(Boolean), xs = global.Calc.descriptive(points.map(p => p.x), false), ys = global.Calc.descriptive(points.map(p => p.y), false);
-            if (ys.n) group.common.push({ date, x: xs.mean, mean: ys.mean, sd: ys.sd, xSd: group.kind === "scatter" ? xs.sd : null, n: ys.n });
-          });
-        });
-        output.push(`<div class="comparison-chart-panel" data-pdf-atomic><h5>${E(group.title)}</h5>${curveChart(model, { ...group, noConnect: true, description: group.kind === "scatter" ? "仅采用同一次试次的真实 X–Y 配对；每个试次编号分别计算队员间均值及两轴样本标准差。" : "每条系列保留真实试次编号；每个试次编号分别计算队员间均值及样本标准差，试次数不增加团队样本数。" })}</div>`);
-      }
+      if (group.kind === "radar") output.push(`<div class="comparison-chart-panel" data-pdf-atomic><h5>评分雷达</h5>${radarChart(model,group.axes,group.series)}</div>`);
+      else output.push(`<div class="comparison-chart-panel" data-pdf-atomic><h5>${E(group.title)}</h5>${curveChart(model,{...group,noConnect:true,description:group.kind==="scatter" ? "各期保留同一次试次的真实 X–Y 配对与两轴单位。" : "各期保留真实试次编号与原值，不连接不同试次。"})}</div>`);
     }
     return output.join("");
   }
   function fmsDetails(model, project) {
     if (project.renderer !== "fms") return "";
-    const rows = model.entries.filter(e => e.record?.enabled?.fms).flatMap(entry => (entry.record.data.fms || []).map((item, i) => [E(nameOf(model, entry.athleteId)), E(entry.date), E(item.name || global.RingsideTests.fmsAbilities[i]), F(global.Calc.num(item.bilateral ? item.left : item.score), 0), F(global.Calc.num(item.bilateral ? item.right : null), 0), E(item.pain || item.painLeft || item.painRight || item.painCenter || entry.stats.raw.fms?.scores?.[i] === 0 ? "疼痛／清除阳性" : ""), E(item.notes || "")]));
-    return `<details class="comparison-raw-details"><summary>FMS 原分、左右侧与疼痛记录</summary>${table(["队员", "日期", "动作", "左／单项", "右", "疼痛", "备注"], rows)}</details>`;
+    const rows = model.entries.filter(e => e.record?.enabled?.fms).flatMap(entry => (entry.record.data.fms || []).map((item, i) => [E(entry.date), E(item.name || global.RingsideTests.fmsAbilities[i]), F(global.Calc.num(item.bilateral ? item.left : item.score), 0), F(global.Calc.num(item.bilateral ? item.right : null), 0), E(item.pain || item.painLeft || item.painRight || item.painCenter || entry.stats.raw.fms?.scores?.[i] === 0 ? "疼痛／清除阳性" : ""), E(item.notes || "")]));
+    return `<details class="comparison-raw-details"><summary>FMS 原分、左右侧与疼痛记录</summary>${table(["日期", "动作", "左／单项", "右", "疼痛", "备注"], rows)}</details>`;
   }
-  function isoCharts(model, project) {
-    if (project.renderer !== "iso") return "";
-    const records = model.entries.filter(e => e.record?.enabled?.iso).map(e => ({ entry: e, radar: M.isoRadar(e.stats.isoAnalyses, e.record) })), axes = [...new Map(records.flatMap(r => r.radar.axes.map(a => [a.key || a.id || a.label, a]))).values()];
-    if (!axes.length) return "";
-    return ["strength", "symmetry"].map(key => {
-      const series = records.map(({ entry, radar }) => ({ athleteId: entry.athleteId, date: entry.date, values: axes.map(a => radar.axes.find(r => (r.key || r.id || r.label) === (a.key || a.id || a.label))?.[key] ?? null) }));
-      const compatible = axes.map(axis => {
-        const definitions = records.map(({ entry, radar }) => {
-          const match = radar.axes.find(a => a.id === axis.id), ids = (match?.[key + "Sources"] || []).map(source => source.id).sort();
-          return JSON.stringify(ids.map(id => { const row = entry.stats.isoAnalyses.find(r => r.id === id), original = entry.record.data.iso.find(r => r.id === id); return { id, context: global.RingsideEvaluation.isoContext(original, entry.record), targets: key === "strength" ? row.sides.map(s => [s.side, s.target]) : [] }; }));
-        });
-        return definitions.length > 0 && definitions[0] !== "[]" && definitions.every(d => d === definitions[0]);
-      });
-      model.dates.forEach(date => {
-        const summaries = axes.map((axis, i) => {
-          if (!compatible[i]) return { n: 0, mean: null, sd: null };
-          const fixed = model.athletes.filter(a => model.dates.every(d => series.some(s => s.athleteId === a.id && s.date === d && N(s.values[i]) !== null))).map(a => a.id);
-          const values = series.filter(s => s.date === date && (model.dates.length === 1 || fixed.includes(s.athleteId))).map(s => s.values[i]).filter(v => N(v) !== null);
-          return global.Calc.descriptive(values, false);
-        });
-        series.push({ mean: true, date, values: summaries.map(s => s.mean), sds: summaries.map(s => s.sd), ns: summaries.map(s => s.n) });
-      });
-      return `<div class="comparison-chart-panel" data-pdf-atomic><h5>${key === "strength" ? "关节力量水平" : "关节对称性"}</h5>${radarChart(model, axes, series, { title: key === "strength" ? "关节力量水平" : "关节对称性", maximum: Math.max(100, ...series.flatMap(s => s.values).filter(v => N(v) !== null)), unit: "%" })}${compatible.some(v => !v) ? '<p class="comparison-chart-caption">部分部位采用不同测量内容或评价目标，均值留空；个人结果保留。</p>' : ""}</div>`;
-    }).join("");
+  function isoCharts(model,project) {
+    if(project.renderer!=="iso")return "";
+    const records=model.entries.filter(e=>e.record?.enabled?.iso).map(entry=>({entry,radar:M.isoRadar(entry.stats.isoAnalyses,entry.record)})),axes=[...new Map(records.flatMap(r=>r.radar.axes.map(a=>[a.key||a.id||a.label,a]))).values()];
+    if(!axes.length)return "";
+    return ['strength','symmetry'].map(key=>{
+      const series=records.map(({entry,radar})=>({athleteId:entry.athleteId,date:entry.date,values:axes.map(a=>radar.axes.find(r=>(r.key||r.id||r.label)===(a.key||a.id||a.label))?.[key]??null)}));
+      const title=key==='strength'?'关节力量水平':'关节对称性';
+      return `<div class="comparison-chart-panel" data-pdf-atomic><h5>${title}</h5>${radarChart(model,axes,series,{title,maximum:Math.max(100,...series.flatMap(s=>s.values).filter(v=>N(v)!==null)),unit:'%'})}</div>`;
+    }).join('');
   }
   function projectCharts(model, project, prefs) {
     const selected = prefs.metricKeys.map(key => project.metrics.find(m => m.key === key)).filter(Boolean);
@@ -19383,33 +19239,34 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const curves = (model.curves || []).filter(c => c.testId === project.id);
     const native = model.entries.find(e => e.record?.enabled?.[project.id]), nativeView = project.reportView || (native && global.RingsideGenericReport?.resolveView(native.record, project.id, model.catalog));
     const selectable = nativeView?.kind === "scatter" && prefs.chartMode === "original" ? ["横轴", "纵轴"].map((label, axis) => `<label class="comparison-axis-picker">${label}<select data-comparison-scatter-axis="${axis}" data-comparison-project="${E(project.id)}" aria-label="${E(project.name)}${label}">${project.metrics.filter(metric => native.record.definitions.find(d => d.id === metric.id)?.entryScope === "attempt").map(metric => `<option value="${E(metric.key)}"${metric.key === prefs.metricKeys[axis] ? " selected" : ""}>${E(metric.label)} · ${E(metric.unit)}</option>`).join("")}</select></label>`).join("") : project.metrics.map(metric => `<label><input type="checkbox" data-comparison-metric="${E(metric.key)}" data-comparison-project="${E(project.id)}"${prefs.metricKeys.includes(metric.key) ? " checked" : ""}>${E(metric.label)}${metric.unit ? " · " + E(metric.unit) : ""}</label>`).join("");
-    return `<div class="comparison-controls no-print"><details class="multi-select comparison-metric-picker" data-comparison-picker="${E(project.id)}"${prefs.pickerOpen ? " open" : ""}><summary>图中指标 · ${prefs.metricKeys.length + prefs.curveKeys.length} 项</summary><div class="multi-options">${curves.length ? '<p class="comparison-picker-label">原图曲线</p>' + curves.map(curve => `<label><input type="checkbox" data-comparison-curve="${E(curve.key)}" data-comparison-project="${E(project.id)}"${prefs.curveKeys.includes(curve.key) ? " checked" : ""}>${E(curve.title)}${curve.unit ? " · " + E(curve.unit) : ""}</label>`).join("") + '<p class="comparison-picker-label">结果指标</p>' : ""}${selectable}</div></details>${model.dates.length > 1 ? `<div class="comparison-segment" role="group" aria-label="${E(project.name)}图表形式"><button data-comparison-chart-mode="original" data-comparison-project="${E(project.id)}" aria-pressed="${prefs.chartMode === "original"}">原图对照</button><button data-comparison-chart-mode="trend" data-comparison-project="${E(project.id)}" aria-pressed="${prefs.chartMode === "trend"}">指标趋势</button></div>` : ""}<div class="comparison-segment" role="group" aria-label="${E(project.name)}表格内容"><button data-comparison-table-mode="summary" data-comparison-project="${E(project.id)}" aria-pressed="${prefs.tableMode === "summary"}">汇总</button><button data-comparison-table-mode="individual" data-comparison-project="${E(project.id)}" aria-pressed="${prefs.tableMode === "individual"}">个人明细</button></div></div>`;
+    return `<div class="comparison-controls no-print"><details class="multi-select comparison-metric-picker" data-comparison-picker="${E(project.id)}"${prefs.pickerOpen ? " open" : ""}><summary>图中指标 · ${prefs.metricKeys.length + prefs.curveKeys.length} 项</summary><div class="multi-options">${curves.length ? '<p class="comparison-picker-label">原图曲线</p>' + curves.map(curve => `<label><input type="checkbox" data-comparison-curve="${E(curve.key)}" data-comparison-project="${E(project.id)}"${prefs.curveKeys.includes(curve.key) ? " checked" : ""}>${E(curve.title)}${curve.unit ? " · " + E(curve.unit) : ""}</label>`).join("") + '<p class="comparison-picker-label">结果指标</p>' : ""}${selectable}</div></details>${model.dates.length > 1 ? `<div class="comparison-segment" role="group" aria-label="${E(project.name)}图表形式"><button data-comparison-chart-mode="original" data-comparison-project="${E(project.id)}" aria-pressed="${prefs.chartMode === "original"}">原图对照</button><button data-comparison-chart-mode="trend" data-comparison-project="${E(project.id)}" aria-pressed="${prefs.chartMode === "trend"}">指标趋势</button></div>` : ""}<div class="comparison-segment" role="group" aria-label="${E(project.name)}表格内容"><button data-comparison-table-mode="summary" data-comparison-project="${E(project.id)}" aria-pressed="${prefs.tableMode === "summary"}">结果</button><button data-comparison-table-mode="individual" data-comparison-project="${E(project.id)}" aria-pressed="${prefs.tableMode === "individual"}">记录明细</button></div></div>`;
   }
-  function capabilityAnalysis(model, views) {
-    const cards = model.capabilities || [];
-    if (!cards.length) return "";
-    const optionMap = M.capabilityDirectionOptions || {};
-    return `<section class="capability-analysis-region comparison-capabilities" data-capability-region><div class="quality-group"><div class="quality-heading"><h3>${E(global.RingsideTests.analysisLabel)}</h3></div><div class="capability-direction-grid" data-capability-count="${cards.length}">${cards.map(card => {
-      const period = card.periods?.at(-1), groups = period?.groups || [], basis = model.selection?.basis?.[card.id], options = optionMap[card.id];
-      const parameters = (period?.parameters || []).map(p => [E(p.label), p.n, meanSD(p) + " " + E(p.unit), F(p.median), N(p.cv) !== null ? F(p.cv, 1) + "%" : "—"]);
-      const shifts = card.transitions || [];
-      return `<article class="capability-direction-card" data-comparison-capability="${E(card.id)}"><div class="capability-card-summary"><h4>${E(card.title)}</h4><section><p class="capability-direction-basis">${E(basisLabel(card.id, card.basis))}</p>${groups.map(group => `<p class="capability-direction-judgment">${E(group.judgment)} <small>${group.count} 人</small></p><p class="capability-direction-context">${E((group.names || group.athleteIds?.map(id => nameOf(model, id)) || []).join("、"))}</p>`).join("") || '<p class="empty">暂无可判断结果</p>'}</section>${options ? `<label class="capability-selector no-print">判断依据<select data-comparison-basis="${E(card.id)}" aria-label="${E(card.title)}判断依据">${options.map(([id, label]) => `<option value="${E(id)}"${id === basis ? " selected" : ""}>${E(label)}</option>`).join("")}</select></label>` : ""}</div><details class="capability-card-parameters" data-comparison-capability-expanded="${E(card.id)}"${views.capabilityExpanded?.[card.id] ? " open" : ""}><summary>查看相关参数与分组${shifts.length ? "变化" : ""}</summary>${parameters.length ? table(["参数", "n", "均值 ± SD", "中位数", "CV"], parameters) : ""}${shifts.length ? table(["队员", "比较日期", "基线方向", "本期方向", "变化"], shifts.map(t => [E(nameOf(model, t.athleteId)), E(t.toDate || t.date), E(t.from?.judgment || t.from), E(t.to?.judgment || t.to), E({ changed: "方向改变", unchanged: "保持", unknown: "待判断" }[t.state] || t.state || "")])) : ""}${(period?.members || []).length ? table(["队员", "判断依据", "结果", "方向"], period.members.map(m => [E(nameOf(model, m.athleteId)), E(m.label), F(m.value) + " " + E(m.unit), E(m.judgment)])) : ""}</details></article>`;
-    }).join("")}</div></div></section>`;
+  function capabilityAnalysis(model,views) {
+    const cards=model.capabilities||[];
+    if(!cards.length)return '';
+    const optionMap=M.capabilityDirectionOptions||{};
+    return `<section class="capability-analysis-region comparison-capabilities" data-capability-region><div class="quality-group"><div class="quality-heading"><h3>${E(global.RingsideTests.analysisLabel)}</h3></div><div class="capability-direction-grid" data-capability-count="${cards.length}">${cards.map(card=>{
+      const latest=card.periods?.at(-1),member=latest?.members?.[0],basis=model.selection?.basis?.[card.id],options=optionMap[card.id];
+      const rows=model.dates.map(date=>{const p=card.periods?.find(p=>p.date===date),m=p?.members?.[0];return [E(date),E(m?.label||basisLabel(card.id,card.basis)),F(m?.value)+(m?.unit?' '+E(m.unit):''),E(m?.judgment||m?.reason||'暂无可判断结果')];});
+      const parameters=(card.periods||[]).flatMap(p=>(p.parameters||[]).map(v=>[E(p.date),E(v.label),F(N(v.value)??N(v.mean))+' '+E(v.unit)]));
+      const shifts=card.transitions||[];
+      return `<article class="capability-direction-card" data-comparison-capability="${E(card.id)}"><div class="capability-card-summary"><h4>${E(card.title)}</h4><section><p class="capability-direction-basis">${E(basisLabel(card.id,card.basis))}</p><p class="capability-direction-judgment">${E(member?.judgment||member?.reason||'暂无可判断结果')}</p><p class="capability-direction-context">末次 ${E(model.dates.at(-1))}</p></section>${options?`<label class="capability-selector no-print">判断依据<select data-comparison-basis="${E(card.id)}" aria-label="${E(card.title)}判断依据">${options.map(([id,label])=>`<option value="${E(id)}"${id===basis?' selected':''}>${E(label)}</option>`).join('')}</select></label>`:''}</div><details class="capability-card-parameters" data-comparison-capability-expanded="${E(card.id)}"${views.capabilityExpanded?.[card.id]?' open':''}><summary>查看各期方向与相关参数</summary>${table(['测试日期','判断依据','结果','方向'],rows)}${parameters.length?table(['测试日期','参数','数值'],parameters):''}${shifts.length?table(['比较日期','基线方向','本期方向','变化'],shifts.map(t=>[E(t.toDate||t.date),E(t.from?.judgment||t.from),E(t.to?.judgment||t.to),E({changed:'方向改变',unchanged:'保持',unknown:'待判断'}[t.state]||t.state||'')])):''}</details></article>`;
+    }).join('')}</div></div></section>`;
   }
-  function render(model, views = {}, options = {}) {
-    views = preferences(model, views);
-    const longitudinal = model.dates.length > 1, heading = model.kind === "team" ? "团队报告" : model.kind === "personal-longitudinal" ? "个人纵向报告" : "团队纵向报告";
-    const projects = model.projects.map(project => { const prefs = views.projects[project.id]; return `<article class="test-block comparison-project" id="detail-${E(project.id)}" data-comparison-project="${E(project.id)}"><div class="test-title"><div><h4>${E(project.name)}</h4><p>${E(model.dates.join(" · "))}${longitudinal ? " · 基线 " + E(model.dates[0]) : ""}</p></div></div>${controls(model, project, prefs)}<div class="comparison-chart-stack">${projectCharts(model, project, prefs)}</div><div class="comparison-data">${projectTable(model, project, prefs)}${fmsDetails(model, project)}</div></article>`; }).join("");
-    const stats = model.statistics || {}, summaryHTML = options.includeSummary ? `<div class="micro-cards">${summary(model)}</div><div class="summary-grid"><article class="card"><div class="card-head"><h3>损伤风险筛查</h3></div>${body(model, { ...options, views })}${screenItems(model, { views })}</article><article class="card"><div class="card-head"><h3>运动表现概览</h3></div>${radar(model)}</article></div>` : "";
-    return `<div class="comparison-report" data-comparison-kind="${E(model.kind)}">${summaryHTML}<div class="quality-group"><div class="quality-heading"><h3>${heading}</h3><p>${model.athletes.length} 名队员 · ${model.dates.length} 个测试日期</p></div>${projects || '<p class="empty">所选记录暂无可比较指标</p>'}</div>${capabilityAnalysis(model, views)}${longitudinal && model.athletes.length > 1 ? `<details class="comparison-method"><summary>统计方法</summary><p>连续指标采用固定配对队员；双侧配对 t 检验，Cohen’s dz，报告内全部比较统一 Holm 校正。95% CI 为单项未校正的平均变化区间。${stats.comparisonCount ?? stats.familySize ?? ""} 项比较。</p><p>均值采用每位队员的记录代表成绩；样本标准差反映队员间分布。日期趋势按实际时间间隔计算。</p></details>` : ""}</div>`;
+  function render(model,views={},options={}) {
+    if(model.athletes?.length!==1||model.dates?.length<2)throw new Error('个人纵向报告需要一名队员和至少两个测试日期');
+    views=preferences(model,views);
+    const projects=model.projects.map(project=>{const prefs=views.projects[project.id];return `<article class="test-block comparison-project" id="detail-${E(project.id)}" data-comparison-project="${E(project.id)}"><div class="test-title"><div><h4>${E(project.name)}</h4><p>${E(model.dates.join(' · '))} · 基线 ${E(model.dates[0])}</p></div></div>${controls(model,project,prefs)}<div class="comparison-chart-stack">${projectCharts(model,project,prefs)}</div><div class="comparison-data">${projectTable(model,project,prefs)}${fmsDetails(model,project)}</div></article>`;}).join('');
+    const summaryHTML=options.includeSummary?`<div class="micro-cards">${summary(model)}</div><div class="summary-grid"><article class="card"><div class="card-head"><h3>损伤风险筛查</h3></div>${body(model)}${screenItems(model)}</article><article class="card"><div class="card-head"><h3>运动表现概览</h3></div>${radar(model)}${overview(model)}</article></div>`:'';
+    return `<div class="comparison-report" data-comparison-kind="personal-longitudinal">${summaryHTML}<div class="quality-group"><div class="quality-heading"><h3>个人纵向报告</h3><p>${E(nameOf(model,model.athletes[0].id))} · ${model.dates.length} 个测试日期</p></div>${projects||'<p class="empty">所选记录暂无可比较指标</p>'}</div>${capabilityAnalysis(model,views)}</div>`;
   }
-  function applyHighlight(container, id = "") {
-    container.querySelectorAll(".comparison-series,.comparison-person-row").forEach(node => { const active = !!id && node.dataset.athleteId === id; node.classList.toggle("comparison-highlighted", active); node.classList.toggle("comparison-dimmed", !!id && !active); if (node.classList.contains("comparison-screening-series")) { node.setAttribute("opacity", !!id && !active ? ".12" : "1"); node.querySelectorAll(".comparison-screening-segment").forEach(segment => { segment.setAttribute("stroke-width", active ? "3" : "1.5"); segment.setAttribute("stroke-opacity", active ? "1" : ".6"); }); } });
-    container.querySelectorAll("[data-comparison-highlight]").forEach(node => { node.setAttribute("aria-pressed", String(!!id && node.dataset.comparisonHighlight === id)); });
-    container.querySelectorAll(".comparison-screening-axis").forEach(axis => {
-      const selected = id ? [...container.querySelectorAll(".comparison-screening-row")].find(row => row.dataset.athleteId === id && row.dataset.region === axis.dataset.region) : null;
-      axis.dataset.bodyDetail = selected?.dataset.bodyDetail || axis.dataset.overviewDetail;
+  function applyHighlight(container,date='') {
+    container.querySelectorAll('.comparison-series,.comparison-person-row').forEach(node=>{
+      const active=!!date&&node.dataset.date===date,dimmed=!!date&&!active;node.classList.toggle('comparison-highlighted',active);node.classList.toggle('comparison-dimmed',dimmed);
+      if(node.classList.contains('comparison-screening-series')){node.setAttribute('opacity',dimmed?'.12':'1');node.querySelectorAll('.comparison-screening-segment').forEach(segment=>segment.setAttribute('stroke-width',active?'3':'2'));}
     });
+    container.querySelectorAll('[data-comparison-date-highlight]').forEach(node=>node.setAttribute('aria-pressed',String(!!date&&node.dataset.comparisonDateHighlight===date)));
+    container.querySelectorAll('.comparison-screening-axis').forEach(axis=>{const selected=date?[...container.querySelectorAll('.comparison-screening-row')].find(row=>row.dataset.date===date&&row.dataset.region===axis.dataset.region):null;axis.dataset.bodyDetail=selected?.dataset.bodyDetail||axis.dataset.overviewDetail;});
   }
   const bindings = new WeakMap();
   function bind(container, options) {
@@ -19418,12 +19275,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       container.dataset.comparisonBound = "true";
       const publish = current => { current.onPreferences?.(copy(current.views)); };
       container.addEventListener("click", event => {
-        const current = bindings.get(container), node = event.target.closest("[data-comparison-chart-mode],[data-comparison-table-mode],[data-comparison-highlight],[data-comparison-edit-record],[data-comparison-screening-date]");
+        const current = bindings.get(container), node = event.target.closest("[data-comparison-chart-mode],[data-comparison-table-mode],[data-comparison-date-highlight],[data-comparison-edit-record]");
         if (!node || !container.contains(node)) return;
         if (current.overview && node.closest(".comparison-report")) return;
-        if (node.dataset.comparisonScreeningDate) { current.views.screeningDate = node.dataset.comparisonScreeningDate; publish(current); return; }
         if (node.dataset.comparisonEditRecord) { event.stopPropagation(); current.onEditRecord?.(node.dataset.comparisonEditRecord); return; }
-        if (node.dataset.comparisonHighlight) { const id = node.dataset.comparisonHighlight; current.views.highlightAthleteId = current.views.highlightAthleteId === id ? "" : id; applyHighlight(container, current.views.highlightAthleteId); publish(current); return; }
+        if (node.dataset.comparisonDateHighlight) { const date = node.dataset.comparisonDateHighlight; current.views.highlightDate = current.views.highlightDate === date ? "" : date; applyHighlight(container, current.views.highlightDate); publish(current); return; }
         const projectId = node.dataset.comparisonProject, preference = current.views.projects[projectId];
         if (node.dataset.comparisonChartMode) preference.chartMode = node.dataset.comparisonChartMode;
         if (node.dataset.comparisonTableMode) preference.tableMode = node.dataset.comparisonTableMode;
@@ -19453,14 +19309,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         else if (node.dataset.comparisonCapabilityExpanded) { const id = node.dataset.comparisonCapabilityExpanded; if (current.views.capabilityExpanded[id] !== node.open) { current.views.capabilityExpanded[id] = node.open; publish(current); } }
       }, true);
     }
-    applyHighlight(container, state.views.highlightAthleteId);
+    applyHighlight(container, state.views.highlightDate);
   }
   function bindOverview(container, options) {
     bind(container, { ...options, overview: true });
   }
   function snapshotView(container, views = {}) {
     const result = copy(views); result.projects ||= {}; result.capabilityExpanded ||= {};
-    const screening = container.querySelector(".comparison-screening-chart[data-screening-date]"); if (screening) result.screeningDate = screening.dataset.screeningDate;
     container.querySelectorAll("[data-comparison-expanded]").forEach(d => { result.projects[d.dataset.comparisonExpanded] ||= {}; result.projects[d.dataset.comparisonExpanded].expanded = d.open; });
     container.querySelectorAll("[data-comparison-picker]").forEach(d => { result.projects[d.dataset.comparisonPicker] ||= {}; result.projects[d.dataset.comparisonPicker].pickerOpen = d.open; });
     container.querySelectorAll("[data-comparison-capability-expanded]").forEach(d => { result.capabilityExpanded[d.dataset.comparisonCapabilityExpanded] = d.open; });
@@ -19481,9 +19336,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     let selection = {groupId:"",athleteIds:[],dates:[],recordChoices:{},basis:{}}, model = null, documentValue = null;
     let inputSnapshot = null, expectedConfig = null, sequence = 0, saveQueue = Promise.resolve(true), saveTimer = null;
     let suspended = false, editing = false, dirty = false, saveError = false, switching = false, requestedSelection = null, editorRevisionSaved = false, computationToken = null;
-    const uiKey = "ringside-comparison-ui-v1:" + location.pathname;
+    const uiKey = "ringside-personal-longitudinal-ui-v1:" + location.pathname;
     const api = {
-      get active() { return !suspended && (selection.athleteIds.length > 1 || selection.dates.length > 1); },
+      get active() { return !suspended && selection.athleteIds.length === 1 && selection.dates.length > 1; },
       get editing() { return editing; }, get switching() { return switching; },
       get selection() { return copy(selection); }, get model() { return model; }, get document() { return documentValue; },
       get saveError() { return saveError; },
@@ -19510,6 +19365,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     function findDocument(next) { return (host.library()?.comparisonReports||[]).find(doc=>identity(doc.selection)===identity(next)); }
     async function select(input,{restoreDocument=false,documentId="",duringTransfer=false}={}) {
+      if ([...new Set(input.athleteIds||[])].length > 1) {host.toast("纵向分析一次选择一名运动员");return false;}
       const token=++sequence;
       requestedSelection=canonical(input);
       host.saveEditor();
@@ -19589,12 +19445,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }).catch(error=>{dirty=true;saveError=true;$("saveStatus").textContent="保存失败 · "+error.message;try{localStorage.setItem(uiKey+":draft",JSON.stringify(snapshot));}catch{}return false;});
       saveQueue=saving;return saving;
     }
-    function label() {const ids=selectedIds();return ids.length>1?`已选 ${ids.length} 名队员`:owner(ids[0])?.name||"";}
+    function label() {return owner(selectedIds()[0])?.name||"";}
     function renderSelectors() {
       if(!host.library())return;
       if(selection.groupId&&host.library().groups.some(group=>group.id===selection.groupId))$("reportGroupFilter").value=selection.groupId;
       const ids=selectedIds();
-      $("reportAthleteSearch").setAttribute("aria-label","搜索并多选队员");
+      $("reportAthleteSearch").setAttribute("aria-label","搜索并选择运动员");
       if(!$("reportAthleteOptions").hidden && document.activeElement===$("reportAthleteSearch"))return renderRecordChoices();
       $("reportAthleteSearch").value=label();
       renderRecordChoices();
@@ -19603,28 +19459,27 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const ids=selectedIds(), dates=[...new Set([...selection.dates,...ids.flatMap(id=>offeredRecords(id).map(r=>r.athlete.date)).filter(Boolean)])].sort().reverse();
       const currentDates=selection.dates.length?selection.dates:host.state()?[host.state().athlete.date]:[];
       const container=$("reportRecordChoices");if(!container)return;
-      const title=api.active?`${selection.dates.length} 个测试日期 · ${ids.length} 名队员`:host.state()?`${host.state().athlete.date} · ${host.state().title||"测试记录"}`:"选择测试记录";
+      const title=api.active?`${selection.dates.length} 个测试日期`:host.state()?`${host.state().athlete.date} · ${host.state().title||"测试记录"}`:"选择测试记录";
       $("reportRecordSummary").textContent=title;
       $("reportRecordOptions").innerHTML=dates.length?dates.map(date=>{
-        const count=ids.filter(id=>offeredRecords(id).some(r=>r.athlete.date===date)).length;
+        const count=offeredRecords(ids[0]).filter(r=>r.athlete.date===date).length;
         const checked=currentDates.includes(date);
         const duplicates=checked?ids.filter(id=>{const candidates=offeredRecords(id).filter(r=>r.athlete.date===date),chosen=selection.recordChoices[id]?.[date];return candidates.length>1||chosen&&!candidates.some(r=>r.recordId===chosen);}).map(id=>{
           const candidates=offeredRecords(id).filter(r=>r.athlete.date===date),selected=selection.recordChoices[id]?.[date]||(ids.length===1&&host.state()?.athlete.date===date?host.state().recordId:"");
           return `<label class="comparison-record-conflict">${escape(owner(id)?.name||"所选队员")} · ${candidates.some(r=>r.recordId===selected)?"当日 "+candidates.length+" 条":"核对采用的记录"}<select data-report-record-person="${escape(id)}" data-report-record-date="${date}" onchange="App.chooseComparisonRecord(this.dataset.reportRecordPerson,this.dataset.reportRecordDate,this.value)"><option value="">指定本次采用的记录</option>${candidates.map(r=>`<option value="${escape(r.recordId)}" ${r.recordId===selected?"selected":""}>${escape(r.title||"测试记录")}${r.archived?"（已归档）":""} · ${escape(r.recordId.slice(-6))}</option>`).join("")}</select></label>`;
         }).join(""):"";
         const archived=ids.some(id=>offeredRecords(id).some(r=>r.athlete.date===date&&(r.archived||owner(id)?.archived)));
-        return `<div class="comparison-date-option"><label><input type="checkbox" data-report-date="${date}" ${checked?"checked":""} onchange="App.toggleComparisonDate(this.dataset.reportDate,this.checked)"><span>${date}</span><small>${count} / ${ids.length} 人有记录${archived?" · 含已归档资料":""}</small></label>${duplicates}</div>`;
+        return `<div class="comparison-date-option"><label><input type="checkbox" data-report-date="${date}" ${checked?"checked":""} onchange="App.toggleComparisonDate(this.dataset.reportDate,this.checked)"><span>${date}</span><small>${count} 条记录${archived?" · 含已归档资料":""}</small></label>${duplicates}</div>`;
       }).join(""):'<p class="note">所选队员暂无有日期的测试记录。</p>';
       $("recordSelect").classList.add("sr-only");$("recordSelect").setAttribute("aria-hidden","true");
       $("recordSelect").tabIndex=-1;
     }
     function athleteOptions(rows) {
       const ids=selectedIds();
-      return `<div class="comparison-chooser-tools"><button type="button" class="btn small" onclick="App.selectAllReportAthletes()">全选当前结果</button><button type="button" class="btn small" onclick="App.clearReportSelection()">清空</button></div>`+rows.map((a,i)=>`<button type="button" id="reportAthleteOption-${i}" class="athlete-option" role="option" aria-selected="${ids.includes(a.id)}" data-athlete-choice="${escape(a.id)}" onclick="App.toggleReportAthlete(this.dataset.athleteChoice)"><span class="comparison-check">${ids.includes(a.id)?"✓":""}</span><span>${escape(host.athleteLabel(a))}</span></button>`).join("");
+      return rows.map((a,i)=>`<button type="button" id="reportAthleteOption-${i}" class="athlete-option" role="option" aria-selected="${ids.includes(a.id)}" data-athlete-choice="${escape(a.id)}" onclick="App.chooseReportAthlete(this.dataset.athleteChoice)">${escape(host.athleteLabel(a))}</button>`).join("");
     }
-    async function toggleAthlete(id) {
-      const ids=selectedIds(),next=ids.includes(id)?ids.filter(x=>x!==id):[...ids,id];
-      return select({...requestedSelection||selection,groupId:$("reportGroupFilter").value,athleteIds:next});
+    async function chooseAthlete(id) {
+      return select({groupId:$("reportGroupFilter").value,athleteIds:[id],dates:[],recordChoices:{},basis:{}});
     }
     function toggleDate(date,checked) {
       const draft=requestedSelection||selection, ids=selectedIds(),dates=draft.dates.length?[...draft.dates]:host.state()?[host.state().athlete.date]:[];
@@ -19638,7 +19493,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(!api.active)return false;
       renderSelectors();const R=root.RingsideComparisonReport;
       $("reportView").classList.add("comparison-report-view");
-      $("reportTitle").textContent=title();$("athleteMeta").innerHTML=[selection.dates.length===1?selection.dates[0]:`${selection.dates[0]} — ${selection.dates.at(-1)}`,`${selection.athleteIds.length} 名队员`,model?.entries?.length?`${model.entries.length} 条测试记录`:""].filter(Boolean).map(x=>`<span>${escape(x)}</span>`).join("");
+      $("reportTitle").textContent=title();$("athleteMeta").innerHTML=[`${selection.dates[0]} — ${selection.dates.at(-1)}`,model?.entries?.length?`${model.entries.length} 条测试记录`:""].filter(Boolean).map(x=>`<span>${escape(x)}</span>`).join("");
       $("aggMode").closest("label").hidden=true;$("migrationReviewNotice").hidden=true;
       $("editButton").textContent="选择记录编辑";$("comparisonNarrativeButton").hidden=false;
       $("sampleLabel").classList.toggle("hidden",!model?.entries?.every(e=>e.record?.demo));
@@ -19646,15 +19501,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(!model||model.ready===false){$("microCards").innerHTML="";$("bodyChart").innerHTML="";$("radarChart").innerHTML="";$("screenItems").innerHTML="";$("directionMetrics").innerHTML="";$("detailContent").innerHTML=`<div class="card comparison-issues"><h3>核对本次采用的记录</h3>${(model?.issues||[]).map(issue=>`<p>${escape(typeof issue==="string"?issue:issue.message||issue.reason||JSON.stringify(issue))}</p>`).join("")}<p>请在上方测试记录选择区指定同日记录。</p></div>`;return true;}
       $("microCards").innerHTML=R.summary(model);$("bodyChart").innerHTML=R.body(model,{bodyImage:root.RingsideBodyImage,views:documentValue.views});
       $("screenItems").innerHTML=R.screenItems(model,{views:documentValue.views});$("radarChart").innerHTML=R.radar(model,documentValue.views);
-      $("referenceLabel").textContent="个人系列 · 均值 ± SD";$("radarLegend").textContent="每个能力轴按有效队员计算";
-      $("screenPill").className="pill gray";$("screenPill").textContent="队员分布";
+      $("referenceLabel").textContent="各期能力结果";$("radarLegend").textContent="按测试日期对照能力结构";
+      $("screenPill").className="pill gray";$("screenPill").textContent="按日期对照";
       $("directionMetrics").innerHTML=R.overview(model);
       const callbacks={model,prefs:documentValue.views,onPreferences(next){if(api.computing||!documentValue)return;documentValue.views=copy(next);markDirty();host.render();},onEditRecord:editRecord,onBasis:changeBasis};
       $("detailContent").innerHTML=R.render(model,documentValue.views,{bodyImage:root.RingsideBodyImage});
       R.bind($("detailContent"),callbacks);R.bindOverview?.($("reportView"),callbacks);
       renderNarrative();return true;
     }
-    function title() {const group=host.library()?.groups.find(g=>g.id===selection.groupId)?.name||"所选队员";return selection.athleteIds.length===1?`${owner(selection.athleteIds[0])?.name||"运动员"} · 纵向比较`:`${group} · ${selection.dates.length>1?"团队纵向比较":"团队报告"}`;}
+    function title() {return `${owner(selection.athleteIds[0])?.name||"运动员"} · 纵向分析`;}
     function renderNarrative() {
       if(!api.active||!documentValue)return;
       const n=documentValue.narrative||{},stale=!!n.text&&n.basis!==model?.fingerprint;
@@ -19685,19 +19540,20 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const scalars=value=>Object.fromEntries(Object.entries(value||{}).filter(([,item])=>item===null||["string","number","boolean"].includes(typeof item)));
     function compactResults() {
       return {
-        metrics:model.metrics.map(metric=>({...scalars(metric),identity:copy(metric.identity),cohortIds:[...metric.cohortIds],
+        metrics:model.metrics.map(metric=>({...scalars(metric),identity:copy(metric.identity),
           observations:metric.observations.map(scalars),
           periods:metric.periods.map(period=>({...scalars(period),...(period.distribution?{distribution:copy(period.distribution)}:{})})),
           changes:metric.changes.map(scalars),trend:{...scalars(metric.trend),points:(metric.trend?.points||[]).map(scalars)}})),
-        summary:{periods:model.summary.periods.map(period=>({...scalars(period),red:copy(period.red),amber:copy(period.amber),advantage:copy(period.advantage),
-          regions:Object.fromEntries(Object.entries(period.regions||{}).map(([key,region])=>[key,{...scalars(region),members:region.members.map(scalars)}]))})),latest:scalars(model.summary.latest),transitions:model.summary.transitions.map(scalars)},
-        capabilities:model.capabilities.map(capability=>({...scalars(capability),cohortIds:capability.cohortIds||[],periods:capability.periods.map(period=>({...scalars(period),groups:copy(period.groups||[]),members:(period.members||[]).map(scalars),parameters:(period.parameters||[]).map(scalars)})),transitions:(capability.transitions||[]).map(scalars)})),
+        summary:{periods:model.summary.periods.map(period=>({...scalars(period),
+          regions:Object.fromEntries(Object.entries(period.regions||{}).map(([key,region])=>[key,{...scalars(region),members:(region.members||[]).map(scalars)}]))})),latest:scalars(model.summary.latest),transitions:model.summary.transitions.map(scalars)},
+        capabilities:model.capabilities.map(capability=>({...scalars(capability),periods:capability.periods.map(period=>({...scalars(period),members:(period.members||[]).map(scalars),parameters:(period.parameters||[]).map(scalars)})),transitions:(capability.transitions||[]).map(scalars)})),
       };
     }
     function envelope() {
       if(api.computing)throw Error("比较报告正在计算，请完成后导出");
       if(!api.active||model?.ready===false)throw Error("请先完成记录选择");
       const library=copy(inputSnapshot.library);library.comparisonReports=[copy(documentValue)];
+      library.athletes=library.athletes.filter(a=>a.id===selection.athleteIds[0]);
       const selected=new Set(model.entries.map(e=>e.recordId));library.athletes.forEach(a=>a.records=a.records.filter(r=>selected.has(r.recordId)));
       const profileIds=new Set(library.athletes.flatMap(a=>a.records.map(r=>r.evaluationProfileId||library.defaultEvaluationProfileId)));
       if(!profileIds.size)profileIds.add(library.defaultEvaluationProfileId);
@@ -19707,25 +19563,19 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       library.activeAthleteId=model.entries[0]?.athleteId||"";library.activeRecordId=model.entries[0]?.recordId||"";
       return {kind:"comparison-report",schema:1,library,report:copy(documentValue),statistics:copy(model.statistics||{}),
         displayRules:{screening:{scale:"ordinal",maximum:3,statusLevels:{green:3,amber:2,red:1},unknown:null,
-          date:model.dates.includes(documentValue.views.screeningDate)?documentValue.views.screeningDate:model.dates.at(-1)}},results:compactResults()};
+          dates:[...model.dates],highlightDate:model.dates.includes(documentValue.views.highlightDate)?documentValue.views.highlightDate:null}},results:compactResults()};
     }
     function facts() {
       if(api.computing)throw Error("比较报告正在计算，请完成后生成解读");
       const frozen=compactResults();
-      const athletes=selection.athleteIds, dates=selection.dates, reasons=[""], statuses=[""], titles=[], subjects=[];
-      const intern=(dictionary,value)=>{value=value??"";let index=dictionary.indexOf(value);if(index<0){index=dictionary.length;dictionary.push(value);}return index;};
-      const row=values=>{while(values.length&&values.at(-1)===null)values.pop();return values;};
-      const summary={...frozen.summary,transitionColumns:["athleteIndex","fromDateIndex","toDateIndex","subjectIndex","titleIndex","fromStatusIndex","toStatusIndex","state","reasonIndex"],
-        transitions:frozen.summary.transitions.map(t=>[athletes.indexOf(t.athleteId),dates.indexOf(t.fromDate),dates.indexOf(t.toDate),intern(subjects,t.key),intern(titles,t.title),intern(statuses,t.from),intern(statuses,t.to),t.state,intern(reasons,t.reason)])};
-      const metrics=frozen.metrics.map((m,index)=>({key:"metric-"+index,label:m.label,unit:m.unit,direction:m.direction,identity:m.identity,cohortAthleteIndices:m.cohortIds.map(id=>athletes.indexOf(id)),
-        observations:m.observations.map(o=>row([athletes.indexOf(o.athleteId),dates.indexOf(o.date),o.value,intern(reasons,o.reason),o.pain??null,o.status?intern(statuses,o.status):null,o.notes||null])),periods:m.periods,changes:m.changes,trend:m.trend}));
-      return {factsVersion:1,reportType:model.kind,title:title(),dates,baseline:dates[0],statistics:model.statistics,
-        indexing:{observationColumns:["athleteIndex","dateIndex","value","reasonIndex","pain","statusIndex","notes"],reasons,statuses,transitionSubjects:subjects,transitionTitles:titles,
-          selectedRecordIds:athletes.map(id=>dates.map(date=>selection.recordChoices[id]?.[date]||null)),explanation:"数组按columns读取，Index从0开始，athleteIndex对应athletes，dateIndex对应dates，尾部省略项为null。reasonIndex/statusIndex/subjectIndex/titleIndex分别查对应字典。不要把数组索引当成测量值。"},
-        summary,trainingDirections:frozen.capabilities,metrics,
-        athletes:selection.athleteIds.map(id=>{const a=owner(id),entries=model.entries.filter(e=>e.athleteId===id),last=entries.at(-1);return {id,name:a.name,profile:a.profile,testContext:last?.record.athlete,trainingContext:last?.record.trainingContext,directions:entries.map(e=>({date:e.date,directions:e.directions}))};}),
+      const id=selection.athleteIds[0],a=owner(id),last=model.entries.at(-1);
+      return {factsVersion:2,reportType:"personal-longitudinal",title:title(),dates:[...selection.dates],baseline:selection.dates[0],statistics:copy(model.statistics),
+        selectedRecordIds:selection.dates.map(date=>({date,recordId:selection.recordChoices[id]?.[date]||null})),
+        summary:frozen.summary,trainingDirections:frozen.capabilities,metrics:frozen.metrics,
+        athlete:{id,name:a.name,profile:copy(a.profile||{}),testContext:last?.record.athlete,trainingContext:last?.record.trainingContext,
+          periods:model.entries.map(e=>({date:e.date,recordId:e.recordId,directions:e.directions,testContext:e.record.athlete,trainingContext:e.record.trainingContext}))},
         existingIndividualPlans:individualPlans(),
-        interpretation:"采用已计算数值，按共同重点、方向分组、具体安排和复测条件组织；方向转变按原含义表述，统计显著性不等于训练价值。每个指标只用全程完整的固定队员，n是队员人数。"};
+        interpretation:"采用已经计算的个人各期原值、相对最早日期的变化和描述性趋势。按主要变化、末次训练重点、具体安排及复测条件组织；方向转变按原含义表述。缺测与不兼容按具体原因保留，不代替基线，不根据单人的多个日期估计配对显著性或队员间效果量。"};
     }
     function individualPlans() {
       return model.entries.filter(entry=>entry.date===model.dates.at(-1)).map(entry=>{
@@ -19735,31 +19585,27 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     function localText() {
       const lines=["## 主要发现",`${title()}，测试日期：${selection.dates.join("、")}。`];
-      for(const metric of model.metrics.filter(m=>m.periods?.some(p=>p.n)).slice(0,8)){const latest=metric.periods.at(-1),change=metric.changes?.at(-1);lines.push(`${metric.label}：${root.Calc.num(latest.mean)===null?"待测":latest.mean.toFixed(2)} ${metric.unit}，有效 ${latest.n} 人${change&&root.Calc.num(change.delta)!==null?`，较基线变化 ${change.delta.toFixed(2)} ${metric.unit}`:""}。`);}
-      lines.push("## 共同重点与分组安排");
-      for(const capability of model.capabilities||[]){const latest=capability.periods?.at(-1);for(const group of latest?.groups||latest?.categories||[]){const names=(group.athleteIds||group.members||[]).map(id=>typeof id==="string"?owner(id)?.name:id.name).filter(Boolean);lines.push(`${capability.title}：${group.label||group.judgment||group.direction}，${names.join("、")||group.count+" 人"}。`);}}
-      const groups=new Map();
-      for(const plan of individualPlans())for(const item of plan.items)for(const action of item.actions){
-        const {id,sourceIds,...prescription}=action,key=JSON.stringify(prescription),group=groups.get(key)||{action:prescription,athletes:[],rank:item.rank};
-        if(!group.athletes.includes(plan.name))group.athletes.push(plan.name);groups.set(key,group);
+      const number=value=>root.Calc.num(value)===null?"待测":value!==0&&Math.abs(value)<.01?Number(value.toPrecision(3)).toString():Number(value.toFixed(2)).toString();
+      for(const metric of model.metrics.filter(m=>m.periods?.some(p=>p.n)).slice(0,8)){const latest=metric.periods.at(-1),change=metric.changes?.at(-1);lines.push(`${metric.label}：${number(latest.value??latest.mean)} ${metric.unit}${change&&root.Calc.num(change.delta)!==null?`，较基线变化 ${number(change.delta)} ${metric.unit}`:""}${latest.reason?`（${latest.reason}）`:""}。`);}
+      lines.push("## 本次训练重点");
+      for(const capability of model.capabilities||[]){const latest=capability.periods?.at(-1),member=latest?.members?.[0];if(member?.judgment)lines.push(`${capability.title}：${member.judgment}。`);}
+      for(const plan of individualPlans())for(const item of plan.items){
+        lines.push(`### ${item.title}`);
+        for(const a of item.actions)lines.push(`${a.exercise}${a.side?"（"+a.side+"）":""}：${a.load}，${a.sets}组×${a.repsMin}${a.repsMax!==a.repsMin?"–"+a.repsMax:""}次${a.holdSec?"，每次保持"+a.holdSec+"秒":""}，组间休息${a.restSec}秒，每周${a.weekly}次。${a.progression||""}`);
       }
-      const prescriptions=[...groups.values()].sort((a,b)=>b.athletes.length-a.athletes.length||a.rank-b.rank);
-      if(prescriptions.length)lines.push("## 具体执行安排");
-      for(const {action:a,athletes} of prescriptions){lines.push(`${athletes.join("、")}：${a.exercise}${a.side?"（"+a.side+"）":""}，${a.load}，${a.sets}组×${a.repsMin}${a.repsMax!==a.repsMin?"–"+a.repsMax:""}次${a.holdSec?"，每次保持"+a.holdSec+"秒":""}，组间休息${a.restSec}秒，每周${a.weekly}次。${a.progression||""}`);}
       return lines.join("\n\n");
     }
     async function restore() {
-      let saved=null;try{saved=JSON.parse(localStorage.getItem(uiKey)||"null");}catch{}
+      let saved=null;try{saved=JSON.parse(localStorage.getItem(uiKey)||localStorage.getItem("ringside-comparison-ui-v1:"+location.pathname)||"null");}catch{}
       const embeddedId=root.RingsideEmbeddedComparisonId;
       const doc=(host.library()?.comparisonReports||[]).find(d=>d.id===embeddedId);
-      if(doc)return select(doc.selection,{restoreDocument:true,documentId:doc.id});
-      if(saved?.active&&!saved.editingRecord)return select(saved.selection,{restoreDocument:true,documentId:saved.documentId});
+      if(doc?.selection?.athleteIds?.length===1&&doc.selection.dates.length>1)return select(doc.selection,{restoreDocument:true,documentId:doc.id});
+      if(saved?.active&&!saved.editingRecord&&saved.selection?.athleteIds?.length===1&&saved.selection.dates.length>1)return select(saved.selection,{restoreDocument:true,documentId:saved.documentId});
       resetForSingle(owner(host.state()?.athleteId),host.state());return false;
     }
     function leaveNarrative(){updateEditor();editing=false;$("reportView").before($("aiProgress"));$("comparisonNarrativeModal").classList.remove("show");flush();}
-    Object.assign(api,{select,refresh,flush,label,renderSelectors,athleteOptions,toggleAthlete,toggleDate,chooseRecord,render,renderNarrative,editRecord,resume,resetForSingle,changeBasis,setNarrative,updateEditor,openNarrative,closeNarrative,leaveNarrative,snapshot,matches,envelope,facts,localText,restore,title,
+    Object.assign(api,{select,refresh,flush,label,renderSelectors,athleteOptions,chooseAthlete,toggleDate,chooseRecord,render,renderNarrative,editRecord,resume,resetForSingle,changeBasis,setNarrative,updateEditor,openNarrative,closeNarrative,leaveNarrative,snapshot,matches,envelope,facts,localText,restore,title,
       clear:()=>select({groupId:$("reportGroupFilter").value,athleteIds:[],dates:[],recordChoices:{},basis:{}}),
-      selectAll:rows=>select({...selection,groupId:$("reportGroupFilter").value,athleteIds:rows.map(a=>a.id)}),
       selectGroup:groupId=>select({...selection,groupId,athleteIds:selectedIds().filter(id=>!groupId||owner(id)?.groupId===groupId),dates:[],recordChoices:{}}),
       filename:ext=>`MotionBench_${title().replace(/[<>:"/\\|?*\s]/g,"_")}_${selection.dates[0]}_${selection.dates.at(-1)}.${ext}`,
     });return api;
@@ -25713,7 +25559,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(!["ArrowDown","ArrowUp","Enter"].includes(event.key))return;
     if(!athleteChooserOpen)openAthleteChooser();
     const options=[...$("reportAthleteOptions").querySelectorAll("[data-athlete-choice]")];
-    if(event.key==="Enter") {event.preventDefault();if(options[athleteChooserIndex])comparison.toggleAthlete(options[athleteChooserIndex].dataset.athleteChoice);return;}
+    if(event.key==="Enter") {event.preventDefault();if(options[athleteChooserIndex])App.chooseReportAthlete(options[athleteChooserIndex].dataset.athleteChoice);return;}
     event.preventDefault();if(!options.length)return;
     athleteChooserIndex=Math.max(0,Math.min(options.length-1,athleteChooserIndex+(event.key==="ArrowDown"?1:-1)));
     options.forEach((el,i)=>el.classList.toggle("highlighted",i===athleteChooserIndex));
@@ -27647,7 +27493,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
 
   function facts() {
-    if (comparison?.active) return comparison.facts();
+    if (comparison?.active) {
+      const input = comparison.facts(), athlete = input.athlete;
+      const personalObjects = new Set([athlete, athlete?.profile, athlete?.testContext,
+        ...(athlete?.periods || []).map(period => period.testContext)].filter(Boolean));
+      return JSON.parse(JSON.stringify({...input, title:"个人纵向分析"}, function (key, value) {
+        if (key === "birthDate" || key === "name" && (personalObjects.has(this) || this?.athleteId === athlete?.id)) return undefined;
+        return value;
+      }));
+    }
     // Suppress inactive custom targets in AI-derived scores/findings as well as
     // metric rows, without changing the saved record or local report formulas.
     flushReportEdits();
@@ -28065,7 +27919,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         { role: "user", content: "生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n" + JSON.stringify(facts()) },
       ];
       const pageLimit = comparison?.active ? 4 : 2;
-      if (comparison?.active) messages[1].content="为当前团队或纵向报告生成独立解读与干预建议。引用输入已计算的数值、配对人数、变化及统计结果，先说明共同重点，再按实际训练方向列分组和队员名单，给出动作、剂量、周安排、个人限制调整和复测条件。方向改变按原含义表述；显著性与实际训练价值分别判断。优先使用统一依据形成的trainingDirections，不替任何队员更换判断依据。所有建议都应能对应本次所选队员和记录。\n"+JSON.stringify(facts());
+      if (comparison?.active) messages[1].content="为当前运动员的纵向分析生成独立解读与干预建议。引用输入已计算的各期原值、相对基线变化、实际日期趋势和末次状态，先说明主要变化，再给出当前个人训练重点、动作、剂量、周安排、个人限制调整及复测条件。增加、减少只是数值描述，不能自动写成改善或下降；只有输入明确给出的评价判断才使用改善或下降。采用各期原判断依据形成的trainingDirections，方向改变按实际含义表述；缺测及不兼容保留具体原因。不要从多个日期推算配对显著性、队员间效果量或测量误差阈值。所有建议应对应本次运动员和所选记录。\n"+JSON.stringify(facts());
       const selectedModel = connection.model;
       let validated, pages;
       for (let attempt = 0; attempt < 2; attempt++) {
@@ -28089,8 +27943,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         pages = window.RingsidePDF.measureNarrative(M.textToHTML(validated));
         if (pages <= pageLimit) break;
         if (attempt === 0) {
-          setAIStatus("running", "AI 正在精简训练重点", comparison?.active ? "初稿偏长，正在保留分组执行细节并压缩到四页 A4 内。最多再等待 300 秒。" : "初稿偏长，正在保留执行细节并压缩到两页 A4 内。最多再等待 300 秒。");
-          messages.push({ role: "assistant", content: validated }, { role: "user", content: comparison?.active ? "当前正文实际排版为" + pages + "页。请精简到最多四页A4，保留关键综合判断、共同重点、实际分组与具体剂量、必要调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" : "当前正文实际排版为" + pages + "页。请重写为700–1000个汉字，最多两页A4。只保留最关键的综合判断、2个训练重点及具体剂量、必要的调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" });
+          setAIStatus("running", "AI 正在精简训练重点", comparison?.active ? "初稿偏长，正在保留个人趋势和执行细节并压缩到四页 A4 内。最多再等待 300 秒。" : "初稿偏长，正在保留执行细节并压缩到两页 A4 内。最多再等待 300 秒。");
+          messages.push({ role: "assistant", content: validated }, { role: "user", content: comparison?.active ? "当前正文实际排版为" + pages + "页。请精简到最多四页A4，保留主要变化、当前个人重点与具体剂量、必要调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" : "当前正文实际排版为" + pages + "页。请重写为700–1000个汉字，最多两页A4。只保留最关键的综合判断、2个训练重点及具体剂量、必要的调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" });
         }
       }
       if (pages > pageLimit) throw Error(comparison?.active?"模型精简后仍超过四页，请重新生成或更换模型。":"模型精简后仍超过两页，请重新生成或更换模型。");
@@ -28701,8 +28555,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     selectAthlete,
     selectRecord,
     selectReportGroup, openAthleteChooser, filterAthleteChooser, athleteChooserKey,
-    toggleReportAthlete: id=>comparison.toggleAthlete(id),
-    selectAllReportAthletes: ()=>comparison.selectAll(reportAthletes($("reportAthleteSearch").value)),
+    chooseReportAthlete: async id=>{closeAthleteChooser();return comparison.chooseAthlete(id);},
     clearReportSelection: ()=>comparison.clear(),
     toggleComparisonDate: (date,checked)=>comparison.toggleDate(date,checked),
     chooseComparisonRecord: (id,date,recordId)=>comparison.chooseRecord(id,date,recordId),

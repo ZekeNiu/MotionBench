@@ -1,6 +1,6 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), {spawnSync} = require("node:child_process"), {createHash} = require("node:crypto");
-const root = path.resolve(__dirname, ".."), out = path.join(root, "output/tests/v223/desktop-unit");
+const root = path.resolve(__dirname, ".."), out = path.resolve(root,process.env.MOTIONBENCH_DESKTOP_UNIT_ARTIFACT_DIR||"output/tests/v2231/desktop-unit");
 const hash = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 fs.mkdirSync(out, {recursive:true});
 const source = path.join(root, "MotionBench.html");

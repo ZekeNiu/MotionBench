@@ -14,10 +14,13 @@ if (!outputRelative || outputRelative.startsWith('..') || path.isAbsolute(output
 fs.mkdirSync(resultDir, { recursive: true });
 const digest = file => createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 const moduleFiles = fs.readdirSync(path.join(root, 'src')).filter(name => name.endsWith('.js'));
+const helperFiles = fs.readdirSync(path.join(__dirname, 'helpers')).filter(name => name.endsWith('.cjs'));
 const summary = { sourceHash: digest(path.join(root, 'MotionBench.html')), runnerSha256: digest(__filename),
-  modules: Object.fromEntries(moduleFiles.map(name => [name, digest(path.join(root, 'src', name))])), suites: [] };
+  modules: Object.fromEntries(moduleFiles.map(name => [name, digest(path.join(root, 'src', name))])),
+  helperHashes: Object.fromEntries(helperFiles.map(name => ['tests/helpers/' + name, digest(path.join(__dirname, 'helpers', name))])), suites: [] };
 for (const name of [
   "comparison-model-tests.cjs",
+  "comparison-store-model-tests.cjs",
   "comparison-render-model-tests.cjs",
   "comparison-controller-facts-tests.cjs",
   "generic-report-model-tests.cjs",
@@ -92,6 +95,7 @@ for (const name of [
 }
 summary.sourceUnchanged = digest(path.join(root, 'MotionBench.html')) === summary.sourceHash &&
   digest(__filename) === summary.runnerSha256 && moduleFiles.every(name => digest(path.join(root, 'src', name)) === summary.modules[name]) &&
+  helperFiles.every(name => digest(path.join(__dirname, 'helpers', name)) === summary.helperHashes['tests/helpers/' + name]) &&
   summary.suites.every(suite => digest(path.join(__dirname, suite.name)) === suite.sha256);
 fs.writeFileSync(path.join(resultDir, 'unit-results.json'), JSON.stringify(summary, null, 2));
 if (!summary.sourceUnchanged || summary.suites.some(suite => !suite.sourceUnchanged)) throw Error('Unit test inputs changed during execution');

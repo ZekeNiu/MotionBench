@@ -111,7 +111,7 @@ function demoRecord(c, athleteIndex, period) {
 }
 function createDemoLibrary(c = loadComparisonContext(), { bindReports = true } = {}) {
   const M = c.RingsideModel, E = c.RingsideEvaluation, C = c.RingsideComparison, first = demoRecord(c, 0, 0);
-  const base = E.migrate(M.normalizeLibrary(first)), profile = E.create(first, "模拟评价方案·团队与纵向");
+  const base = E.migrate(M.normalizeLibrary(first)), profile = E.create(first, "模拟评价方案·个人纵向");
   profile.id = "motionbench_comparison_demo_profile"; profile.created = "2026-10-13T00:00:00.000Z"; profile.updated = profile.created;
   const athletes = Array.from({ length: 24 }, (_, index) => {
     const records = dates.map((date, period) => index === 20 && period === 3 ? null : demoRecord(c, index, period)).filter(Boolean);
@@ -120,18 +120,18 @@ function createDemoLibrary(c = loadComparisonContext(), { bindReports = true } =
     return { id: records[0].athleteId, name: records[0].athlete.name, profile: M.profileFromRecord(records[records.length - 1]), groupId: "motionbench_comparison_demo_group",
       created: "2026-10-13T00:00:00.000Z", updated: "2026-10-13T00:00:00.000Z", archived: false, deletedAt: null, demo: true, records };
   });
-  const library = { ...base, updated: "2026-10-13T00:00:00.000Z", groups: [{ id: "motionbench_comparison_demo_group", name: "模拟队伍·团队与纵向示例", notes: "24名合成队员，6个不等间隔日期；包含缺测、同日重测与测量条件差异", archived: false, deletedAt: null, created: "2026-10-13T00:00:00.000Z", updated: "2026-10-13T00:00:00.000Z" }],
+  const library = { ...base, updated: "2026-10-13T00:00:00.000Z", groups: [{ id: "motionbench_comparison_demo_group", name: "模拟队伍·个人纵向示例", notes: "24名合成队员，6个不等间隔日期；包含缺测、同日重测与测量条件差异", archived: false, deletedAt: null, created: "2026-10-13T00:00:00.000Z", updated: "2026-10-13T00:00:00.000Z" }],
     athletes, evaluationProfiles: [JSON.parse(JSON.stringify(profile))], defaultEvaluationProfileId: profile.id, catalog: M.mergeCatalog(base.catalog, first), activeAthleteId: athletes[0].id, activeRecordId: athletes[0].records[0].recordId };
   library.catalog.reportViews = JSON.parse(JSON.stringify(first.views.genericReports));
-  const allIds = athletes.map(athlete => athlete.id);
-  const report = (id, athleteIds, selectedDates, text) => {
+  const report = (id, athleteId, selectedDates, text) => {
+    const athleteIds = [athleteId];
     const selection = { groupId: library.groups[0].id, athleteIds, dates: selectedDates, recordChoices: Object.fromEntries(athleteIds.map(athleteId => [athleteId, Object.fromEntries(selectedDates.map(date => [date, athletes.find(item => item.id === athleteId).records.find(record => record.athlete.date === date)?.recordId]).filter(([, recordId]) => recordId))])), basis: { strength: "jump_elasticity", reactive: "dj_rsi", speed: "sprint_elasticity", jumpProtocol: "fvp_sj" } };
     return { id, selection: C.normalizeSelection(selection), views: {}, narrative: { text, source: "manual", inputFingerprint: "", updated: "2026-10-13T00:00:00.000Z" }, revisions: [], inputFingerprint: "", created: "2026-10-13T00:00:00.000Z", updated: "2026-10-13T00:00:00.000Z" };
   };
   library.comparisonReports = [
-    report("motionbench_comparison_demo_team", allIds, [dates[5]], "共同重点：结合末次测试检查力量、反应力量与耐力的共同需求。\n\n分组建议：按训练方向卡片的实际名单分组；每组在当前每周训练安排内落实对应专项练习。"),
-    report("motionbench_comparison_demo_person", [allIds[0]], dates, "模拟队员01：对照不等间隔测试日期观察实测成绩、趋势及预警变化；复测使用相同测量协议。"),
-    report("motionbench_comparison_demo_longitudinal", allIds, dates, "共同重点：各指标使用完整可比的固定队员集合，结合末次状态与相对首次测试的变化安排训练。\n\n分组建议：改善组巩固执行，下降组结合训练和恢复情况调整，平台组检查负荷进展，波动组复核测试条件并按既定周期复测。")
+    report("motionbench_comparison_demo_person", athletes[0].id, dates, "模拟队员01：对照不等间隔测试日期观察实测成绩、趋势及筛查变化，结合当前每周训练安排巩固进展；复测使用相同测量协议。"),
+    report("motionbench_comparison_demo_person_declining", athletes[1].id, dates, "模拟队员02：检查各期实测变化与恢复情况，按个人测试结果调整训练负荷，并在相同测量条件下复测。"),
+    report("motionbench_comparison_demo_person_missing", athletes[20].id, dates, "模拟队员21：保留缺测日期及已测成绩，对照首次与末次的有效结果观察变化；补测后再评估缺失日期的状态。")
   ];
   E.validateProfile(library.evaluationProfiles[0]); M.validateCatalog(library.catalog); M.validateLibrary({ ...library, schema: 2 });
   if (bindReports) for (const report of library.comparisonReports) applyReportBinding(report, C.deriveComparison(C.readComparisonInputs(library, report.selection)));

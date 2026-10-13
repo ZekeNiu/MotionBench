@@ -2073,7 +2073,7 @@
     if(!["ArrowDown","ArrowUp","Enter"].includes(event.key))return;
     if(!athleteChooserOpen)openAthleteChooser();
     const options=[...$("reportAthleteOptions").querySelectorAll("[data-athlete-choice]")];
-    if(event.key==="Enter") {event.preventDefault();if(options[athleteChooserIndex])comparison.toggleAthlete(options[athleteChooserIndex].dataset.athleteChoice);return;}
+    if(event.key==="Enter") {event.preventDefault();if(options[athleteChooserIndex])App.chooseReportAthlete(options[athleteChooserIndex].dataset.athleteChoice);return;}
     event.preventDefault();if(!options.length)return;
     athleteChooserIndex=Math.max(0,Math.min(options.length-1,athleteChooserIndex+(event.key==="ArrowDown"?1:-1)));
     options.forEach((el,i)=>el.classList.toggle("highlighted",i===athleteChooserIndex));
@@ -4007,7 +4007,15 @@
   }
 
   function facts() {
-    if (comparison?.active) return comparison.facts();
+    if (comparison?.active) {
+      const input = comparison.facts(), athlete = input.athlete;
+      const personalObjects = new Set([athlete, athlete?.profile, athlete?.testContext,
+        ...(athlete?.periods || []).map(period => period.testContext)].filter(Boolean));
+      return JSON.parse(JSON.stringify({...input, title:"个人纵向分析"}, function (key, value) {
+        if (key === "birthDate" || key === "name" && (personalObjects.has(this) || this?.athleteId === athlete?.id)) return undefined;
+        return value;
+      }));
+    }
     // Suppress inactive custom targets in AI-derived scores/findings as well as
     // metric rows, without changing the saved record or local report formulas.
     flushReportEdits();
@@ -4425,7 +4433,7 @@
         { role: "user", content: "生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n" + JSON.stringify(facts()) },
       ];
       const pageLimit = comparison?.active ? 4 : 2;
-      if (comparison?.active) messages[1].content="为当前团队或纵向报告生成独立解读与干预建议。引用输入已计算的数值、配对人数、变化及统计结果，先说明共同重点，再按实际训练方向列分组和队员名单，给出动作、剂量、周安排、个人限制调整和复测条件。方向改变按原含义表述；显著性与实际训练价值分别判断。优先使用统一依据形成的trainingDirections，不替任何队员更换判断依据。所有建议都应能对应本次所选队员和记录。\n"+JSON.stringify(facts());
+      if (comparison?.active) messages[1].content="为当前运动员的纵向分析生成独立解读与干预建议。引用输入已计算的各期原值、相对基线变化、实际日期趋势和末次状态，先说明主要变化，再给出当前个人训练重点、动作、剂量、周安排、个人限制调整及复测条件。增加、减少只是数值描述，不能自动写成改善或下降；只有输入明确给出的评价判断才使用改善或下降。采用各期原判断依据形成的trainingDirections，方向改变按实际含义表述；缺测及不兼容保留具体原因。不要从多个日期推算配对显著性、队员间效果量或测量误差阈值。所有建议应对应本次运动员和所选记录。\n"+JSON.stringify(facts());
       const selectedModel = connection.model;
       let validated, pages;
       for (let attempt = 0; attempt < 2; attempt++) {
@@ -4449,8 +4457,8 @@
         pages = window.RingsidePDF.measureNarrative(M.textToHTML(validated));
         if (pages <= pageLimit) break;
         if (attempt === 0) {
-          setAIStatus("running", "AI 正在精简训练重点", comparison?.active ? "初稿偏长，正在保留分组执行细节并压缩到四页 A4 内。最多再等待 300 秒。" : "初稿偏长，正在保留执行细节并压缩到两页 A4 内。最多再等待 300 秒。");
-          messages.push({ role: "assistant", content: validated }, { role: "user", content: comparison?.active ? "当前正文实际排版为" + pages + "页。请精简到最多四页A4，保留关键综合判断、共同重点、实际分组与具体剂量、必要调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" : "当前正文实际排版为" + pages + "页。请重写为700–1000个汉字，最多两页A4。只保留最关键的综合判断、2个训练重点及具体剂量、必要的调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" });
+          setAIStatus("running", "AI 正在精简训练重点", comparison?.active ? "初稿偏长，正在保留个人趋势和执行细节并压缩到四页 A4 内。最多再等待 300 秒。" : "初稿偏长，正在保留执行细节并压缩到两页 A4 内。最多再等待 300 秒。");
+          messages.push({ role: "assistant", content: validated }, { role: "user", content: comparison?.active ? "当前正文实际排版为" + pages + "页。请精简到最多四页A4，保留主要变化、当前个人重点与具体剂量、必要调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" : "当前正文实际排版为" + pages + "页。请重写为700–1000个汉字，最多两页A4。只保留最关键的综合判断、2个训练重点及具体剂量、必要的调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" });
         }
       }
       if (pages > pageLimit) throw Error(comparison?.active?"模型精简后仍超过四页，请重新生成或更换模型。":"模型精简后仍超过两页，请重新生成或更换模型。");
@@ -5061,8 +5069,7 @@
     selectAthlete,
     selectRecord,
     selectReportGroup, openAthleteChooser, filterAthleteChooser, athleteChooserKey,
-    toggleReportAthlete: id=>comparison.toggleAthlete(id),
-    selectAllReportAthletes: ()=>comparison.selectAll(reportAthletes($("reportAthleteSearch").value)),
+    chooseReportAthlete: async id=>{closeAthleteChooser();return comparison.chooseAthlete(id);},
     clearReportSelection: ()=>comparison.clear(),
     toggleComparisonDate: (date,checked)=>comparison.toggleDate(date,checked),
     chooseComparisonRecord: (id,date,recordId)=>comparison.chooseRecord(id,date,recordId),

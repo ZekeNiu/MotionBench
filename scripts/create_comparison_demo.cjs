@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto"), vm = require("node:vm");
 const { createDemoLibrary, bindDemoReports, loadComparisonContext } = require("../tests/helpers/comparison-fixtures.cjs");
-const args = process.argv.slice(2), output = path.resolve(args.find(value => !value.startsWith("--")) || path.join(__dirname, "../output/comparison-demo/团队与纵向模拟资料库.json"));
+const args = process.argv.slice(2), output = path.resolve(args.find(value => !value.startsWith("--")) || path.join(__dirname, "../output/comparison-demo/个人纵向模拟资料库.json"));
 (async () => {
   const context = loadComparisonContext(), library = await bindDemoReports(createDemoLibrary(context, { bindReports: false }), context), content = JSON.stringify(library);
   const sha256 = value => crypto.createHash("sha256").update(value).digest("hex"), digest = sha256(content);

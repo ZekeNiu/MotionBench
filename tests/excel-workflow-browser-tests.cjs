@@ -96,7 +96,10 @@ async function bytes(book){return Buffer.from(await book.xlsx.writeBuffer());}
    const parsed=await page.evaluate(async values=>RingsideExcel.readTemplate(new Uint8Array(values)),[...downloaded]);assert.deepEqual(parsed.errors,[]);assert.equal(parsed.targets.length,1);singleTarget=parsed.targets[0];assert.equal(singleTarget.athleteId,people[0]);
    const book=await workbook(downloaded),ws=book.worksheets.find(s=>/CMJ/.test(s.name)&&!s.name.includes("补充")),c=columns(ws);ws.getCell(2,c.height).value=38.25;
    await upload(await bytes(book));assert.equal(await page.locator(".excel-preview-record").count(),1);await page.locator("#excelConfirm").click();await page.locator("#excelModal").waitFor({state:"hidden"});
-   await page.waitForFunction(id=>App.getState()?.recordId===id,singleTarget.recordId);assert.equal(await countRecords(),before+1);assert.equal(await page.evaluate(()=>App.getState().athleteId),people[0]);assert.equal(await page.evaluate(()=>App.getState().data.cmj[0].height),38.25);assert.equal(await page.evaluate(()=>App.getState().athlete.mass),74);assert.equal(await page.locator("#reportView").isVisible(),true);assert.equal(await page.locator("#creationView").isVisible(),false);
+   await page.waitForFunction(id=>App.getState()?.recordId===id,singleTarget.recordId);
+   // The imported record can be available before report navigation completes.
+   await page.locator("#reportView").waitFor({state:"visible"});
+   assert.equal(await countRecords(),before+1);assert.equal(await page.evaluate(()=>App.getState().athleteId),people[0]);assert.equal(await page.evaluate(()=>App.getState().data.cmj[0].height),38.25);assert.equal(await page.evaluate(()=>App.getState().athlete.mass),74);assert.equal(await page.locator("#reportView").isVisible(),true);assert.equal(await page.locator("#creationView").isVisible(),false);
   });
   await check("standalone HTML export removes other athletes' pending Excel preview and controls",async()=>{
    await startEntry(people);await upload(filled);assert.equal(await page.locator(".excel-preview-record").count(),2);
