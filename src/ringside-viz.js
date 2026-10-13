@@ -1988,10 +1988,143 @@
     return layoutSVG(w,h,title,out,"Fₑ、vₑ、EN 读取左轴，ER 读取右轴；各指标均为无量纲。当前剖面保持不变，分别求解各目标距离的冲刺时间与弹性。竖虚线标记当前目标距离；EN 最低点与 ER = 1 的平衡点分别求解。",layout);
   }
 
+  const genericTitles = { bar: "横向条形图", column: "纵向柱状图", trials: "试次点图", scatter: "X–Y 散点图", target: "目标对比图", radar: "评分雷达图" };
+  const genericTone = status => status && status !== "gray" ? color(status) : C.neutral;
+  function genericLabel(value, width, size = 12, maxLines = 3) {
+    const lines = [""], widths = [0];
+    for (const character of Array.from(String(value || ""))) {
+      const length = size * (/[^\x00-\xff]/.test(character) ? 1 : .56), last = lines.length - 1;
+      if (widths[last] + length > Math.max(size, width) && lines[last]) { lines.push(""); widths.push(0); }
+      lines[lines.length - 1] += character; widths[widths.length - 1] += length;
+    }
+    if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] = lines[maxLines - 1].slice(0, -1) + "…"; }
+    return lines;
+  }
+  const genericLines = (x, y, lines, attrs = "", step = 16) => lines.map((value, index) => text(x, y + index * step, value, attrs)).join("");
+  function genericRange(values, zero = false) {
+    const measured = values.filter(value => num(value) !== null).map(Number),
+      low = Math.min(...measured, ...(zero ? [0] : [])), high = Math.max(...measured, ...(zero ? [0] : [])),
+      span = high - low || Math.max(Math.abs(high) * .2, 1);
+    if (zero && low === 0 && high === 0) return { min: 0, max: 1 };
+    return { min: zero && low >= 0 ? 0 : low - span * .12, max: zero && high <= 0 ? 0 : high + span * .12 };
+  }
+  function genericBars(panel, kind, layout = {}) {
+    const w = Math.max(230, layout.width || 440), items = panel.items || [],
+      labelSpace = Math.min(180, Math.max(90, w * .38)), left = labelSpace + 6, right = w - 61,
+      labels = items.map(item => genericLabel(item.label, labelSpace - 22)),
+      rows = labels.map(parts => Math.max(44, parts.length * 16 + 14)),
+      h = 58 + rows.reduce((sum, height) => sum + height, 0), top = 15, bottom = h - 44,
+      range = genericRange((panel.scaleItems || items).flatMap(item => kind === "target" ? [item.value, item.target] : [item.value]), true),
+      x = value => left + (value - range.min) / (range.max - range.min) * (right - left);
+    let out = "";
+    ticks(range.min, range.max, 4).forEach(value => { out += line(x(value), top, x(value), bottom) + text(x(value), bottom + 22, fmt(value), 'text-anchor="middle" font-size="11"'); });
+    out += line(x(0), top, x(0), bottom, `stroke="${C.gray}"`) + text(w - 7, bottom + 22, panel.unit || "无单位", 'text-anchor="end" font-size="11"');
+    let offset = top;
+    items.forEach((item, index) => {
+      const y = offset + rows[index] / 2, fill = genericTone(item.status), tooltip = `${item.label}：${fmt(item.value)}${panel.unit ? " " + panel.unit : ""}${kind === "target" ? " · 目标 " + fmt(item.target) : ""}`;
+      offset += rows[index];
+      out += `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" data-generic-metric="${esc(item.id)}">` +
+        genericLines(10, y + 4 - (labels[index].length - 1) * 8, labels[index], `font-size="12" fill="${C.ink}"`) +
+        `<rect x="${fmt(Math.min(x(0), x(item.value)))}" y="${fmt(y - 9)}" width="${fmt(Math.abs(x(item.value) - x(0)))}" height="18" rx="3" fill="${fill}" fill-opacity=".8"/>` +
+        text(w - 7, y + 4, fmt(item.value), `text-anchor="end" font-size="12" font-weight="600" fill="${C.ink}"`) +
+        (kind === "target" ? line(x(item.target), y - 14, x(item.target), y + 14, `stroke="${C.ink}" stroke-width="2" stroke-dasharray="3 2"`) : "") + "</g>";
+    });
+    return layoutSVG(w, h, genericTitles[kind] + " · " + (panel.title || panel.unit || "无单位"), out, kind === "target" ? "实测值与当前适用目标使用相同单位；虚线标记目标。" : "当前报告采用的代表结果；各单位分别绘图。", layout);
+  }
+  function genericColumns(panel, layout = {}) {
+    const w = Math.max(230, layout.width || 440), items = panel.items || [], left = 50, right = w - 16,
+      slot = (right - left) / items.length, labels = items.map(item => genericLabel(item.label, slot - 8)),
+      labelHeight = Math.max(...labels.map(parts => parts.length)) * 16,
+      h = Math.max(250, Math.min(360, layout.height || 290)) + labelHeight - 16, top = 29, bottom = h - labelHeight - 26,
+      range = genericRange((panel.scaleItems || items).map(item => item.value), true),
+      y = value => bottom - (value - range.min) / (range.max - range.min) * (bottom - top);
+    let out = text(left, 15, panel.unit || "无单位", 'font-size="12"');
+    ticks(range.min, range.max, 4).forEach(value => { out += line(left, y(value), right, y(value)) + text(left - 8, y(value) + 4, fmt(value), 'text-anchor="end" font-size="11"'); });
+    out += line(left, y(0), right, y(0), `stroke="${C.gray}"`);
+    items.forEach((item, index) => {
+      const x = left + slot * (index + .5), width = Math.min(38, slot * .56), fill = genericTone(item.status), tooltip = `${item.label}：${fmt(item.value)}${panel.unit ? " " + panel.unit : ""}`;
+      out += `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" data-generic-metric="${esc(item.id)}"><rect x="${fmt(x - width / 2)}" y="${fmt(Math.min(y(0), y(item.value)))}" width="${fmt(width)}" height="${fmt(Math.abs(y(item.value) - y(0)))}" rx="3" fill="${fill}" fill-opacity=".8"/>` +
+        text(x, item.value < 0 ? y(item.value) + 15 : y(item.value) - 8, fmt(item.value), `text-anchor="middle" font-size="11" font-weight="600" fill="${C.ink}"`) +
+        genericLines(x, bottom + 21, labels[index], `text-anchor="middle" font-size="12" fill="${C.ink}"`) + "</g>";
+    });
+    return layoutSVG(w, h, genericTitles.column + " · " + (panel.title || panel.unit || "无单位"), out, "当前报告采用的代表结果；柱形从零起始，各单位分别绘图。", layout);
+  }
+  function genericTrialPlot(panel, layout = {}) {
+    const w = Math.max(230, layout.width || 440), series = panel.series || [],
+      labels = series.map(item => genericLabel(item.label, w - 39, 12, 2)),
+      legendHeight = labels.reduce((sum, parts) => sum + parts.length * 16 + 8, 0),
+      h = Math.max(260, Math.min(350, layout.height || 290)) + legendHeight, left = 54, right = w - 20, top = 32, bottom = h - legendHeight - 58,
+      points = (panel.scaleSeries || series).flatMap(item => item.points || []), indices = [...new Set(points.map(item => item.index))].sort((a, b) => a - b),
+      xr = indices.length === 1 ? { min: indices[0] - .5, max: indices[0] + .5 } : { min: Math.min(...indices) - .25, max: Math.max(...indices) + .25 },
+      yr = genericRange(points.map(item => item.value)), grid = axisGrid({ left, right, top, bottom, xMin: xr.min, xMax: xr.max, yMin: yr.min, yMax: yr.max, xTicks: false, xLabel: "试次", yLabel: panel.unit || "无单位" });
+    let out = grid.out;
+    const visibleIndices = indices.length <= 12 ? indices : indices.filter((_, index) => index % Math.ceil(indices.length / 10) === 0 || index === indices.length - 1);
+    visibleIndices.forEach(index => { out += text(grid.x(index), bottom + 22, index, 'text-anchor="middle" font-size="11"'); });
+    let legendY = bottom + 68;
+    series.forEach((item, index) => {
+      const tone = SERIES[index % SERIES.length], shape = ["circle", "square", "diamond", "triangle"][Math.floor(index / SERIES.length) % 4];
+      for (const attempt of item.points || []) out += point(grid.x(attempt.index), grid.y(attempt.value), 4.5, tone, `第 ${attempt.index} 次 · ${item.label}：${fmt(attempt.value)}${panel.unit ? " " + panel.unit : ""}`, `data-generic-trial="${esc(attempt.id)}"`, shape);
+      out += marker(16, legendY - 4, 4, tone, shape) + genericLines(28, legendY, labels[index], 'font-size="12"');
+      legendY += labels[index].length * 16 + 8;
+    });
+    return layoutSVG(w, h, genericTitles.trials + " · " + (panel.title || panel.unit || "无单位"), out, "点为各次实测值，横轴保留真实试次编号。", layout);
+  }
+  function genericScatter(panel, layout = {}) {
+    const w = Math.max(230, layout.width || 440), xLabel = `${panel.xAxis.label}${panel.xAxis.unit ? " · " + panel.xAxis.unit : ""}`, yLabel = `${panel.yAxis.label}${panel.yAxis.unit ? " · " + panel.yAxis.unit : ""}`,
+      xLines = genericLabel(xLabel, w - 70, 12, 3), yLines = genericLabel(yLabel, w - 70, 12, 3),
+      h = Math.max(290, Math.min(360, layout.height || 320)) + (xLines.length + yLines.length - 2) * 16,
+      left = 55, right = w - 21, top = yLines.length * 16 + 17, bottom = h - xLines.length * 16 - 33,
+      xr = genericRange(panel.points.map(item => item.x)), yr = genericRange(panel.points.map(item => item.y)),
+      grid = axisGrid({ left, right, top, bottom, xMin: xr.min, xMax: xr.max, yMin: yr.min, yMax: yr.max, xLabel: "", yLabel: "" });
+    let out = grid.out + genericLines(left, 16, yLines, 'font-size="12"') + genericLines((left + right) / 2, bottom + 43, xLines, 'text-anchor="middle" font-size="12"');
+    for (const item of panel.points) out += point(grid.x(item.x), grid.y(item.y), 5, C.neutral, `第 ${item.index} 次 · ${panel.xAxis.label}：${fmt(item.x)} ${panel.xAxis.unit || ""} · ${panel.yAxis.label}：${fmt(item.y)} ${panel.yAxis.unit || ""}`, `data-generic-trial="${esc(item.id)}"`);
+    return layoutSVG(w, h, genericTitles.scatter, out, "仅绘制同一次试次的有效配对；两个坐标轴分别使用各自单位。", layout);
+  }
+  function genericRadar(panel, layout = {}) {
+    const w = Math.max(230, layout.width || 440), h = Math.max(300, Math.min(390, layout.height || 350)),
+      axes = panel.axes, count = axes.length, cx = w / 2, cy = h / 2,
+      radius = Math.min(w * .24, h * .28), polar = polarFrame(cx, cy, count);
+    let out = `<polygon points="${polygonPoints(axes.map((_, index) => polar(index, radius)))}" fill="${C.paper}" fill-opacity=".6"/>`;
+    for (const value of [20, 40, 60, 80, 100]) out += `<polygon points="${polygonPoints(axes.map((_, index) => polar(index, radius * value / 100)))}" fill="none" stroke="${C.grid}"/>` + text(cx + 6, cy - radius * value / 100 + 4, value, 'class="generic-radar-tick" font-size="9"');
+    axes.forEach((_, index) => { out += line(cx, cy, ...polar(index, radius)); });
+    const points = axes.map((axis, index) => polar(index, radius * axis.value / 100));
+    out += radarSeries(points, C.neutral, [cx, cy]);
+    axes.forEach((axis, index) => {
+      const angle = -Math.PI / 2 + index * 2 * Math.PI / count, p = polar(index, radius + 19),
+        anchor = Math.cos(angle) > .2 ? "start" : Math.cos(angle) < -.2 ? "end" : "middle",
+        space = anchor === "middle" ? Math.min(170, w - 30, count >= 6 ? 2 * ((radius + 19) * Math.sin(2 * Math.PI / count) - 12) : 170) : anchor === "start" ? w - p[0] - 8 : p[0] - 8,
+        lines = genericLabel(axis.label, space, 12, 2),
+        // The upper labels and score read outward from the plot. Reserve the
+        // top margin so a wrapped name cannot push its score onto the 100 tick.
+        y = Math.sin(angle) < -.45 ? Math.max(14, p[1] - lines.length * 16 - 9) : p[1] - (lines.length - 1) * 8,
+        tone = genericTone(axis.status), tooltip = `${axis.label}：${fmt(axis.value, 1)} 分 / 100${axis.tooltip ? " · " + axis.tooltip : ""}`;
+      out += `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" data-generic-metric="${esc(axis.id)}">` +
+        genericLines(p[0], y, lines, `class="generic-radar-label" text-anchor="${anchor}" font-size="12" fill="${C.ink}"`) +
+        text(p[0], y + lines.length * 16 + 2, fmt(axis.value, 1) + " 分", `class="generic-radar-score" text-anchor="${anchor}" font-size="11" fill="${tone}"`) + "</g>" + point(...points[index], 4.5, tone, tooltip);
+    });
+    return layoutSVG(w, h, genericTitles.radar, out, "沿用当前评价方案的单项给分规则，评分范围为 0–100 分。", layout);
+  }
+  function generic(data, layout = {}) {
+    if (!data || data.kind === "none") return "";
+    if (!data.available) return `<p class="note generic-chart-unavailable">${esc(data.reason || "当前图表缺少有效数据。")}</p>`;
+    const kind = data.kind, draw = { bar: genericBars, target: genericBars, column: genericColumns, trials: genericTrialPlot, scatter: genericScatter, radar: genericRadar }[kind];
+    if (!draw) return "";
+    const panels = data.panels.flatMap(panel => {
+      // Keep each image compact enough to paginate while preserving one common
+      // scale within the original unit group; no metrics or rows are duplicated.
+      const field = kind === "bar" || kind === "target" || kind === "column" ? "items" : kind === "trials" ? "series" : null,
+        size = kind === "column" ? 5 : kind === "trials" ? 4 : 6;
+      if (!field || panel[field].length <= size) return [panel];
+      return Array.from({ length: Math.ceil(panel[field].length / size) }, (_, index) => ({ ...panel, [field]: panel[field].slice(index * size, (index + 1) * size), ...(field === "items" ? { scaleItems: panel.items } : { scaleSeries: panel.series }), continuation: index + 1 }));
+    });
+    return panels.map(panel => `<div class="generic-chart-panel" data-pdf-atomic><p class="generic-chart-heading">${esc(panel.title || genericTitles[kind])}${panel.continuation ? " · " + panel.continuation : ""}</p>${kind === "target" ? '<p class="generic-chart-key"><span>实测值</span><span>虚线：目标</span></p>' : ""}${kind === "bar" || kind === "target" ? draw(panel, kind, layout) : draw(panel, layout)}</div>`).join("") + (data.reason ? `<p class="note generic-chart-omissions">${esc(data.reason)}</p>` : "");
+  }
+
   global.RingsideViz = {
     body,
     bodyTooltip,
     radar,
+    generic,
     fms,
     isoRadar,
     jumpBars,

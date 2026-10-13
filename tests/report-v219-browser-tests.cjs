@@ -22,13 +22,13 @@ const result={channel,sourceHash:hash(source),runnerSha256:hash(__filename),chec
   });
   const projection=async p=>p.evaluate(()=>({axes:App.stats().axes.map(a=>({key:a.key,value:a.value,status:a.status,members:a.members,scores:a.scores})),results:App.stats().evaluationResults.filter(v=>["cmj_height","sj_height"].includes(v.metricId)),facts:App.facts().capabilities,narrative:App.getState().narrative.text}));
   let baseline;
-  await check("report radar breakdown and AI facts use the same fixed-member scores",async()=>{
+  await check("report overview and AI facts use the same fixed-member scores without calculation details",async()=>{
    baseline=await projection(page);assert.equal(baseline.axes.length,1);assert.equal(baseline.axes[0].value,65);assert.equal(baseline.axes[0].status,"gray");assert.deepEqual(baseline.axes[0].scores,[80,50]);assert.deepEqual(baseline.facts[0].memberScores,[80,50]);
    assert.match(await page.locator('.ability-comparison').innerText(),/能力评分/);assert.match(await page.locator('.ability-comparison').innerText(),/65 分 \/ 100/);
-   await page.locator('.ability-score-details > summary').click();const text=await page.locator('[data-ability-score]').innerText();for(const value of ["65.0","80.0","50.0","40.0","25.0"])assert.ok(text.includes(value),value);assert.ok(baseline.results.every(r=>r.scoreContributions.length===1));
+   assert.equal(await page.locator('.ability-score-details,#abilityScoreDetails,[data-ability-score]').count(),0);assert.ok(baseline.results.every(r=>r.scoreContributions.length===1));
   });
-  await check("average composition remains readable on desktop and narrow screens",async()=>{
-   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.locator('.ability-score-details').scrollIntoViewIfNeeded();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);const file=path.join(out,channel+"-mean-"+width+".png");await page.screenshot({path:file});artifact(file,"screenshot");}
+  await check("average overview remains readable on desktop and narrow screens",async()=>{
+   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});await page.locator('.ability-comparison').scrollIntoViewIfNeeded();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);const file=path.join(out,channel+"-mean-"+width+".png");await page.screenshot({path:file});artifact(file,"screenshot");}
    await page.setViewportSize({width:1440,height:1000});
   });
   const download=async kind=>{const event=page.waitForEvent("download",{timeout:240000});await page.evaluate(kind=>App["download"+kind](),kind);const dl=await event;assert.equal(await dl.failure(),null);const file=path.join(out,channel+"-mean."+kind.toLowerCase());await dl.saveAs(file);artifact(file,"download");return file;};
@@ -39,11 +39,11 @@ const result={channel,sourceHash:hash(source),runnerSha256:hash(__filename),chec
    }
    await page.reload();await page.waitForFunction(()=>window.App?.ready);assert.deepEqual(await projection(page),baseline);
   });
-  if(process.argv.includes("--pdf"))await check("actual PDF includes the exact mean membership scores and contributions",async()=>{
+  if(process.argv.includes("--pdf"))await check("actual PDF includes the mean overview score and removes calculation details",async()=>{
    await page.evaluate(()=>{window.__meanPdf=[];window.__realCanvas=window.html2canvas;window.html2canvas=async(node,options)=>{__meanPdf.push({text:node.innerText,rows:[...node.querySelectorAll('[data-ability-score] tr')].map(r=>r.innerText)});return __realCanvas(node,options);};});
    const file=await download("PDF"),evidence=await page.evaluate(()=>({diagnostics:RingsidePDF.lastDiagnostics,pages:__meanPdf}));
    assert.equal(evidence.diagnostics.status,"complete");for(const key of ["missingRows","duplicateRows","changedRows","missingCharts","duplicateCharts"])assert.deepEqual(evidence.diagnostics[key],[]);
-   const text=evidence.pages.map(p=>p.text).join("\n");assert.ok(text.includes("2 个固定成员等权平均"));assert.ok(text.includes("65.0"));assert.ok(text.includes("平均贡献"));result.pdfs.push({file:path.relative(root,file).replaceAll("\\","/"),sha256:hash(file),...evidence});
+   const text=evidence.pages.map(p=>p.text).join("\n");assert.match(text,/65(?:\.0)? 分 \/ 100/);assert.doesNotMatch(text,/查看能力评分的计算|平均贡献|固定成员等权平均/);result.pdfs.push({file:path.relative(root,file).replaceAll("\\","/"),sha256:hash(file),...evidence});
   });
   assert.deepEqual(result.errors,[]);assert.deepEqual(result.network,[]);
  }catch(e){result.failure=e.stack;console.error(e.stack);if(page){const file=path.join(out,channel+"-failure.png");await page.screenshot({path:file}).catch(()=>{});if(fs.existsSync(file))artifact(file,"failure");}}

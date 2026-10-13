@@ -33,7 +33,7 @@ async function main() {
       globalThis.__v221NativeDownloads = [];
       BrowserWindow.getAllWindows()[0].webContents.session.on("will-download", (_event, item) => item.once("done", (_done, state) => __v221NativeDownloads.push({ name: item.getFilename(), state, path: item.getSavePath(), bytes: item.getTotalBytes() })));
     });
-    for (const count of [3, 7]) await check(`native UI actually saves a ${count}-axis radar PDF with every scoring row and its heading`, async () => {
+    for (const count of [3, 7]) await check(`native UI actually saves a ${count}-axis radar PDF with its heading and no calculation details`, async () => {
       const fixture = await seedFixture(page, count); assertFixture(fixture, count); result.fixtures.push(fixture);
       await beginCapture(page);
       const before = await electron.evaluate(() => __v221NativeDownloads.length);

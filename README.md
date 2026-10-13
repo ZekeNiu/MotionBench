@@ -2,11 +2,15 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**当前版本：Windows `2.20.1-desktop.1` · HTML `2.20.1`**
+**本机交付版本：Windows `2.22.0-desktop.1` · HTML `2.22.0`**
 
-[在线 Demo](https://zekeniu.github.io/MotionBench/) · [下载 Windows 安装版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Setup-x64.exe) · [下载便携版](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Portable-x64.exe) · [下载离线 HTML](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1) · [修订说明](docs/motionbench-2.20.1.md)
+**公开下载版本：Windows `2.20.1-desktop.1` · HTML `2.20.1`**
 
-2.20.1 修复多轴能力雷达图及评分明细组合过高时无法导出 PDF 的问题，过长卡片按内容分页，标题与首图保持相邻，较短卡片保持完整。原有计算与资料保持不变。详见 [修订说明](docs/motionbench-2.20.1.md) 和 [发布核验记录](docs/publication-2.20.1.md)。
+[在线 Demo](https://zekeniu.github.io/MotionBench/) · [公开安装版 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Setup-x64.exe) · [公开便携版 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Portable-x64.exe) · [公开离线 HTML 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)
+
+本机 2.22.0 为通用项目增加六种可选报告图表：横向条形图、纵向柱状图、试次点图、X–Y 散点图、目标对比图及评分雷达图。在“项目与指标库”的项目设置中选择图型、指标及顺序，报告保留左图右表与完整结果。运动表现概览移除了“查看能力评分的计算”折叠明细。详见 [2.22.0 使用说明](docs/motionbench-2.22.0.md) 和 [本机验收记录](docs/acceptance-2.22.0.md)。
+
+公开版本 2.20.1 修复多轴能力雷达图及评分明细组合过高时无法导出 PDF 的问题。过长卡片按内容分页，标题与首图保持相邻，较短卡片保持完整。详见 [2.20.1 修订说明](docs/motionbench-2.20.1.md) 和 [公开发布核验记录](docs/publication-2.20.1.md)。
 
 ![MotionBench 在线演示，全部资料为模拟数据](assets/motionbench-demo.png)
 
@@ -38,6 +42,7 @@
 | 负荷与力量速度 | 负荷－速度、SJ/CMJ 跳跃 FVP、冲刺 FVP、弹性分析和表现响应 |
 | 速度与心肺 | MAS、MSS、30–15 VIFT、速度耐力、乳酸、CPET 摄氧量与阈值 |
 | 评价体系 | 项目及能力目录、可复用方案、参考目标、分级区间、单位与协议匹配 |
+| 通用项目图表（本机 2.22.0） | 六种图型、指标选择与排序、项目统一配置、已有兼容报告同步、导出图样保留 |
 | 人员和记录 | 队伍、搜索、批量操作、历史记录、归档、回收站和测试方案 |
 | 数据与交付 | Excel 模板及导入、JSON/JSONL 备份与恢复、独立 HTML、PDF |
 | 解读 | 可编辑人工正文、离线规则摘要、AI 草稿预览与应用、历史正文保留 |
@@ -50,7 +55,8 @@
 
 适用于 Windows 10 / 11 x64。Setup 包含完整 Electron 运行环境，安装向导可选择中文、含空格及非系统盘目录。Portable 首次启动会解包运行环境。
 
-- **从 `2.19.1-desktop.1` 升级**：在侧栏底部“应用设置”检查、下载并重启更新，或运行新版 Setup。
+- **本机 2.22.0 升级**：使用本次交付的 `MotionBench-2.22.0-desktop.1-Setup-x64.exe`，沿用 `D:\Application\Strength&Conditioning\MotionBench`。本轮交付的核验状态见 [2.22.0 验收记录](docs/acceptance-2.22.0.md)。
+- **公开版本升级**：在侧栏底部“应用设置”检查、下载并重启更新，或运行公开发行的 Setup。
 - **安装版更新**：沿用原安装目录。启动检查默认开启，可关闭；下载和安装均需点击，普通退出不会自动安装。
 - **便携版更新**：在应用设置检查并打开便携版下载，退出程序后替换 exe。
 - **资料保存**：安装版和便携版共用 `%APPDATA%\MotionBench Desktop`，与程序目录分开。升级、重装及卸载保留资料。
@@ -75,11 +81,13 @@
 
 主动生成 AI 建议时，当前测试和训练背景会发送给用户配置的服务；姓名和原始生日字段不发送，自由备注请先去掉身份信息。普通录入、计算和导出不需要 AI 服务。
 
-## 本版验证与方法资料
+## 验证与方法资料
 
-2.20.1 验证包含 54 组／806 项模型检查、132 项浏览器检查、37 项原生程序检查，以及 14 份合成 PDF／101 页渲染核对。新增专项覆盖 1、3、7 轴能力图、双成员平均评分、人工正文和原始试次表分页。公开下载、真实网址、更新与本机验收的范围和结果分别记录在 [发布核验记录](docs/publication-2.20.1.md)，成品校验值与构建来源随发行附件提供。
+本机 2.22.0 的核验覆盖六种图型、项目配置与取消、真实表单录入、保存重开、测量协议匹配、原始资料与 AI 指纹、独立报告与完整备份，以及实际 Windows 程序和 PDF。最终成品校验、合成资料测试、视觉检查和原目录升级分别记录在 [2.22.0 本机验收](docs/acceptance-2.22.0.md)。
 
-[2.20.1 验收](docs/acceptance-2.20.1.md) · [2.20.0 历史验收](docs/acceptance-2.20.0.md) · [2.20.0 公开发布与补验](docs/publication-2.20.0.md) · [2.20.1 修订说明](docs/motionbench-2.20.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
+公开版本 2.20.1 的历史验证包含 54 组／806 项模型检查、132 项浏览器检查、37 项原生程序检查，以及 14 份合成 PDF／101 页渲染核对。其公开下载、更新与本机验收范围见 [公开发布核验记录](docs/publication-2.20.1.md)。
+
+[2.22.0 使用说明](docs/motionbench-2.22.0.md) · [2.22.0 本机验收](docs/acceptance-2.22.0.md) · [2.20.1 公开版验收](docs/acceptance-2.20.1.md) · [2.20.0 历史验收](docs/acceptance-2.20.0.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
 
 ## 评价方案与项目目录
 

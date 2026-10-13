@@ -58,7 +58,7 @@ function buildMenu() {
       { label: "应用设置", click: () => runCommand("window.App?.openSettings('app')") },
       { label: "检查更新", click: async () => { if (await runCommand("window.App?.openSettings('app')")) await updateService?.checkForUpdates(); } },
       { type: "separator" },
-      { label: "桌面版使用说明", click: () => shell.openExternal(`https://github.com/ZekeNiu/MotionBench/blob/v${app.isPackaged ? app.getVersion() : webVersion}/docs/windows-desktop.md`) },
+      { label: "桌面版使用说明", click: () => shell.openExternal("https://github.com/ZekeNiu/MotionBench/blob/main/docs/windows-desktop.md") },
       { label: "打开本机数据目录", click: () => shell.openPath(dataDirectory) },
       { label: "关于 MotionBench", click: () => runCommand("window.App?.openSettings('app')") }
     ] }

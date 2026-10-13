@@ -3466,17 +3466,39 @@ body.sidebar-collapsed .workspace {
   #reportView .stat-side, #reportView .stat-load { min-height: 0; }
   .athlete-summary dl { gap: 6px 12px; }
 }
-/* Fixed-member score composition belongs to the capability card. */
-#abilityScoreDetails:not(:empty){padding:18px 20px;border-top:1px solid var(--line)}
-.ability-score-details>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;list-style:none}
-.ability-score-details>summary::after{content:"+"}
-.ability-score-details[open]>summary::after{content:"−"}
-.ability-score-details>summary::-webkit-details-marker,.capability-parameter-notes>summary::-webkit-details-marker{display:none}
-.ringside-pdf-document .ability-score-details>summary::after,.ringside-pdf-document .capability-parameter-notes>summary::after{content:none!important}
-.ability-score-details section{margin-top:20px}
-.ability-score-details h4{margin:0 0 12px;font-size:14px}
-.ability-score-details .note{margin:10px 0 0}
-@media(max-width:600px){#abilityScoreDetails:not(:empty){padding:16px 12px}}
+.capability-parameter-notes>summary::-webkit-details-marker{display:none}
+.ringside-pdf-document .capability-parameter-notes>summary::after{content:none!important}
+.generic-chart-panel + .generic-chart-panel { margin-top:18px; }
+.generic-chart-heading { margin:0 0 5px; color:var(--muted); font-size:12px; font-weight:600; line-height:1.6; overflow-wrap:anywhere; }
+.generic-chart-key { display:flex; gap:16px; margin:0 0 6px; color:var(--muted); font-size:11px; }
+.generic-chart-key span:first-child::before { content:""; display:inline-block; width:12px; height:7px; margin-right:5px; border-radius:2px; background:var(--blue); }
+.generic-chart-unavailable { margin:0; padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:var(--surface); line-height:1.8; }
+
+.generic-report-editor { min-width:0; }
+.generic-report-editor .generic-report-enable { display:flex; align-items:center; gap:9px; font-weight:600; line-height:1.5; }
+.generic-report-editor input[type="checkbox"] { width:16px; height:16px; flex:none; accent-color:var(--blue,#365b7a); }
+.generic-report-editor h3 { margin:16px 0 10px; font-size:13px; font-weight:600; }
+.generic-report-editor .generic-report-metrics { margin:0; padding:0; list-style:none; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.generic-report-editor .generic-report-metric { display:flex; align-items:center; gap:12px; padding:10px 12px; }
+.generic-report-editor .generic-report-metric + .generic-report-metric { border-top:1px solid var(--line); }
+.generic-report-editor .generic-report-metric > label { display:flex; flex:1; align-items:center; gap:10px; min-width:0; cursor:pointer; }
+.generic-report-editor .generic-report-metric > label > span { min-width:0; overflow-wrap:anywhere; font-size:13px; line-height:1.5; }
+.generic-report-editor .generic-report-metric small { display:block; color:var(--muted); font-size:11px; font-weight:400; margin-top:2px; }
+.generic-report-editor .generic-report-order { display:flex; gap:5px; flex:none; }
+.generic-report-editor .generic-report-order .btn { min-width:30px; padding:4px 8px; }
+.generic-report-editor .generic-report-metrics > .note { padding:12px; margin:0; }
+.generic-report-editor .generic-report-preview { margin-top:16px; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:var(--surface-soft); }
+.generic-report-editor .generic-report-preview h3 { display:flex; flex-wrap:wrap; gap:5px 12px; align-items:baseline; margin:0 0 10px; }
+.generic-report-editor .generic-report-preview h3 > span { color:var(--muted); font-size:11px; font-weight:400; }
+.generic-report-editor #genericReportPreview { max-height:420px; overflow-y:auto; overflow-x:hidden; }
+.generic-report-editor #genericReportPreview svg { display:block; width:100%; height:auto; }
+.generic-report-editor [data-generic-options] > .form-grid { margin:14px 0 0; }
+.generic-report-editor [hidden] { display:none !important; }
+@media (max-width:600px) {
+  .generic-report-editor.catalog-edit-section { padding:14px 12px; }
+  .generic-report-editor .generic-report-metric { gap:8px; padding:9px 8px; }
+  .generic-report-editor .generic-report-preview { padding:10px 8px; }
+}
 
 .excel-modal{width:min(1080px,calc(100vw - 32px));max-width:none}
 .creation-people-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:13px}
@@ -3768,7 +3790,7 @@ body.sidebar-collapsed .workspace {
               <div class="card-head">
                 <div>
                   <h3>运动表现概览</h3>
-                  <p>按评价方案给分，满分 100 分；可查看各项成绩与给分方式</p>
+                  <p>按评价方案给分，满分 100 分</p>
                 </div>
                 <span id="referenceLabel" class="pill">待评价</span>
               </div>
@@ -3779,7 +3801,6 @@ body.sidebar-collapsed .workspace {
               <div class="card-foot">
                 <span id="radarLegend"></span>
               </div>
-              <div id="abilityScoreDetails"></div>
             </article>
           </div>
         </section>
@@ -4125,7 +4146,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.20.1"});
+window.RingsideBuild=Object.freeze({"version": "2.22.0"});
 </script>
 <script>
 (function (root) {
@@ -6954,6 +6975,166 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 <script>
 (function (root) {
   "use strict";
+  const kinds = ["none", "bar", "column", "trials", "scatter", "target", "radar"];
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const plain = value => !!value && Object.prototype.toString.call(value) === "[object Object]";
+  const safe = value => typeof value === "string" && /^[A-Za-z0-9_-]+$/.test(value) && value.length <= 249 && !["__proto__", "constructor", "prototype"].includes(value);
+  const num = value => root.Calc.num(value);
+  const none = () => ({ version: 1, kind: "none", metricIds: [] });
+  const scope = definition => definition.entryScope === "attempt" ? "attempt" : "record";
+  const identity = value => plain(value) && safe(value.id) && Number.isSafeInteger(value.version) && value.version >= 1 && Object.keys(value).every(key => ["id", "version"].includes(key));
+  const sameIdentity = (left, right) => identity(left) && identity(right) && left.id === right.id && left.version === right.version;
+  const projects = source => root.RingsideTests.describe(source);
+  const generic = (source, id) => projects(source).find(project => project.id === id && project.renderer === "scalar");
+  function signature(source, testId, metricIds) {
+    const M = root.RingsideModel;
+    return {
+      testId,
+      projectProtocol: clone(source.protocolIdentities?.[testId] || M.protocolIdentity("test:" + testId, source.protocol?.[testId] || "")),
+      metrics: metricIds.map(id => {
+        const d = source.definitions.find(definition => definition.id === id && definition.testId === testId);
+        if (!d) throw Error("报告图表包含未知指标：" + id);
+        return { id, unit: d.unit || "", entryScope: scope(d), protocolIdentity: clone(d.protocolIdentity || M.protocolIdentity("metric:" + id, d.protocol || "")) };
+      }),
+    };
+  }
+  function validateView(view, testId, source) {
+    if (!plain(view) || view.version !== 1 || !kinds.includes(view.kind) ||
+        Object.keys(view).some(key => !["version", "kind", "metricIds", "xMetricId", "yMetricId", "binding"].includes(key))) throw Error("报告图表格式或类型无效");
+    if (!safe(testId) || source && !generic(source, testId)) throw Error("报告图表对应的通用项目不存在");
+    if (!Array.isArray(view.metricIds) || view.metricIds.length > 300 || view.metricIds.some(id => !safe(id)) || new Set(view.metricIds).size !== view.metricIds.length) throw Error("报告图表指标列表无效");
+    if (view.kind === "none" && view.metricIds.length || view.kind !== "none" && !view.metricIds.length) throw Error("请选择报告图表展示指标");
+    if (view.kind === "radar" && (view.metricIds.length < 3 || view.metricIds.length > 8)) throw Error("评分雷达图须选择 3–8 个指标");
+    if (view.kind === "scatter") {
+      if (view.metricIds.length !== 2 || !safe(view.xMetricId) || !safe(view.yMetricId) || view.xMetricId === view.yMetricId ||
+          !view.metricIds.includes(view.xMetricId) || !view.metricIds.includes(view.yMetricId)) throw Error("散点图须选择两个不同的试次指标");
+    } else if (view.xMetricId !== undefined || view.yMetricId !== undefined) throw Error("只有散点图可以配置 X、Y 指标");
+    const b = view.binding;
+    if (!plain(b) || b.testId !== testId || !identity(b.projectProtocol) ||
+        Object.keys(b).some(key => !["testId", "projectProtocol", "metrics"].includes(key)) ||
+        !Array.isArray(b.metrics) || b.metrics.length !== view.metricIds.length) throw Error("报告图表测量匹配信息无效");
+    b.metrics.forEach((d, index) => {
+      if (!plain(d) || d.id !== view.metricIds[index] || typeof d.unit !== "string" || !["record", "attempt"].includes(d.entryScope) ||
+          !identity(d.protocolIdentity) || Object.keys(d).some(key => !["id", "unit", "entryScope", "protocolIdentity"].includes(key))) throw Error("报告图表指标匹配信息无效");
+      if (source && !source.definitions.some(definition => definition.id === d.id && definition.testId === testId)) throw Error("报告图表包含未知指标：" + d.id);
+      if (["trials", "scatter"].includes(view.kind) && d.entryScope !== "attempt") throw Error("试次图表只能选择试次指标");
+    });
+    return true;
+  }
+  function validateViews(views, source) {
+    if (views === undefined) return true;
+    if (!plain(views) || Object.keys(views).length > 75) throw Error("报告图表设置格式无效");
+    for (const [testId, view] of Object.entries(views)) validateView(view, testId, source);
+    return true;
+  }
+  function normalizeViews(views, source) {
+    validateViews(views, source);
+    return clone(views || {});
+  }
+  function createView(source, testId, options = {}) {
+    const kind = options.kind || "none";
+    const metricIds = kind === "none" ? [] : kind === "scatter" ? [options.xMetricId, options.yMetricId] : [...(options.metricIds || [])];
+    const view = { version: 1, kind, metricIds,
+      ...(kind === "scatter" ? { xMetricId: options.xMetricId, yMetricId: options.yMetricId } : {}),
+      binding: signature(source, testId, metricIds) };
+    validateView(view, testId, source);
+    return view;
+  }
+  function compatible(view, source, testId) {
+    try {
+      validateView(view, testId, source);
+      const actual = signature(source, testId, view.metricIds), b = view.binding;
+      return sameIdentity(b.projectProtocol, actual.projectProtocol) && b.metrics.every((d, i) => {
+        const match = actual.metrics[i];
+        return d.id === match.id && d.unit === match.unit && d.entryScope === match.entryScope && sameIdentity(d.protocolIdentity, match.protocolIdentity);
+      });
+    } catch (_) { return false; }
+  }
+  function resolveView(record, testId, catalog) {
+    const current = catalog?.reportViews?.[testId];
+    // Explicit disabling is a presentation decision even after measurement edits.
+    if (current?.kind === "none") return clone(current);
+    if (current && compatible(current, record, testId)) return clone(current);
+    const frozen = record.views?.genericReports?.[testId];
+    return frozen && compatible(frozen, record, testId) ? clone(frozen) : none();
+  }
+  function freezeViews(record, catalog) {
+    const views = {};
+    for (const project of projects(record)) {
+      if (project.renderer !== "scalar" || !record.enabled?.[project.id]) continue;
+      const view = resolveView(record, project.id, catalog);
+      // Freeze the effective disabled state too, so exports do not inherit later changes.
+      views[project.id] = view.binding ? view : createView(record, project.id, { kind: "none" });
+    }
+    record.views ||= {};
+    record.views.genericReports = views;
+    return record;
+  }
+  function buildChart(report, project) {
+    const record = report.record, computed = report.stats, view = project.reportView || resolveView(record, project.id);
+    const result = { kind: view.kind, available: false, reason: "", panels: [] };
+    if (view.kind === "none") return result;
+    if (!compatible(view, record, project.id)) return { ...result, reason: "图表设置与本次测量协议或指标定义不匹配" };
+    const definitions = view.metricIds.map(id => record.definitions.find(d => d.id === id && d.testId === project.id));
+    const evaluation = id => (computed.evaluationResults || []).find(item => item.subjectId === "metric:" + id);
+    const label = d => root.RingsideTests.metricName(d);
+    const status = d => evaluation(d.id)?.grade?.status || "gray";
+    const groups = new Map();
+    const panel = unit => {
+      if (!groups.has(unit)) groups.set(unit, { title: unit || "无单位", unit });
+      return groups.get(unit);
+    };
+    if (["bar", "column", "target"].includes(view.kind)) {
+      const omissions = [];
+      for (const d of definitions) {
+        const value = num(computed.values[d.id]);
+        if (value === null) { omissions.push(label(d) + "缺少有效结果"); continue; }
+        const rule = evaluation(d.id), target = num(rule?.target);
+        if (view.kind === "target" && (!rule?.applicable || !rule.targetApplicable || target === null)) {
+          omissions.push(label(d) + "：" + (rule?.reason || "没有适用于本次测量的目标")); continue;
+        }
+        const p = panel(d.unit || ""); p.items ||= [];
+        p.items.push({ id: d.id, label: label(d), value, status: status(d), ...(view.kind === "target" ? { target } : {}) });
+      }
+      result.reason = omissions.join("；");
+    } else if (view.kind === "trials") {
+      const omissions = [];
+      for (const d of definitions) {
+        const attempts = (computed.repetitions || []).filter(group => group.testId === project.id && group.fields.some(f => f.id === d.id)).flatMap(group => group.attempts);
+        const points = attempts.filter(attempt => num(attempt.observations[d.id]) !== null).map(attempt => ({ id: attempt.id, index: attempt.index, value: num(attempt.observations[d.id]) }));
+        if (!points.length) { omissions.push(label(d) + "没有有效试次数据"); continue; }
+        const p = panel(d.unit || ""); p.series ||= [];
+        p.series.push({ id: d.id, label: label(d), status: status(d), points });
+      }
+      result.reason = omissions.join("；");
+    } else if (view.kind === "scatter") {
+      const x = definitions.find(d => d.id === view.xMetricId), y = definitions.find(d => d.id === view.yMetricId);
+      const attempts = (computed.repetitions || []).filter(group => group.testId === project.id && group.fields.some(f => f.id === x.id) && group.fields.some(f => f.id === y.id)).flatMap(group => group.attempts);
+      const points = attempts.filter(attempt => num(attempt.observations[x.id]) !== null && num(attempt.observations[y.id]) !== null)
+        .map(attempt => ({ id: attempt.id, index: attempt.index, x: num(attempt.observations[x.id]), y: num(attempt.observations[y.id]) }));
+      if (points.length) groups.set("scatter", { title: label(x) + " × " + label(y), unit: "", xAxis: { id: x.id, label: label(x), unit: x.unit || "" }, yAxis: { id: y.id, label: label(y), unit: y.unit || "" }, points });
+    } else if (view.kind === "radar") {
+      const axes = [], failures = [];
+      for (const d of definitions) {
+        const score = root.RingsideModel.metricScore(record, d.id, computed);
+        if (!score.valid) { failures.push(label(d) + "：" + score.reason); continue; }
+        axes.push({ id: d.id, label: label(d), value: score.score, status: status(d), tooltip: label(d) + " " + computed.values[d.id] + " " + (d.unit || "") });
+      }
+      if (failures.length) return { ...result, reason: failures.join("；") };
+      groups.set("radar", { title: "评分雷达", unit: "分", axes });
+    }
+    result.panels = [...groups.values()];
+    result.available = result.panels.length > 0;
+    if (!result.available && !result.reason) result.reason = view.kind === "scatter" ? "没有同一试次的有效 X、Y 配对" : view.kind === "trials" ? "选定指标没有有效试次数据" : "选定指标缺少有效结果";
+    return result;
+  }
+  root.RingsideGenericReport = { kinds: Object.freeze(kinds), validateViews, normalizeViews, createView, compatible, resolveView, freezeViews, buildChart };
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
   const Calc = root.Calc,
     Def = root.Def,
     T = root.RingsideTests;
@@ -8074,6 +8255,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     stampProtocolIdentities(out);
     if (s.measurementPolicyVersion !== 1) migrateMeasurementPolicy(out, s);
     out.projectSnapshots = T.snapshots(out);
+    if (s.views?.genericReports !== undefined && root.RingsideGenericReport)
+      out.views.genericReports = root.RingsideGenericReport.normalizeViews(s.views.genericReports, out);
     T.describe(out).forEach((test) => {
       if (!T.isNative(out,test.id) && test.repeatPolicy.fields.length) {
         if (!Array.isArray(out.data[test.id])) out.data[test.id] = [{ id: "row_" + test.id + "_0", metrics: {}, notes: "" }];
@@ -9949,19 +10132,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const chosen = selected.map(member => member.definition);
       const transforms = {};
       const transformed = selected.map((member, index) => {
-          const d = member.definition, transform = cfg.method === "mean" || cfg.scoringVersion === 1 ? cfg.transforms?.[members[index]] : undefined;
-          const match = state.evaluationStandards?.find(standard => standard.subjectId === member.subjectId);
-          const effective = transform === undefined && cfg.method === "primary" ? { kind: "ratio", direction: d.direction || "higher" } : transform;
-          transforms[member.subjectId] = effective;
-          // Unlinked legacy calculations retain their previous ratio behavior.
-          if (state.evaluationProfileFormat !== 2 && cfg.method === "primary" && transform === undefined) {
-            const score = attainment(member.value, d);
-            return { valid: score !== null, score, reason: "代表指标未配置适用目标" };
-          }
-          return root.RingsideScoring?.evaluate(member.value, effective, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
-            applicable: match ? match.enabled && match.applicable : d.referenceEnabled,
-            subject: { measurementScale: root.RingsideEvaluation?.measurementScale(d) || d.measurementScale || "unknown", zeroValid: d.zeroValid === true || d.id === "pushup_reps" } }) || { valid: false, reason: "计分模块未加载" };
-        });
+        const transform = cfg.method === "mean" || cfg.scoringVersion === 1 ? cfg.transforms?.[members[index]] : undefined;
+        const result = evaluateScoreMember(state, member, transform, cfg.method);
+        transforms[member.subjectId] = result.transform;
+        return result;
+      });
       if (transformed.some(result => !result.valid)) return missing(transformed.find(result => !result.valid).reason);
       const scores = transformed.map(result => result.score);
       const status = cfg.method === "primary" ? targetStatus(selected[0].value, chosen[0], state)
@@ -10292,6 +10467,39 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     };
     result.evaluationResults = evaluationResults(state, result);
     return result;
+  }
+
+  function evaluateScoreMember(record, member, transform, method) {
+    const d = member.definition, match = record.evaluationStandards?.find(standard => standard.subjectId === member.subjectId);
+    const effective = transform === undefined && method === "primary" ? { kind: "ratio", direction: d.direction || "higher" } : transform;
+    // Unlinked legacy calculations retain their previous ratio behavior.
+    if (record.evaluationProfileFormat !== 2 && method === "primary" && transform === undefined) {
+      const score = attainment(member.value, d);
+      return { valid: score !== null, score, reason: "代表指标未配置适用目标", transform: effective };
+    }
+    const result = root.RingsideScoring?.evaluate(member.value, effective, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
+      applicable: match ? match.enabled && match.applicable : d.referenceEnabled,
+      subject: { measurementScale: root.RingsideEvaluation?.measurementScale(d) || d.measurementScale || "unknown", zeroValid: d.zeroValid === true || d.id === "pushup_reps" } }) || { valid: false, reason: "计分模块未加载" };
+    return { ...result, transform: effective };
+  }
+  // Single-metric presentation uses precisely the configured member conversion.
+  // A missing sibling in a fixed mean can invalidate the ability, but not this member.
+  function metricScore(record, metricId, computed) {
+    const fail = reason => ({ valid: false, score: null, reason });
+    const d = record.definitions.find(definition => definition.id === metricId), subjectId = "metric:" + metricId;
+    if (!d || !record.enabled[d.testId] || d.category !== "performance" || d.scoring === false || !T.abilityName(d.ability)) return fail("指标未配置能力计分");
+    const cfg = T.axisConfig(record, d.ability);
+    if (!cfg || !["primary", "mean"].includes(cfg.method)) return fail(cfg?.migrationIssue || "评价方案未配置明确计分规则");
+    const members = cfg.method === "primary" ? [cfg.primary] : cfg.members;
+    if (!Array.isArray(members) || !members.length || new Set(members).size !== members.length) return fail("能力计分的参与指标配置无效");
+    const memberId = members.find(id => String(id).replace(/^metric:/, "") === metricId);
+    if (!memberId) return fail("指标未参与评价方案的能力计分");
+    const value = N((computed || stats(record)).values[metricId]);
+    if (value === null) return fail("缺少有效测量");
+    const transform = cfg.method === "mean" || cfg.scoringVersion === 1 ? cfg.transforms?.[memberId] : undefined;
+    const result = evaluateScoreMember(record, { definition: d, value, subjectId }, transform, cfg.method);
+    const match = record.evaluationStandards?.find(standard => standard.subjectId === subjectId);
+    return { ...result, ...(!result.valid && match?.reason ? { reason: match.reason } : {}), subjectId, ability: T.abilityName(d.ability) };
   }
 
   // Every consumer receives the same effective grade, target and aggregation contribution.
@@ -10803,6 +11011,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     catalog.definitions = catalog.definitions.map(catalogMetric);
     stampProtocolIdentities(catalog);
     catalog.measurementPolicyVersion = 1;
+    if (catalog.reportViews !== undefined && root.RingsideGenericReport)
+      catalog.reportViews = root.RingsideGenericReport.normalizeViews(catalog.reportViews, catalog);
     return catalog;
   }
   function canonicalJSON(value) {
@@ -10957,7 +11167,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       record.protocol[id] = catalog.protocol[id] || "";
     });
     record.catalogAppliedTests = [...selected];
-    return normalizeRecord(record);
+    const normalized = normalizeRecord(record);
+    root.RingsideGenericReport?.freezeViews(normalized, catalog);
+    return normalized;
   }
   function libraryDefaults() {
     return {
@@ -11426,6 +11638,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       throw new Error("共用项目目录结构无效");
     validateAbilityGroups(catalog.abilityGroups);
     validateAbilityGroupConflicts(catalog.abilityGroupConflicts);
+    root.RingsideGenericReport?.validateViews(catalog.reportViews, catalog);
     const testIds = new Set(),
       definitionIds = new Set();
     catalog.tests.forEach((test) => {
@@ -11562,6 +11775,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const identities = [...Object.values(input.protocolIdentities || {}), ...input.definitions.map(d=>d.protocolIdentity), ...(input.data.iso || []).map(row=>row.protocolIdentity)].filter(value=>value!==undefined);
     for (const identity of identities) if (!plainObject(identity) || !safeId(identity.id) || !Number.isSafeInteger(identity.version) || identity.version<1) throw Error("测量协议身份或版本无效");
     validateDerivedOptions(input);
+    root.RingsideGenericReport?.validateViews(input.views?.genericReports, input);
     if (input.views?.idsiWindow !== undefined && !["idsi_matched","idsi_fixed250"].includes(input.views.idsiWindow)) throw new Error("iDSI 积分时窗选项无效");
     if (input.views?.capabilitySelections !== undefined) {
       const selections = input.views.capabilitySelections;
@@ -12228,6 +12442,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     imtpTimeContext,
     forceTime,
     stats,
+    metricScore,
     capabilityDirectionOptions,
     eurDirectionRuleId,
     capabilityDirections,
@@ -13091,6 +13306,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     for(const c of incoming.conflicts.filter(c=>!c.resolved)){
       let target=local.conflicts.find(x=>x.testId===c.testId&&!x.resolved);
       if(!target){target=clone(c);local.conflicts.push(target);}else for(const v of c.variants)if(!target.variants.some(x=>same(x,v)))target.variants.push(clone(v));
+    }
+    // Presentation settings never participate in measurement conflicts. A local
+    // explicit selection (including none) wins over an imported library style.
+    for (const [id, view] of Object.entries(incoming.reportViews || {})) {
+      if (Object.hasOwn(local.reportViews || {}, id) || !root.RingsideGenericReport?.compatible(view, local, id)) continue;
+      local.reportViews ||= {};
+      local.reportViews[id] = clone(view);
     }
     M.validateCatalog(local);
   }
@@ -16202,10 +16424,143 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return layoutSVG(w,h,title,out,"Fₑ、vₑ、EN 读取左轴，ER 读取右轴；各指标均为无量纲。当前剖面保持不变，分别求解各目标距离的冲刺时间与弹性。竖虚线标记当前目标距离；EN 最低点与 ER = 1 的平衡点分别求解。",layout);
   }
 
+  const genericTitles = { bar: "横向条形图", column: "纵向柱状图", trials: "试次点图", scatter: "X–Y 散点图", target: "目标对比图", radar: "评分雷达图" };
+  const genericTone = status => status && status !== "gray" ? color(status) : C.neutral;
+  function genericLabel(value, width, size = 12, maxLines = 3) {
+    const lines = [""], widths = [0];
+    for (const character of Array.from(String(value || ""))) {
+      const length = size * (/[^\x00-\xff]/.test(character) ? 1 : .56), last = lines.length - 1;
+      if (widths[last] + length > Math.max(size, width) && lines[last]) { lines.push(""); widths.push(0); }
+      lines[lines.length - 1] += character; widths[widths.length - 1] += length;
+    }
+    if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] = lines[maxLines - 1].slice(0, -1) + "…"; }
+    return lines;
+  }
+  const genericLines = (x, y, lines, attrs = "", step = 16) => lines.map((value, index) => text(x, y + index * step, value, attrs)).join("");
+  function genericRange(values, zero = false) {
+    const measured = values.filter(value => num(value) !== null).map(Number),
+      low = Math.min(...measured, ...(zero ? [0] : [])), high = Math.max(...measured, ...(zero ? [0] : [])),
+      span = high - low || Math.max(Math.abs(high) * .2, 1);
+    if (zero && low === 0 && high === 0) return { min: 0, max: 1 };
+    return { min: zero && low >= 0 ? 0 : low - span * .12, max: zero && high <= 0 ? 0 : high + span * .12 };
+  }
+  function genericBars(panel, kind, layout = {}) {
+    const w = Math.max(230, layout.width || 440), items = panel.items || [],
+      labelSpace = Math.min(180, Math.max(90, w * .38)), left = labelSpace + 6, right = w - 61,
+      labels = items.map(item => genericLabel(item.label, labelSpace - 22)),
+      rows = labels.map(parts => Math.max(44, parts.length * 16 + 14)),
+      h = 58 + rows.reduce((sum, height) => sum + height, 0), top = 15, bottom = h - 44,
+      range = genericRange((panel.scaleItems || items).flatMap(item => kind === "target" ? [item.value, item.target] : [item.value]), true),
+      x = value => left + (value - range.min) / (range.max - range.min) * (right - left);
+    let out = "";
+    ticks(range.min, range.max, 4).forEach(value => { out += line(x(value), top, x(value), bottom) + text(x(value), bottom + 22, fmt(value), 'text-anchor="middle" font-size="11"'); });
+    out += line(x(0), top, x(0), bottom, `stroke="${C.gray}"`) + text(w - 7, bottom + 22, panel.unit || "无单位", 'text-anchor="end" font-size="11"');
+    let offset = top;
+    items.forEach((item, index) => {
+      const y = offset + rows[index] / 2, fill = genericTone(item.status), tooltip = `${item.label}：${fmt(item.value)}${panel.unit ? " " + panel.unit : ""}${kind === "target" ? " · 目标 " + fmt(item.target) : ""}`;
+      offset += rows[index];
+      out += `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" data-generic-metric="${esc(item.id)}">` +
+        genericLines(10, y + 4 - (labels[index].length - 1) * 8, labels[index], `font-size="12" fill="${C.ink}"`) +
+        `<rect x="${fmt(Math.min(x(0), x(item.value)))}" y="${fmt(y - 9)}" width="${fmt(Math.abs(x(item.value) - x(0)))}" height="18" rx="3" fill="${fill}" fill-opacity=".8"/>` +
+        text(w - 7, y + 4, fmt(item.value), `text-anchor="end" font-size="12" font-weight="600" fill="${C.ink}"`) +
+        (kind === "target" ? line(x(item.target), y - 14, x(item.target), y + 14, `stroke="${C.ink}" stroke-width="2" stroke-dasharray="3 2"`) : "") + "</g>";
+    });
+    return layoutSVG(w, h, genericTitles[kind] + " · " + (panel.title || panel.unit || "无单位"), out, kind === "target" ? "实测值与当前适用目标使用相同单位；虚线标记目标。" : "当前报告采用的代表结果；各单位分别绘图。", layout);
+  }
+  function genericColumns(panel, layout = {}) {
+    const w = Math.max(230, layout.width || 440), items = panel.items || [], left = 50, right = w - 16,
+      slot = (right - left) / items.length, labels = items.map(item => genericLabel(item.label, slot - 8)),
+      labelHeight = Math.max(...labels.map(parts => parts.length)) * 16,
+      h = Math.max(250, Math.min(360, layout.height || 290)) + labelHeight - 16, top = 29, bottom = h - labelHeight - 26,
+      range = genericRange((panel.scaleItems || items).map(item => item.value), true),
+      y = value => bottom - (value - range.min) / (range.max - range.min) * (bottom - top);
+    let out = text(left, 15, panel.unit || "无单位", 'font-size="12"');
+    ticks(range.min, range.max, 4).forEach(value => { out += line(left, y(value), right, y(value)) + text(left - 8, y(value) + 4, fmt(value), 'text-anchor="end" font-size="11"'); });
+    out += line(left, y(0), right, y(0), `stroke="${C.gray}"`);
+    items.forEach((item, index) => {
+      const x = left + slot * (index + .5), width = Math.min(38, slot * .56), fill = genericTone(item.status), tooltip = `${item.label}：${fmt(item.value)}${panel.unit ? " " + panel.unit : ""}`;
+      out += `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" data-generic-metric="${esc(item.id)}"><rect x="${fmt(x - width / 2)}" y="${fmt(Math.min(y(0), y(item.value)))}" width="${fmt(width)}" height="${fmt(Math.abs(y(item.value) - y(0)))}" rx="3" fill="${fill}" fill-opacity=".8"/>` +
+        text(x, item.value < 0 ? y(item.value) + 15 : y(item.value) - 8, fmt(item.value), `text-anchor="middle" font-size="11" font-weight="600" fill="${C.ink}"`) +
+        genericLines(x, bottom + 21, labels[index], `text-anchor="middle" font-size="12" fill="${C.ink}"`) + "</g>";
+    });
+    return layoutSVG(w, h, genericTitles.column + " · " + (panel.title || panel.unit || "无单位"), out, "当前报告采用的代表结果；柱形从零起始，各单位分别绘图。", layout);
+  }
+  function genericTrialPlot(panel, layout = {}) {
+    const w = Math.max(230, layout.width || 440), series = panel.series || [],
+      labels = series.map(item => genericLabel(item.label, w - 39, 12, 2)),
+      legendHeight = labels.reduce((sum, parts) => sum + parts.length * 16 + 8, 0),
+      h = Math.max(260, Math.min(350, layout.height || 290)) + legendHeight, left = 54, right = w - 20, top = 32, bottom = h - legendHeight - 58,
+      points = (panel.scaleSeries || series).flatMap(item => item.points || []), indices = [...new Set(points.map(item => item.index))].sort((a, b) => a - b),
+      xr = indices.length === 1 ? { min: indices[0] - .5, max: indices[0] + .5 } : { min: Math.min(...indices) - .25, max: Math.max(...indices) + .25 },
+      yr = genericRange(points.map(item => item.value)), grid = axisGrid({ left, right, top, bottom, xMin: xr.min, xMax: xr.max, yMin: yr.min, yMax: yr.max, xTicks: false, xLabel: "试次", yLabel: panel.unit || "无单位" });
+    let out = grid.out;
+    const visibleIndices = indices.length <= 12 ? indices : indices.filter((_, index) => index % Math.ceil(indices.length / 10) === 0 || index === indices.length - 1);
+    visibleIndices.forEach(index => { out += text(grid.x(index), bottom + 22, index, 'text-anchor="middle" font-size="11"'); });
+    let legendY = bottom + 68;
+    series.forEach((item, index) => {
+      const tone = SERIES[index % SERIES.length], shape = ["circle", "square", "diamond", "triangle"][Math.floor(index / SERIES.length) % 4];
+      for (const attempt of item.points || []) out += point(grid.x(attempt.index), grid.y(attempt.value), 4.5, tone, `第 ${attempt.index} 次 · ${item.label}：${fmt(attempt.value)}${panel.unit ? " " + panel.unit : ""}`, `data-generic-trial="${esc(attempt.id)}"`, shape);
+      out += marker(16, legendY - 4, 4, tone, shape) + genericLines(28, legendY, labels[index], 'font-size="12"');
+      legendY += labels[index].length * 16 + 8;
+    });
+    return layoutSVG(w, h, genericTitles.trials + " · " + (panel.title || panel.unit || "无单位"), out, "点为各次实测值，横轴保留真实试次编号。", layout);
+  }
+  function genericScatter(panel, layout = {}) {
+    const w = Math.max(230, layout.width || 440), xLabel = `${panel.xAxis.label}${panel.xAxis.unit ? " · " + panel.xAxis.unit : ""}`, yLabel = `${panel.yAxis.label}${panel.yAxis.unit ? " · " + panel.yAxis.unit : ""}`,
+      xLines = genericLabel(xLabel, w - 70, 12, 3), yLines = genericLabel(yLabel, w - 70, 12, 3),
+      h = Math.max(290, Math.min(360, layout.height || 320)) + (xLines.length + yLines.length - 2) * 16,
+      left = 55, right = w - 21, top = yLines.length * 16 + 17, bottom = h - xLines.length * 16 - 33,
+      xr = genericRange(panel.points.map(item => item.x)), yr = genericRange(panel.points.map(item => item.y)),
+      grid = axisGrid({ left, right, top, bottom, xMin: xr.min, xMax: xr.max, yMin: yr.min, yMax: yr.max, xLabel: "", yLabel: "" });
+    let out = grid.out + genericLines(left, 16, yLines, 'font-size="12"') + genericLines((left + right) / 2, bottom + 43, xLines, 'text-anchor="middle" font-size="12"');
+    for (const item of panel.points) out += point(grid.x(item.x), grid.y(item.y), 5, C.neutral, `第 ${item.index} 次 · ${panel.xAxis.label}：${fmt(item.x)} ${panel.xAxis.unit || ""} · ${panel.yAxis.label}：${fmt(item.y)} ${panel.yAxis.unit || ""}`, `data-generic-trial="${esc(item.id)}"`);
+    return layoutSVG(w, h, genericTitles.scatter, out, "仅绘制同一次试次的有效配对；两个坐标轴分别使用各自单位。", layout);
+  }
+  function genericRadar(panel, layout = {}) {
+    const w = Math.max(230, layout.width || 440), h = Math.max(300, Math.min(390, layout.height || 350)),
+      axes = panel.axes, count = axes.length, cx = w / 2, cy = h / 2,
+      radius = Math.min(w * .24, h * .28), polar = polarFrame(cx, cy, count);
+    let out = `<polygon points="${polygonPoints(axes.map((_, index) => polar(index, radius)))}" fill="${C.paper}" fill-opacity=".6"/>`;
+    for (const value of [20, 40, 60, 80, 100]) out += `<polygon points="${polygonPoints(axes.map((_, index) => polar(index, radius * value / 100)))}" fill="none" stroke="${C.grid}"/>` + text(cx + 6, cy - radius * value / 100 + 4, value, 'class="generic-radar-tick" font-size="9"');
+    axes.forEach((_, index) => { out += line(cx, cy, ...polar(index, radius)); });
+    const points = axes.map((axis, index) => polar(index, radius * axis.value / 100));
+    out += radarSeries(points, C.neutral, [cx, cy]);
+    axes.forEach((axis, index) => {
+      const angle = -Math.PI / 2 + index * 2 * Math.PI / count, p = polar(index, radius + 19),
+        anchor = Math.cos(angle) > .2 ? "start" : Math.cos(angle) < -.2 ? "end" : "middle",
+        space = anchor === "middle" ? Math.min(170, w - 30, count >= 6 ? 2 * ((radius + 19) * Math.sin(2 * Math.PI / count) - 12) : 170) : anchor === "start" ? w - p[0] - 8 : p[0] - 8,
+        lines = genericLabel(axis.label, space, 12, 2),
+        // The upper labels and score read outward from the plot. Reserve the
+        // top margin so a wrapped name cannot push its score onto the 100 tick.
+        y = Math.sin(angle) < -.45 ? Math.max(14, p[1] - lines.length * 16 - 9) : p[1] - (lines.length - 1) * 8,
+        tone = genericTone(axis.status), tooltip = `${axis.label}：${fmt(axis.value, 1)} 分 / 100${axis.tooltip ? " · " + axis.tooltip : ""}`;
+      out += `<g class="viz-point" data-tooltip="${esc(tooltip)}" tabindex="0" data-generic-metric="${esc(axis.id)}">` +
+        genericLines(p[0], y, lines, `class="generic-radar-label" text-anchor="${anchor}" font-size="12" fill="${C.ink}"`) +
+        text(p[0], y + lines.length * 16 + 2, fmt(axis.value, 1) + " 分", `class="generic-radar-score" text-anchor="${anchor}" font-size="11" fill="${tone}"`) + "</g>" + point(...points[index], 4.5, tone, tooltip);
+    });
+    return layoutSVG(w, h, genericTitles.radar, out, "沿用当前评价方案的单项给分规则，评分范围为 0–100 分。", layout);
+  }
+  function generic(data, layout = {}) {
+    if (!data || data.kind === "none") return "";
+    if (!data.available) return `<p class="note generic-chart-unavailable">${esc(data.reason || "当前图表缺少有效数据。")}</p>`;
+    const kind = data.kind, draw = { bar: genericBars, target: genericBars, column: genericColumns, trials: genericTrialPlot, scatter: genericScatter, radar: genericRadar }[kind];
+    if (!draw) return "";
+    const panels = data.panels.flatMap(panel => {
+      // Keep each image compact enough to paginate while preserving one common
+      // scale within the original unit group; no metrics or rows are duplicated.
+      const field = kind === "bar" || kind === "target" || kind === "column" ? "items" : kind === "trials" ? "series" : null,
+        size = kind === "column" ? 5 : kind === "trials" ? 4 : 6;
+      if (!field || panel[field].length <= size) return [panel];
+      return Array.from({ length: Math.ceil(panel[field].length / size) }, (_, index) => ({ ...panel, [field]: panel[field].slice(index * size, (index + 1) * size), ...(field === "items" ? { scaleItems: panel.items } : { scaleSeries: panel.series }), continuation: index + 1 }));
+    });
+    return panels.map(panel => `<div class="generic-chart-panel" data-pdf-atomic><p class="generic-chart-heading">${esc(panel.title || genericTitles[kind])}${panel.continuation ? " · " + panel.continuation : ""}</p>${kind === "target" ? '<p class="generic-chart-key"><span>实测值</span><span>虚线：目标</span></p>' : ""}${kind === "bar" || kind === "target" ? draw(panel, kind, layout) : draw(panel, layout)}</div>`).join("") + (data.reason ? `<p class="note generic-chart-omissions">${esc(data.reason)}</p>` : "");
+  }
+
   global.RingsideViz = {
     body,
     bodyTooltip,
     radar,
+    generic,
     fms,
     isoRadar,
     jumpBars,
@@ -16338,7 +16693,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       sources: SPEED_GUIDE.sources,
     };
   }
-  function build(record) {
+  function build(record, { catalog } = {}) {
     const snapshot = JSON.parse(JSON.stringify(record));
     const stats = M.stats(snapshot);
     const sprintView = M.normalizeSprintFvpView(snapshot.sprintFvpView);
@@ -16358,6 +16713,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     );
     const results = projects.map((test) => ({
       ...test,
+      ...(test.renderer === "scalar" ? { reportView: global.RingsideGenericReport?.resolveView(snapshot, test.id, catalog) || { version: 1, kind: "none", metricIds: [] } } : {}),
       metrics: test.definitions
         .filter((d) => N(stats.values[d.id]) !== null)
         .map((d) => ({
@@ -16441,21 +16797,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       !advantage.items.length ? "text gray" : "green",
     );
     return html;
-  }
-  function abilityDetails(report) {
-    const {record,stats}=report,results=stats.evaluationResults||[];
-    const axes=stats.axes.filter(axis=>["primary","mean"].includes(axis.method));
-    if(!axes.length)return "";
-    return `<details class="ability-score-details"><summary>查看能力评分的计算</summary>${axes.map(axis=>{
-      const ids=axis.members||[],n=ids.length;
-      const rows=ids.map((id,index)=>{
-        const result=results.find(item=>item.subjectId===id),definition=record.definitions.find(d=>d.id===(result?.metricId||id.replace(/^metric:/,"")));
-        const transform=axis.transforms?.[id]||result?.scoreContributions?.find(item=>item.ability===axis.key)?.transform;
-        const method={ratio:"按目标换算",anchors:"分数对应点",table:"评分区间"}[transform?.kind]||"—";
-        return [E(definition?.name||result?.name||id),F(result?.value??stats.values[definition?.id],2)+" "+E(result?.unit||definition?.unit||""),E(result?.grade?.label||"—"),method,F(axis.scores?.[index],1)+" 分",...(axis.method==="mean"?[F(n?axis.scores?.[index]/n:null,1)+" 分"]:[])];
-      });
-      return `<section data-ability-score="${E(axis.key)}" data-ability-score-method="${E(axis.method)}"><h4>${E(axis.label)} · ${F(axis.value,1)} 分 / 100</h4>${table(["指标","原始成绩","单项分级","给分方式","换算得分",...(axis.method==="mean"?["平均贡献"]:[])],rows,ids)}<p class="note">${axis.method==="mean"?`${n} 个固定成员等权平均。`:"使用代表指标的给分结果。"}满分 100 分。</p></section>`;
-    }).join("")}</details>`;
   }
   function overview(report) {
     const cards = [], stats = report.stats;
@@ -16549,7 +16890,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const abilities = [...new Set(tests.flatMap((test) => test.abilities))].map(key => T.abilityLabel(state, key));
       return `<article class="test-block" id="detail-${E(first.id)}" data-test-ids="${E(tests.map((t) => t.id).join(" "))}">${rest.map((t) => `<span class="test-anchor" id="detail-${E(t.id)}"></span>`).join("")}<div class="test-title"><div><h4>${E(title)}</h4>${meta ? `<p>${E(meta)}</p>` : ""}${abilities.length > 1 ? `<p class="ability-tags">${abilities.map(E).join(" · ")}</p>` : ""}</div></div>${content}</article>`;
     }
-    const chart = (html, spec) => `<div class="chart-wrap${spec ? " adaptive-chart" : ""}"${spec ? ` data-chart-kind="${E(spec.kind)}" data-chart-input="${E(JSON.stringify(spec.args))}"` : ""}>${html}</div>`;
+    const chart = (html, spec) => `<div class="chart-wrap${spec ? " adaptive-chart" : ""}${spec?.kind === "generic" ? " generic-charts" : ""}"${spec ? ` data-chart-kind="${E(spec.kind)}" data-chart-input="${E(JSON.stringify(spec.args))}"` : ""}>${html}</div>`;
     const pair = (figure, data, className = "", spec) =>
       `<div class="detail-pair ${className}" data-pdf-pair>${chart(figure, spec)}<div class="detail-data">${data}</div></div>`;
     function repeatPanel(test) {
@@ -16929,20 +17270,20 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const meta = [measured?.modality === "treadmill" ? "跑台" : measured?.modality === "cycle" ? "功率车" : "", measured?.protocol, N(measured?.peak.rer) !== null ? "RER " + F(measured.peak.rer, 2) : ""].filter(Boolean).join(" · ");
         return block(tests, tests[0].name, meta, metricTable(metrics, true));
       },
-      scalar: (tests) =>
-        block(
-          tests,
-          tests[0].name,
-          state.protocol[tests[0].id] || "",
-          metricTable(tests[0].metrics, true) +
-            tests[0].metrics
+      scalar: (tests) => {
+        const test = tests[0], data = metricTable(test.metrics, true) +
+            test.metrics
               .filter((d) => state.customValues[d.id]?.notes)
               .map(
                 (d) =>
                   `<p class="metric-note"><b>${E(d.name)}</b>：${E(state.customValues[d.id].notes)}</p>`,
               )
-              .join(""),
-        ),
+              .join("");
+        const model = global.RingsideGenericReport?.buildChart(report, test),
+          content = !model || model.kind === "none" ? data :
+            pair(V.generic(model), data, "generic-detail", { kind: "generic", args: [model] });
+        return block(tests, test.name, state.protocol[test.id] || "", content);
+      },
       imtp: (tests) => {
         const force = { ...r.forceTime, yAxis: state.views.imtp.yAxis };
         const metrics = consume(tests[0].metrics);
@@ -17616,8 +17957,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     // corresponding right-side result and evaluation in neighboring columns.
     alignCapabilityCards(container);
     alignIsometricSides(container);
-    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], jumpElasticityConstraint:[310,400], sprintFvp:[390,450], sprintElasticity:[310,400], sprintElasticityDistance:[310,400] };
-    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, jumpElasticityConstraint:330, sprintFvp:390, sprintElasticity:330, sprintElasticityDistance:330 };
+    const limits = { generic: [270, 350], isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], jumpElasticityConstraint:[310,400], sprintFvp:[390,450], sprintElasticity:[310,400], sprintElasticityDistance:[310,400] };
+    const compact = { generic: 290, isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, jumpElasticityConstraint:330, sprintFvp:390, sprintElasticity:330, sprintElasticityDistance:330 };
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);
@@ -17649,8 +17990,171 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     layoutCharts(container);
     bindFVPInteractions(container);
   }
-  global.RingsideReport = { build, summary, overview, abilityDetails, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderSprintElasticityAnalysis, renderCapabilityAnalysis, prepareFVPPrint, patchCapabilityAnalysis, previewFVP, bindFVPInteractions };
+  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderSprintElasticityAnalysis, renderCapabilityAnalysis, prepareFVPPrint, patchCapabilityAnalysis, previewFVP, bindFVPInteractions };
 })(window);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+
+  const kinds = [
+    ["bar", "横向条形图", "展示报告采用的代表结果，适合较长的指标名称。"],
+    ["column", "纵向柱状图", "展示报告采用的代表结果，不同单位分别绘图。"],
+    ["trials", "试次点图", "展示每次试次的实测值，横轴保留真实试次编号。"],
+    ["scatter", "X–Y 散点图", "仅绘制同一试次的有效配对，两个坐标轴分别标注单位。"],
+    ["target", "目标对比图", "展示实测值与本次评价方案适用的目标。"],
+    ["radar", "评分雷达图", "选择 3–8 项指标，各项按本次评价方案的明确规则转换为 0–100 分。"],
+  ];
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  let state = null;
+  const attempt = metric => root.RingsideTests?.isAttemptMetric(metric) ?? metric.entryScope === "attempt";
+  const selectedMetrics = () => state.metrics.filter(metric => state.metricIds.includes(metric.id)).sort((a,b) => state.metricIds.indexOf(a.id)-state.metricIds.indexOf(b.id));
+  const eligibleMetrics = () => state.kind === "trials" ? state.metrics.filter(attempt) : state.metrics;
+
+  function read() {
+    if (!state || !state.enabled) return {kind:"none"};
+    if (state.kind === "scatter") return {kind:state.kind,metricIds:[state.xMetricId,state.yMetricId].filter(Boolean),xMetricId:state.xMetricId,yMetricId:state.yMetricId};
+    return {kind:state.kind,metricIds:state.metricIds.slice()};
+  }
+  function snapshot() {
+    return JSON.stringify(read());
+  }
+  function validate() {
+    if (!state || !state.enabled) return {ok:true,error:""};
+    if (!kinds.some(([kind]) => kind === state.kind)) return {ok:false,error:"请选择报告图表类型。"};
+    if (state.kind === "scatter") {
+      const x = state.metrics.find(metric => metric.id === state.xMetricId), y = state.metrics.find(metric => metric.id === state.yMetricId);
+      if (!x || !y || x.id === y.id || !attempt(x) || !attempt(y)) return {ok:false,error:"散点图需要两个不同的试次指标；请先在本项目增加相应指标。"};
+    } else {
+      const selected = selectedMetrics();
+      if (!selected.length) return {ok:false,error:state.kind === "trials" ? "试次点图需要至少一个试次指标。" : "请至少选择一个展示指标。"};
+      if (selected.length !== state.metricIds.length) return {ok:false,error:"所选指标已不在本项目，请重新选择。"};
+      if (state.kind === "trials" && selected.some(metric => !attempt(metric))) return {ok:false,error:"试次点图只能使用每次试次录入的指标。"};
+      if (state.kind === "radar" && (selected.length < 3 || selected.length > 8)) return {ok:false,error:"评分雷达图需要选择 3–8 项指标。"};
+    }
+    return {ok:true,error:""};
+  }
+  function notify() {
+    refreshControls();
+    state?.onChange?.(read());
+  }
+  function metricLabel(metric) {
+    return `${metric.name || "首个指标"}${metric.unit ? ` · ${metric.unit}` : ""}`;
+  }
+  function renderMetrics() {
+    if (!state) return;
+    const list = state.section.querySelector("[data-generic-metric-list]"), eligible = eligibleMetrics();
+    const sorted = [...eligible.filter(metric => state.metricIds.includes(metric.id)).sort((a,b) => state.metricIds.indexOf(a.id)-state.metricIds.indexOf(b.id)),...eligible.filter(metric => !state.metricIds.includes(metric.id))];
+    const chosen = state.metricIds.filter(id => eligible.some(metric => metric.id === id));
+    list.innerHTML = sorted.map(metric => {
+      const index = chosen.indexOf(metric.id), checked = index >= 0;
+      return `<li class="generic-report-metric"><label><input type="checkbox" data-generic-metric="${esc(metric.id)}" ${checked?"checked":""}><span>${esc(metric.name || "首个指标")}<small>${esc(metric.unit || "无单位")} · ${attempt(metric)?"每次试次":"本次测试汇总"}</small></span></label><div class="generic-report-order"><button type="button" class="btn small" data-generic-order="up" data-metric-id="${esc(metric.id)}" aria-label="上移 ${esc(metric.name || "首个指标")}" ${!checked||index===0?"disabled":""}>↑</button><button type="button" class="btn small" data-generic-order="down" data-metric-id="${esc(metric.id)}" aria-label="下移 ${esc(metric.name || "首个指标")}" ${!checked||index===chosen.length-1?"disabled":""}>↓</button></div></li>`;
+    }).join("") || `<li class="note">${state.kind === "trials" ? "本项目尚无每次试次录入的指标。" : "填写首个指标后即可选择展示。"}</li>`;
+    const attempts = state.metrics.filter(attempt), options = `<option value="">请选择试次指标</option>`+attempts.map(metric => `<option value="${esc(metric.id)}">${esc(metricLabel(metric))}</option>`).join("");
+    for (const [role,key] of [["X","xMetricId"],["Y","yMetricId"]]) {
+      const select = state.section.querySelector(`#genericReport${role}`);select.innerHTML = options;select.value = state[key];
+    }
+  }
+  function refreshControls() {
+    if (!state) return;
+    const section = state.section;
+    section.querySelector("#genericReportEnabled").checked = state.enabled;
+    section.querySelector("[data-generic-options]").hidden = !state.enabled;
+    section.querySelector("#genericReportKind").value = state.kind;
+    section.querySelector("[data-generic-kind-note]").textContent = kinds.find(([kind]) => kind === state.kind)?.[2] || "";
+    section.querySelector("[data-generic-metrics]").hidden = state.kind === "scatter";
+    section.querySelector("[data-generic-scatter]").hidden = state.kind !== "scatter";
+    section.querySelector("[data-generic-radar-note]").hidden = state.kind !== "radar";
+    section.querySelector("[data-generic-target-note]").hidden = state.kind !== "target";
+    const validation = validate(), error = section.querySelector("[data-generic-validation]");
+    error.hidden = validation.ok;error.textContent = validation.error;
+    renderPreview();
+  }
+  function renderPreview() {
+    const host = state.section.querySelector("#genericReportPreview");
+    if (!state.enabled) {host.innerHTML = "";return;}
+    const validation = validate();
+    if (!validation.ok) {host.innerHTML = '<p class="note">完成指标选择后显示图样预览。</p>';return;}
+    const chart = previewChart();
+    host.innerHTML = root.RingsideViz?.generic ? root.RingsideViz.generic(chart,{width:480,height:260}) : '<p class="note">图样预览将在报告图表模块加载后显示。</p>';
+  }
+  function previewChart() {
+    // All values are fixed style examples; this editor never reads measurements.
+    const metrics = state.kind === "scatter" ? [state.xMetricId,state.yMetricId].map(id => state.metrics.find(metric => metric.id === id)) : selectedMetrics();
+    let panels;
+    if (state.kind === "scatter") panels = [{title:"试次配对示例",unit:"",xAxis:{id:metrics[0].id,label:metrics[0].name,unit:metrics[0].unit},yAxis:{id:metrics[1].id,label:metrics[1].name,unit:metrics[1].unit},points:[{id:"example_1",index:1,x:10,y:100},{id:"example_2",index:2,x:20,y:50},{id:"example_3",index:3,x:15,y:75}]}];
+    else if (state.kind === "radar") panels = [{title:"示例分数",unit:"分",axes:metrics.map((metric,index) => ({id:metric.id,label:metric.name || "首个指标",value:50+(index*13)%45,status:"gray",tooltip:"样式示例分数"}))}];
+    else {
+      const units = new Map();metrics.forEach((metric,index) => {
+        const unit = metric.unit || "";
+        if (!units.has(unit)) units.set(unit,{title:unit || "无单位",unit,items:[],series:[]});
+        const panel = units.get(unit), value = 38+index*17;
+        panel.items.push({id:metric.id,label:metric.name || "首个指标",value,status:"gray",...(state.kind === "target"?{target:55+index*17}:{})});
+        panel.series.push({id:metric.id,label:metric.name || "首个指标",status:"gray",points:[1,2,3].map((trial,i) => ({id:"example_"+trial,index:trial,value:value+[0,-5,8][i]}))});
+      });
+      panels = [...units.values()].map(panel => state.kind === "trials" ? {title:panel.title,unit:panel.unit,series:panel.series} : {title:panel.title,unit:panel.unit,items:panel.items});
+    }
+    return {kind:state.kind,available:true,reason:"",panels};
+  }
+  function updateMetrics(metrics) {
+    if (!state) return;
+    state.metrics = (metrics || []).filter(metric => metric && metric.id).map(metric => ({...metric}));
+    const ids = new Set(state.metrics.map(metric => metric.id));
+    state.metricIds = state.metricIds.filter(id => ids.has(id));
+    if (!state.metricIds.length && !state.userSelectedMetrics) state.metricIds = state.metrics.map(metric => metric.id);
+    const attempts = state.metrics.filter(attempt);
+    if (!attempts.some(metric => metric.id === state.xMetricId)) state.xMetricId = attempts[0]?.id || "";
+    if (!attempts.some(metric => metric.id === state.yMetricId)) state.yMetricId = attempts.find(metric => metric.id !== state.xMetricId)?.id || "";
+    renderMetrics();refreshControls();
+  }
+  function destroy() {
+    if (!state) return;
+    state.section.removeEventListener("change",state.change);
+    state.section.removeEventListener("click",state.click);
+    state.section.remove();state = null;
+  }
+  function mount(host,{catalog,testId,isNew=false,onChange,metrics}={}) {
+    destroy();
+    const view = catalog?.reportViews?.[testId], enabled = !!view && view.kind !== "none";
+    const section = document.createElement("fieldset");section.className = "catalog-edit-section generic-report-editor";
+    section.innerHTML = `<legend>报告图表</legend><label class="generic-report-enable"><input id="genericReportEnabled" type="checkbox" ${enabled?"checked":""}>在报告中显示可视化图</label><p class="note">图表在左侧展示，右侧保留完整结果表。关闭后只展示表格。</p><div data-generic-options ${enabled?"":"hidden"}><div class="form-grid"><label class="field wide"><span>图表类型</span><select id="genericReportKind" aria-label="报告图表类型">${kinds.map(([kind,label]) => `<option value="${kind}">${label}</option>`).join("")}</select></label></div><p class="note" data-generic-kind-note></p><div data-generic-metrics><h3>展示指标与顺序</h3><ul class="generic-report-metrics" data-generic-metric-list aria-label="报告展示指标"></ul></div><div class="form-grid" data-generic-scatter hidden><label class="field"><span>X 轴指标</span><select id="genericReportX" aria-label="散点图 X 轴指标"></select></label><label class="field"><span>Y 轴指标</span><select id="genericReportY" aria-label="散点图 Y 轴指标"></select></label></div><p class="note" data-generic-radar-note hidden>实际报告要求每项都有适用的评分规则和有效测量；缺少任一项时保留表格并说明原因，不补零。</p><p class="note" data-generic-target-note hidden>目标来自各记录采用的评价方案；没有适用目标的指标仍保留实测结果。</p><p class="field-error" role="status" data-generic-validation hidden></p><div class="generic-report-preview"><h3>图样预览 <span>示例数据 · 仅用于预览样式</span></h3><div id="genericReportPreview" aria-label="报告图样示例"></div></div></div>`;
+    const preview = host.querySelector("#catalogChangePreview");if (preview) host.insertBefore(section,preview);else host.append(section);
+    state = {section,catalog,testId,isNew,onChange,enabled,kind:enabled?view.kind:"bar",metricIds:(view?.metricIds || []).slice(),xMetricId:view?.xMetricId || "",yMetricId:view?.yMetricId || "",metrics:[],userSelectedMetrics:!!view};
+    state.change = event => {
+      const control = event.target;
+      if (control.id === "genericReportEnabled") state.enabled = control.checked;
+      else if (control.id === "genericReportKind") {
+        state.kind = control.value;
+        if (state.kind === "trials") state.metricIds = state.metricIds.filter(id => state.metrics.some(metric => metric.id === id && attempt(metric)));
+        renderMetrics();
+      } else if (control.matches("[data-generic-metric]")) {
+        const id = control.dataset.genericMetric;state.userSelectedMetrics = true;
+        state.metricIds = control.checked ? [...state.metricIds.filter(value => value !== id),id] : state.metricIds.filter(value => value !== id);
+        renderMetrics();
+        [...section.querySelectorAll("[data-generic-metric]")].find(node => node.dataset.genericMetric === id)?.focus();
+      } else if (control.id === "genericReportX") state.xMetricId = control.value;
+      else if (control.id === "genericReportY") state.yMetricId = control.value;
+      else return;
+      notify();
+    };
+    state.click = event => {
+      const button = event.target.closest("[data-generic-order]");if (!button || button.disabled) return;
+      const index = state.metricIds.indexOf(button.dataset.metricId), next = index + (button.dataset.genericOrder === "up"?-1:1);
+      if (index < 0 || next < 0 || next >= state.metricIds.length) return;
+      [state.metricIds[index],state.metricIds[next]] = [state.metricIds[next],state.metricIds[index]];
+      renderMetrics();notify();
+      const replacement = [...section.querySelectorAll("[data-generic-order]")].find(node => node.dataset.metricId === button.dataset.metricId && node.dataset.genericOrder === button.dataset.genericOrder);
+      if (replacement && !replacement.disabled) replacement.focus();
+      else section.querySelector(`[data-generic-metric="${root.CSS?.escape?.(button.dataset.metricId) || button.dataset.metricId}"]`)?.focus();
+    };
+    section.addEventListener("change",state.change);section.addEventListener("click",state.click);
+    updateMetrics(metrics === undefined ? catalog?.definitions?.filter(metric => metric.testId === testId) : metrics);
+    return api;
+  }
+  const api = {mount,read,snapshot,validate,updateMetrics,destroy};
+  root.RingsideGenericReportUI = api;
+})(typeof window !== "undefined" ? window : globalThis);
 
 </script>
 <script>
@@ -17952,8 +18456,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     .ringside-pdf-document .hop-summary-table th,.ringside-pdf-document .hop-summary-table td{font-size:10px!important;padding:6px 4px!important;}
     .ringside-pdf-document .hop-summary-table th:first-child{width:7%!important;}
     .ringside-pdf-document .hop-summary-table th:last-child{width:16%!important;}
-    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail){display:block!important;}
-    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail)>.chart-wrap{margin-bottom:12px!important;}
+    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail,.generic-detail){display:block!important;}
+    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail,.generic-detail)>.chart-wrap{margin-bottom:12px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:fixed!important;min-width:0!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th{width:auto!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th:nth-child(4){width:auto!important;min-width:0!important;}
@@ -18276,7 +18780,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     for (const block of collectBlocks(source)) {
       if (block.keepWithNext) pending.push(block.element);
       else {
-        if (block.element.matches(".iso-detail,.imtp-detail"))
+        if (block.element.matches(".iso-detail,.imtp-detail,.generic-detail"))
           leading.push(pending.filter(node => !node.matches(".test-title")));
         pending = [];
       }
@@ -18288,7 +18792,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     try {
       const capacity = body.getBoundingClientRect().height -
         parseFloat(root.getComputedStyle(body).paddingTop) - 2;
-      for (const pair of source.querySelectorAll(".iso-detail[data-pdf-pair],.imtp-detail[data-pdf-pair]")) {
+      for (const pair of source.querySelectorAll(".iso-detail[data-pdf-pair],.imtp-detail[data-pdf-pair],.generic-detail[data-pdf-pair]")) {
         // Section headings that have not yet accompanied any content must fit
         // on this page too, just as makePaginator's pending headings do.
         const headings = leading[layouts.length] || [];
@@ -18301,10 +18805,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const mainHeight = probe.getBoundingClientRect().height;
         const height = probe.getBoundingClientRect().bottom - body.firstElementChild.getBoundingClientRect().top;
         const mode = height <= capacity ? "side-by-side" : "stacked";
-        const testId = pair.matches(".iso-detail") ? "iso" : "imtp";
-        for (const node of [pair, pair.querySelector(".chart-wrap"), pair.querySelector(".iso-results,.imtp-results")].filter(Boolean)) {
+        const testId = pair.matches(".iso-detail") ? "iso" : pair.matches(".imtp-detail") ? "imtp" : test?.dataset.testIds || "generic";
+        for (const node of [pair, pair.firstElementChild, pair.querySelector(".iso-results,.imtp-results,.detail-data")].filter(Boolean)) {
           node.dataset.pdfPrimaryLayout = mode;
-          node.dataset[testId === "iso" ? "pdfIsoLayout" : "pdfImtpLayout"] = mode;
+          node.dataset[pair.matches(".iso-detail") ? "pdfIsoLayout" : pair.matches(".imtp-detail") ? "pdfImtpLayout" : "pdfGenericLayout"] = mode;
         }
         // A long result uses independent chart/table blocks and normal table
         // continuation, rather than the side-by-side pair's split-column path.
@@ -21976,6 +22480,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       !state.customTests.some((t) => t.id === id)
     )
       state.customTests.push(copy(project));
+    if (force || first) {
+      const custom = state.customTests.find((test) => test.id === id);
+      if (custom) Object.assign(custom, copy(project));
+    }
     state.projectSnapshots ||= T.snapshots(state);
     const projectIndex = state.projectSnapshots.findIndex(
       (test) => test.id === id,
@@ -21998,6 +22506,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       library.catalog.protocol[id] !== undefined
     )
       state.protocol[id] = library.catalog.protocol[id];
+    if (force || first || projectIndex < 0) {
+      state.protocolIdentities ||= {};
+      if (library.catalog.protocolIdentities?.[id]) state.protocolIdentities[id] = copy(library.catalog.protocolIdentities[id]);
+      if (T.describe(state).find(test => test.id === id)?.renderer === "scalar") {
+        state.views.genericReports ||= {};
+        const view = window.RingsideGenericReport.resolveView(state, id, library.catalog);
+        state.views.genericReports[id] = view.binding ? view : window.RingsideGenericReport.createView(state, id, {kind:"none"});
+      }
+      state.projectSnapshots = T.snapshots(state);
+    }
     if (
       Array.isArray(state.catalogAppliedTests) &&
       !state.catalogAppliedTests.includes(id)
@@ -22628,7 +23146,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (id === "managementModal") window.RingsideManagement.afterModalClose?.(id);
     if (id === "newAthleteModal") creation = null;
     if (id === "unitModal") unitChange = null;
-    if (id === "catalogModal") catalogEdit = null;
+    if (id === "catalogModal") {
+      window.RingsideGenericReportUI?.destroy();
+      catalogEdit = null;
+    }
     document.body.style.overflow = "";
     $("workspace").inert = false;
     $("sidebar").inert =
@@ -22872,7 +23393,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         if(forCreation){creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,next.testIds.includes(t.id)]));creation.isoDirectionIds=[...next.isoDirectionIds];refreshCreationCount();}
         else{
           for(const id of next.testIds)if(!state.enabled[id]&&!installCatalogProject(id)){toast("请先确认项目目录定义");return false;}
-          state.enabled=Object.fromEntries(Object.keys(state.enabled).map(id=>[id,next.testIds.includes(id)]));
+          state.enabled=Object.fromEntries([...new Set([...Object.keys(state.enabled), ...next.testIds])].map(id=>[id,next.testIds.includes(id)]));
           M.setIsoDirectionSelection(state,next.isoDirectionIds);
           if(!next.isoDirectionIds.length)state.enabled.iso=false;
           changed(false);refreshEntryChrome();
@@ -23451,7 +23972,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const previousScroll = visible ? window.scrollY : null;
     if (visible) captureReportUI();
     renderSelectors();
-    const report = window.RingsideReport.build(effectiveRecord()),
+    const report = window.RingsideReport.build(effectiveRecord(), { catalog: library.catalog }),
       s = report.stats,
       a = state.athlete;
     $("reportTitle").textContent=state.title&&state.title!=="运动表现与损伤风险筛查"?state.title:"运动表现与损伤风险筛查报告";
@@ -23513,7 +24034,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     $("radarLegend").innerHTML =
       `<span class="red">${E(Def.assessmentLabel("red"))}</span> · <span class="amber">${E(Def.assessmentLabel("amber"))}</span> · <span class="green">${E(Def.assessmentLabel("green"))}</span>`;
     $("directionMetrics").innerHTML = window.RingsideReport.overview(report);
-    $("abilityScoreDetails").innerHTML = window.RingsideReport.abilityDetails(report);
     renderDetails(report);
     renderNarrativeStatus();
     reportDirty = false;
@@ -24868,11 +25388,34 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         $("catalogCategory").value = item.category;
       });
     organizeCatalogFields();
+    const genericProject = mode === "new-test" || T.describe(catalog).find(item => item.id === test?.id)?.renderer === "scalar";
+    catalogEdit.genericViewEditor = genericProject && mode !== "new-metric" && !metricOnly;
+    if (catalogEdit.genericViewEditor) {
+      const host = document.createElement("div"); host.id = "catalogGenericReport";
+      $("catalogFields").insertBefore(host, $("catalogChangePreview"));
+      window.RingsideGenericReportUI.mount(host, { catalog, testId: test?.id || "", isNew: mode === "new-test", metrics: catalogGenericMetrics(), onChange: renderCatalogChangePreview });
+    } else if (genericProject) {
+      const note = document.createElement("p"); note.className = "note";
+      note.textContent = "报告图表在所属项目的项目设置中统一配置。";
+      const button = document.createElement("button"); button.type = "button"; button.className = "btn small";
+      button.textContent = "设置所属项目图表";
+      button.addEventListener("click", () => {
+        const targetId = $("catalogTestId").value;
+        if (JSON.stringify(catalogFormValues()) !== JSON.stringify(catalogEdit.initialForm) && !confirm("当前指标有未保存修改，放弃这些修改并进入项目图表设置？")) return;
+        if (close("catalogModal") !== false) openCatalogItem("edit-project", targetId);
+      });
+      note.append(" ", button);
+      $("catalogFields").insertBefore(note, $("catalogChangePreview"));
+    }
     catalogEdit.initialForm = catalogFormValues();
-    $("catalogForm").oninput = renderCatalogChangePreview;
+    $("catalogForm").oninput = event => {
+      if (catalogEdit?.genericViewEditor && !event.target.closest("#catalogGenericReport")) window.RingsideGenericReportUI.updateMetrics(catalogGenericMetrics());
+      renderCatalogChangePreview();
+    };
     $("catalogForm").onchange = event => {
       for (const [toggle, version, original] of [["catalogProjectMethodChanged","catalogProtocolVersion",catalog.protocolIdentities?.[test?.id]?.version||1],["catalogMetricMethodChanged","catalogMetricProtocolVersion",definition?.protocolIdentity?.version||1]])
         if (event.target.id === toggle) $(version).value = original + (event.target.checked ? 1 : 0);
+      if (catalogEdit?.genericViewEditor && !event.target.closest("#catalogGenericReport")) window.RingsideGenericReportUI.updateMetrics(catalogGenericMetrics());
       renderCatalogChangePreview();
     };
     renderCatalogChangePreview();
@@ -24887,9 +25430,23 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
 
   function catalogFormValues() {
-    return Object.fromEntries([...$("catalogForm").querySelectorAll("input[id],select[id],textarea[id]")]
+    const values = Object.fromEntries([...$("catalogForm").querySelectorAll("input[id],select[id],textarea[id]")]
+      .filter(node => !node.closest("#catalogGenericReport"))
       .filter(node => !node.id.includes("MethodChanged"))
       .map(node => [node.id,node.type === "checkbox" ? node.checked : node.value]));
+    if (catalogEdit?.genericViewEditor) values.__genericReportView = window.RingsideGenericReportUI.snapshot();
+    return values;
+  }
+  function catalogGenericMetrics() {
+    if (!catalogEdit) return [];
+    const metrics = copy(library.catalog.definitions.filter(d => d.testId === catalogEdit.testId));
+    const name = $("catalogMetricName");
+    if (name) {
+      const id = catalogEdit.definitionId || "__pending_metric__", index = metrics.findIndex(d => d.id === id);
+      const metric = { ...(index >= 0 ? metrics[index] : {}), id, name: name.value.trim() || "新指标", unit: $("catalogUnit")?.value.trim() || "", entryScope: $("catalogEntryScope")?.value || "record" };
+      if (index < 0) metrics.push(metric); else metrics[index] = metric;
+    }
+    return metrics;
   }
   function organizeCatalogFields() {
     const host = $("catalogFields");
@@ -24925,9 +25482,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const readable=(node,value)=>node?.tagName==="SELECT" ? [...node.options].find(option=>option.value===value)?.textContent || value : typeof value==="boolean" ? value?"启用":"关闭" : value || "未填写";
       changes.push(`<li><b>${E(label)}</b>：${E(readable($(id),prior[id]))} → ${E(readable($(id),value))}</li>`);
     }
+    const chartChanged = current.__genericReportView !== prior.__genericReportView;
+    if (chartChanged) changes.push("<li><b>报告图表</b>：更新图样或展示指标</li>");
     const methodChanged=$("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
     const linked=methodChanged ? library.evaluationProfiles.filter(profile=>profile.standards?.some(rule=>rule.testId===catalogEdit.testId)).map(profile=>profile.name) : [];
-    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">保存后用于后续测试，已有记录保留测量快照。</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">测量设置用于后续测试，已有记录保留测量快照。${catalogEdit.genericViewEditor ? "报告图样同步用于测量定义兼容的已有报告。" : ""}</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
   }
   async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
@@ -25047,6 +25606,19 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const version=Number(value("catalogProtocolVersion"));
         if(!Number.isSafeInteger(version)||version<1)throw Error("测试协议版本须为正整数");
         catalog.protocolIdentities||={};catalog.protocolIdentities[testId]={id:catalog.protocolIdentities[testId]?.id||"protocol_project_"+testId,version};
+      }
+      if (edit.genericViewEditor) {
+        const validation = window.RingsideGenericReportUI.validate();
+        if (!validation.ok) throw Error(validation.error);
+        const view = window.RingsideGenericReportUI.read(), pending = catalog.definitions.find(d => d.testId === testId)?.id;
+        const actualId = id => id === "__pending_metric__" ? pending : id;
+        if (view.metricIds) view.metricIds = view.metricIds.map(actualId);
+        if (view.xMetricId) view.xMetricId = actualId(view.xMetricId);
+        if (view.yMetricId) view.yMetricId = actualId(view.yMetricId);
+        catalog.reportViews ||= {};
+        catalog.reportViews[testId] = window.RingsideGenericReport.createView(catalog, testId, view);
+      } else if (edit.metricOnly && catalog.reportViews?.[testId]) {
+        catalog.reportViews[testId] = window.RingsideGenericReport.createView(catalog, testId, catalog.reportViews[testId]);
       }
       const canonical = M.normalizeCatalog(catalog);
       M.validateCatalog(canonical);
@@ -25225,6 +25797,18 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     conflict.resolved = true;
     conflict.selectedVariant = variantIndex;
     try {
+      const priorView = catalog.reportViews?.[conflict.testId];
+      let graphAdjusted = false;
+      if (priorView) {
+        if (T.describe(catalog).find(test => test.id === conflict.testId)?.renderer !== "scalar") {
+          delete catalog.reportViews[conflict.testId]; graphAdjusted = true;
+        } else {
+          const metricIds = priorView.metricIds.filter(id => catalog.definitions.some(d => d.id === id && d.testId === conflict.testId && (!["trials","scatter"].includes(priorView.kind) || T.isAttemptMetric(d))));
+          const valid = priorView.kind === "none" || (priorView.kind === "scatter" ? metricIds.length === 2 : priorView.kind === "radar" ? metricIds.length >= 3 && metricIds.length <= 8 : metricIds.length > 0);
+          graphAdjusted = !valid || metricIds.length !== priorView.metricIds.length;
+          catalog.reportViews[conflict.testId] = window.RingsideGenericReport.createView(catalog, conflict.testId, valid ? {...priorView,metricIds} : {kind:"none"});
+        }
+      }
       M.validateCatalog(catalog);
       catalog.revision = (Number(catalog.revision) || 1) + 1;
       await commitLibraryChange(candidate=>{
@@ -25237,7 +25821,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         feedback.textContent =
           "已确认“" +
           T.displayName(variant.test) +
-          "”的共用目录版本；已有测试记录保持原定义。";
+          "”的共用目录版本；已有测试记录保持原定义。" + (graphAdjusted ? "报告图表已按采用版本调整，请核对项目图表设置。" : "");
       return true;
     } catch (error) {
       const feedback = $("catalogMessage");
@@ -25716,10 +26300,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function reportPayload() {
     ensureExportable();
     const profile=library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId);
+    const record = window.RingsideEvaluation.materialize(effectiveRecord());
+    window.RingsideGenericReport.freezeViews(record, library.catalog);
     return {
       schema: 2,
       kind: "report",
-      record: { ...window.RingsideEvaluation.materialize(effectiveRecord()), evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
+      record: { ...record, evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
       profile: copy(activeAthlete().profile),
       ...(profile ? {evaluationProfile:window.RingsideEvaluation.serializeProfile(profile)} : {}),
     };

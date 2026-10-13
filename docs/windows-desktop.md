@@ -2,9 +2,9 @@
 
 桌面版通过 Windows 程序或快捷方式启动，自带运行环境。离线录入、计算、图表、Excel 和报告 PDF 可以直接使用。
 
-当前版本为 **2.20.1-desktop.1**，共用工作台版本为 **2.20.1**。[下载 Windows 桌面版](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1)；离线网页版本见 [HTML 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)。
+本机交付版本为 **2.22.0-desktop.1**，共用工作台版本为 **2.22.0**。本轮使用交付的本地安装程序升级，使用说明见 [2.22.0](motionbench-2.22.0.md)，核验状态与成品校验见 [本机验收记录](acceptance-2.22.0.md)。
 
-2.20.1 修复多轴能力图及评分明细组合过高时的 PDF 分页。较长卡片按图表和表格输出，概览标题与首图相邻，较短卡片保持完整。变化见 [修订说明](motionbench-2.20.1.md)，成品、升级与本机验收见 [发布核验记录](publication-2.20.1.md)。
+公开下载版本仍为 **2.20.1-desktop.1**：[Windows 桌面版](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1)；离线网页版本见 [HTML 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)。该公开版本的发布和升级核验见 [2.20.1 记录](publication-2.20.1.md)。
 
 ## 安装
 
@@ -12,14 +12,23 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| `MotionBench-2.20.1-desktop.1-Setup-x64.exe` | 带安装向导，可选择程序目录并创建快捷方式 |
-| `MotionBench-2.20.1-desktop.1-Portable-x64.exe` | 直接运行的便携程序 |
-| `SHA256SUMS.txt` | 下载文件校验值 |
-| `build-provenance.json` | 版本、构建提交和测试来源 |
+| `MotionBench-2.22.0-desktop.1-Setup-x64.exe` | 本机交付的安装程序，沿用原程序目录 |
+| `MotionBench-2.22.0-desktop.1-Portable-x64.exe` | 本机交付的便携程序 |
+| [2.22.0 验收记录](acceptance-2.22.0.md) | 成品校验与本轮核验范围 |
+
+本机安装目录为 `D:\Application\Strength&Conditioning\MotionBench`。运行 Setup 时确认这个原目录，完成后核对运动员、测试记录、方案与人工解读，再关闭并重新打开。原目录升级及真实资料检查的完成状态以验收记录为准。
 
 安装版与便携版均把资料保存在当前 Windows 用户的 `%APPDATA%\MotionBench Desktop`，与程序所在目录分开。
 
-从 **2.19.1-desktop.1** 或 **2.20.0-desktop.1** 升级时，可使用“应用设置 → 更新与版本”，或运行新版 Setup，随后核对资料并重新打开。
+本机 2.22.0 升级使用本次交付的 Setup。公开发行版可使用“应用设置 → 更新与版本”，或运行公开发行的 Setup。公开发行附件中的 `SHA256SUMS.txt` 和 `build-provenance.json` 分别提供文件校验与构建来源。
+
+## 设置通用项目报告图表
+
+在“项目与指标库”进入通用项目的“编辑项目设置”，勾选“在报告中显示可视化图”，选择图型、展示指标及顺序，再保存。图样预览使用示例数据，实际报告使用本次测量。
+
+支持横向条形图、纵向柱状图、试次点图、X–Y 散点图、目标对比图和评分雷达图。散点图选择同一项目的两个不同试次指标；评分雷达选择 3–8 项，采用本次评价方案已有的明确评分规则。不同单位的原值分别绘图。
+
+报告在左侧展示图表，右侧保留完整结果、评价与适用的重复统计。关闭图表后展示表格。兼容的已有报告同步项目图样；导出的 HTML、JSON、PDF 保留导出时的图样。步骤与数据要求见 [2.22.0 使用说明](motionbench-2.22.0.md)。
 
 ## 更新与启动偏好
 
@@ -51,7 +60,7 @@
 
 返回旧程序前，先另存完整备份。程序版本回退与资料恢复分别进行；网页版回退使用原浏览器入口与相应备份。
 
-2.20.0 之前的源码回退标签为 `rollback-v2.19.1-desktop.1-before-2.20.0-20261013`；已发布的 2.20.0 程序及历史验收保持不变。本次变化见 [2.20.1 修订说明](motionbench-2.20.1.md)；[2.20.0 历史验收](acceptance-2.20.0.md) 和 [公开发布与补验记录](publication-2.20.0.md) 分别记录原合成测试与后续发现。
+本机 2.22.0 的升级前保护与升级结果见 [本机验收记录](acceptance-2.22.0.md)。公开版本的回退及修订历史保留在 [2.20.1 发布核验](publication-2.20.1.md)、[2.20.0 历史验收](acceptance-2.20.0.md) 和 [公开发布与补验记录](publication-2.20.0.md)。
 
 ## 开发构建
 

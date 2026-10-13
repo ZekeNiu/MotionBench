@@ -624,6 +624,10 @@
       !state.customTests.some((t) => t.id === id)
     )
       state.customTests.push(copy(project));
+    if (force || first) {
+      const custom = state.customTests.find((test) => test.id === id);
+      if (custom) Object.assign(custom, copy(project));
+    }
     state.projectSnapshots ||= T.snapshots(state);
     const projectIndex = state.projectSnapshots.findIndex(
       (test) => test.id === id,
@@ -646,6 +650,16 @@
       library.catalog.protocol[id] !== undefined
     )
       state.protocol[id] = library.catalog.protocol[id];
+    if (force || first || projectIndex < 0) {
+      state.protocolIdentities ||= {};
+      if (library.catalog.protocolIdentities?.[id]) state.protocolIdentities[id] = copy(library.catalog.protocolIdentities[id]);
+      if (T.describe(state).find(test => test.id === id)?.renderer === "scalar") {
+        state.views.genericReports ||= {};
+        const view = window.RingsideGenericReport.resolveView(state, id, library.catalog);
+        state.views.genericReports[id] = view.binding ? view : window.RingsideGenericReport.createView(state, id, {kind:"none"});
+      }
+      state.projectSnapshots = T.snapshots(state);
+    }
     if (
       Array.isArray(state.catalogAppliedTests) &&
       !state.catalogAppliedTests.includes(id)
@@ -1276,7 +1290,10 @@
     if (id === "managementModal") window.RingsideManagement.afterModalClose?.(id);
     if (id === "newAthleteModal") creation = null;
     if (id === "unitModal") unitChange = null;
-    if (id === "catalogModal") catalogEdit = null;
+    if (id === "catalogModal") {
+      window.RingsideGenericReportUI?.destroy();
+      catalogEdit = null;
+    }
     document.body.style.overflow = "";
     $("workspace").inert = false;
     $("sidebar").inert =
@@ -1520,7 +1537,7 @@
         if(forCreation){creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,next.testIds.includes(t.id)]));creation.isoDirectionIds=[...next.isoDirectionIds];refreshCreationCount();}
         else{
           for(const id of next.testIds)if(!state.enabled[id]&&!installCatalogProject(id)){toast("请先确认项目目录定义");return false;}
-          state.enabled=Object.fromEntries(Object.keys(state.enabled).map(id=>[id,next.testIds.includes(id)]));
+          state.enabled=Object.fromEntries([...new Set([...Object.keys(state.enabled), ...next.testIds])].map(id=>[id,next.testIds.includes(id)]));
           M.setIsoDirectionSelection(state,next.isoDirectionIds);
           if(!next.isoDirectionIds.length)state.enabled.iso=false;
           changed(false);refreshEntryChrome();
@@ -2099,7 +2116,7 @@
     const previousScroll = visible ? window.scrollY : null;
     if (visible) captureReportUI();
     renderSelectors();
-    const report = window.RingsideReport.build(effectiveRecord()),
+    const report = window.RingsideReport.build(effectiveRecord(), { catalog: library.catalog }),
       s = report.stats,
       a = state.athlete;
     $("reportTitle").textContent=state.title&&state.title!=="运动表现与损伤风险筛查"?state.title:"运动表现与损伤风险筛查报告";
@@ -2161,7 +2178,6 @@
     $("radarLegend").innerHTML =
       `<span class="red">${E(Def.assessmentLabel("red"))}</span> · <span class="amber">${E(Def.assessmentLabel("amber"))}</span> · <span class="green">${E(Def.assessmentLabel("green"))}</span>`;
     $("directionMetrics").innerHTML = window.RingsideReport.overview(report);
-    $("abilityScoreDetails").innerHTML = window.RingsideReport.abilityDetails(report);
     renderDetails(report);
     renderNarrativeStatus();
     reportDirty = false;
@@ -3516,11 +3532,34 @@
         $("catalogCategory").value = item.category;
       });
     organizeCatalogFields();
+    const genericProject = mode === "new-test" || T.describe(catalog).find(item => item.id === test?.id)?.renderer === "scalar";
+    catalogEdit.genericViewEditor = genericProject && mode !== "new-metric" && !metricOnly;
+    if (catalogEdit.genericViewEditor) {
+      const host = document.createElement("div"); host.id = "catalogGenericReport";
+      $("catalogFields").insertBefore(host, $("catalogChangePreview"));
+      window.RingsideGenericReportUI.mount(host, { catalog, testId: test?.id || "", isNew: mode === "new-test", metrics: catalogGenericMetrics(), onChange: renderCatalogChangePreview });
+    } else if (genericProject) {
+      const note = document.createElement("p"); note.className = "note";
+      note.textContent = "报告图表在所属项目的项目设置中统一配置。";
+      const button = document.createElement("button"); button.type = "button"; button.className = "btn small";
+      button.textContent = "设置所属项目图表";
+      button.addEventListener("click", () => {
+        const targetId = $("catalogTestId").value;
+        if (JSON.stringify(catalogFormValues()) !== JSON.stringify(catalogEdit.initialForm) && !confirm("当前指标有未保存修改，放弃这些修改并进入项目图表设置？")) return;
+        if (close("catalogModal") !== false) openCatalogItem("edit-project", targetId);
+      });
+      note.append(" ", button);
+      $("catalogFields").insertBefore(note, $("catalogChangePreview"));
+    }
     catalogEdit.initialForm = catalogFormValues();
-    $("catalogForm").oninput = renderCatalogChangePreview;
+    $("catalogForm").oninput = event => {
+      if (catalogEdit?.genericViewEditor && !event.target.closest("#catalogGenericReport")) window.RingsideGenericReportUI.updateMetrics(catalogGenericMetrics());
+      renderCatalogChangePreview();
+    };
     $("catalogForm").onchange = event => {
       for (const [toggle, version, original] of [["catalogProjectMethodChanged","catalogProtocolVersion",catalog.protocolIdentities?.[test?.id]?.version||1],["catalogMetricMethodChanged","catalogMetricProtocolVersion",definition?.protocolIdentity?.version||1]])
         if (event.target.id === toggle) $(version).value = original + (event.target.checked ? 1 : 0);
+      if (catalogEdit?.genericViewEditor && !event.target.closest("#catalogGenericReport")) window.RingsideGenericReportUI.updateMetrics(catalogGenericMetrics());
       renderCatalogChangePreview();
     };
     renderCatalogChangePreview();
@@ -3535,9 +3574,23 @@
   }
 
   function catalogFormValues() {
-    return Object.fromEntries([...$("catalogForm").querySelectorAll("input[id],select[id],textarea[id]")]
+    const values = Object.fromEntries([...$("catalogForm").querySelectorAll("input[id],select[id],textarea[id]")]
+      .filter(node => !node.closest("#catalogGenericReport"))
       .filter(node => !node.id.includes("MethodChanged"))
       .map(node => [node.id,node.type === "checkbox" ? node.checked : node.value]));
+    if (catalogEdit?.genericViewEditor) values.__genericReportView = window.RingsideGenericReportUI.snapshot();
+    return values;
+  }
+  function catalogGenericMetrics() {
+    if (!catalogEdit) return [];
+    const metrics = copy(library.catalog.definitions.filter(d => d.testId === catalogEdit.testId));
+    const name = $("catalogMetricName");
+    if (name) {
+      const id = catalogEdit.definitionId || "__pending_metric__", index = metrics.findIndex(d => d.id === id);
+      const metric = { ...(index >= 0 ? metrics[index] : {}), id, name: name.value.trim() || "新指标", unit: $("catalogUnit")?.value.trim() || "", entryScope: $("catalogEntryScope")?.value || "record" };
+      if (index < 0) metrics.push(metric); else metrics[index] = metric;
+    }
+    return metrics;
   }
   function organizeCatalogFields() {
     const host = $("catalogFields");
@@ -3573,9 +3626,11 @@
       const readable=(node,value)=>node?.tagName==="SELECT" ? [...node.options].find(option=>option.value===value)?.textContent || value : typeof value==="boolean" ? value?"启用":"关闭" : value || "未填写";
       changes.push(`<li><b>${E(label)}</b>：${E(readable($(id),prior[id]))} → ${E(readable($(id),value))}</li>`);
     }
+    const chartChanged = current.__genericReportView !== prior.__genericReportView;
+    if (chartChanged) changes.push("<li><b>报告图表</b>：更新图样或展示指标</li>");
     const methodChanged=$("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
     const linked=methodChanged ? library.evaluationProfiles.filter(profile=>profile.standards?.some(rule=>rule.testId===catalogEdit.testId)).map(profile=>profile.name) : [];
-    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">保存后用于后续测试，已有记录保留测量快照。</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">测量设置用于后续测试，已有记录保留测量快照。${catalogEdit.genericViewEditor ? "报告图样同步用于测量定义兼容的已有报告。" : ""}</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
   }
   async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
@@ -3695,6 +3750,19 @@
         const version=Number(value("catalogProtocolVersion"));
         if(!Number.isSafeInteger(version)||version<1)throw Error("测试协议版本须为正整数");
         catalog.protocolIdentities||={};catalog.protocolIdentities[testId]={id:catalog.protocolIdentities[testId]?.id||"protocol_project_"+testId,version};
+      }
+      if (edit.genericViewEditor) {
+        const validation = window.RingsideGenericReportUI.validate();
+        if (!validation.ok) throw Error(validation.error);
+        const view = window.RingsideGenericReportUI.read(), pending = catalog.definitions.find(d => d.testId === testId)?.id;
+        const actualId = id => id === "__pending_metric__" ? pending : id;
+        if (view.metricIds) view.metricIds = view.metricIds.map(actualId);
+        if (view.xMetricId) view.xMetricId = actualId(view.xMetricId);
+        if (view.yMetricId) view.yMetricId = actualId(view.yMetricId);
+        catalog.reportViews ||= {};
+        catalog.reportViews[testId] = window.RingsideGenericReport.createView(catalog, testId, view);
+      } else if (edit.metricOnly && catalog.reportViews?.[testId]) {
+        catalog.reportViews[testId] = window.RingsideGenericReport.createView(catalog, testId, catalog.reportViews[testId]);
       }
       const canonical = M.normalizeCatalog(catalog);
       M.validateCatalog(canonical);
@@ -3873,6 +3941,18 @@
     conflict.resolved = true;
     conflict.selectedVariant = variantIndex;
     try {
+      const priorView = catalog.reportViews?.[conflict.testId];
+      let graphAdjusted = false;
+      if (priorView) {
+        if (T.describe(catalog).find(test => test.id === conflict.testId)?.renderer !== "scalar") {
+          delete catalog.reportViews[conflict.testId]; graphAdjusted = true;
+        } else {
+          const metricIds = priorView.metricIds.filter(id => catalog.definitions.some(d => d.id === id && d.testId === conflict.testId && (!["trials","scatter"].includes(priorView.kind) || T.isAttemptMetric(d))));
+          const valid = priorView.kind === "none" || (priorView.kind === "scatter" ? metricIds.length === 2 : priorView.kind === "radar" ? metricIds.length >= 3 && metricIds.length <= 8 : metricIds.length > 0);
+          graphAdjusted = !valid || metricIds.length !== priorView.metricIds.length;
+          catalog.reportViews[conflict.testId] = window.RingsideGenericReport.createView(catalog, conflict.testId, valid ? {...priorView,metricIds} : {kind:"none"});
+        }
+      }
       M.validateCatalog(catalog);
       catalog.revision = (Number(catalog.revision) || 1) + 1;
       await commitLibraryChange(candidate=>{
@@ -3885,7 +3965,7 @@
         feedback.textContent =
           "已确认“" +
           T.displayName(variant.test) +
-          "”的共用目录版本；已有测试记录保持原定义。";
+          "”的共用目录版本；已有测试记录保持原定义。" + (graphAdjusted ? "报告图表已按采用版本调整，请核对项目图表设置。" : "");
       return true;
     } catch (error) {
       const feedback = $("catalogMessage");
@@ -4364,10 +4444,12 @@
   function reportPayload() {
     ensureExportable();
     const profile=library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId);
+    const record = window.RingsideEvaluation.materialize(effectiveRecord());
+    window.RingsideGenericReport.freezeViews(record, library.catalog);
     return {
       schema: 2,
       kind: "report",
-      record: { ...window.RingsideEvaluation.materialize(effectiveRecord()), evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
+      record: { ...record, evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
       profile: copy(activeAthlete().profile),
       ...(profile ? {evaluationProfile:window.RingsideEvaluation.serializeProfile(profile)} : {}),
     };

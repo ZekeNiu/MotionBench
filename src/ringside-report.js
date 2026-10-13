@@ -105,7 +105,7 @@
       sources: SPEED_GUIDE.sources,
     };
   }
-  function build(record) {
+  function build(record, { catalog } = {}) {
     const snapshot = JSON.parse(JSON.stringify(record));
     const stats = M.stats(snapshot);
     const sprintView = M.normalizeSprintFvpView(snapshot.sprintFvpView);
@@ -125,6 +125,7 @@
     );
     const results = projects.map((test) => ({
       ...test,
+      ...(test.renderer === "scalar" ? { reportView: global.RingsideGenericReport?.resolveView(snapshot, test.id, catalog) || { version: 1, kind: "none", metricIds: [] } } : {}),
       metrics: test.definitions
         .filter((d) => N(stats.values[d.id]) !== null)
         .map((d) => ({
@@ -208,21 +209,6 @@
       !advantage.items.length ? "text gray" : "green",
     );
     return html;
-  }
-  function abilityDetails(report) {
-    const {record,stats}=report,results=stats.evaluationResults||[];
-    const axes=stats.axes.filter(axis=>["primary","mean"].includes(axis.method));
-    if(!axes.length)return "";
-    return `<details class="ability-score-details"><summary>查看能力评分的计算</summary>${axes.map(axis=>{
-      const ids=axis.members||[],n=ids.length;
-      const rows=ids.map((id,index)=>{
-        const result=results.find(item=>item.subjectId===id),definition=record.definitions.find(d=>d.id===(result?.metricId||id.replace(/^metric:/,"")));
-        const transform=axis.transforms?.[id]||result?.scoreContributions?.find(item=>item.ability===axis.key)?.transform;
-        const method={ratio:"按目标换算",anchors:"分数对应点",table:"评分区间"}[transform?.kind]||"—";
-        return [E(definition?.name||result?.name||id),F(result?.value??stats.values[definition?.id],2)+" "+E(result?.unit||definition?.unit||""),E(result?.grade?.label||"—"),method,F(axis.scores?.[index],1)+" 分",...(axis.method==="mean"?[F(n?axis.scores?.[index]/n:null,1)+" 分"]:[])];
-      });
-      return `<section data-ability-score="${E(axis.key)}" data-ability-score-method="${E(axis.method)}"><h4>${E(axis.label)} · ${F(axis.value,1)} 分 / 100</h4>${table(["指标","原始成绩","单项分级","给分方式","换算得分",...(axis.method==="mean"?["平均贡献"]:[])],rows,ids)}<p class="note">${axis.method==="mean"?`${n} 个固定成员等权平均。`:"使用代表指标的给分结果。"}满分 100 分。</p></section>`;
-    }).join("")}</details>`;
   }
   function overview(report) {
     const cards = [], stats = report.stats;
@@ -316,7 +302,7 @@
       const abilities = [...new Set(tests.flatMap((test) => test.abilities))].map(key => T.abilityLabel(state, key));
       return `<article class="test-block" id="detail-${E(first.id)}" data-test-ids="${E(tests.map((t) => t.id).join(" "))}">${rest.map((t) => `<span class="test-anchor" id="detail-${E(t.id)}"></span>`).join("")}<div class="test-title"><div><h4>${E(title)}</h4>${meta ? `<p>${E(meta)}</p>` : ""}${abilities.length > 1 ? `<p class="ability-tags">${abilities.map(E).join(" · ")}</p>` : ""}</div></div>${content}</article>`;
     }
-    const chart = (html, spec) => `<div class="chart-wrap${spec ? " adaptive-chart" : ""}"${spec ? ` data-chart-kind="${E(spec.kind)}" data-chart-input="${E(JSON.stringify(spec.args))}"` : ""}>${html}</div>`;
+    const chart = (html, spec) => `<div class="chart-wrap${spec ? " adaptive-chart" : ""}${spec?.kind === "generic" ? " generic-charts" : ""}"${spec ? ` data-chart-kind="${E(spec.kind)}" data-chart-input="${E(JSON.stringify(spec.args))}"` : ""}>${html}</div>`;
     const pair = (figure, data, className = "", spec) =>
       `<div class="detail-pair ${className}" data-pdf-pair>${chart(figure, spec)}<div class="detail-data">${data}</div></div>`;
     function repeatPanel(test) {
@@ -696,20 +682,20 @@
         const meta = [measured?.modality === "treadmill" ? "跑台" : measured?.modality === "cycle" ? "功率车" : "", measured?.protocol, N(measured?.peak.rer) !== null ? "RER " + F(measured.peak.rer, 2) : ""].filter(Boolean).join(" · ");
         return block(tests, tests[0].name, meta, metricTable(metrics, true));
       },
-      scalar: (tests) =>
-        block(
-          tests,
-          tests[0].name,
-          state.protocol[tests[0].id] || "",
-          metricTable(tests[0].metrics, true) +
-            tests[0].metrics
+      scalar: (tests) => {
+        const test = tests[0], data = metricTable(test.metrics, true) +
+            test.metrics
               .filter((d) => state.customValues[d.id]?.notes)
               .map(
                 (d) =>
                   `<p class="metric-note"><b>${E(d.name)}</b>：${E(state.customValues[d.id].notes)}</p>`,
               )
-              .join(""),
-        ),
+              .join("");
+        const model = global.RingsideGenericReport?.buildChart(report, test),
+          content = !model || model.kind === "none" ? data :
+            pair(V.generic(model), data, "generic-detail", { kind: "generic", args: [model] });
+        return block(tests, test.name, state.protocol[test.id] || "", content);
+      },
       imtp: (tests) => {
         const force = { ...r.forceTime, yAxis: state.views.imtp.yAxis };
         const metrics = consume(tests[0].metrics);
@@ -1383,8 +1369,8 @@
     // corresponding right-side result and evaluation in neighboring columns.
     alignCapabilityCards(container);
     alignIsometricSides(container);
-    const limits = { isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], jumpElasticityConstraint:[310,400], sprintFvp:[390,450], sprintElasticity:[310,400], sprintElasticityDistance:[310,400] };
-    const compact = { isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, jumpElasticityConstraint:330, sprintFvp:390, sprintElasticity:330, sprintElasticityDistance:330 };
+    const limits = { generic: [270, 350], isoRadar: [310, 390], forceTime: [320, 440], lactate: [360, 480], speed: [240, 380], fms: [320, 380], lvp: [320, 380], jumpBars:[350,390], jumpFvp:[390,450], jumpElasticity:[310,400], jumpElasticityConstraint:[310,400], sprintFvp:[390,450], sprintElasticity:[310,400], sprintElasticityDistance:[310,400] };
+    const compact = { generic: 290, isoRadar: 290, forceTime: 300, lactate: 320, speed: 260, fms: 310, lvp: 330, jumpBars:350, jumpFvp:390, jumpElasticity:330, jumpElasticityConstraint:330, sprintFvp:390, sprintElasticity:330, sprintElasticityDistance:330 };
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);
@@ -1416,5 +1402,5 @@
     layoutCharts(container);
     bindFVPInteractions(container);
   }
-  global.RingsideReport = { build, summary, overview, abilityDetails, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderSprintElasticityAnalysis, renderCapabilityAnalysis, prepareFVPPrint, patchCapabilityAnalysis, previewFVP, bindFVPInteractions };
+  global.RingsideReport = { build, summary, overview, render, layoutCharts, observeCharts, renderFVPAnalysis, renderSprintFVPAnalysis, renderSprintElasticityAnalysis, renderCapabilityAnalysis, prepareFVPPrint, patchCapabilityAnalysis, previewFVP, bindFVPInteractions };
 })(window);

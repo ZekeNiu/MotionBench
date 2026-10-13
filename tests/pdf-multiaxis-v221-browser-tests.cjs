@@ -5,8 +5,8 @@ const { ready, openExport, downloadFromReport } = require("./helpers/pdf-browser
 const root = path.resolve(__dirname, ".."), hash = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 const OLD_HTML_SHA256 = "9fdac139dcad46a4f533877296f9000abdf9a91ec2d68fae1164453f9d19beae";
 
-async function seedFixture(page, count, meanMembers = 0) {
-  return page.evaluate(async ({ count, meanMembers }) => {
+async function seedFixture(page, count, meanMembers = 0, longResults = false) {
+  return page.evaluate(async ({ count, meanMembers, longResults }) => {
     const M = RingsideModel, E = RingsideEvaluation, r = M.sampleRecord();
     r.demo = false; r.recordId = "synthetic-v221-pdf-" + count + "-" + meanMembers; r.athleteId = "synthetic-v221-pdf-athlete";
     Object.assign(r.athlete, { name: "Synthetic multi-axis PDF", date: "2026-10-13", age: 25, sex: "男", mass: 70 });
@@ -16,6 +16,15 @@ async function seedFixture(page, count, meanMembers = 0) {
     const metricIds = ["cmj_height", "pushup_reps", "mb_dom", "ift_treadmill", "mas_speed", "landmine_r20", "mss_speed"].slice(0, count);
     const selected = metricIds.map(id => r.definitions.find(d => d.id === id));
     if (!meanMembers) Object.keys(r.enabled).forEach(id => r.enabled[id] = ["cmj", ...selected.map(d => d.testId)].includes(id));
+    if (longResults) {
+      const testId = "synthetic_long_table";
+      r.customTests.push({id:testId,name:"Synthetic long results",category:"performance"}); r.enabled[testId] = true;
+      for (let index = 0; index < 60; index++) {
+        const id = "synthetic_long_metric_" + index;
+        r.definitions.push({id,testId,name:"Synthetic result " + index,unit:"N",entryScope:"record",ability:"",category:"performance",direction:"higher",scoring:false,referenceEnabled:false,target:null,ranges:[]});
+        r.customValues[id] = {value:index + 1,notes:""};
+      }
+    }
     const initial = M.stats(r), p = E.create(r, "Synthetic pagination scoring"); p.aggregations = {};
     const transform = id => ({ kind: "anchors", shape: "higher", points: [{ value: 0, score: 0 }, { value: initial.values[id] * 2, score: 100 }] });
     for (const d of selected) p.aggregations["ability:" + d.ability] = { method: "primary", primary: "metric:" + d.id, scoringVersion: 1, transforms: { ["metric:" + d.id]: transform(d.id) } };
@@ -26,19 +35,19 @@ async function seedFixture(page, count, meanMembers = 0) {
     }
     await App.importPayload(M.recordEnvelope(r, p), "replace-library"); await App.showReport(false);
     const stats = App.stats(), state = App.getState();
-    const rows = [...document.querySelectorAll(".ability-score-details tbody > tr")].map(row => [...row.cells].map(cell => cell.textContent.trim()));
-    return { count, meanMembers, axes: stats.axes.map(axis => ({ key: axis.key, value: axis.value, method: axis.method, members: axis.members, scores: axis.scores })), rows,
+    const rows = [...document.querySelectorAll('[data-test-ids="synthetic_long_table"] tbody > tr')].map(row => [...row.cells].map(cell => cell.textContent.trim()));
+    return { count, meanMembers, longResults, axes: stats.axes.map(axis => ({ key: axis.key, value: axis.value, method: axis.method, members: axis.members, scores: axis.scores })), rows,
       hasRadar: !!document.querySelector("#radarChart > svg"), hasComparison: !!document.querySelector("#radarChart .ability-comparison"), scoreTables: document.querySelectorAll(".ability-score-details table").length,
       radarChartIndex: [...document.querySelectorAll("#reportView svg")].indexOf(document.querySelector("#radarChart > svg")),
       narrative: state.narrative.text, raw: JSON.stringify(state.data), recordId: state.recordId, athleteId: state.athleteId, profileId: state.evaluationProfileId, foldState: JSON.stringify(state.views.capabilityExpanded) };
-  }, { count, meanMembers });
+  }, { count, meanMembers, longResults });
 }
 
 function assertFixture(fixture, count, meanMembers = 0) {
-  assert.equal(fixture.axes.length, count); assert.equal(fixture.scoreTables, count);
+  assert.equal(fixture.axes.length, count); assert.equal(fixture.scoreTables, 0);
   assert.equal(fixture.hasRadar, count >= 3 && count <= 8); assert.equal(fixture.hasComparison, count > 0 && count < 3);
   for (const axis of fixture.axes) { assert.ok(Math.abs(axis.value - 50) < 1e-8); assert.ok(axis.scores.every(score => Math.abs(score - 50) < 1e-8)); }
-  assert.equal(fixture.rows.length, count - (meanMembers ? 1 : 0) + meanMembers);
+  assert.equal(fixture.rows.length, fixture.longResults ? 60 : 0);
 }
 
 async function beginCapture(page) {
@@ -47,7 +56,7 @@ async function beginCapture(page) {
     window.html2canvas = async (node, options) => {
       const body = node.querySelector(".ringside-pdf-content"), bodyRect = body.getBoundingClientRect();
       const rect = element => { const r = element.getBoundingClientRect(); return { width: r.width, height: r.height, bottom: r.bottom }; };
-      const scoreTables = [...body.querySelectorAll("table")].filter(table => [...table.querySelectorAll("thead th")].some(th => th.textContent.trim() === "给分方式"));
+      const scoreTables = [...body.querySelectorAll("table")].filter(table => [...table.querySelectorAll("tbody td:first-child")].some(td => td.textContent.startsWith("Synthetic result ")));
       __v221Pages.push({ body: rect(body), overflow: [...body.children].filter(child => child.getBoundingClientRect().bottom > bodyRect.bottom - 1).map(child => child.className),
         rows: scoreTables.flatMap(table => [...table.querySelectorAll("tbody > tr")].map(row => [...row.cells].map(cell => cell.textContent.trim()))),
         tables: scoreTables.map(table => ({ index: table.dataset.pdfTableIndex, header: [...table.querySelectorAll("thead th")].map(th => th.textContent.trim()), rowCount: table.querySelectorAll("tbody > tr").length })),
@@ -72,7 +81,8 @@ function assertExport(evidence, fixture) {
   assert.equal(d.status, "complete"); assert.equal(evidence.leakedStages, 0); assert.equal(d.pageCount, evidence.pages.length);
   for (const key of ["missingRows", "duplicateRows", "changedRows", "missingCharts", "duplicateCharts"]) assert.deepEqual(d[key], []);
   assert.equal(d.rowCount, d.renderedRowCount); assert.ok(d.textChecks.every(check => check.exact || check.keepWithNext && check.renderedCharacters === 0));
-  assert.deepEqual(evidence.pages.flatMap(page => page.rows), fixture.rows, "Every score-detail cell must occur once with its original value");
+  assert.deepEqual(evidence.pages.flatMap(page => page.rows), fixture.rows, "Every long result cell must occur once with its original value");
+  assert.ok(!/查看能力评分的计算|给分方式|平均贡献/.test(evidence.pages.map(page => page.text).join("")), "Removed calculation details must not enter the PDF");
   assert.ok(evidence.pages.every(page => !page.overflow.length), "No content may extend beyond a PDF page");
   assert.ok(evidence.pages.flatMap(page => page.charts).every(chart => chart.rect.height > 0 && chart.rect.width > 0 && (!chart.originalHeight || chart.rect.height >= chart.originalHeight * .85 - .1)), "Charts must retain complete readable artwork");
   assert.deepEqual(evidence.live, { raw: fixture.raw, narrative: fixture.narrative, recordId: fixture.recordId, athleteId: fixture.athleteId, profileId: fixture.profileId, folds: fixture.foldState });
@@ -82,10 +92,10 @@ function assertExport(evidence, fixture) {
     assert.equal(headingPages.length, 1, "Overview heading must appear exactly once");
     assert.ok(headingPages[0].charts.some(chart => Number(chart.index) === fixture.radarChartIndex), "The overview heading and its radar must remain on the same page");
   }
-  if (fixture.meanMembers >= 30) {
+  if (fixture.longResults) {
     const ids = evidence.pages.flatMap(page => page.tables.map(table => table.index));
     assert.ok(ids.some(id => ids.filter(other => other === id).length > 1), "Long member tables must paginate with repeated headers");
-    assert.ok(evidence.pages.flatMap(page => page.tables).every(table => table.header.includes("给分方式")));
+    assert.ok(evidence.pages.flatMap(page => page.tables).every(table => table.header.includes("指标")));
   }
   if (fixture.count === 1) assert.equal(evidence.pages.reduce((sum, page) => sum + page.wholeOverviewCards, 0), 1, "A short overview must remain a whole card");
 }
@@ -102,9 +112,9 @@ async function main() {
   page.on("pageerror", error => result.errors.push(error.message)); page.on("request", request => { if (/^https?:/.test(request.url())) result.network.push(request.url()); });
   try {
     await page.goto(pathToFileURL(source).href); await ready(page);
-    for (const [count, meanMembers] of baseline ? [[3, 0], [7, 0]] : [[3, 0], [7, 0], [7, 2], [1, 0]]) {
+    for (const [count, meanMembers, longResults] of baseline ? [[3, 0], [7, 0]] : [[3, 0], [7, 0], [7, 2], [1, 0], [3, 2, true]]) {
       let fixture;
-      await check(`${count} axes / ${meanMembers} mean members use real shared scores and the expected overview`, async () => { fixture = await seedFixture(page, count, meanMembers); assertFixture(fixture, count, meanMembers); result.fixtures.push(fixture); });
+      await check(`${count} axes / ${meanMembers} mean members use real shared scores and the expected overview`, async () => { fixture = await seedFixture(page, count, meanMembers, longResults); assertFixture(fixture, count, meanMembers); result.fixtures.push(fixture); });
       await check(baseline ? `published 2.20.0 actually rejects the oversized ${count}-axis radar card` : `actual ${count}-axis / ${meanMembers}-member PDF preserves every row chart and narrative`, async () => {
         if (baseline) {
           let downloads = 0; const onDownload = () => downloads++; page.on("download", onDownload);

@@ -1,0 +1,25 @@
+.generic-report-editor { min-width:0; }
+.generic-report-editor .generic-report-enable { display:flex; align-items:center; gap:9px; font-weight:600; line-height:1.5; }
+.generic-report-editor input[type="checkbox"] { width:16px; height:16px; flex:none; accent-color:var(--blue,#365b7a); }
+.generic-report-editor h3 { margin:16px 0 10px; font-size:13px; font-weight:600; }
+.generic-report-editor .generic-report-metrics { margin:0; padding:0; list-style:none; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+.generic-report-editor .generic-report-metric { display:flex; align-items:center; gap:12px; padding:10px 12px; }
+.generic-report-editor .generic-report-metric + .generic-report-metric { border-top:1px solid var(--line); }
+.generic-report-editor .generic-report-metric > label { display:flex; flex:1; align-items:center; gap:10px; min-width:0; cursor:pointer; }
+.generic-report-editor .generic-report-metric > label > span { min-width:0; overflow-wrap:anywhere; font-size:13px; line-height:1.5; }
+.generic-report-editor .generic-report-metric small { display:block; color:var(--muted); font-size:11px; font-weight:400; margin-top:2px; }
+.generic-report-editor .generic-report-order { display:flex; gap:5px; flex:none; }
+.generic-report-editor .generic-report-order .btn { min-width:30px; padding:4px 8px; }
+.generic-report-editor .generic-report-metrics > .note { padding:12px; margin:0; }
+.generic-report-editor .generic-report-preview { margin-top:16px; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:var(--surface-soft); }
+.generic-report-editor .generic-report-preview h3 { display:flex; flex-wrap:wrap; gap:5px 12px; align-items:baseline; margin:0 0 10px; }
+.generic-report-editor .generic-report-preview h3 > span { color:var(--muted); font-size:11px; font-weight:400; }
+.generic-report-editor #genericReportPreview { max-height:420px; overflow-y:auto; overflow-x:hidden; }
+.generic-report-editor #genericReportPreview svg { display:block; width:100%; height:auto; }
+.generic-report-editor [data-generic-options] > .form-grid { margin:14px 0 0; }
+.generic-report-editor [hidden] { display:none !important; }
+@media (max-width:600px) {
+  .generic-report-editor.catalog-edit-section { padding:14px 12px; }
+  .generic-report-editor .generic-report-metric { gap:8px; padding:9px 8px; }
+  .generic-report-editor .generic-report-preview { padding:10px 8px; }
+}

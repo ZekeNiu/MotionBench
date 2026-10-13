@@ -15,7 +15,7 @@ function desktopArtifactIdentity(root, executable, testScript) {
     runtimeHashes=Object.fromEntries(["package.json",...runtimeFiles.map(name=>"desktop/"+name)].map(file=>[file,hash(asar.extractFile(archive,path.normalize(file)))]));
     archiveSha256=hash(fs.readFileSync(archive));
   }
-  return {sourceHtmlSha256:hash(sourceHtml),runtimeHtmlSha256:hash(runtimeHtml),sourceHashes,runtimeHashes,archiveSha256,
+  return {sourceHtmlSha256:hash(sourceHtml),runtimeHtmlSha256:hash(runtimeHtml),sourceHashes,runtimeHashes,archiveSha256,executableSha256:hash(fs.readFileSync(executable)),
     runtimeMatchesSourceHtml:runtimeHtml.equals(sourceHtml),testScriptSha256:hash(fs.readFileSync(testScript)),identityHelperSha256:hash(fs.readFileSync(__filename))};
 }
 module.exports = {desktopArtifactIdentity};

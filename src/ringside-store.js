@@ -52,6 +52,13 @@
       let target=local.conflicts.find(x=>x.testId===c.testId&&!x.resolved);
       if(!target){target=clone(c);local.conflicts.push(target);}else for(const v of c.variants)if(!target.variants.some(x=>same(x,v)))target.variants.push(clone(v));
     }
+    // Presentation settings never participate in measurement conflicts. A local
+    // explicit selection (including none) wins over an imported library style.
+    for (const [id, view] of Object.entries(incoming.reportViews || {})) {
+      if (Object.hasOwn(local.reportViews || {}, id) || !root.RingsideGenericReport?.compatible(view, local, id)) continue;
+      local.reportViews ||= {};
+      local.reportViews[id] = clone(view);
+    }
     M.validateCatalog(local);
   }
   function validateTestPlans(plans, catalog) {

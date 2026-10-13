@@ -128,8 +128,8 @@
     .ringside-pdf-document .hop-summary-table th,.ringside-pdf-document .hop-summary-table td{font-size:10px!important;padding:6px 4px!important;}
     .ringside-pdf-document .hop-summary-table th:first-child{width:7%!important;}
     .ringside-pdf-document .hop-summary-table th:last-child{width:16%!important;}
-    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail){display:block!important;}
-    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail)>.chart-wrap{margin-bottom:12px!important;}
+    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail,.generic-detail){display:block!important;}
+    .ringside-pdf-document [data-pdf-primary-layout="stacked"]:is(.iso-detail,.imtp-detail,.generic-detail)>.chart-wrap{margin-bottom:12px!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns{table-layout:fixed!important;min-width:0!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th{width:auto!important;}
     .ringside-pdf-document .iso-results.with-repeat-columns th:nth-child(4){width:auto!important;min-width:0!important;}
@@ -452,7 +452,7 @@
     for (const block of collectBlocks(source)) {
       if (block.keepWithNext) pending.push(block.element);
       else {
-        if (block.element.matches(".iso-detail,.imtp-detail"))
+        if (block.element.matches(".iso-detail,.imtp-detail,.generic-detail"))
           leading.push(pending.filter(node => !node.matches(".test-title")));
         pending = [];
       }
@@ -464,7 +464,7 @@
     try {
       const capacity = body.getBoundingClientRect().height -
         parseFloat(root.getComputedStyle(body).paddingTop) - 2;
-      for (const pair of source.querySelectorAll(".iso-detail[data-pdf-pair],.imtp-detail[data-pdf-pair]")) {
+      for (const pair of source.querySelectorAll(".iso-detail[data-pdf-pair],.imtp-detail[data-pdf-pair],.generic-detail[data-pdf-pair]")) {
         // Section headings that have not yet accompanied any content must fit
         // on this page too, just as makePaginator's pending headings do.
         const headings = leading[layouts.length] || [];
@@ -477,10 +477,10 @@
         const mainHeight = probe.getBoundingClientRect().height;
         const height = probe.getBoundingClientRect().bottom - body.firstElementChild.getBoundingClientRect().top;
         const mode = height <= capacity ? "side-by-side" : "stacked";
-        const testId = pair.matches(".iso-detail") ? "iso" : "imtp";
-        for (const node of [pair, pair.querySelector(".chart-wrap"), pair.querySelector(".iso-results,.imtp-results")].filter(Boolean)) {
+        const testId = pair.matches(".iso-detail") ? "iso" : pair.matches(".imtp-detail") ? "imtp" : test?.dataset.testIds || "generic";
+        for (const node of [pair, pair.firstElementChild, pair.querySelector(".iso-results,.imtp-results,.detail-data")].filter(Boolean)) {
           node.dataset.pdfPrimaryLayout = mode;
-          node.dataset[testId === "iso" ? "pdfIsoLayout" : "pdfImtpLayout"] = mode;
+          node.dataset[pair.matches(".iso-detail") ? "pdfIsoLayout" : pair.matches(".imtp-detail") ? "pdfImtpLayout" : "pdfGenericLayout"] = mode;
         }
         // A long result uses independent chart/table blocks and normal table
         // continuation, rather than the side-by-side pair's split-column path.

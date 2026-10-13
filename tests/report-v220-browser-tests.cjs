@@ -31,12 +31,13 @@ const result = { sourceHash: digest(source), runnerSha256: digest(__filename), c
       await App.importPayload(RingsideModel.recordEnvelope(r, p), "replace-library"); await App.showReport(false);
     });
     let primary;
-    await check("primary explicit points report the same fifty points in the chart detail and AI facts without changing its metric grade", async () => {
+    await check("primary explicit points remain fifty in the overview and AI facts with calculation details removed", async () => {
       primary = await project(page); assert.equal(primary.axes.length, 1); assert.equal(primary.axes[0].value, 50); assert.equal(primary.axes[0].status, "green"); assert.equal(primary.axes[0].scoreUnit, "分"); assert.equal(primary.axes[0].scoreMax, 100);
       assert.equal(primary.facts[0].score, 50); assert.equal(primary.facts[0].scoreUnit, "分"); assert.deepEqual(primary.facts[0].scoreRange, [0, 100]);
-      assert.match(await page.locator('.ability-comparison').innerText(), /50 分 \/ 100/); await page.locator('.ability-score-details > summary').click();
-      const detail = await page.locator('[data-ability-score-method="primary"]').innerText(); for (const text of ["50.0 分 / 100", "40.00 cm", "分数对应点", "Synthetic original grade"]) assert.ok(detail.includes(text), text);
-      assert.equal(/达成度|达成比例|平均贡献/.test(detail), false); assert.equal(primary.narrative, "本次人工正文完整保留。");
+      assert.match(await page.locator('.ability-comparison').innerText(), /50 分 \/ 100/);
+      assert.equal(await page.locator('.ability-score-details,#abilityScoreDetails,[data-ability-score]').count(), 0);
+      assert.equal(await page.getByText('查看能力评分的计算', { exact: true }).count(), 0);
+      assert.equal(primary.narrative, "本次人工正文完整保留。");
     });
     await check("capability h3 uses the normal heading width font colors while cards follow h4 and normal result panels", async () => {
       const style = await page.evaluate(() => {
@@ -75,11 +76,10 @@ const result = { sourceHash: digest(source), runnerSha256: digest(__filename), c
     });
     const pdf = async name => {
       if (!process.argv.includes("--pdf")) return;
-      await page.locator('.ability-score-details > summary').evaluate(node => { node.parentElement.open = true; });
       await page.evaluate(() => { window.__v220Pages = []; window.__v220Canvas = window.html2canvas; window.html2canvas = async (node, options) => { __v220Pages.push({ text: node.innerText, heading: [...node.querySelectorAll('.quality-heading h3')].map(h3 => ({ text: h3.textContent, color: getComputedStyle(h3).color, font: getComputedStyle(h3).fontSize })), parameterTables: [...node.querySelectorAll('[data-capability-parameter-table]')].map(node => node.dataset.capabilityParameterTable) }); return __v220Canvas(node, options); }; });
       const file = await download("PDF", name), evidence = await page.evaluate(() => { window.html2canvas = __v220Canvas; return { diagnostics: RingsidePDF.lastDiagnostics, pages: __v220Pages }; });
       assert.equal(evidence.diagnostics.status, "complete"); for (const key of ["missingRows", "duplicateRows", "changedRows", "missingCharts", "duplicateCharts"]) assert.deepEqual(evidence.diagnostics[key], []);
-      const text = evidence.pages.map(page => page.text).join("\n"); assert.ok(text.includes(name === "primary" ? "使用代表指标的给分结果" : "2 个固定成员等权平均")); assert.ok(text.includes(name === "primary" ? "50.0 分 / 100" : "65.0 分 / 100"));
+      const text = evidence.pages.map(page => page.text).join("\n"); assert.doesNotMatch(text, /查看能力评分的计算|平均贡献|固定成员等权平均/); assert.match(text, name === "primary" ? /50(?:\.0)? 分 \/ 100/ : /65(?:\.0)? 分 \/ 100/);
       result.pdfs.push({ file: path.relative(root, file).replaceAll("\\", "/"), sha256: digest(file), ...evidence });
       const tables = evidence.pages.flatMap(page => page.parameterTables); assert.ok(tables.includes("strength")); assert.equal(tables.includes("reactive"), false); assert.equal(tables.includes("speed"), false);
     };
@@ -90,9 +90,10 @@ const result = { sourceHash: digest(source), runnerSha256: digest(__filename), c
       });
       const mean = await project(page); assert.equal(mean.axes[0].value, 65); assert.deepEqual(mean.axes[0].scores, [80, 50]); assert.equal(mean.axes[0].status, "gray"); assert.equal(mean.narrative, primary.narrative);
       assert.deepEqual(mean.reference.map(({ schemeRevision, ...item }) => item), primary.reference.map(({ schemeRevision, ...item }) => item));
-      await page.locator('.ability-score-details > summary').click(); const text = await page.locator('[data-ability-score-method="mean"]').innerText(); for (const value of ["65.0 分 / 100", "80.0 分", "50.0 分", "40.0 分", "25.0 分", "平均贡献"]) assert.ok(text.includes(value), value);
+      assert.match(await page.locator('.ability-comparison').innerText(), /65 分 \/ 100/);
+      assert.equal(await page.locator('.ability-score-details,#abilityScoreDetails,[data-ability-score]').count(), 0);
     });
-    if (process.argv.includes("--pdf")) await check("actual mean PDF retains both members and the exact scores and contributions", () => pdf("mean"));
+    if (process.argv.includes("--pdf")) await check("actual mean PDF retains the overview score and omits calculation details", () => pdf("mean"));
     await check("clearing the v2 capability configuration hides both axis and calculation details while retaining measurements", async () => {
       await page.evaluate(async () => { await App.commitLibraryChange(candidate => { candidate.evaluationProfiles.find(item => item.id === App.getState().evaluationProfileId).aggregations = {}; }); await App.showReport(false); });
       assert.equal((await project(page)).axes.length, 0); assert.equal(await page.locator('[data-ability-score]').count(), 0); assert.equal(await page.evaluate(() => App.getState().data.cmj[0].height), 40); assert.equal(await page.evaluate(() => App.getState().narrative.text), primary.narrative);

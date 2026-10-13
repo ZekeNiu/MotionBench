@@ -224,14 +224,10 @@
   #reportView .stat-side, #reportView .stat-load { min-height: 0; }
   .athlete-summary dl { gap: 6px 12px; }
 }
-/* Fixed-member score composition belongs to the capability card. */
-#abilityScoreDetails:not(:empty){padding:18px 20px;border-top:1px solid var(--line)}
-.ability-score-details>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;list-style:none}
-.ability-score-details>summary::after{content:"+"}
-.ability-score-details[open]>summary::after{content:"−"}
-.ability-score-details>summary::-webkit-details-marker,.capability-parameter-notes>summary::-webkit-details-marker{display:none}
-.ringside-pdf-document .ability-score-details>summary::after,.ringside-pdf-document .capability-parameter-notes>summary::after{content:none!important}
-.ability-score-details section{margin-top:20px}
-.ability-score-details h4{margin:0 0 12px;font-size:14px}
-.ability-score-details .note{margin:10px 0 0}
-@media(max-width:600px){#abilityScoreDetails:not(:empty){padding:16px 12px}}
+.capability-parameter-notes>summary::-webkit-details-marker{display:none}
+.ringside-pdf-document .capability-parameter-notes>summary::after{content:none!important}
+.generic-chart-panel + .generic-chart-panel { margin-top:18px; }
+.generic-chart-heading { margin:0 0 5px; color:var(--muted); font-size:12px; font-weight:600; line-height:1.6; overflow-wrap:anywhere; }
+.generic-chart-key { display:flex; gap:16px; margin:0 0 6px; color:var(--muted); font-size:11px; }
+.generic-chart-key span:first-child::before { content:""; display:inline-block; width:12px; height:7px; margin-right:5px; border-radius:2px; background:var(--blue); }
+.generic-chart-unavailable { margin:0; padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:var(--surface); line-height:1.8; }

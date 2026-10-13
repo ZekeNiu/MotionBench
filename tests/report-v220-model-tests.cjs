@@ -11,19 +11,22 @@ function fixture() {
   Object.assign(p.standards.find(rule => rule.metricId === "cmj_height"), { enabled: true, targetEnabled: true, target: 50, rangesEnabled: true, ranges: [{ min: 0, max: null, status: "green", label: "用户等级" }] });
   return { r, p };
 }
-test("primary score details expose the measured result conversion and grade without a separate attainment percentage", () => {
-  const { r, p } = fixture(), report = R.build(E.resolve(r, p)), html = R.abilityDetails(report);
-  assert.match(html, /data-ability-score-method="primary"/); assert.match(html, /50.0 分 \/ 100/); assert.match(html, /40.00 cm/); assert.match(html, /分数对应点/); assert.match(html, /用户等级/);
-  assert.doesNotMatch(html, /达成度|达成比例|80%|平均贡献/); assert.match(html, /使用代表指标的给分结果/);
+test("primary conversion and raw metric grade remain correct after the calculation details API is removed", () => {
+  const { r, p } = fixture(), report = R.build(E.resolve(r, p)), html = R.render(report);
+  assert.equal(report.stats.axes[0].value, 50); assert.equal(report.stats.axes[0].scores[0], 50);
+  const measured = report.stats.evaluationResults.find(item => item.metricId === "cmj_height");
+  assert.equal(measured.value, 40); assert.equal(measured.grade.label, "用户等级");
+  assert.equal(R.abilityDetails, undefined); assert.doesNotMatch(html, /ability-score-details|data-ability-score|查看能力评分的计算/);
 });
-test("mean score details keep all member scores equal contributions and optional neutral grade", () => {
+test("mean scoring keeps all fixed member scores and the neutral grade without a calculation module", () => {
   const { r, p } = fixture(); p.aggregations["ability:下肢爆发力"] = { method: "mean", members: ["metric:cmj_height", "metric:sj_height"], transforms: { "metric:cmj_height": { kind: "ratio", direction: "higher" }, "metric:sj_height": { kind: "ratio", direction: "higher" } } };
   Object.assign(p.standards.find(rule => rule.metricId === "sj_height"), { enabled: true, targetEnabled: true, target: 60 });
-  const report = R.build(E.resolve(r, p)), html = R.abilityDetails(report); assert.equal(report.stats.axes[0].value, 65); assert.equal(report.stats.axes[0].status, "gray");
-  for (const text of ["65.0 分 / 100", "80.0 分", "50.0 分", "40.0 分", "25.0 分", "平均贡献", "2 个固定成员等权平均"]) assert.ok(html.includes(text), text);
+  const report = R.build(E.resolve(r, p)); assert.equal(report.stats.axes[0].value, 65); assert.equal(report.stats.axes[0].status, "gray");
+  assert.deepEqual(JSON.parse(JSON.stringify(report.stats.axes[0].scores)), [80, 50]);
+  assert.doesNotMatch(R.render(report), /ability-score-details|data-ability-score|平均贡献/);
 });
 test("disabled or unconfigured ability emits neither score graph values nor calculation details", () => {
-  const { r, p } = fixture(); p.aggregations = {}; const report = R.build(E.resolve(r, p)); assert.equal(report.stats.axes.length, 0); assert.equal(R.abilityDetails(report), "");
+  const { r, p } = fixture(); p.aggregations = {}; const report = R.build(E.resolve(r, p)); assert.equal(report.stats.axes.length, 0); assert.doesNotMatch(R.render(report), /ability-score-details|data-ability-score/);
 });
 test("both radar and compact ability list use points while raw scientific percentages remain intact", () => {
   const items = ["力量", "速度", "耐力"].map((label, i) => ({ label, value: 50 + i, status: "green", tooltip: "原始成绩" }));
@@ -43,10 +46,10 @@ test("source and PDF headings keep the agreed common color and normal sixteen-pi
   const css = fs.readFileSync(path.join(root, "src/ringside-report-refinement.css"), "utf8"), pdf = fs.readFileSync(path.join(root, "src/ringside-pdf.js"), "utf8");
   assert.match(css, /\.quality-heading \{[^}]*background:#f7f9fc/); assert.match(css, /\.quality-heading h3 \{[^}]*font-size:16px[^}]*color:#45546a/);
   assert.match(pdf, /\.quality-heading h3\{[^}]*font-size:16px!important[^}]*color:#45546a!important/);
-  assert.match(css, /\.ability-score-details>summary\{[^}]*display:flex[^}]*list-style:none/);
+  assert.doesNotMatch(css, /ability-score-details|abilityScoreDetails/);
 });
 test("report scoring and heading rendering do not change the raw data stable IDs or manual narrative", () => {
   const { r, p } = fixture(); r.narrative.text = "完整人工正文"; const before = JSON.stringify(r), report = R.build(E.resolve(r, p));
-  R.abilityDetails(report); R.renderCapabilityAnalysis(report); assert.equal(JSON.stringify(r), before); assert.equal(report.record.narrative.text, "完整人工正文");
+  R.render(report); R.renderCapabilityAnalysis(report); assert.equal(JSON.stringify(r), before); assert.equal(report.record.narrative.text, "完整人工正文");
 });
 console.log(passed + " report v2.20 model checks passed");

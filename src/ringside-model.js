@@ -1120,6 +1120,8 @@
     stampProtocolIdentities(out);
     if (s.measurementPolicyVersion !== 1) migrateMeasurementPolicy(out, s);
     out.projectSnapshots = T.snapshots(out);
+    if (s.views?.genericReports !== undefined && root.RingsideGenericReport)
+      out.views.genericReports = root.RingsideGenericReport.normalizeViews(s.views.genericReports, out);
     T.describe(out).forEach((test) => {
       if (!T.isNative(out,test.id) && test.repeatPolicy.fields.length) {
         if (!Array.isArray(out.data[test.id])) out.data[test.id] = [{ id: "row_" + test.id + "_0", metrics: {}, notes: "" }];
@@ -2995,19 +2997,11 @@
       const chosen = selected.map(member => member.definition);
       const transforms = {};
       const transformed = selected.map((member, index) => {
-          const d = member.definition, transform = cfg.method === "mean" || cfg.scoringVersion === 1 ? cfg.transforms?.[members[index]] : undefined;
-          const match = state.evaluationStandards?.find(standard => standard.subjectId === member.subjectId);
-          const effective = transform === undefined && cfg.method === "primary" ? { kind: "ratio", direction: d.direction || "higher" } : transform;
-          transforms[member.subjectId] = effective;
-          // Unlinked legacy calculations retain their previous ratio behavior.
-          if (state.evaluationProfileFormat !== 2 && cfg.method === "primary" && transform === undefined) {
-            const score = attainment(member.value, d);
-            return { valid: score !== null, score, reason: "代表指标未配置适用目标" };
-          }
-          return root.RingsideScoring?.evaluate(member.value, effective, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
-            applicable: match ? match.enabled && match.applicable : d.referenceEnabled,
-            subject: { measurementScale: root.RingsideEvaluation?.measurementScale(d) || d.measurementScale || "unknown", zeroValid: d.zeroValid === true || d.id === "pushup_reps" } }) || { valid: false, reason: "计分模块未加载" };
-        });
+        const transform = cfg.method === "mean" || cfg.scoringVersion === 1 ? cfg.transforms?.[members[index]] : undefined;
+        const result = evaluateScoreMember(state, member, transform, cfg.method);
+        transforms[member.subjectId] = result.transform;
+        return result;
+      });
       if (transformed.some(result => !result.valid)) return missing(transformed.find(result => !result.valid).reason);
       const scores = transformed.map(result => result.score);
       const status = cfg.method === "primary" ? targetStatus(selected[0].value, chosen[0], state)
@@ -3338,6 +3332,39 @@
     };
     result.evaluationResults = evaluationResults(state, result);
     return result;
+  }
+
+  function evaluateScoreMember(record, member, transform, method) {
+    const d = member.definition, match = record.evaluationStandards?.find(standard => standard.subjectId === member.subjectId);
+    const effective = transform === undefined && method === "primary" ? { kind: "ratio", direction: d.direction || "higher" } : transform;
+    // Unlinked legacy calculations retain their previous ratio behavior.
+    if (record.evaluationProfileFormat !== 2 && method === "primary" && transform === undefined) {
+      const score = attainment(member.value, d);
+      return { valid: score !== null, score, reason: "代表指标未配置适用目标", transform: effective };
+    }
+    const result = root.RingsideScoring?.evaluate(member.value, effective, { target: d.target, targetEnabled: d.referenceEnabled && d.targetEnabled !== false,
+      applicable: match ? match.enabled && match.applicable : d.referenceEnabled,
+      subject: { measurementScale: root.RingsideEvaluation?.measurementScale(d) || d.measurementScale || "unknown", zeroValid: d.zeroValid === true || d.id === "pushup_reps" } }) || { valid: false, reason: "计分模块未加载" };
+    return { ...result, transform: effective };
+  }
+  // Single-metric presentation uses precisely the configured member conversion.
+  // A missing sibling in a fixed mean can invalidate the ability, but not this member.
+  function metricScore(record, metricId, computed) {
+    const fail = reason => ({ valid: false, score: null, reason });
+    const d = record.definitions.find(definition => definition.id === metricId), subjectId = "metric:" + metricId;
+    if (!d || !record.enabled[d.testId] || d.category !== "performance" || d.scoring === false || !T.abilityName(d.ability)) return fail("指标未配置能力计分");
+    const cfg = T.axisConfig(record, d.ability);
+    if (!cfg || !["primary", "mean"].includes(cfg.method)) return fail(cfg?.migrationIssue || "评价方案未配置明确计分规则");
+    const members = cfg.method === "primary" ? [cfg.primary] : cfg.members;
+    if (!Array.isArray(members) || !members.length || new Set(members).size !== members.length) return fail("能力计分的参与指标配置无效");
+    const memberId = members.find(id => String(id).replace(/^metric:/, "") === metricId);
+    if (!memberId) return fail("指标未参与评价方案的能力计分");
+    const value = N((computed || stats(record)).values[metricId]);
+    if (value === null) return fail("缺少有效测量");
+    const transform = cfg.method === "mean" || cfg.scoringVersion === 1 ? cfg.transforms?.[memberId] : undefined;
+    const result = evaluateScoreMember(record, { definition: d, value, subjectId }, transform, cfg.method);
+    const match = record.evaluationStandards?.find(standard => standard.subjectId === subjectId);
+    return { ...result, ...(!result.valid && match?.reason ? { reason: match.reason } : {}), subjectId, ability: T.abilityName(d.ability) };
   }
 
   // Every consumer receives the same effective grade, target and aggregation contribution.
@@ -3849,6 +3876,8 @@
     catalog.definitions = catalog.definitions.map(catalogMetric);
     stampProtocolIdentities(catalog);
     catalog.measurementPolicyVersion = 1;
+    if (catalog.reportViews !== undefined && root.RingsideGenericReport)
+      catalog.reportViews = root.RingsideGenericReport.normalizeViews(catalog.reportViews, catalog);
     return catalog;
   }
   function canonicalJSON(value) {
@@ -4003,7 +4032,9 @@
       record.protocol[id] = catalog.protocol[id] || "";
     });
     record.catalogAppliedTests = [...selected];
-    return normalizeRecord(record);
+    const normalized = normalizeRecord(record);
+    root.RingsideGenericReport?.freezeViews(normalized, catalog);
+    return normalized;
   }
   function libraryDefaults() {
     return {
@@ -4472,6 +4503,7 @@
       throw new Error("共用项目目录结构无效");
     validateAbilityGroups(catalog.abilityGroups);
     validateAbilityGroupConflicts(catalog.abilityGroupConflicts);
+    root.RingsideGenericReport?.validateViews(catalog.reportViews, catalog);
     const testIds = new Set(),
       definitionIds = new Set();
     catalog.tests.forEach((test) => {
@@ -4608,6 +4640,7 @@
     const identities = [...Object.values(input.protocolIdentities || {}), ...input.definitions.map(d=>d.protocolIdentity), ...(input.data.iso || []).map(row=>row.protocolIdentity)].filter(value=>value!==undefined);
     for (const identity of identities) if (!plainObject(identity) || !safeId(identity.id) || !Number.isSafeInteger(identity.version) || identity.version<1) throw Error("测量协议身份或版本无效");
     validateDerivedOptions(input);
+    root.RingsideGenericReport?.validateViews(input.views?.genericReports, input);
     if (input.views?.idsiWindow !== undefined && !["idsi_matched","idsi_fixed250"].includes(input.views.idsiWindow)) throw new Error("iDSI 积分时窗选项无效");
     if (input.views?.capabilitySelections !== undefined) {
       const selections = input.views.capabilitySelections;
@@ -5274,6 +5307,7 @@
     imtpTimeContext,
     forceTime,
     stats,
+    metricScore,
     capabilityDirectionOptions,
     eurDirectionRuleId,
     capabilityDirections,
