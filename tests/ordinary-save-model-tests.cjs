@@ -14,8 +14,8 @@ function harness(baseline){
   library.catalog=copy(M.normalizeCatalog(library.catalog));
   const c=vm.createContext({console,Intl,crypto:crypto.webcrypto,Map,Set,JSON,Promise,copy,clearTimeout,
     now:()=>"2026-10-10T02:00:00.000Z",recordBaselines:new Map(),recordStorageBaselines:new Map(),queuedRecords:new Map(),entryPersistQueue:Promise.resolve(),
-    pendingSaves:0,saveSequence:0,saveTimer:null,storageFailed:false,libraryTransferActive:false,entrySession:null,state:null,reportDirty:false,
-    T:model.RingsideTests,M,$:()=>status,refreshEntryChrome:()=>{},upgradeDemo:()=>({changed:false}),library,
+    pendingSaves:0,saveSequence:0,saveTimer:null,storageFailed:false,libraryTransferActive:false,entrySession:null,state:null,reportDirty:false,longitudinalStoredJSON:"[]",
+    T:model.RingsideTests,M,$:()=>status,refreshEntryChrome:()=>{},upgradeDemo:()=>({changed:false}),longitudinal:{active:()=>false,selection:()=>null},library,
     repository:{directory:async()=>copy(library),
       saveRecords(records,checks) { return this.save(null,records,{},checks); },
       loadRecord:async id=>{const value=copy(stored);loads.push(id);if(loadHook)await loadHook(value,loads.length);return value;},

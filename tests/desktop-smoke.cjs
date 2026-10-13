@@ -484,16 +484,6 @@ async function saveSyntheticAIConnection(session) {
       await createMeasurements(active.page);
       await assertCharts(active.page);
     });
-    await check("the existing Copy analysis data button writes the native clipboard using a real user gesture", async () => {
-      await active.page.evaluate(() => App.openSettings("ai"));
-      await active.page.getByRole("button", { name: "复制分析资料", exact: true }).click();
-      await active.page.waitForFunction(() => document.getElementById("toast")?.textContent.includes("已复制当前测试资料"));
-      const expectedFacts = await active.page.evaluate(() => JSON.parse(JSON.stringify(App.facts())));
-      const copiedFacts = await active.electron.evaluate(({ clipboard }) => clipboard.readText());
-      assert.deepEqual(JSON.parse(copiedFacts), expectedFacts, "the native clipboard contains the complete current analysis payload, irrespective of Windows newline normalization");
-      assert.equal(await active.page.locator("#previewModal").isVisible(), false, "clipboard permission does not force the manual-copy fallback modal");
-      await showReport(active.page);
-    });
     await check("management close guards distinguish actual edits, read-only views, reverted forms, and in-progress saves", () => verifyManagementCloseGuards(active.page));
     await check("a failed durable save prevents close and a real retry preserves every measurement", () => verifySaveFailureGuard(active.page));
     let savedAI;
@@ -626,6 +616,16 @@ async function saveSyntheticAIConnection(session) {
     await check("ordinary desktop work and exports make no remote requests and produce no renderer exceptions", async () => {
       assert.deepEqual(result.network, []);
       assert.deepEqual(result.errors, []);
+    });
+    await check("the existing Copy analysis data button writes the native clipboard using a real user gesture", async () => {
+      await active.page.evaluate(() => App.openSettings("ai"));
+      await active.page.getByRole("button", { name: "复制分析资料", exact: true }).click();
+      await active.page.waitForFunction(() => document.getElementById("toast")?.textContent.includes("已复制当前测试资料"));
+      const expectedFacts = await active.page.evaluate(() => JSON.parse(JSON.stringify(App.facts())));
+      const copiedFacts = await active.electron.evaluate(({ clipboard }) => clipboard.readText());
+      assert.deepEqual(JSON.parse(copiedFacts), expectedFacts, "the native clipboard contains the complete current analysis payload, irrespective of Windows newline normalization");
+      assert.equal(await active.page.locator("#previewModal").isVisible(), false, "clipboard permission does not force the manual-copy fallback modal");
+      await showReport(active.page);
     });
     await closeNatively(active);
     active = null;

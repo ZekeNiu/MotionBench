@@ -4075,6 +4075,7 @@
       kind: "athlete-library",
     };
     lib.catalog = normalizeCatalog(input.catalog);
+    if(input.longitudinalReports !== undefined)lib.longitudinalReports=root.RingsideLongitudinalStore.normalizeList(input.longitudinalReports);
     lib.athletes = (Array.isArray(input.athletes) ? input.athletes : []).map(
       (a) => {
         const athlete = {
@@ -4995,6 +4996,10 @@
       )
         throw new Error("运动员库格式无效");
       if (input.catalog !== undefined) validateCatalog(input.catalog);
+      if(input.longitudinalReports !== undefined){
+        if(!root.RingsideLongitudinalStore)throw Error("纵向报告存储模块尚未加载");
+        root.RingsideLongitudinalStore.normalizeList(input.longitudinalReports);
+      }
       const athleteIds = new Set(),
         recordIds = new Set();
       let recordCount = 0;
@@ -5035,6 +5040,7 @@
         )
           throw new Error("当前测试记录 ID 不属于当前运动员");
       }
+      if(input.longitudinalReports !== undefined)for(const document of input.longitudinalReports)root.RingsideLongitudinalStore.validateReferences(document,input);
       return true;
     }
     if (input.record !== undefined) {

@@ -231,3 +231,19 @@
 .generic-chart-key { display:flex; gap:16px; margin:0 0 6px; color:var(--muted); font-size:11px; }
 .generic-chart-key span:first-child::before { content:""; display:inline-block; width:12px; height:7px; margin-right:5px; border-radius:2px; background:var(--blue); }
 .generic-chart-unavailable { margin:0; padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:var(--surface); line-height:1.8; }
+/* Existing report controls, with an independent dated record selection. */
+.record-choice-menu{position:relative;min-width:190px;font-size:13px}
+.record-choice-menu>summary{list-style:none;cursor:pointer;border:1px solid var(--line,#d7dfe8);border-radius:8px;padding:9px 28px 9px 11px;background:var(--surface,#fff);height:42px;box-sizing:border-box;display:flex;align-items:center}
+.record-choice-menu>summary::after{content:'⌄';position:absolute;right:10px;top:7px}
+.record-choices{position:absolute;z-index:80;top:calc(100% + 6px);right:0;min-width:320px;max-width:calc(100vw - 36px);max-height:360px;overflow:auto;padding:7px;border:1px solid var(--line,#d7dfe8);border-radius:10px;background:var(--surface,#fff);box-shadow:0 10px 30px #14233a20}
+.longitudinal-record-option{display:flex;align-items:center;gap:10px;padding:9px;border-radius:6px;cursor:pointer}
+.longitudinal-record-option:hover{background:#eef3f8}
+.longitudinal-record-option input{width:16px;height:16px;flex:none}
+.longitudinal-record-option small{display:block;margin-top:3px;color:var(--muted,#5d6b7c);font-size:11px}
+.report-ai-button{width:34px;height:34px;display:grid;place-items:center;padding:7px!important}
+.report-ai-button.is-running svg{animation:longitudinal-ai-pulse 1.2s ease-in-out infinite alternate}
+.report-ai-status{border-bottom:1px solid var(--line,#d7dfe8);padding-bottom:12px;margin-bottom:16px;font-size:12px}
+.report-ai-status p{margin:5px 0 10px;color:var(--muted,#5d6b7c)}
+.longitudinal-edit-choices{display:grid;gap:10px}
+@keyframes longitudinal-ai-pulse{to{opacity:.35}}
+@media(prefers-reduced-motion:reduce){.report-ai-button.is-running svg{animation:none}}

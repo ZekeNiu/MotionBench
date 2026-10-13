@@ -4,7 +4,7 @@ const { createHash } = require("node:crypto");
 const root = path.resolve(__dirname, ".."), out = path.join(root, "output/tests/v2191-semantics/capability-directions");
 fs.mkdirSync(out, { recursive: true });
 const appSource = fs.readFileSync(path.join(root, "src/ringside-app.js"), "utf8");
-const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto, flushReportEdits:()=>{} }); c.window = c;
+const c = vm.createContext({ console, Intl, crypto: require("node:crypto").webcrypto, flushReportEdits:()=>{}, longitudinal:{active:()=>false,isLoading:()=>false,owner:()=>""} }); c.window = c;c.narrativeOwner=()=>c.state;
 for (const name of ["calc", "fvp", "sprint-fvp", "sprint-elasticity", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "scoring", "model", "evaluation", "interventions", "viz", "report"])
   vm.runInContext(fs.readFileSync(path.join(root, `src/ringside-${name}.js`), "utf8"), c, { filename: name });
 const M = c.RingsideModel, R = c.RingsideReport;

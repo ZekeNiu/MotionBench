@@ -2,13 +2,13 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**本机交付版本：Windows `2.22.0-desktop.1` · HTML `2.22.0`**
+**本机交付版本：Windows `2.24.0-desktop.1` · HTML `2.24.0`**
 
 **公开下载版本：Windows `2.20.1-desktop.1` · HTML `2.20.1`**
 
 [在线 Demo](https://zekeniu.github.io/MotionBench/) · [公开安装版 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Setup-x64.exe) · [公开便携版 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Portable-x64.exe) · [公开离线 HTML 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)
 
-本机 2.22.0 为通用项目增加六种可选报告图表：横向条形图、纵向柱状图、试次点图、X–Y 散点图、目标对比图及评分雷达图。在“项目与指标库”的项目设置中选择图型、指标及顺序，报告保留左图右表与完整结果。运动表现概览移除了“查看能力评分的计算”折叠明细。详见 [2.22.0 使用说明](docs/motionbench-2.22.0.md) 和 [本机验收记录](docs/acceptance-2.22.0.md)。
+本机 2.24.0 增加同一运动员的纵向比较：在首页勾选多条测试记录，原图按日期叠加，结果表显示首末与近期变化，损伤风险筛查改为部位雷达。比较正文独立保存，单次与比较报告均可直接生成、编辑和应用 AI 草稿，支持 PDF、可编辑 HTML、JSON 及完整备份。详见 [2.24.0 使用说明](docs/motionbench-2.24.0.md) 和 [本机验收记录](docs/acceptance-2.24.0.md)。
 
 公开版本 2.20.1 修复多轴能力雷达图及评分明细组合过高时无法导出 PDF 的问题。过长卡片按内容分页，标题与首图保持相邻，较短卡片保持完整。详见 [2.20.1 修订说明](docs/motionbench-2.20.1.md) 和 [公开发布核验记录](docs/publication-2.20.1.md)。
 
@@ -42,7 +42,8 @@
 | 负荷与力量速度 | 负荷－速度、SJ/CMJ 跳跃 FVP、冲刺 FVP、弹性分析和表现响应 |
 | 速度与心肺 | MAS、MSS、30–15 VIFT、速度耐力、乳酸、CPET 摄氧量与阈值 |
 | 评价体系 | 项目及能力目录、可复用方案、参考目标、分级区间、单位与协议匹配 |
-| 通用项目图表（本机 2.22.0） | 六种图型、指标选择与排序、项目统一配置、已有兼容报告同步、导出图样保留 |
+| 通用项目图表 | 六种图型、指标选择与排序、项目统一配置、已有兼容报告同步、导出图样保留 |
+| 纵向比较（本机 2.24.0） | 多记录勾选、统一评价依据、日期图层、首末与近期变化、独立解读及完整导出 |
 | 人员和记录 | 队伍、搜索、批量操作、历史记录、归档、回收站和测试方案 |
 | 数据与交付 | Excel 模板及导入、JSON/JSONL 备份与恢复、独立 HTML、PDF |
 | 解读 | 可编辑人工正文、离线规则摘要、AI 草稿预览与应用、历史正文保留 |
@@ -55,7 +56,7 @@
 
 适用于 Windows 10 / 11 x64。Setup 包含完整 Electron 运行环境，安装向导可选择中文、含空格及非系统盘目录。Portable 首次启动会解包运行环境。
 
-- **本机 2.22.0 升级**：使用本次交付的 `MotionBench-2.22.0-desktop.1-Setup-x64.exe`，沿用 `D:\Application\Strength&Conditioning\MotionBench`。本轮交付的核验状态见 [2.22.0 验收记录](docs/acceptance-2.22.0.md)。
+- **本机 2.24.0 升级**：使用本次交付的 `MotionBench-2.24.0-desktop.1-Setup-x64.exe`，沿用 `D:\Application\Strength&Conditioning\MotionBench`。本轮交付的核验状态见 [2.24.0 验收记录](docs/acceptance-2.24.0.md)。
 - **公开版本升级**：在侧栏底部“应用设置”检查、下载并重启更新，或运行公开发行的 Setup。
 - **安装版更新**：沿用原安装目录。启动检查默认开启，可关闭；下载和安装均需点击，普通退出不会自动安装。
 - **便携版更新**：在应用设置检查并打开便携版下载，退出程序后替换 exe。

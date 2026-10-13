@@ -2,7 +2,7 @@
 
 桌面版通过 Windows 程序或快捷方式启动，自带运行环境。离线录入、计算、图表、Excel 和报告 PDF 可以直接使用。
 
-本机交付版本为 **2.22.0-desktop.1**，共用工作台版本为 **2.22.0**。本轮使用交付的本地安装程序升级，使用说明见 [2.22.0](motionbench-2.22.0.md)，核验状态与成品校验见 [本机验收记录](acceptance-2.22.0.md)。
+本机交付版本为 **2.24.0-desktop.1**，共用工作台版本为 **2.24.0**。本轮使用交付的本地安装程序升级，使用说明见 [2.24.0](motionbench-2.24.0.md)，核验状态与成品校验见 [本机验收记录](acceptance-2.24.0.md)。
 
 公开下载版本仍为 **2.20.1-desktop.1**：[Windows 桌面版](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1)；离线网页版本见 [HTML 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)。该公开版本的发布和升级核验见 [2.20.1 记录](publication-2.20.1.md)。
 
@@ -12,15 +12,19 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| `MotionBench-2.22.0-desktop.1-Setup-x64.exe` | 本机交付的安装程序，沿用原程序目录 |
-| `MotionBench-2.22.0-desktop.1-Portable-x64.exe` | 本机交付的便携程序 |
-| [2.22.0 验收记录](acceptance-2.22.0.md) | 成品校验与本轮核验范围 |
+| `MotionBench-2.24.0-desktop.1-Setup-x64.exe` | 本机交付的安装程序，沿用原程序目录 |
+| `MotionBench-2.24.0-desktop.1-Portable-x64.exe` | 本机交付的便携程序 |
+| [2.24.0 验收记录](acceptance-2.24.0.md) | 成品校验与本轮核验范围 |
 
 本机安装目录为 `D:\Application\Strength&Conditioning\MotionBench`。运行 Setup 时确认这个原目录，完成后核对运动员、测试记录、方案与人工解读，再关闭并重新打开。原目录升级及真实资料检查的完成状态以验收记录为准。
 
 安装版与便携版均把资料保存在当前 Windows 用户的 `%APPDATA%\MotionBench Desktop`，与程序所在目录分开。
 
-本机 2.22.0 升级使用本次交付的 Setup。公开发行版可使用“应用设置 → 更新与版本”，或运行公开发行的 Setup。公开发行附件中的 `SHA256SUMS.txt` 和 `build-provenance.json` 分别提供文件校验与构建来源。
+本机 2.24.0 升级使用本次交付的 Setup。公开发行版可使用“应用设置 → 更新与版本”，或运行公开发行的 Setup。公开发行附件中的 `SHA256SUMS.txt` 和 `build-provenance.json` 分别提供文件校验与构建来源。
+
+## 纵向比较
+
+在报告首页选择运动员后，打开“测试记录”勾选多期测试。单条显示原报告，多条自动比较；“代表成绩”统一切换最佳值或均值。点击“编辑测试记录”可选择一期编辑并返回比较。每个记录组合分别保存解读，右上角 AI 图标可直接生成可编辑草稿。具体图表、变化计算与导出操作见 [2.24.0 使用说明](motionbench-2.24.0.md)。
 
 ## 设置通用项目报告图表
 
@@ -60,7 +64,7 @@
 
 返回旧程序前，先另存完整备份。程序版本回退与资料恢复分别进行；网页版回退使用原浏览器入口与相应备份。
 
-本机 2.22.0 的升级前保护与升级结果见 [本机验收记录](acceptance-2.22.0.md)。公开版本的回退及修订历史保留在 [2.20.1 发布核验](publication-2.20.1.md)、[2.20.0 历史验收](acceptance-2.20.0.md) 和 [公开发布与补验记录](publication-2.20.0.md)。
+本机 2.24.0 的升级前保护与升级结果见 [本机验收记录](acceptance-2.24.0.md)。公开版本的回退及修订历史保留在 [2.20.1 发布核验](publication-2.20.1.md)、[2.20.0 历史验收](acceptance-2.20.0.md) 和 [公开发布与补验记录](publication-2.20.0.md)。
 
 ## 开发构建
 

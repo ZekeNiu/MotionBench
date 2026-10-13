@@ -1372,7 +1372,7 @@
               deadlift: "#956a43",
             }[item.id] ||
             SERIES[index % SERIES.length],
-          shape: "circle",
+          shape: item.shape || "circle",
         };
       })
       .filter((item) => item.points.length);
@@ -1405,12 +1405,14 @@
         ...allPoints.map((p) => p.load),
         ...intercepts,
         ...estimates,
+        (num(options.axisMax?.load) || 0) / 1.065,
       ) * 1.065;
     let yMax =
       Math.max(
         0.4,
         ...allPoints.map((p) => p.velocity),
         ...series.map((item) => (item.fit && item.fit.a > 0 ? item.fit.a : 0)),
+        (num(options.axisMax?.velocity) || 0) / 1.13,
       ) * 1.13;
     series.forEach((item) => {
       const fit = item.fit,
@@ -1485,14 +1487,14 @@
             y(fit.a),
             x(supportMin),
             y(model(supportMin)),
-            `stroke="${item.color}" stroke-width="2" pointer-events="none"`,
+            `stroke="${item.color}" stroke-width="2"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
           );
         out += line(
           x(supportMin),
           y(model(supportMin)),
           x(supportMax),
           y(model(supportMax)),
-          `stroke="${item.color}" stroke-width="2.5" pointer-events="none"`,
+          `stroke="${item.color}" stroke-width="2.5"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
         );
         if (hasIntercept)
           out += line(
@@ -1500,7 +1502,7 @@
             y(model(supportMax)),
             x(end),
             y(0),
-            `stroke="${item.color}" stroke-width="2" pointer-events="none"`,
+            `stroke="${item.color}" stroke-width="2"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
           );
         const start = hasIntercept ? 0 : supportMin;
         const tooltip = `${item.label || item.id} · ${item.metric || "速度"}：沿拟合线查看负荷与速度`;
@@ -1576,7 +1578,7 @@
           yLegend - 2,
           xLegend + 34,
           yLegend - 2,
-          `stroke="${item.color}" stroke-width="2"`,
+          `stroke="${item.color}" stroke-width="2"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""}`,
         );
       out += text(
         xLegend + 43,

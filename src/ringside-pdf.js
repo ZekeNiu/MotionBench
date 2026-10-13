@@ -190,6 +190,14 @@
     .ringside-pdf-content>table.ringside-pdf-block{margin-bottom:12px!important;}
     .ringside-pdf-document a{color:inherit!important;text-decoration:none!important;}
     .ringside-pdf-document [data-pdf-continuation]{border-top:1px dashed #cbd4de!important;}
+    .ringside-pdf-document .longitudinal-pair{display:block!important;}
+    .ringside-pdf-document .longitudinal-figures{width:100%!important;max-width:none!important;}
+    .ringside-pdf-document .longitudinal-results{table-layout:fixed!important;width:100%!important;}
+    .ringside-pdf-document .longitudinal-results th,.ringside-pdf-document .longitudinal-results td{font-size:10px!important;padding:6px!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .longitudinal-chart-title{font-size:11px!important;}
+    .ringside-pdf-document .longitudinal-screen-layout{display:block!important;}
+    .ringside-pdf-document .longitudinal-risk-chart{width:100%!important;flex:none!important;}
+    .ringside-pdf-document .longitudinal-risk-chart svg,.ringside-pdf-document .longitudinal-risk-chart img{width:100%!important;height:auto!important;max-height:none!important;}
   `;
 
   function progress(callback, phase, current, total, percent) {
@@ -206,7 +214,14 @@
 
   function cleanClone(reportElement,snapshot) {
     const clone = reportElement.cloneNode(true);
-    if(snapshot)root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
+    if(snapshot && clone.dataset.longitudinal !== "true")root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
+    if (clone.dataset.longitudinal === "true") {
+      clone.querySelector("#directionMetrics")?.remove();
+      clone.querySelector("#radarLegend")?.closest(".card-foot")?.remove();
+      clone.querySelectorAll(".longitudinal-pair[data-pdf-pair]").forEach(node => node.removeAttribute("data-pdf-pair"));
+      clone.querySelectorAll(".screen-layout").forEach(node => node.classList.add("longitudinal-screen-layout"));
+      clone.querySelectorAll(".body-art").forEach(node => node.classList.add("longitudinal-risk-chart"));
+    }
     clone.className = "ringside-pdf-document ringside-pdf-source";
     clone.removeAttribute("style");
     clone.removeAttribute("hidden");
@@ -236,6 +251,10 @@
       node.replaceWith(content);
     });
     clone.querySelectorAll(".capability-direction-grid").forEach(grid => {
+      if (clone.dataset.longitudinal === "true") {
+        grid.classList.add("capability-direction-grid-expanded-pdf");
+        return;
+      }
       if (!grid.querySelector(".capability-parameters-static")) {
         grid.dataset.pdfAtomic = "";
         return;
@@ -514,9 +533,9 @@
   function collectBlocks(source, options = {}) {
     const blocks = [];
     const headingSelectors =
-      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading";
+      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading,.longitudinal-chart-title,.longitudinal-table-caption";
     const atomicSelectors =
-      ".hero,.micro-cards,.summary-grid,.stat-row,.empty,.aux-metrics,.card-foot,[data-pdf-atomic]";
+      ".hero,.micro-cards,.summary-grid,.stat-row,.empty,.aux-metrics,.card-foot,.longitudinal-print-panel,.longitudinal-direction-period,[data-pdf-atomic]";
     function push(node, kind, keepWithNext) {
       if (
         !node.textContent.trim() &&
@@ -790,7 +809,7 @@
         element(
           "span",
           "",
-          [snapshot.athlete?.name, snapshot.athlete?.date]
+          [snapshot.athlete?.name, snapshot.longitudinal && snapshot.longitudinalDateRange || snapshot.athlete?.date]
             .filter(Boolean)
             .join(" · "),
         ),
@@ -1273,6 +1292,7 @@
       await readyImages(source);
       const primaryLayouts = layoutPrimaryPairs(source, stage);
       root.RingsideReport.layoutCharts(source, { print: true });
+      if (source.dataset.longitudinal === "true") root.RingsideLongitudinalView?.layout(source, { print: true });
       freezePrimaryColumns(source);
       await freezeCharts(source);
       const sourceChartCount = source.querySelectorAll(

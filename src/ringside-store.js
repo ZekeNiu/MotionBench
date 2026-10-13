@@ -6,6 +6,11 @@
   const request = r => new Promise((resolve,reject) => { r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error); });
   const completed = tx => new Promise((resolve,reject) => { tx.oncomplete=resolve; tx.onabort=()=>reject(tx.error || Error("保存事务已取消")); tx.onerror=()=>{}; });
   const keyRange = generation => IDBKeyRange.bound([generation, ""], [generation, "\uffff"]);
+  function longitudinalReports(value) {
+    if (value === undefined) return [];
+    if (!root.RingsideLongitudinalStore) { if (Array.isArray(value) && !value.length) return []; throw Error("纵向报告存储模块尚未加载"); }
+    return root.RingsideLongitudinalStore.normalizeList(value);
+  }
   function summary(r) {
     return { _summary:true, recordId:r.recordId, athleteId:r.athleteId, athlete:Object.fromEntries(["date","name","age","mass","height","cycle","injury"].map(k=>[k,r.athlete[k]??""])), updated:r.updated,
       title:r.title || "", enabled:clone(r.enabled), demo:!!r.demo, archived:!!r.archived, deletedAt:r.deletedAt || null, evaluationProfileId:r.evaluationProfileId || "" };
@@ -80,7 +85,8 @@
     // Source-only consumers retain the existing producer, including future versions.
     const version = root.RingsideBuild?.version || lib.version;
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
-      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version};
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version,
+      ...(lib.longitudinalReports !== undefined ? {longitudinalReports:longitudinalReports(lib.longitudinalReports)} : {})};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
@@ -89,7 +95,7 @@
     else if (type === "athlete") {
       if (!safe(value.id) || typeof value.name !== "string" || !value.profile || typeof value.profile !== "object" || Array.isArray(value.profile)) throw Error("运动员资料无效");
     } else if (type === "group") { if (!safe(value.id) || typeof value.name !== "string" || !value.name.trim()) throw Error("队伍信息无效"); }
-    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
+    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); longitudinalReports(value.longitudinalReports); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
     else throw Error("备份包含未知资料类型");
     if (type !== "record" && type !== "config" && !safe(value.id)) throw Error("资料 ID 无效");
   }
@@ -143,6 +149,8 @@
     flush() { return this.queue; }
     saveRecords(records=[],checks={},options={}) {
       const generation=this.generation,expected=clone(checks),selection=options.selection?clone(options.selection):null,updated=options.updated;
+      const reports=options.longitudinalReports === undefined ? null : longitudinalReports(options.longitudinalReports);
+      if(reports && typeof expected.expectedLongitudinalReports!=="string")throw Error("保存纵向报告缺少原正文校验依据");
       const snapshots=records.map(record=>{validateEntity("record",record);return clone(record);});
       const newAthletes=(options.newAthletes||[]).map(owner=>{const value=athleteMetadata(owner);validateEntity("athlete",value);return value;});
       const recordIds=new Set(),ownerIds=new Set();
@@ -174,13 +182,25 @@
             if(!await request(tx.objectStore("profiles").get([generation,record.evaluationProfileId])))throw Error("测试的评价方案已不存在，请重新选择");
           }
           const nextConfig={...storedConfig};
+          if(reports){
+            if(JSON.stringify(storedConfig.longitudinalReports||[])!==expected.expectedLongitudinalReports)throw Error("纵向报告已在其他页面修改，请重新打开并核对后保存");
+            for(const document of reports){
+              const owner=owners.get(document.athleteId)||(await request(tx.objectStore("athletes").get([generation,document.athleteId])))?.value;
+              const selected=[];
+              for(const id of document.recordIds)selected.push(snapshots.find(record=>record.recordId===id)||(await request(tx.objectStore("records").get([generation,id])))?.value);
+              if(selected.some(record=>!record))throw Error("纵向报告的测试记录已不存在");
+              const profile=document.evaluationProfileId?(await request(tx.objectStore("profiles").get([generation,document.evaluationProfileId])))?.value:null;
+              root.RingsideLongitudinalStore.validateReferences(document,{athletes:owner?[{...owner,records:selected}]:[],evaluationProfiles:profile?[profile]:[]});
+            }
+            nextConfig.longitudinalReports=reports;
+          }
           if(selection){
             const selectedRecord=snapshots.find(record=>record.recordId===selection.activeRecordId)||(selection.activeRecordId?(await request(tx.objectStore("records").get([generation,selection.activeRecordId])))?.value:null);
             const selectedOwner=owners.get(selection.activeAthleteId)||(selection.activeAthleteId?(await request(tx.objectStore("athletes").get([generation,selection.activeAthleteId])))?.value:null);
             if(selection.activeAthleteId && (!selectedOwner || selectedOwner.deletedAt) || selection.activeRecordId && (!selectedRecord || selectedRecord.deletedAt || selectedRecord.athleteId!==selection.activeAthleteId))throw Error("当前运动员或记录已不存在，请重新打开");
             nextConfig.activeAthleteId=selection.activeAthleteId;nextConfig.activeRecordId=selection.activeRecordId;
           }
-          if(snapshots.length){nextConfig.updated=updated||new Date().toISOString();nextConfig.version=root.RingsideBuild?.version||storedConfig.version;}
+          if(snapshots.length||reports){nextConfig.updated=updated||new Date().toISOString();nextConfig.version=root.RingsideBuild?.version||storedConfig.version;}
           const configChanged=JSON.stringify(nextConfig)!==JSON.stringify(storedConfig);
           for(const owner of newAthletes)tx.objectStore("athletes").put({generation,id:owner.id,value:owner});
           for(const record of snapshots){tx.objectStore("records").put({generation,id:record.recordId,value:record});tx.objectStore("recordIndex").put({generation,id:record.recordId,value:summary(record)});}
@@ -197,7 +217,9 @@
     }
     save(lib,records=[],removals={},checks={}) {
       const generation=this.generation;
-      const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles.map(p=>E.serializeProfile ? E.serializeProfile(p) : p)],["config",[{...configuration(lib),id:"library"}]]].map(([table,items])=>[table,clone(items)]);
+      const config=configuration(lib);
+      if(config.longitudinalReports&&(removals.athletes?.length||removals.records?.length))config.longitudinalReports=config.longitudinalReports.filter(document=>!removals.athletes?.includes(document.athleteId)&&!document.recordIds.some(id=>removals.records?.includes(id)));
+      const metadata=[["athletes",lib.athletes.map(athleteMetadata)],["groups",lib.groups],["profiles",lib.evaluationProfiles.map(p=>E.serializeProfile ? E.serializeProfile(p) : p)],["config",[{...config,id:"library"}]]].map(([table,items])=>[table,clone(items)]);
       for(const [table,items] of metadata){
         const ids=new Set();
         for(const item of items){if(ids.has(item.id))throw Error("资料包含重复编号");ids.add(item.id);validateEntity({athletes:"athlete",groups:"group",profiles:"profile",config:"config"}[table],item);}
@@ -217,6 +239,7 @@
         }
         for(const r of snapshots)writes.push(["records",r.recordId,r],["recordIndex",r.recordId,summary(r)]);
         for(const id of deletions.records||[])(deletions.recordIndex ||= []).push(id);
+        if((deletions.records?.length||deletions.athletes?.length)&&!writes.some(([table])=>table==="config"))writes.push(["config","library",clone(config)]);
         const guarded = expected.expectedConfig !== undefined || expected.expectedRecords || expected.expectedAthletes || expected.expectedProfiles || expected.expectedGroups || expected.expectedOwnerRecordIds;
         const names=[...new Set(writes.map(w=>w[0]).concat(Object.keys(deletions), ["meta"], guarded ? ["records","athletes","config"] : [], expected.expectedProfiles ? ["profiles"] : [], expected.expectedGroups ? ["groups"] : [], expected.expectedOwnerRecordIds ? ["recordIndex"] : [], snapshots.length ? ["athletes"] : []))];
         if(!writes.length&&!Object.keys(deletions).length&&!guarded)return;
@@ -244,6 +267,21 @@
           for(const record of snapshots){
             const owner=changedOwners.get(record.athleteId)||(await request(tx.objectStore("athletes").get([generation,record.athleteId])))?.value;
             if(owner&&(owner.profile?.birthDate||"")!==(record.athlete.birthDate||""))throw Error("运动员生日已更新，请重新打开本次记录后保存");
+          }
+          const configWrite=writes.find(([table])=>table==="config");
+          if(configWrite){
+            const callerConfig=clone(configWrite[2]);
+            const stored=(await request(tx.objectStore("config").get([generation,"library"])))?.value;
+            const baseline=JSON.parse(this.metadataHashes.get("config:library")||"null");
+            const before=JSON.stringify(baseline?.longitudinalReports||[]),current=JSON.stringify(stored?.longitudinalReports||[]),desired=JSON.stringify(configWrite[2].longitudinalReports||[]);
+            // Unrelated management changes must retain comparison text saved
+            // by another page. Intentional document edits still use CAS.
+            if(desired===before){if(stored?.longitudinalReports!==undefined)configWrite[2].longitudinalReports=clone(stored.longitudinalReports);}
+            else if(current!==before)throw Error("纵向报告已在其他页面修改，请重新打开并核对后保存");
+            if(configWrite[2].longitudinalReports)configWrite[2].longitudinalReports=configWrite[2].longitudinalReports.filter(document=>!deletions.athletes?.includes(document.athleteId)&&!document.recordIds.some(id=>deletions.records?.includes(id)));
+            // The caller has not read another page's documents. Keep that
+            // field's old baseline until directory() refreshes its local copy.
+            nextHashes.set("config:library",JSON.stringify(desired===before&&current!==before?callerConfig:configWrite[2]));
           }
           for(const [table,id,value] of writes)tx.objectStore(table).put({generation,id,value});
           for(const [table,ids] of Object.entries(deletions))for(const id of ids)tx.objectStore(table).delete([generation,id]);
@@ -346,7 +384,7 @@
       const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
       let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
-      let incomingPlans=[],plansMerged=false;const planMap=new Map();
+      let incomingPlans=[],incomingReports=[],plansMerged=false;const planMap=new Map();
       const mergePlans=()=>{
         if(plansMerged)return;plansMerged=true;
         const merged=seeded?clone(config.testPlans||[]):[];
@@ -395,6 +433,7 @@
           if(counts.athlete>2000||counts.record>10000)throw Error("备份超过 2000 名运动员或 10000 条记录");
           if(row.type==="config") {
             incomingPlans=clone(v.testPlans||[]);
+            incomingReports=longitudinalReports(v.longitudinalReports);
             v.defaultEvaluationProfileId=profileMap.get(v.defaultEvaluationProfileId)||v.defaultEvaluationProfileId;
             if(seeded){mergeCatalog(config.catalog,v.catalog);continue;}
             config=v;
@@ -431,6 +470,16 @@
         for(const a of owners.values())if(a.groupId&&!groups.has(a.groupId))throw Error("运动员所属队伍不存在");
         if(!seeded)config.defaultEvaluationProfileId=profileMap.get(config.defaultEvaluationProfileId)||config.defaultEvaluationProfileId;
         if(!profiles.has(config.defaultEvaluationProfileId))throw Error("默认评价方案不存在");
+        if(incomingReports.length || config.longitudinalReports !== undefined){
+          config.longitudinalReports=root.RingsideLongitudinalStore.merge(seeded?config.longitudinalReports:[],incomingReports,{recordMap,profileMap});
+          await flush();
+          for(const document of config.longitudinalReports){
+            const owner=owners.get(document.athleteId), records=[];
+            for(const id of document.recordIds)records.push(await this.get("records",id,generation));
+            if(records.some(record=>!record))throw Error("纵向报告的测试记录不存在");
+            root.RingsideLongitudinalStore.validateReferences(document,{athletes:owner?[{...owner,records}]:[],evaluationProfiles:[...profiles.values()]});
+          }
+        }
         config.activeAthleteId=owners.has(config.activeAthleteId)?config.activeAthleteId:"";
         if(config.activeRecordId){await flush();const active=await this.get("records",config.activeRecordId,generation);if(!active||active.athleteId!==config.activeAthleteId)config.activeRecordId="";}
         pending.push({type:"config",value:config});await flush();
@@ -447,7 +496,7 @@
         tx.objectStore("meta").put({id:"previous",value:oldGeneration});await done;
         this.generation=generation;this.metadataHashes.clear();
         if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
-        return{added:imported,skipped:counts.record-imported,recordMap};
+        return{added:imported,skipped:counts.record-imported,recordMap,profileMap:Object.fromEntries(profileMap)};
       }catch(error){await this.discardGeneration(generation).catch(()=>{});throw error;}
     }
     async discardGeneration(generation) {

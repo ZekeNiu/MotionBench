@@ -1,0 +1,67 @@
+{
+  "version": "2.24.0",
+  "sourceHash": "c7c3bc275cb6176031ab15c3a30a3b921b93e498629c56dbcbb24ecc92375c0f",
+  "scope": "Single-record and generic regression, native regression, and actual longitudinal PDF page review",
+  "verifierSha256": "ed59236b6a1ef609c1c3f3f8a162f64bd9479d547f57377093db0b97f4ac25c3",
+  "sharedVerifierSha256": "94337fd768f69349ef12a300785d5fa5a6ffd6a03de70d60712f2e3eb6b344ca",
+  "regressions": [
+    {
+      "file": "output/playwright/v224/app/chrome-results.json",
+      "sha256": "c16cd9bcac116cdbb07111160f291d7ccd27b1b6b79cee490cd7f365d24e6dfa",
+      "runner": "tests/app-v220-browser-tests.cjs",
+      "runnerSha256": "7b78f7d2610df8edb17368f7fa5b1d4e607524e0a0b7efd18e0b98a25874b138",
+      "checksPassing": 7,
+      "checksExpected": 7,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v224/report-regression/chrome.json",
+      "sha256": "cc1e7e26f5c0094ab31aae5953d90a4d03dd242e87191395a718a6a20ad9adeb",
+      "runner": "tests/report-v220-browser-tests.cjs",
+      "runnerSha256": "4a4903cbe3ede405fbe3a94ea124e421e560c3e792aa5616dd57c99b23f1ece1",
+      "checksPassing": 8,
+      "checksExpected": 8,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v224/generic-regression/chrome/results.json",
+      "sha256": "1fc139c9d94abda849017780ac777d56c55756844d7d5cfefac658c9371a170e",
+      "runner": "tests/generic-report-browser-tests.cjs",
+      "runnerSha256": "7cc1e1c183f293574922f24709cd95dbedb8ec5cc7408ea4d8036e8a95c5705b",
+      "checksPassing": 17,
+      "checksExpected": 17,
+      "pass": true
+    }
+  ],
+  "native": {
+    "file": "output/desktop-smoke-v224/results.json",
+    "sha256": "dd16869870632baecab282aedcc9cb45c52b207c8aedea8864da50bdbcd8c843",
+    "runner": "tests/desktop-smoke.cjs",
+    "runnerSha256": "b1998938e1487b9e00d038f8f0c40b2c29a0944e05a04b78408d8b76489b354d",
+    "checksPassing": 16,
+    "checksExpected": 16,
+    "pass": true,
+    "environmentIssue": null
+  },
+  "visual": {
+    "file": "output/implementation-2.24.0/visual-review.json",
+    "sha256": "f63886ce7839b4d541948dd11fb3a2be257b24b1c46d11c0de47c992a862b9be",
+    "pdfs": 2,
+    "pages": 118,
+    "pass": true
+  },
+  "checksPassing": 48,
+  "checksExpected": 48,
+  "pdfFiles": {
+    "output/playwright/v224/report-regression/chrome-primary.pdf": 6,
+    "output/playwright/v224/report-regression/chrome-mean.pdf": 6,
+    "output/desktop-smoke-v224/native-downloads/MotionBench_Windows_桌面验收运动员（合成）_2026-10-11_7f5c23.pdf": 11,
+    "output/playwright/v224/longitudinal/chrome/comparison.pdf": 59,
+    "output/playwright/v224/longitudinal/desktop/comparison.pdf": 59
+  },
+  "pdfCount": 5,
+  "pdfPages": 141,
+  "pass": true,
+  "passedWithRecordedEnvironmentIssue": false,
+  "status": "passed"
+}

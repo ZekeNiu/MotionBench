@@ -1,0 +1,47 @@
+/* Comparison styles are scoped so a single-record report retains its layout. */
+[data-longitudinal="true"] .screen-layout,
+[data-longitudinal="true"] .performance-layout{display:block;}
+[data-longitudinal="true"] .body-art,
+[data-longitudinal="true"] .radar{width:100%;max-width:none;min-height:0;}
+[data-longitudinal="true"] .body-art>svg{height:auto;max-height:none;}
+[data-longitudinal="true"] #directionMetrics{display:none;}
+.longitudinal-pair{grid-template-columns:minmax(290px,.88fr) minmax(0,1.12fr);align-items:start;gap:22px;}
+.longitudinal-figures,.longitudinal-pair>.detail-data{min-width:0;}
+.longitudinal-chart{max-width:none!important;padding:0!important;min-width:0;}
+.longitudinal-chart+.longitudinal-chart{margin-top:20px;}
+.longitudinal-chart svg{display:block;width:100%;height:auto;max-height:none!important;overflow:visible;}
+.longitudinal-chart-scroll{max-width:100%;overflow-x:auto;}
+.longitudinal-chart-title{font-size:12px;font-weight:600;margin:0 0 9px;color:var(--ink,#263747);}
+.longitudinal-chart-note{font-size:10px;line-height:1.6;color:var(--muted,#667684);margin:2px 0 12px;}
+.longitudinal-legend,.longitudinal-curve-key{display:flex;flex-wrap:wrap;gap:6px 14px;margin:8px 0 12px;font-size:10px;line-height:1.5;}
+.longitudinal-legend span,.longitudinal-curve-key span{display:inline-flex;gap:6px;align-items:center;overflow-wrap:anywhere;}
+.longitudinal-legend i{display:inline-block;width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.longitudinal-curve-key i{display:inline-block;width:18px;border-top:2px solid;flex-shrink:0;}
+.longitudinal-results{width:100%;table-layout:fixed;font-size:11px;}
+.longitudinal-results th,.longitudinal-results td{padding:9px 6px!important;line-height:1.5;overflow-wrap:anywhere;vertical-align:top;}
+.longitudinal-results th:first-child,.longitudinal-results td:first-child{width:140px;}
+.longitudinal-results strong{display:block;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;}
+.longitudinal-results small{display:block;margin-top:3px;font-size:10px;line-height:1.5;color:var(--muted,#667684);font-weight:400;}
+.longitudinal-results .longitudinal-change small{color:inherit;}
+.longitudinal-results .longitudinal-change-label{display:block;font-size:9px;color:var(--muted,#667684);margin:0 0 2px;}
+.longitudinal-results .longitudinal-change-label:not(:first-child){margin-top:7px;}
+.longitudinal-change.improved{color:var(--green,#176b68);}
+.longitudinal-change.declined{color:var(--red,#bd514b);}
+.longitudinal-unavailable,.longitudinal-empty{color:var(--muted,#667684);font-size:10px;line-height:1.6;}
+.longitudinal-table-caption{font-size:10px;color:var(--muted,#667684);margin:16px 0 6px;}
+.longitudinal-table-caption:first-child{margin-top:0;}
+.longitudinal-raw{margin-top:16px;}
+.longitudinal-raw>details{margin:8px 0;}
+.longitudinal-capability .longitudinal-results th:first-child{width:24%;}
+.longitudinal-direction-period{padding:10px 0;border-bottom:1px solid var(--line,#dbe2e8);}
+.longitudinal-direction-period:last-child{border-bottom:0;}
+.longitudinal-direction-date{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted,#667684);margin:0 0 7px;}
+.longitudinal-direction-date i{display:block;width:8px;height:8px;border-radius:50%;}
+.longitudinal-capability .capability-direction-value{font-size:20px;}
+.longitudinal-table>.table-wrap{overflow-x:auto;}
+[data-longitudinal="true"] .summary-grid>.card{min-width:0;}
+@media(max-width:950px){.longitudinal-pair{grid-template-columns:minmax(0,1fr);gap:14px;}.longitudinal-figures{max-width:620px;width:100%;margin:0 auto;}}
+@media(max-width:520px){.longitudinal-results th,.longitudinal-results td{padding:7px 4px!important;font-size:10px;}.longitudinal-results strong{font-size:11px;}.longitudinal-results th:first-child,.longitudinal-results td:first-child{width:26%;}.longitudinal-results small{font-size:9px;}.longitudinal-legend{gap:5px 10px;}}
+@media print{.longitudinal-chart{break-inside:avoid;}.longitudinal-results thead{display:table-header-group;}}
+
+[data-longitudinal="true"] .card-foot:has(#radarLegend){display:none!important;}

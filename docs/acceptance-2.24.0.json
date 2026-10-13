@@ -1,0 +1,131 @@
+{
+  "version": "2.24.0",
+  "desktopVersion": "2.24.0-desktop.1",
+  "scope": "Explicit longitudinal, storage, AI, toolbar and desktop unit evidence; local Windows delivery; no publication",
+  "sourceHash": "c7c3bc275cb6176031ab15c3a30a3b921b93e498629c56dbcbb24ecc92375c0f",
+  "verifierSha256": "94337fd768f69349ef12a300785d5fa5a6ffd6a03de70d60712f2e3eb6b344ca",
+  "modelSuites": 60,
+  "modelChecks": 905,
+  "desktopUnitSuites": 5,
+  "unitProof": {
+    "file": "output/tests/v224/unit-results.json",
+    "sha256": "f7c4dc2c31dd11668ea1acaf52868023a03fee014ff5448020c8dfc3b54b1c5d"
+  },
+  "desktopUnitProof": {
+    "file": "output/tests/v224/desktop-unit/results.json",
+    "sha256": "d8c34c9a508016be5d9a12a0c5153050ce5102482baa58c376f5bee8b9ca47a0"
+  },
+  "proofs": {
+    "output/playwright/v224/longitudinal/chrome/results.json": {
+      "sha256": "3e198b34b1c4ff7c351c54d58f8df8a2213624f2db4c58f9e93a14f5ef6d080d",
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "runnerSha256": "fabf4c07b1c9c92427dad0f713008fd6d9e7871bd5060d556d36c0e87cb34092",
+      "checks": 11
+    },
+    "output/playwright/v224/longitudinal/msedge/results.json": {
+      "sha256": "8bf5bdd81bd1493e267740f694492e13efc5341321421f969f6c83ac3548b9ac",
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "runnerSha256": "fabf4c07b1c9c92427dad0f713008fd6d9e7871bd5060d556d36c0e87cb34092",
+      "checks": 10
+    },
+    "output/playwright/v224/longitudinal/desktop/results.json": {
+      "sha256": "cf26d610930de0779025d03fbd7481d15db54fefe35e9cfde6111b63fde309eb",
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "runnerSha256": "fabf4c07b1c9c92427dad0f713008fd6d9e7871bd5060d556d36c0e87cb34092",
+      "checks": 11
+    },
+    "output/playwright/v224/longitudinal-ai/chrome/results.json": {
+      "sha256": "a1daf1b01c3bdecb7bf65c82451bd48133a0d131bb4c1137372080becaa92d89",
+      "runner": "tests/longitudinal-ai-browser-tests.cjs",
+      "runnerSha256": "7c0fc559a3ec7d39b6d970d62ed5b82e1da21cf234a20393d21e7241f3598ad5",
+      "checks": 11
+    },
+    "output/playwright/v224/longitudinal-ai/msedge/results.json": {
+      "sha256": "a94565c9ddf24aa3bf44020eb44404de1e957074afbc97d7534e5e58ed514958",
+      "runner": "tests/longitudinal-ai-browser-tests.cjs",
+      "runnerSha256": "7c0fc559a3ec7d39b6d970d62ed5b82e1da21cf234a20393d21e7241f3598ad5",
+      "checks": 11
+    },
+    "output/playwright/v224/longitudinal-interaction/chrome/results.json": {
+      "sha256": "67f7a5c66c1c22dde45f9cfd0b9c1d8a7de164148f41f74972348945d6c1e4e7",
+      "runner": "tests/longitudinal-interaction-browser-tests.cjs",
+      "runnerSha256": "5666af8c7e3d9fc09a20079c13ae24a8b92b92f11ba2a936e632054f855e6c72",
+      "checks": 8
+    },
+    "output/playwright/v224/longitudinal-interaction/msedge/results.json": {
+      "sha256": "c751a566dc024286a66e7e1696f55cbdf1e738e37d59ce3fb3a78ba2a274156c",
+      "runner": "tests/longitudinal-interaction-browser-tests.cjs",
+      "runnerSha256": "5666af8c7e3d9fc09a20079c13ae24a8b92b92f11ba2a936e632054f855e6c72",
+      "checks": 8
+    },
+    "output/playwright/v224/longitudinal-storage/chrome/results.json": {
+      "sha256": "72c0d8a361289440cc3853c5062bc168ad8c8cbfd7ee014d48dc9c47911402a8",
+      "runner": "tests/longitudinal-storage-browser-tests.cjs",
+      "runnerSha256": "46ce81008ea03dc43dbdf3f5fb99efd2a59c10d125b0734e071bfff78b24d87a",
+      "checks": 12
+    },
+    "output/playwright/v224/longitudinal-storage/msedge/results.json": {
+      "sha256": "5ea9ec4bbb81edae5382f4018d5e7f61e260b30252cb4af527fe563cbce222ea",
+      "runner": "tests/longitudinal-storage-browser-tests.cjs",
+      "runnerSha256": "46ce81008ea03dc43dbdf3f5fb99efd2a59c10d125b0734e071bfff78b24d87a",
+      "checks": 12
+    },
+    "output/playwright/v224/toolbar/chrome-results.json": {
+      "sha256": "ec4645df786aaf9f951d402e147baf71258bea9dc785056b98f491af90fe5e57",
+      "runner": "tests/report-toolbar-browser-tests.cjs",
+      "runnerSha256": "801245241e189d8d84f28213ab9d49a19843a436a5e9b5b5cfcbba55d4581038",
+      "checks": 9
+    },
+    "output/playwright/v224/toolbar/msedge-results.json": {
+      "sha256": "c7fe97bd25fb049c1d935650d3d311a5e07f23cd2009b6695ec61771d71e2476",
+      "runner": "tests/report-toolbar-browser-tests.cjs",
+      "runnerSha256": "801245241e189d8d84f28213ab9d49a19843a436a5e9b5b5cfcbba55d4581038",
+      "checks": 9
+    }
+  },
+  "pdfFiles": {
+    "output/playwright/v224/longitudinal/chrome/comparison.pdf": 59,
+    "output/playwright/v224/longitudinal/desktop/comparison.pdf": 59
+  },
+  "pdfCount": 2,
+  "pdfPages": 118,
+  "packageProofSha256": "e4f41eb4ddfda0e46c957e98c5cb742f6b8528c85c259fdd453418e1730479b5",
+  "archiveSha256": "277e6b31af104329ed38094860d3b9d42ba35f17c741aaad600ef0982db5f186",
+  "executableSha256": "be507e45adee0367f2d7387734d88f74c1b331af3132edda9c1f76cb1605123f",
+  "private": {
+    "pass": true,
+    "checkpointManifestSha256": "20394bfe8d670f2ec25f860837883ca0c99f975f8e52c4c5b6d170a8bb145aea",
+    "checkpointFiles": 148,
+    "configurationUnchanged": true,
+    "installationProofSha256": "8b4274af8ac5346d597512ea6120ec63a187f9f312ef074225f00b6f3452db04",
+    "receipts": {
+      "baseline": {
+        "sha256": "e81c70317bf6acff33da7ddeab3d147a88a75c9e63fed3ebf0c4b9e693fbac6c",
+        "checks": 2,
+        "athletes": 26,
+        "records": 146
+      },
+      "candidate": {
+        "sha256": "0bd48f1db5f0f3511ab8c15b3a9c4cbf7f9fbe720417358dd37b693b66c0e0f1",
+        "checks": 4,
+        "athletes": 26,
+        "records": 146
+      },
+      "installed": {
+        "sha256": "fe0c68b53e06c9f571c729901b10168a7f55ac459b922e84b1befeb86fa40e3e",
+        "checks": 3,
+        "athletes": 26,
+        "records": 146
+      },
+      "reopened": {
+        "sha256": "036b1f6765ac285e0cd49ab65c7f9cad6094e3d7e25ae5f96a4b4ff0889c4298",
+        "checks": 3,
+        "athletes": 26,
+        "records": 146
+      }
+    }
+  },
+  "privateVerified": true,
+  "additionalRegressionAndVisualReview": "Not included in this verifier's explicit proof inventory",
+  "pass": true
+}
