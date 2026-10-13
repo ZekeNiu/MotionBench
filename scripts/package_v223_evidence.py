@@ -31,6 +31,7 @@ for folder in ('src', 'tests', 'scripts', 'docs'):
 # include stale exploratory PDFs that happen to remain beside a final receipt.
 receipts = list(acceptance['proofs']) + [
     'output/tests/v223/final/unit-results.json', 'output/tests/v223/desktop-unit/results.json',
+    'output/implementation-2.23.0/final-source-render/render-review.json',
     'output/implementation-2.23.0/visual-review.json']
 for relative in receipts:
     members.add(relative)

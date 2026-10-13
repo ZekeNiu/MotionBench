@@ -71,6 +71,15 @@ def proof(relative, runner, minimum, native=False):
     data = read(relative)
     require(data.get('pass') is True and not data.get('errors') and not data.get('network'), 'Failed check: ' + relative)
     require(len(data.get('checks', [])) >= minimum, 'Checks incomplete: ' + relative)
+    comparison = runner in ('tests/comparison-browser-tests.cjs', 'tests/desktop-comparison-tests.cjs')
+    for key, helper in [('pdfBoundsHelperSha256', 'tests/helpers/comparison-pdf-bounds.cjs'),
+                        ('screeningHelperSha256', 'tests/helpers/comparison-screening.cjs')]:
+        if comparison:
+            require(key in data, 'Check helper attribution missing: ' + relative)
+        if key in data:
+            require(data[key] == digest(ROOT / helper), 'Check helper changed: ' + relative)
+    if comparison or runner == 'tests/comparison-storage-browser-tests.cjs':
+        require(data.get('fixtureSha256') == digest(ROOT / 'output/comparison-demo/团队与纵向模拟资料库.json'), 'Comparison fixture differs: ' + relative)
     if not native:
         require(data['sourceHash'] == source_hash and data['sourceUnchanged'], 'Stale evidence: ' + relative)
         require(data['runnerSha256'] == digest(ROOT / runner), 'Producer changed: ' + relative)
@@ -85,6 +94,10 @@ def proof(relative, runner, minimum, native=False):
         for file, sha in identity['sourceHashes'].items():
             require(digest(ROOT / file) == sha, 'Native input differs: ' + file)
         require(data.get('artifactUnchanged') is True or data.get('finalIdentity') == identity, 'Native artifact changed during run')
+        for file, sha in identity['runtimeHashes'].items():
+            if file.startswith('desktop/'):
+                require(identity['sourceHashes'][file] == sha, 'Native module differs: ' + file)
+        require(not data['cleanup']['errors'] and data['cleanup']['temporaryProfileRemoved'], 'Native cleanup incomplete')
     for item in data.get('artifacts', []):
         verify_artifact(item, relative)
     reports = data.get('pdfs', [])
@@ -95,24 +108,35 @@ def proof(relative, runner, minimum, native=False):
         require(diagnostics.get('status') == 'complete', 'PDF incomplete: ' + relative)
         for key in ('missingRows', 'duplicateRows', 'changedRows', 'missingCharts', 'duplicateCharts'):
             require(not diagnostics[key], 'PDF content failure: ' + key)
+        if comparison:
+            require(len(item['pages']) == diagnostics['pageCount'], 'PDF page evidence incomplete')
+            for page in item['pages']:
+                require('bounds' in page, 'PDF physical bounds missing')
+                for image in page['bounds']['images']:
+                    require(image['loaded'] and image['insideContent'] and not image['clippingAncestors'], 'PDF artwork clipped/incomplete')
+                for facet in page['bounds']['facets']:
+                    require(facet['contained'] and facet['scrollWidth'] <= facet['width'] + 2, 'PDF screening facets clipped')
+    if comparison and (native or data['channel'] == 'chrome'):
+        require(len(reports) == (1 if native else 2), 'Comparison PDF inventory incomplete')
     proofs[relative] = {'sha256': digest(ROOT / relative), 'checks': len(data['checks'])}
     return data
 
 
 for channel in ('chrome', 'msedge'):
-    proof(f'output/playwright/v223/comparison-ui/{channel}.json', 'tests/comparison-browser-tests.cjs', 13)
+    proof(f'output/playwright/v223/comparison-ui/{channel}.json', 'tests/comparison-browser-tests.cjs', 17 if channel == 'chrome' else 15)
     proof(f'output/playwright/v223/comparison-storage/{channel}.json', 'tests/comparison-storage-browser-tests.cjs', 15)
 proof('output/playwright/v223/single-generic/results.json', 'tests/generic-report-browser-tests.cjs', 17)
 proof('output/playwright/v223/single-report/chrome.json', 'tests/report-v220-browser-tests.cjs', 6)
-proof('output/playwright/v223/single-app/chrome-results.json', 'tests/app-v220-browser-tests.cjs', 6)
-proof('output/playwright/v223/single-storage/chrome.json', 'tests/storage-v220-browser-tests.cjs', 21)
-proof('output/playwright/v223/excel/chrome-results.json', 'tests/excel-workflow-browser-tests.cjs', 1)
+proof('output/playwright/v223/single-app/chrome-results.json', 'tests/app-v220-browser-tests.cjs', 7)
+proof('output/playwright/v223/single-storage/chrome.json', 'tests/storage-v220-browser-tests.cjs', 22)
+proof('output/playwright/v223/excel/chrome-results.json', 'tests/excel-workflow-browser-tests.cjs', 15)
 proof('output/tests/v223-desktop/comparison/native-comparison-results.json', 'tests/desktop-comparison-tests.cjs', 10, native=True)
-proof('output/tests/v223-desktop/smoke/results.json', 'tests/desktop-smoke.cjs', 1, native=True)
+proof('output/tests/v223-desktop/smoke/results.json', 'tests/desktop-smoke.cjs', 16, native=True)
 
 desktop_units = read('output/tests/v223/desktop-unit/results.json')
 require(desktop_units['pass'] and desktop_units['sourceHash'] == source_hash and desktop_units['sourceUnchanged'], 'Desktop unit evidence differs')
 require(desktop_units['runnerSha256'] == digest(ROOT / 'tests/run-v223-desktop-unit.cjs'), 'Desktop unit producer differs')
+require(len(desktop_units['suites']) == 5, 'Desktop unit inventory incomplete')
 for file, sha in desktop_units['runtimeHashes'].items():
     require(digest(ROOT / file) == sha, 'Desktop input differs')
 for suite in desktop_units['suites']:
@@ -128,6 +152,13 @@ require(facts['testSha256'] == digest(ROOT / 'tests/comparison-controller-facts-
 require(facts['fixtureSha256'] == digest(ROOT / 'output/comparison-demo/团队与纵向模拟资料库.json'), 'AI facts fixture differs')
 require(facts['people'] == 24 and facts['dates'] == 6 and facts['records'] == 143 and facts['metrics'] == 363, 'AI full-team fixture incomplete')
 require(facts['exactRoundTrip'] == {'observations': 52272, 'transitions': 26481} and facts['requestBytes'] < 8 * 1024 * 1024, 'AI facts round trip/request capacity failed')
+render_path = 'output/implementation-2.23.0/final-source-render/render-review.json'
+render = read(render_path)
+require(render['pass'] and render['sourceHash'] == source_hash and render['sourceUnchanged'], 'Render checks missing/stale')
+require(render['runnerHash'] == digest(ROOT / 'tests/comparison-render-model-tests.cjs'), 'Render producer changed')
+require(render['modelChecks'] >= 28 and render['browserChecks'] == 28 and all(render['embedding'].values()), 'Render checks incomplete')
+for file, sha in render['moduleHashes'].items():
+    require(digest(ROOT / file) == sha, 'Render input differs: ' + file)
 visual = read('output/implementation-2.23.0/visual-review.json')
 require(visual.get('pass') is True and visual['sourceHash'] == source_hash, 'Visual review missing/stale')
 for item in visual.get('images', []):
@@ -172,7 +203,8 @@ summary = {'pass': True, 'version': '2.23.0', 'desktopVersion': '2.23.0-desktop.
            'modelSuites': len(unit['suites']), 'modelChecks': sum(s['checksPassed'] for s in unit['suites']),
            'proofs': proofs, 'pdfs': pdfs, 'pdfPages': sum(pdfs.values()), 'package': package,
            'visualReviewSha256': digest(ROOT / 'output/implementation-2.23.0/visual-review.json'),
-           'factsProofSha256': digest(ROOT / 'output/playwright/v223/ai-facts-diagnostic/controller-full-proof.json'), 'private': private}
+           'factsProofSha256': digest(ROOT / 'output/playwright/v223/ai-facts-diagnostic/controller-full-proof.json'),
+           'renderReviewSha256': digest(ROOT / render_path), 'renderBrowserChecks': render['browserChecks'], 'private': private}
 if args.record:
     (ROOT / 'docs/acceptance-2.23.0.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 print(json.dumps({k: summary[k] for k in ('pass', 'version', 'modelSuites', 'modelChecks', 'pdfPages', 'sourceHash')}))

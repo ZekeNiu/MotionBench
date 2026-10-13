@@ -19005,7 +19005,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const REGIONS = { neck: "颈部", trunk: "躯干", shoulder_r: "右肩", shoulder_l: "左肩", scapula_r: "右肩胛带", scapula_l: "左肩胛带", elbow_r: "右肘", elbow_l: "左肘", forearm_r: "右前臂", forearm_l: "左前臂", wrist_r: "右腕", wrist_l: "左腕", hip_r: "右髋", hip_l: "左髋", knee_r: "右膝", knee_l: "左膝", ankle_r: "右踝足", ankle_l: "左踝足" };
   const E = value => String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
   const N = value => typeof value === "number" && Number.isFinite(value) ? value : null;
-  const F = (value, digits = 2) => N(value) === null ? "—" : Number(value.toFixed(digits)).toLocaleString("zh-CN", { maximumFractionDigits: digits, useGrouping: false });
+  const F = (value, digits = 2) => {
+    if (N(value) === null) return "—";
+    if (value === 0) return "0";
+    let precision = digits;
+    if (digits > 0 && Math.abs(value) < 10 ** -digits) {
+      precision = Math.max(digits, 2 - Math.floor(Math.log10(Math.abs(value))));
+      if (precision > 12) return value.toExponential(2);
+    }
+    const rounded = Number(value.toFixed(precision));
+    return (rounded === 0 ? 0 : rounded).toLocaleString("zh-CN", { maximumFractionDigits: precision, useGrouping: false });
+  };
   const signed = value => N(value) === null ? "—" : (value > 0 ? "+" : "") + F(value);
   const copy = value => JSON.parse(JSON.stringify(value));
   const people = model => new Map((model.athletes || []).map(a => [a.id, a.name || a.profile?.name || "未命名队员"]));

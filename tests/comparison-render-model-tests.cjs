@@ -82,6 +82,15 @@ test("negative load velocity slopes keep distinct ticks and never show negative 
   const labels = [...R.metricChart(model, metric).matchAll(/<text[^>]*class="comparison-y-tick"[^>]*>([^<]+)<\/text>/g)].map(match => match[1]), ticks = labels.map(Number);
   assert.equal(ticks.length, 5); assert.equal(new Set(ticks).size, 5); assert.ok(ticks.every(value => value <= 0)); assert.ok(ticks.some(value => value < -.0012)); assert.ok(labels.every(value => value !== "-0"));
 });
+test("small nonzero changes confidence bounds and distribution values remain visible without changing model data", () => {
+  const model = fixture({ periods: 2 }), metric = model.metrics.find(m => m.id === "cmj_height"), views = R.preferences(model);
+  metric.periods.forEach(period => { period.mean = -.00084; period.sd = .00084; period.median = -.00084; period.q1 = -.00168; period.q3 = .00084; period.iqr = .00252; });
+  metric.changes[0].delta = .00084; metric.changes[0].ciLow = -.00084; metric.changes[0].ciHigh = .00084;
+  metric.observations[0].value = .00084; metric.observations[1].value = -.00084; metric.observations[2].value = -0; views.projects.cmj.expanded = true;
+  const before = JSON.stringify(model), html = R.render(model, views); assert.match(html, /-0\.00084 ± 0\.00084/); assert.match(html, /\+0\.00084/); assert.match(html, /\[-0\.00084, 0\.00084\]/); assert.doesNotMatch(html, /\[-0, 0\]/); assert.equal(JSON.stringify(model), before);
+  views.projects.cmj.tableMode = "individual"; const detail = R.render(model, views); assert.match(detail, /0\.00084/); assert.match(detail, /-0\.00084/); assert.doesNotMatch(detail, />-0<\/td>/);
+  metric.periods[0].sd = 1.23e-14; metric.periods[1].sd = 0; const tiny = R.render(model, R.preferences(model)); assert.match(tiny, /1\.23e-14/); assert.match(tiny, /-0\.00084 ± 0</); finite(tiny);
+});
 test("team screening radar shows each athlete's original ordinal status with one date selected", () => {
   const model = fixture(); model.summary.periods = dates.map((date, index) => ({ date, regions: [{ key: "knee_r", n: 3, redCount: 1, amberCount: 1, greenCount: index === 0 ? 1 : 0, members: ["red", "amber", index === 0 ? "green" : "gray"].map((status, i) => ({ athleteId: "a" + i, recordId: "a" + i + "-" + index, status, tests: [{ name: "原始测试", value: 0, pain: i === 0, notes: "原始备注" }] })) }] }));
   const html = R.body(model); assert.equal((html.match(/<svg /g) || []).length, 1); assert.doesNotMatch(html, /comparison-body-facets|身体区域筛查|comparison-screening-bar|0–100%|占可判定人数/); assert.equal((html.match(/class="viz-region comparison-screening-row/g) || []).length, 3); assert.match(html, /data-screening-date="2026-08-12"/); assert.match(html, /data-status="red" data-value="1"/); assert.match(html, /data-status="amber" data-value="2"/); assert.match(html, /data-status="gray" data-value=""/); assert.match(html, /原始备注/); assert.match(html, /队员1 · 原始测试/); assert.match(html, /data-record-id="a0-2"/); finite(html);
