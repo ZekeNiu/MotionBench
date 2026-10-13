@@ -2219,8 +2219,7 @@
       id, key, label, unit, cvEligible: true, minimum: 0, ...options,
     });
     const extra = (testId) => T.repeatPolicy(record, testId).fields.map((d) => field(d.id, "metrics." + d.id, d.name, d.unit,
-      { cvEligible: d.cvEligible === true, minimum: Number.isFinite(d.valueMinimum) ? d.valueMinimum : null,
-        ...(d.valueMinimum === 0 && d.zeroValid === false ? { positive: true } : {}), direction: d.selectionDirection || d.direction }));
+      { cvEligible: d.cvEligible === true, minimum: null, direction: d.direction }));
     const rawValue = (row, f) => f.read ? f.read(row) : f.key.startsWith("metrics.") ? row.metrics?.[f.id] : row[f.key];
     const validValue = (value, f) => {
       const v = N(value);
@@ -2300,8 +2299,6 @@
       } else if (test.renderer === "speed") {
         const metricId = id === "ift" ? record.data.ift.protocol === "treadmill" ? "ift_treadmill" : "ift_shuttle" : id + "_speed";
         add(id, id, test.name, [field(metricId, "speed", id === "ift" ? "VIFT" : "速度", "m/s", { positive: true, read: (row) => speedMS(row, record.data[id].unit) }), ...extras], rows, metricId);
-      } else if (test.repeatPolicy.metricSelection === "independent") {
-        extras.forEach(f => add(id, id + ":" + f.id, f.label, [f], rows, f.id, f.direction || "higher"));
       } else {
         add(id, id, test.name, extras, rows, test.repeatPolicy.primaryMetricId, options.legacySelection ? test.repeatPolicy.direction || "higher" : test.repeatPolicy.selectionDirection || "higher");
       }
@@ -3624,8 +3621,6 @@
     Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
     const projection = definition => {
       const { referenceMatch, referenceGroups, targetEnabled, rangesEnabled, protocolIdentity, ...result } = definition;
-      const project = (record.projectSnapshots || record.customTests || []).find(test => test.id === definition.testId);
-      if (project?.metricSelection !== "independent" || !T.isAttemptMetric(definition)) delete result.selectionDirection;
       if (protocolIdentity?.version > 1) result.protocolIdentity = protocolIdentity;
       if (!T.isManualMetric(result) && result.measurementScale === "ratio") delete result.measurementScale;
       if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
@@ -3671,9 +3666,6 @@
     }).map(d => T.axisKey(d.ability)))].sort() : [];
     const fingerprintProjects = record.projectSnapshots?.filter(t => !invisible.has(t.id)).map(test => {
       const result = { ...test }, primary = record.definitions.find(d => d.id === test.primaryMetricId) || record.definitions.find(d => d.testId === test.id && T.isAttemptMetric(d));
-      delete result.visualization;
-      if (result.metricSelection === "trial") delete result.metricSelection;
-      if (test.metricSelection === "independent") { delete result.primaryMetricId; delete result.selectionDirection; }
       const priorDirection = T.isNative(record,test.id) ? "higher" : primary?.direction || "higher";
       if (test.selectionDirection === priorDirection) delete result.selectionDirection;
       delete result.selectionNeedsReview;
@@ -4221,10 +4213,8 @@
     if (/^data\.cpet\.(?:thresholds\.(?:first|second)\.)?(vo2|peakHr|rer|hr|speed|power)$/.test(path)) return bounds(0, null, false, true);
     if (/^data\.hop\.summary\.(suppliedCount|validCount|selectedCount)$/.test(path)) return bounds(0, null, true);
     if (/^data\.imtp\.\d+\.(impulse250|matchedImpulse|matchedDurationMs)$/.test(path)) return bounds(0, null, false, true);
-    if (/^data\.[\w-]+\.(?:\d+\.)?metrics\.[\w-]+$/.test(path)) {
-      const definition = record.definitions?.find(d => d.id === path.split(".").at(-1));
-      return Number.isFinite(definition?.valueMinimum) ? bounds(definition.valueMinimum, null, false, definition.valueMinimum === 0 && definition.zeroValid === false) : empty ? "" : requireNumber();
-    }
+    if (/^data\.[\w-]+\.(?:\d+\.)?metrics\.[\w-]+$/.test(path))
+      return empty ? "" : requireNumber();
     if (
       /^data\.imtp\.\d+\.(peakForce|f100|f200|rfd100|rfd200|baselineForce)$/.test(
         path,
@@ -4467,16 +4457,6 @@
     if (source.impulseConfig !== undefined && (!plainObject(source.impulseConfig) || typeof source.impulseConfig.confirmed !== "boolean")) throw new Error("冲量可比性确认无效");
     ["cmjConfig","imtpConfig"].forEach((key) => { if (source[key]?.impulseDefinition !== undefined && !["gross","net"].includes(source[key].impulseDefinition)) throw new Error("冲量力口径无效"); });
   }
-  function validateProjectSettings(source, test) {
-    if (test.metricSelection !== undefined && !["trial", "independent"].includes(test.metricSelection)) throw Error("指标选值方式无效");
-    if (test.metricSelection === "independent" && T.isNative(source, test.id)) throw Error("原生专用项目不能使用通用独立选值");
-    if (test.visualization === undefined) return;
-    if (T.isNative(source, test.id)) throw Error("原生专用项目不支持通用图表设置");
-    if (!root.RingsideGenericViz) throw Error("通用图表模块未加载");
-    const issues = root.RingsideGenericViz.validateConfig(test.visualization, source.definitions, { testId: test.id, repeatable: true })
-      .filter(issue => (source.tests || source.enabled?.[test.id]) ? true : issue.code !== "unknown-metric");
-    if (issues.length) throw Error(issues[0].message);
-  }
   function validateCatalog(catalog) {
     validateDerivedOptions(catalog);
     if (
@@ -4505,7 +4485,6 @@
       )
         throw new Error("目录项目 ID 或类型无效");
       testIds.add(test.id);
-      validateProjectSettings(catalog, test);
     });
     const validateDefinitions = (definitions, knownTests) =>
       definitions.forEach((definition) => {
@@ -4521,9 +4500,7 @@
             !["record", "attempt"].includes(definition.entryScope)) ||
           (definition.entryScope === "attempt" &&
             !T.supportsAttemptMetrics(definition.testId) && !definition.legacyManual) ||
-          (definition.cvEligible !== undefined && typeof definition.cvEligible !== "boolean") ||
-          (definition.selectionDirection !== undefined && !["higher", "lower"].includes(definition.selectionDirection)) ||
-          (definition.valueMinimum !== undefined && !Number.isFinite(definition.valueMinimum))
+          (definition.cvEligible !== undefined && typeof definition.cvEligible !== "boolean")
         )
           throw new Error("目录指标定义无效");
         Def.parseRanges(Def.rangeText(definition.ranges));
@@ -4721,7 +4698,6 @@
       throw new Error("项目快照结构无效");
     if (input.definitions.length > 300 || (input.customTests || []).length > 60)
       throw new Error("定义数量超出限制");
-    (input.projectSnapshots || []).forEach(test => validateProjectSettings(input, test));
     if (input.customTests !== undefined && !Array.isArray(input.customTests))
       throw new Error("自定义测试结构无效");
     const customIds = new Set();
@@ -4736,7 +4712,6 @@
       )
         throw new Error("自定义测试 ID 或类型无效");
       customIds.add(test.id);
-      validateProjectSettings(input, test);
     });
     const ids = new Set();
     input.definitions.forEach((d) => {
@@ -4750,9 +4725,7 @@
         (d.entryScope !== undefined &&
           !["record", "attempt"].includes(d.entryScope)) ||
         (d.entryScope === "attempt" && !T.supportsAttemptMetrics(d.testId) && !d.legacyManual) ||
-        (d.cvEligible !== undefined && typeof d.cvEligible !== "boolean") ||
-        (d.selectionDirection !== undefined && !["higher", "lower"].includes(d.selectionDirection)) ||
-        (d.valueMinimum !== undefined && !Number.isFinite(d.valueMinimum))
+        (d.cvEligible !== undefined && typeof d.cvEligible !== "boolean")
       )
         throw new Error("指标定义无效或 ID 重复");
       ids.add(d.id);

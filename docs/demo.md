@@ -1,8 +1,8 @@
 # MotionBench 在线演示
 
-[打开在线演示](https://zekeniu.github.io/MotionBench/) · [下载 Windows 2.21.0](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.21.0-desktop.1)
+[打开在线演示](https://zekeniu.github.io/MotionBench/) · [下载 Windows 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1)
 
-2.21.0 共用工作台可添加12个常用项目和4套大学生体测单项等级方案，也可为通用项目选择成绩条形图、重复试次点图或实测与目标。新增项目与标准从管理页面按需添加，已有结果表继续保留。操作见[2.21.0使用说明](motionbench-2.21.0.md)，协议、单位与官方边界见[常用测试与评价标准](preset-tests-and-standards.md)。
+2.20.1 共用工作台修复多轴能力图及评分明细组合过高时的 PDF 分页。模拟演示从正式 HTML 独立构建，本地 Chrome、Edge 各 8 项流程已验证，1440、1024、390px 的完整页面及能力评分区域已审阅。真实网址和下载的核验状态见 [发布核验记录](publication-2.20.1.md)；JSON、HTML、JSONL 流程与专项 PDF 验收分别记录。
 
 演示版使用与 HTML、Windows 版相同的报告、计算与录入界面。首次打开时加载一名模拟运动员和一条综合测试记录，可以编辑数据、查看原始试次、切换计算方式并导出 JSON、可编辑 HTML 和 PDF。
 
@@ -16,12 +16,12 @@ GitHub Pages 只托管静态演示文件。基础报告不需要账号或后台�
 npm ci
 python scripts/build.py
 node scripts/build_public_demo.cjs
-node tests/public-demo-v2210-browser-tests.cjs
-node tests/public-demo-v2210-browser-tests.cjs --edge
+node tests/public-demo-browser-tests.cjs
+node tests/public-demo-browser-tests.cjs --edge
 ```
 
-Linux 自动验收使用 `npx playwright install --with-deps chromium` 后执行 `node tests/public-demo-v2210-browser-tests.cjs --chromium`。公开发布后，可追加 `--url https://zekeniu.github.io/MotionBench/`，验证网站实际返回的 HTML 与构建清单一致。
+Linux 自动验收使用 `npx playwright install --with-deps chromium` 后执行 `node tests/public-demo-browser-tests.cjs --chromium`。公开发布后，可追加 `--url https://zekeniu.github.io/MotionBench/`，验证网站实际返回的 HTML 与构建清单一致。
 
 构建目录仅包含 `index.html`、`.nojekyll`、`demo-build.json`；发布任务只上传该目录。清单记录产品 HTML、模拟种子和网页的 SHA-256。源码、测试输出、本地资料库、草稿和 AI 配置均不进入部署包。
 
-浏览器验收检查首次打开的资料数量、独立存储、四张能力卡、跳跃图短标签、390/1024/1440px 布局和三项通用图表、实际 JSON/HTML/完整 JSONL 导出、离线 HTML 重开、修改保存重载，以及后台网络请求。页面截图与验收记录保存在 `output/playwright/public-demo-v2210/`。
+浏览器验收检查首次打开的资料数量、独立存储、四张能力卡、跳跃图短标签、390/1440px 布局、实际 JSON/HTML/完整 JSONL 导出、离线 HTML 重开、修改保存重载，以及后台网络请求。页面截图与验收记录保存在 `output/playwright/public-demo/`。

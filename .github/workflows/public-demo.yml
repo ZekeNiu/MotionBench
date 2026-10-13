@@ -8,7 +8,6 @@ on:
       - 'scripts/build.py'
       - 'scripts/build_public_demo.cjs'
       - 'tests/public-demo-browser-tests.cjs'
-      - 'tests/public-demo-v2210-browser-tests.cjs'
       - 'tests/helpers/playwright.cjs'
       - 'vendor/**'
       - 'body-map-front.png'
@@ -48,7 +47,7 @@ jobs:
       - name: Install the test browser
         run: npx playwright install --with-deps chromium
       - name: Validate privacy and actual demo interactions
-        run: node tests/public-demo-v2210-browser-tests.cjs --chromium
+        run: node tests/public-demo-browser-tests.cjs --chromium
       - name: Upload only the public deployment directory
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:

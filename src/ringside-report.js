@@ -126,7 +126,7 @@
     const results = projects.map((test) => ({
       ...test,
       metrics: test.definitions
-        .filter((d) => N(stats.values[d.id]) !== null || test.renderer === "scalar" && global.RingsideGenericViz?.normalizeConfig(test.visualization).enabled)
+        .filter((d) => N(stats.values[d.id]) !== null)
         .map((d) => ({
           ...d,
           unit:
@@ -142,7 +142,6 @@
       sprintFvpConfidence,
       isoRadar: M.isoRadar(stats.isoAnalyses, snapshot),
       diagnostics: [],
-      genericVisuals: Object.fromEntries(projects.filter(test => test.renderer === "scalar").map(test => [test.id, global.RingsideGenericViz?.buildProject(snapshot, stats, test) || { enabled:false, figures:[], issues:[] }])),
       projects: results,
       groups: T.groups(results, snapshot),
       derived: stats.derived || { results: [] },
@@ -697,19 +696,20 @@
         const meta = [measured?.modality === "treadmill" ? "跑台" : measured?.modality === "cycle" ? "功率车" : "", measured?.protocol, N(measured?.peak.rer) !== null ? "RER " + F(measured.peak.rer, 2) : ""].filter(Boolean).join(" · ");
         return block(tests, tests[0].name, meta, metricTable(metrics, true));
       },
-      scalar: (tests) => {
-        const test = tests[0], visualization = report.genericVisuals?.[test.id];
-        const data = metricTable(test.metrics, true);
-        const figures = visualization?.enabled ? visualization.figures || [] : [];
-        const issues = visualization?.enabled && visualization.issues?.length
-          ? `<div class="generic-chart-notes" data-generic-chart-issues="${E(test.id)}">${visualization.issues.map(issue => `<p class="note" data-chart-issue="${E(issue.code)}">${issue.name ? `<b>${E(issue.name)}</b>：` : ""}${E(issue.message)}</p>`).join("")}</div>` : "";
-        const body = figures.length === 1
-          ? pair(V.genericChart(figures[0]), data, "generic-result-pair", {kind:"genericChart",args:[figures[0]]})
-          : (figures.length ? `<div class="generic-visualizations">${figures.map(figure => chart(V.genericChart(figure), {kind:"genericChart",args:[figure]})).join("")}</div>` : "") + data;
-        const notes = test.metrics.filter(d => state.customValues[d.id]?.notes)
-          .map(d => `<p class="metric-note"><b>${E(d.name)}</b>：${E(state.customValues[d.id].notes)}</p>`).join("");
-        return block(tests, test.name, state.protocol[test.id] || "", body + issues + notes);
-      },
+      scalar: (tests) =>
+        block(
+          tests,
+          tests[0].name,
+          state.protocol[tests[0].id] || "",
+          metricTable(tests[0].metrics, true) +
+            tests[0].metrics
+              .filter((d) => state.customValues[d.id]?.notes)
+              .map(
+                (d) =>
+                  `<p class="metric-note"><b>${E(d.name)}</b>：${E(state.customValues[d.id].notes)}</p>`,
+              )
+              .join(""),
+        ),
       imtp: (tests) => {
         const force = { ...r.forceTime, yAxis: state.views.imtp.yAxis };
         const metrics = consume(tests[0].metrics);
@@ -857,7 +857,7 @@
     };
     const consumed = new Set(),
       grouped = new Map(),
-      measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t) || report.genericVisuals?.[t.id]?.enabled);
+      measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t));
     for (const test of measured.filter((t) => !["lvp","fvp","sprint-fvp"].includes(t.renderer))) {
       if (consumed.has(test.id)) continue;
       const peers =
@@ -1388,16 +1388,7 @@
     container.querySelectorAll("[data-chart-kind]").forEach((node) => {
       const kind = node.dataset.chartKind, pair = node.closest(".detail-pair"),
         width = Math.round(node.getBoundingClientRect().width);
-      if (width < 100) return;
-      if (kind === "genericChart") {
-        const key = [width, print].join(":");
-        if (node.dataset.chartLayout !== key) {
-          node.innerHTML = V.genericChart(...JSON.parse(node.dataset.chartInput), {width, print});
-          node.dataset.chartLayout = key;
-        }
-        return;
-      }
-      if (!limits[kind] || !pair) return;
+      if (width < 100 || !limits[kind] || !pair) return;
       const tables = [...pair.querySelectorAll(":scope > .detail-data > .table-wrap")],
         rects = tables.map((table) => table.getBoundingClientRect()),
         target = rects.length ? Math.max(...rects.map((r) => r.bottom)) - Math.min(...rects.map((r) => r.top)) : 0,

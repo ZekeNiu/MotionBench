@@ -84,10 +84,7 @@
   // select trials, compute report values or create editable measurement rules.
   function catalogMeasurement(project,catalog) {
     const native=T.isNative(catalog,project.id),id=project.id;
-    if(!native){
-      if(catalog.tests.find(test=>test.id===id)?.metricSelection==="independent")return {parameters:[],selection:"各指标在自身有效试次中独立选值："+project.repeatPolicy.fields.map(d=>T.metricName(d)+"取"+((d.selectionDirection||d.direction)==="lower"?"最小":"最大")+"有效值").join("；")+"。均值模式各自采用本指标有效值平均，左右结果可来自不同试次。"};
-      const primary=project.repeatPolicy.fields.find(d=>d.id===project.repeatPolicy.primaryMetricId);return {parameters:[],selection:primary?`最佳值：按${T.metricName(primary)}选取${project.selectionDirection==="lower"?"最小":"最大"}有效值所在试次，其他逐试次指标采用同一试次。均值：在主指标有效的试次中，各指标分别取有效值平均。`:"本次测试汇总指标直接采用录入结果；逐试次指标设置后按项目代表试次汇总。"};
-    }
+    if(!native){const primary=project.repeatPolicy.fields.find(d=>d.id===project.repeatPolicy.primaryMetricId);return {parameters:[],selection:primary?`最佳值：按${T.metricName(primary)}选取${project.selectionDirection==="lower"?"最小":"最大"}有效值所在试次，其他逐试次指标采用同一试次。均值：在主指标有效的试次中，各指标分别取有效值平均。`:"本次测试汇总指标直接采用录入结果；逐试次指标设置后按项目代表试次汇总。"};}
     const record=M.recordFromCatalog(catalog,{}, {[id]:true}),contract=root.RingsideAcquisition.project(record,id);
     const parameters=[...new Set(contract.parameters.map(p=>p.label).concat(["imtp","squat","bench","deadlift","cpet","fvp_sj","fvp_cmj","sprint_fvp"].includes(id)?["本次体重 kg"]:[],project.renderer==="lvp"?["MVT / 速度训练区间（评价方案分析设置）"]:[]))];
     const rules={
@@ -118,7 +115,7 @@
   }
   function catalogMetricResult(project,definition,catalog) {
     const d=definition,id=project.id;
-    if(T.isManualMetric(d))return {source:d.entryScope==="attempt"?"逐试次录入":"本次测试汇总",detail:d.entryScope==="attempt"?catalog.tests.find(test=>test.id===id)?.metricSelection==="independent"?`本指标独立取${(d.selectionDirection||d.direction)==="lower"?"最小":"最大"}有效值；均值模式取本指标有效值平均`:"随项目选定的试次汇总；均值模式取有效值平均":"直接采用本次录入结果"};
+    if(T.isManualMetric(d))return {source:d.entryScope==="attempt"?"逐试次录入":"本次测试汇总",detail:d.entryScope==="attempt"?"随项目选定的试次汇总；均值模式取有效值平均":"直接采用本次录入结果"};
     const field=T.attemptFields(catalog,id).find(f=>f.id===d.id);
     if(field&&["cmj","sj","dj","cmrj"].includes(id)){
       const formulas={rsi:"每次垂直跳跃高度(m) ÷ 触地时间(s)",flightTimeRatio:"每次腾空时间 ÷ 触地时间",firstRsiModified:"每次首跳高度(m) ÷ 首跳起跳动作时间(s)"};
@@ -152,11 +149,6 @@
       const fixed=project.id==="fms"?'<p class="note">七项动作固定 0–3 分；疼痛计 0 分，双侧动作保留左右侧得分并取较低分，七项合计 0–21 分。动作、侧别、疼痛和备注属于原始记录。</p>':project.id==="iso"?'<p class="note">测量按部位、方向和侧别保存。目标、参考值和关节比值分级在评价方案中设置。</p>':"";
       const native=T.isNative(lib().catalog,project.id);
       detail=`<article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="catalog-detail-back">${button("返回项目列表","catalog-back")}</div><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"} · ${native?"内置测量方法":"自定义项目"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量方法</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写测量方法")}</p><p class="note">协议版本 ${lib().catalog.protocolIdentities?.[project.id]?.version||1}</p></section><section class="catalog-definition-block" data-catalog-measurement><h3>结果来源与试次选取</h3><p>${esc(measurement.selection)}</p>${measurement.parameters.length?`<h4>本次测量与计算参数</h4><div class="catalog-input-list">${measurement.parameters.map(label=>`<span>${esc(label)}</span>`).join("")}</div>`:""}</section><section class="catalog-definition-block"><h3>录入内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据与选值</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
-    }
-    if(project&&!T.isNative(lib().catalog,project.id)){
-      const config=root.RingsideGenericViz.normalizeConfig(lib().catalog.tests.find(test=>test.id===project.id)?.visualization),kind=root.RingsideGenericViz.kinds().find(item=>item.id===config.kind);
-      const visual=`<section class="catalog-definition-block"><h3>报告图表</h3><p>${config.enabled?esc(kind.label):"仅显示结果表格"}</p>${config.enabled?`<p class="note">展示指标：${config.metricIds.map(id=>esc(project.definitions.find(d=>d.id===id)?.name||"指标已移除")).join("、")||"尚未选择"}。结果表格保留。</p>`:""}<p class="note">在编辑项目或指标时设置图表，后续测试采用新设置。</p></section>`;
-      detail=detail.replace('<section class="catalog-definition-block"><h3>结果指标</h3>',visual+'<section class="catalog-definition-block"><h3>结果指标</h3>');
     }
     return catalogNotices()+search+`<div class="catalog-workspace ${project?"has-project":""}"><nav class="catalog-index" aria-label="测试项目">${index}</nav><div class="catalog-detail">${detail}</div></div>`;
   }
@@ -309,7 +301,7 @@
     if(!lib())return;
     const focused=document.activeElement, key=focused?.dataset.managerFilter, caret=focused?.selectionStart;
     const title=sections.find(([id])=>id===current)[1];
-    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("添加常用项目","preset-add")+button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new"),"管理分类"):current==="profiles"&&!editor?button("添加参考方案","preset-profiles")+button("＋ 新建方案","profile-new"):"";
+    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new"),"管理分类"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
     const content=$("managementContent"),html=`<div class="management-heading"><div><h1>${title}</h1></div><div class="row">${action}</div></div>`+(current==="athletes"||current==="records"?lists():current==="teams"?teams():current==="plans"?testPlans():current==="metrics"?metrics():current==="profiles"?profiles():backup());
     const filterBar=node=>{const control=node.querySelector("[data-manager-filter]");return control?.closest(".manager-filter-shell")||control?.closest(".management-filters")||control?.closest(".field");};
     const retained=options.preserveFilters&&filterBar(content);
@@ -341,24 +333,6 @@
     formSession={token:++formSequence,submitting:false,completed:false};
     formAction=action;$("managementForm").querySelector('[type="submit"]').textContent="保存";$("managementModalTitle").textContent=title;$("managementFields").innerHTML=html;$("managementError").hidden=true;$("managementForm").querySelector('[type="submit"]').disabled=false;App.modal("managementModal");
     formBaseline=formSnapshot();
-  }
-  function showPresetLibrary(profilesOnly=false) {
-    const presets=root.RingsidePresets,items=presets.list();
-    const group=(kind,title)=>`<div class="catalog-preset-heading"><h3>${title}</h3>${kind==="project"?'<button type="button" class="btn small" id="presetSelectProjects">选择全部项目</button>':""}</div><div class="catalog-preset-grid">${items.filter(item=>item.kind===kind).map(item=>`<label class="catalog-preset-item"><input type="checkbox" name="presetIds" value="${esc(item.id)}" data-preset-kind="${kind}" ${kind==="project"&&!profilesOnly?"checked":""}><span><b>${esc(item.name)}</b><small>${esc(item.description)}</small></span></label>`).join("")}</div>`;
-    showForm(profilesOnly?"添加参考评价方案":"添加常用测试项目",'<p class="note">测量项目与评价方案分别选择。添加后可在后续测试中使用；已存在的定义与标准继续保留。</p>'+(!profilesOnly?group("project","常用测量项目"):"")+group("profile","有适用人群的参考方案")+'<p class="note">参考方案按名称所列人群与测试协议使用。添加方案不会切换现有记录的评价方案。</p><section id="presetPreview" class="catalog-change-preview" aria-live="polite"></section>',async form=>{
-      const ids=new FormData(form).getAll("presetIds");if(!ids.length)throw Error("请选择要添加的项目或方案");
-      await commit(candidate=>{const applied=presets.apply(candidate,ids);Object.assign(candidate,applied.library);});
-    });
-    $("managementForm").querySelector('[type="submit"]').textContent="添加所选";
-    const preview=()=>{
-      try{
-        const ids=[...$("managementFields").querySelectorAll('[name="presetIds"]:checked')].map(input=>input.value),result=presets.preview(lib(),ids),additions=result.additions;
-        $("presetPreview").innerHTML=`<h3>添加内容</h3><p>${additions.tests.length} 个项目 · ${additions.definitions.length} 个指标 · ${additions.profiles.length} 个参考方案</p>${result.manifest.dependencyTestIds.length?`<p class="note">方案所需项目将一并加入：${result.manifest.dependencyTestIds.map(id=>esc(additions.tests.find(test=>test.id===id)?.name||lib().catalog.tests.find(test=>test.id===id)?.name||id)).join("、")}</p>`:""}${result.skipped.length?'<p class="note">已添加的条目继续保留，不重复创建。</p>':""}${result.conflicts.length?`<p class="error">${result.conflicts.map(item=>esc(item.reason)).join("；")}</p>`:""}`;
-      }catch(error){$("presetPreview").textContent=error.message;}
-    };
-    $("managementFields").querySelectorAll('[name="presetIds"]').forEach(input=>input.addEventListener("change",preview));
-    $("presetSelectProjects")?.addEventListener("click",()=>{$("managementFields").querySelectorAll('[data-preset-kind="project"]').forEach(input=>{input.checked=true;});preview();});
-    preview();
   }
   function editAthlete(id="",groupId="") {
     const a=lib().athletes.find(a=>a.id===id)||(id?App.getAthlete?.(id):null),p=a?.profile||{};
@@ -552,7 +526,6 @@
     if(name==="catalog-metric"){const [projectId,metricId]=id.split("/").map(decodeURIComponent);filter().test=projectId;filter().metricId=metricId;render();requestAnimationFrame(()=>$("managementContent").querySelector('.catalog-metric-selected')?.scrollIntoView({block:"nearest"}));return;}
     if(name==="metric-standards"){filter().metricId=id;return action("project-standards",filter().test);}
     if(name==="catalog-back"){filter().test="";filter().metricId="";return render();}
-    if(name==="preset-add"||name==="preset-profiles")return showPresetLibrary(name==="preset-profiles");
     if(name==="new-metric")return App.openCatalogItem("new-metric",id||filter().test||"");
     if(name==="catalog-edit")return App.openCatalogItem("edit-project",id);
     if(name==="catalog-resolve"){await App.resolveCatalogConflict(...id.split(":").map(Number));return render();}

@@ -197,7 +197,6 @@
       primaryMetricId: primary?.id || null,
       selectionDirection: test?.selectionDirection || "higher",
       direction: primary?.direction || "higher",
-      ...(test?.metricSelection !== undefined ? { metricSelection: test.metricSelection } : {}),
       fields,
     };
   }
@@ -378,24 +377,19 @@
         repeatPolicy: repeatPolicy(source, test.id),
         primaryMetricId: test.primaryMetricId || "",
         selectionDirection: test.selectionDirection || "higher",
-        ...(test.metricSelection !== undefined ? { metricSelection: test.metricSelection } : {}),
-        ...(test.visualization !== undefined ? { visualization: JSON.parse(JSON.stringify(test.visualization)) } : {}),
       };
     });
   }
   function snapshots(source) {
     return describe(source).map(({ id, name, category, primaryAbility, primaryMetricId, selectionDirection }) => {
       const prior = !source.tests && source.projectSnapshots?.find(test => test.id === id);
-      const settings = prior || (source.tests || source.customTests || []).find(test => test.id === id) || {};
       // Display aliases must not rewrite measurement snapshots or catalog names.
       const rawFvpName=["fvp_sj","fvp_cmj","sprint_fvp"].includes(id)&&isNative(source,id)?(source.tests||source.projectSnapshots||builtins).find(test=>test.id===id)?.name:undefined;
       return { id, name: prior?.name ?? rawFvpName ?? name, category,
         primaryAbility: prior?.primaryAbility ?? primaryAbility,
         selectionDirection: prior?.selectionDirection ?? selectionDirection,
         ...([...reactiveIds, "cpet", "fvp_sj", "fvp_cmj", "sprint_fvp"].includes(id) ? isNative(source,id) ? { measurementVersion: 1 } : { legacyCustom: true } : {}),
-        ...(primaryMetricId ? { primaryMetricId } : {}),
-        ...(settings.metricSelection !== undefined ? { metricSelection: settings.metricSelection } : {}),
-        ...(settings.visualization !== undefined ? { visualization: JSON.parse(JSON.stringify(settings.visualization)) } : {}) };
+        ...(primaryMetricId ? { primaryMetricId } : {}) };
     });
   }
   function groups(projects, source) {
