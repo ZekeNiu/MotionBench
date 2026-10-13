@@ -206,8 +206,10 @@
 
   function cleanClone(reportElement,snapshot) {
     const clone = reportElement.cloneNode(true);
-    if(snapshot)root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
+    const comparison = snapshot?.kind === "comparison-report";
+    if(snapshot && !comparison)root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
     clone.className = "ringside-pdf-document ringside-pdf-source";
+    if(comparison)clone.classList.add("comparison-report-view");
     clone.removeAttribute("style");
     clone.removeAttribute("hidden");
     // The live application listens for toggles inside #reportView. Its id
@@ -270,6 +272,7 @@
       clone.append(appendix);
     }
     clone.querySelectorAll("details").forEach((node) => {
+      if(comparison && !node.open){node.remove();return;}
       node.open = true;
     });
     clone.querySelectorAll('a[href^="#"]').forEach((node) => {
@@ -790,7 +793,7 @@
         element(
           "span",
           "",
-          [snapshot.athlete?.name, snapshot.athlete?.date]
+          snapshot.kind === "comparison-report" ? [snapshot.reportTitle, snapshot.reportDates?.length>1 ? snapshot.reportDates[0]+"—"+snapshot.reportDates.at(-1) : snapshot.reportDates?.[0]].filter(Boolean).join(" · ") : [snapshot.athlete?.name, snapshot.athlete?.date]
             .filter(Boolean)
             .join(" · "),
         ),
@@ -1348,7 +1351,7 @@
         compress: true,
       });
       doc.setProperties({
-        title: [captured.athlete?.name, "运动表现与筛查"]
+        title: [captured.reportTitle || captured.athlete?.name, "运动表现与筛查"]
           .filter(Boolean)
           .join(" · "),
         subject: [
@@ -1372,6 +1375,13 @@
           windowWidth: 1280,
           windowHeight: 1200,
           removeContainer: true,
+          ...(captured.kind === "comparison-report" ? {
+            // Large comparisons contain many pages. Clone only this page and
+            // its print styles, rather than every other page and the live UI.
+            ignoreElements: node =>
+              node.parentElement === document.body && node !== stage ||
+              node.classList.contains("ringside-pdf-page") && node !== page,
+          } : {}),
         });
         if (!canvas.width || !canvas.height)
           throw new Error("PDF 页面渲染失败。");

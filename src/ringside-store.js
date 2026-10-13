@@ -74,13 +74,99 @@
       M.validateIsoDirectionIds(plan.isoDirectionIds, M.isoRows(), !plan.testIds.includes("iso"));
     }
   }
+  const safeId = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
+  const plain = value => !!value && typeof value === "object" && !Array.isArray(value) && Object.prototype.toString.call(value) === "[object Object]";
+  function validateComparisonTree(value, depth=0) {
+    if(depth>50)throw Error("比较报告数据嵌套过深");
+    if(typeof value==="number"&&!Number.isFinite(value) || ["function","symbol","bigint","undefined"].includes(typeof value))throw Error("比较报告必须为有效 JSON 数据");
+    if(!value || typeof value!=="object")return;
+    if(!Array.isArray(value)&&!plain(value))throw Error("比较报告数据对象无效");
+    for(const [key,item] of Object.entries(value)){if(["__proto__","prototype","constructor"].includes(key))throw Error("比较报告包含不安全字段");validateComparisonTree(item,depth+1);}
+  }
+  function validateComparisonSelection(selection, complete=false) {
+    if(!plain(selection))throw Error("比较报告选择无效");
+    if(selection.groupId!==undefined && selection.groupId!=="" && !safeId(selection.groupId))throw Error("比较报告队伍编号无效");
+    if(!Array.isArray(selection.athleteIds)||selection.athleteIds.length>2000||selection.athleteIds.some(id=>!safeId(id))||new Set(selection.athleteIds).size!==selection.athleteIds.length)throw Error("比较报告队员选择无效");
+    const validDate = value => typeof value==="string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value+"T00:00:00Z")) && new Date(value+"T00:00:00Z").toISOString().slice(0,10)===value;
+    if(!Array.isArray(selection.dates)||selection.dates.length>1000||selection.dates.some(date=>!validDate(date))||new Set(selection.dates).size!==selection.dates.length)throw Error("比较报告测试日期无效");
+    if(complete&&(!selection.athleteIds.length||!selection.dates.length))throw Error("比较报告需要选择队员和测试日期");
+    if(selection.recordChoices!==undefined){
+      if(!plain(selection.recordChoices))throw Error("比较报告记录选择无效");
+      let count=0;
+      for(const [owner,choices] of Object.entries(selection.recordChoices)){
+        if(!selection.athleteIds.includes(owner)||!plain(choices))throw Error("比较报告记录归属无效");
+        for(const [date,id] of Object.entries(choices)){if(!selection.dates.includes(date)||(id!==""&&!safeId(id))||++count>10000)throw Error("比较报告记录选择无效");}
+      }
+    }
+    if(selection.basis!==undefined&&!plain(selection.basis))throw Error("比较报告判断依据无效");
+  }
+  function validateComparisonDocument(document) {
+    validateComparisonTree(document);
+    if(!plain(document)||!safeId(document.id))throw Error("比较报告编号无效");
+    validateComparisonSelection(document.selection,true);
+    for(const key of ["views","narrative"])if(document[key]!==undefined&&!plain(document[key]))throw Error("比较报告"+(key==="views"?"图表设置":"正文")+"无效");
+    if(document.narrative?.text!==undefined && (typeof document.narrative.text!=="string"||document.narrative.text.length>2000000))throw Error("比较报告正文无效或过长");
+    if(document.revisions!==undefined&&(!Array.isArray(document.revisions)||document.revisions.length>1000||document.revisions.some(revision=>!plain(revision))))throw Error("比较报告修订记录无效");
+    for(const key of ["created","updated","inputFingerprint"])if(document[key]!==undefined&&typeof document[key]!=="string")throw Error("比较报告保存信息无效");
+    if(document.needsReview!==undefined&&typeof document.needsReview!=="boolean")throw Error("比较报告复核状态无效");
+    if(JSON.stringify(document).length>16*1024*1024)throw Error("单份比较报告过大");
+    return true;
+  }
+  function normalizeComparisonDocument(input) {
+    validateComparisonDocument(input);
+    const document=clone(input);
+    document.selection={...document.selection,groupId:document.selection.groupId||"",athleteIds:[...document.selection.athleteIds].sort(),dates:[...document.selection.dates].sort(),recordChoices:document.selection.recordChoices||{},basis:document.selection.basis||{}};
+    document.views||={};document.narrative||={text:""};document.revisions||=[];
+    return document;
+  }
+  function validateComparisonReports(reports) {
+    if(reports===undefined)return;
+    if(!Array.isArray(reports)||reports.length>2000)throw Error("比较报告库格式无效");
+    const ids=new Set();
+    for(const document of reports){validateComparisonDocument(document);if(ids.has(document.id))throw Error("比较报告编号重复");ids.add(document.id);}
+  }
+  function mergeComparisonReports(local=[],incoming=[],maps={}) {
+    validateComparisonReports(local);validateComparisonReports(incoming);
+    const reports=clone(local),reportMap={};
+    const mapped=(map,id)=>map instanceof Map?map.get(id)||id:map?.[id]||id;
+    for(const original of incoming){
+      const document=clone(original),selection=document.selection;
+      let remapped=false;
+      const remap=(map,id)=>{const next=mapped(map,id);if(next!==id)remapped=true;return next;};
+      if(selection.groupId)selection.groupId=remap(maps.groupMap,selection.groupId);
+      selection.athleteIds=selection.athleteIds.map(id=>remap(maps.athleteMap,id));
+      selection.recordChoices=Object.fromEntries(Object.entries(selection.recordChoices||{}).map(([owner,choices])=>[remap(maps.athleteMap,owner),Object.fromEntries(Object.entries(choices).map(([date,id])=>[date,remap(maps.recordMap,id)]))]));
+      if(selection.evaluationProfileId)selection.evaluationProfileId=remap(maps.profileMap,selection.evaluationProfileId);
+      if(remapped)document.needsReview=true;
+      const existing=reports.find(report=>report.id===document.id);
+      if(existing&&E.canonical(existing)===E.canonical(document)){reportMap[original.id]=existing.id;continue;}
+      if(existing)document.id="comparison_"+uid();
+      reportMap[original.id]=document.id;reports.push(document);
+    }
+    validateComparisonReports(reports);
+    return {reports,reportMap};
+  }
+  function comparisonEnvelopeLibrary(envelope) {
+    validateComparisonTree(envelope);
+    if(!plain(envelope)||envelope.kind!=="comparison-report"||envelope.schema!==1||!plain(envelope.library)||envelope.library.kind!=="athlete-library"||envelope.library.schema!==3)throw Error("比较报告备份格式无效");
+    const document=normalizeComparisonDocument(envelope.report),lib=clone(envelope.library);
+    if(!Array.isArray(lib.athletes)||!Array.isArray(lib.groups)||!Array.isArray(lib.evaluationProfiles))throw Error("比较报告原始资料不完整");
+    const owners=new Map(lib.athletes.map(owner=>[owner.id,owner])),records=new Map();
+    for(const owner of lib.athletes){validateEntity("athlete",owner);for(const record of owner.records||[]){validateEntity("record",record);if(record.athleteId!==owner.id||records.has(record.recordId))throw Error("比较报告测试记录归属无效或重复");records.set(record.recordId,record);}}
+    if(document.selection.athleteIds.some(id=>!owners.has(id)))throw Error("比较报告缺少所选队员资料");
+    for(const [owner,choices] of Object.entries(document.selection.recordChoices))for(const [date,id] of Object.entries(choices)){if(!id)continue;const record=records.get(id);if(!record||record.athleteId!==owner||record.athlete.date!==date)throw Error("比较报告缺少所选测试原始资料");}
+    lib.comparisonReports=[document];configuration(lib);
+    return lib;
+  }
   function configuration(lib) {
     validateTestPlans(lib.testPlans, lib.catalog);
+    validateComparisonReports(lib.comparisonReports);
     // Producer identity is separate from data schemas and calculation methods.
     // Source-only consumers retain the existing producer, including future versions.
     const version = root.RingsideBuild?.version || lib.version;
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
-      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version};
+      activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version,
+      ...(lib.comparisonReports!==undefined?{comparisonReports:clone(lib.comparisonReports)}:{})};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
@@ -89,7 +175,7 @@
     else if (type === "athlete") {
       if (!safe(value.id) || typeof value.name !== "string" || !value.profile || typeof value.profile !== "object" || Array.isArray(value.profile)) throw Error("运动员资料无效");
     } else if (type === "group") { if (!safe(value.id) || typeof value.name !== "string" || !value.name.trim()) throw Error("队伍信息无效"); }
-    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
+    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); validateComparisonReports(value.comparisonReports); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
     else throw Error("备份包含未知资料类型");
     if (type !== "record" && type !== "config" && !safe(value.id)) throw Error("资料 ID 无效");
   }
@@ -139,6 +225,48 @@
       return lib;
     }
     loadRecord(id) { return this.get("records",id); }
+    readComparisonInputs(selection) {
+      validateComparisonTree(selection);validateComparisonSelection(selection);
+      const selected=clone(selection),generation=this.generation;
+      return this.enqueue(()=>this.stableRead(generation,async()=>{
+        const library=await this.directory(generation),config=await this.get("config","library",generation),owners=new Set(selected.athleteIds),dates=new Set(selected.dates);
+        const athletes=library.athletes.filter(owner=>owners.has(owner.id));
+        const summaries=athletes.flatMap(owner=>owner.records.filter(record=>dates.has(record.athlete.date)));
+        const records=(await Promise.all(summaries.map(record=>this.get("records",record.recordId,generation)))).filter(Boolean);
+        const byOwner=new Map(athletes.map(owner=>[owner.id,{...owner,records:[]} ]));
+        records.forEach(record=>byOwner.get(record.athleteId)?.records.push(record));
+        library.athletes=[...byOwner.values()];
+        return {selection:selected,library,config,athletes:library.athletes,records,catalog:library.catalog,evaluationProfiles:library.evaluationProfiles,versionState:await this.versionState(),expectedConfig:JSON.stringify(config)};
+      }));
+    }
+    saveComparisonReport(input,expectedConfig) {
+      const document=normalizeComparisonDocument(input),generation=this.generation;
+      if(typeof expectedConfig!=="string")throw Error("保存比较报告缺少原配置校验依据，请重新打开报告");
+      return this.enqueue(async()=>{
+        const tx=this.db.transaction(["meta","config","records","athletes"],"readwrite"),done=completed(tx);
+        try{
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开后保存比较报告");
+          const config=(await request(tx.objectStore("config").get([generation,"library"])))?.value;
+          if(JSON.stringify(config??null)!==expectedConfig)throw Error("资料已在其他页面修改，比较报告正文已保留，请重新读取后保存");
+          for(const ownerId of document.selection.athleteIds){const owner=(await request(tx.objectStore("athletes").get([generation,ownerId])))?.value;if(!owner||owner.deletedAt)throw Error("比较报告所选队员已不存在，请重新选择");}
+          for(const [owner,choices] of Object.entries(document.selection.recordChoices))for(const [date,id] of Object.entries(choices)){
+            if(!id)continue;
+            const record=(await request(tx.objectStore("records").get([generation,id])))?.value;
+            if(!record||record.deletedAt||record.athleteId!==owner||record.athlete.date!==date)throw Error("比较报告所选记录已修改或不存在，请重新选择");
+          }
+          const nextConfig={...config,comparisonReports:clone(config.comparisonReports||[])};
+          const index=nextConfig.comparisonReports.findIndex(report=>report.id===document.id);
+          if(index<0)nextConfig.comparisonReports.push(document);else nextConfig.comparisonReports[index]=document;
+          validateComparisonReports(nextConfig.comparisonReports);
+          nextConfig.updated=document.updated||new Date().toISOString();nextConfig.version=root.RingsideBuild?.version||config.version;
+          tx.objectStore("config").put({generation,id:"library",value:nextConfig});tx.objectStore("meta").put({id:"revision",value:uid()});
+          await done;
+          const encoded=JSON.stringify(nextConfig);
+          if(this.metadataHashes.get("config:library")===expectedConfig)this.metadataHashes.set("config:library",encoded);
+          return {document:clone(document),config:clone(nextConfig),expectedConfig:encoded};
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
     enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
     flush() { return this.queue; }
     saveRecords(records=[],checks={},options={}) {
@@ -346,7 +474,7 @@
       const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
       let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
-      let incomingPlans=[],plansMerged=false;const planMap=new Map();
+      let incomingPlans=[],incomingReports=[],plansMerged=false;const planMap=new Map();
       const mergePlans=()=>{
         if(plansMerged)return;plansMerged=true;
         const merged=seeded?clone(config.testPlans||[]):[];
@@ -395,6 +523,7 @@
           if(counts.athlete>2000||counts.record>10000)throw Error("备份超过 2000 名运动员或 10000 条记录");
           if(row.type==="config") {
             incomingPlans=clone(v.testPlans||[]);
+            incomingReports=clone(v.comparisonReports||[]);
             v.defaultEvaluationProfileId=profileMap.get(v.defaultEvaluationProfileId)||v.defaultEvaluationProfileId;
             if(seeded){mergeCatalog(config.catalog,v.catalog);continue;}
             config=v;
@@ -433,6 +562,8 @@
         if(!profiles.has(config.defaultEvaluationProfileId))throw Error("默认评价方案不存在");
         config.activeAthleteId=owners.has(config.activeAthleteId)?config.activeAthleteId:"";
         if(config.activeRecordId){await flush();const active=await this.get("records",config.activeRecordId,generation);if(!active||active.athleteId!==config.activeAthleteId)config.activeRecordId="";}
+        const compared=mergeComparisonReports(seeded?config.comparisonReports||[]:[],incomingReports,{recordMap,profileMap,groupMap});
+        if(config.comparisonReports!==undefined||incomingReports.length)config.comparisonReports=compared.reports;
         pending.push({type:"config",value:config});await flush();
         const actual=[await this.values("athletes",generation),await this.values("recordIndex",generation)];
         if(actual[0].length>2000||actual[1].length>10000)throw Error("合并后资料超过容量边界");
@@ -447,7 +578,7 @@
         tx.objectStore("meta").put({id:"previous",value:oldGeneration});await done;
         this.generation=generation;this.metadataHashes.clear();
         if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
-        return{added:imported,skipped:counts.record-imported,recordMap};
+        return{added:imported,skipped:counts.record-imported,recordMap,comparisonReportMap:compared.reportMap};
       }catch(error){await this.discardGeneration(generation).catch(()=>{});throw error;}
     }
     async discardGeneration(generation) {
@@ -493,5 +624,5 @@
       if(buffer.length>16*1024*1024)throw Error("单条备份记录过大");if(done)break;
     }if(buffer.trim()){line++;yield JSON.parse(buffer);}}finally{reader.releaseLock();}
   }
-  root.RingsideStore={Repository,summary,athleteMetadata,configuration,validateEntity,validateTestPlans,libraryRows,fileRows};
+  root.RingsideStore={Repository,summary,athleteMetadata,configuration,validateEntity,validateTestPlans,validateComparisonSelection,validateComparisonDocument,validateComparisonReports,normalizeComparisonDocument,mergeComparisonReports,comparisonEnvelopeLibrary,libraryRows,fileRows};
 })(typeof window!=="undefined"?window:globalThis);

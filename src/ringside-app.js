@@ -64,6 +64,7 @@
   let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null, aiEditSequence = 0;
   let desktopUpdate = null, desktopUpdateLoad = null, desktopActionBusy = false, desktopPreferencesBusy = false, desktopUpdateUnsubscribe = null, desktopUpdateRevision = 0;
   let settingsReturn = null;
+  let comparison = null;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -177,7 +178,7 @@
   const thresholdLabel = (id) =>
     definition(id)?.name?.match(/\bLTP?[12]\b/i)?.[0] ||
     (id === "lt1" ? "阈值1" : "阈值2");
-  const snapshot = () => ({
+  const snapshot = () => comparison?.active ? comparison.snapshot() : ({
     athleteId: state.athleteId,
     recordId: state.recordId,
     basis: recordBasis(),
@@ -187,8 +188,8 @@
     if (!record) return null;
     return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
   }
-  function recordBasis() { return state ? M.fingerprint(effectiveRecord()) : ""; }
-  function capabilityDirectionsBasis() { return state ? M.capabilityDirectionsBasis(effectiveRecord()) : ""; }
+  function recordBasis() { return comparison?.active ? comparison.model?.fingerprint || "" : state ? M.fingerprint(effectiveRecord()) : ""; }
+  function capabilityDirectionsBasis() { return comparison?.active ? JSON.stringify(comparison.selection.basis) : state ? M.capabilityDirectionsBasis(effectiveRecord()) : ""; }
   function capabilityDirectionsMatch(binding) {
     if (binding?.capabilityDirectionsBasis === undefined) {
       // Older AI drafts did not bind the training-direction rule. Preserve
@@ -464,6 +465,8 @@
     renderEntry(); renderWorkspace(); focusContentTitle(); return true;
   }
   function currentMatches(s) {
+    if (s?.comparisonId) return comparison?.matches(s) || false;
+    if (comparison?.active) return false;
     return (
       !!s && !!state && state.athleteId === s.athleteId && state.recordId === s.recordId
     );
@@ -793,7 +796,9 @@
       ?.focus();
   }
   function ensureExportable(records = [state]) {
+    if(comparison?.computing)throw Error("比较报告正在计算，请完成后导出");
     saveEditor();
+    if(comparison?.active){if(!comparison.model || comparison.model.ready===false)throw Error("请先完成所选测试记录的核对");return;}
     flushReportEdits(records);
     const pending = records.filter((r) =>
       Object.keys(draftsFor(r)).some((key) => resolveDraftPath(key, r)),
@@ -830,6 +835,10 @@
         if (old) { lastRestorePayload = {rawText:old}; input = JSON.parse(old); }
       }
       lastRestorePayload = input || lastRestorePayload;
+      if (input?.kind === "comparison-report") {
+        window.RingsideEmbeddedComparisonId = input.report.id;
+        input = window.RingsideStore.comparisonEnvelopeLibrary(input);
+      }
       const migrated = window.RingsideEvaluation.migrate(input || M.libraryDefaults());
       if (!input) {
         const record = M.sampleRecord(); record.athlete.name = "示例";
@@ -884,16 +893,17 @@
     const management = ui.mode === "management";
     $("managementView").hidden = !management;
     $("creationView").hidden = ui.mode !== "creation";
-    $("emptyReport").hidden = ui.mode !== "report" || !!state;
+    const hasReport = !!state || !!comparison?.active;
+    $("emptyReport").hidden = ui.mode !== "report" || hasReport;
     document.body.classList.toggle("management-mode", management);
     $("reportToolbar").hidden = ui.mode !== "report";
     $("reportControls").hidden = ui.mode !== "report";
-    $("reportActions").hidden = ui.mode !== "report" || !state;
-    $("reportView").hidden = ui.mode !== "report" || !state;
+    $("reportActions").hidden = ui.mode !== "report" || !hasReport;
+    $("reportView").hidden = ui.mode !== "report" || !hasReport;
     $("entryView").hidden = ui.mode !== "entry";
     $("settingsView").hidden = ui.mode !== "settings";
     $("entryNav").hidden = ui.mode !== "entry";
-    $("editButton").hidden = !state;
+    $("editButton").hidden = !hasReport;
     $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
     if (management || ui.mode === "creation" || ui.mode === "settings" && settingsTab === "app") $("recordContext").textContent = "";
     $("workspaceBack").hidden = ui.mode === "report";
@@ -977,6 +987,8 @@
     saveEditor();
     if (!await persist()) return false;
     await leaveEntrySession();
+    const comparisonResumed=await comparison?.resume();
+    if(!comparisonResumed&&comparison?.active)await comparison.refresh();
     creation = null;
     entryReturn = null;
     ui.mode = "report";
@@ -1276,6 +1288,7 @@
     )?.focus();
   }
   function close(id) {
+    if(id==="comparisonNarrativeModal"&&comparison?.editing)return comparison.closeNarrative();
     if (id === "managementModal" && window.RingsideManagement.beforeModalClose?.(id) === false) return false;
     if ((id === "catalogModal" || id === "unitModal") && catalogEdit?.submitting) return false;
     if(id==="excelModal"&&window.RingsideExcelFlow?.isBusy())return;
@@ -1300,6 +1313,7 @@
       matchMedia("(max-width:1100px)").matches || ui.sidebarCollapsed;
     modalFocus.get(id)?.focus({ preventScroll: true });
     modalFocus.delete(id);
+    if(id==="previewModal"&&comparison?.editing)comparison.openNarrative();
     if (returnToCatalog && catalogEdit) {
       modal("catalogModal");
       $("catalogUnit").focus();
@@ -1324,6 +1338,8 @@
     renderNarrativeStatus();
   }
   async function switchRecord(a, r, options = {}) {
+    if (comparison?.active && !comparison.switching && !await comparison.flush()) return false;
+    comparison?.resetForSingle(a,r);
     const sequence = ++selectionSequence;
     if(reportEditInfo(document.activeElement))commitReportControl(document.activeElement);
     if (state) { captureReportUI(); saveEditor(); }
@@ -2041,12 +2057,12 @@
     $("reportAthleteOptions").hidden = true;
     $("reportAthleteSearch").setAttribute("aria-expanded","false");
     $("reportAthleteSearch").removeAttribute("aria-activedescendant");
-    $("reportAthleteSearch").value = athleteLabel(activeAthlete());
+    $("reportAthleteSearch").value = comparison ? comparison.label() : athleteLabel(activeAthlete());
   }
   function filterAthleteChooser() {
     athleteChooserOpen = true; athleteChooserIndex = -1;
     const rows = reportAthletes($("reportAthleteSearch").value);
-    $("reportAthleteOptions").innerHTML = rows.length ? rows.map((a,i)=>`<button type="button" id="reportAthleteOption-${i}" class="athlete-option" role="option" aria-selected="${a.id===activeAthlete()?.id}" data-athlete-choice="${E(a.id)}" onclick="App.selectAthlete(this.dataset.athleteChoice)">${E(athleteLabel(a))}</button>`).join("") : '<p class="athlete-no-results" role="status">没有匹配的运动员</p>';
+    $("reportAthleteOptions").innerHTML = rows.length ? comparison.athleteOptions(rows) : '<p class="athlete-no-results" role="status">没有匹配的运动员</p>';
     $("reportAthleteOptions").hidden = false; $("reportAthleteSearch").setAttribute("aria-expanded","true");
     $("reportAthleteSearch").removeAttribute("aria-activedescendant");
   }
@@ -2057,7 +2073,7 @@
     if(!["ArrowDown","ArrowUp","Enter"].includes(event.key))return;
     if(!athleteChooserOpen)openAthleteChooser();
     const options=[...$("reportAthleteOptions").querySelectorAll("[data-athlete-choice]")];
-    if(event.key==="Enter") {event.preventDefault();if(options[athleteChooserIndex])selectAthlete(options[athleteChooserIndex].dataset.athleteChoice);return;}
+    if(event.key==="Enter") {event.preventDefault();if(options[athleteChooserIndex])comparison.toggleAthlete(options[athleteChooserIndex].dataset.athleteChoice);return;}
     event.preventDefault();if(!options.length)return;
     athleteChooserIndex=Math.max(0,Math.min(options.length-1,athleteChooserIndex+(event.key==="ArrowDown"?1:-1)));
     options.forEach((el,i)=>el.classList.toggle("highlighted",i===athleteChooserIndex));
@@ -2065,6 +2081,7 @@
     options[athleteChooserIndex].scrollIntoView({block:"nearest"});
   }
   async function selectReportGroup() {
+    if (comparison) { closeAthleteChooser(); await comparison.selectGroup($("reportGroupFilter").value); renderSelectors(); return; }
     ++selectionSequence;
     closeAthleteChooser();
     const current=activeAthlete(),group=$("reportGroupFilter").value;
@@ -2107,9 +2124,14 @@
     updateSelectOptions($("recordSelect"), [["","选择测试记录"],...[...(a?.records||[])].filter(r=>!r.deletedAt&&!r.archived).sort((x,y)=>(y.athlete.date||"").localeCompare(x.athlete.date||"")||y.recordId.localeCompare(x.recordId)).map(r=>[r.recordId,`${r.athlete.date||"未填日期"} · ${r.title||Object.values(r.enabled).filter(Boolean).length+"个项目 · "+r.recordId.slice(-4)}`])],state?.recordId);
     $("sampleLabel").classList.toggle("hidden", !state?.demo);
     $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : state ? `${a?.name || state.athlete.name} · ${state.athlete.date}` : a ? a.name + " · 暂无测试" : "选择一条测试记录";
-
+    comparison?.renderSelectors();
   }
   function renderReport(preserveUI = true) {
+    if (comparison?.active && ui.mode === "report") { comparison.render(); reportDirty=false; return; }
+    $("reportView").classList.remove("comparison-report-view");
+    $("aggMode").closest("label").hidden=false;
+    $("editButton").textContent="编辑本次数据";
+    $("comparisonNarrativeButton").hidden=true;
     if (!state) { renderSelectors(); renderWorkspace(); return; }
     const visible =
       preserveUI && ui.mode === "report" && !$("reportView").hidden;
@@ -2216,6 +2238,7 @@
       $("detailContent").querySelector(`[${fvpFocus}="${CSS.escape(fvpFocusValue)}"]${fvpFocusId ? `[data-fvp-id="${CSS.escape(fvpFocusId)}"]` : ""}`)?.focus({ preventScroll: true });
   }
   function renderNarrativeStatus() {
+    if (comparison?.active) { renderAIStatus(); comparison.renderNarrative(); return; }
     if (!state) return;
     renderAIStatus();
     const n = state.narrative,
@@ -2251,6 +2274,7 @@
       : '<div class="empty">本次测试尚未填写解读与建议。</div>';
   }
   function saveEditor() {
+    if (comparison?.editing) { comparison.updateEditor(); return; }
     const ed = $("interpEditor");
     if (!ed || ui.mode !== "entry" || entryTab !== "narrative") return;
     const html = M.sanitizeHTML(ed.innerHTML);
@@ -2440,6 +2464,13 @@
     return '<p class="note">速度统一使用 m/s。</p>';
   }
   function openEntry(tab) {
+    if (comparison?.active) {
+      if (tab === "narrative") return comparison.openNarrative();
+      $("reportRecordChoices").open=true;
+      $("detailContent").querySelector('[data-comparison-table="individual"]')?.click();
+      toast("在个人明细中选择需要编辑的测试记录");
+      return;
+    }
     if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return;
     if (!state) return startDataEntry();
@@ -3161,6 +3192,7 @@
     renderReport();
   }
   function openSettings(tab = "ai") {
+    if(comparison?.editing)comparison.leaveNarrative();
     if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return;
     if (tab === "catalog") return openManagement("catalog");
@@ -3975,6 +4007,7 @@
   }
 
   function facts() {
+    if (comparison?.active) return comparison.facts();
     // Suppress inactive custom targets in AI-derived scores/findings as well as
     // metric rows, without changing the saved record or local report formulas.
     flushReportEdits();
@@ -4093,24 +4126,33 @@
     $("aiPreview").setAttribute("role", "textbox");
     $("aiPreview").setAttribute("aria-label", "草稿正文");
     $("applyDraftButton").hidden = false;
-    $("aiPreviewNote").textContent = state.narrative.text
+    $("aiPreviewNote").textContent = (comparison?.active ? comparison.document.narrative.text : state.narrative.text)
       ? "可直接编辑草稿。应用后替换当前正文；上一版将在当前记录中保留。"
       : "可直接编辑草稿，确认后应用。";
     modal("previewModal");
   }
   function localDraft() {
+    if(comparison?.computing)return toast("比较报告正在计算，请完成后生成摘要","ai");
     if (job) return;
+    if (comparison?.active) { preview(comparison.localText(),"本地",snapshot());setAIStatus("ready","离线比较摘要已生成，等待应用","可编辑后应用到本次比较报告正文。");return; }
     if (!M.stats(effectiveRecord()).validTests.size) return toast("先录入至少一项数据", "ai");
     preview(M.localText(effectiveRecord()), "本地", snapshot());
     setAIStatus("ready", "离线摘要已生成，等待应用", "已在预览中打开，可编辑后应用到正文。这份摘要由本地规则生成。");
   }
   function applyAI() {
+    if(comparison?.computing)return toast("比较报告正在计算，请完成后应用草稿","ai");
     const p = pendingAI;
     if (!p || !currentMatches(p)) return toast("草稿所属测试已切换", "ai");
     if (p.basis !== recordBasis())
       return toast("测试数据已更新，请重新生成", "ai");
     if (!capabilityDirectionsMatch(p))
       return toast("能力分析依据已更新，请重新生成", "ai");
+    if (comparison?.active) {
+      if(p.revision!==comparison.document.narrative.revision && !confirm("生成后正文已有人工修改。应用草稿将替换当前文字，是否继续？"))return;
+      comparison.setNarrative(p.text,p.origin,M.sanitizeHTML(p.html));pendingAI=null;
+      $("previewModal").classList.remove("show");document.body.style.overflow="";$("workspace").inert=false;$("sidebar").inert=matchMedia("(max-width:1100px)").matches||ui.sidebarCollapsed;
+      comparison.flush();comparison.openNarrative();setAIStatus("applied","新建议已应用","本次比较正文已保存，上一版保留。");return;
+    }
     if (
       p.revision !== state.narrative.revision &&
       !confirm("生成后正文已有人工修改。应用草稿将替换当前文字，是否继续？")
@@ -4153,7 +4195,7 @@
     if (kind === "running") aiTicker = setInterval(renderAIStatus, 1000);
   }
   function isNarrativeView() {
-    return ui.mode === "entry" && entryTab === "narrative";
+    return !!comparison?.editing || ui.mode === "entry" && entryTab === "narrative";
   }
   function isAIView() {
     return isNarrativeView() || (ui.mode === "settings" && settingsTab === "ai");
@@ -4355,15 +4397,16 @@
     }
   }
   async function ai() {
+    if(comparison?.computing)return setAIStatus("error","比较报告正在计算","计算完成后可生成本次解读。");
     if (job) return toast("当前分析正在生成", "ai");
-    if (!M.stats(effectiveRecord()).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
-    const requestedRecord = state.recordId;
+    if (comparison?.active ? comparison.model?.ready===false || !comparison.model?.metrics.length : !M.stats(effectiveRecord()).validTests.size) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
+    const requested = snapshot();
     let connection;
     try {connection=await configuredAI(true);}catch(error){
       openSettings("ai");
       return setAIStatus("error", "AI 服务尚未配置完整", safeAIError(error));
     }
-    if(state.recordId!==requestedRecord)return;
+    if(!currentMatches(requested))return;
     saveEditor();
     const binding = { ...snapshot(), capabilityDirectionsBasis: capabilityDirectionsBasis() },
       task = {
@@ -4381,6 +4424,8 @@
         { role: "system", content: window.RingsideInterventions.systemPrompt },
         { role: "user", content: "生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n" + JSON.stringify(facts()) },
       ];
+      const pageLimit = comparison?.active ? 4 : 2;
+      if (comparison?.active) messages[1].content="为当前团队或纵向报告生成独立解读与干预建议。引用输入已计算的数值、配对人数、变化及统计结果，先说明共同重点，再按实际训练方向列分组和队员名单，给出动作、剂量、周安排、个人限制调整和复测条件。方向改变按原含义表述；显著性与实际训练价值分别判断。优先使用统一依据形成的trainingDirections，不替任何队员更换判断依据。所有建议都应能对应本次所选队员和记录。\n"+JSON.stringify(facts());
       const selectedModel = connection.model;
       let validated, pages;
       for (let attempt = 0; attempt < 2; attempt++) {
@@ -4402,13 +4447,13 @@
         if (job !== task || !currentMatches(task)) return;
         if (!capabilityDirectionsMatch(binding)) throw Error("生成期间能力分析依据已更新，请根据当前依据重新生成。");
         pages = window.RingsidePDF.measureNarrative(M.textToHTML(validated));
-        if (pages <= 2) break;
+        if (pages <= pageLimit) break;
         if (attempt === 0) {
-          setAIStatus("running", "AI 正在精简训练重点", "初稿偏长，正在保留执行细节并压缩到两页 A4 内。最多再等待 300 秒。");
-          messages.push({ role: "assistant", content: validated }, { role: "user", content: "当前正文实际排版为" + pages + "页。请重写为700–1000个汉字，最多两页A4。只保留最关键的综合判断、2个训练重点及具体剂量、必要的调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" });
+          setAIStatus("running", "AI 正在精简训练重点", comparison?.active ? "初稿偏长，正在保留分组执行细节并压缩到四页 A4 内。最多再等待 300 秒。" : "初稿偏长，正在保留执行细节并压缩到两页 A4 内。最多再等待 300 秒。");
+          messages.push({ role: "assistant", content: validated }, { role: "user", content: comparison?.active ? "当前正文实际排版为" + pages + "页。请精简到最多四页A4，保留关键综合判断、共同重点、实际分组与具体剂量、必要调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" : "当前正文实际排版为" + pages + "页。请重写为700–1000个汉字，最多两页A4。只保留最关键的综合判断、2个训练重点及具体剂量、必要的调整条件。不降低字号、不截断内容、不加泛泛免责声明。直接返回精简后的正文。" });
         }
       }
-      if (pages > 2) throw Error("模型精简后仍超过两页，请重新生成或更换模型。");
+      if (pages > pageLimit) throw Error(comparison?.active?"模型精简后仍超过四页，请重新生成或更换模型。":"模型精简后仍超过两页，请重新生成或更换模型。");
       if (binding.basis !== recordBasis()) throw Error("生成期间测试数据已更新，请根据最新数据重新生成。");
       if (!capabilityDirectionsMatch(binding)) throw Error("生成期间能力分析依据已更新，请根据当前依据重新生成。");
       preview(validated, "AI", binding, task.autoPreview && isNarrativeView()
@@ -4443,6 +4488,7 @@
   }
   function reportPayload() {
     ensureExportable();
+    if(comparison?.active)return comparison.envelope();
     const profile=library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId);
     const record = window.RingsideEvaluation.materialize(effectiveRecord());
     window.RingsideGenericReport.freezeViews(record, library.catalog);
@@ -4457,10 +4503,12 @@
   async function libraryPayload() {
     ensureExportable(); assertLibraryReportEdits();
     if (!await persist()) throw Error("请先完成保存");
+    if (!await comparison?.flush()) throw Error("比较正文尚未保存，请重试");
     return repository.exportLibrary();
   }
   function exportHTMLString(payload = reportPayload()) {
     const clone = document.documentElement.cloneNode(true);
+    clone.querySelectorAll("[data-comparison-bound]").forEach(node=>node.removeAttribute("data-comparison-bound"));
     clone.querySelector("#embedded-data").textContent = JSON.stringify(
       payload,
     ).replace(/</g, "\\u003c");
@@ -4500,6 +4548,7 @@
       "recoveryError",
       "unitChangeMessage",
       "migrationReviewNotice",
+      "comparisonEditor", "comparisonEditorState", "reportRecordOptions",
     ])
       clone.querySelector("#" + id)?.replaceChildren();
     clone.querySelector("#athleteSelect").replaceChildren();
@@ -4567,6 +4616,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   function filename(ext) {
+    if(comparison?.active)return comparison.filename(ext);
     return (
       "MotionBench_" +
       (state.athlete.name || "athlete").replace(/[<>:"/\\|?*\s]/g, "_") +
@@ -4583,6 +4633,7 @@
     try {
       const payload=reportPayload(),name=filename("html");
       if (!await persist()) throw Error("保存失败，请先重试");
+      if(!await comparison.flush())throw Error("比较报告尚未保存，请重试");
       download(exportHTMLString(payload), name, "text/html;charset=utf-8");
     } catch (e) {
       return toast(e.message);
@@ -4594,8 +4645,9 @@
     try {
       const payload=reportPayload(),name=filename("json");
       if (!await persist()) throw Error("保存失败，请先重试");
+      if(!await comparison.flush())throw Error("比较报告尚未保存，请重试");
       download(
-        JSON.stringify(payload, null, 2),
+        JSON.stringify(payload, null, payload.kind==="comparison-report"?undefined:2),
         name,
         "application/json;charset=utf-8",
       );
@@ -4673,6 +4725,8 @@
   }
   async function runLibraryTransfer(operation) {
     if(libraryTransferActive)throw Error("资料库正在导入或恢复，请等待完成");
+    saveEditor();
+    if(comparison && !await comparison.flush())throw Error("比较报告正文尚未保存，请重试后导入或恢复");
     libraryTransferActive=true;cancelJob();
     const controls=[$("workspace"),$("sidebar"),...document.querySelectorAll(".modal-backdrop.show")].map(node=>[node,node.inert]);
     controls.forEach(([node])=>node.inert=true);document.body.setAttribute("aria-busy","true");toast("正在校验并写入资料库…");
@@ -4680,7 +4734,7 @@
   }
   async function importPayload(parsed, conflictChoice = "merge") {
     return runLibraryTransfer(async()=>{
-    const incoming=window.RingsideEvaluation.migrate(parsed);
+    const incoming=window.RingsideEvaluation.migrate(parsed?.kind==="comparison-report"?window.RingsideStore.comparisonEnvelopeLibrary(parsed):parsed);
     if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
     const result=await repository.importLibrary(incoming,{merge:conflictChoice!=="replace-library"});
     cancelJob(); await loadDirectory(false);
@@ -4692,7 +4746,13 @@
       if (upgrade.changed) await repository.save(library, [state]);
       rememberRecordBaseline(state, upgrade.changed ? state : importedRecord);await persist({duringTransfer:true});
     }
-    ui.mode="report"; renderReport(false);renderWorkspace();return result;
+    ui.mode="report";
+    if(parsed?.kind==="comparison-report") {
+      const id=result.comparisonReportMap?.[parsed.report.id]||parsed.report.id;
+      const imported=(library.comparisonReports||[]).find(doc=>doc.id===id);
+      if(imported)await comparison.select(imported.selection,{restoreDocument:true,documentId:imported.id,duringTransfer:true});
+    } else comparison.resetForSingle(activeAthlete(),state);
+    renderReport(false);renderWorkspace();return result;
     });
   }
   async function importBackup(file, merge = false) {
@@ -4838,7 +4898,7 @@
       return toast(e.message);
     }
     renderReport();
-    const record = effectiveRecord(),
+    const record = comparison?.active ? {kind:"comparison-report",recordId:comparison.document.id,reportTitle:comparison.title(),reportDates:comparison.selection.dates} : effectiveRecord(),
       name = filename("pdf"),
       report = $("reportView").cloneNode(true);
     pdfJob = true;
@@ -4846,6 +4906,7 @@
     $("pdfProgress").hidden = false;
     try {
       if (!await persist()) throw Error("保存失败，请先重试");
+      if(!await comparison.flush())throw Error("比较报告尚未保存，请重试");
       const blob = await window.RingsidePDF.build(record, report, {
         onProgress: (p) => {
           $("pdfProgress").textContent =
@@ -4892,12 +4953,14 @@
   async function prepareDesktopClose({discardSettings = false} = {}) {
     await window.App.ready;
     if (!library || !repository) return {ok:true};
+    if(comparison?.computing)return {ok:false,reason:"比较报告正在计算，请完成后再退出程序。"};
     const management = window.RingsideManagement.desktopCloseStatus?.() || {};
     if (desktopPreferencesBusy) return {ok:false,reason:"正在保存启动检查设置，请保存完成后再退出或更新。"};
     if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || window.RingsideExcelFlow.isBusy())
       return {ok:false,reason:"正在处理资料、AI 设置或文件导出，请完成或取消当前操作后再退出。"};
     saveEditor(); saveDrafts(); saveEntrySession(); rememberUI();
     if (!await persist()) return {ok:false,reason:"当前数据尚未保存。请修正输入或重试保存，再退出程序。"};
+    if (!await comparison?.flush()) return {ok:false,reason:"比较报告正文尚未保存，请重试后退出。"};
     await entryPersistQueue; await repository.flush();
     // flush() alone deliberately swallows queue failures, so inspect the public
     // operation result above and the error flags after the final awaited write.
@@ -4928,8 +4991,8 @@
       });
     },
     downloadPreMigration() { const raw=localStorage.getItem(storageKey)||localStorage.getItem(legacyKey); if(raw) download(raw,"MotionBench_迁移前资料.json","application/json");else toast("此页面没有旧版资料"); },
-    refreshWorkspace() { renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
-    saveNow: persist, prepareDesktopClose,
+    async refreshWorkspace() { if(comparison?.active&&ui.mode==="report")await comparison.refresh();else renderReport(); if (ui.mode === "entry") renderEntry(); renderWorkspace(); },
+    async saveNow() {saveEditor();return await persist() && await comparison.flush();}, prepareDesktopClose,
     setDesktopUpdatePreference,
     checkDesktopUpdate: () => desktopUpdateAction("checkForUpdates"),
     downloadDesktopUpdate: () => desktopUpdateAction("downloadUpdate"),
@@ -4998,6 +5061,17 @@
     selectAthlete,
     selectRecord,
     selectReportGroup, openAthleteChooser, filterAthleteChooser, athleteChooserKey,
+    toggleReportAthlete: id=>comparison.toggleAthlete(id),
+    selectAllReportAthletes: ()=>comparison.selectAll(reportAthletes($("reportAthleteSearch").value)),
+    clearReportSelection: ()=>comparison.clear(),
+    toggleComparisonDate: (date,checked)=>comparison.toggleDate(date,checked),
+    chooseComparisonRecord: (id,date,recordId)=>comparison.chooseRecord(id,date,recordId),
+    selectComparison: selection=>comparison.select(selection,{restoreDocument:true}),
+    getComparison: ()=>comparison?.model,
+    getComparisonDocument: ()=>comparison?.document,
+    openComparisonNarrative: ()=>comparison.openNarrative(),
+    closeComparisonNarrative: ()=>comparison.closeNarrative(),
+    updateComparisonEditor: ()=>comparison.updateEditor(),
     addRow,
     addSprintSplit(index) {
       const trial = state?.data?.sprint_fvp?.[index];
@@ -5669,6 +5743,9 @@
     $("startupStatus").hidden = false;
     try {
       await restore();
+      comparison=window.RingsideComparisonController.create({library:()=>library,repository:()=>repository,state:()=>state,
+        persist,saveEditor,cancelJob,switchRecord,setMode:mode=>ui.mode=mode,render:()=>{renderReport(false);renderWorkspace();},renderSelectors,
+        athleteLabel,toast,modal,close,renderAIStatus,acceptConfig:config=>{library.comparisonReports=copy(config.comparisonReports||[]);library.updated=config.updated;}});
       window.RingsideManagement.init();
       await restoreEntrySession();
       try {
@@ -5676,6 +5753,7 @@
         if(saved){ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}}
       } catch {}
       document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);
+      if(ui.mode!=="entry")await comparison.restore();
       renderReport(false);if(ui.mode==="entry")renderEntry();renderWorkspace();
       $("sidebar").inert=matchMedia("(max-width:1100px)").matches||ui.sidebarCollapsed;
       $("sidebarToggle").setAttribute("aria-expanded",String(!$("sidebar").inert));

@@ -83,7 +83,7 @@
         <div class="report-field report-team"><label for="reportGroupFilter">队伍</label><select id="reportGroupFilter" onchange="App.selectReportGroup(this.value)"><option value="">全部队伍</option></select></div>
         <div class="report-field report-athlete">
           <label for="reportAthleteSearch">运动员</label>
-          <div class="athlete-combobox"><input id="reportAthleteSearch" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="reportAthleteOptions" autocomplete="off" placeholder="搜索姓名、专项或编号" onfocus="App.openAthleteChooser()" oninput="App.filterAthleteChooser()" onkeydown="App.athleteChooserKey(event)"><button type="button" class="athlete-clear" aria-label="清空运动员" onclick="App.selectAthlete('')">×</button><div id="reportAthleteOptions" class="athlete-options" role="listbox" aria-label="运动员搜索结果" hidden></div></div>
+          <div class="athlete-combobox"><input id="reportAthleteSearch" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="reportAthleteOptions" autocomplete="off" placeholder="搜索姓名、专项或编号" onfocus="App.openAthleteChooser()" oninput="App.filterAthleteChooser()" onkeydown="App.athleteChooserKey(event)"><button type="button" class="athlete-clear" aria-label="清空运动员" onclick="App.clearReportSelection()">×</button><div id="reportAthleteOptions" class="athlete-options" role="listbox" aria-label="运动员搜索结果" aria-multiselectable="true" hidden></div></div>
           <select id="athleteSelect" class="sr-only" aria-hidden="true" tabindex="-1" onchange="App.selectAthlete(this.value)"></select>
         </div>
         <div class="report-field report-record">
@@ -92,9 +92,10 @@
             id="recordSelect"
             onchange="App.selectRecord(this.value)"
           ></select>
+          <details id="reportRecordChoices" class="comparison-record-chooser"><summary id="reportRecordSummary">选择测试记录</summary><div id="reportRecordOptions" class="comparison-record-options"></div></details>
         </div>
       </div>
-        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">本次测试 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">本次测试数据 JSON</button></div></details></div>
+        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><button id="comparisonNarrativeButton" class="btn small" onclick="App.openComparisonNarrative()" hidden>解读与建议</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">本次测试 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">本次测试数据 JSON</button></div></details></div>
       </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
       <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button></div></section>
@@ -508,6 +509,7 @@
     <div id="toast" role="status"></div>
     <div id="tooltip" role="tooltip"></div>
     <div id="bodyRegionTooltip" class="body-region-tooltip no-print" role="tooltip" hidden tabindex="-1"></div>
+    <div id="comparisonNarrativeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="comparisonNarrativeTitle"><div class="modal"><header class="modal-head"><h2 id="comparisonNarrativeTitle">比较报告 · 解读与建议</h2><button type="button" class="close" aria-label="保存并关闭比较解读" onclick="App.closeComparisonNarrative()">×</button></header><div class="settings-content"><div class="draft-options"><div><button class="btn small" data-local-draft onclick="App.localDraft()">生成离线摘要</button><p>按本次比较结果整理主要发现与方向分组。</p></div><div><button class="btn small primary" data-ai-generate onclick="App.ai()">生成 AI 综合建议</button><p>共同重点、分组训练、具体安排和复测条件。</p></div></div><div id="comparisonAIStatusMount"></div><label for="comparisonEditor" class="sr-only">比较报告正文</label><textarea id="comparisonEditor" oninput="App.updateComparisonEditor()" placeholder="写下主要发现、共同重点和分组训练安排。"></textarea><p id="comparisonEditorState" role="status"></p></div><footer class="modal-foot"><button type="button" class="btn primary" onclick="App.closeComparisonNarrative()">保存并返回报告</button></footer></div></div>
     <script id="embedded-data" type="application/json">
       null
     </script>

@@ -1,9 +1,13 @@
 {
   "name": "motionbench",
-  "version": "2.22.0",
+  "version": "2.23.0",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {
+    "test:comparison-model": "node tests/comparison-model-tests.cjs && node tests/comparison-render-model-tests.cjs",
+    "test:comparison-storage": "node tests/comparison-storage-browser-tests.cjs --source MotionBench.html && node tests/comparison-storage-browser-tests.cjs --source MotionBench.html --edge",
+    "test:comparison": "node tests/comparison-browser-tests.cjs --pdf && node tests/comparison-browser-tests.cjs --edge",
+    "test:comparison-desktop": "node tests/desktop-comparison-tests.cjs",
     "test:v221-desktop-management": "node tests/desktop-v221-management-tests.cjs",
     "test:v220-management": "node tests/management-v220-browser-tests.cjs && node tests/management-v220-browser-tests.cjs --edge",
     "test:v220-storage": "node tests/storage-v220-browser-tests.cjs --source MotionBench.html && node tests/storage-v220-browser-tests.cjs --source MotionBench.html --edge",
