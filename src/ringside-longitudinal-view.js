@@ -104,7 +104,7 @@
     if(["columns","bars"].includes(spec.kind)){
       const capacity=spec.kind==="columns"?Math.max(2,Math.floor((width-(spec.rsi?96:68))/56)):5,items=spec.periods.map((p,i)=>({p,v:spec.values[i]})),groups=print?chunks(items,capacity,true):[items];
       const chartWidth=!print&&spec.kind==="columns"?Math.max(width,(spec.rsi?96:68)+spec.periods.length*56):width;
-      const content=groups.map(group=>printPanel(spec.kind==="columns"?columns({...spec,periods:group.map(x=>x.p),values:group.map(x=>x.v),scaleValues:spec.values},chartWidth,print):bars({...spec,periods:group.map(x=>x.p),values:group.map(x=>x.v),scaleValues:spec.values},chartWidth,print),print)).join("");
+      const content=groups.map(group=>printPanel(spec.kind==="columns"?columns({...spec,periods:group.map(x=>x.p),values:group.map(x=>x.v),scaleValues:spec.scaleValues || spec.values},chartWidth,print):bars({...spec,periods:group.map(x=>x.p),values:group.map(x=>x.v),scaleValues:spec.scaleValues || spec.values},chartWidth,print),print)).join("");
       return title+(!print&&chartWidth>width?`<div class="longitudinal-chart-scroll"><div style="width:${chartWidth}px">${content}</div></div>`:content);
     }
     if(spec.kind==="lvp"){
@@ -145,10 +145,15 @@
     const changeCard=(direction,title,zero)=>{const items=(summary[direction]||[]).map((item,index)=>({item,index})).sort((a,b)=>magnitude(b.item)-magnitude(a.item)||a.index-b.index).map(entry=>entry.item);return `<article class="micro-card longitudinal-summary-changes" data-change-direction="${direction}"><div class="micro-head"><h3>${title}</h3></div><div class="micro-value">${items.length}<small> 项</small></div><p class="longitudinal-summary-names" title="${E(items.length?items.map(itemLabel).join("；"):zero)}">${items.length?items.map(itemHTML).join("；"):zero}</p></article>`;};
     return `<article class="micro-card athlete-summary longitudinal-summary-athlete"><div class="micro-head"><h3>运动员基本信息</h3></div><div class="micro-value text">${E(model.athlete?.name||athlete.name)}</div><dl>${facts.map(([label,value])=>`<div><dt>${label}</dt><dd>${E(value)}</dd></div>`).join("")}</dl></article>`+changeCard("declined","下降","暂无下降指标")+changeCard("improved","改善","暂无改善指标")+`<article class="micro-card longitudinal-summary-dates"><div class="micro-head"><h3>所选比较日期</h3><span class="longitudinal-summary-count">${periods.length} 次</span></div><ul>${periods.map(period=>`<li data-summary-record="${E(period.id)}"><i style="background:${E(period.color)}"></i>${E(periodLabel(period))}</li>`).join("")}</ul></article>`;
   }
+  function assessmentAttributes(cell) {
+    const assessment=cell?.assessment;if(!assessment)return "";
+    const status=["red","amber","green","gray"].includes(assessment.status)?assessment.status:"gray",basis=[assessment.reason,assessment.referenceSource,assessment.referenceTarget,assessment.target!=null?"参考目标 "+assessment.target:null].filter(value=>value!==null&&value!==undefined&&value!=="").join("；");
+    return ` class="longitudinal-assessed ${status}" data-assessment-status="${status}"${basis?` title="${E(basis)}"`:""}`;
+  }
   function cellHTML(cell,row) {
-    if(!cell||N(cell.value)===null)return '<span class="longitudinal-unavailable">—</span>';
+    if(!cell||N(cell.value)===null)return '<span class="longitudinal-unavailable">—</span>'+(cell?.assessment?.label?`<small class="longitudinal-assessment">${E(cell.assessment.label)}</small>`:"");
     const stat=cell.statistics,rawLabel=cell.evaluation?.grade?.label || cell.evaluation?.label,evalLabel=["未启用评价标准","未设等级区间","未启用标准"].includes(rawLabel)?"":rawLabel,notes=Array.isArray(cell.notes)?cell.notes.join("；"):cell.notes;
-    return `<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>${stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${evalLabel?`<small>${E(evalLabel)}</small>`:""}${cell.pain?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
+    return `<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>${stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${cell.assessment?.label?`<small class="longitudinal-assessment">${E(cell.assessment.label)}</small>`:evalLabel?`<small>${E(evalLabel)}</small>`:""}${cell.pain?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
   }
   function table(rows,periods,{print=false,wrapped=true}={}) {
     if(!rows.length)return "";
@@ -165,11 +170,45 @@
     const changeColumns=[["overall","首末变化"],...(periods.length>2?[["recent","近期变化"]]:[])].filter(([key])=>rows.some(row=>row.changes?.[key]?.available));
     const html=chunks(periods.map((p,i)=>({p,i})),print?(changeColumns.length>1?3:4):periods.length).map((group,index,groups)=>{
       const changes=index===groups.length-1?changeColumns:[],headers=["指标",...group.map(x=>periodLabel(x.p)),...changes.map(([,label])=>label)];
-      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+changes.length*92}px"`}><thead><tr>${headers.map(h=>`<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}">${cellHTML(row.cells[i],row)}</td>`).join("")}${changes.map(([key,label])=>`<td data-label="${E(label)}">${changeText(row.changes?.[key],row)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+changes.length*92}px"`}><thead><tr>${headers.map(h=>`<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}"${assessmentAttributes(row.cells[i])}>${cellHTML(row.cells[i],row)}</td>`).join("")}${changes.map(([key,label])=>`<td data-label="${E(label)}">${changeText(row.changes?.[key],row)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
     }).join("");
     if(!wrapped)return html;
-    const compactRows=rows.map(row=>({id:row.id,name:row.name,unit:row.unit,digits:resultPrecision(row),measurementScale:row.measurementScale,changes:row.changes,cells:row.cells.map(cell=>cell?{value:cell.value,unit:cell.unit,statistics:cell.statistics,notes:cell.notes,pain:cell.pain,evaluation:cell.evaluation?{label:cell.evaluation.label,grade:cell.evaluation.grade}:null}:null)}));
+    const compactRows=rows.map(row=>({id:row.id,name:row.name,unit:row.unit,digits:resultPrecision(row),measurementScale:row.measurementScale,changes:row.changes,cells:row.cells.map(cell=>cell?{value:cell.value,unit:cell.unit,statistics:cell.statistics,notes:cell.notes,pain:cell.pain,assessment:cell.assessment,evaluation:cell.evaluation?{label:cell.evaluation.label,grade:cell.evaluation.grade}:null}:null)}));
     return `<div class="longitudinal-table" data-longitudinal-table="${E(JSON.stringify({rows:compactRows,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label}))}))}">${html}</div>`;
+  }
+  // Work with balanced native report fragments, including nested disclosures.
+  function htmlBlocks(html,tag,predicate) {
+    const found=[],tokens=new RegExp("<\\/?"+tag+"\\b[^>]*>","g");let match;
+    while((match=tokens.exec(html))){if(match[0].startsWith("</")||!predicate(match[0]))continue;const start=match.index,open=match[0];let depth=1,end=tokens.lastIndex,next;while(depth&&(next=tokens.exec(html))){depth+=next[0].startsWith("</")?-1:1;end=tokens.lastIndex;}if(!depth)found.push({start,end,open,html:html.slice(start,end),inner:html.slice(start+open.length,end-(tag.length+3))});}
+    return found;
+  }
+  function mapBlocks(html,tag,predicate,transform) {
+    const blocks=htmlBlocks(html,tag,predicate);for(const block of blocks.reverse())html=html.slice(0,block.start)+transform(block)+html.slice(block.end);return html;
+  }
+  function rawDisclosure(raw,project) {
+    if(!raw)return "";
+    const content=mapBlocks(raw,"details",tag=>/data-raw-trials=/.test(tag),block=>`<section class="longitudinal-raw-period" ${block.open.match(/data-trial-title="[^"]*"/)?.[0]||""} data-raw-project="${E(block.open.match(/data-raw-trials="([^"]*)"/)?.[1]||project.id)}">${block.inner.replace(/<summary[^>]*>([\s\S]*?)<\/summary>/,"<h5 class=\"longitudinal-period-heading\">$1</h5>")}</section>`);
+    return `<details class="attempt-details longitudinal-raw" id="longitudinal-raw-${E(project.id)}" data-raw-trials="${E(project.id)}" data-trial-title="${E(project.name)} · 原始试次"><summary>展开所有原始试次数据</summary>${content}</details>`;
+  }
+  function nativeAnalysisSupplement(period,id,section,source,entry) {
+    const sprint=id==="sprint_fvp";
+    const attribute=sprint?(section==="profile"?"data-sprint-fvp-panel":"data-sprint-elasticity-panel"):(section==="profile"?`data-fvp-panel="${id}"`:`data-fvp-elasticity="${id}"`),block=htmlBlocks(source,"article",tag=>tag.includes(attribute))[0];
+    if(!block)return `<section class="longitudinal-analysis-period" data-analysis-period="${E(period.id)}" data-analysis-kind="${sprint?"sprint":"jump"}-${section}"><h5 class="longitudinal-period-heading">${E(periodLabel(period))}</h5>${empty(entry?.reason||"本期未测")}</section>`;
+    let content=mapBlocks(block.inner,"div",tag=>/class="[^"]*chart-wrap/.test(tag),()=>"");
+    content=mapBlocks(content,"details",tag=>/data-raw-trials=/.test(tag),()=>"");
+    content=mapBlocks(content,"table",tag=>/class="[^"]*fvp-result-table/.test(tag),()=>"");
+    // Current/scenario numbers are already in the comparison matrix; retain
+    // every original per-metric scenario interpretation as a labelled note.
+    content=mapBlocks(content,"table",tag=>/class="[^"]*fvp-scenario-table/.test(tag),block=>`<dl class="longitudinal-analysis-notes">${htmlBlocks(block.inner,"tr",()=>true).map(row=>{const cells=htmlBlocks(row.inner,"td",()=>true);return cells.length===4?`<div><dt>${cells[0].inner}</dt><dd>${cells[3].inner}</dd></div>`:"";}).join("")}</dl>`);
+    content=mapBlocks(content,"div",tag=>/class="[^"]*detail-pair/.test(tag),block=>block.inner);
+    content=content.replace(/\sid="([^"]*)"/g,(_,key)=>` id="long-${E(period.id)}-${key}"`).replace(/\s(?:role="button"|tabindex="0"|aria-pressed="false")/g,"");
+    return `<section class="longitudinal-analysis-period" data-analysis-period="${E(period.id)}" data-analysis-kind="${sprint?"sprint":"jump"}-${section}"><h5 class="longitudinal-period-heading">${E(periodLabel(period))}</h5>${content}</section>`;
+  }
+  function capabilitySupplement(period,key,source) {
+    const block=htmlBlocks(source,"section",tag=>tag.includes(`data-capability-card="${key==="endurance"?"cardio":key}"`))[0];if(!block)return "";
+    let content=mapBlocks(block.html,"span",tag=>/class="capability-value"/.test(tag),()=>"");
+    content=content.replace("结果与参考","参考与解读");
+    return `<section class="longitudinal-analysis-period" data-capability-period="${E(period.id)}"><h5 class="longitudinal-period-heading">${E(periodLabel(period))}</h5>${content}</section>`;
   }
   function extractDetails(html,testIds,period) {
     let result="",re=/<details\b[^>]*data-raw-trials="([^"]+)"[^>]*>/g,match;
@@ -217,7 +256,7 @@
     }
     else if(kind==="speed"){
       const speedRows=rows.filter(r=>["mas_speed","mss_speed","ift_speed","ift_shuttle","ift_treadmill"].includes(r.metricId)),units=[...new Set(speedRows.map(r=>r.unit))];
-      for(const unit of units){const entries=speedRows.filter(r=>r.unit===unit).flatMap(row=>periods.map((p,i)=>({period:p,value:{groupId:row.id,groupLabel:row.name,value:row.cells[i]?.value??null,target:row.cells[i]?.evaluation?.target,comparableToPrevious:row.cells[i]?.comparableToPrevious,asrEnd:row.metricId==="mas_speed"&&p.stats.raw.asr>=0?p.stats.values.mss_speed:null}})));specs.push({kind:"bars",title:"速度与储备",grouped:true,unit,periods:entries.map(e=>({id:e.period.id,date:e.period.date,label:e.period.label,color:e.period.color})),values:entries.map(e=>e.value)});}
+      for(const unit of units){const panels=speedRows.filter(r=>r.unit===unit).map(row=>({kind:"bars",title:row.name,speedPanel:true,unit,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label,color:p.color})),values:periods.map((p,i)=>({groupId:row.id,value:row.cells[i]?.value??null,target:row.cells[i]?.evaluation?.target,comparableToPrevious:row.cells[i]?.comparableToPrevious,asrEnd:row.metricId==="mas_speed"&&p.stats.raw.asr>=0?p.stats.values.mss_speed:null}))})),scaleValues=panels.flatMap(panel=>panel.values);specs.push(...panels.map(panel=>({...panel,scaleValues})));}
     }
     else if(kind==="ball"){for(const row of rows)specs.push(rowSpec(row,periods,"bars"));}
     else if(kind==="imtp"){
@@ -260,17 +299,19 @@
     return specsOnly?available:available.map(figure).join("");
   }
   function render(model) {
-    const periods=model.periods,first=periods[0],last=periods.at(-1),sourceHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.render(p.report)]));
+    const periods=model.periods,first=periods[0],last=periods.at(-1),sourceHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.render(p.report)])),nativeHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.renderCapabilityAnalysis(p.report,{print:true})]));
     const merge=(peers,id,name)=>{const metrics=peers.flatMap(p=>p.metrics);if(peers[0].renderer==="speed")for(const row of model.capability?.cards.find(card=>card.id==="speed")?.metrics || [])if(["asr","srr"].includes(row.metricId)&&!metrics.some(item=>item.metricId===row.metricId))metrics.push(row.metricId==="srr"?{...row,cells:row.cells.map((cell,index)=>cell?{...cell,notes:[cell.notes,periods[index].report.speedReference?.athleteType].filter(Boolean).join("；")}:null)}:row);return{...peers[0],id,name,peers,testIds:peers.flatMap(p=>p.testIds||[p.id]),metrics};};
     const projectHTML=project=>{
-      const specifications=projectFigures(project,model,{specsOnly:true}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?root.RingsideReport.renderFVPAnalysis(p.report,{print:true}):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");
+      const specifications=projectFigures(project,model,{specsOnly:true}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?nativeHTML.get(p.id):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");
       const pair=(charts,data)=>charts?`<div class="detail-pair longitudinal-pair" data-pdf-pair><div class="longitudinal-figures">${charts}</div><div class="detail-data">${data}</div></div>`:data;
+      const figures=items=>project.renderer==="speed"?`<div class="longitudinal-speed-grid" data-longitudinal-grid="speed" data-period-count="${items.length}">${items.map(figure).join("")}</div>`:items.map(figure).join("");
+      const resultTables=project.renderer==="iso"?["force","asymmetry","balance"].map(section=>{const rows=(project.metrics||[]).filter(row=>row.section===section);return rows.length?`<section class="longitudinal-iso-section" data-iso-section="${section}"><h5 class="longitudinal-table-caption">${E({force:"力量结果",asymmetry:"双侧差异",balance:"关节平衡"}[section])}</h5>${table(rows,periods)}</section>`:"";}).join(""):table(project.metrics||[],periods);
       const content=["fvp","sprint-fvp"].includes(project.renderer)?["profile","elasticity"].map(section=>{
         const metrics=(project.metrics||[]).filter(row=>section==="profile"?!["elasticity","scenario"].includes(row.section):["elasticity","scenario"].includes(row.section));
-        return pair(specifications.filter(s=>s.section===section).map(figure).join(""),table(metrics,periods));
-      }).join(""):pair(specifications.map(figure).join(""),table(project.metrics||[],periods));
+        return pair(figures(specifications.filter(s=>s.section===section)),table(metrics,periods))+`<div class="longitudinal-analysis-supplement">${periods.map(period=>nativeAnalysisSupplement(period,project.id,section,nativeHTML.get(period.id),model.capability?.analyses.find(item=>item.id===project.id+":"+section)?.periods.find(item=>item.periodId===period.id))).join("")}</div>`;
+      }).join(""):pair(figures(specifications),resultTables);
       const training=project.renderer==="speed"?periods.map(p=>{const section=sourceHTML.get(p.id).match(/<section class="speed-training">[\s\S]*?<\/section>/)?.[0];return section?`<details class="longitudinal-training"><summary>${E(periodLabel(p))} · 训练速度参考</summary>${section}</details>`:"";}).join(""):"";
-      return `<article class="test-block longitudinal-test" id="detail-${E(project.id)}" data-test-ids="${E((project.testIds||[project.id]).join(" "))}">${(project.testIds||[]).filter(id=>id!==project.id).map(id=>`<span class="test-anchor" id="detail-${E(id)}"></span>`).join("")}<div class="test-title"><h4>${E(project.name)}</h4></div>${content}${training}${raw?`<div class="longitudinal-raw">${raw}</div>`:""}</article>`;
+      return `<article class="test-block longitudinal-test" id="detail-${E(project.id)}" data-test-ids="${E((project.testIds||[project.id]).join(" "))}">${(project.testIds||[]).filter(id=>id!==project.id).map(id=>`<span class="test-anchor" id="detail-${E(id)}"></span>`).join("")}<div class="test-title"><h4>${E(project.name)}</h4></div>${content}${training}${rawDisclosure(raw,project)}</article>`;
     };
     const screening=model.projects.filter(p=>p.category==="screen").map(projectHTML).join(""),isProfile=p=>["fvp","sprint-fvp"].includes(p.renderer),consumed=new Set(),performanceGroups=[];
     for(const group of model.groups.filter(g=>g.category!=="screen")){
@@ -286,19 +327,23 @@
     }
     const lvp=model.projects.filter(p=>p.renderer==="lvp");if(lvp.length){const html=[["upper","上肢 LVP",["bench","landmine"]],["lower","下肢 LVP",["squat","deadlift"]]].map(([limb,label,ids])=>{const peers=lvp.filter(p=>ids.includes(p.id));return peers.length?projectHTML(merge(peers,"lvp-"+limb,label)):"";}).join("");performanceGroups.push({id:"ability-lvp",label:"负荷速度曲线",html});}
     const performance=performanceGroups.map(group=>`<div class="quality-group" id="${E(group.id)}"><div class="quality-heading"><h3>${E(group.label)}</h3></div>${group.html}</div>`).join("");
-    const directions=periods.map(p=>root.RingsideModel.capabilityDirections(p.record,p.stats));
+    const directions=periods.map(p=>model.capability?.periods.find(item=>item.id===p.id)?.directions||root.RingsideModel.capabilityDirections(p.record,p.stats));
     const directionKeys=[...new Set(directions.flatMap(list=>list.filter(d=>d.hasData).map(d=>d.id)))];
     const directionCards=directionKeys.map(key=>{const samples=directions.map(list=>list.find(d=>d.id===key&&d.hasData)),latest=samples.slice().reverse().find(Boolean),card=model.capability?.cards.find(c=>c.id===(key==="endurance"?"cardio":key));
-      return `<article class="capability-direction-card longitudinal-capability" data-capability-direction="${E(key)}"><div class="capability-card-summary"><h4>${E(latest.title)}</h4>${samples.map((d,i)=>d?`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date"><i style="background:${E(periods[i].color)}"></i>${E(periodLabel(periods[i]))}</p><p class="capability-direction-judgment ${E(d.status || "gray")}">${E(d.judgment)}</p><p class="capability-direction-basis">${E(d.label)}</p><p class="capability-direction-value">${F(d.value,3)} ${E(d.unit && d.unit!=="比值"?d.unit:"")}</p>${d.context?.angle?`<p class="capability-direction-context">${F(d.context.angle,0)}° 目标方向</p>`:""}${N(d.context?.targetDistanceM)!==null?`<p class="capability-direction-context">目标距离 ${F(d.context.targetDistanceM,1)} m</p>`:""}</section>`:`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date">${E(periodLabel(periods[i]))}</p><p>—</p></section>`).join("")}</div>${card?`<details id="longitudinal-capability-parameters-${E(key)}" class="capability-card-parameters longitudinal-capability-parameters" data-capability-parameters="${E(key)}"><summary><span>查看相关参数</span><small>${card.metrics.length} 项</small></summary>${table(card.metrics,periods)}</details>`:""}</article>`;}).join("");
+      return `<article class="capability-direction-card longitudinal-capability" data-capability-direction="${E(key)}"><div class="capability-card-summary"><h4>${E(latest.title)}</h4><div class="longitudinal-direction-grid" data-longitudinal-grid="directions" data-period-count="${periods.length}">${samples.map((d,i)=>d?`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date"><i style="background:${E(periods[i].color)}"></i>${E(periodLabel(periods[i]))}</p><p class="capability-direction-judgment ${E(d.status || "gray")}">${E(d.judgment)}</p><p class="capability-direction-basis">${E(d.label)}</p><p class="capability-direction-value">${F(d.value,3)} ${E(d.unit && d.unit!=="比值"?d.unit:"")}</p>${d.context?.angle?`<p class="capability-direction-context">${F(d.context.angle,0)}° 目标方向</p>`:""}${N(d.context?.targetDistanceM)!==null?`<p class="capability-direction-context">目标距离 ${F(d.context.targetDistanceM,1)} m</p>`:""}</section>`:`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date">${E(periodLabel(periods[i]))}</p><p>—</p></section>`).join("")}</div></div>${card?`<details id="longitudinal-capability-parameters-${E(key)}" class="capability-card-parameters longitudinal-capability-parameters" data-capability-parameters="${E(key)}"><summary><span>查看相关参数</span><small>${card.metrics.length} 项</small></summary>${table(card.metrics,periods)}<div class="longitudinal-capability-notes">${periods.map(period=>capabilitySupplement(period,key,nativeHTML.get(period.id))).join("")}</div></details>`:""}</article>`;}).join("");
     const profiles=model.projects.filter(isProfile).map(projectHTML).join("");
     const capability=(directionCards?`<div class="capability-direction-grid" data-capability-analysis>${directionCards}</div>`:"")+profiles;
     const chartSeries=data=>dateStyles(data.series.map(s=>({id:s.id,recordId:s.recordId,label:s.label,color:s.color,values:s.values,cells:s.cells?.map(c=>c?{pain:c.pain}:null)})),periods);
     const riskSpec={kind:"radar",title:"损伤风险筛查",showTitle:false,max:3,risk:true,axes:model.risk.axes,series:chartSeries(model.risk)},overviewSpec={kind:"radar",title:"运动表现概览",showTitle:false,overview:true,max:100,axes:model.overview.axes,series:chartSeries(model.overview)};
-    const riskTable=model.risk.rows.length?`<article class="test-block longitudinal-regions"><div class="test-title"><h4>各区域筛查等级</h4></div>${table(model.risk.rows,periods)}</article>`:"";
-    return{summary:summaryCards(model),body:figure(riskSpec),overview:figure(overviewSpec),legend:"",screenPill:model.risk.axes.length+" 个区域",referenceLabel:model.overview.axes.length+" 个能力维度",screenItems:"",details:`<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>按测试日期比较</span></summary><div class="quality-group">${riskTable}${screening || empty("尚无筛查结果")}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>按测试日期比较</span></summary><div class="quality-group">${performance || empty("尚无运动表现结果")}</div></details>${capability?`<details class="details-group" id="capabilityDetail" open><summary>能力结构分析<span>各次参数与变化</span></summary><div class="quality-group capability-analysis-content">${capability}</div></details>`:""}`};
+    return{summary:summaryCards(model),body:figure(riskSpec),overview:figure(overviewSpec),legend:"",screenPill:model.risk.axes.length+" 个区域",referenceLabel:model.overview.axes.length+" 个能力维度",screenItems:"",details:`<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>按测试日期比较</span></summary><div class="quality-group">${screening || empty("尚无筛查结果")}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>按测试日期比较</span></summary><div class="quality-group">${performance || empty("尚无运动表现结果")}</div></details>${capability?`<details class="details-group" id="capabilityDetail" open><summary>能力结构分析<span>各次参数与变化</span></summary><div class="quality-group capability-analysis-content">${capability}</div></details>`:""}`};
   }
   function layout(container,{print=false}={}) {
     if(print)container.querySelectorAll("[data-longitudinal-table]").forEach(node=>{if(node.dataset.longitudinalPrintTable)return;const data=JSON.parse(node.dataset.longitudinalTable);node.innerHTML=table(data.rows,data.periods,{print:true,wrapped:false});node.dataset.longitudinalPrintTable="true";});
+    if(print)container.querySelectorAll("[data-longitudinal-grid]").forEach(grid=>{
+      if(grid.dataset.longitudinalPrintGrid)return;const items=[...grid.children],speed=grid.dataset.longitudinalGrid==="speed",columns=speed?Math.min(2,items.length):items.length===3?3:Math.min(2,items.length);
+      const groups=speed?chunks(JSON.parse(items[0]?.dataset.longitudinalChart||"{}").periods?.map((_,i)=>i)||[],5,true).flatMap(indices=>chunks(items.map(item=>{const spec=JSON.parse(item.dataset.longitudinalChart),copy=item.cloneNode(false);copy.dataset.longitudinalChart=JSON.stringify({...spec,periods:indices.map(i=>spec.periods[i]),values:indices.map(i=>spec.values[i]),scaleValues:spec.scaleValues||spec.values});delete copy.dataset.longitudinalLayout;return copy;}),Math.max(1,columns))):chunks(items,Math.max(1,columns));
+      grid.innerHTML="";for(const group of groups){const row=grid.ownerDocument.createElement("div");row.className="longitudinal-print-grid-row";row.dataset.pdfAtomic="";row.style.setProperty("--longitudinal-columns",String(columns));for(const item of group)row.append(item);grid.append(row);}grid.dataset.longitudinalPrintGrid="true";
+    });
     container.querySelectorAll("[data-longitudinal-chart]").forEach(node=>{const width=Math.max(250,Math.round(node.getBoundingClientRect().width || 450)),key=width+":"+print;if(node.dataset.longitudinalLayout===key)return;node.innerHTML=draw(JSON.parse(node.dataset.longitudinalChart),width,print);node.dataset.longitudinalLayout=key;});
   }
   let observer;

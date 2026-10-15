@@ -263,4 +263,112 @@ test("FMS changes require the same fixed movement protocol and side aggregation 
   f.records[2].protocolIdentities.fms = { ...M.protocolIdentity("test:fms", ""), version: 2 };
   model = L.build(f.records, f); assert.equal(metric(model, "fms:0").changes.overall.available, false);
 });
+test("isometric comparison retains force asymmetry and joint balance with original judgments and missing-side reasons", () => {
+  const f = createFixture(c);
+  for (const record of f.records) {
+    Object.assign(record.data.iso.find(row => row.id === "iso_shoulder_internalRotation"), { left: 200, right: "" });
+    Object.assign(record.data.iso.find(row => row.id === "iso_shoulder_externalRotation"), { left: 100, right: 150, painLeft: true });
+  }
+  const before = JSON.stringify(f), model = L.build(f.records, f), iso = model.projects.find(project => project.id === "iso");
+  assert.deepEqual([...new Set(iso.metrics.map(row => row.section))].sort(), ["asymmetry", "balance", "force"]);
+  for (let index = 0; index < model.periods.length; index++) {
+    const stats = model.periods[index].stats, analysis = stats.isoAnalyses.find(row => row.id === "iso_shoulder_externalRotation");
+    const force = metric(model, "iso:iso_shoulder_externalRotation:L").cells[index];
+    assert.equal(force.assessment.status, analysis.sides[0].status); assert.equal(force.assessment.label, analysis.sides[0].label);
+    assert.equal(force.pain, true); assert.equal(force.assessment.status, "red");
+    const asymmetry = metric(model, "asym:iso_shoulder_externalRotation").cells[index];
+    near(asymmetry.value, analysis.asym); assert.equal(asymmetry.assessment.status, analysis.asymStatus); assert.match(asymmetry.assessment.label, /左侧更弱/);
+    const balance = stats.balanceResults.find(pair => pair.id === "shoulder_IR_ER"), left = metric(model, "balance:shoulder_IR_ER:L").cells[index], right = metric(model, "balance:shoulder_IR_ER:R").cells[index];
+    near(left.value, 0.5); assert.equal(left.assessment.status, "gray"); assert.match(left.assessment.reason, /尚未设置关节平衡分级区间/);
+    assert.deepEqual(copy(left.balance.result), copy(balance.results[0])); assert.equal(left.balance.numeratorId, "iso_shoulder_externalRotation");
+    assert.equal(left.balance.denominatorId, "iso_shoulder_internalRotation"); assert.equal(right.value, null); assert.match(right.assessment.reason, /分母缺测/);
+  }
+  assert.equal(metric(model, "balance:shoulder_IR_ER:R").changes.overall.available, false);
+  assert.equal(JSON.stringify(f), before);
+});
+
+test("joint balance grades and force cell targets use the same active evaluation as each personal report", () => {
+  const f = createFixture(c), rule = f.profile.standards.find(rule => rule.id === "balance:shoulder_IR_ER");
+  rule.rangesEnabled = true; rule.ranges = [{ min: 0, max: .6, includeMin: true, includeMax: false, status: "amber", label: "原方案低段" }, { min: .6, max: 1, includeMin: true, includeMax: true, status: "green", label: "原方案适宜" }];
+  for (const record of f.records) Object.assign(record.data.iso.find(row => row.id === "iso_shoulder_internalRotation"), { left: 300, right: 300 });
+  f.records[2].data.iso.find(row => row.id === "iso_shoulder_internalRotation").left = 280;
+  const model = L.build(f.records, f);
+  for (let index = 0; index < model.periods.length; index++) for (const row of model.projects.find(project => project.id === "iso").metrics.filter(row => row.section !== "asymmetry")) {
+    const cell = row.cells[index]; if (!cell) continue;
+    const original = model.periods[index].stats.evaluationResults.find(item => item.subjectId === row.subjectId && item.side === cell.context.side);
+    assert.ok(original, row.id); assert.equal(cell.assessment.status, original.grade.status); assert.equal(cell.assessment.label, original.grade.label);
+  }
+  assert.equal(metric(model, "balance:shoulder_IR_ER:L").cells[0].assessment.status, "amber");
+  assert.equal(metric(model, "balance:shoulder_IR_ER:R").cells[0].assessment.status, "green");
+  assert.equal(metric(model, "balance:shoulder_IR_ER:L").changes.overall.improvement, null, "an interval ratio must not become higher-is-better");
+});
+
+test("all four capability cards preserve each personal conclusion targets direction and measured components", () => {
+  const f = createFixture(c), model = L.build(f.records, f);
+  assert.deepEqual(copy(model.capability.cards.map(card => card.id)), ["strength", "reactive", "speed", "cardio"]);
+  for (let index = 0; index < model.periods.length; index++) {
+    const period = model.periods[index], directions = M.capabilityDirections(period.record, period.stats);
+    assert.deepEqual(copy(model.capability.periods[index].directions), copy(directions));
+    for (const card of model.capability.cards) {
+      const original = period.stats.capabilityCards.find(item => item.id === card.id), entry = card.periods[index];
+      assert.equal(entry.periodId, period.id); assert.deepEqual(copy(entry.card), copy(original));
+      assert.deepEqual(copy(entry.direction), copy(directions.find(item => item.id === (card.id === "cardio" ? "endurance" : card.id) && item.hasData) || null));
+      for (const parameter of original.metrics) {
+        const row = card.metrics.find(row => row.id === parameter.id); assert.ok(row, parameter.id); near(row.cells[index].value, parameter.value);
+        assert.deepEqual(copy(row.cells[index].components), copy(parameter.components || []));
+        if (card.id === "speed") continue;
+        for (const [componentIndex, component] of (parameter.components || []).entries()) {
+          if (c.Calc.num(component.value) === null) continue;
+          const child = card.metrics.find(row => row.id === parameter.id + ":component:" + (component.id || componentIndex));
+          assert.ok(child, component.label); near(child.cells[index].value, component.value); assert.equal(child.parentId, parameter.id);
+        }
+      }
+    }
+  }
+  const cardio = model.capability.cards.find(card => card.id === "cardio");
+  for (const id of ["lt1", "lt2", "cpet_vo2_relative", "cpet_threshold1_pct", "cpet_threshold2_pct", "cpet_threshold2_pct:component:cpet_threshold2_hr", "cpet_threshold2_pct:component:cpet_threshold2_speed"]) assert.ok(cardio.metrics.some(row => row.id === id), id);
+  const rqr = model.capability.cards.find(card => card.id === "reactive").metrics.find(row => row.id === "rqr");
+  assert.notEqual(rqr.cells[0].assessment.label, "未录入");
+});
+
+test("both original impulse windows and their measured components remain explicit without filling missing windows", () => {
+  const f = createFixture(c);
+  for (const record of f.records) {
+    record.data.cmj.forEach(row => Object.assign(row, { force: 1500, propulsiveImpulse: 300, propulsiveDurationMs: 200 }));
+    record.data.imtp.forEach(row => Object.assign(row, { impulse250: 400, matchedImpulse: 350, matchedDurationMs: 200 }));
+    record.dsi.confirmed = true; record.impulseConfig.confirmed = true;
+  }
+  f.records[1].data.imtp.forEach(row => row.matchedDurationMs = 250);
+  const model = L.build(f.records, f), rows = model.capability.cards.find(card => card.id === "strength").metrics;
+  const matched = rows.find(row => row.id === "idsi_matched"), fixed = rows.find(row => row.id === "idsi_fixed250");
+  near(matched.cells[0].value, 300 / 350); assert.equal(matched.cells[1], null); near(fixed.cells[1].value, .75);
+  assert.equal(matched.changes.recent.available, false);
+  for (const id of ["idsi_matched", "idsi_fixed250"]) {
+    const original = model.periods[0].stats.derived.results.find(item => item.id === id), row = rows.find(row => row.id === id);
+    assert.equal(row.cells[0].assessment.label, original.directionHint);
+    assert.deepEqual(copy(row.cells[0].components), copy(original.components));
+    assert.equal(rows.filter(row => row.parentId === id).length, original.components.length);
+  }
+});
+
+test("vertical and sprint FVP analyses retain full solved objects methods scenarios confidence and missing periods", () => {
+  const f = createFixture(c), before = JSON.stringify(f), model = L.build(f.records, f);
+  assert.equal(model.capability.analyses.length, 6);
+  for (const analysis of model.capability.analyses) for (const [index, entry] of analysis.periods.entries()) {
+    const period = model.periods[index], sprint = analysis.testId === "sprint_fvp";
+    const original = sprint ? analysis.kind === "sprint-elasticity" ? period.stats.sprintElasticity : period.stats.sprintFvp : period.stats.fvp[analysis.testId];
+    assert.equal(entry.periodId, period.id); assert.equal(entry.available, original.valid); assert.equal(entry.solved, original);
+    assert.deepEqual(copy(entry.analysis), copy(sprint ? period.record.sprintFvpAnalysis : period.record.fvpAnalysis[analysis.testId]));
+    if (analysis.kind === "sprint-fvp") assert.equal(entry.confidence, period.report.sprintFvpConfidence);
+    assert.ok(original.scenario || original.model, analysis.id);
+  }
+  assert.equal(JSON.stringify(f), before);
+  f.records[1].enabled.fvp_sj = false; f.records[2].enabled.sprint_fvp = false;
+  const missing = L.build(f.records, f);
+  for (const analysis of missing.capability.analyses) {
+    const index = analysis.testId === "fvp_sj" ? 1 : analysis.testId === "sprint_fvp" ? 2 : null;
+    if (index === null) continue;
+    assert.equal(analysis.periods[index].available, false); assert.equal(analysis.periods[index].solved, null); assert.equal(analysis.periods[index].reason, "本期未测");
+  }
+});
 console.log(passed + " longitudinal model checks passed");

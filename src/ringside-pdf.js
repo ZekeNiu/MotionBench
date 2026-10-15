@@ -194,6 +194,11 @@
     .ringside-pdf-document .longitudinal-figures{width:100%!important;max-width:none!important;}
     .ringside-pdf-document .longitudinal-results{table-layout:fixed!important;width:100%!important;}
     .ringside-pdf-document .longitudinal-results th,.ringside-pdf-document .longitudinal-results td{font-size:10px!important;padding:6px!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.green{background:#eaf4ee!important;}
+    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.amber{background:#fff6df!important;}
+    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.red{background:#faece9!important;}
+    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.gray{background:#f4f5f7!important;}
+    .ringside-pdf-document .longitudinal-print-grid-row{display:grid!important;grid-template-columns:repeat(var(--longitudinal-columns,2),minmax(0,1fr))!important;gap:14px!important;}
     .ringside-pdf-document .longitudinal-chart-title{font-size:11px!important;}
     .ringside-pdf-document .longitudinal-screen-layout{display:block!important;}
     .ringside-pdf-document .longitudinal-risk-chart{width:100%!important;flex:none!important;}
@@ -533,7 +538,7 @@
   function collectBlocks(source, options = {}) {
     const blocks = [];
     const headingSelectors =
-      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading,.longitudinal-chart-title,.longitudinal-table-caption";
+      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading,.longitudinal-chart-title,.longitudinal-table-caption,.longitudinal-period-heading";
     const atomicSelectors =
       ".hero,.micro-cards,.summary-grid,.stat-row,.empty,.aux-metrics,.card-foot,.longitudinal-print-panel,.longitudinal-direction-period,[data-pdf-atomic]";
     function push(node, kind, keepWithNext) {

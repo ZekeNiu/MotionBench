@@ -1,4 +1,4 @@
-name: MotionBench Windows Desktop
+name: MotionBench Legacy Windows Desktop
 
 on:
   push:
@@ -6,9 +6,9 @@ on:
       - desktop-windows-*
       - codex/motionbench-2.19.*
       - codex/motionbench-2.20.*
-      - main
     tags:
-      - v*-desktop.*
+      - v2.19.*-desktop.*
+      - v2.20.*-desktop.*
   workflow_dispatch:
 
 permissions:

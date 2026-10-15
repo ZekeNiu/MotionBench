@@ -3669,7 +3669,7 @@ body.sidebar-collapsed .workspace {
 [data-longitudinal="true"] .radar{width:100%;max-width:none;min-height:0;}
 [data-longitudinal="true"] .body-art>svg{height:auto;max-height:none;}
 [data-longitudinal="true"] #directionMetrics{display:none;}
-.longitudinal-pair{grid-template-columns:minmax(290px,.88fr) minmax(0,1.12fr);align-items:start;gap:22px;}
+.longitudinal-pair{grid-template-columns:minmax(0,1fr);align-items:start;gap:18px;}
 .longitudinal-figures,.longitudinal-pair>.detail-data{min-width:0;}
 .longitudinal-chart{max-width:none!important;padding:0!important;min-width:0;}
 .longitudinal-chart+.longitudinal-chart{margin-top:20px;}
@@ -3695,16 +3695,17 @@ body.sidebar-collapsed .workspace {
 .longitudinal-table-caption{font-size:10px;color:var(--muted,#667684);margin:16px 0 6px;}
 .longitudinal-table-caption:first-child{margin-top:0;}
 .longitudinal-raw{margin-top:16px;}
-.longitudinal-raw>details{margin:8px 0;}
+.longitudinal-raw-period{margin:0;}
+.longitudinal-raw-period+.longitudinal-raw-period{margin-top:20px;}
 .longitudinal-capability .longitudinal-results th:first-child{width:24%;}
-.longitudinal-direction-period{padding:10px 0;border-bottom:1px solid var(--line,#dbe2e8);}
-.longitudinal-direction-period:last-child{border-bottom:0;}
+.longitudinal-direction-period{min-width:0;margin:0;padding:12px;background:var(--soft,#f7f9fb);border:1px solid var(--line,#dbe2e8);border-radius:8px;}
+
 .longitudinal-direction-date{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted,#667684);margin:0 0 7px;}
 .longitudinal-direction-date i{display:block;width:8px;height:8px;border-radius:50%;}
 .longitudinal-capability .capability-direction-value{font-size:20px;}
 .longitudinal-table>.table-wrap{overflow-x:auto;}
 [data-longitudinal="true"] .summary-grid>.card{min-width:0;}
-@media(max-width:950px){.longitudinal-pair{grid-template-columns:minmax(0,1fr);gap:14px;}.longitudinal-figures{max-width:620px;width:100%;margin:0 auto;}}
+@media(max-width:950px){.longitudinal-pair{grid-template-columns:minmax(0,1fr);gap:14px;}.longitudinal-figures{width:100%;}}
 @media(max-width:520px){.longitudinal-results th,.longitudinal-results td{padding:7px 4px!important;font-size:10px;}.longitudinal-results strong{font-size:11px;}.longitudinal-results th:first-child,.longitudinal-results td:first-child{width:26%;}.longitudinal-results small{font-size:9px;}.longitudinal-legend{gap:5px 10px;}}
 @media print{.longitudinal-chart{break-inside:avoid;}.longitudinal-results thead{display:table-header-group;}}
 
@@ -3725,6 +3726,36 @@ body.sidebar-collapsed .workspace {
 .longitudinal-risk-key i{width:14px;height:8px;border-radius:2px;}
 .longitudinal-overview-table{max-width:100%;overflow-x:auto;}
 .longitudinal-overview-table th,.longitudinal-overview-table td{min-width:100px;}
+
+.longitudinal-speed-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;align-items:start;}
+.longitudinal-speed-grid>.longitudinal-chart{margin:0;}
+.longitudinal-direction-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.longitudinal-direction-grid[data-period-count="1"]{grid-template-columns:minmax(0,1fr);}
+.longitudinal-direction-grid[data-period-count="3"]{grid-template-columns:repeat(3,minmax(0,1fr));}
+.longitudinal-capability{min-width:0;container-type:inline-size;}
+.longitudinal-direction-period .capability-direction-value{font-size:19px;overflow-wrap:anywhere;}
+.longitudinal-direction-period .capability-direction-judgment{font-size:12px;line-height:1.6;}
+.longitudinal-direction-period .capability-direction-basis,.longitudinal-direction-period .capability-direction-context{font-size:10px;line-height:1.6;}
+.longitudinal-period-heading{margin:14px 0 9px;font-size:12px;font-weight:600;color:var(--ink,#263747);}
+.longitudinal-analysis-period{min-width:0;margin:0;padding:4px 0 16px;}
+.longitudinal-analysis-period+.longitudinal-analysis-period{border-top:1px solid var(--line,#dbe2e8);}
+.longitudinal-analysis-period .fvp-analysis-heading h4{font-size:12px;}
+.longitudinal-analysis-notes{margin:10px 0;font-size:11px;line-height:1.65;}
+.longitudinal-analysis-notes>div{display:grid;grid-template-columns:minmax(110px,.3fr) minmax(0,1fr);gap:12px;padding:5px 0;}
+.longitudinal-analysis-notes dd{margin:0;}
+.longitudinal-iso-section+.longitudinal-iso-section{margin-top:22px;}
+.longitudinal-iso-section>.longitudinal-table-caption{font-size:13px;color:var(--ink,#263747);}
+.longitudinal-results td.longitudinal-assessed.green{background:#eaf4ee!important;}
+.longitudinal-results td.longitudinal-assessed.amber{background:#fff6df!important;}
+.longitudinal-results td.longitudinal-assessed.red{background:#faece9!important;}
+.longitudinal-results td.longitudinal-assessed.gray{background:#f4f5f7!important;}
+.longitudinal-results .longitudinal-assessment{color:inherit;font-weight:500;}
+.longitudinal-print-grid-row{display:grid!important;grid-template-columns:repeat(var(--longitudinal-columns,2),minmax(0,1fr))!important;gap:14px;align-items:start;}
+.longitudinal-print-grid-row>.longitudinal-chart{margin:0!important;min-width:0;}
+[data-longitudinal-print-grid]{display:block!important;}
+[data-longitudinal-print-grid]>.longitudinal-print-grid-row+.longitudinal-print-grid-row{margin-top:14px;}
+@container(max-width:310px){.longitudinal-direction-grid{grid-template-columns:minmax(0,1fr);}.longitudinal-direction-grid[data-period-count="3"]{grid-template-columns:minmax(0,1fr);}}
+@media(max-width:520px){.longitudinal-speed-grid{grid-template-columns:minmax(0,1fr);}.longitudinal-analysis-notes>div{grid-template-columns:minmax(90px,.4fr) minmax(0,1fr);gap:8px;}}
 
 </style>
   </head>
@@ -4230,7 +4261,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.24.2"});
+window.RingsideBuild=Object.freeze({"version": "2.24.3"});
 </script>
 <script>
 (function (root) {
@@ -18783,6 +18814,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     .ringside-pdf-document .longitudinal-figures{width:100%!important;max-width:none!important;}
     .ringside-pdf-document .longitudinal-results{table-layout:fixed!important;width:100%!important;}
     .ringside-pdf-document .longitudinal-results th,.ringside-pdf-document .longitudinal-results td{font-size:10px!important;padding:6px!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.green{background:#eaf4ee!important;}
+    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.amber{background:#fff6df!important;}
+    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.red{background:#faece9!important;}
+    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.gray{background:#f4f5f7!important;}
+    .ringside-pdf-document .longitudinal-print-grid-row{display:grid!important;grid-template-columns:repeat(var(--longitudinal-columns,2),minmax(0,1fr))!important;gap:14px!important;}
     .ringside-pdf-document .longitudinal-chart-title{font-size:11px!important;}
     .ringside-pdf-document .longitudinal-screen-layout{display:block!important;}
     .ringside-pdf-document .longitudinal-risk-chart{width:100%!important;flex:none!important;}
@@ -19122,7 +19158,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function collectBlocks(source, options = {}) {
     const blocks = [];
     const headingSelectors =
-      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading,.longitudinal-chart-title,.longitudinal-table-caption";
+      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading,.longitudinal-chart-title,.longitudinal-table-caption,.longitudinal-period-heading";
     const atomicSelectors =
       ".hero,.micro-cards,.summary-grid,.stat-row,.empty,.aux-metrics,.card-foot,.longitudinal-print-panel,.longitudinal-direction-period,[data-pdf-atomic]";
     function push(node, kind, keepWithNext) {
@@ -22235,7 +22271,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const { record, stats, report } = period, result = new Map();
     const evaluations = stats.evaluationResults || [];
     function add(id, properties) {
-      if (N(properties.value) === null) return;
+      if (N(properties.value) === null && !properties.preserveMissing) return;
       const rawTrials = properties.rawTrials || [];
       result.set(id, { id, metricId: properties.metricId || id, measurementScale: "unknown", notes: "", rawTrials, statistics: null, evaluation: null, direction: null, ...properties, value: N(properties.value), rawValue: N(properties.value), rawUnit: properties.unit || "" });
     }
@@ -22264,15 +22300,27 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const row = stats.isoAnalyses.find(row => row.id === item.directionId), side = item.side === "L" ? "left" : item.side === "R" ? "right" : "center";
         if (!row) continue;
         const group = stats.repetitions.find(group => group.testId === "iso" && group.directionId === row.id && group.side === side), detail = row.sides.find(s => s.side === item.side);
-        add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", name: (M.REG[row.region] || row.region) + " · " + item.name + " · " + (detail?.sideLabel || "中线"), unit: item.unit, value: item.value, measurementScale: "ratio", context: { ...E.isoContext(row, record), side: item.side }, evaluation: item,
+        const measured = row.sides.some(side => N(side.value) !== null || side.pain);
+        add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "force", groupName: "力量结果", region: row.region, directionId: row.id,
+          name: (M.REG[row.region] || row.region) + " · " + item.name + " · " + (detail?.sideLabel || "中线"), unit: item.unit, value: item.value, preserveMissing: measured, measurementScale: "ratio", context: { ...E.isoContext(row, record), side: item.side }, evaluation: item, referenceTarget: detail?.target, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason,
           direction: item.applicable && N(item.target) > 0 ? "higher" : null, statistics: group?.statistics[0] ? clone(group.statistics[0]) : null, rawTrials: clone(group?.attempts || []), pain: !!detail?.pain,
           notes: [detail?.pain ? "疼痛" : "", row.notes, ...(group?.attempts || []).map(row => row.notes)].filter(Boolean).join("；") });
-        if (item.side === "L" && N(row.asym) !== null) add("asym:" + row.id, { testId: "iso", name: (M.REG[row.region] || row.region) + " · " + item.name + " · 双侧差异", unit: "%", value: row.asym, measurementScale: "ratio", context: E.isoContext(row, record) });
+        if (item.side === "L" && measured) add("asym:" + row.id, { testId: "iso", section: "asymmetry", groupName: "双侧差异", region: row.region, directionId: row.id,
+          name: (M.REG[row.region] || row.region) + " · " + item.name + " · 双侧差异", unit: "%", value: row.asym, preserveMissing: true, measurementScale: "ratio", context: E.isoContext(row, record),
+          evaluation: { grade: { status: row.asymStatus, label: N(row.asym) === null ? "缺少完整双侧结果" : row.weakSide ? (row.weakSide === "L" ? "左" : "右") + "侧更弱" : "双侧一致" }, reason: N(row.asym) === null ? "缺少完整双侧结果" : "", rules: { asymAmber: record.rules.asymAmber, asymRed: record.rules.asymRed } },
+          notes: N(row.asym) === null ? "缺少完整双侧结果" : row.weakSide ? (row.weakSide === "L" ? "左" : "右") + "侧更弱" : "双侧一致" });
       } else if (item.kind === "balance") {
         const pair = record.balancePairs.find(pair => pair.id === item.pairId);
         if (!pair) continue;
-        add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", name: item.name + (item.side ? " · " + (item.side === "L" ? "左侧" : "右侧") : ""), value: item.value, unit: item.unit, measurementScale: "ratio", evaluation: item,
-          context: { side: item.side, numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, contexts: [pair.numeratorId, pair.denominatorId].map(id => E.isoContext(record.data.iso.find(row => row.id === id), record)) } });
+        const computed = stats.balanceResults.find(result => result.id === pair.id), detail = computed?.results.find(result => result.side === item.side);
+        const directions = [pair.numeratorId, pair.denominatorId].map(id => stats.isoAnalyses.find(row => row.id === id));
+        if (!directions.some(row => row?.sides.some(side => N(side.value) !== null || side.pain))) continue;
+        const reasons = [detail?.reason, detail?.evaluationReason, detail?.referenceReason].filter(Boolean);
+        add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "balance", groupName: "关节平衡", region: pair.region, pairId: pair.id,
+          name: (M.REG[pair.region] || pair.region) + " · " + item.name + (item.side ? " · " + (item.side === "L" ? "左侧" : "右侧") : ""), value: item.value, preserveMissing: true, unit: item.unit, measurementScale: "ratio", evaluation: item,
+          referenceTarget: detail?.referenceTarget, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason, notes: [...new Set(reasons)].join("；"),
+          balance: { pairId: pair.id, label: pair.label, numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, numerator: clone(computed?.numerator || null), denominator: clone(computed?.denominator || null), referenceEnabled: pair.referenceEnabled, ranges: clone(pair.ranges || []), result: clone(detail || null) },
+          context: { side: item.side, numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, confirmed: pair.confirmed, contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(row => row.id === id); return row ? E.isoContext(row, record) : null; }) } });
       } else if (item.kind === "imtp-time") {
         const existing = result.get(item.metricId);
         if (existing && existing.unit === item.unit && existing.value === item.value) { existing.evaluation = item; continue; }
@@ -22385,10 +22433,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const evaluation = cell.evaluation || {}, reference = evaluation.reference || {}, scaleTarget = value => N(value) === null ? null : value * (converted ? factor : 1);
       next.evaluationKey = cell.evaluationKey || canonical({ target: scaleTarget(evaluation.target), source: evaluation.source || "", reference: { groupId: reference.groupId || "", sourceId: reference.sourceId || "", kind: reference.kind || "" },
         ranges: (cell.definition?.ranges || []).map(range => ({ min: scaleTarget(range.min), max: scaleTarget(range.max), includeMin: range.includeMin, includeMax: range.includeMax, status: range.status })) });
+      const grade = evaluation.grade || {}, status = grade.status || cell.status || "gray";
+      next.assessment = { status: ["red", "amber", "green", "gray"].includes(status) ? status : "gray",
+        label: grade.label || cell.judgment || (N(cell.value) === null ? "未测" : "未设置评价"),
+        reason: evaluation.reason || cell.referenceReason || (N(cell.value) === null ? cell.notes || "缺少有效测量" : ""),
+        target: scaleTarget(evaluation.target ?? cell.target), referenceTarget: scaleTarget(cell.referenceTarget), referenceSource: cell.referenceSource || evaluation.source || "",
+        attainment: N(evaluation.attainment ?? cell.attainment), ...(evaluation.reference ? { reference: clone(evaluation.reference) } : {}) };
       return next;
     });
     normalized.forEach((cell, i) => { if (cell) cell.comparableToPrevious = !!(i && normalized[i - 1] && cell.contextKey === normalized[i - 1].contextKey); });
-    return { id, metricId: latest.metricId || id, subjectId: latest.subjectId || id, testId: latest.testId, name: latest.name, unit, measurementScale: scale, ...(latest.section ? { section: latest.section } : {}), ...(latest.sourceKind ? { sourceKind: latest.sourceKind } : {}), cells: normalized,
+    return { id, metricId: latest.metricId || id, subjectId: latest.subjectId || id, testId: latest.testId, name: latest.name, unit, measurementScale: scale,
+      ...Object.fromEntries(["section", "sourceKind", "groupName", "region", "directionId", "pairId", "parentId"].filter(key => latest[key] !== undefined).map(key => [key, latest[key]])), cells: normalized,
       changes: { overall: change(normalized, 0, periods.length - 1, periods, scale), recent: periods.length > 2 ? change(normalized, periods.length - 2, periods.length - 1, periods, scale) : null } };
   }
   function matrixRows(maps, periods) {
@@ -22440,16 +22495,62 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const cards = new Map();
     for (const period of periods) for (const card of period.stats.capabilityCards) cards.set(card.id, card);
     return { cards: [...cards.values()].map(card => {
-      const maps = periods.map(period => new Map((period.stats.capabilityCards.find(item => item.id === card.id)?.metrics || []).map(metric => {
+      const maps = periods.map(period => {
+        const original = period.stats.capabilityCards.find(item => item.id === card.id), metrics = [];
+        for (const metric of original?.metrics || []) {
+          const variants = metric.id === "idsi" ? (period.stats.derived?.results || []).filter(result => ["idsi_matched", "idsi_fixed250"].includes(result.id) && N(result.value) !== null)
+            .map(result => ({ ...result, label: M.capabilityDirectionOptions.strength.find(([id]) => id === result.id)?.[1] || result.name, judgment: result.directionHint, status: "gray" })) : [];
+          for (const item of variants.length ? variants : [metric]) {
+            metrics.push(item);
+            // The personal report exposes these measured components beneath the
+            // parameter; retain them as explicit rows as well as in the card.
+            if (card.id !== "speed") (item.components || []).forEach((component, index) => {
+              if (N(component.value) !== null) metrics.push({ ...component, id: item.id + ":component:" + (component.id || index), metricId: component.id,
+                parentId: item.id, label: item.label + " · " + component.label, componentContextId: item.selectedVariant || item.id });
+            });
+          }
+        }
+        return new Map(metrics.map(metric => {
         const dependentContext = derivedContext(period.record, metric.selectedVariant || metric.id, period.stats);
-        const source = period.record.definitions.find(d => d.id === metric.id);
+        const source = period.record.definitions.find(d => d.id === (metric.metricId || metric.id));
         const testId = source?.testId || (metric.id.startsWith("fvp_") ? metric.id.startsWith("fvp_cmj") ? "fvp_cmj" : "fvp_sj" : metric.id.startsWith("sprint_") ? "sprint_fvp" : null);
-        const context = { selectedVariant: metric.selectedVariant || "", ...(dependentContext.protocols ? dependentContext : { ...dependentContext, ...(testId ? { test: source ? metricContext(period.record, source, period.stats) : testContext(period.record, testId, period.stats) } : {}) }), unit: metric.unit,
+        const componentContext = metric.componentContextId ? derivedContext(period.record, metric.componentContextId, period.stats) : {};
+        const context = { selectedVariant: metric.selectedVariant || "", ...(dependentContext.protocols ? dependentContext : { ...dependentContext, ...(testId ? { test: source ? metricContext(period.record, source, period.stats) : testContext(period.record, testId, period.stats) } : {}) }), ...componentContext, unit: metric.unit,
           ...(metric.id.startsWith("sprint_elasticity") ? { targetDistanceM: period.record.sprintFvpAnalysis?.targetDistanceM } : {}) };
-        return [metric.id, { ...metric, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null, notes: metric.judgment || "" }];
-      })));
-      return { id: card.id, title: card.title, metrics: matrixRows(maps, periods) };
-    }), periods: periods.map(period => ({ id: period.id, cards: period.stats.capabilityCards })) };
+        // Some derived parameters are present only in the capability result;
+        // a separate unmeasured catalog slot must not label that result "未录入".
+        const evaluation = period.stats.evaluationResults.find(item => item.metricId === (metric.metricId || metric.id) && N(item.value) !== null);
+        const target = N(metric.target) > 0 ? N(metric.target) : source?.referenceEnabled && source.matched !== false && N(source.target) > 0 ? N(source.target) : null;
+        return [metric.id, { ...metric, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null,
+          evaluation: evaluation || { grade: { status: metric.status || "gray", label: metric.judgment || "未设置评价" }, target, source: source?.source || "" },
+          target, notes: metric.judgment || "", components: clone(metric.components || []) }];
+        }));
+      });
+      return { id: card.id, title: card.title, metrics: matrixRows(maps, periods), periods: periods.map(period => ({ periodId: period.id,
+        card: clone(period.stats.capabilityCards.find(item => item.id === card.id) || null),
+        direction: clone(M.capabilityDirections(period.record, period.stats).find(item => item.id === (card.id === "cardio" ? "endurance" : card.id) && item.hasData) || null) })) };
+    }), periods: periods.map(period => ({ id: period.id, cards: period.stats.capabilityCards, directions: M.capabilityDirections(period.record, period.stats) })), analyses: analysisModules(periods) };
+  }
+  function analysisModules(periods) {
+    const modules = [];
+    for (const id of ["fvp_sj", "fvp_cmj", "sprint_fvp"]) {
+      const sprint = id === "sprint_fvp", hasInput = period => period.record.enabled[id] && (sprint
+        ? (period.stats.sprintFvp?.trials || period.record.data[id] || []).some(row => row.splits?.some(split => N(split.timeS) !== null || N(split.distanceM) !== null) || row.notes)
+        : (period.record.data[id] || []).some(row => N(row.height) !== null || N(row.load) !== null || row.notes));
+      if (!periods.some(hasInput)) continue;
+      for (const elasticity of [false, true]) {
+        const kind = sprint ? elasticity ? "sprint-elasticity" : "sprint-fvp" : elasticity ? "jump-elasticity" : "jump-fvp";
+        modules.push({ id: id + (elasticity ? ":elasticity" : ":profile"), testId: id, kind,
+          title: sprint ? elasticity ? "冲刺FVP弹性框架" : "冲刺FVP" : (elasticity ? "跳跃FVP弹性框架" : "跳跃FVP") + " · " + (id === "fvp_cmj" ? "CMJ" : "SJ"),
+          periods: periods.map(period => {
+            const present = hasInput(period), solved = present ? sprint ? elasticity ? period.stats.sprintElasticity : period.stats.sprintFvp : period.stats.fvp?.[id] : null;
+            return { periodId: period.id, available: !!solved?.valid, reason: solved?.valid ? "" : solved?.reason || "本期未测", solved: solved || null,
+              config: sprint ? period.record.sprintFvpConfig : period.record.fvpConfig?.[id], analysis: sprint ? period.record.sprintFvpAnalysis : period.record.fvpAnalysis?.[id],
+              view: sprint ? period.record.sprintFvpView : period.record.fvpView?.[id], ...(sprint && !elasticity ? { confidence: period.report.sprintFvpConfidence || null } : {}) };
+          }) });
+      }
+    }
+    return modules;
   }
   function build(input, options = {}) {
     if (!Array.isArray(input) || input.length < 2) throw Error("纵向比较至少选择两条测试记录");
@@ -22605,7 +22706,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(["columns","bars"].includes(spec.kind)){
       const capacity=spec.kind==="columns"?Math.max(2,Math.floor((width-(spec.rsi?96:68))/56)):5,items=spec.periods.map((p,i)=>({p,v:spec.values[i]})),groups=print?chunks(items,capacity,true):[items];
       const chartWidth=!print&&spec.kind==="columns"?Math.max(width,(spec.rsi?96:68)+spec.periods.length*56):width;
-      const content=groups.map(group=>printPanel(spec.kind==="columns"?columns({...spec,periods:group.map(x=>x.p),values:group.map(x=>x.v),scaleValues:spec.values},chartWidth,print):bars({...spec,periods:group.map(x=>x.p),values:group.map(x=>x.v),scaleValues:spec.values},chartWidth,print),print)).join("");
+      const content=groups.map(group=>printPanel(spec.kind==="columns"?columns({...spec,periods:group.map(x=>x.p),values:group.map(x=>x.v),scaleValues:spec.scaleValues || spec.values},chartWidth,print):bars({...spec,periods:group.map(x=>x.p),values:group.map(x=>x.v),scaleValues:spec.scaleValues || spec.values},chartWidth,print),print)).join("");
       return title+(!print&&chartWidth>width?`<div class="longitudinal-chart-scroll"><div style="width:${chartWidth}px">${content}</div></div>`:content);
     }
     if(spec.kind==="lvp"){
@@ -22646,10 +22747,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const changeCard=(direction,title,zero)=>{const items=(summary[direction]||[]).map((item,index)=>({item,index})).sort((a,b)=>magnitude(b.item)-magnitude(a.item)||a.index-b.index).map(entry=>entry.item);return `<article class="micro-card longitudinal-summary-changes" data-change-direction="${direction}"><div class="micro-head"><h3>${title}</h3></div><div class="micro-value">${items.length}<small> 项</small></div><p class="longitudinal-summary-names" title="${E(items.length?items.map(itemLabel).join("；"):zero)}">${items.length?items.map(itemHTML).join("；"):zero}</p></article>`;};
     return `<article class="micro-card athlete-summary longitudinal-summary-athlete"><div class="micro-head"><h3>运动员基本信息</h3></div><div class="micro-value text">${E(model.athlete?.name||athlete.name)}</div><dl>${facts.map(([label,value])=>`<div><dt>${label}</dt><dd>${E(value)}</dd></div>`).join("")}</dl></article>`+changeCard("declined","下降","暂无下降指标")+changeCard("improved","改善","暂无改善指标")+`<article class="micro-card longitudinal-summary-dates"><div class="micro-head"><h3>所选比较日期</h3><span class="longitudinal-summary-count">${periods.length} 次</span></div><ul>${periods.map(period=>`<li data-summary-record="${E(period.id)}"><i style="background:${E(period.color)}"></i>${E(periodLabel(period))}</li>`).join("")}</ul></article>`;
   }
+  function assessmentAttributes(cell) {
+    const assessment=cell?.assessment;if(!assessment)return "";
+    const status=["red","amber","green","gray"].includes(assessment.status)?assessment.status:"gray",basis=[assessment.reason,assessment.referenceSource,assessment.referenceTarget,assessment.target!=null?"参考目标 "+assessment.target:null].filter(value=>value!==null&&value!==undefined&&value!=="").join("；");
+    return ` class="longitudinal-assessed ${status}" data-assessment-status="${status}"${basis?` title="${E(basis)}"`:""}`;
+  }
   function cellHTML(cell,row) {
-    if(!cell||N(cell.value)===null)return '<span class="longitudinal-unavailable">—</span>';
+    if(!cell||N(cell.value)===null)return '<span class="longitudinal-unavailable">—</span>'+(cell?.assessment?.label?`<small class="longitudinal-assessment">${E(cell.assessment.label)}</small>`:"");
     const stat=cell.statistics,rawLabel=cell.evaluation?.grade?.label || cell.evaluation?.label,evalLabel=["未启用评价标准","未设等级区间","未启用标准"].includes(rawLabel)?"":rawLabel,notes=Array.isArray(cell.notes)?cell.notes.join("；"):cell.notes;
-    return `<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>${stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${evalLabel?`<small>${E(evalLabel)}</small>`:""}${cell.pain?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
+    return `<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>${stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${cell.assessment?.label?`<small class="longitudinal-assessment">${E(cell.assessment.label)}</small>`:evalLabel?`<small>${E(evalLabel)}</small>`:""}${cell.pain?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
   }
   function table(rows,periods,{print=false,wrapped=true}={}) {
     if(!rows.length)return "";
@@ -22666,11 +22772,45 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const changeColumns=[["overall","首末变化"],...(periods.length>2?[["recent","近期变化"]]:[])].filter(([key])=>rows.some(row=>row.changes?.[key]?.available));
     const html=chunks(periods.map((p,i)=>({p,i})),print?(changeColumns.length>1?3:4):periods.length).map((group,index,groups)=>{
       const changes=index===groups.length-1?changeColumns:[],headers=["指标",...group.map(x=>periodLabel(x.p)),...changes.map(([,label])=>label)];
-      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+changes.length*92}px"`}><thead><tr>${headers.map(h=>`<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}">${cellHTML(row.cells[i],row)}</td>`).join("")}${changes.map(([key,label])=>`<td data-label="${E(label)}">${changeText(row.changes?.[key],row)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+changes.length*92}px"`}><thead><tr>${headers.map(h=>`<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}"${assessmentAttributes(row.cells[i])}>${cellHTML(row.cells[i],row)}</td>`).join("")}${changes.map(([key,label])=>`<td data-label="${E(label)}">${changeText(row.changes?.[key],row)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
     }).join("");
     if(!wrapped)return html;
-    const compactRows=rows.map(row=>({id:row.id,name:row.name,unit:row.unit,digits:resultPrecision(row),measurementScale:row.measurementScale,changes:row.changes,cells:row.cells.map(cell=>cell?{value:cell.value,unit:cell.unit,statistics:cell.statistics,notes:cell.notes,pain:cell.pain,evaluation:cell.evaluation?{label:cell.evaluation.label,grade:cell.evaluation.grade}:null}:null)}));
+    const compactRows=rows.map(row=>({id:row.id,name:row.name,unit:row.unit,digits:resultPrecision(row),measurementScale:row.measurementScale,changes:row.changes,cells:row.cells.map(cell=>cell?{value:cell.value,unit:cell.unit,statistics:cell.statistics,notes:cell.notes,pain:cell.pain,assessment:cell.assessment,evaluation:cell.evaluation?{label:cell.evaluation.label,grade:cell.evaluation.grade}:null}:null)}));
     return `<div class="longitudinal-table" data-longitudinal-table="${E(JSON.stringify({rows:compactRows,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label}))}))}">${html}</div>`;
+  }
+  // Work with balanced native report fragments, including nested disclosures.
+  function htmlBlocks(html,tag,predicate) {
+    const found=[],tokens=new RegExp("<\\/?"+tag+"\\b[^>]*>","g");let match;
+    while((match=tokens.exec(html))){if(match[0].startsWith("</")||!predicate(match[0]))continue;const start=match.index,open=match[0];let depth=1,end=tokens.lastIndex,next;while(depth&&(next=tokens.exec(html))){depth+=next[0].startsWith("</")?-1:1;end=tokens.lastIndex;}if(!depth)found.push({start,end,open,html:html.slice(start,end),inner:html.slice(start+open.length,end-(tag.length+3))});}
+    return found;
+  }
+  function mapBlocks(html,tag,predicate,transform) {
+    const blocks=htmlBlocks(html,tag,predicate);for(const block of blocks.reverse())html=html.slice(0,block.start)+transform(block)+html.slice(block.end);return html;
+  }
+  function rawDisclosure(raw,project) {
+    if(!raw)return "";
+    const content=mapBlocks(raw,"details",tag=>/data-raw-trials=/.test(tag),block=>`<section class="longitudinal-raw-period" ${block.open.match(/data-trial-title="[^"]*"/)?.[0]||""} data-raw-project="${E(block.open.match(/data-raw-trials="([^"]*)"/)?.[1]||project.id)}">${block.inner.replace(/<summary[^>]*>([\s\S]*?)<\/summary>/,"<h5 class=\"longitudinal-period-heading\">$1</h5>")}</section>`);
+    return `<details class="attempt-details longitudinal-raw" id="longitudinal-raw-${E(project.id)}" data-raw-trials="${E(project.id)}" data-trial-title="${E(project.name)} · 原始试次"><summary>展开所有原始试次数据</summary>${content}</details>`;
+  }
+  function nativeAnalysisSupplement(period,id,section,source,entry) {
+    const sprint=id==="sprint_fvp";
+    const attribute=sprint?(section==="profile"?"data-sprint-fvp-panel":"data-sprint-elasticity-panel"):(section==="profile"?`data-fvp-panel="${id}"`:`data-fvp-elasticity="${id}"`),block=htmlBlocks(source,"article",tag=>tag.includes(attribute))[0];
+    if(!block)return `<section class="longitudinal-analysis-period" data-analysis-period="${E(period.id)}" data-analysis-kind="${sprint?"sprint":"jump"}-${section}"><h5 class="longitudinal-period-heading">${E(periodLabel(period))}</h5>${empty(entry?.reason||"本期未测")}</section>`;
+    let content=mapBlocks(block.inner,"div",tag=>/class="[^"]*chart-wrap/.test(tag),()=>"");
+    content=mapBlocks(content,"details",tag=>/data-raw-trials=/.test(tag),()=>"");
+    content=mapBlocks(content,"table",tag=>/class="[^"]*fvp-result-table/.test(tag),()=>"");
+    // Current/scenario numbers are already in the comparison matrix; retain
+    // every original per-metric scenario interpretation as a labelled note.
+    content=mapBlocks(content,"table",tag=>/class="[^"]*fvp-scenario-table/.test(tag),block=>`<dl class="longitudinal-analysis-notes">${htmlBlocks(block.inner,"tr",()=>true).map(row=>{const cells=htmlBlocks(row.inner,"td",()=>true);return cells.length===4?`<div><dt>${cells[0].inner}</dt><dd>${cells[3].inner}</dd></div>`:"";}).join("")}</dl>`);
+    content=mapBlocks(content,"div",tag=>/class="[^"]*detail-pair/.test(tag),block=>block.inner);
+    content=content.replace(/\sid="([^"]*)"/g,(_,key)=>` id="long-${E(period.id)}-${key}"`).replace(/\s(?:role="button"|tabindex="0"|aria-pressed="false")/g,"");
+    return `<section class="longitudinal-analysis-period" data-analysis-period="${E(period.id)}" data-analysis-kind="${sprint?"sprint":"jump"}-${section}"><h5 class="longitudinal-period-heading">${E(periodLabel(period))}</h5>${content}</section>`;
+  }
+  function capabilitySupplement(period,key,source) {
+    const block=htmlBlocks(source,"section",tag=>tag.includes(`data-capability-card="${key==="endurance"?"cardio":key}"`))[0];if(!block)return "";
+    let content=mapBlocks(block.html,"span",tag=>/class="capability-value"/.test(tag),()=>"");
+    content=content.replace("结果与参考","参考与解读");
+    return `<section class="longitudinal-analysis-period" data-capability-period="${E(period.id)}"><h5 class="longitudinal-period-heading">${E(periodLabel(period))}</h5>${content}</section>`;
   }
   function extractDetails(html,testIds,period) {
     let result="",re=/<details\b[^>]*data-raw-trials="([^"]+)"[^>]*>/g,match;
@@ -22718,7 +22858,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     else if(kind==="speed"){
       const speedRows=rows.filter(r=>["mas_speed","mss_speed","ift_speed","ift_shuttle","ift_treadmill"].includes(r.metricId)),units=[...new Set(speedRows.map(r=>r.unit))];
-      for(const unit of units){const entries=speedRows.filter(r=>r.unit===unit).flatMap(row=>periods.map((p,i)=>({period:p,value:{groupId:row.id,groupLabel:row.name,value:row.cells[i]?.value??null,target:row.cells[i]?.evaluation?.target,comparableToPrevious:row.cells[i]?.comparableToPrevious,asrEnd:row.metricId==="mas_speed"&&p.stats.raw.asr>=0?p.stats.values.mss_speed:null}})));specs.push({kind:"bars",title:"速度与储备",grouped:true,unit,periods:entries.map(e=>({id:e.period.id,date:e.period.date,label:e.period.label,color:e.period.color})),values:entries.map(e=>e.value)});}
+      for(const unit of units){const panels=speedRows.filter(r=>r.unit===unit).map(row=>({kind:"bars",title:row.name,speedPanel:true,unit,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label,color:p.color})),values:periods.map((p,i)=>({groupId:row.id,value:row.cells[i]?.value??null,target:row.cells[i]?.evaluation?.target,comparableToPrevious:row.cells[i]?.comparableToPrevious,asrEnd:row.metricId==="mas_speed"&&p.stats.raw.asr>=0?p.stats.values.mss_speed:null}))})),scaleValues=panels.flatMap(panel=>panel.values);specs.push(...panels.map(panel=>({...panel,scaleValues})));}
     }
     else if(kind==="ball"){for(const row of rows)specs.push(rowSpec(row,periods,"bars"));}
     else if(kind==="imtp"){
@@ -22761,17 +22901,19 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return specsOnly?available:available.map(figure).join("");
   }
   function render(model) {
-    const periods=model.periods,first=periods[0],last=periods.at(-1),sourceHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.render(p.report)]));
+    const periods=model.periods,first=periods[0],last=periods.at(-1),sourceHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.render(p.report)])),nativeHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.renderCapabilityAnalysis(p.report,{print:true})]));
     const merge=(peers,id,name)=>{const metrics=peers.flatMap(p=>p.metrics);if(peers[0].renderer==="speed")for(const row of model.capability?.cards.find(card=>card.id==="speed")?.metrics || [])if(["asr","srr"].includes(row.metricId)&&!metrics.some(item=>item.metricId===row.metricId))metrics.push(row.metricId==="srr"?{...row,cells:row.cells.map((cell,index)=>cell?{...cell,notes:[cell.notes,periods[index].report.speedReference?.athleteType].filter(Boolean).join("；")}:null)}:row);return{...peers[0],id,name,peers,testIds:peers.flatMap(p=>p.testIds||[p.id]),metrics};};
     const projectHTML=project=>{
-      const specifications=projectFigures(project,model,{specsOnly:true}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?root.RingsideReport.renderFVPAnalysis(p.report,{print:true}):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");
+      const specifications=projectFigures(project,model,{specsOnly:true}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?nativeHTML.get(p.id):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");
       const pair=(charts,data)=>charts?`<div class="detail-pair longitudinal-pair" data-pdf-pair><div class="longitudinal-figures">${charts}</div><div class="detail-data">${data}</div></div>`:data;
+      const figures=items=>project.renderer==="speed"?`<div class="longitudinal-speed-grid" data-longitudinal-grid="speed" data-period-count="${items.length}">${items.map(figure).join("")}</div>`:items.map(figure).join("");
+      const resultTables=project.renderer==="iso"?["force","asymmetry","balance"].map(section=>{const rows=(project.metrics||[]).filter(row=>row.section===section);return rows.length?`<section class="longitudinal-iso-section" data-iso-section="${section}"><h5 class="longitudinal-table-caption">${E({force:"力量结果",asymmetry:"双侧差异",balance:"关节平衡"}[section])}</h5>${table(rows,periods)}</section>`:"";}).join(""):table(project.metrics||[],periods);
       const content=["fvp","sprint-fvp"].includes(project.renderer)?["profile","elasticity"].map(section=>{
         const metrics=(project.metrics||[]).filter(row=>section==="profile"?!["elasticity","scenario"].includes(row.section):["elasticity","scenario"].includes(row.section));
-        return pair(specifications.filter(s=>s.section===section).map(figure).join(""),table(metrics,periods));
-      }).join(""):pair(specifications.map(figure).join(""),table(project.metrics||[],periods));
+        return pair(figures(specifications.filter(s=>s.section===section)),table(metrics,periods))+`<div class="longitudinal-analysis-supplement">${periods.map(period=>nativeAnalysisSupplement(period,project.id,section,nativeHTML.get(period.id),model.capability?.analyses.find(item=>item.id===project.id+":"+section)?.periods.find(item=>item.periodId===period.id))).join("")}</div>`;
+      }).join(""):pair(figures(specifications),resultTables);
       const training=project.renderer==="speed"?periods.map(p=>{const section=sourceHTML.get(p.id).match(/<section class="speed-training">[\s\S]*?<\/section>/)?.[0];return section?`<details class="longitudinal-training"><summary>${E(periodLabel(p))} · 训练速度参考</summary>${section}</details>`:"";}).join(""):"";
-      return `<article class="test-block longitudinal-test" id="detail-${E(project.id)}" data-test-ids="${E((project.testIds||[project.id]).join(" "))}">${(project.testIds||[]).filter(id=>id!==project.id).map(id=>`<span class="test-anchor" id="detail-${E(id)}"></span>`).join("")}<div class="test-title"><h4>${E(project.name)}</h4></div>${content}${training}${raw?`<div class="longitudinal-raw">${raw}</div>`:""}</article>`;
+      return `<article class="test-block longitudinal-test" id="detail-${E(project.id)}" data-test-ids="${E((project.testIds||[project.id]).join(" "))}">${(project.testIds||[]).filter(id=>id!==project.id).map(id=>`<span class="test-anchor" id="detail-${E(id)}"></span>`).join("")}<div class="test-title"><h4>${E(project.name)}</h4></div>${content}${training}${rawDisclosure(raw,project)}</article>`;
     };
     const screening=model.projects.filter(p=>p.category==="screen").map(projectHTML).join(""),isProfile=p=>["fvp","sprint-fvp"].includes(p.renderer),consumed=new Set(),performanceGroups=[];
     for(const group of model.groups.filter(g=>g.category!=="screen")){
@@ -22787,19 +22929,23 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     const lvp=model.projects.filter(p=>p.renderer==="lvp");if(lvp.length){const html=[["upper","上肢 LVP",["bench","landmine"]],["lower","下肢 LVP",["squat","deadlift"]]].map(([limb,label,ids])=>{const peers=lvp.filter(p=>ids.includes(p.id));return peers.length?projectHTML(merge(peers,"lvp-"+limb,label)):"";}).join("");performanceGroups.push({id:"ability-lvp",label:"负荷速度曲线",html});}
     const performance=performanceGroups.map(group=>`<div class="quality-group" id="${E(group.id)}"><div class="quality-heading"><h3>${E(group.label)}</h3></div>${group.html}</div>`).join("");
-    const directions=periods.map(p=>root.RingsideModel.capabilityDirections(p.record,p.stats));
+    const directions=periods.map(p=>model.capability?.periods.find(item=>item.id===p.id)?.directions||root.RingsideModel.capabilityDirections(p.record,p.stats));
     const directionKeys=[...new Set(directions.flatMap(list=>list.filter(d=>d.hasData).map(d=>d.id)))];
     const directionCards=directionKeys.map(key=>{const samples=directions.map(list=>list.find(d=>d.id===key&&d.hasData)),latest=samples.slice().reverse().find(Boolean),card=model.capability?.cards.find(c=>c.id===(key==="endurance"?"cardio":key));
-      return `<article class="capability-direction-card longitudinal-capability" data-capability-direction="${E(key)}"><div class="capability-card-summary"><h4>${E(latest.title)}</h4>${samples.map((d,i)=>d?`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date"><i style="background:${E(periods[i].color)}"></i>${E(periodLabel(periods[i]))}</p><p class="capability-direction-judgment ${E(d.status || "gray")}">${E(d.judgment)}</p><p class="capability-direction-basis">${E(d.label)}</p><p class="capability-direction-value">${F(d.value,3)} ${E(d.unit && d.unit!=="比值"?d.unit:"")}</p>${d.context?.angle?`<p class="capability-direction-context">${F(d.context.angle,0)}° 目标方向</p>`:""}${N(d.context?.targetDistanceM)!==null?`<p class="capability-direction-context">目标距离 ${F(d.context.targetDistanceM,1)} m</p>`:""}</section>`:`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date">${E(periodLabel(periods[i]))}</p><p>—</p></section>`).join("")}</div>${card?`<details id="longitudinal-capability-parameters-${E(key)}" class="capability-card-parameters longitudinal-capability-parameters" data-capability-parameters="${E(key)}"><summary><span>查看相关参数</span><small>${card.metrics.length} 项</small></summary>${table(card.metrics,periods)}</details>`:""}</article>`;}).join("");
+      return `<article class="capability-direction-card longitudinal-capability" data-capability-direction="${E(key)}"><div class="capability-card-summary"><h4>${E(latest.title)}</h4><div class="longitudinal-direction-grid" data-longitudinal-grid="directions" data-period-count="${periods.length}">${samples.map((d,i)=>d?`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date"><i style="background:${E(periods[i].color)}"></i>${E(periodLabel(periods[i]))}</p><p class="capability-direction-judgment ${E(d.status || "gray")}">${E(d.judgment)}</p><p class="capability-direction-basis">${E(d.label)}</p><p class="capability-direction-value">${F(d.value,3)} ${E(d.unit && d.unit!=="比值"?d.unit:"")}</p>${d.context?.angle?`<p class="capability-direction-context">${F(d.context.angle,0)}° 目标方向</p>`:""}${N(d.context?.targetDistanceM)!==null?`<p class="capability-direction-context">目标距离 ${F(d.context.targetDistanceM,1)} m</p>`:""}</section>`:`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date">${E(periodLabel(periods[i]))}</p><p>—</p></section>`).join("")}</div></div>${card?`<details id="longitudinal-capability-parameters-${E(key)}" class="capability-card-parameters longitudinal-capability-parameters" data-capability-parameters="${E(key)}"><summary><span>查看相关参数</span><small>${card.metrics.length} 项</small></summary>${table(card.metrics,periods)}<div class="longitudinal-capability-notes">${periods.map(period=>capabilitySupplement(period,key,nativeHTML.get(period.id))).join("")}</div></details>`:""}</article>`;}).join("");
     const profiles=model.projects.filter(isProfile).map(projectHTML).join("");
     const capability=(directionCards?`<div class="capability-direction-grid" data-capability-analysis>${directionCards}</div>`:"")+profiles;
     const chartSeries=data=>dateStyles(data.series.map(s=>({id:s.id,recordId:s.recordId,label:s.label,color:s.color,values:s.values,cells:s.cells?.map(c=>c?{pain:c.pain}:null)})),periods);
     const riskSpec={kind:"radar",title:"损伤风险筛查",showTitle:false,max:3,risk:true,axes:model.risk.axes,series:chartSeries(model.risk)},overviewSpec={kind:"radar",title:"运动表现概览",showTitle:false,overview:true,max:100,axes:model.overview.axes,series:chartSeries(model.overview)};
-    const riskTable=model.risk.rows.length?`<article class="test-block longitudinal-regions"><div class="test-title"><h4>各区域筛查等级</h4></div>${table(model.risk.rows,periods)}</article>`:"";
-    return{summary:summaryCards(model),body:figure(riskSpec),overview:figure(overviewSpec),legend:"",screenPill:model.risk.axes.length+" 个区域",referenceLabel:model.overview.axes.length+" 个能力维度",screenItems:"",details:`<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>按测试日期比较</span></summary><div class="quality-group">${riskTable}${screening || empty("尚无筛查结果")}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>按测试日期比较</span></summary><div class="quality-group">${performance || empty("尚无运动表现结果")}</div></details>${capability?`<details class="details-group" id="capabilityDetail" open><summary>能力结构分析<span>各次参数与变化</span></summary><div class="quality-group capability-analysis-content">${capability}</div></details>`:""}`};
+    return{summary:summaryCards(model),body:figure(riskSpec),overview:figure(overviewSpec),legend:"",screenPill:model.risk.axes.length+" 个区域",referenceLabel:model.overview.axes.length+" 个能力维度",screenItems:"",details:`<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>按测试日期比较</span></summary><div class="quality-group">${screening || empty("尚无筛查结果")}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>按测试日期比较</span></summary><div class="quality-group">${performance || empty("尚无运动表现结果")}</div></details>${capability?`<details class="details-group" id="capabilityDetail" open><summary>能力结构分析<span>各次参数与变化</span></summary><div class="quality-group capability-analysis-content">${capability}</div></details>`:""}`};
   }
   function layout(container,{print=false}={}) {
     if(print)container.querySelectorAll("[data-longitudinal-table]").forEach(node=>{if(node.dataset.longitudinalPrintTable)return;const data=JSON.parse(node.dataset.longitudinalTable);node.innerHTML=table(data.rows,data.periods,{print:true,wrapped:false});node.dataset.longitudinalPrintTable="true";});
+    if(print)container.querySelectorAll("[data-longitudinal-grid]").forEach(grid=>{
+      if(grid.dataset.longitudinalPrintGrid)return;const items=[...grid.children],speed=grid.dataset.longitudinalGrid==="speed",columns=speed?Math.min(2,items.length):items.length===3?3:Math.min(2,items.length);
+      const groups=speed?chunks(JSON.parse(items[0]?.dataset.longitudinalChart||"{}").periods?.map((_,i)=>i)||[],5,true).flatMap(indices=>chunks(items.map(item=>{const spec=JSON.parse(item.dataset.longitudinalChart),copy=item.cloneNode(false);copy.dataset.longitudinalChart=JSON.stringify({...spec,periods:indices.map(i=>spec.periods[i]),values:indices.map(i=>spec.values[i]),scaleValues:spec.scaleValues||spec.values});delete copy.dataset.longitudinalLayout;return copy;}),Math.max(1,columns))):chunks(items,Math.max(1,columns));
+      grid.innerHTML="";for(const group of groups){const row=grid.ownerDocument.createElement("div");row.className="longitudinal-print-grid-row";row.dataset.pdfAtomic="";row.style.setProperty("--longitudinal-columns",String(columns));for(const item of group)row.append(item);grid.append(row);}grid.dataset.longitudinalPrintGrid="true";
+    });
     container.querySelectorAll("[data-longitudinal-chart]").forEach(node=>{const width=Math.max(250,Math.round(node.getBoundingClientRect().width || 450)),key=width+":"+print;if(node.dataset.longitudinalLayout===key)return;node.innerHTML=draw(JSON.parse(node.dataset.longitudinalChart),width,print);node.dataset.longitudinalLayout=key;});
   }
   let observer;
