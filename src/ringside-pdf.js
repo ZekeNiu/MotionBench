@@ -1254,6 +1254,26 @@
     };
   }
 
+  function prepareLongitudinalSummary(source) {
+    if (source.dataset.longitudinal !== "true") return;
+    source.querySelectorAll(".longitudinal-summary-changes .longitudinal-summary-names").forEach(node => {
+      const limit = Math.ceil(parseFloat(getComputedStyle(node).lineHeight) * 3);
+      if (!Number.isFinite(limit) || node.scrollHeight <= limit) return;
+      const characters = Array.from(node.textContent);
+      node.style.display = "block";
+      node.style.webkitLineClamp = "unset";
+      node.style.overflow = "visible";
+      let low = 0, high = characters.length - 1, length = 0;
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        node.textContent = characters.slice(0, middle).join("").trimEnd() + "…";
+        if (node.scrollHeight <= limit) { length = middle; low = middle + 1; }
+        else high = middle - 1;
+      }
+      node.textContent = characters.slice(0, length).join("").trimEnd() + "…";
+    });
+  }
+
   async function build(snapshot, reportElement, options = {}) {
     lastDiagnostics = {
       status: "building",
@@ -1289,6 +1309,7 @@
     try {
       progress(options.onProgress, "prepare", 0, 0, 0);
       await document.fonts.ready;
+      prepareLongitudinalSummary(source);
       await readyImages(source);
       const primaryLayouts = layoutPrimaryPairs(source, stage);
       root.RingsideReport.layoutCharts(source, { print: true });

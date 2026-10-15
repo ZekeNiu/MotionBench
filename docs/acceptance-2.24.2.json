@@ -1,0 +1,309 @@
+{
+  "version": "2.24.2",
+  "desktopVersion": "2.24.2-desktop.1",
+  "pass": true,
+  "passedWithRecordedEnvironmentIssue": true,
+  "sourceHash": "297f243b40988ecc5151b1f1435bcd1836dd186c11d1b73efeb03ab452e6052c",
+  "verifierSha256": "8f76e13101deff33b51183e03f6ccb6f5799a76d121abe60d7b73f39bf1a4a5b",
+  "systemVerifierSha256": "689ac78fc34140b8a357c0d17ff8590ce6071a642eca1c177dfaa4e8fb3fa926",
+  "sharedVerifierSha256": "94337fd768f69349ef12a300785d5fa5a6ffd6a03de70d60712f2e3eb6b344ca",
+  "buildVerifierSha256": "cba5a6562ac1bf9bca3ae4d449e084b55b9dc59d47ba2eb6e1f207fc04324686",
+  "regressionVerifierSha256": "ed59236b6a1ef609c1c3f3f8a162f64bd9479d547f57377093db0b97f4ac25c3",
+  "modelSuites": 61,
+  "modelChecks": 922,
+  "desktopUnitSuites": 5,
+  "polish": [
+    {
+      "file": "output/playwright/v2242/polish/chrome/results.json",
+      "sha256": "c951f243bbf60416af733d906b23d65e531ccb1c7d60401406c305af932fcb27",
+      "checks": 13,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2242/polish/msedge/results.json",
+      "sha256": "8d6416ab560082e307e0f6e0d9288b56f20c213b30f4e3963dcb803d16f088e7",
+      "checks": 13,
+      "pass": true
+    }
+  ],
+  "native": {
+    "file": "output/desktop-smoke-v2242/results.json",
+    "sha256": "6f1a895569332cd0ac662629fbb0d0e19e7846e479cac6551315f368324ac276",
+    "runner": "tests/desktop-smoke.cjs",
+    "runnerSha256": "b1998938e1487b9e00d038f8f0c40b2c29a0944e05a04b78408d8b76489b354d",
+    "checksPassing": 15,
+    "checksExpected": 16,
+    "pass": false,
+    "environmentIssue": {
+      "file": "output/implementation-2.24.2/known-clipboard-issue.json",
+      "sha256": "57c4943879501368dd6b6ec0e12ea96c777904164eab546f453f47ae07fb92e2",
+      "status": "recorded",
+      "check": "the existing Copy analysis data button writes the native clipboard using a real user gesture",
+      "reason": "同一最终包的完整原生测试在 Codex 派生进程和真正 Explorer 启动的隐藏测试进程下均通过前 15 项，最后复制 AI 事实包的原始 JSON.parse(copiedFacts) 断言读到空串失败。保留该失败，按用户既有决定记录并完成纵向比较，不修复系统剪贴板。",
+      "userDecision": "先完成纵向比较，记录剪贴板问题"
+    },
+    "knownIssue": {
+      "file": "output/implementation-2.24.2/known-clipboard-issue.json",
+      "sha256": "57c4943879501368dd6b6ec0e12ea96c777904164eab546f453f47ae07fb92e2",
+      "status": "recorded",
+      "check": "the existing Copy analysis data button writes the native clipboard using a real user gesture",
+      "reason": "同一最终包的完整原生测试在 Codex 派生进程和真正 Explorer 启动的隐藏测试进程下均通过前 15 项，最后复制 AI 事实包的原始 JSON.parse(copiedFacts) 断言读到空串失败。保留该失败，按用户既有决定记录并完成纵向比较，不修复系统剪贴板。",
+      "userDecision": "先完成纵向比较，记录剪贴板问题"
+    },
+    "priorContextReceipt": {
+      "file": "output/desktop-smoke-v2242-codex-clipboard-failure/results.json",
+      "sha256": "06b91daa6ecf49da2b20811d1d87872d45e347089ba95661554c5ad82e8ea29e",
+      "runner": "tests/desktop-smoke.cjs",
+      "runnerSha256": "b1998938e1487b9e00d038f8f0c40b2c29a0944e05a04b78408d8b76489b354d",
+      "checksPassing": 15,
+      "checksExpected": 16,
+      "pass": false,
+      "environmentIssue": {
+        "file": "output/implementation-2.24.2/known-clipboard-issue.json",
+        "sha256": "57c4943879501368dd6b6ec0e12ea96c777904164eab546f453f47ae07fb92e2",
+        "status": "recorded",
+        "check": "the existing Copy analysis data button writes the native clipboard using a real user gesture",
+        "reason": "同一最终包的完整原生测试在 Codex 派生进程和真正 Explorer 启动的隐藏测试进程下均通过前 15 项，最后复制 AI 事实包的原始 JSON.parse(copiedFacts) 断言读到空串失败。保留该失败，按用户既有决定记录并完成纵向比较，不修复系统剪贴板。",
+        "userDecision": "先完成纵向比较，记录剪贴板问题"
+      }
+    }
+  },
+  "visual": {
+    "file": "output/implementation-2.24.2/visual-review.json",
+    "sha256": "850993cba910bfd9599e7b47b952d2489ad23d38fda2a2839a412337bcab90c4",
+    "pages": 29,
+    "scope": "real-catalog example candidate",
+    "pass": true
+  },
+  "shadowRegression": {
+    "pass": true,
+    "candidateOnly": true,
+    "checkpointManifestSha256": "3c87140d5740cdfac991ec0d6d1d19e65b52f7daad817176ae6da1d6aaacad00",
+    "checkpointFiles": 154,
+    "baselineSnapshotSha256": "6ab5f17ccce8be2918d720fb03f8923004ca79432f6fb1c0314280b720a16cf7",
+    "athletes": 27,
+    "records": 150,
+    "example": {
+      "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+      "recordIds": [
+        "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+        "8a99ed67-0706-466a-a447-ff0f47368ca9",
+        "285dc077-3543-43a3-8903-d0e60ce2e9af",
+        "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+      ],
+      "dates": [
+        "2026-09-01",
+        "2026-09-15",
+        "2026-09-29",
+        "2026-10-13"
+      ],
+      "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+    },
+    "receipts": {
+      "baseline": {
+        "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-before-2.24.2\\verification\\baseline\\receipt.json",
+        "sha256": "8e4586a90fb51215b454e27790dfb1e2dac83c999f1628b4e00314c6a495d102",
+        "checks": 5,
+        "artifacts": []
+      },
+      "copied": {
+        "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-before-2.24.2\\verification\\copied\\receipt.json",
+        "sha256": "bb95cdbaa4ac40da14ed8e4ffa8157ad492adce8455e247b0474ef6712d162ee",
+        "checks": 11,
+        "artifacts": [
+          "output/playwright/v2242/summary/copied/example-summary.png",
+          "output/playwright/v2242/summary/copied/example-comparison.png",
+          "output/playwright/v2242/summary/copied/example-comparison.json",
+          "output/playwright/v2242/summary/copied/example-comparison.html",
+          "output/playwright/v2242/summary/copied/example-comparison.pdf"
+        ]
+      }
+    },
+    "installation": null
+  },
+  "system": {
+    "pass": true,
+    "candidateOnly": false,
+    "checkpointManifestSha256": "ac3e01bc56f74623a0f62fa810d438050a18c47271b9f70c0f89a87c5cde299e",
+    "checkpointFiles": 68,
+    "physicalContext": "Explorer / unredirected Roaming",
+    "baselineCounts": {
+      "athletes": 1,
+      "records": 1
+    },
+    "example": {
+      "present": true,
+      "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+      "recordIds": [
+        "1a1865cb-560c-4617-b042-e4bf4e8d3db5",
+        "285dc077-3543-43a3-8903-d0e60ce2e9af",
+        "8a99ed67-0706-466a-a447-ff0f47368ca9",
+        "8d2e3b11-c17a-4211-9a61-3441316b1a8e"
+      ],
+      "dates": [
+        "2026-09-01",
+        "2026-09-15",
+        "2026-09-29",
+        "2026-10-13"
+      ]
+    },
+    "countsAfterExample": {
+      "athletes": 2,
+      "records": 5
+    },
+    "cleanPayload": {
+      "file": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\implementation-2.24.2\\system-example\\example-comparison-clean.json",
+      "sha256": "f8583ca1e95f31c300209295049c3b14f5eac8412aac3dc47e3540ade5f69263",
+      "proofFile": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\implementation-2.24.2\\system-example\\preparation-proof.json",
+      "proofSha256": "af2b4b9a176f4d86d225dc03e8fde26b7d5f7fa431eb3d9fef79e88777be09bd"
+    },
+    "receipts": {
+      "baseline": {
+        "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-system-before-2.24.2\\verification\\baseline\\receipt.json",
+        "sha256": "379d329d3e2b069128f122e10ead28aaae2a0017c6acbd957d2e233da0910673",
+        "counts": {
+          "athletes": 1,
+          "records": 1
+        },
+        "example": {
+          "present": false,
+          "athleteId": null,
+          "recordIds": [],
+          "dates": []
+        },
+        "checks": 4,
+        "snapshotSha256": "61068de44636c2f8c3b3465d346028a1fcd6cc82027a09d8bbe860e61dd5bec0"
+      },
+      "candidate": {
+        "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-system-before-2.24.2\\verification\\candidate\\receipt.json",
+        "sha256": "d179f6cc5857e2180da01edd4f2bc95708451c8e0f6b8be9b53bc88fb57b911f",
+        "checks": 9,
+        "counts": {
+          "athletes": 2,
+          "records": 5
+        },
+        "example": {
+          "present": true,
+          "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+          "recordIds": [
+            "1a1865cb-560c-4617-b042-e4bf4e8d3db5",
+            "285dc077-3543-43a3-8903-d0e60ce2e9af",
+            "8a99ed67-0706-466a-a447-ff0f47368ca9",
+            "8d2e3b11-c17a-4211-9a61-3441316b1a8e"
+          ],
+          "dates": [
+            "2026-09-01",
+            "2026-09-15",
+            "2026-09-29",
+            "2026-10-13"
+          ]
+        },
+        "artifacts": [
+          "output/playwright/v2242/system-candidate/example-summary.png",
+          "output/playwright/v2242/system-candidate/example-comparison.png",
+          "output/playwright/v2242/system-candidate/example-comparison.json",
+          "output/playwright/v2242/system-candidate/example-comparison.html",
+          "output/playwright/v2242/system-candidate/example-comparison.pdf"
+        ],
+        "snapshotSha256": "72c433ad16163f73c1c34903b19d71e0b43869b235aa00a7e6949a5f67243ee6",
+        "implementationSha256": "281147d60ef8f68d613a6dc4a517dda6200eb1d5d681c53412152b289a26e6dd"
+      },
+      "installed": {
+        "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-system-before-2.24.2\\verification\\installed\\receipt.json",
+        "sha256": "59069d5cfcbfc729504404e9f8595aad64f5faaa8c08019ca3c5f5c62423ad2a",
+        "checks": 6,
+        "counts": {
+          "athletes": 2,
+          "records": 5
+        },
+        "snapshotSha256": "f07e77461797e2e27ccb1fb83777f88542f45224cc7affa61d7af5bde79c70fe",
+        "physicalProbeSha256": "85e3f258aed80c4f8421859b496ca814b2571037e154199cd037a84b94d6963f",
+        "example": {
+          "present": true,
+          "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+          "recordIds": [
+            "1a1865cb-560c-4617-b042-e4bf4e8d3db5",
+            "285dc077-3543-43a3-8903-d0e60ce2e9af",
+            "8a99ed67-0706-466a-a447-ff0f47368ca9",
+            "8d2e3b11-c17a-4211-9a61-3441316b1a8e"
+          ],
+          "dates": [
+            "2026-09-01",
+            "2026-09-15",
+            "2026-09-29",
+            "2026-10-13"
+          ]
+        }
+      },
+      "reopened": {
+        "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-system-before-2.24.2\\verification\\reopened\\receipt.json",
+        "sha256": "21659932706106474df2636e8a2f4f554939c4efb2e9b97f5bb622135813b092",
+        "checks": 3,
+        "counts": {
+          "athletes": 2,
+          "records": 5
+        },
+        "snapshotSha256": "f9b4f729034bebce9c1df6b11bd0f2393543d9a70580b02827375cd25168a787",
+        "physicalProbeSha256": "802ebe69e0d97d13b6f72eee8ed45a8e70cd1afe886564ae9d681b83a1f47810",
+        "example": {
+          "present": true,
+          "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+          "recordIds": [
+            "1a1865cb-560c-4617-b042-e4bf4e8d3db5",
+            "285dc077-3543-43a3-8903-d0e60ce2e9af",
+            "8a99ed67-0706-466a-a447-ff0f47368ca9",
+            "8d2e3b11-c17a-4211-9a61-3441316b1a8e"
+          ],
+          "dates": [
+            "2026-09-01",
+            "2026-09-15",
+            "2026-09-29",
+            "2026-10-13"
+          ]
+        },
+        "primaryPass": false,
+        "completedWithSeparateEvidence": true,
+        "completion": {
+          "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-system-before-2.24.2\\verification\\reopened\\completion.json",
+          "sha256": "92172a1d7d4fa86df0450639d295bcd4bbee00078f1bfcf3d12e95e459e6e17c",
+          "pass": true,
+          "checks": 5
+        }
+      }
+    },
+    "installation": {
+      "file": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\output\\implementation-2.24.2\\system-installation.json",
+      "sha256": "c5812f0c1898ec27c4b686857345818e95fca843ad2269d1b8b02cc474ffb644",
+      "pass": true,
+      "systemPreflightProducer": {
+        "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-system-before-2.24.2\\verification\\install-preflight-producer.py",
+        "sha256": "7de36b77fdf1d5b43e5b3ab941e9a11dba7fe7ef80c86409a75ffb6846a8ad19",
+        "manifestFile": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261015-system-before-2.24.2\\verification\\install-preflight-producer.json",
+        "manifestSha256": "125c4f50f3c091bbe4a12370ca54a3ef5a4fc6ecc609d3f1b23c3947a6bdbee9"
+      }
+    }
+  },
+  "candidateVerified": true,
+  "privateVerified": true,
+  "shortcut": {
+    "file": "output/implementation-2.24.2/shortcut-launch.json",
+    "sha256": "e54220d2e50277853869dfa6580725e16fb8d785748b2ac78d57aefd70b79b68",
+    "pass": true
+  },
+  "pdfFiles": {
+    "output/playwright/v2242/polish/chrome/summary-print.pdf": 1,
+    "output/playwright/v2242/polish/msedge/summary-print.pdf": 1,
+    "output/desktop-smoke-v2242-codex-clipboard-failure/native-downloads/MotionBench_Windows_桌面验收运动员（合成）_2026-10-11_47268f.pdf": 11,
+    "output/desktop-smoke-v2242/native-downloads/MotionBench_Windows_桌面验收运动员（合成）_2026-10-11_7018b3.pdf": 11,
+    "output/playwright/v2242/summary/copied/example-comparison.pdf": 28,
+    "output/playwright/v2242/system-candidate/example-comparison.pdf": 29
+  },
+  "archiveSha256": "48fdd7cb40979e901457aa20a840cb9b271f7271b79f7c82e8c1d6574675fdf5",
+  "shadowVisual": {
+    "file": "output/implementation-2.24.2/shadow-visual-review.json",
+    "sha256": "44a2003161df5a1b93587bdc35e81a12027d9e286ee3b5e4c478b2e044f4d50e",
+    "pages": 28,
+    "scope": "isolated shadow-profile regression",
+    "pass": true
+  }
+}

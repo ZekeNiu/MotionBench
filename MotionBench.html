@@ -3714,10 +3714,12 @@ body.sidebar-collapsed .workspace {
 .longitudinal-summary-athlete dt{font-size:10px;color:var(--muted,#667684);}
 .longitudinal-summary-athlete dd{margin:2px 0 0;overflow-wrap:anywhere;}
 .longitudinal-summary-count{font-size:10px;color:var(--muted,#667684);white-space:nowrap;}
-.longitudinal-summary-changes .longitudinal-summary-names{margin:9px 0 0;font-size:11px;line-height:1.7;color:var(--muted,#667684);overflow-wrap:anywhere;}
-.longitudinal-summary-dates ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 12px;}
-.longitudinal-summary-dates li{display:flex;align-items:center;gap:6px;font-size:11px;line-height:1.5;overflow-wrap:anywhere;}
+.longitudinal-summary-changes .longitudinal-summary-names{margin:9px 0 0;font-size:11px;line-height:1.7;color:var(--muted,#667684);overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;text-overflow:ellipsis;}
+.longitudinal-summary-dates ul{list-style:none;margin:10px 0 0;padding:0 4px 0 0;display:grid;grid-template-columns:minmax(0,1fr);gap:6px;max-height:180px;overflow-y:auto;}
+.longitudinal-summary-dates li{display:flex;align-items:center;gap:6px;font-size:14px;line-height:1.5;overflow-wrap:anywhere;}
 .longitudinal-summary-dates i{width:6px;height:6px;flex-shrink:0;border-radius:50%;}
+.ringside-pdf-document .longitudinal-summary-dates ul{max-height:none;overflow:visible;}
+@media print{.longitudinal-summary-dates ul{max-height:none;overflow:visible;}}
 .longitudinal-risk-key{display:flex;gap:14px;justify-content:center;}
 .longitudinal-risk-key span{display:inline-flex;align-items:center;gap:5px;}
 .longitudinal-risk-key i{width:14px;height:8px;border-radius:2px;}
@@ -4228,7 +4230,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.24.1"});
+window.RingsideBuild=Object.freeze({"version": "2.24.2"});
 </script>
 <script>
 (function (root) {
@@ -19841,6 +19843,26 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     };
   }
 
+  function prepareLongitudinalSummary(source) {
+    if (source.dataset.longitudinal !== "true") return;
+    source.querySelectorAll(".longitudinal-summary-changes .longitudinal-summary-names").forEach(node => {
+      const limit = Math.ceil(parseFloat(getComputedStyle(node).lineHeight) * 3);
+      if (!Number.isFinite(limit) || node.scrollHeight <= limit) return;
+      const characters = Array.from(node.textContent);
+      node.style.display = "block";
+      node.style.webkitLineClamp = "unset";
+      node.style.overflow = "visible";
+      let low = 0, high = characters.length - 1, length = 0;
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        node.textContent = characters.slice(0, middle).join("").trimEnd() + "…";
+        if (node.scrollHeight <= limit) { length = middle; low = middle + 1; }
+        else high = middle - 1;
+      }
+      node.textContent = characters.slice(0, length).join("").trimEnd() + "…";
+    });
+  }
+
   async function build(snapshot, reportElement, options = {}) {
     lastDiagnostics = {
       status: "building",
@@ -19876,6 +19898,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     try {
       progress(options.onProgress, "prepare", 0, 0, 0);
       await document.fonts.ready;
+      prepareLongitudinalSummary(source);
       await readyImages(source);
       const primaryLayouts = layoutPrimaryPairs(source, stage);
       root.RingsideReport.layoutCharts(source, { print: true });
@@ -22618,9 +22641,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function summaryCards(model) {
     const periods=model.periods,athlete=periods.at(-1).record.athlete,summary=model.changeSummary||{},present=value=>value!==null&&value!==undefined&&String(value).trim()!=="";
     const facts=[["项目",athlete.sport],["性别",athlete.sex],["年龄",present(athlete.age)?F(athlete.age,0)+" 岁":null],["身高",present(athlete.height)?F(athlete.height,1)+" cm":null],["体重",present(athlete.mass)?F(athlete.mass,1)+" kg":null]].filter(([,value])=>present(value));
-    const itemHTML=item=>`<span data-summary-metric="${E(item.id)}">${E(item.projectName===item.name?item.name:item.label)}</span>`;
-    const changeCard=(direction,title,zero)=>{const items=summary[direction]||[];return `<article class="micro-card longitudinal-summary-changes" data-change-direction="${direction}"><div class="micro-head"><h3>${title}</h3></div><div class="micro-value">${items.length}<small> 项</small></div><p class="longitudinal-summary-names">${items.length?items.map(itemHTML).join("；"):zero}</p></article>`;};
-    return `<article class="micro-card athlete-summary longitudinal-summary-athlete"><div class="micro-head"><h3>运动员基本信息</h3></div><div class="micro-value text">${E(model.athlete?.name||athlete.name)}</div><dl>${facts.map(([label,value])=>`<div><dt>${label}</dt><dd>${E(value)}</dd></div>`).join("")}</dl></article>`+changeCard("declined","首末下降","暂无下降指标")+changeCard("improved","首末改善","暂无改善指标")+`<article class="micro-card longitudinal-summary-dates"><div class="micro-head"><h3>所选比较日期</h3><span class="longitudinal-summary-count">${periods.length} 次</span></div><ul>${periods.map(period=>`<li data-summary-record="${E(period.id)}"><i style="background:${E(period.color)}"></i>${E(periodLabel(period))}</li>`).join("")}</ul></article>`;
+    const itemLabel=item=>item.projectName===item.name?item.name:item.label,itemHTML=item=>`<span data-summary-metric="${E(item.id)}">${E(itemLabel(item))}</span>`;
+    const magnitude=item=>item.change?.available&&item.change.kind==="absolute"&&Number.isFinite(item.change.percent)&&N(item.change.from?.value)>0?Math.abs(item.change.percent):-1;
+    const changeCard=(direction,title,zero)=>{const items=(summary[direction]||[]).map((item,index)=>({item,index})).sort((a,b)=>magnitude(b.item)-magnitude(a.item)||a.index-b.index).map(entry=>entry.item);return `<article class="micro-card longitudinal-summary-changes" data-change-direction="${direction}"><div class="micro-head"><h3>${title}</h3></div><div class="micro-value">${items.length}<small> 项</small></div><p class="longitudinal-summary-names" title="${E(items.length?items.map(itemLabel).join("；"):zero)}">${items.length?items.map(itemHTML).join("；"):zero}</p></article>`;};
+    return `<article class="micro-card athlete-summary longitudinal-summary-athlete"><div class="micro-head"><h3>运动员基本信息</h3></div><div class="micro-value text">${E(model.athlete?.name||athlete.name)}</div><dl>${facts.map(([label,value])=>`<div><dt>${label}</dt><dd>${E(value)}</dd></div>`).join("")}</dl></article>`+changeCard("declined","下降","暂无下降指标")+changeCard("improved","改善","暂无改善指标")+`<article class="micro-card longitudinal-summary-dates"><div class="micro-head"><h3>所选比较日期</h3><span class="longitudinal-summary-count">${periods.length} 次</span></div><ul>${periods.map(period=>`<li data-summary-record="${E(period.id)}"><i style="background:${E(period.color)}"></i>${E(periodLabel(period))}</li>`).join("")}</ul></article>`;
   }
   function cellHTML(cell,row) {
     if(!cell||N(cell.value)===null)return '<span class="longitudinal-unavailable">—</span>';

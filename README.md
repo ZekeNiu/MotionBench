@@ -2,13 +2,13 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**本机交付版本：Windows `2.24.1-desktop.1` · HTML `2.24.1`**
+**本机交付版本：Windows `2.24.2-desktop.1` · HTML `2.24.2`**
 
 **公开下载版本：Windows `2.20.1-desktop.1` · HTML `2.20.1`**
 
 [在线 Demo](https://zekeniu.github.io/MotionBench/) · [公开安装版 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Setup-x64.exe) · [公开便携版 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Portable-x64.exe) · [公开离线 HTML 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)
 
-本机版支持同一运动员的纵向比较：在首页勾选多条测试记录，原图按日期叠加，结果表显示首末与近期变化，损伤风险筛查使用部位雷达。2.24.1 将摘要改为运动员信息、首末下降、首末改善及比较日期，调整雷达填充和筛查背景，并录入四期合成示例。运动表现概览少于3维用表格、3维以上用雷达。详见 [2.24.1 使用说明](docs/motionbench-2.24.1.md)、[完整比较说明](docs/motionbench-2.24.0.md) 和 [本机验收记录](docs/acceptance-2.24.1.md)。
+本机版支持同一运动员的纵向比较：在首页勾选多条测试记录，原图按日期叠加，结果表显示首末与近期变化，损伤风险筛查使用部位雷达。2.24.2 的下降／改善卡按相对变化幅度排列，名单最多三行并显示省略号；比较日期放大并逐行显示。已有四期合成示例使用现有测试和能力。运动表现概览少于3维用表格、3维及以上用雷达。详见 [2.24.2 使用说明](docs/motionbench-2.24.2.md)、[完整比较说明](docs/motionbench-2.24.0.md) 和 [本机验收记录](docs/acceptance-2.24.2.md)。
 
 公开版本 2.20.1 修复多轴能力雷达图及评分明细组合过高时无法导出 PDF 的问题。过长卡片按内容分页，标题与首图保持相邻，较短卡片保持完整。详见 [2.20.1 修订说明](docs/motionbench-2.20.1.md) 和 [公开发布核验记录](docs/publication-2.20.1.md)。
 
@@ -56,7 +56,7 @@
 
 适用于 Windows 10 / 11 x64。Setup 包含完整 Electron 运行环境，安装向导可选择中文、含空格及非系统盘目录。Portable 首次启动会解包运行环境。
 
-- **本机 2.24.0 升级**：使用本次交付的 `MotionBench-2.24.0-desktop.1-Setup-x64.exe`，沿用 `D:\Application\Strength&Conditioning\MotionBench`。本轮交付的核验状态见 [2.24.0 验收记录](docs/acceptance-2.24.0.md)。
+- **本机 2.24.2 升级**：使用本次交付的 `MotionBench-2.24.2-desktop.1-Setup-x64.exe`，沿用 `D:\Application\Strength&Conditioning\MotionBench`。本轮交付的核验状态见 [2.24.2 验收记录](docs/acceptance-2.24.2.md)。
 - **公开版本升级**：在侧栏底部“应用设置”检查、下载并重启更新，或运行公开发行的 Setup。
 - **安装版更新**：沿用原安装目录。启动检查默认开启，可关闭；下载和安装均需点击，普通退出不会自动安装。
 - **便携版更新**：在应用设置检查并打开便携版下载，退出程序后替换 exe。
