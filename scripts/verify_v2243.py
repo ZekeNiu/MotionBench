@@ -168,6 +168,19 @@ def plan_proof():
     return receipt(PLAN, generatorSha256=GENERATOR_SHA, entryHelperSha256=digest(ROOT / ENTRY)), plan
 
 
+def calculation_check(code, *args):
+    # Electron's V8/libm matches the renderer. System Node differs at the last
+    # bits of optimized FVP fits; using the same engine keeps exact equality.
+    executable = ROOT / 'node_modules/electron/dist/electron.exe'
+    checksum = '2529b494f4123f152bce346051f7bd855ef95006424a561953cf17c49a3d1ba8'
+    require(digest(executable) == checksum, 'Independent calculation engine changed')
+    prefix = "if(process.env.ELECTRON_RUN_AS_NODE!=='1'||process.versions.electron!=='44.7.0'||process.versions.v8!=='15.2.124.28-electron.0')throw Error('Wrong calculation runtime');"
+    run = subprocess.run([str(executable), '-e', prefix + code, *map(str, args)], cwd=ROOT, env={**os.environ, 'ELECTRON_RUN_AS_NODE': '1'}, text=True, encoding='utf-8', capture_output=True)
+    require(run.returncode == 0, 'Independent exact calculation verification failed: ' + run.stderr[-6000:])
+    require(digest(executable) == checksum, 'Calculation engine changed during verification')
+    return {**json.loads(run.stdout), 'calculationRuntime': {'file': str(executable), 'sha256': checksum, 'electron': '44.7.0', 'v8': '15.2.124.28-electron.0', 'runAsNode': True}}
+
+
 def stage_proof(mode, source_hash, manifest, plan, pdf_files):
     directory = CHECKPOINT / 'verification' / mode
     item = read(directory / 'receipt.json')
@@ -190,11 +203,14 @@ def stage_proof(mode, source_hash, manifest, plan, pdf_files):
     require(item.get('actualProfile') is actual and item.get('normalStartup') is False and all(physical.same_path(item.get(name, ''), profile) for name in ('profilePath', 'userDataPath', 'sessionDataPath')), 'Supplementation profile attribution differs')
     require(item.get('originURL') == 'motionbench://app/MotionBench.html' and item.get('databaseName') == 'motionbench-v3:/MotionBench.html', 'Supplementation origin/database differs')
     if actual:
-        launch = physical.broker_proof(linked(item.get('launchReceipt')), target=executable, parent=item.get('parentProcessId'), style='Normal')
+        launch = physical.broker_proof(linked(item.get('launchReceipt'), directory / 'native-launch.json'), target=executable, parent=item.get('parentProcessId'), style='Normal')
         require(re.fullmatch(r'--remote-debugging-port=[1-9][0-9]{0,4}', launch.get('arguments', '')) and item.get('launchArgs') == [launch['arguments']] and item.get('systemContext') is True and item.get('parentName', '').lower() == 'explorer.exe', 'Actual data proof did not use the real Explorer process')
         before = item.get('physicalEvidence', {}).get('before', {})
-        probe = read(linked(before))
-        physical.broker_proof(linked(before.get('launchReceipt')), parent=probe.get('parentProcessId'), style='Hidden')
+        probe_file = linked(before, directory / 'before-physical.json')
+        probe = read(probe_file)
+        probe_launch = physical.broker_proof(linked(before.get('launchReceipt'), directory / 'before-physical-launch.json'), parent=probe.get('parentProcessId'), style='Hidden')
+        probe_source = ROOT / 'output/implementation-2.24.2/inspect-system-profile.ps1'
+        require(probe.get('runnerSha256') == digest(probe_source) and str(probe_source) in probe_launch.get('arguments', '') and str(probe_file) in probe_launch['arguments'] and probe.get('exists') is True, 'Physical probe source/destination differs')
         require(physical.same_path(probe.get('profile', ''), profile) and probe.get('parentName', '').lower() == 'explorer.exe' and probe.get('files') == len(probe.get('resolvedFiles', [])), 'Actual physical profile probe differs')
         physical.physical_files(probe.get('resolvedFiles'), complete=True)
         for name in ('ai-settings.dat', 'desktop-preferences.json'):
@@ -216,7 +232,7 @@ def stage_proof(mode, source_hash, manifest, plan, pdf_files):
         require(item.get('originalPreserved') is True and item.get('approvedChangesVerified') is True, 'Approved measurement preservation was not verified')
         if mode == 'installed':
             require(item.get('candidateSnapshotSha256') == digest(CHECKPOINT / 'verification/candidate/snapshot.json'), 'Installed measurements were not compared with the candidate')
-    independent = node_check(DATA_PROOF, directory, ROOT / PLAN, CHECKPOINT / 'verification/baseline/snapshot.json')
+    independent = calculation_check(DATA_PROOF, directory, ROOT / PLAN, CHECKPOINT / 'verification/baseline/snapshot.json')
     require(item.get('counts') == item.get('countsBefore') == independent['counts'], 'Supplementation added or removed a record')
     files = []
     for entry in item.get('artifacts', []):
@@ -242,7 +258,7 @@ const fs=require('fs'),path=require('path'),b=require('./tests/desktop-system-v2
 const read=f=>JSON.parse(fs.readFileSync(f,'utf8').replace(/^\uFEFF/,'')),dir=process.argv[1],plan=read(process.argv[2]),original=read(process.argv[3]),item=read(path.join(dir,'receipt.json')),start=read(path.join(dir,'startup-snapshot.json')),selected=read(path.join(dir,'selected-snapshot.json')),final=read(path.join(dir,'snapshot.json')),identity=b.example(original.library),range={start:item.startedAt,end:item.completedAt};
 const plain=v=>JSON.parse(JSON.stringify(v,(_k,value)=>Object.prototype.toString.call(value)==='[object Set]'?{type:'Set',values:[...value]}:Object.prototype.toString.call(value)==='[object Map]'?{type:'Map',entries:[...value]}:value));
 function recompute(snapshot){const lib=snapshot.library,reports=[];for(const owner of lib.athletes)for(const record of owner.records){const effective=c.RingsideEvaluation.resolve(record,lib.evaluationProfiles.find(x=>x.id===record.evaluationProfileId)),stats=c.RingsideModel.stats(effective);reports.push({recordId:record.recordId,values:stats.values,axes:stats.axes,evaluationResults:stats.evaluationResults,basis:c.RingsideModel.fingerprint(effective),narrative:record.narrative});}p.same(plain(reports),snapshot.reports,'Saved report calculations do not match their actual raw records');const active=snapshot.activeComparison; p.require(active,'Missing active comparison');const owner=lib.athletes.find(x=>x.id===active.athleteId),records=active.recordIds.map(id=>owner.records.find(r=>r.recordId===id)),latest=[...records].sort((a,b)=>a.athlete.date.localeCompare(b.athlete.date)).at(-1),model=c.RingsideLongitudinal.build(records,{athleteId:active.athleteId,mode:active.document.mode,profile:lib.evaluationProfiles.find(x=>x.id===latest.evaluationProfileId),catalog:lib.catalog});p.same(plain(model),active.model,'Full comparison model differs from independent source calculations');}
-b.compareSnapshots(selected,final,identity);recompute(selected);recompute(final);
+b.compareSnapshots(selected,final,identity);recompute(final);
 if(item.mode==='reopened'){const saved=read(path.join(dir,'../installed/snapshot.json'));b.compareSnapshots(start,saved,identity);b.compareSnapshots(start,selected,identity);}
 else {const initial=s.initialDocument(start,original,plan,range);p.same(initial.transitions,item.startupDocumentTransitions,'Startup comparison transitions differ');
  const originalSample=p.sample(original.library,plan),priorById=new Map(originalSample.owner.records.map(r=>[r.recordId,r])),generated={},reserved=p.allIds(original.library);let previous=initial.document;
