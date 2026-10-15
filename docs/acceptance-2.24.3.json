@@ -1,0 +1,297 @@
+{
+  "version": "2.24.3",
+  "desktopVersion": "2.24.3-desktop.1",
+  "pass": true,
+  "sourceHash": "a4f8eb55e815a29cf856807ab28fa00ed5bb98ac22ed77c926a738dade99eefb",
+  "verifierSha256": "ba3d956becc3b2706fb1bd6ab5385d9d42386c09684fc997e8348a2fbde6a8ca",
+  "modelSuites": 61,
+  "modelChecks": 936,
+  "desktopUnitSuites": 5,
+  "unitProof": {
+    "file": "output/tests/v2243/unit-results.json",
+    "sha256": "f10204c1aa4d0e2b706839514b8f6acffa5208bff663eb99ed04b7e4a38b85bf"
+  },
+  "desktopUnitProof": {
+    "file": "output/tests/v2243/desktop-unit/results.json",
+    "sha256": "ed98dc0cdf4c4eec0819ee59c996e1401302229f89da8e3ef1bdbe16d8e533bb"
+  },
+  "package": {
+    "file": "output/desktop-package/package-check.json",
+    "sha256": "1ece634213a0d38b79c429737a8c4cfe3e5c0217aa1d94e49ebe00e2547c21ee",
+    "assets": 271,
+    "archiveSha256": "523ce45c1b1c6887dd09ca080f98bdda134da2020c1e001840e6c4da4a6508a9"
+  },
+  "browsers": [
+    {
+      "file": "output/playwright/v2243/layout/chrome/results.json",
+      "sha256": "534c24ef7621f61f703014968518f2875e9f765bad899dca78e3629eb95e769b",
+      "runner": "tests/longitudinal-layout-browser-tests.cjs",
+      "checks": 13,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2243/layout/msedge/results.json",
+      "sha256": "01b3b12442454dffa5a68ee8a660ef9250b50bcb6e630cbf54f1c2d4bfeac853",
+      "runner": "tests/longitudinal-layout-browser-tests.cjs",
+      "checks": 13,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2243/app/chrome/results.json",
+      "sha256": "178db7a0e977dff1723800a942760ad408e296deddd06359fa7c38563778e9fd",
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2243/app/msedge/results.json",
+      "sha256": "d7f84bdc2b9d18231dc1b201529d8d2caecc2a62cf885c69fc0edc128cbf0399",
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2243/personal/chrome/chrome.json",
+      "sha256": "3ecf0eb8947a623e38492f8f6024dd65d3d4a327b2862437f80516c871e6a65d",
+      "runner": "tests/report-v220-browser-tests.cjs",
+      "checks": 6,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2243/personal/msedge/msedge.json",
+      "sha256": "0cdf9e3a2c5ec4123e9cc39c564a046044b65af85569fdd3d58e2e08491f8417",
+      "runner": "tests/report-v220-browser-tests.cjs",
+      "checks": 6,
+      "pass": true
+    },
+    {
+      "sha256": "e63e3034cf8fbec1f623de51b357c38fbeaf57b03d04267a89a1c683566fe9f7",
+      "runner": "tests/longitudinal-ai-browser-tests.cjs",
+      "runnerSha256": "7c0fc559a3ec7d39b6d970d62ed5b82e1da21cf234a20393d21e7241f3598ad5",
+      "checks": 11
+    },
+    {
+      "sha256": "ecb875dfef59236ec65e2a8bce42a35c5dfd2d7e472141c54cebdd3e496817f6",
+      "runner": "tests/longitudinal-ai-browser-tests.cjs",
+      "runnerSha256": "7c0fc559a3ec7d39b6d970d62ed5b82e1da21cf234a20393d21e7241f3598ad5",
+      "checks": 11
+    },
+    {
+      "sha256": "daf19c80b0f685a3b5f18d50b6f604a1d45f6564bc2edd15132f75db2de25cc5",
+      "runner": "tests/longitudinal-interaction-browser-tests.cjs",
+      "runnerSha256": "5666af8c7e3d9fc09a20079c13ae24a8b92b92f11ba2a936e632054f855e6c72",
+      "checks": 8
+    },
+    {
+      "sha256": "f88a2bd495933fd8745a9fba83dc9f47ed8bf37ea149b6d2773e3fa96b49e685",
+      "runner": "tests/longitudinal-interaction-browser-tests.cjs",
+      "runnerSha256": "5666af8c7e3d9fc09a20079c13ae24a8b92b92f11ba2a936e632054f855e6c72",
+      "checks": 8
+    }
+  ],
+  "pdfFiles": {
+    "output/playwright/v2243/layout/chrome/layout.pdf": 11,
+    "output/playwright/v2243/layout/msedge/layout.pdf": 11,
+    "output/playwright/v2243/system-candidate/existing-comparison.pdf": 82,
+    "output/desktop-smoke-v2243/native-downloads/MotionBench_Windows_桌面验收运动员（合成）_2026-10-11_3fc5d4.pdf": 11
+  },
+  "ci": false,
+  "candidateVerified": true,
+  "privateVerified": true,
+  "private": {
+    "baseline": {
+      "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261016-system-before-2.24.3\\verification\\baseline\\receipt.json",
+      "sha256": "acafd0c862f738c5ab851a4cdde5cd11e060c6822f8d7e4a34c1b64f4c678790",
+      "checks": 5,
+      "example": {
+        "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+        "recordIds": [
+          "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+          "8a99ed67-0706-466a-a447-ff0f47368ca9",
+          "285dc077-3543-43a3-8903-d0e60ce2e9af",
+          "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+        ],
+        "dates": [
+          "2026-09-01",
+          "2026-09-15",
+          "2026-09-29",
+          "2026-10-13"
+        ],
+        "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+      },
+      "counts": {
+        "athletes": 2,
+        "records": 5
+      }
+    },
+    "plan": {
+      "file": "output/implementation-2.24.3/example-additions-plan.json",
+      "sha256": "fdf701ac00711423500cbd258a2b74d2b61f9f28dcd79f6e7dd2f9ee29ed904e",
+      "generatorSha256": "215384bd0cc7167ebf7cbd18c33837c116f71464e3536fcabbcbff8715425d12",
+      "entryHelperSha256": "0c9ce351b7705da70f5d37fdff059d55a430440769c3a30a10f14f15836dcec0"
+    },
+    "candidate": {
+      "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261016-system-before-2.24.3\\verification\\candidate\\receipt.json",
+      "sha256": "d14f97d98dbce8febf639fed8b695bb23361b6e38b5a0c4d65d631de7e1efb68",
+      "checks": 7,
+      "artifacts": [
+        "output/playwright/v2243/system-candidate/existing-comparison.json",
+        "output/playwright/v2243/system-candidate/existing-comparison.html",
+        "output/playwright/v2243/system-candidate/existing-comparison.pdf",
+        "output/playwright/v2243/system-candidate/existing-comparison.png"
+      ],
+      "counts": {
+        "athletes": 2,
+        "records": 5
+      },
+      "example": {
+        "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+        "recordIds": [
+          "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+          "8a99ed67-0706-466a-a447-ff0f47368ca9",
+          "285dc077-3543-43a3-8903-d0e60ce2e9af",
+          "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+        ],
+        "dates": [
+          "2026-09-01",
+          "2026-09-15",
+          "2026-09-29",
+          "2026-10-13"
+        ],
+        "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+      },
+      "independentCalculationsVerified": true,
+      "calculationRuntime": {
+        "file": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\node_modules\\electron\\dist\\electron.exe",
+        "sha256": "2529b494f4123f152bce346051f7bd855ef95006424a561953cf17c49a3d1ba8",
+        "electron": "44.7.0",
+        "v8": "15.2.124.28-electron.0",
+        "runAsNode": true
+      }
+    },
+    "installed": {
+      "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261016-system-before-2.24.3\\verification\\installed\\receipt.json",
+      "sha256": "cd31ea48caf110d3287e9df90e52777c5ee9dc3ee2dc59178e3f6f1aafa8dca6",
+      "checks": 7,
+      "artifacts": [],
+      "counts": {
+        "athletes": 2,
+        "records": 5
+      },
+      "example": {
+        "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+        "recordIds": [
+          "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+          "8a99ed67-0706-466a-a447-ff0f47368ca9",
+          "285dc077-3543-43a3-8903-d0e60ce2e9af",
+          "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+        ],
+        "dates": [
+          "2026-09-01",
+          "2026-09-15",
+          "2026-09-29",
+          "2026-10-13"
+        ],
+        "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+      },
+      "independentCalculationsVerified": true,
+      "calculationRuntime": {
+        "file": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\node_modules\\electron\\dist\\electron.exe",
+        "sha256": "2529b494f4123f152bce346051f7bd855ef95006424a561953cf17c49a3d1ba8",
+        "electron": "44.7.0",
+        "v8": "15.2.124.28-electron.0",
+        "runAsNode": true
+      }
+    },
+    "reopened": {
+      "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261016-system-before-2.24.3\\verification\\reopened\\receipt.json",
+      "sha256": "f542402ca523d62affbee80094701c5125ccf5c5eb5e3609d5df1176e2d35ee0",
+      "checks": 4,
+      "artifacts": [],
+      "counts": {
+        "athletes": 2,
+        "records": 5
+      },
+      "example": {
+        "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+        "recordIds": [
+          "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+          "8a99ed67-0706-466a-a447-ff0f47368ca9",
+          "285dc077-3543-43a3-8903-d0e60ce2e9af",
+          "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+        ],
+        "dates": [
+          "2026-09-01",
+          "2026-09-15",
+          "2026-09-29",
+          "2026-10-13"
+        ],
+        "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+      },
+      "independentCalculationsVerified": true,
+      "calculationRuntime": {
+        "file": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\node_modules\\electron\\dist\\electron.exe",
+        "sha256": "2529b494f4123f152bce346051f7bd855ef95006424a561953cf17c49a3d1ba8",
+        "electron": "44.7.0",
+        "v8": "15.2.124.28-electron.0",
+        "runAsNode": true
+      }
+    }
+  },
+  "native": {
+    "file": "output/desktop-smoke-v2243/results.json",
+    "sha256": "98f90875c353e92a9c37cac5795e6a39fa0056209b9ff4c27042d09958f66cf4",
+    "runner": "tests/desktop-smoke.cjs",
+    "runnerSha256": "b1998938e1487b9e00d038f8f0c40b2c29a0944e05a04b78408d8b76489b354d",
+    "checksPassing": 15,
+    "checksExpected": 16,
+    "pass": false,
+    "environmentIssue": {
+      "file": "output/implementation-2.24.3/known-clipboard-issue.json",
+      "sha256": "44ad62dae1fe982321096a1250e506131a782ef7fbaa379ac907c17eaaea6d07",
+      "status": "recorded",
+      "check": "the existing Copy analysis data button writes the native clipboard using a real user gesture",
+      "reason": "Windows clipboard read returned an empty string at the unchanged last JSON.parse(copiedFacts) assertion; the preceding 15 checks completed. Existing user decision retains this issue.",
+      "userDecision": "先完成纵向比较，记录剪贴板问题"
+    },
+    "knownIssue": {
+      "file": "output/implementation-2.24.3/known-clipboard-issue.json",
+      "sha256": "44ad62dae1fe982321096a1250e506131a782ef7fbaa379ac907c17eaaea6d07",
+      "status": "recorded",
+      "check": "the existing Copy analysis data button writes the native clipboard using a real user gesture",
+      "reason": "Windows clipboard read returned an empty string at the unchanged last JSON.parse(copiedFacts) assertion; the preceding 15 checks completed. Existing user decision retains this issue.",
+      "userDecision": "先完成纵向比较，记录剪贴板问题"
+    }
+  },
+  "visuals": [
+    {
+      "file": "output/implementation-2.24.3/layout-visual-review.json",
+      "sha256": "2d4b913b1d5473d2893893578779acbf4ec96fa07220ba2c926ed153c71e8947",
+      "pages": 22,
+      "scope": "synthetic layout",
+      "pass": true
+    },
+    {
+      "file": "output/implementation-2.24.3/visual-review.json",
+      "sha256": "c14b91ec6f59b207691225c57b9da3336a1647ddf39b62d7a2ce8f209a08807e",
+      "pages": 82,
+      "scope": "existing real-profile example",
+      "pass": true
+    }
+  ],
+  "installation": {
+    "file": "output/implementation-2.24.3/system-installation.json",
+    "sha256": "019b3389477f427976c8cb987ae40c3226b5efb4b06dc577d7adb6efca1db62a",
+    "preflightVerifier": {
+      "file": "output/implementation-2.24.3/install-preflight-producer.py",
+      "sha256": "dbe82ebad3c7b15ff910435198e2401f09e3b56d87063ee0679ba455ebeef0c1",
+      "bytes": 41693
+    },
+    "pass": true
+  },
+  "shortcut": {
+    "file": "output/implementation-2.24.3/shortcut-launch.json",
+    "sha256": "690ffa7c9d59b6e3d1152c377d171ecd205fba79230bb408eee35150143be778",
+    "pass": true
+  }
+}

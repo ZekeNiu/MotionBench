@@ -17,6 +17,13 @@ CHECKPOINT = Path(r'D:\Application\Strength&Conditioning\MotionBench-backups\202
 OUT = 'output/implementation-2.24.3/'
 BASE_RUNNER = 'tests/desktop-system-v2243.cjs'
 SUPPLEMENT_RUNNER = 'tests/desktop-system-v2243-supplement.cjs'
+ACTUAL_RUNNER = 'tests/desktop-system-v2243-actual.cjs'
+INSTALL_VERIFIER_SHA = 'dbe82ebad3c7b15ff910435198e2401f09e3b56d87063ee0679ba455ebeef0c1'
+PRIOR_STARTUP_HASHES = {
+    'receipt.json': 'c6a409ba52dacd6611c7a3e2b5d888a93682a9b01d787e84d8c373b85fe41535',
+    'startup-snapshot.json': 'c97a450b74ab7ff19e56ef58b9f725a20ad95e8bc074704a6a67e3f6e0be6e3f',
+    'native-launch.json': '3a1b609f78b2e9217e432728d2e887ab32eacee3bdbc6332b8e760ba74c24ef9',
+}
 PRESERVATION = 'tests/helpers/v2243-example-preservation.cjs'
 PLAN = OUT + 'example-additions-plan.json'
 GENERATOR = 'scripts/prepare_v2243_example_additions.cjs'
@@ -181,15 +188,60 @@ def calculation_check(code, *args):
     return {**json.loads(run.stdout), 'calculationRuntime': {'file': str(executable), 'sha256': checksum, 'electron': '44.7.0', 'v8': '15.2.124.28-electron.0', 'runAsNode': True}}
 
 
+def actual_context_proof(item, directory, manifest, *, recorded=None):
+    # Archived receipts keep their original absolute paths; resolve only these
+    # explicitly named files within the immutable failed-stage directory.
+    recorded = recorded or directory
+    def stage_link(entry, name):
+        require(physical.same_path(entry.get('file', ''), recorded / name), 'Actual evidence recorded path differs')
+        return linked({**entry, 'file': str(directory / name)}, directory / name)
+    executable, profile = shared.INSTALLED / 'MotionBench.exe', physical.profile_path()
+    launch = physical.broker_proof(stage_link(item.get('launchReceipt'), 'native-launch.json'), target=executable, parent=item.get('parentProcessId'), style='Normal')
+    require(re.fullmatch(r'--remote-debugging-port=[1-9][0-9]{0,4}', launch.get('arguments', '')) and item.get('launchArgs') == [launch['arguments']] and item.get('systemContext') is True and item.get('parentName', '').lower() == 'explorer.exe', 'Actual data proof did not use the real Explorer process')
+    before = item.get('physicalEvidence', {}).get('before', {})
+    probe_file = stage_link(before, 'before-physical.json')
+    probe = read(probe_file)
+    probe_launch = physical.broker_proof(stage_link(before.get('launchReceipt'), 'before-physical-launch.json'), parent=probe.get('parentProcessId'), style='Hidden')
+    probe_source = ROOT / 'output/implementation-2.24.2/inspect-system-profile.ps1'
+    require(probe.get('runnerSha256') == digest(probe_source) and str(probe_source) in probe_launch.get('arguments', '') and str(recorded / 'before-physical.json') in probe_launch['arguments'] and probe.get('exists') is True, 'Physical probe source/destination differs')
+    require(physical.same_path(probe.get('profile', ''), profile) and probe.get('parentName', '').lower() == 'explorer.exe' and probe.get('files') == len(probe.get('resolvedFiles', [])), 'Actual physical profile probe differs')
+    physical.physical_files(probe.get('resolvedFiles'), complete=True)
+    for name in ('ai-settings.dat', 'desktop-preferences.json'):
+        old = next((row for row in manifest['files'] if row['path'] == name), None)
+        current = next((row for row in probe['resolvedFiles'] if physical.same_path(row['logical'], profile / name)), None)
+        require(bool(old) == bool(current) and (not old or old['sha256'] == current['sha256']), 'Protected native preference changed')
+    close = item.get('closeEvidence', {})
+    require(close.get('method') == 'CloseMainWindow' and close.get('requested') is True and close.get('exited') is True and close.get('processId') == item.get('processId'), 'Actual native process did not close normally')
+    return launch
+
+
+def prior_startup_proof(source_hash, manifest):
+    directory = CHECKPOINT / 'verification/installed-startup-time-failure'
+    for name, checksum in PRIOR_STARTUP_HASHES.items():
+        require(digest(directory / name) == checksum, 'Archived first-start evidence changed: ' + name)
+    item = read(directory / 'receipt.json')
+    require(item.get('runnerSha256') == digest(ROOT / SUPPLEMENT_RUNNER) and item.get('sourceHash') == source_hash and item.get('planSha256') == PLAN_SHA, 'Prior startup producer/source/plan differs')
+    require(item.get('baselineSnapshotSha256') == digest(CHECKPOINT / 'verification/baseline/snapshot.json') and item.get('backupManifestSha256') == digest(CHECKPOINT / 'manifest.json'), 'Prior startup baseline differs')
+    require(item.get('executableSha256') == digest(shared.INSTALLED / 'MotionBench.exe') and item.get('archiveSha256') == digest(shared.INSTALLED / 'resources/app.asar'), 'Prior startup package differs')
+    deps = {BASE_RUNNER, 'tests/desktop-system-v2242.cjs', PRESERVATION, 'tests/helpers/playwright.cjs', ENTRY}
+    require(set(item.get('dependencyHashes', {})) == deps and all(item['dependencyHashes'][name] == digest(ROOT / name) for name in deps), 'Prior startup dependency changed')
+    actual_context_proof(item, directory, manifest, recorded=CHECKPOINT / 'verification/installed')
+    return receipt(directory / 'receipt.json', status='preserved failed startup', **{'pass': False})
+
+
 def stage_proof(mode, source_hash, manifest, plan, pdf_files):
     directory = CHECKPOINT / 'verification' / mode
     item = read(directory / 'receipt.json')
-    require(item.get('mode') == mode and item.get('pass') is True and item.get('checks') == checks(SUPPLEMENT_RUNNER, mode), 'Incomplete supplementation stage: ' + mode)
+    runner = SUPPLEMENT_RUNNER if mode == 'candidate' else ACTUAL_RUNNER
+    require(item.get('mode') == mode and item.get('pass') is True and item.get('checks') == checks(runner, mode), 'Incomplete supplementation stage: ' + mode)
     require(item.get('errors') == item.get('network') == [] and not item.get('failure') and not item.get('closeFailure'), 'Supplementation recorded an error')
     for name in ('normalClose', 'runnerUnchanged', 'sourceUnchanged', 'artifactUnchanged', 'dependenciesUnchanged', 'planUnchanged', 'afterSaveUnchanged', 'defaultSession'):
         require(item.get(name) is True, 'Incomplete supplementation evidence: ' + name)
-    require(item.get('runnerSha256') == digest(ROOT / SUPPLEMENT_RUNNER), 'Supplementation producer changed')
+    require(item.get('runnerSha256') == digest(ROOT / runner), 'Supplementation producer changed')
     deps = {BASE_RUNNER, 'tests/desktop-system-v2242.cjs', PRESERVATION, 'tests/helpers/playwright.cjs', ENTRY}
+    if mode != 'candidate':
+        deps.add(SUPPLEMENT_RUNNER)
+        require(item.get('kind') == 'actual-existing-example-supplement-continuation', 'Actual continuation producer kind differs')
     require(set(item.get('dependencyHashes', {})) == deps and all(item['dependencyHashes'][name] == digest(ROOT / name) for name in deps), 'Supplementation dependency changed')
     require(item.get('sourceHash') == item.get('workspaceSourceHash') == item.get('runtimeHtmlSha256') == source_hash and item.get('version') == DESKTOP_VERSION, 'Supplementation runtime/source differs')
     require(item.get('planSha256') == PLAN_SHA and physical.same_path(item.get('planFile', ''), ROOT / PLAN), 'Supplementation plan changed')
@@ -203,22 +255,7 @@ def stage_proof(mode, source_hash, manifest, plan, pdf_files):
     require(item.get('actualProfile') is actual and item.get('normalStartup') is False and all(physical.same_path(item.get(name, ''), profile) for name in ('profilePath', 'userDataPath', 'sessionDataPath')), 'Supplementation profile attribution differs')
     require(item.get('originURL') == 'motionbench://app/MotionBench.html' and item.get('databaseName') == 'motionbench-v3:/MotionBench.html', 'Supplementation origin/database differs')
     if actual:
-        launch = physical.broker_proof(linked(item.get('launchReceipt'), directory / 'native-launch.json'), target=executable, parent=item.get('parentProcessId'), style='Normal')
-        require(re.fullmatch(r'--remote-debugging-port=[1-9][0-9]{0,4}', launch.get('arguments', '')) and item.get('launchArgs') == [launch['arguments']] and item.get('systemContext') is True and item.get('parentName', '').lower() == 'explorer.exe', 'Actual data proof did not use the real Explorer process')
-        before = item.get('physicalEvidence', {}).get('before', {})
-        probe_file = linked(before, directory / 'before-physical.json')
-        probe = read(probe_file)
-        probe_launch = physical.broker_proof(linked(before.get('launchReceipt'), directory / 'before-physical-launch.json'), parent=probe.get('parentProcessId'), style='Hidden')
-        probe_source = ROOT / 'output/implementation-2.24.2/inspect-system-profile.ps1'
-        require(probe.get('runnerSha256') == digest(probe_source) and str(probe_source) in probe_launch.get('arguments', '') and str(probe_file) in probe_launch['arguments'] and probe.get('exists') is True, 'Physical probe source/destination differs')
-        require(physical.same_path(probe.get('profile', ''), profile) and probe.get('parentName', '').lower() == 'explorer.exe' and probe.get('files') == len(probe.get('resolvedFiles', [])), 'Actual physical profile probe differs')
-        physical.physical_files(probe.get('resolvedFiles'), complete=True)
-        for name in ('ai-settings.dat', 'desktop-preferences.json'):
-            old = next((row for row in manifest['files'] if row['path'] == name), None)
-            current = next((row for row in probe['resolvedFiles'] if physical.same_path(row['logical'], profile / name)), None)
-            require(bool(old) == bool(current) and (not old or old['sha256'] == current['sha256']), 'Protected native preference changed')
-        close = item.get('closeEvidence', {})
-        require(close.get('method') == 'CloseMainWindow' and close.get('requested') is True and close.get('exited') is True and close.get('processId') == item.get('processId'), 'Actual native process did not close normally')
+        launch = actual_context_proof(item, directory, manifest)
     else:
         require(item.get('launchArgs') == ['--motionbench-test', '--motionbench-data-dir=' + str(profile)] and item.get('profileCopy') == {'files': len(manifest['files']), 'bytes': manifest['bytes'], 'allFilesEqual': True}, 'Candidate was not a complete isolated copy')
     names = ['startup-snapshot.json', 'selected-snapshot.json', 'snapshot.json']
@@ -232,6 +269,7 @@ def stage_proof(mode, source_hash, manifest, plan, pdf_files):
         require(item.get('originalPreserved') is True and item.get('approvedChangesVerified') is True, 'Approved measurement preservation was not verified')
         if mode == 'installed':
             require(item.get('candidateSnapshotSha256') == digest(CHECKPOINT / 'verification/candidate/snapshot.json'), 'Installed measurements were not compared with the candidate')
+            prior_startup_proof(source_hash, manifest)
     independent = calculation_check(DATA_PROOF, directory, ROOT / PLAN, CHECKPOINT / 'verification/baseline/snapshot.json')
     require(item.get('counts') == item.get('countsBefore') == independent['counts'], 'Supplementation added or removed a record')
     files = []
@@ -260,7 +298,9 @@ const plain=v=>JSON.parse(JSON.stringify(v,(_k,value)=>Object.prototype.toString
 function recompute(snapshot){const lib=snapshot.library,reports=[];for(const owner of lib.athletes)for(const record of owner.records){const effective=c.RingsideEvaluation.resolve(record,lib.evaluationProfiles.find(x=>x.id===record.evaluationProfileId)),stats=c.RingsideModel.stats(effective);reports.push({recordId:record.recordId,values:stats.values,axes:stats.axes,evaluationResults:stats.evaluationResults,basis:c.RingsideModel.fingerprint(effective),narrative:record.narrative});}p.same(plain(reports),snapshot.reports,'Saved report calculations do not match their actual raw records');const active=snapshot.activeComparison; p.require(active,'Missing active comparison');const owner=lib.athletes.find(x=>x.id===active.athleteId),records=active.recordIds.map(id=>owner.records.find(r=>r.recordId===id)),latest=[...records].sort((a,b)=>a.athlete.date.localeCompare(b.athlete.date)).at(-1),model=c.RingsideLongitudinal.build(records,{athleteId:active.athleteId,mode:active.document.mode,profile:lib.evaluationProfiles.find(x=>x.id===latest.evaluationProfileId),catalog:lib.catalog});p.same(plain(model),active.model,'Full comparison model differs from independent source calculations');}
 b.compareSnapshots(selected,final,identity);recompute(final);
 if(item.mode==='reopened'){const saved=read(path.join(dir,'../installed/snapshot.json'));b.compareSnapshots(start,saved,identity);b.compareSnapshots(start,selected,identity);}
-else {const initial=s.initialDocument(start,original,plan,range);p.same(initial.transitions,item.startupDocumentTransitions,'Startup comparison transitions differ');
+else {let initial;
+ if(item.mode==='installed'){const a=require('./tests/desktop-system-v2243-actual.cjs'),prior=a.readPriorStartup(path.resolve(dir,'../..'),original,plan,item),launch=read(path.join(dir,'native-launch.json'));p.same(prior,item.priorStartupProof,'Prior startup proof differs from the archived evidence');p.require(Date.parse(item.startupWindow.end)<=Date.parse(item.completedAt),'Startup capture is after the completed operation');initial=a.startupContinuation({snapshot:start,original,plan,prior,launch,startedAt:item.startedAt,end:item.startupWindow.end});p.same(initial.window,item.startupWindow,'Startup window differs from the current Explorer launch');}
+ else initial=s.initialDocument(start,original,plan,range);p.same(initial.transitions,item.startupDocumentTransitions,'Startup comparison transitions differ');
  const originalSample=p.sample(original.library,plan),priorById=new Map(originalSample.owner.records.map(r=>[r.recordId,r])),generated={},reserved=p.allIds(original.library);let previous=initial.document;
  p.same(item.guard.timestampStart,item.startedAt,'Guard timestamp window differs');p.require(item.guard.documentTransitions.length>0,'Missing comparison transition history');
  for(const transition of item.guard.documentTransitions){p.same(transition.basisRecords.map(r=>r.recordId),plan.recordIds,'Transition raw record inventory changed');for(const record of transition.basisRecords)p.verifyRecord(record,priorById.get(record.recordId),plan.records.find(row=>row.recordId===record.recordId),{final:false,generatedIds:generated,reservedIds:reserved,timestampRange:range});
@@ -328,7 +368,14 @@ def installation_proof(manifest):
     relative = OUT + 'system-installation.json'
     item = read(relative)
     require(item.get('pass') is True and item.get('version') == DESKTOP_VERSION and item.get('installerExitCode') == 0, 'Actual installation failed')
-    require(item.get('runnerSha256') == digest(ROOT / 'scripts/install_v2243_system.ps1') and item.get('verifierSha256') == digest(Path(__file__)), 'Install-time producer/preflight verifier differs')
+    require(item.get('runnerSha256') == digest(ROOT / 'scripts/install_v2243_system.ps1') and item.get('verifierSha256') == INSTALL_VERIFIER_SHA, 'Install-time producer/preflight verifier differs')
+    archived = read(OUT + 'install-preflight-producer.json')
+    require(archived.get('schema') == 1 and archived.get('kind') == 'install-preflight-producer' and archived.get('sourceFile') == 'scripts/verify_v2243.py', 'Install-time verifier archive identity differs')
+    require(archived.get('sourceHash') == digest(ROOT / 'MotionBench.html') and archived.get('installationVerifierSha256') == INSTALL_VERIFIER_SHA, 'Install-time verifier archive source differs')
+    archive = linked(archived.get('archive'), ROOT / (OUT + 'install-preflight-producer.py'))
+    require(digest(archive) == INSTALL_VERIFIER_SHA, 'Install-time verifier bytes differ')
+    linked(archived.get('installationReceipt'), ROOT / relative)
+    linked(archived.get('installationLaunch'), ROOT / (OUT + 'system-installation-launch.json'))
     require(physical.same_path(item.get('installationDirectory', ''), shared.INSTALLED) and physical.same_path(item.get('profilePath', ''), physical.profile_path()) and item.get('systemManifestSha256') == digest(CHECKPOINT / 'manifest.json'), 'Installation destination/checkpoint differs')
     require(item.get('parentName', '').lower() == 'explorer.exe' and physical.same_path(item.get('parentExecutable', ''), Path(os.environ['WINDIR']) / 'explorer.exe'), 'Installer was not run by the real Desktop Explorer')
     launch = physical.broker_proof(ROOT / (OUT + 'system-installation-launch.json'), parent=item.get('parentProcessId'), style='Hidden')
@@ -341,7 +388,7 @@ def installation_proof(manifest):
     require(len(inventory) == 2 and {row.get('file') for row in inventory} == {'MotionBench.exe', 'resources/app.asar'}, 'Installed artifact inventory incomplete')
     for row in inventory:
         require(row.get('matchesTestedPackage') is True and row.get('sha256') == digest(shared.INSTALLED / row['file']) == digest(shared.DIST / row['file']), 'Installed package differs from the candidate')
-    return receipt(relative, **{'pass': True})
+    return receipt(relative, preflightVerifier=archived['archive'], **{'pass': True})
 
 
 def shortcut_proof(source_hash, plan, pdf_files):

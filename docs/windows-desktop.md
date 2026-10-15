@@ -2,9 +2,9 @@
 
 桌面版通过 Windows 程序或快捷方式启动，自带运行环境。离线录入、计算、图表、Excel 和报告 PDF 可以直接使用。
 
-本机交付版本为 **2.24.2-desktop.1**，共用工作台版本为 **2.24.2**。本轮使用交付的本地安装程序升级，使用说明见 [2.24.2](motionbench-2.24.2.md)，核验状态与成品校验见 [本机验收记录](acceptance-2.24.2.md)。
+本说明对应 **2.24.3-desktop.1**，共用工作台版本为 **2.24.3**。原目录升级、资料补录、重开和系统快捷方式核验已完成，详见 [2.24.3 验收记录](acceptance-2.24.3.md)，功能说明见 [2.24.3](motionbench-2.24.3.md)。
 
-公开下载版本仍为 **2.20.1-desktop.1**：[Windows 桌面版](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1)；离线网页版本见 [HTML 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)。该公开版本的发布和升级核验见 [2.20.1 记录](publication-2.20.1.md)。
+从 [2.24.3 版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.3-desktop.1)下载安装版、便携版或离线 HTML。[2.24.2 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.2-desktop.1)继续保留。
 
 ## 安装
 
@@ -12,19 +12,23 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| `MotionBench-2.24.2-desktop.1-Setup-x64.exe` | 本机交付的安装程序，沿用原程序目录 |
-| `MotionBench-2.24.2-desktop.1-Portable-x64.exe` | 本机交付的便携程序 |
-| [2.24.2 验收记录](acceptance-2.24.2.md) | 成品校验与本轮核验范围 |
+| [MotionBench-2.24.3-desktop.1-Setup-x64.exe](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.3-desktop.1/MotionBench-2.24.3-desktop.1-Setup-x64.exe) | 安装程序，升级时沿用原程序目录 |
+| [MotionBench-2.24.3-desktop.1-Portable-x64.exe](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.3-desktop.1/MotionBench-2.24.3-desktop.1-Portable-x64.exe) | 便携程序 |
+| [2.24.3 验收记录](acceptance-2.24.3.md) | 成品校验与本轮核验范围 |
 
 本机安装目录为 `D:\Application\Strength&Conditioning\MotionBench`。运行 Setup 时确认这个原目录，完成后核对运动员、测试记录、方案与人工解读，再关闭并重新打开。原目录升级及真实资料检查的完成状态以验收记录为准。
 
 安装版与便携版均把资料保存在当前 Windows 用户的 `%APPDATA%\MotionBench Desktop`，与程序所在目录分开。
 
-本机 2.24.2 升级使用本次交付的 Setup。公开发行版可使用“应用设置 → 更新与版本”，或运行公开发行的 Setup。公开发行附件中的 `SHA256SUMS.txt` 和 `build-provenance.json` 分别提供文件校验与构建来源。
+从 2.24.2 升级时使用 2.24.3 的 Setup。公开发行版可使用“应用设置 → 更新与版本”，或运行公开发行的 Setup。公开发行附件中的 `SHA256SUMS.txt` 和 `build-provenance.json` 分别提供文件校验与构建来源。公开安装包不包含本机运动员、测量或解读正文。
 
 ## 纵向比较
 
-在报告首页选择运动员后，打开“测试记录”勾选多期测试。单条显示原报告，多条自动比较；“代表成绩”统一切换最佳值或均值。点击“编辑测试记录”可选择一期编辑并返回比较。每个记录组合分别保存解读，右上角 AI 图标可直接生成可编辑草稿。具体图表、变化计算与导出操作见 [2.24.0 使用说明](motionbench-2.24.0.md)。
+在报告首页选择运动员后，打开“测试记录”勾选多期测试。单条显示原报告，多条自动比较；“代表成绩”统一切换最佳值或均值。点击“编辑测试记录”可选择一期编辑并返回比较。每个记录组合分别保存解读，右上角 AI 图标可直接生成可编辑草稿。
+
+比较图按日期叠加，结果表显示首末和最近两期变化；测试模块统一上图下表，每个模块通过一个入口展开全部日期的原始试次。摘要显示下降／改善数量及按可计算的相对变化幅度排列的指标名，长名单最多三行，比较日期逐行显示。
+
+损伤风险筛查使用部位雷达；等长力量保留力量结果、双侧差异和关节平衡分组，以及各期评价底色、文字标签和依据。运动表现概览少于 3 维显示表格，3 维及以上显示雷达。能力结构、乳酸、CPET、SJ／CMJ 跳跃 FVP、冲刺 FVP 和弹性分析按期保留适用的组成值、判定、目标、代表点与方法说明。详见 [2.24.3 完整纵向报告](motionbench-2.24.3.md)和 [2.24.0 比较操作](motionbench-2.24.0.md)。
 
 ## 设置通用项目报告图表
 
@@ -32,7 +36,7 @@
 
 支持横向条形图、纵向柱状图、试次点图、X–Y 散点图、目标对比图和评分雷达图。散点图选择同一项目的两个不同试次指标；评分雷达选择 3–8 项，采用本次评价方案已有的明确评分规则。不同单位的原值分别绘图。
 
-报告在左侧展示图表，右侧保留完整结果、评价与适用的重复统计。关闭图表后展示表格。兼容的已有报告同步项目图样；导出的 HTML、JSON、PDF 保留导出时的图样。步骤与数据要求见 [2.22.0 使用说明](motionbench-2.22.0.md)。
+个人报告在左侧展示图表，右侧保留完整结果、评价与适用的重复统计；纵向比较采用上图下表。关闭图表后展示表格。兼容的已有报告同步项目图样；导出的 HTML、JSON、PDF 保留导出时的图样。步骤与数据要求见 [2.22.0 使用说明](motionbench-2.22.0.md)。
 
 ## 更新与启动偏好
 
@@ -64,7 +68,7 @@
 
 返回旧程序前，先另存完整备份。程序版本回退与资料恢复分别进行；网页版回退使用原浏览器入口与相应备份。
 
-本机 2.24.0 的升级前保护与升级结果见 [本机验收记录](acceptance-2.24.0.md)。公开版本的回退及修订历史保留在 [2.20.1 发布核验](publication-2.20.1.md)、[2.20.0 历史验收](acceptance-2.20.0.md) 和 [公开发布与补验记录](publication-2.20.0.md)。
+本轮上一版的源码、程序和校验文件保留在 [2.24.2 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.2-desktop.1)，其完成范围见 [2.24.2 验收记录](acceptance-2.24.2.md)。本轮升级前保护与升级结果见 [2.24.3 验收记录](acceptance-2.24.3.md)。
 
 ## 开发构建
 
