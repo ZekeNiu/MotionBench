@@ -60,7 +60,17 @@
     cx + radius * Math.cos(-Math.PI / 2 + (i * 2 * Math.PI) / count),
     cy + radius * Math.sin(-Math.PI / 2 + (i * 2 * Math.PI) / count),
   ];
-  function radarSeries(points, stroke, center = null, opacity = 0.07) {
+  function radarScale(upper = 100) {
+    upper = Math.max(100, num(upper) || 100);
+    if (upper === 100) return { max: 100, ticks: [20, 40, 60, 80, 100] };
+    const raw = upper / 5, magnitude = 10 ** Math.floor(Math.log10(raw)),
+      step = [1, 2, 2.5, 5, 10].find(value => value * magnitude >= raw) * magnitude,
+      max = Math.ceil(upper / step) * step,
+      ticks = Array.from({ length: Math.round(max / step) }, (_, index) => (index + 1) * step);
+    return { max, ticks: [...new Set([...ticks, 100])].sort((a, b) => a - b) };
+  }
+  function radarSeries(points, stroke, center = null, opacity = 0.12) {
+    if (points.length < 3) return "";
     if (points.every(Boolean))
       return `<polygon class="radar-fill" points="${polygonPoints(points)}" fill="${stroke}" fill-opacity="${opacity}" stroke="${stroke}" stroke-width="2.3"/>`;
     // Fill only sectors between adjacent measured axes; missing axes stay open.
@@ -326,20 +336,21 @@
         520,
         350,
       );
-    if (items.length < 3 || items.length > 8) return abilityList(items);
-    const w = 520,
-      h = 390,
-      cx = 260,
-      cy = 189,
-      radius = 124,
+    if (items.length < 3) return abilityList(items);
+    const dense = items.length > 8,
+      w = dense ? 620 : 520,
+      h = dense ? 520 : 390,
+      cx = w / 2,
+      cy = h / 2 - 6,
+      radius = dense ? 166 : 124,
       n = items.length;
     const polar = polarFrame(cx, cy, n);
     let out =
-      `<polygon points="${polygonPoints(items.map((_, i) => polar(i, radius)))}" fill="${C.paper}" fill-opacity=".6"/>` +
+      (n < 3 ? `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${C.paper}" fill-opacity=".6"/>` : `<polygon points="${polygonPoints(items.map((_, i) => polar(i, radius)))}" fill="${C.paper}" fill-opacity=".6"/>`) +
       [20, 40, 60, 80, 100]
         .map(
           (v) =>
-            `<polygon points="${polygonPoints(items.map((_, i) => polar(i, (radius * v) / 100)))}" fill="none" stroke="${C.grid}"/>`,
+            n < 3 ? `<circle cx="${cx}" cy="${cy}" r="${radius * v / 100}" fill="none" stroke="${C.grid}"/>` : `<polygon points="${polygonPoints(items.map((_, i) => polar(i, (radius * v) / 100)))}" fill="none" stroke="${C.grid}"/>`,
         )
         .join("");
     [20, 40, 60, 80].forEach((v) => {
@@ -354,20 +365,7 @@
         ? null
         : polar(i, (radius * clamp(Number(item.value), 0, 100)) / 100),
     );
-    if (points.every(Boolean))
-      out += `<polygon points="${polygonPoints(points)}" fill="${C.neutral}" fill-opacity=".06" stroke="${C.neutral}" stroke-width="2.2" stroke-linejoin="round"/>`;
-    else
-      points.forEach((p, i) => {
-        const q = points[(i + 1) % n];
-        if (p && q)
-          out += line(
-            p[0],
-            p[1],
-            q[0],
-            q[1],
-            `stroke="${C.neutral}" stroke-width="2.2"`,
-          );
-      });
+    out += radarSeries(points, C.neutral, [cx, cy]);
     items.forEach((item, i) => {
       const v = num(item.value),
         a = -Math.PI / 2 + (i * 2 * Math.PI) / n,
@@ -383,12 +381,12 @@
                 label.length > 12 ? label.slice(6, 11) + "…" : label.slice(6),
               ]
             : [label];
-      out += `<text class="radar-label" x="${fmt(p[0])}" y="${fmt(p[1] - (parts.length > 1 ? 8 : 0))}" font-family="${FONT}" font-size="18" font-weight="600" fill="${c}" text-anchor="${anchor}"><title>${esc(label)}</title>${parts.map((part, j) => `<tspan x="${fmt(p[0])}" dy="${j ? 22 : 0}">${esc(part)}</tspan>`).join("")}</text>`;
+      out += `<text class="radar-label" x="${fmt(p[0])}" y="${fmt(p[1] - (parts.length > 1 ? 8 : 0))}" font-family="${FONT}" font-size="${dense ? 13 : 18}" font-weight="600" fill="${c}" text-anchor="${anchor}"><title>${esc(label)}</title>${parts.map((part, j) => `<tspan x="${fmt(p[0])}" dy="${j ? dense ? 17 : 22 : 0}">${esc(part)}</tspan>`).join("")}</text>`;
       out += text(
         p[0],
         p[1] + (parts.length > 1 ? 38 : 24),
         v === null ? "—" : `${fmt(v, 0)} 分 / 100`,
-        `class="radar-score" text-anchor="${anchor}" font-size="14" fill="${c}"`,
+        `class="radar-score" text-anchor="${anchor}" font-size="${dense ? 11 : 14}" fill="${c}"`,
       );
       if (points[i])
         out += point(
@@ -462,25 +460,7 @@
       const p = polar(i, radius);
       out += line(cx, cy, p[0], p[1]);
     }
-    if (points.every(Boolean))
-      out +=
-        '<polygon points="' +
-        polygonPoints(points) +
-        '" fill="' +
-        C.neutral +
-        '" fill-opacity=".07" stroke="' +
-        C.neutral +
-        '" stroke-width="2"/>';
-    else
-      points.forEach((p, i) => {
-        const q = points[(i + 1) % n];
-        if (p && q)
-          out += line(
-            ...p,
-            ...q,
-            'stroke="' + C.neutral + '" stroke-width="2"',
-          );
-      });
+    out += radarSeries(points, C.neutral, [cx, cy]);
     for (let i = 0; i < n; i++) {
       const item = items[i] || {},
         score = valid(item),
@@ -569,7 +549,8 @@
       h = layout.height || 360,
       cx = w / 2,
       axes = data.axes,
-      max = data.max || 100,
+      scale = radarScale(Math.max(data.max || 100, ...axes.flatMap(axis => [num(axis.strength) || 0, num(axis.symmetry) || 0]))),
+      max = scale.max,
       labelClearance = Math.max(34, ...axes.map((axis) => (axis.label.length + (axis.pain ? 5 : 0)) * 6.5 * (layout.print ? .86 : 1) + 27)),
       radius = .9 * Math.min(w / 2 - labelClearance, (h - 112) / 2),
       cy = (h - 36) / 2,
@@ -589,9 +570,7 @@
       },
     ];
     let out = "";
-    for (const v of [...new Set([max / 4, max / 2, max * 0.75, max, 100])].sort(
-      (a, b) => a - b,
-    )) {
+    for (const v of scale.ticks) {
       out += `<polygon points="${polygonPoints(axes.map((_, i) => polar(i, (radius * v) / max)))}" fill="none" stroke="${C.grid}" stroke-width="1"/>`;
       out += text(
         cx + 6,
@@ -618,7 +597,7 @@
       );
       out +=
         `<g data-radar-series="${s.key}">` +
-        radarSeries(points, s.color, [cx, cy], j ? 0.22 : 0.14);
+        radarSeries(points, s.color, [cx, cy], j ? 0.09 : 0.12);
       points.forEach((p, i) => {
         if (p) {
           const a = axes[i];
@@ -2126,6 +2105,7 @@
     body,
     bodyTooltip,
     radar,
+    radarScale,
     generic,
     fms,
     isoRadar,

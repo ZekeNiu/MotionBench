@@ -307,8 +307,9 @@ test("both radar series fill measured areas without bridging missing joints", ()
   );
   let html = c.RingsideViz.isoRadar(M.isoRadar(M.stats(r).isoAnalyses));
   assert.equal((html.match(/class="radar-fill"/g) || []).length, 2);
-  assert.match(html, /fill-opacity="0.14"/);
-  assert.match(html, /fill-opacity="0.22"/);
+  const fills = [...html.matchAll(/class="radar-fill"[^>]*fill-opacity="([^"]+)"/g)];
+  assert.equal(fills.length, 2);
+  assert.ok(fills.every(item => Number(item[1]) > 0 && Number(item[1]) < 0.2));
   r.data.iso[2].left = "";
   html = c.RingsideViz.isoRadar(M.isoRadar(M.stats(r).isoAnalyses));
   assert.equal((html.match(/class="radar-fill"/g) || []).length, 6);

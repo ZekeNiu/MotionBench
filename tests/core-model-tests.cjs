@@ -247,7 +247,7 @@ test("FMS radar retains seven axes, missing results and pain without fabricating
   assert.ok(html.includes("未测"));
   assert.ok(!/NaN|Infinity/.test(html));
 });
-test("one two and more than eight abilities use a complete readable list", () => {
+test("one and two abilities use a table while every larger ability set retains its radar", () => {
   for (const n of [1, 2, 9, 60]) {
     const items = Array.from({ length: n }, (_, i) => ({
         label: "完整的能力名称".repeat(8) + i,
@@ -255,9 +255,9 @@ test("one two and more than eight abilities use a complete readable list", () =>
         status: "amber",
       })),
       html = V.radar(items);
-    assert.equal((html.match(/<tbody>[\s\S]*?<\/tbody>/g) || []).length, 1);
+    assert.equal((html.match(/<tbody>[\s\S]*?<\/tbody>/g) || []).length, n < 3 ? 1 : 0);
     for (const item of items) assert.ok(html.includes(item.label));
-    assert.ok(!html.includes("radar-label"));
+    assert.equal((html.match(/class="radar-label"/g) || []).length, n < 3 ? 0 : n);
   }
   assert.equal(
     (

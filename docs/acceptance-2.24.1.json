@@ -1,0 +1,135 @@
+{
+  "version": "2.24.1",
+  "desktopVersion": "2.24.1-desktop.1",
+  "pass": true,
+  "sourceHash": "8cee3e8a0c72f7309b9c3f12b2cb8ffa5d34956eb1ffd32f98e8a2c80a2e2d51",
+  "verifierSha256": "cba5a6562ac1bf9bca3ae4d449e084b55b9dc59d47ba2eb6e1f207fc04324686",
+  "sharedVerifierSha256": "94337fd768f69349ef12a300785d5fa5a6ffd6a03de70d60712f2e3eb6b344ca",
+  "regressionVerifierSha256": "ed59236b6a1ef609c1c3f3f8a162f64bd9479d547f57377093db0b97f4ac25c3",
+  "modelSuites": 61,
+  "modelChecks": 921,
+  "desktopUnitSuites": 5,
+  "proofs": [
+    {
+      "file": "output/playwright/v2241/longitudinal/chrome/results.json",
+      "sha256": "0eb09fcb077c45490c9a4e7e0361e505e885b61a69fb8b7d32e34f8ef9a1ff9b",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2241/longitudinal/msedge/results.json",
+      "sha256": "8c8eee5624ba191d270cbdf652f65c4868e0781152d511b09732917fd3c3c19d",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2241/longitudinal/desktop/results.json",
+      "sha256": "72eccee8dc587dad5be325c868aa9364914be9ed7f79d7f0c809c517f248d1e4",
+      "checks": 10,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2241/polish/chrome/results.json",
+      "sha256": "2c516c4bf928c72bc0f6af4db72c2bad83aa02699b1bfee8046bc0cfc98f67b4",
+      "checks": 11,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2241/polish/msedge/results.json",
+      "sha256": "7cca98dc3677d825965730cb68520dc06abd3e25f67f0dfe4ab82690b13427ef",
+      "checks": 11,
+      "pass": true
+    }
+  ],
+  "regressions": [
+    {
+      "file": "output/playwright/v2241/app/chrome-results.json",
+      "sha256": "16ca28584d3d6b04505b25e401b575599293fc4190bbfc666ad3789a475d2214",
+      "runner": "tests/app-v220-browser-tests.cjs",
+      "runnerSha256": "7b78f7d2610df8edb17368f7fa5b1d4e607524e0a0b7efd18e0b98a25874b138",
+      "checksPassing": 7,
+      "checksExpected": 7,
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2241/generic/results.json",
+      "sha256": "4b5042171885b96ecfa6666f9e106188d9c18ba2081b3fbe432137ebe4468244",
+      "runner": "tests/generic-report-browser-tests.cjs",
+      "runnerSha256": "7cc1e1c183f293574922f24709cd95dbedb8ec5cc7408ea4d8036e8a95c5705b",
+      "checksPassing": 17,
+      "checksExpected": 17,
+      "pass": true
+    }
+  ],
+  "native": {
+    "file": "output/desktop-smoke-v2241/results.json",
+    "sha256": "ac2671b28111ca09da8146b935afb2c110be8f0c82bed7301f5ebe3334ba91f7",
+    "runner": "tests/desktop-smoke.cjs",
+    "runnerSha256": "b1998938e1487b9e00d038f8f0c40b2c29a0944e05a04b78408d8b76489b354d",
+    "checksPassing": 16,
+    "checksExpected": 16,
+    "pass": true,
+    "environmentIssue": null
+  },
+  "visualSha256": "6cd4b596c9aa8a9a9c338a8fe5d2718716d112a3b0b1bc94e8ef42c00dfc6ef6",
+  "pdfFiles": {
+    "output/desktop-smoke-v2241/native-downloads/MotionBench_Windows_桌面验收运动员（合成）_2026-10-11_fbcee3.pdf": 11,
+    "output/playwright/v2241/example-candidate/example-comparison.pdf": 29
+  },
+  "archiveSha256": "ac188e89526bd40a7b8eab7b401fb388cfc8d6662ce1e67f38aa27b1a638b2a4",
+  "privateVerified": true,
+  "candidateVerified": true,
+  "private": {
+    "pass": true,
+    "checkpointManifestSha256": "a597436baaca881879a77d80c609270f56578eb8b700d70e21135058203dbad6",
+    "checkpointFiles": 149,
+    "installationProofSha256": "7774d433e3d8564e4a4a33a8cac3cf5f66666e1789dddf141ed908baa8df1043",
+    "baselineSnapshotSha256": "684d07ed5917a5da7185a4b8281bc4d4c6b9b0a927ec238544f999e409222a2c",
+    "receipts": {
+      "baseline": {
+        "sha256": "065e0935cd3806c199a3c80e2f0ef54b3fd74315cf0439c385d43f80597ef685",
+        "checks": 2,
+        "athletes": 26,
+        "records": 146
+      },
+      "candidate": {
+        "sha256": "eb94ac15485812f27dd14a1ddf41df23251fbe8d58612969606a273099963da3",
+        "checks": 4,
+        "athletes": 27,
+        "records": 150
+      },
+      "installed": {
+        "sha256": "92f437dd991d9e54b2f363ed0010c225159c540c9ba2606adb057c431b5de9f2",
+        "checks": 3,
+        "athletes": 26,
+        "records": 146
+      },
+      "examples": {
+        "sha256": "21c128fc137f00534457f342cf7a6ec92d834c940d39e1ded76fd9791024a5eb",
+        "checks": 4,
+        "athletes": 27,
+        "records": 150
+      },
+      "reopened": {
+        "sha256": "8ec222fd90119cccf60e8cc0b6b8d7f5214afa12ee189893c644e4c627136dbd",
+        "checks": 5,
+        "athletes": 27,
+        "records": 150
+      }
+    },
+    "exampleEntryReceipts": {
+      "candidate": {
+        "sha256": "0954a8329733d5cc9d8c7c368205b6f363a800b2e2ca31ce1ff0a7568282bc8f",
+        "runnerSha256": "43e5871e59996c112648a89cdbb87d7bb8c835778dd1cdc380f4191c932eb276",
+        "pass": true
+      },
+      "installed": {
+        "sha256": "ac56926a470b5d29dc70855989f79ceaf6b89bef7aade6d287d488745d25dc7d",
+        "runnerSha256": "43e5871e59996c112648a89cdbb87d7bb8c835778dd1cdc380f4191c932eb276",
+        "pass": true
+      }
+    },
+    "originalAthletes": 26,
+    "originalRecords": 146
+  }
+}

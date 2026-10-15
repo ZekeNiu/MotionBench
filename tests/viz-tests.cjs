@@ -174,4 +174,17 @@ test('jump chart omits missing tests and preserves a measured RSI without a repo
   assert.equal((html.match(/data-jump-series="height"/g)||[]).length,0);assert.equal((html.match(/data-jump-series="rsi"/g)||[]).length,1);
   assert.doesNotMatch(html,/>CMJ</);finite(html);
 });
+test('overview uses a table only below three dimensions and keeps every larger radar axis',()=>{
+  for(const count of [1,2,3,9,12]){const html=V.radar(Array.from({length:count},(_,i)=>({label:'能力'+(i+1),value:84+i*.1,status:'green'})));assert.equal(/<table/.test(html),count<3);assert.equal(/<svg/.test(html),count>=3);if(count>=3){assert.equal((html.match(/class="radar-label"/g)||[]).length,count);assert.match(html,/class="radar-fill"[^>]*fill-opacity="0\.12"/);}finite(html);}
+});
+test('all single radar families fill measured areas without closing missing axes',()=>{
+  const labels=Array.from({length:7},(_,i)=>({label:'动作'+i,score:2,value:80,status:'green'}));
+  const variants=[V.radar(labels),V.fms(labels),V.isoRadar({axes:labels.slice(0,4).map(x=>({...x,strength:110,symmetry:92,strengthSources:[],symmetrySources:[]})),max:120}),V.generic({kind:'radar',available:true,panels:[{axes:labels.slice(0,4).map((x,i)=>({...x,id:'m'+i}))}]})];
+  for(const html of variants){assert.match(html,/class="radar-fill"[^>]*fill-opacity="0\.(?:09|12)"/);finite(html);}
+  labels[2].value=null;labels[2].score=null;
+  for(const html of[V.radar(labels),V.fms(labels)]){const polygons=[...html.matchAll(/<polygon class="radar-fill" points="([^"]+)"[^>]+>/g)];assert.equal(polygons.length,5);assert.ok(polygons.every(p=>p[1].split(' ').length===3&&p[0].includes('stroke="none"')));}
+});
+test('strength radar uses a zero-based rounded percentage scale with its 100 percent reference',()=>{
+  for(const upper of[100,101,123,198,300]){const scale=V.radarScale(upper);assert.ok(scale.max>=upper);assert.ok(scale.ticks.includes(100));assert.equal(scale.ticks.at(-1),scale.max);assert.ok(scale.ticks.length<=7);const html=V.isoRadar({max:upper,axes:Array.from({length:4},(_,i)=>({label:'关节'+i,strength:upper,symmetry:95,strengthSources:[],symmetrySources:[]}))});assert.match(html,/100%/);assert.match(html,new RegExp(scale.max+'%'));finite(html);}
+});
 console.log(`${passed} visualization checks passed`);

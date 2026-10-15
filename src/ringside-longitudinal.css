@@ -45,3 +45,17 @@
 @media print{.longitudinal-chart{break-inside:avoid;}.longitudinal-results thead{display:table-header-group;}}
 
 [data-longitudinal="true"] .card-foot:has(#radarLegend){display:none!important;}
+.longitudinal-summary-athlete dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin:12px 0 0;font-size:11px;}
+.longitudinal-summary-athlete dl>div:first-child{grid-column:1/-1;}
+.longitudinal-summary-athlete dt{font-size:10px;color:var(--muted,#667684);}
+.longitudinal-summary-athlete dd{margin:2px 0 0;overflow-wrap:anywhere;}
+.longitudinal-summary-count{font-size:10px;color:var(--muted,#667684);white-space:nowrap;}
+.longitudinal-summary-changes .longitudinal-summary-names{margin:9px 0 0;font-size:11px;line-height:1.7;color:var(--muted,#667684);overflow-wrap:anywhere;}
+.longitudinal-summary-dates ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 12px;}
+.longitudinal-summary-dates li{display:flex;align-items:center;gap:6px;font-size:11px;line-height:1.5;overflow-wrap:anywhere;}
+.longitudinal-summary-dates i{width:6px;height:6px;flex-shrink:0;border-radius:50%;}
+.longitudinal-risk-key{display:flex;gap:14px;justify-content:center;}
+.longitudinal-risk-key span{display:inline-flex;align-items:center;gap:5px;}
+.longitudinal-risk-key i{width:14px;height:8px;border-radius:2px;}
+.longitudinal-overview-table{max-width:100%;overflow-x:auto;}
+.longitudinal-overview-table th,.longitudinal-overview-table td{min-width:100px;}

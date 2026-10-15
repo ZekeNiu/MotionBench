@@ -146,7 +146,8 @@ test("LVP keeps original regression estimates zones and their measurement defini
 test("age reference changes preserve physical delta without claiming improvement", () => {
   const f = createFixture(c), rule = f.profile.standards.find(rule => rule.metricId === "cmj_height");
   rule.referenceGroups = [{ id: "under26", sex: "any", ageMin: 0, ageMax: 26, target: 45, ranges: [], source: "青年" }, { id: "over26", sex: "any", ageMin: 26, ageMax: 100, target: 50, ranges: [], source: "成人" }];
-  const row = metric(L.build(f.records, f), "cmj_height"); near(row.changes.overall.delta, 4); assert.equal(row.changes.overall.improvement, null); assert.equal(row.changes.overall.reason, "评价条件不同");
+  const model = L.build(f.records, f), row = metric(model, "cmj_height"); near(row.changes.overall.delta, 4); assert.equal(row.changes.overall.improvement, null); assert.equal(row.changes.overall.reason, "评价条件不同");
+  assert.ok(!model.changeSummary.improved.concat(model.changeSummary.declined).some(item => item.id === "cmj_height"));
   assert.equal(row.changes.recent.improvement, "improved");
 });
 test("nonmonotonic assessment intervals do not inherit a residual higher-is-better flag", () => {
@@ -154,7 +155,8 @@ test("nonmonotonic assessment intervals do not inherit a residual higher-is-bett
   rule.targetEnabled = false; rule.ranges = [{ min: null, max: 39, status: "red", label: "低", includeMax: false }, { min: 39, max: 43, status: "green", label: "适宜", includeMin: true, includeMax: false }, { min: 43, max: null, status: "red", label: "高", includeMin: true }];
   const row = metric(L.build(f.records, f), "cmj_height"); near(row.changes.overall.delta, 4); assert.equal(row.changes.overall.improvement, null);
   rule.targetEnabled = true; rule.target = 45;
-  assert.equal(metric(L.build(f.records, f), "cmj_height").changes.overall.improvement, null);
+  const model = L.build(f.records, f); assert.equal(metric(model, "cmj_height").changes.overall.improvement, null);
+  assert.ok(!model.changeSummary.improved.concat(model.changeSummary.declined).some(item => item.id === "cmj_height"));
 });
 test("derived capability context follows every contributing test protocol", () => {
   const f = createFixture(c); f.records[2].protocolIdentities.hop.version++;
@@ -203,5 +205,62 @@ test("AI facts carry dates results and honest changes without raw report graphs 
   const scenario = facts.projects.find(project => project.id === "sprint_fvp").metrics.find(row => row.id === "sprint_fvp:scenario:timeS");
   assert.equal(scenario.sourceKind, "scenario");
   assert.equal(facts.measurementContexts[scenario.results[0].contextIndex].targetDistanceM, 30);
+});
+test("change summary uses first and last values with explicit direction and readable project labels", () => {
+  const f = createFixture(c);
+  f.records[1].data.cmj.forEach(row => row.height -= 12);
+  f.records[2].data.cmj.forEach(row => row.height -= 10);
+  const model = L.build(f.records.slice().reverse(), f), summary = model.changeSummary;
+  assert.equal(summary.from.recordId, f.records[0].recordId); assert.equal(summary.to.recordId, f.records[2].recordId);
+  const jump = summary.declined.find(item => item.id === "cmj_height"), time = summary.improved.find(item => item.id === "long_time"), percent = summary.improved.find(item => item.id === "long_pct");
+  assert.ok(jump); near(jump.change.from.value, 40); near(jump.change.to.value, 34); near(jump.change.delta, -6);
+  assert.equal(metric(model, "cmj_height").changes.recent.improvement, "improved", "a recent gain cannot replace an overall decline");
+  assert.equal(jump.label, jump.projectName + " · " + jump.name); assert.equal(time.label, "合成通用测试 · 完成用时");
+  near(time.change.delta, -2); near(time.change.percent, -2 / 12.1 * 100);
+  near(percent.change.delta, 10); assert.equal(percent.change.kind, "percentage-point"); assert.ok(!("percent" in percent.change));
+  const items = summary.improved.concat(summary.declined);
+  assert.equal(new Set(items.map(item => item.testId + ":" + item.id)).size, items.length);
+  for (const item of items) assert.deepEqual(copy(item.change), copy(metric(model, item.id).changes.overall));
+  assert.ok(!items.some(item => /:(?:scenario|optimum|elasticity):/.test(item.id)));
+});
+test("change summary omits missing endpoints changed protocols unchanged values and inactive evaluation", () => {
+  const f = createFixture(c); f.records[0].data.cmj = [];
+  f.records[2].protocolIdentities.sj.version++;
+  f.records[2].data.long_generic.forEach(row => row.metrics.long_pct = 10);
+  f.profile.standards.find(rule => rule.metricId === "long_unknown").enabled = false;
+  const summary = L.build(f.records, f).changeSummary, ids = summary.improved.concat(summary.declined).map(item => item.id);
+  for (const id of ["cmj_height", "cmj_rsi_modified", "sj_height", "long_pct", "long_unknown"]) assert.ok(!ids.includes(id), id);
+  assert.ok(ids.includes("long_time"));
+});
+test("fixed FMS item score changes retain bilateral minimum pain zero and ordinal quantities", () => {
+  const f = createFixture(c), first = f.records[0].data.fms, last = f.records[2].data.fms;
+  last[0].score = 1;
+  last[1].left = 3; last[1].right = 3;
+  last[2].pain = true; last[2].left = ""; last[2].right = "";
+  last[3].left = 0;
+  first[4].pain = true;
+  const model = L.build(f.records, f), summary = model.changeSummary;
+  const scoreDrop = summary.declined.find(item => item.id === "fms:0"), minimumGain = summary.improved.find(item => item.id === "fms:1"), painDrop = summary.declined.find(item => item.id === "fms:2"), zeroDrop = summary.declined.find(item => item.id === "fms:3"), painResolution = summary.improved.find(item => item.id === "fms:4");
+  assert.equal(scoreDrop.label, "FMS 动作筛查 · 深蹲评分"); near(scoreDrop.change.delta, -1);
+  near(minimumGain.change.from.value, 2); near(minimumGain.change.to.value, 3);
+  near(painDrop.change.to.value, 0); assert.deepEqual(copy(painDrop.pain), { from: false, to: true });
+  near(zeroDrop.change.to.value, 0); assert.equal(zeroDrop.pain.to, true);
+  near(painResolution.change.from.value, 0); assert.deepEqual(copy(painResolution.pain), { from: true, to: false });
+  for (const item of [scoreDrop, minimumGain, painDrop, zeroDrop, painResolution]) { assert.equal(item.change.kind, "ordinal"); assert.ok(!("percent" in item.change)); }
+});
+test("FMS changes require the same fixed movement protocol and side aggregation with complete endpoints", () => {
+  const f = createFixture(c), last = f.records[2].data.fms;
+  last[0].name = "另一个动作"; last[0].score = 1;
+  last[1].bilateral = false; last[1].score = 1;
+  last[2].left = "";
+  let model = L.build(f.records, f);
+  for (const id of ["fms:0", "fms:1", "fms:2"]) {
+    assert.equal(metric(model, id).changes.overall.available, false, id);
+    assert.ok(!model.changeSummary.improved.concat(model.changeSummary.declined).some(item => item.id === id), id);
+  }
+  f.records[0].data.fms[0].name = last[0].name;
+  model = L.build(f.records, f); assert.equal(metric(model, "fms:0").changes.overall.available, true); assert.equal(metric(model, "fms:0").changes.overall.improvement, null);
+  f.records[2].protocolIdentities.fms = { ...M.protocolIdentity("test:fms", ""), version: 2 };
+  model = L.build(f.records, f); assert.equal(metric(model, "fms:0").changes.overall.available, false);
 });
 console.log(passed + " longitudinal model checks passed");

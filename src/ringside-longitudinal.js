@@ -95,7 +95,12 @@
       if (item.kind === "metric" && result.has(item.metricId)) continue;
       if (item.kind === "fixed") {
         const index = Number(item.subjectId.split(":")[1]), raw = stats.raw.fms?.items[index] || {}, original = record.data.fms[index] || {};
-        add(item.subjectId, { subjectId: item.subjectId, testId: "fms", name: item.name, unit: "分", value: item.value, measurementScale: "ordinal", context: testContext(record, "fms"), evaluation: item,
+        // The fixed FMS item score is ordinal: pain = 0; bilateral items use
+        // the lower of two complete side scores. This is a score direction,
+        // not a claim about injury probability or overall athletic ability.
+        const fixedFMS = M.FM[index]?.[0] === original.name && M.FM[index]?.[1] === original.bilateral;
+        add(item.subjectId, { subjectId: item.subjectId, testId: "fms", name: item.name, unit: "分", value: item.value, measurementScale: "ordinal",
+          context: { ...testContext(record, "fms"), item: item.subjectId, name: original.name, bilateral: original.bilateral, aggregation: original.bilateral ? "lower-side" : "single", scoring: "fms-0-pain-1-unable-2-compensated-3-uncompensated" }, evaluation: item, direction: fixedFMS ? "higher" : null,
           notes: [original.bilateral ? "左侧 " + (original.left ?? "—") + " / 右侧 " + (original.right ?? "—") : "", raw.pain || item.value === 0 ? "疼痛" : "", original.notes].filter(Boolean).join("；"), pain: raw.pain || item.value === 0, rawTrials: [clone(original)] });
       } else if (item.kind === "iso") {
         const row = stats.isoAnalyses.find(row => row.id === item.directionId), side = item.side === "L" ? "left" : item.side === "R" ? "right" : "center";
@@ -231,6 +236,20 @@
   function matrixRows(maps, periods) {
     return [...new Set(maps.flatMap(map => [...map.keys()]))].map(id => rowFrom(id, maps.map(map => map.get(id) || null), periods));
   }
+  function changeSummary(projects, periods) {
+    const endpoint = period => ({ recordId: period.id, date: period.date, label: period.label });
+    const summary = { from: endpoint(periods[0]), to: endpoint(periods.at(-1)), improved: [], declined: [] }, seen = new Set();
+    for (const project of projects) for (const row of project.metrics) {
+      const change = row.changes.overall, identity = project.id + ":" + row.id;
+      if (seen.has(identity) || !change.available || !["improved", "declined"].includes(change.improvement) || ["optimum", "model", "scenario"].includes(row.sourceKind)) continue;
+      seen.add(identity);
+      const name = row.testId === "fms" ? row.name + "评分" : row.name;
+      summary[change.improvement].push({ id: row.id, metricId: row.metricId, subjectId: row.subjectId, testId: row.testId, projectName: project.name, name,
+        label: project.name + " · " + name, unit: row.unit, measurementScale: row.measurementScale, change: clone(change),
+        pain: { from: !!row.cells[0]?.pain, to: !!row.cells.at(-1)?.pain } });
+    }
+    return summary;
+  }
   function radar(periods, kind) {
     const maps = periods.map(period => {
       const result = new Map();
@@ -298,7 +317,7 @@
     }) })).filter(project => project.metrics.length || periods.some(period => period.stats.validTests.has(project.id)));
     const basis = contentHash(canonical({ version: 1, athleteId, mode, records: periods.map(period => ({ id: period.id, date: period.date, fingerprint: M.fingerprint(period.record) })), profile, catalog }));
     return { kind: "longitudinal", version: 1, key: key(athleteId, records.map(record => record.recordId)), athleteId, athlete: clone(periods.at(-1).record.athlete), mode, profile, catalog, records, recordIds: records.map(record => record.recordId), basis, fingerprint: basis,
-      periods, projects, groups: T.groups(projects, periods.at(-1).record), risk: radar(periods, "risk"), overview: radar(periods, "overview"), capability: capability(periods) };
+      periods, projects, changeSummary: changeSummary(projects, periods), groups: T.groups(projects, periods.at(-1).record), risk: radar(periods, "risk"), overview: radar(periods, "overview"), capability: capability(periods) };
   }
   function facts(model) {
     const measurementContexts = [], contextIndexes = new Map();

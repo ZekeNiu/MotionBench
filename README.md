@@ -2,13 +2,13 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**本机交付版本：Windows `2.24.0-desktop.1` · HTML `2.24.0`**
+**本机交付版本：Windows `2.24.1-desktop.1` · HTML `2.24.1`**
 
 **公开下载版本：Windows `2.20.1-desktop.1` · HTML `2.20.1`**
 
 [在线 Demo](https://zekeniu.github.io/MotionBench/) · [公开安装版 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Setup-x64.exe) · [公开便携版 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.20.1-desktop.1/MotionBench-2.20.1-desktop.1-Portable-x64.exe) · [公开离线 HTML 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1)
 
-本机 2.24.0 增加同一运动员的纵向比较：在首页勾选多条测试记录，原图按日期叠加，结果表显示首末与近期变化，损伤风险筛查改为部位雷达。比较正文独立保存，单次与比较报告均可直接生成、编辑和应用 AI 草稿，支持 PDF、可编辑 HTML、JSON 及完整备份。详见 [2.24.0 使用说明](docs/motionbench-2.24.0.md) 和 [本机验收记录](docs/acceptance-2.24.0.md)。
+本机版支持同一运动员的纵向比较：在首页勾选多条测试记录，原图按日期叠加，结果表显示首末与近期变化，损伤风险筛查使用部位雷达。2.24.1 将摘要改为运动员信息、首末下降、首末改善及比较日期，调整雷达填充和筛查背景，并录入四期合成示例。运动表现概览少于3维用表格、3维以上用雷达。详见 [2.24.1 使用说明](docs/motionbench-2.24.1.md)、[完整比较说明](docs/motionbench-2.24.0.md) 和 [本机验收记录](docs/acceptance-2.24.1.md)。
 
 公开版本 2.20.1 修复多轴能力雷达图及评分明细组合过高时无法导出 PDF 的问题。过长卡片按内容分页，标题与首图保持相邻，较短卡片保持完整。详见 [2.20.1 修订说明](docs/motionbench-2.20.1.md) 和 [公开发布核验记录](docs/publication-2.20.1.md)。
 

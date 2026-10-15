@@ -20,6 +20,7 @@ for (const name of [
   "longitudinal-store-model-tests.cjs",
   "longitudinal-model-tests.cjs",
   "longitudinal-view-tests.cjs",
+  "jump-add-row-tests.cjs",
   "generic-report-model-tests.cjs",
   "generic-report-render-model-tests.cjs",
   "generic-entry-integration-model-tests.cjs",

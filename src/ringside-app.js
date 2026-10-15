@@ -3175,7 +3175,7 @@
     renderEntry();
     renderReport();
     rowFocus(
-      `data.${t}.${state.data[t].length - 1}.${Object.keys(templates[t])[0]}`,
+      `data.${t}.${state.data[t].length - 1}.${["cmj","sj","dj","cmrj"].includes(t) ? T.fieldsForTest(t).find(field => !field.computed).key : Object.keys(templates[t])[0]}`,
     );
   }
   function addIso() {
