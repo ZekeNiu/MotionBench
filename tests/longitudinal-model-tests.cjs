@@ -371,4 +371,15 @@ test("vertical and sprint FVP analyses retain full solved objects methods scenar
     assert.equal(analysis.periods[index].available, false); assert.equal(analysis.periods[index].solved, null); assert.equal(analysis.periods[index].reason, "本期未测");
   }
 });
+test("comparison retains every computed sprint parameter hidden by all single-record display settings", () => {
+  const f=createFixture(c);
+  for(const record of f.records)record.sprintFvpView.metrics={...record.sprintFvpView.metrics,Vopt:false,Vmax:false,endVelocity:false,F0Absolute:false,PmaxAbsolute:false};
+  const before=JSON.stringify(f),model=L.build(f.records,f),rows=model.projects.find(p=>p.id==="sprint_fvp").metrics;
+  for(const key of["Vopt","Vmax","endVelocity","F0Absolute","PmaxAbsolute"]){
+    const row=rows.find(row=>row.metricId==="sprint_fvp:profile:"+key);assert.ok(row,key);
+    assert.ok(row.cells.every(cell=>Number.isFinite(cell?.value)),key+" computed observation");
+  }
+  assert.equal(JSON.stringify(f),before);
+  assert.ok(model.periods.every(p=>p.record.sprintFvpView.metrics.Vopt===false));
+});
 console.log(passed + " longitudinal model checks passed");

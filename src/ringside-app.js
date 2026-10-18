@@ -177,6 +177,7 @@
     state:()=>state, library:()=>library, repository:()=>repository, save:persist, saveEditor,
     switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close,
     error:message=>toast(message), render:()=>{renderReport(false);renderWorkspace();},
+    captureView:captureReportUI, renderDisplay:()=>renderReport(),
     restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
     prepareAnchor:()=>{if(state && recordBaselines.get(state.recordId)===recordContent(state)){M.applyAge(state);recordBaselines.set(state.recordId,recordContent(state));}}
   });
@@ -807,7 +808,7 @@
       ?.focus();
   }
   function ensureExportable(records = [state]) {
-    if (longitudinal.isLoading()) throw Error("正在读取所选测试，请稍后导出。");
+    if (longitudinal.isLoading()) throw Error("比较报告正在更新，请稍后导出。");
     saveEditor();
     flushReportEdits(records);
     const pending = records.filter((r) =>
@@ -890,7 +891,7 @@
     document
       .querySelectorAll("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings],#reportView .longitudinal-capability-parameters")
       .forEach((el) => {if(el.id)ui.detailOpen[el.id] = el.open;});
-    if (longitudinal.active()) return longitudinal.setViews({reportScroll:ui.reportScroll,detailOpen:{...ui.detailOpen}});
+    if (longitudinal.active()) return longitudinal.setViews({...longitudinal.document().views,reportScroll:ui.reportScroll,detailOpen:{...ui.detailOpen}});
     ui.records[state.recordId] = {
       reportScroll: ui.reportScroll,
       detailOpen: { ...ui.detailOpen },
@@ -1165,7 +1166,10 @@
       '<button class="btn small" onclick="App.addRow(\'imtp\')">＋ 新增试次</button>'
     );
   }
-  function persist({duringTransfer = false} = {}) {
+  function persist({duringTransfer = false, longitudinalDisplay = false} = {}) {
+    const displaySave = longitudinal.pendingDisplaySave?.();
+    if (displaySave && !longitudinalDisplay)
+      return displaySave.then(() => persist({duringTransfer}));
     if (!library || !repository) return Promise.resolve(false);
     if (libraryTransferActive && !duringTransfer) return Promise.resolve(false);
     if (state) { try { if (!longitudinal.active()) M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }

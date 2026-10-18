@@ -194,10 +194,6 @@
     .ringside-pdf-document .longitudinal-figures{width:100%!important;max-width:none!important;}
     .ringside-pdf-document .longitudinal-results{table-layout:fixed!important;width:100%!important;}
     .ringside-pdf-document .longitudinal-results th,.ringside-pdf-document .longitudinal-results td{font-size:10px!important;padding:6px!important;overflow-wrap:anywhere!important;}
-    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.green{background:#eaf4ee!important;}
-    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.amber{background:#fff6df!important;}
-    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.red{background:#faece9!important;}
-    .ringside-pdf-document .longitudinal-results td.longitudinal-assessed.gray{background:#f4f5f7!important;}
     .ringside-pdf-document .longitudinal-print-grid-row{display:grid!important;grid-template-columns:repeat(var(--longitudinal-columns,2),minmax(0,1fr))!important;gap:14px!important;}
     .ringside-pdf-document .longitudinal-chart-title{font-size:11px!important;}
     .ringside-pdf-document .longitudinal-screen-layout{display:block!important;}

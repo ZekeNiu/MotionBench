@@ -18,6 +18,8 @@ const summary = { sourceHash: digest(path.join(root, 'MotionBench.html')), runne
   modules: Object.fromEntries(moduleFiles.map(name => [name, digest(path.join(root, 'src', name))])), suites: [] };
 for (const name of [
   "longitudinal-store-model-tests.cjs",
+  "longitudinal-display-state-tests.cjs",
+  "v2244-display-preservation-tests.cjs",
   "longitudinal-model-tests.cjs",
   "longitudinal-view-tests.cjs",
   "jump-add-row-tests.cjs",

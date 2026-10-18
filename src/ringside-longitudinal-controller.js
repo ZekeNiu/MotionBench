@@ -6,11 +6,12 @@
   const order = (a,b) => String(a.athlete.date).localeCompare(String(b.athlete.date)) || String(a.created || '').localeCompare(String(b.created || '')) || a.recordId.localeCompare(b.recordId);
   function create(host) {
     let selection = null, model = null, document = null, rawRecords = [], sequence = 0, suspended = false, loading = false, pendingIds = null;
+    let chartSequence = 0, chartPending = 0, chartSaveBarrier = null, savedCharts;
     root.document.addEventListener('pointerdown', event => { const menu=root.document.getElementById('recordChoiceMenu');if(menu?.open&&!menu.contains(event.target))menu.open=false; });
     root.document.addEventListener('keydown', event => { const menu=root.document.getElementById('recordChoiceMenu');if(event.key==='Escape'&&menu?.open){menu.open=false;root.document.getElementById('recordChoiceLabel').focus();event.preventDefault();} });
     const active = () => !!model && !!selection && selection.recordIds.length > 1 && !suspended && host.state()?.athleteId === selection.athleteId && selection.recordIds.includes(host.state()?.recordId);
     const currentSelection = () => selection ? clone(selection) : null;
-    function clear() { sequence++; selection = model = document = null; rawRecords = []; pendingIds = null; suspended = loading = false; }
+    function clear() { sequence++; chartSequence++; selection = model = document = null; rawRecords = []; pendingIds = null; savedCharts = undefined; suspended = loading = false; }
     function cancelPending() { sequence++; pendingIds = null; loading = false; }
     function recordIds() { return selection?.recordIds || (host.state() ? [host.state().recordId] : []); }
     function renderPicker() {
@@ -69,6 +70,7 @@
         if (!options.restoring && host.state()?.recordId !== latest.recordId && !await host.switchRecord(a, latest, {longitudinal:true})) return false;
         if (ticket !== sequence) return false;
         selection = nextSelection; document = nextDocument; rawRecords = records; model = built; suspended = false;
+        savedCharts = document.views.charts === undefined ? undefined : clone(document.views.charts);
         host.prepareAnchor?.();
         host.restoreView?.(document.views);
         host.render(); host.remember(); return true;
@@ -95,12 +97,59 @@
       document.narrative = clone(value); putDocument(); return true;
     }
     function setViews(value) {
-      if (!active() || JSON.stringify(value) === JSON.stringify(document.views)) return;
-      document.views = clone(value); putDocument(); return true;
+      if (!active()) return;
+      const next = root.RingsideLongitudinalViews.normalize({...document.views, ...clone(value)}, selection.recordIds);
+      if (JSON.stringify(next) === JSON.stringify(document.views)) return;
+      document.views = next; putDocument(); return true;
+    }
+    async function updateChartView(chartId, delta) {
+      if (!active() || loading) return false;
+      const owner = document;
+      let next;
+      try {
+        host.captureView?.();
+        next = root.RingsideLongitudinalViews.patch(document.views, chartId, delta, selection.recordIds);
+      } catch (error) { host.error(error.message); host.renderDisplay ? host.renderDisplay() : render(); return false; }
+      const ticket = ++chartSequence;
+      // Ordinary saves must wait before capturing optimistic chart choices.
+      // Rendering can emit disclosure events and enqueue an ordinary save.
+      if (!chartSaveBarrier) {
+        let resolve;
+        const promise = new Promise(done => { resolve = done; });
+        chartSaveBarrier = {promise, resolve};
+      }
+      chartPending++;
+      try {
+        setViews(next);
+        host.renderDisplay ? host.renderDisplay() : render();
+        host.remember();
+        let saved = false;
+        try { saved = await host.save({longitudinalDisplay:true}); }
+        catch (error) { host.error(error.message); }
+        if (document !== owner) return saved;
+        if (saved) savedCharts = next.charts === undefined ? undefined : clone(next.charts);
+        else if (ticket === chartSequence) {
+          // Revert only chart choices. Later narrative/disclosure changes and
+          // other comparisons must never be replaced by an older failed save.
+          const reverted = clone(document.views);
+          if (savedCharts === undefined) delete reverted.charts;
+          else reverted.charts = clone(savedCharts);
+          document.views = reverted; putDocument();
+          if (active()) { host.renderDisplay ? host.renderDisplay() : render(); host.remember(); }
+        }
+        return saved;
+      } finally {
+        chartPending--;
+        if (!chartPending) {
+          const settled = chartSaveBarrier;
+          chartSaveBarrier = null;
+          settled.resolve();
+        }
+      }
     }
     function render() {
       if (!active()) return false;
-      const $ = id => root.document.getElementById(id), out = root.RingsideLongitudinalView.render(model);
+      const $ = id => root.document.getElementById(id), out = root.RingsideLongitudinalView.render(model, {views:document.views});
       $('reportView').dataset.longitudinal = 'true';
       $('reportView').dataset.longitudinalOwner = document.key;
       $('reportTitle').textContent = '运动表现与损伤风险纵向比较';
@@ -120,7 +169,7 @@
       $('dataCount').textContent = `${selection.recordIds.length} 次测试 · 统一代表成绩与评价方案`;
       $('editButton').textContent = '编辑测试记录';
       $('reportExportMenu').querySelector('summary').textContent = '导出比较报告';
-      root.RingsideLongitudinalView.mount?.($('reportView'), model);
+      root.RingsideLongitudinalView.mount?.($('reportView'), model, {onChange:updateChartView});
       $('reportView').querySelectorAll('details[id]').forEach(node => { if (document.views.detailOpen?.[node.id] !== undefined) node.open = document.views.detailOpen[node.id]; });
       return true;
     }
@@ -141,8 +190,9 @@
       if (!active()) return null;
       return {schema:1, kind:'longitudinal-report', library:root.RingsideLongitudinalStore.exportLibrary(host.library(),document,rawRecords), selection:currentSelection()};
     }
-    return {active, clear, cancelPending, select, refresh, changeMode, render, renderPicker, edit, payload, setNarrative, setViews,
-      selection:currentSelection, model:() => model, document:() => document, isLoading:() => loading,
+    return {active, clear, cancelPending, select, refresh, changeMode, render, renderPicker, edit, payload, setNarrative, setViews, updateChartView,
+      selection:currentSelection, model:() => model, document:() => document, isLoading:() => loading || chartPending > 0,
+      pendingDisplaySave:() => chartSaveBarrier?.promise || null,
       narrative:() => document?.narrative, basis:() => model?.fingerprint || model?.basis || '',
       owner:() => active() ? document.key : '', facts:() => root.RingsideLongitudinal.facts(model),
       suspend:()=>{suspended=true;},

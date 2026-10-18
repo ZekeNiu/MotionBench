@@ -41,7 +41,23 @@ test("long selections keep all dates in chart continuations and date tables",()=
 });
 test("tables preserve mean SD CV and fixed overall/recent changes without unsupported statistics",()=>{
  const html=V.table(model.projects.find(p=>p.id==="cmj").metrics,model.periods);assert.match(html,/±/);assert.match(html,/CV/);assert.match(html,/首末/);assert.match(html,/近期/);assert.doesNotMatch(html,/显著性|效果量|p 值|MDC/);
- const two=createFixture(c,2),m=L.build(two.records,two);assert.doesNotMatch(V.table(m.projects.find(p=>p.id==="cmj").metrics,m.periods),/近期/);
+ const two=createFixture(c,2),m=L.build(two.records,two);for(const print of[false,true]){const output=V.table(m.projects.find(p=>p.id==="cmj").metrics,m.periods,{print,wrapped:false});assert.doesNotMatch(output,/首末变化|近期变化/);assert.equal((output.match(/>变化<\/th>/g)||[]).length,1);assert.match(output,/aria-label="变化：2026-01-20 → 2026-02-20"/);}
+});
+test("change headings retain record endpoints for same-day tests and print continuations",()=>{
+ const sameDay=createFixture(c,2);sameDay.records[1].athlete.date=sameDay.records[0].athlete.date;const same=L.build(sameDay.records,sameDay);
+ for(const print of[false,true]){const html=V.table(same.projects.find(p=>p.id==="cmj").metrics,same.periods,{print,wrapped:false});assert.match(html,/aria-label="变化：2026-01-20 · 1 → 2026-01-20 · 2"/);assert.doesNotMatch(html,/近期变化|首末变化/);}
+ const many=createFixture(c,5),m=L.build(many.records,many),html=V.table(m.projects.find(p=>p.id==="cmj").metrics,m.periods,{print:true,wrapped:false});assert.equal((html.match(/<table /g)||[]).length,2);assert.match(html,/aria-label="首末变化：2026-01-20 → 2026-05-20"/);assert.match(html,/aria-label="近期变化：2026-04-20 → 2026-05-20"/);
+});
+test("missing endpoints never turn the remaining two measured dates into an invented overall change",()=>{
+ const fixture=createFixture(c,3);fixture.records[0].data.cmj=[];const m=L.build(fixture.records,fixture),rows=m.projects.find(p=>p.id==="cmj").metrics;assert.ok(rows.every(row=>row.changes.overall.available===false));assert.ok(rows.some(row=>row.changes.recent.available));
+ for(const print of[false,true]){const html=V.table(rows,m.periods,{print,wrapped:false});assert.doesNotMatch(html,/>首末变化<\/th>/);assert.match(html,/>近期变化<\/th>/);assert.match(html,/2026-02-20 → 2026-03-20/);}
+ const lone={id:"one",name:"测量",unit:"N",cells:[{value:12}],changes:{overall:{available:false},recent:null}};assert.doesNotMatch(V.table([lone],m.periods.slice(0,1),{wrapped:false}),/变化/);
+});
+test("percentage-point differences use compact percent text without becoming relative percentages",()=>{
+ const fixture=createFixture(c,2);fixture.records.forEach((record,index)=>record.data.long_generic.forEach(trial=>trial.metrics.long_pct=index?23.93:10));const m=L.build(fixture.records,fixture),rows=m.projects.find(p=>p.id==="long_generic").metrics,points=rows.find(row=>row.metricId==="long_pct"),relative=rows.find(row=>row.metricId==="long_time"),before=JSON.stringify([points,relative]);
+ assert.equal(points.changes.overall.kind,"percentage-point");assert.equal(Object.hasOwn(points.changes.overall,"percent"),false);
+ for(const print of[false,true]){const html=V.table([points],m.periods,{print,wrapped:false}),visible=html.replace(/<[^>]*>/g,"");assert.match(visible,/\+13\.93%/);assert.doesNotMatch(visible,/百分点|相对/);assert.match(html,/aria-label="百分点差：\+13\.93 个百分点（终点百分数减起点百分数）"/);const other=V.table([relative],m.periods,{print,wrapped:false});assert.match(other,/<small>相对 -[\d.]+%<\/small>/);}
+ assert.equal(JSON.stringify([points,relative]),before);
 });
 test("uncalculable changes have neither result placeholders nor empty change columns",()=>{const row={id:"absent",name:"缺测",unit:"cm",cells:[{value:10},null],changes:{overall:{available:false,reason:"端点缺测"},recent:null}};const html=V.table([row],model.periods.slice(0,2),{wrapped:false});assert.doesNotMatch(html,/变化|端点缺测|无可比结果/);assert.match(html,/—/);});
 test("specialized precision and tiny nonzero changes remain visible on screen and print",()=>{const row={id:"lvp-fit:bench:slope",name:"拟合斜率",unit:"m/s/kg",cells:[{value:-.0123},{value:-.0122}],changes:{overall:{available:true,delta:.0001,percent:.00003}}};for(const print of[false,true]){const html=V.table([row],model.periods.slice(0,2),{print});assert.match(html,/-0\.0123/);assert.match(html,/\+0\.0001/);assert.match(html,/\+0\.00003%/);}row.changes.overall.delta=1e-8;assert.match(V.table([row],model.periods.slice(0,2)),/\+1e-8/);});
@@ -113,7 +129,12 @@ test("speed panels retain every date and MAS reserve on a shared scale for match
 });
 test("assessments preserve original colors labels basis and missing reasons through print serialization",()=>{
  const rows=[{id:'status',name:'测量',unit:'N',cells:[{value:12,assessment:{status:'red',label:'原分级',reason:'原判定依据',target:20}},{value:null,assessment:{status:'gray',label:'缺少完整双侧结果',reason:'分母缺测'}},{value:22,assessment:{status:'green',label:'原达标',referenceSource:'原参考来源'}}],changes:{}}];
- const html=V.table(rows,model.periods),compact=JSON.parse(decode(html.match(/data-longitudinal-table="([^"]+)"/)[1]));for(const output of[html,V.table(compact.rows,compact.periods,{print:true,wrapped:false})]){assert.match(output,/data-assessment-status="red"/);assert.match(output,/data-assessment-status="green"/);assert.match(output,/title="原判定依据；参考目标 20"/);assert.match(output,/缺少完整双侧结果/);assert.match(output,/title="分母缺测"/);}
+ const html=V.table(rows,model.periods),compact=JSON.parse(decode(html.match(/data-longitudinal-table="([^"]+)"/)[1]));for(const output of[html,V.table(compact.rows,compact.periods,{print:true,wrapped:false})]){assert.match(output,/data-assessment-status="red"/);assert.match(output,/data-assessment-status="green"/);assert.match(output,/title="原判定依据；参考目标 20"/);assert.match(output,/缺少完整双侧结果/);assert.match(output,/title="分母缺测"/);assert.doesNotMatch(output,/<td[^>]*class="[^"]*(?:longitudinal-assessed|red|green|gray)/);for(const status of["red","green","gray"])assert.match(output,new RegExp('class="pill '+status+' longitudinal-assessment"'));}
+});
+test("assessment labels remove only identical displayed notes and preserve distinct comments",()=>{
+ const row={id:"asym",name:"双侧差异",unit:"%",cells:[{value:12,assessment:{status:"amber",label:"左侧更弱"},notes:"左侧更弱；左侧更弱，第二次试次疼痛"},{value:8,assessment:{status:"green",label:"双侧一致"},notes:["双侧一致","原始备注"]},{value:null,assessment:{status:"gray",label:"缺少完整双侧结果"},notes:"缺少完整双侧结果；保留缺测说明"}],changes:{}},before=JSON.stringify(row);
+ const html=V.table([row],model.periods),compact=JSON.parse(decode(html.match(/data-longitudinal-table="([^"]+)"/)[1]));for(const output of[V.table([row],model.periods,{wrapped:false}),V.table(compact.rows,compact.periods,{print:true,wrapped:false})]){assert.doesNotMatch(output,/<small>左侧更弱<\/small>|<small>双侧一致<\/small>|<small>缺少完整双侧结果<\/small>/);assert.match(output,/<small>左侧更弱，第二次试次疼痛<\/small>/);assert.match(output,/<small>原始备注<\/small>/);assert.match(output,/<small>保留缺测说明<\/small>/);assert.match(output,/class="pill amber longitudinal-assessment"/);}
+ assert.equal(JSON.stringify(row),before);
 });
 test("full personal FVP analysis support survives without duplicating charts or numeric result tables",()=>{
  const terms=['负荷点与重复测量','测试条件、计算与来源','95%置信带为 F(V) 拟合均值','拟合残差、测试条件与方法','距离残差 RMSE','V₀ 为 F–V 外推的零力速度','弹性计算与来源','情景参数改变','两端局部响应的合成强度'];for(const term of terms)assert.ok(view.details.includes(term),term);
@@ -131,5 +152,20 @@ test("nearby lactate thresholds keep every original line and dated legend value 
 });
 test("each retained elasticity label and interpretation remains one semantic PDF block",()=>{
  const lists=[...view.details.matchAll(/<dl class="longitudinal-analysis-notes">([\s\S]*?)<\/dl>/g)];assert.equal(lists.length,model.periods.length*3);for(const list of lists){const rows=[...list[1].matchAll(/<div([^>]*)><dt>([\s\S]*?)<\/dt><dd>([\s\S]*?)<\/dd><\/div>/g)];assert.ok(rows.length>=8);for(const row of rows){assert.match(row[1],/data-pdf-atomic/);assert.ok(row[2]&&row[3]);}}
+});
+test("plot date filters recompute observed connections from the displayed measurement contexts",()=>{
+ const m=L.build(f.records,f),jump=m.projects.find(p=>p.id==="dj"),speed=m.projects.flatMap(p=>p.metrics).find(r=>r.metricId==="mas_speed"),height=jump.metrics.find(r=>r.metricId==="dj_height"),rsi=jump.metrics.find(r=>r.metricId==="dj_rsi"),ids=m.periods.map(p=>p.id);
+ for(const row of[height,rsi,speed])for(let i=0;i<3;i++){row.cells[i].contextKey=i===0?"protocol-a":"protocol-b";row.cells[i].comparableToPrevious=i===2;}
+ const views={charts:{jumps:{recordIds:[ids[0],ids[2]]},"speed:mas_speed":{recordIds:[ids[0],ids[2]]}}};
+ let charts=specs(V.render(m,{views}).details),bar=charts.find(s=>s.chartId==="jumps"),mas=charts.find(s=>s.chartId==="speed:mas_speed");
+ assert.equal(bar.values.find(v=>v.groupId==="dj"&&v.recordId===ids[2]).comparableToPrevious,false);
+ assert.equal(bar.values.find(v=>v.groupId==="dj"&&v.recordId===ids[2]).rsiComparableToPrevious,false);
+ assert.equal(mas.values[1].comparableToPrevious,false);
+ for(const row of[height,rsi,speed])row.cells[2].contextKey="protocol-a";
+ charts=specs(V.render(m,{views}).details);bar=charts.find(s=>s.chartId==="jumps");mas=charts.find(s=>s.chartId==="speed:mas_speed");
+ assert.equal(bar.values.find(v=>v.groupId==="dj"&&v.recordId===ids[2]).comparableToPrevious,true);
+ assert.equal(bar.values.find(v=>v.groupId==="dj"&&v.recordId===ids[2]).rsiComparableToPrevious,true);
+ assert.equal(mas.values[1].comparableToPrevious,true);
+ assert.equal(height.cells[2].comparableToPrevious,true);
 });
 console.log(`${passed} longitudinal view checks passed`);

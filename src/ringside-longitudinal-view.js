@@ -37,6 +37,7 @@
     const xr=spec.xRange || range(all.flatMap(s=>s.points.map(p=>p?.x)),spec.zeroX!==false),yr=spec.yRange || range(axisValues(false).concat((spec.scaleHorizontalMarkers||spec.horizontalMarkers||[]).map(m=>m.y)),spec.zeroY!==false);
     const secondary=all.some(s=>s.right),rr=secondary?spec.rightRange || range(axisValues(true),spec.zeroRight!==false):null;
     const a=axis(w,h,{xRange:xr,yRange:yr,rightRange:rr,xLabel:spec.xLabel,yLabel:spec.yLabel,rightLabel:spec.rightLabel});let out=a.out;
+    if(spec.xRange){const clip="longitudinal-clip-"+(++xy.clipId);out+=`<defs><clipPath id="${clip}"><rect x="${a.left}" y="${a.top}" width="${a.right-a.left}" height="${a.bottom-a.top}"/></clipPath></defs><g clip-path="url(#${clip})">`;}
     for(const s of series){const color=s.color || C.blue,scale=s.right?a.y2:a.y;
       if(s.band?.length){const band=s.band.filter(p=>[p.x,p.low,p.high].every(v=>N(v)!==null));out+=`<polygon points="${points(band.map(p=>[a.x(p.x),scale(p.high)]).concat(band.slice().reverse().map(p=>[a.x(p.x),scale(p.low)])))}" fill="${color}" fill-opacity=".08"><title>${E(s.label+" · 原剖面拟合区间")}</title></polygon>`;}
       const list=s.points.map(p=>p&&N(p.x)!==null&&N(p.y)!==null?[a.x(p.x),scale(p.y)]:null);
@@ -48,9 +49,11 @@
     }
     for(const marker of spec.markers || [])if(N(marker.x)!==null&&marker.x>=xr.min&&marker.x<=xr.max){out+=line(a.x(marker.x),a.top,a.x(marker.x),a.bottom,`stroke="${marker.color || C.muted}" stroke-dasharray="4 4" data-threshold-record="${E(marker.recordId||"")}" data-threshold-label="${E(marker.label)}"`)+(marker.legend?"":text(a.x(marker.x)+3,a.top+12,E(marker.label),'font-size="9"'));}
     for(const marker of spec.horizontalMarkers || [])if(N(marker.y)!==null)out+=line(a.left,a.y(marker.y),a.right,a.y(marker.y),`stroke="${marker.color || C.muted}" stroke-dasharray="6 4"`);
+    if(spec.xRange)out+="</g>";
     const key=`<div class="longitudinal-curve-key">${series.map(s=>{const markers=(spec.horizontalMarkers||[]).filter(m=>m.recordId===s.recordId&&N(m.y)!==null),thresholds=s.markerLegend?(spec.markers||[]).filter(m=>m.legend&&m.recordId===s.recordId&&N(m.x)!==null):[],label=s.label+markers.map(m=>" · "+m.label.slice(m.label.lastIndexOf(" · ")+3)).join("")+thresholds.map(m=>" · "+m.label+" "+F(m.x,6)+" m/s").join("");return `<span${markers.length?' data-reference-label="'+E(s.recordId)+'"':""}>${swatch(s)}${E(label)}</span>`;}).join("")}</div>`;
     return svg(w,h,spec.title,out)+key+(spec.note?`<p class="longitudinal-chart-note">${E(spec.note)}</p>`:"");
   }
+  xy.clipId=0;
   function radar(spec,width,print) {
     const axes=spec.axes || [], series=spec.series || [], w=Math.max(250,Math.round(width)), count=axes.length;
     if(!count)return empty("尚无已测维度");
@@ -134,8 +137,8 @@
   function changeText(change,row) {
     if(!change?.available)return "";
     if(change.kind==="ordinal")return `${F(change.from?.value,0)} → ${F(change.to?.value,0)}`;
-    const delta=N(change.delta),signed=delta>0?"+":"",unit=change.kind==="percentage-point"?"百分点":row.unit;
-    return `<span class="longitudinal-change ${E(change.improvement || "")}">${signed}${changeNumber(delta,resultPrecision(row))} ${E(unit || "")}${N(change.percent)!==null?`<small>${change.percent>0?"+":""}${changeNumber(change.percent)}%</small>`:""}</span>`;
+    const delta=N(change.delta),signed=delta>0?"+":"",points=change.kind==="percentage-point",unit=points?(row.unit || "%").replace(/^％/,"%"):row.unit,value=signed+changeNumber(delta,resultPrecision(row)),meaning=points?`百分点差：${value} 个百分点（终点百分数减起点百分数）`:"";
+    return `<span class="longitudinal-change ${E(change.improvement || "")}"${meaning?` title="${E(meaning)}" aria-label="${E(meaning)}"`:""}>${value}${points?"":" "}${E(unit || "")}${!points&&N(change.percent)!==null?`<small>相对 ${change.percent>0?"+":""}${changeNumber(change.percent)}%</small>`:""}</span>`;
   }
   function summaryCards(model) {
     const periods=model.periods,athlete=periods.at(-1).record.athlete,summary=model.changeSummary||{},present=value=>value!==null&&value!==undefined&&String(value).trim()!=="";
@@ -148,12 +151,12 @@
   function assessmentAttributes(cell) {
     const assessment=cell?.assessment;if(!assessment)return "";
     const status=["red","amber","green","gray"].includes(assessment.status)?assessment.status:"gray",basis=[assessment.reason,assessment.referenceSource,assessment.referenceTarget,assessment.target!=null?"参考目标 "+assessment.target:null].filter(value=>value!==null&&value!==undefined&&value!=="").join("；");
-    return ` class="longitudinal-assessed ${status}" data-assessment-status="${status}"${basis?` title="${E(basis)}"`:""}`;
+    return ` data-assessment-status="${status}"${basis?` title="${E(basis)}"`:""}`;
   }
   function cellHTML(cell,row) {
-    if(!cell||N(cell.value)===null)return '<span class="longitudinal-unavailable">—</span>'+(cell?.assessment?.label?`<small class="longitudinal-assessment">${E(cell.assessment.label)}</small>`:"");
-    const stat=cell.statistics,rawLabel=cell.evaluation?.grade?.label || cell.evaluation?.label,evalLabel=["未启用评价标准","未设等级区间","未启用标准"].includes(rawLabel)?"":rawLabel,notes=Array.isArray(cell.notes)?cell.notes.join("；"):cell.notes;
-    return `<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>${stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${cell.assessment?.label?`<small class="longitudinal-assessment">${E(cell.assessment.label)}</small>`:evalLabel?`<small>${E(evalLabel)}</small>`:""}${cell.pain?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
+    if(!cell)return '<span class="longitudinal-unavailable">—</span>';
+    const stat=cell.statistics,rawLabel=cell.evaluation?.grade?.label || cell.evaluation?.label,evalLabel=["未启用评价标准","未设等级区间","未启用标准"].includes(rawLabel)?"":rawLabel,label=cell.assessment?.label || evalLabel || "",rawStatus=cell.assessment?.status || cell.evaluation?.grade?.status,status=["red","amber","green","gray"].includes(rawStatus)?rawStatus:"gray",known=new Set([label.trim(),...(cell.pain?["疼痛"]:[])]),notes=(Array.isArray(cell.notes)?cell.notes:String(cell.notes || "").split("；")).filter(note=>String(note).trim()&&!known.has(String(note).trim())).join("；"),measured=N(cell.value)!==null;
+    return (measured?`<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>`:'<span class="longitudinal-unavailable">—</span>')+`${measured&&stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${label?`<span class="pill ${status} longitudinal-assessment"><i class="dot" aria-hidden="true"></i>${E(label)}</span>`:""}${cell.pain&&label.trim()!=="疼痛"?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
   }
   function table(rows,periods,{print=false,wrapped=true}={}) {
     if(!rows.length)return "";
@@ -167,10 +170,10 @@
         return{...row,id:row.id+":context:"+index,name:row.name+" · 口径 "+(index+1)+(details.length?"（"+details.join("；")+"）":""),cells,changes:{overall:available(row.changes?.overall)?row.changes.overall:{available:false},recent:available(row.changes?.recent)?row.changes.recent:{available:false}}};
       });
     });
-    const changeColumns=[["overall","首末变化"],...(periods.length>2?[["recent","近期变化"]]:[])].filter(([key])=>rows.some(row=>row.changes?.[key]?.available));
+    const changeColumns=[["overall",periods.length<=2?"变化":"首末变化"],...(periods.length>2?[["recent","近期变化"]]:[])].filter(([key])=>rows.some(row=>row.changes?.[key]?.available));
     const html=chunks(periods.map((p,i)=>({p,i})),print?(changeColumns.length>1?3:4):periods.length).map((group,index,groups)=>{
-      const changes=index===groups.length-1?changeColumns:[],headers=["指标",...group.map(x=>periodLabel(x.p)),...changes.map(([,label])=>label)];
-      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+changes.length*92}px"`}><thead><tr>${headers.map(h=>`<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}"${assessmentAttributes(row.cells[i])}>${cellHTML(row.cells[i],row)}</td>`).join("")}${changes.map(([key,label])=>`<td data-label="${E(label)}">${changeText(row.changes?.[key],row)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      const changes=index===groups.length-1?changeColumns:[],headers=[{label:"指标"},...group.map(x=>({label:periodLabel(x.p)})),...changes.map(([key,label])=>({label,title:label+"："+periodLabel(periods[key==="overall"?0:periods.length-2])+" → "+periodLabel(periods.at(-1))}))];
+      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+changes.length*92}px"`}><thead><tr>${headers.map(h=>`<th scope="col"${h.title?` title="${E(h.title)}" aria-label="${E(h.title)}"`:""}>${E(h.label)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}"${assessmentAttributes(row.cells[i])}>${cellHTML(row.cells[i],row)}</td>`).join("")}${changes.map(([key,label])=>`<td data-label="${E(label)}">${changeText(row.changes?.[key],row)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
     }).join("");
     if(!wrapped)return html;
     const compactRows=rows.map(row=>({id:row.id,name:row.name,unit:row.unit,digits:resultPrecision(row),measurementScale:row.measurementScale,changes:row.changes,cells:row.cells.map(cell=>cell?{value:cell.value,unit:cell.unit,statistics:cell.statistics,notes:cell.notes,pain:cell.pain,assessment:cell.assessment,evaluation:cell.evaluation?{label:cell.evaluation.label,grade:cell.evaluation.grade}:null}:null)}));
@@ -217,22 +220,91 @@
   function fmsRaw(period) {
     const list=period.record.data.fms || [];if(!period.record.enabled.fms)return "";return `<details class="attempt-details" data-raw-trials="fms" data-trial-title="${E(periodLabel(period))} · FMS 原始记录"><summary>${E(periodLabel(period))} · FMS 原始记录</summary><div class="table-wrap"><table><thead><tr><th>动作</th><th>左／右或单项</th><th>疼痛</th><th>备注</th></tr></thead><tbody>${list.map(item=>`<tr><td>${E(item.name)}</td><td>${item.bilateral?F(item.left,0)+" / "+F(item.right,0):F(item.score,0)}</td><td>${item.pain||(!item.bilateral&&N(item.score)===0)||(item.bilateral&&[N(item.left),N(item.right)].includes(0))?"疼痛":"—"}</td><td>${E(item.notes || "—")}</td></tr>`).join("")}</tbody></table></div></details>`;
   }
-  const rowSpec = (row,periods,kind="columns",extra={}) => ({kind,title:row.name,unit:row.unit,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label,color:p.color})),values:row.cells.map(c=>c?{value:c.value,target:c.evaluation?.target,comparableToPrevious:c.comparableToPrevious}:null),...extra});
+  const chartConfig = (views,id) => views?.charts?.[id] || {};
+  const chosenDates = (views,id,periods) => periods.filter(p=>!chartConfig(views,id).recordIds || chartConfig(views,id).recordIds.includes(p.id));
+  const sprintMetrics = [["F0","力量端 F₀"],["V0","速度端 V₀"],["Pmax","最大功率 Pmax"],["F0Absolute","力量端 F₀ · 绝对"],["PmaxAbsolute","最大功率 Pmax · 绝对"],["slope","剖面斜率 SFV"],["RFmax","RF max"],["DRF","DRF"],["Vmax","速度模型渐近值 Vmax"],["endVelocity","终点速度"],["Vopt","峰值功率对应速度 Vopt"]];
+  function displayOptions(project,model,section,views) {
+    const latest=model.periods.at(-1).record,id=project.id,key=["fvp","sprint-fvp"].includes(project.renderer)?id+":"+section:project.renderer==="lvp"?"lvp:"+(id.endsWith("lower")?"lower":"upper"):id;
+    let defaults={};
+    if(project.renderer==="fvp")defaults={fv:true,pv:true,points:true,optimum:true,comparison:false,confidence:true,range:"full",responseForce:true,responseVelocity:true,responseBoth:true,elasticityView:"response",...latest.fvpView?.[id]};
+    else if(project.renderer==="sprint-fvp")defaults=root.RingsideModel.normalizeSprintFvpView(latest.sprintFvpView);
+    else if(project.renderer==="imtp")defaults={yAxis:"percent",...latest.views?.imtp};
+    else if(project.renderer==="lvp"){
+      const available=[...new Set(model.periods.flatMap(p=>p.stats.lvpSeries.filter(s=>(project.testIds||[id]).includes(s.testId)&&s.points.length).map(s=>s.id)))];
+      defaults={selected:available,showPoints:true,showEstimate:true,showBand:true};
+    }
+    return {id:key,...defaults,...chartConfig(views,key).options,metrics:{...(defaults.metrics||{}),...chartConfig(views,key).metrics}};
+  }
+  function profileMetricKey(row,project) {
+    const id=row.metricId || row.id,derived=id.match(/:(?:profile|optimum):([^:]+)$/)?.[1];
+    if(derived)return derived;
+    const native=id.startsWith(project.id+"_")?id.slice(project.id.length+1):id;
+    return ({f0:"F0",v0:"V0",pmax:"Pmax",rfmax:"RFmax",drf:"DRF"})[native] || native;
+  }
+  function profileChoices(project) {
+    if(project.renderer==="sprint-fvp")return sprintMetrics;
+    return [...new Map((project.metrics||[]).filter(row=>row.section==="profile").map(row=>[profileMetricKey(row,project),[profileMetricKey(row,project),row.name.replace(/^(?:实测剖面|目标最优) · /,"")]])).values()];
+  }
+  function filterFigure(spec,periods,views) {
+    const selected=new Set(chosenDates(views,spec.chartId,periods).map(p=>p.id)),out={...spec};
+    if(spec.periods){
+      const indexes=spec.periods.map((p,i)=>selected.has(p.id)?i:-1).filter(i=>i>=0);out.periods=indexes.map(i=>spec.periods[i]);out.values=indexes.map(i=>spec.values[i]?{...spec.values[i]}:null);
+      out.values.forEach((cell,i)=>{if(!cell)return;const previous=out.values[i-1],sameGroup=cell.groupId===previous?.groupId;
+        for(const[key,flag]of[["contextKey","comparableToPrevious"],["rsiContextKey","rsiComparableToPrevious"]]){
+          if(cell[key]!==undefined)cell[flag]=!!(i&&sameGroup&&previous?.[key]===cell[key]);
+          else if(!i||indexes[i]!==indexes[i-1]+1)cell[flag]=false;
+        }
+      });
+    }
+    if(spec.scaleValues)out.scaleValues=spec.scaleValues.filter(v=>!v?.recordId || selected.has(v.recordId));
+    if(spec.series)out.series=spec.series.filter(s=>selected.has(s.recordId||s.id));
+    for(const key of["markers","horizontalMarkers"])if(spec[key])out[key]=spec[key].filter(m=>!m.recordId || selected.has(m.recordId));
+    if(spec.measuredDomains){const values=spec.measuredDomains.filter(d=>selected.has(d.recordId)).flatMap(d=>d.values);if(values.length)out.xRange={min:Math.min(...values),max:Math.max(Math.min(...values)+.01,...values)*1.015};}
+    if(spec.dynamicRadarMax)out.max=Math.max(100,...(out.series||[]).flatMap(s=>s.values.filter(v=>N(v)!==null)));
+    return out;
+  }
+  function optionControls(spec) {
+    const options=spec.displayOptions;if(!options)return "";
+    const check=(key,label)=>`<label><input type="checkbox" data-longitudinal-option="${E(key)}"${options[key]!==false?" checked":""}>${E(label)}</label>`;
+    const select=(key,label,choices)=>`<label>${E(label)} <select data-longitudinal-option="${E(key)}" aria-label="${E(spec.title+" · "+label)}">${choices.map(([value,name])=>`<option value="${E(value)}"${options[key]===value?" selected":""}>${E(name)}</option>`).join("")}</select></label>`;
+    let controls="";
+    if(spec.section==="profile")controls=check("fv","F–V")+check("pv","P–V")+(spec.sprint?"":check("points","实测点"))+check("optimum","目标最优曲线")+(spec.sprint?"":check("comparison","另一角度参照"))+`<label><input type="checkbox" data-longitudinal-option="confidence"${options.confidence===true?" checked":""}>${spec.sprint?"95%拟合置信区间（近似）":"95%置信带"}</label>`+(spec.sprint?"":select("range","显示范围",[["full","完整剖面"],["measured","实测范围"]]));
+    else if(spec.section==="elasticity")controls=select("elasticityView","图表视图",spec.sprint?[["response","参数改变与表现响应"],["distance","弹性随距离变化"]]:[["response","参数改变与表现响应"],["constraint","固定预测跳跃高度 · ER–EN"]])+(options.elasticityView==="response"?check("responseForce","仅 F₀")+check("responseVelocity","仅 V₀")+check("responseBoth","F₀ 与 V₀ 同时"):"");
+    else if(spec.chartId==="imtp" || spec.chartId?.startsWith("imtp:"))controls=select("yAxis","纵轴",[["percent","占峰值力 · %"],["force","力 · N"]]);
+    else if(spec.kind==="lvp")controls=(spec.actionChoices||[]).map(([id,name])=>`<label><input type="checkbox" data-longitudinal-action="${E(id)}"${options.selected?.includes(id)?" checked":""}>${E(name)}</label>`).join("")+check("showPoints","实测点")+check("showBand","95%置信带")+check("showEstimate","估计点");
+    return controls?`<div class="longitudinal-plot-options" data-longitudinal-options-panel="${E(options.id)}">${controls}</div>`:"";
+  }
+  function chartPanel(spec,model,views) {
+    if(spec.kind==="notice")return figure(spec);
+    const chosen=chosenDates(views,spec.chartId,model.periods),selected=new Set(chosen.map(p=>p.id)),options=optionControls(spec),filtered=filterFigure(spec,model.periods,views);
+    const controls=`<div class="longitudinal-chart-controls no-print"><details class="longitudinal-chart-dates"><summary>图中日期 ${chosen.length}/${model.periods.length}</summary><div>${model.periods.map(p=>`<label><input type="checkbox" data-longitudinal-chart-date="${E(p.id)}"${selected.has(p.id)?" checked":""}${chosen.length===1&&selected.has(p.id)?" disabled":""}>${E(periodLabel(p))}</label>`).join("")}</div></details>${options}</div>`;
+    const noData=filtered.series&&!filtered.series.some(s=>s.values?.some(v=>N(v)!==null)||(spec.kind==="lvp"?s.points?.length:s.points?.some(p=>p&&N(p.y)!==null)))&&!filtered.horizontalMarkers?.length;
+    return `<div class="longitudinal-chart-panel" data-longitudinal-panel="${E(spec.chartId)}">${controls}${noData?`<p class="longitudinal-empty" role="status">所选日期暂无可显示的数据或曲线。</p>`:figure(filtered)}</div>`;
+  }
+  const rowSpec = (row,periods,kind="columns",extra={}) => ({kind,chartId:"metric:"+row.id,title:row.name,unit:row.unit,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label,color:p.color})),values:row.cells.map((c,i)=>c?{recordId:periods[i].id,contextKey:c.contextKey,value:c.value,target:c.evaluation?.target,comparableToPrevious:c.comparableToPrevious}:null),...extra});
   function xySeries(period,label,points,extra={}) {return{id:period.id+":"+label,recordId:period.id,label:periodLabel(period)+" · "+label,color:period.color || C.blue,points,...extra};}
-  function fvpSpec(periods,id) {
-    const series=[];for(const p of periods){const solved=id==="sprint_fvp"?p.stats.sprintFvp:p.stats.fvp?.[id];if(!solved?.valid)continue;const view=id==="sprint_fvp"?p.record.sprintFvpView:p.record.fvpView?.[id] || {},profiles=[{profile:solved.current || solved.model,label:"实测剖面"},{profile:solved.optimum || solved.optimal,label:"最优剖面",dash:"7 4"},...(id!=="sprint_fvp"&&view.comparison?[{profile:solved.comparison,label:"角度参照",dash:"2 4"}]:[])];for(const {profile,label,dash} of profiles){if(!profile||N(profile.F0)===null||N(profile.V0)===null||label==="最优剖面"&&view.optimum===false)continue;const sampled=Array.from({length:61},(_,i)=>{const x=profile.V0*i/60,y=profile.F0*(1-x/profile.V0);return{x,y};});if(view.fv!==false)series.push(xySeries(p,label+" F–V",sampled,{dash,pointsVisible:false}));if(view.pv!==false)series.push(xySeries(p,label+" P–V",sampled.map(q=>({x:q.x,y:q.x*q.y})),{right:true,dash:dash||"3 2",pointsVisible:false}));}
+  const confidenceCache=new WeakMap();
+  function sprintConfidence(period,view) {
+    if(!view.confidence)return null;
+    const solved=period.stats.sprintFvp;if(!solved)return null;
+    let result=confidenceCache.get(solved);if(!result){result=root.RingsideSprintFVPConfidence?.evaluate(solved,{count:49});if(result)confidenceCache.set(solved,result);}
+    if(result?.metadata&&(view.confidenceMethodVersion!==result.metadata.version||view.confidenceLevel!==result.metadata.level))return{...result,available:false,band:[],reason:"当前保存的置信区间方法或置信水平暂不支持。"};
+    return result;
+  }
+  function fvpSpec(periods,id,override) {
+    const series=[],measuredDomains=[];for(const p of periods){const solved=id==="sprint_fvp"?p.stats.sprintFvp:p.stats.fvp?.[id];if(!solved?.valid)continue;const view=override||(id==="sprint_fvp"?p.record.sprintFvpView:p.record.fvpView?.[id] || {}),domain=(solved.points||[]).map(q=>N(q.velocity)).filter(v=>v!==null);if(view.range==="measured"&&domain.length)measuredDomains.push({recordId:p.id,values:domain});const profiles=[{profile:solved.current || solved.model,label:"实测剖面"},{profile:solved.optimum || solved.optimal,label:"最优剖面",dash:"7 4"},...(id!=="sprint_fvp"&&view.comparison?[{profile:solved.comparison,label:"角度参照",dash:"2 4"}]:[])];for(const {profile,label,dash} of profiles){if(!profile||N(profile.F0)===null||N(profile.V0)===null||label==="最优剖面"&&view.optimum===false)continue;const sampled=Array.from({length:61},(_,i)=>{const x=profile.V0*i/60,y=profile.F0*(1-x/profile.V0);return{x,y};});if(view.fv!==false)series.push(xySeries(p,label+" F–V",sampled,{dash,pointsVisible:false}));if(view.pv!==false)series.push(xySeries(p,label+" P–V",sampled.map(q=>({x:q.x,y:q.x*q.y})),{right:true,dash:dash||"3 2",pointsVisible:false}));}
       if(id!=="sprint_fvp"&&view.points!==false){const measured=(solved.points||[]).map(q=>({x:q.velocity,y:q.forceRelative??q.force,note:"负荷 "+F(q.load)+" kg"}));if(view.fv!==false)series.push(xySeries(p,"实测负荷点 F–V",measured,{connect:false}));if(view.pv!==false)series.push(xySeries(p,"实测负荷点 P–V",measured.map(q=>({...q,y:q.x*q.y})),{connect:false,right:true,shape:"diamond"}));}
       let band=[];
       if(view.confidence!==false&&id!=="sprint_fvp"&&typeof solved.ci==="function"&&solved.points?.length){const xs=solved.points.map(q=>q.velocity),a=Math.min(...xs),b=Math.max(...xs);band=Array.from({length:31},(_,i)=>solved.ci(a+(b-a)*i/30)).filter(q=>q&&N(q.low)!==null);}
-      if(id==="sprint_fvp"&&view.confidence===true&&p.report.sprintFvpConfidence?.available)band=p.report.sprintFvpConfidence.band;
+      if(id==="sprint_fvp"&&view.confidence===true){const confidence=sprintConfidence(p,view);if(confidence?.available)band=confidence.band;}
       for(const kind of["F–V","P–V"]){const target=series.find(s=>s.recordId===p.id&&s.label.endsWith("实测剖面 "+kind));if(target&&band.length)target.band=band.map(q=>({x:q.x,low:kind==="F–V"?q.low:q.powerLow??q.x*q.low,high:kind==="F–V"?q.high:q.powerHigh??q.x*q.high}));}
       const current=solved.current || solved.model;if(view.pv!==false&&N(current?.Pmax)!==null)series.push(xySeries(p,"Pmax · V₀/2",[{x:current.V0/2,y:current.Pmax}],{right:true,connect:false,shape:"triangle"}));
     }
     const powerOnly=series.length>0&&series.every(s=>s.right);if(powerOnly)series.forEach(s=>s.right=false);
-    return{kind:"xy",section:"profile",rich:true,title:id==="sprint_fvp"?"冲刺FVP":"跳跃FVP · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:"速度 V · m/s",yLabel:powerOnly?"功率 P · W/kg":"力 F · N/kg",rightLabel:"功率 P · W/kg",series};
+    return{kind:"xy",section:"profile",chartId:id+":profile",sprint:id==="sprint_fvp",displayOptions:override,measuredDomains:measuredDomains.length?measuredDomains:undefined,rich:true,title:id==="sprint_fvp"?"冲刺FVP":"跳跃FVP · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:"速度 V · m/s",yLabel:powerOnly?"功率 P · W/kg":"力 F · N/kg",rightLabel:"功率 P · W/kg",series};
   }
-  function elasticitySpec(periods,id) {
-    const series=[],sprint=id==="sprint_fvp",latest=periods.at(-1).record,view=sprint?latest.sprintFvpView || {}:latest.fvpView?.[id] || {},kind=view.elasticityView;
+  function elasticitySpec(periods,id,override) {
+    const series=[],sprint=id==="sprint_fvp",latest=periods.at(-1).record,view=override||(sprint?latest.sprintFvpView || {}:latest.fvpView?.[id] || {}),kind=view.elasticityView;
     for(const p of periods){const solved=sprint?p.stats.sprintElasticity:p.stats.fvp?.[id];if(!solved?.valid)continue;
       if(sprint&&kind==="distance"){
         const data=solved.constraint || {};
@@ -244,23 +316,23 @@
         for(const [key,label,shape]of[["current","当前剖面","circle"],["valley","EN 最低点","diamond"],["balance","ER = 1","triangle"]])if(N(data[key]?.ER)!==null&&N(data[key]?.EN)!==null)series.push(xySeries(p,label,[{x:data[key].ER,y:data[key].EN}],{connect:false,shape}));
       }
       else for(const [key,label,dash]of[["force","F₀ 改变",""],["velocity","V₀ 改变","5 3"],["both","F₀ 与 V₀ 同时改变","2 3"]]){if(view[{force:"responseForce",velocity:"responseVelocity",both:"responseBoth"}[key]]===false)continue;series.push(xySeries(p,label,(solved.sensitivity?.[key]||[]).map(q=>q.valid===false?null:{x:q.changePct,y:sprint?(q.timeGainPct??-q.deltaPct):q.deltaPct}),{dash,pointsVisible:false}));}}
-    return{kind:"xy",section:"elasticity",rich:true,title:sprint?"冲刺FVP弹性框架":"跳跃FVP弹性框架 · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:kind==="distance"?"目标距离 · m":kind==="constraint"?"弹性比 ER":"参数改变 · %",yLabel:kind==="distance"?"Fₑ / vₑ / EN":kind==="constraint"?"弹性范数 EN":sprint?"预测冲刺时间改善 · %":"预测跳跃高度改变 · %",rightLabel:"ER",series};
+    return{kind:"xy",section:"elasticity",chartId:id+":elasticity",sprint,displayOptions:override,rich:true,title:sprint?"冲刺FVP弹性框架":"跳跃FVP弹性框架 · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:kind==="distance"?"目标距离 · m":kind==="constraint"?"弹性比 ER":"参数改变 · %",yLabel:kind==="distance"?"Fₑ / vₑ / EN":kind==="constraint"?"弹性范数 EN":sprint?"预测冲刺时间改善 · %":"预测跳跃高度改变 · %",rightLabel:"ER",series};
   }
-  function projectFigures(project,model,{specsOnly=false}={}) {
+  function projectFigures(project,model,{specsOnly=false,views={}}={}) {
     const periods=model.periods,rows=project.metrics || [],id=project.id,kind=project.renderer,specs=[];
-    if(kind==="fms"){specs.push({kind:"radar",title:"FMS 动作表现",max:3,fms:true,axes:root.RingsideTests.fmsAbilities.map((label,i)=>({key:String(i),label})),series:periods.map(p=>({id:p.id,label:periodLabel(p),color:p.color,values:p.record.enabled.fms?p.stats.raw.fms?.scores || []:Array(7).fill(null)}))});}
-    else if(kind==="iso"){const axes=[...new Map(periods.flatMap(p=>(p.report.isoRadar?.axes||[]).map(a=>[a.key || a.id || a.label,a]))).values()];specs.push({kind:"radar",title:"等长力量 · 力量水平与双侧对称性",tickSuffix:"%",max:Math.max(100,...periods.flatMap(p=>(p.report.isoRadar?.axes||[]).flatMap(a=>[N(a.strength)||0,N(a.symmetry)||0]))),axes:axes.map(a=>({key:a.key || a.id || a.label,label:a.label})),series:periods.flatMap(p=>[["strength","力量水平"],["symmetry","双侧对称性"]].map(([field,label])=>({id:p.id+":"+field,recordId:p.id,label:periodLabel(p)+" · "+label,color:p.color,dash:field==="symmetry"?"5 3":"",values:axes.map(a=>{const found=p.report.isoRadar?.axes.find(q=>(q.key||q.id||q.label)===(a.key||a.id||a.label));return found?.[field]??null;})})))});}
+    if(kind==="fms"){specs.push({kind:"radar",chartId:"fms",title:"FMS 动作表现",max:3,fms:true,axes:root.RingsideTests.fmsAbilities.map((label,i)=>({key:String(i),label})),series:periods.map(p=>({id:p.id,label:periodLabel(p),color:p.color,values:p.record.enabled.fms?p.stats.raw.fms?.scores || []:Array(7).fill(null)}))});}
+    else if(kind==="iso"){const axes=[...new Map(periods.flatMap(p=>(p.report.isoRadar?.axes||[]).map(a=>[a.key || a.id || a.label,a]))).values()];specs.push({kind:"radar",chartId:"iso",dynamicRadarMax:true,title:"等长力量 · 力量水平与双侧对称性",tickSuffix:"%",max:Math.max(100,...periods.flatMap(p=>(p.report.isoRadar?.axes||[]).flatMap(a=>[N(a.strength)||0,N(a.symmetry)||0]))),axes:axes.map(a=>({key:a.key || a.id || a.label,label:a.label})),series:periods.flatMap(p=>[["strength","力量水平"],["symmetry","双侧对称性"]].map(([field,label])=>({id:p.id+":"+field,recordId:p.id,label:periodLabel(p)+" · "+label,color:p.color,dash:field==="symmetry"?"5 3":"",values:axes.map(a=>{const found=p.report.isoRadar?.axes.find(q=>(q.key||q.id||q.label)===(a.key||a.id||a.label));return found?.[field]??null;})})))});}
     else if(kind==="jumps"){
-      const peers=project.peers||[project],entries=peers.flatMap(peer=>{const height=peer.metrics.find(row=>row.metricId===peer.id+"_height"),rsi=peer.metrics.find(row=>row.metricId===peer.id+"_rsi");return height||rsi?periods.map((p,i)=>({period:p,value:{groupId:peer.id,groupLabel:peer.name.replace(/10\/5 Hop Test.*/,"10/5 Hop").replace(/CMRJ .*/,"CMRJ").replace(/DJ .*/,"DJ"),value:height?.cells[i]?.value??null,rsi:rsi?.cells[i]?.value??null,comparableToPrevious:height?.cells[i]?.comparableToPrevious!==false,rsiComparableToPrevious:rsi?.cells[i]?.comparableToPrevious!==false}})):[];});
-      if(entries.length)specs.push({kind:"columns",title:peers.length>1?"跳跃测试":project.name,grouped:peers.length>1,unit:"垂直跳跃高度 · cm",rsi:rows.some(r=>/_rsi$/.test(r.metricId)),periods:entries.map(e=>({id:e.period.id,date:e.period.date,label:e.period.label,color:e.period.color})),values:entries.map(e=>e.value)});
+      const peers=project.peers||[project],entries=peers.flatMap(peer=>{const height=peer.metrics.find(row=>row.metricId===peer.id+"_height"),rsi=peer.metrics.find(row=>row.metricId===peer.id+"_rsi");return height||rsi?periods.map((p,i)=>({period:p,value:{recordId:p.id,contextKey:height?.cells[i]?.contextKey,rsiContextKey:rsi?.cells[i]?.contextKey,groupId:peer.id,groupLabel:peer.name.replace(/10\/5 Hop Test.*/,"10/5 Hop").replace(/CMRJ .*/,"CMRJ").replace(/DJ .*/,"DJ"),value:height?.cells[i]?.value??null,rsi:rsi?.cells[i]?.value??null,comparableToPrevious:height?.cells[i]?.comparableToPrevious!==false,rsiComparableToPrevious:rsi?.cells[i]?.comparableToPrevious!==false}})):[];});
+      if(entries.length)specs.push({kind:"columns",chartId:"jumps",title:peers.length>1?"跳跃测试":project.name,grouped:peers.length>1,unit:"垂直跳跃高度 · cm",rsi:rows.some(r=>/_rsi$/.test(r.metricId)),periods:entries.map(e=>({id:e.period.id,date:e.period.date,label:e.period.label,color:e.period.color})),values:entries.map(e=>e.value)});
     }
     else if(kind==="speed"){
       const speedRows=rows.filter(r=>["mas_speed","mss_speed","ift_speed","ift_shuttle","ift_treadmill"].includes(r.metricId)),units=[...new Set(speedRows.map(r=>r.unit))];
-      for(const unit of units){const panels=speedRows.filter(r=>r.unit===unit).map(row=>({kind:"bars",title:row.name,speedPanel:true,unit,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label,color:p.color})),values:periods.map((p,i)=>({groupId:row.id,value:row.cells[i]?.value??null,target:row.cells[i]?.evaluation?.target,comparableToPrevious:row.cells[i]?.comparableToPrevious,asrEnd:row.metricId==="mas_speed"&&p.stats.raw.asr>=0?p.stats.values.mss_speed:null}))})),scaleValues=panels.flatMap(panel=>panel.values);specs.push(...panels.map(panel=>({...panel,scaleValues})));}
+      for(const unit of units){const panels=speedRows.filter(r=>r.unit===unit).map(row=>({kind:"bars",chartId:"speed:"+row.metricId,title:row.name,speedPanel:true,unit,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label,color:p.color})),values:periods.map((p,i)=>({recordId:p.id,contextKey:row.cells[i]?.contextKey,groupId:row.id,value:row.cells[i]?.value??null,target:row.cells[i]?.evaluation?.target,comparableToPrevious:row.cells[i]?.comparableToPrevious,asrEnd:row.metricId==="mas_speed"&&p.stats.raw.asr>=0?p.stats.values.mss_speed:null}))})),scaleValues=panels.flatMap(panel=>panel.values);specs.push(...panels.map(panel=>({...panel,scaleValues})));}
     }
     else if(kind==="ball"){for(const row of rows)specs.push(rowSpec(row,periods,"bars"));}
     else if(kind==="imtp"){
-      const percent=periods.at(-1).record.views?.imtp?.yAxis!=="force",series=[],horizontalMarkers=[];
+      const options=displayOptions(project,model,null,views),percent=options.yAxis!=="force",series=[],horizontalMarkers=[],unitPanels=new Map();
       for(const p of periods){
         if(!p.record.enabled.imtp)continue;const data=p.stats.raw.forceTime || {},rawUnit=p.record.imtpConfig?.unit || "N",factor=root.RingsideModel.unitFactor(rawUnit,"N"),forceUnit=factor===null?rawUnit:"N",force=value=>N(value)===null?null:N(value)*(factor??1),peak=force(data.peakForce),validPeak=peak>0;
         const percentage=(force,supplied)=>N(supplied)!==null?N(supplied):validPeak?force/peak*100:null;
@@ -268,14 +340,14 @@
         if(N(data.baselineForce)!==null&&data.baselineForce>=0)known.unshift({x:0,y:percent?percentage(force(data.baselineForce),data.baselinePercent):force(data.baselineForce),note:"起始基线"});
         if(N(data.peakTimeMs)>0&&validPeak&&!known.some(q=>q.x===data.peakTimeMs))known.push({x:data.peakTimeMs,y:percent?100:peak,note:"峰值时间点"});
         known.sort((a,b)=>a.x-b.x);const currentSeries=xySeries(p,"力时曲线",percent&&!validPeak?[]:known),peakMarker=validPeak?{recordId:p.id,y:percent?100:peak,color:p.color,label:periodLabel(p)+" · 峰值 "+F(peak,0)+" "+forceUnit}:null;
-        if(!percent&&factor===null){specs.push({kind:"xy",title:"IMTP 力时曲线 · "+forceUnit,xLabel:"时间 · ms",yLabel:"力 · "+forceUnit,series:[currentSeries],horizontalMarkers:peakMarker?[peakMarker]:[]});continue;}
+        if(!percent&&factor===null){if(!unitPanels.has(forceUnit))unitPanels.set(forceUnit,{kind:"xy",chartId:"imtp:"+encodeURIComponent(forceUnit),displayOptions:options,title:"IMTP 力时曲线 · "+forceUnit,xLabel:"时间 · ms",yLabel:"力 · "+forceUnit,series:[],horizontalMarkers:[]});const panel=unitPanels.get(forceUnit);panel.series.push(currentSeries);if(peakMarker)panel.horizontalMarkers.push(peakMarker);continue;}
         series.push(currentSeries);if(peakMarker)horizontalMarkers.push(peakMarker);
       }
-      specs.push({kind:"xy",title:"IMTP 力时曲线",xLabel:"时间 · ms",yLabel:percent?"占峰值力 · %":"力 · N",series,horizontalMarkers,note:"圆点为实测力，菱形为 RFD 推算；连线只连接已知时间点。"});
+      specs.push(...unitPanels.values(),{kind:"xy",chartId:"imtp",displayOptions:options,title:"IMTP 力时曲线",xLabel:"时间 · ms",yLabel:percent?"占峰值力 · %":"力 · N",series,horizontalMarkers,note:"圆点为实测力，菱形为 RFD 推算；连线只连接已知时间点。"});
     }
-    else if(kind==="lactate"){const series=[],markers=[];for(const p of periods){if(!p.record.enabled.lactate)continue;const raw=p.stats.raw.lactate||[];series.push(xySeries(p,"乳酸",raw.map(q=>({x:q.speed,y:q.lactate})),{markerLegend:true}));series.push(xySeries(p,"心率",raw.map(q=>({x:q.speed,y:q.hr})),{right:true,dash:"5 3"}));for(const key of["lt1","lt2"]){const v=p.stats.values[key];if(N(v)!==null)markers.push({x:v,label:key.toUpperCase(),color:p.color,recordId:p.id,legend:true});}}specs.push({kind:"xy",rich:true,title:project.name,xLabel:"阶段速度 · m/s",yLabel:"乳酸 · mmol/L",rightLabel:"心率 · bpm",zeroX:false,series,markers});}
-    else if(kind==="lvp"){const series=periods.flatMap(p=>p.stats.lvpSeries.filter(s=>(project.testIds||[id]).includes(s.testId)&&s.points.length).map(s=>({...s,recordId:p.id,id:p.id+":"+s.id,estimate:s.est,label:periodLabel(p)+" · "+s.label,color:p.color,shape:({landmineR:"diamond",landmineL:"triangle",deadlift:"square"})[s.id]||"circle",dash:({landmineR:"5 3",landmineL:"2 3",deadlift:"6 3"})[s.id]||""})));specs.push({kind:"lvp",title:project.name+" · 负荷速度曲线",series,options:{showPoints:true,showBand:true,showEstimate:true}});}
-    else if(kind==="fvp"||kind==="sprint-fvp"){specs.push(fvpSpec(periods,id),elasticitySpec(periods,id));}
+    else if(kind==="lactate"){const series=[],markers=[];for(const p of periods){if(!p.record.enabled.lactate)continue;const raw=p.stats.raw.lactate||[];series.push(xySeries(p,"乳酸",raw.map(q=>({x:q.speed,y:q.lactate})),{markerLegend:true}));series.push(xySeries(p,"心率",raw.map(q=>({x:q.speed,y:q.hr})),{right:true,dash:"5 3"}));for(const key of["lt1","lt2"]){const v=p.stats.values[key];if(N(v)!==null)markers.push({x:v,label:key.toUpperCase(),color:p.color,recordId:p.id,legend:true});}}specs.push({kind:"xy",chartId:"lactate",rich:true,title:project.name,xLabel:"阶段速度 · m/s",yLabel:"乳酸 · mmol/L",rightLabel:"心率 · bpm",zeroX:false,series,markers});}
+    else if(kind==="lvp"){const options=displayOptions(project,model,null,views),actions=periods.flatMap(p=>(p.stats.lvpSeries||[]).filter(s=>(project.testIds||[id]).includes(s.testId)&&s.points.length)),actionChoices=[...new Map(actions.map(s=>[s.id,[s.id,s.label]])).values()],selected=new Set(options.selected||actionChoices.map(([key])=>key)),series=periods.flatMap(p=>(p.stats.lvpSeries||[]).filter(s=>(project.testIds||[id]).includes(s.testId)&&s.points.length&&selected.has(s.id)).map(s=>({...s,recordId:p.id,id:p.id+":"+s.id,estimate:s.est,label:periodLabel(p)+" · "+s.label,color:p.color,shape:({landmineR:"diamond",landmineL:"triangle",deadlift:"square"})[s.id]||"circle",dash:({landmineR:"5 3",landmineL:"2 3",deadlift:"6 3"})[s.id]||""})));specs.push({kind:"lvp",chartId:options.id,title:project.name+" · 负荷速度曲线",series,actionChoices,options,displayOptions:options});}
+    else if(kind==="fvp"||kind==="sprint-fvp"){specs.push(fvpSpec(periods,id,displayOptions(project,model,"profile",views)),elasticitySpec(periods,id,displayOptions(project,model,"elasticity",views)));}
     else if(kind==="scalar"){
       const models=periods.map(p=>{const test=p.report.projects.find(t=>t.id===id);return test?root.RingsideGenericReport?.buildChart(p.report,test):null;}),latest=models.filter(Boolean).at(-1);if(latest?.kind&&latest.kind!=="none"){
         const valid=models.map(m=>m?.available&&m.kind===latest.kind?m:null);
@@ -285,33 +357,44 @@
         }
         else if(latest.kind==="radar"){
           const axes=[...new Map(valid.flatMap(m=>m?.panels?.flatMap(panel=>(panel.axes||[]).map(axis=>[axis.id,axis]))||[])).values()];
-          if(axes.length)specs.push({kind:"radar",title:project.name+" · 评分雷达",max:100,axes:axes.map(a=>({key:a.id,label:a.label})),series:periods.map((p,i)=>({id:p.id,label:p.label,color:p.color,values:axes.map(a=>valid[i]?.panels.flatMap(panel=>panel.axes||[]).find(q=>q.id===a.id)?.value??null)}))});
+          if(axes.length)specs.push({kind:"radar",chartId:"generic:"+id+":radar:"+encodeURIComponent(JSON.stringify(axes.map(a=>a.id).sort())),title:project.name+" · 评分雷达",max:100,axes:axes.map(a=>({key:a.id,label:a.label})),series:periods.map((p,i)=>({id:p.id,label:p.label,color:p.color,values:axes.map(a=>valid[i]?.panels.flatMap(panel=>panel.axes||[]).find(q=>q.id===a.id)?.value??null)}))});
         }
         else if(latest.kind==="scatter"){
           const key=panel=>JSON.stringify([panel.xAxis?.id,panel.xAxis?.unit,panel.yAxis?.id,panel.yAxis?.unit]),panels=[...new Map(valid.flatMap(m=>(m?.panels||[]).map(panel=>[key(panel),panel]))).values()];
-          for(const panel of panels){const series=periods.map((p,i)=>xySeries(p,project.name,valid[i]?.panels.find(candidate=>key(candidate)===key(panel))?.points || [],{connect:false}));specs.push({kind:"xy",title:project.name,xLabel:panel.xAxis.label+" · "+panel.xAxis.unit,yLabel:panel.yAxis.label+" · "+panel.yAxis.unit,zeroX:false,zeroY:false,series});}
+          for(const panel of panels){const series=periods.map((p,i)=>xySeries(p,project.name,valid[i]?.panels.find(candidate=>key(candidate)===key(panel))?.points || [],{connect:false}));specs.push({kind:"xy",chartId:"generic:"+id+":scatter:"+encodeURIComponent(key(panel)),title:project.name,xLabel:panel.xAxis.label+" · "+panel.xAxis.unit,yLabel:panel.yAxis.label+" · "+panel.yAxis.unit,zeroX:false,zeroY:false,series});}
         }
-        else if(latest.kind==="trials"){const units=[...new Set(valid.flatMap(m=>m?.panels?.map(p=>p.unit)||[]))];for(const unit of units){const series=periods.flatMap((p,i)=>(valid[i]?.panels||[]).filter(q=>q.unit===unit).flatMap(q=>(q.series||[]).map(s=>xySeries(p,s.label,s.points.map(point=>({x:point.index,y:point.value})),{connect:false}))));specs.push({kind:"xy",title:project.name+" · 试次点图",xLabel:"试次",yLabel:unit,zeroX:false,zeroY:false,series});}}
+        else if(latest.kind==="trials"){const units=[...new Set(valid.flatMap(m=>m?.panels?.map(p=>p.unit)||[]))];for(const unit of units){const series=periods.flatMap((p,i)=>(valid[i]?.panels||[]).filter(q=>q.unit===unit).flatMap(q=>(q.series||[]).map(s=>xySeries(p,s.label,s.points.map(point=>({x:point.index,y:point.value})),{connect:false}))));specs.push({kind:"xy",chartId:"generic:"+id+":trials:"+encodeURIComponent(unit),title:project.name+" · 试次点图",xLabel:"试次",yLabel:unit,zeroX:false,zeroY:false,series});}}
         const reasons=models.flatMap((m,i)=>m?.reason?[periodLabel(periods[i])+" · "+m.reason]:[]);if(reasons.length)specs.push({kind:"notice",reason:reasons.join("；")});
       }
     }
-    const available=specs.filter(spec=>spec.kind!=="xy" || spec.series.some(s=>s.points.some(p=>p&&N(p.y)!==null)) || spec.horizontalMarkers?.some(m=>N(m.y)!==null)).map(spec=>spec.series?{...spec,series:dateStyles(spec.series,periods)}:spec);
+    const available=specs.map(spec=>spec.series?{...spec,series:dateStyles(spec.series,periods)}:spec);
     return specsOnly?available:available.map(figure).join("");
   }
-  function render(model) {
-    const periods=model.periods,first=periods[0],last=periods.at(-1),sourceHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.render(p.report)])),nativeHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.renderCapabilityAnalysis(p.report,{print:true})]));
+  function render(model,{views={}}={}) {
+    const periods=model.periods,sourceHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.render(p.report)]));
+    const displayReport=period=>{
+      const record={...period.record,fvpView:{...period.record.fvpView}},report={...period.report,record};
+      for(const project of model.projects.filter(p=>["fvp","sprint-fvp"].includes(p.renderer))){
+        const profile=displayOptions(project,model,"profile",views),elasticity=displayOptions(project,model,"elasticity",views),elasticKeys=["elasticityView","responseForce","responseVelocity","responseBoth"],options={...profile,...Object.fromEntries(elasticKeys.map(key=>[key,elasticity[key]]))};
+        if(project.renderer==="sprint-fvp"){record.sprintFvpView={...period.record.sprintFvpView,...options};report.sprintFvpConfidence=sprintConfidence(period,profile);}
+        else record.fvpView[project.id]={...period.record.fvpView?.[project.id],...options};
+      }
+      return report;
+    };
+    const nativeHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.renderCapabilityAnalysis(displayReport(p),{print:true})]));
     const merge=(peers,id,name)=>{const metrics=peers.flatMap(p=>p.metrics);if(peers[0].renderer==="speed")for(const row of model.capability?.cards.find(card=>card.id==="speed")?.metrics || [])if(["asr","srr"].includes(row.metricId)&&!metrics.some(item=>item.metricId===row.metricId))metrics.push(row.metricId==="srr"?{...row,cells:row.cells.map((cell,index)=>cell?{...cell,notes:[cell.notes,periods[index].report.speedReference?.athleteType].filter(Boolean).join("；")}:null)}:row);return{...peers[0],id,name,peers,testIds:peers.flatMap(p=>p.testIds||[p.id]),metrics};};
     const projectHTML=project=>{
-      const specifications=projectFigures(project,model,{specsOnly:true}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?nativeHTML.get(p.id):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");
+      const specifications=projectFigures(project,model,{specsOnly:true,views}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?nativeHTML.get(p.id):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");
       const pair=(charts,data)=>charts?`<div class="detail-pair longitudinal-pair" data-pdf-pair><div class="longitudinal-figures">${charts}</div><div class="detail-data">${data}</div></div>`:data;
-      const figures=items=>project.renderer==="speed"?`<div class="longitudinal-speed-grid" data-longitudinal-grid="speed" data-period-count="${items.length}">${items.map(figure).join("")}</div>`:items.map(figure).join("");
+      const figures=items=>project.renderer==="speed"?`<div class="longitudinal-speed-grid" data-longitudinal-grid="speed" data-period-count="${items.length}">${items.map(spec=>chartPanel(spec,model,views)).join("")}</div>`:items.map(spec=>chartPanel(spec,model,views)).join("");
       const resultTables=project.renderer==="iso"?["force","asymmetry","balance"].map(section=>{const rows=(project.metrics||[]).filter(row=>row.section===section);return rows.length?`<section class="longitudinal-iso-section" data-iso-section="${section}"><h5 class="longitudinal-table-caption">${E({force:"力量结果",asymmetry:"双侧差异",balance:"关节平衡"}[section])}</h5>${table(rows,periods)}</section>`:"";}).join(""):table(project.metrics||[],periods);
       const content=["fvp","sprint-fvp"].includes(project.renderer)?["profile","elasticity"].map(section=>{
-        const metrics=(project.metrics||[]).filter(row=>section==="profile"?!["elasticity","scenario"].includes(row.section):["elasticity","scenario"].includes(row.section));
-        return pair(figures(specifications.filter(s=>s.section===section)),table(metrics,periods))+`<div class="longitudinal-analysis-supplement">${periods.map(period=>nativeAnalysisSupplement(period,project.id,section,nativeHTML.get(period.id),model.capability?.analyses.find(item=>item.id===project.id+":"+section)?.periods.find(item=>item.periodId===period.id))).join("")}</div>`;
+        const options=displayOptions(project,model,section,views),choices=section==="profile"?profileChoices(project):[],choiceKeys=new Set(choices.map(([key])=>key)),metrics=(project.metrics||[]).filter(row=>section==="profile"?!["elasticity","scenario"].includes(row.section)&&(!choiceKeys.has(profileMetricKey(row,project))||options.metrics[profileMetricKey(row,project)]!==false):["elasticity","scenario"].includes(row.section));
+        const metricControls=choices.length?`<div class="no-print" data-longitudinal-panel="${E(options.id)}"><details class="longitudinal-metric-options" data-longitudinal-metrics="${E(options.id)}"><summary>显示指标</summary><div>${choices.map(([key,name])=>`<label><input type="checkbox" data-longitudinal-metric="${E(key)}"${options.metrics[key]!==false?" checked":""}>${E(name)}</label>`).join("")}</div></details></div>`:"";
+        return pair(figures(specifications.filter(s=>s.section===section)),metricControls+table(metrics,periods))+`<div class="longitudinal-analysis-supplement longitudinal-analysis-grid" data-period-count="${periods.length}">${periods.map(period=>nativeAnalysisSupplement(period,project.id,section,nativeHTML.get(period.id),model.capability?.analyses.find(item=>item.id===project.id+":"+section)?.periods.find(item=>item.periodId===period.id))).join("")}</div>`;
       }).join(""):pair(figures(specifications),resultTables);
       const training=project.renderer==="speed"?periods.map(p=>{const section=sourceHTML.get(p.id).match(/<section class="speed-training">[\s\S]*?<\/section>/)?.[0];return section?`<details class="longitudinal-training"><summary>${E(periodLabel(p))} · 训练速度参考</summary>${section}</details>`:"";}).join(""):"";
-      return `<article class="test-block longitudinal-test" id="detail-${E(project.id)}" data-test-ids="${E((project.testIds||[project.id]).join(" "))}">${(project.testIds||[]).filter(id=>id!==project.id).map(id=>`<span class="test-anchor" id="detail-${E(id)}"></span>`).join("")}<div class="test-title"><h4>${E(project.name)}</h4></div>${content}${training}${rawDisclosure(raw,project)}</article>`;
+      return `<article class="test-block longitudinal-test${project.renderer==="fms"?" longitudinal-fms":""}" id="detail-${E(project.id)}" data-test-ids="${E((project.testIds||[project.id]).join(" "))}">${(project.testIds||[]).filter(id=>id!==project.id).map(id=>`<span class="test-anchor" id="detail-${E(id)}"></span>`).join("")}<div class="test-title"><h4>${E(project.name)}</h4></div>${content}${training}${rawDisclosure(raw,project)}</article>`;
     };
     const screening=model.projects.filter(p=>p.category==="screen").map(projectHTML).join(""),isProfile=p=>["fvp","sprint-fvp"].includes(p.renderer),consumed=new Set(),performanceGroups=[];
     for(const group of model.groups.filter(g=>g.category!=="screen")){
@@ -334,19 +417,50 @@
     const profiles=model.projects.filter(isProfile).map(projectHTML).join("");
     const capability=(directionCards?`<div class="capability-direction-grid" data-capability-analysis>${directionCards}</div>`:"")+profiles;
     const chartSeries=data=>dateStyles(data.series.map(s=>({id:s.id,recordId:s.recordId,label:s.label,color:s.color,values:s.values,cells:s.cells?.map(c=>c?{pain:c.pain}:null)})),periods);
-    const riskSpec={kind:"radar",title:"损伤风险筛查",showTitle:false,max:3,risk:true,axes:model.risk.axes,series:chartSeries(model.risk)},overviewSpec={kind:"radar",title:"运动表现概览",showTitle:false,overview:true,max:100,axes:model.overview.axes,series:chartSeries(model.overview)};
-    return{summary:summaryCards(model),body:figure(riskSpec),overview:figure(overviewSpec),legend:"",screenPill:model.risk.axes.length+" 个区域",referenceLabel:model.overview.axes.length+" 个能力维度",screenItems:"",details:`<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>按测试日期比较</span></summary><div class="quality-group">${screening || empty("尚无筛查结果")}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>按测试日期比较</span></summary><div class="quality-group">${performance || empty("尚无运动表现结果")}</div></details>${capability?`<details class="details-group" id="capabilityDetail" open><summary>能力结构分析<span>各次参数与变化</span></summary><div class="quality-group capability-analysis-content">${capability}</div></details>`:""}`};
+    const riskSpec={kind:"radar",chartId:"risk",title:"损伤风险筛查",showTitle:false,max:3,risk:true,axes:model.risk.axes,series:chartSeries(model.risk)},overviewSpec={kind:"radar",chartId:"overview",title:"运动表现概览",showTitle:false,overview:true,max:100,axes:model.overview.axes,series:chartSeries(model.overview)};
+    return{summary:summaryCards(model),body:chartPanel(riskSpec,model,views),overview:chartPanel(overviewSpec,model,views),legend:"",screenPill:model.risk.axes.length+" 个区域",referenceLabel:model.overview.axes.length+" 个能力维度",screenItems:"",details:`<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>按测试日期比较</span></summary><div class="quality-group">${screening || empty("尚无筛查结果")}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>按测试日期比较</span></summary><div class="quality-group">${performance || empty("尚无运动表现结果")}</div></details>${capability?`<details class="details-group" id="capabilityDetail" open><summary>能力结构分析<span>各次参数与变化</span></summary><div class="quality-group capability-analysis-content">${capability}</div></details>`:""}`};
   }
   function layout(container,{print=false}={}) {
     if(print)container.querySelectorAll("[data-longitudinal-table]").forEach(node=>{if(node.dataset.longitudinalPrintTable)return;const data=JSON.parse(node.dataset.longitudinalTable);node.innerHTML=table(data.rows,data.periods,{print:true,wrapped:false});node.dataset.longitudinalPrintTable="true";});
     if(print)container.querySelectorAll("[data-longitudinal-grid]").forEach(grid=>{
       if(grid.dataset.longitudinalPrintGrid)return;const items=[...grid.children],speed=grid.dataset.longitudinalGrid==="speed",columns=speed?Math.min(2,items.length):items.length===3?3:Math.min(2,items.length);
-      const groups=speed?chunks(JSON.parse(items[0]?.dataset.longitudinalChart||"{}").periods?.map((_,i)=>i)||[],5,true).flatMap(indices=>chunks(items.map(item=>{const spec=JSON.parse(item.dataset.longitudinalChart),copy=item.cloneNode(false);copy.dataset.longitudinalChart=JSON.stringify({...spec,periods:indices.map(i=>spec.periods[i]),values:indices.map(i=>spec.values[i]),scaleValues:spec.scaleValues||spec.values});delete copy.dataset.longitudinalLayout;return copy;}),Math.max(1,columns))):chunks(items,Math.max(1,columns));
+      const expanded=speed?items.flatMap(item=>{const node=item.matches("[data-longitudinal-chart]")?item:item.querySelector("[data-longitudinal-chart]");if(!node)return[item];const spec=JSON.parse(node.dataset.longitudinalChart);return chunks(spec.periods.map((_,i)=>i),5,true).map(indices=>{const copy=item.cloneNode(true),chart=copy.matches("[data-longitudinal-chart]")?copy:copy.querySelector("[data-longitudinal-chart]");chart.dataset.longitudinalChart=JSON.stringify({...spec,periods:indices.map(i=>spec.periods[i]),values:indices.map(i=>spec.values[i]),scaleValues:spec.scaleValues||spec.values});delete chart.dataset.longitudinalLayout;return copy;});}):items;
+      const groups=chunks(expanded,Math.max(1,columns));
       grid.innerHTML="";for(const group of groups){const row=grid.ownerDocument.createElement("div");row.className="longitudinal-print-grid-row";row.dataset.pdfAtomic="";row.style.setProperty("--longitudinal-columns",String(columns));for(const item of group)row.append(item);grid.append(row);}grid.dataset.longitudinalPrintGrid="true";
     });
     container.querySelectorAll("[data-longitudinal-chart]").forEach(node=>{const width=Math.max(250,Math.round(node.getBoundingClientRect().width || 450)),key=width+":"+print;if(node.dataset.longitudinalLayout===key)return;node.innerHTML=draw(JSON.parse(node.dataset.longitudinalChart),width,print);node.dataset.longitudinalLayout=key;});
   }
   let observer;
-  function mount(container) { observer?.disconnect();layout(container);if(typeof ResizeObserver!=="undefined"){let scheduled=false;observer=new ResizeObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;if(container.isConnected)layout(container);});});observer.observe(container);} }
+  const handlers=new WeakMap();
+  function mount(container,model,{onChange}={}) {
+    observer?.disconnect();layout(container);
+    if(handlers.has(container))container.removeEventListener("change",handlers.get(container));
+    const change=event=>{
+      const input=event.target,panel=input.closest("[data-longitudinal-panel]");if(!panel||!onChange)return;
+      let id=panel.dataset.longitudinalPanel,delta,attribute;
+      if(input.hasAttribute("data-longitudinal-chart-date")){
+        attribute="data-longitudinal-chart-date";const recordIds=[...panel.querySelectorAll("[data-longitudinal-chart-date]:checked")].map(n=>n.dataset.longitudinalChartDate);
+        if(!recordIds.length){input.checked=true;return;}delta={recordIds};
+      }else if(input.hasAttribute("data-longitudinal-metric")){
+        attribute="data-longitudinal-metric";delta={metrics:{[input.dataset.longitudinalMetric]:input.checked}};
+      }else if(input.hasAttribute("data-longitudinal-option")){
+        attribute="data-longitudinal-option";id=input.closest("[data-longitudinal-options-panel]")?.dataset.longitudinalOptionsPanel||id;
+        delta={options:{[input.dataset.longitudinalOption]:input.tagName==="SELECT"?input.value:input.checked}};
+        if(input.dataset.longitudinalOption==="showBand")delta.options.bandExplicit=true;
+      }else if(input.hasAttribute("data-longitudinal-action")){
+        attribute="data-longitudinal-action";id=input.closest("[data-longitudinal-options-panel]")?.dataset.longitudinalOptionsPanel||id;
+        delta={options:{selected:[...panel.querySelectorAll("[data-longitudinal-action]:checked")].map(n=>n.dataset.longitudinalAction),selectionExplicit:true}};
+      }else return;
+      const open=[...container.querySelectorAll("[data-longitudinal-panel] details[open]")].map(node=>({id:node.closest("[data-longitudinal-panel]").dataset.longitudinalPanel,dates:node.classList.contains("longitudinal-chart-dates"),metrics:node.classList.contains("longitudinal-metric-options")})),value=input.getAttribute(attribute),owner=container.dataset.longitudinalOwner;
+      const result=onChange(id,delta);
+      if(!input.isConnected&&container.dataset.longitudinalOwner===owner){
+        for(const state of open)for(const host of container.querySelectorAll("[data-longitudinal-panel]"))if(host.dataset.longitudinalPanel===state.id){const details=host.querySelector(state.dates?".longitudinal-chart-dates":state.metrics?".longitudinal-metric-options":"details");if(details)details.open=true;}
+        const target=[...container.querySelectorAll("["+attribute+"]")].find(n=>n.getAttribute(attribute)===value&&n.closest("[data-longitudinal-panel]")?.dataset.longitudinalPanel===panel.dataset.longitudinalPanel);target?.focus({preventScroll:true});
+      }
+      Promise.resolve(result).catch(()=>{});
+    };
+    handlers.set(container,change);container.addEventListener("change",change);
+    if(typeof ResizeObserver!=="undefined"){let scheduled=false;observer=new ResizeObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;if(container.isConnected)layout(container);});});observer.observe(container);}
+  }
   root.RingsideLongitudinalView={render,layout,mount,draw,table,projectFigures};
 })(typeof window!=="undefined"?window:globalThis);

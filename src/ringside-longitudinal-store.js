@@ -44,7 +44,7 @@
     if(profileSnapshot && input.evaluationProfileId && profileSnapshot.id!==input.evaluationProfileId)throw Error("纵向报告评价方案与快照不一致");
     return { version: 1, key: documentKey, athleteId: input.athleteId, recordIds, mode: input.mode || "best",
       evaluationProfileId: input.evaluationProfileId || profileSnapshot?.id || "", profileSnapshot,
-      views: clone(input.views || {}), narrative: narrative(input.narrative),
+      views: root.RingsideLongitudinalViews ? root.RingsideLongitudinalViews.normalize(input.views || {}, recordIds) : clone(input.views || {}), narrative: narrative(input.narrative),
       ...(input.previousNarrative ? { previousNarrative: narrative(input.previousNarrative) } : {}),
       ...(importedVersions?.length ? { importedVersions } : {}),
       basis: input.basis || "", created: input.created || "", updated: input.updated || "", revision: input.revision || 0 };

@@ -173,12 +173,10 @@
       for (const item of result.values()) if (item.testId === testId) { item.section = "profile"; item.sourceKind = "profile"; }
       const current = sprint ? solved.model : solved.current, optimum = solved.optimum?.valid ? solved.optimum : solved.optimal?.valid ? solved.optimal : null;
       const basicContext = testContext(record, testId), targetContext = { ...basicContext, ...(sprint ? { targetDistanceM: solved.targetDistanceM } : {}) };
-      const view = sprint ? M.normalizeSprintFvpView(record.sprintFvpView) : null;
       const append = (suffix, name, value, unit, section, sourceKind, context, measurementScale = "unknown", notes = "") => add(testId + ":" + suffix, { testId, name, value, unit, section, sourceKind, context, measurementScale, notes });
       const profileMetrics = [["F0", "力量端 F₀", "N/kg", "ratio"], ["V0", "速度端 V₀", "m/s", "ratio"], ["Pmax", "最大功率 Pmax", "W/kg", "ratio"],
         ...(sprint ? [["F0Absolute", "力量端 F₀ · 绝对", "N", "ratio"], ["PmaxAbsolute", "最大功率 Pmax · 绝对", "W", "ratio"]] : []), ["slope", "剖面斜率 SFV", "(N/kg)/(m/s)", "unknown"]];
       for (const [field, label, unit, scale] of profileMetrics) {
-        if (view?.metrics[field] === false) continue;
         if (!["F0", "V0", "Pmax"].includes(field)) append("profile:" + field, "实测剖面 · " + label, current?.[field], unit, "profile", "profile", basicContext, scale);
         if (optimum) append("optimum:" + field, "目标最优 · " + label, optimum[field], unit, "profile", "optimum", targetContext, scale);
       }
@@ -186,9 +184,9 @@
       else {
         const fit = solved.fit || {}, endVelocity = fit.vmax > 0 && fit.tau > 0 ? fit.vmax * (1 - Math.exp(-solved.selected.endTimeS / fit.tau)) : null;
         for (const [field, label, value] of [["Vmax", "速度模型渐近值 Vmax", fit.vmax], ["endVelocity", "终点速度", endVelocity], ["Vopt", "峰值功率对应速度 Vopt", N(current?.V0) === null ? null : current.V0 / 2]]) {
-          if (view.metrics[field] !== false) append("profile:" + field, "实测剖面 · " + label, value, "m/s", "profile", "profile", { ...basicContext, ...(field === "endVelocity" ? { endDistanceM: solved.selected?.endDistanceM } : {}) }, "ratio");
+          append("profile:" + field, "实测剖面 · " + label, value, "m/s", "profile", "profile", { ...basicContext, ...(field === "endVelocity" ? { endDistanceM: solved.selected?.endDistanceM } : {}) }, "ratio");
         }
-        if (view.metrics.Vopt !== false && optimum) append("optimum:Vopt", "目标最优 · 峰值功率对应速度 Vopt", N(optimum.V0) === null ? null : optimum.V0 / 2, "m/s", "profile", "optimum", targetContext, "ratio");
+        if (optimum) append("optimum:Vopt", "目标最优 · 峰值功率对应速度 Vopt", N(optimum.V0) === null ? null : optimum.V0 / 2, "m/s", "profile", "optimum", targetContext, "ratio");
       }
       const framework = sprint ? stats.sprintElasticity : solved;
       if (!framework?.valid) continue;

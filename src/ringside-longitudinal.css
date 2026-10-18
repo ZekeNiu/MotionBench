@@ -81,14 +81,37 @@
 .longitudinal-analysis-notes dd{margin:0;}
 .longitudinal-iso-section+.longitudinal-iso-section{margin-top:22px;}
 .longitudinal-iso-section>.longitudinal-table-caption{font-size:13px;color:var(--ink,#263747);}
-.longitudinal-results td.longitudinal-assessed.green{background:#eaf4ee!important;}
-.longitudinal-results td.longitudinal-assessed.amber{background:#fff6df!important;}
-.longitudinal-results td.longitudinal-assessed.red{background:#faece9!important;}
-.longitudinal-results td.longitudinal-assessed.gray{background:#f4f5f7!important;}
-.longitudinal-results .longitudinal-assessment{color:inherit;font-weight:500;}
+.longitudinal-results .longitudinal-assessment{display:inline-flex;width:fit-content;max-width:100%;margin:4px 0 0;padding:2px 6px;font-size:10px;line-height:1.45;font-weight:500;white-space:normal;}
 .longitudinal-print-grid-row{display:grid!important;grid-template-columns:repeat(var(--longitudinal-columns,2),minmax(0,1fr))!important;gap:14px;align-items:start;}
 .longitudinal-print-grid-row>.longitudinal-chart{margin:0!important;min-width:0;}
 [data-longitudinal-print-grid]{display:block!important;}
 [data-longitudinal-print-grid]>.longitudinal-print-grid-row+.longitudinal-print-grid-row{margin-top:14px;}
 @container(max-width:310px){.longitudinal-direction-grid{grid-template-columns:minmax(0,1fr);}.longitudinal-direction-grid[data-period-count="3"]{grid-template-columns:minmax(0,1fr);}}
 @media(max-width:520px){.longitudinal-speed-grid{grid-template-columns:minmax(0,1fr);}.longitudinal-analysis-notes>div{grid-template-columns:minmax(90px,.4fr) minmax(0,1fr);gap:8px;}}
+
+/* Date-specific FMS and analysis layouts do not change the personal report. */
+.longitudinal-fms .longitudinal-chart{display:block!important;width:100%;max-width:560px!important;margin-inline:auto;}
+.longitudinal-fms .longitudinal-chart-title{width:100%;white-space:normal;overflow-wrap:normal;}
+.longitudinal-fms .longitudinal-legend{justify-content:center;}
+.longitudinal-fms .longitudinal-chart-note{text-align:center;}
+.longitudinal-analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px;margin:16px 0;}
+.longitudinal-analysis-grid>.longitudinal-analysis-period{min-width:0;margin:0;padding:14px;border:1px solid var(--line,#dbe2e8);border-radius:8px;}
+.longitudinal-analysis-grid>.longitudinal-analysis-period>.longitudinal-period-heading{margin:0 0 10px;}
+.longitudinal-analysis-grid .detail-data,.longitudinal-analysis-grid .table-wrap{min-width:0;max-width:100%;}
+.longitudinal-analysis-grid .table-wrap{overflow-x:auto;}
+.ringside-pdf-document .longitudinal-analysis-grid{display:block;}
+.ringside-pdf-document .longitudinal-analysis-grid>.longitudinal-analysis-period{padding:0;border:0;}
+@container(max-width:700px){.longitudinal-analysis-grid{grid-template-columns:minmax(0,1fr);}}
+@media print{.longitudinal-analysis-grid{display:block;}.longitudinal-analysis-grid>.longitudinal-analysis-period{padding:0;border:0;}}
+
+.longitudinal-chart-panel{min-width:0;}
+.longitudinal-chart-panel+.longitudinal-chart-panel{margin-top:20px;}
+.longitudinal-speed-grid>.longitudinal-chart-panel{margin:0;}
+.longitudinal-chart-controls{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 14px;margin:0 0 10px;color:var(--muted,#667684);font-size:11px;line-height:1.6;}
+.longitudinal-chart-controls details,.longitudinal-metric-options{min-width:0;max-width:100%;}
+.longitudinal-chart-dates>summary,.longitudinal-metric-options>summary{cursor:pointer;padding:3px 0;font-size:11px;line-height:1.6;color:var(--muted,#667684);}
+.longitudinal-chart-dates[open],.longitudinal-metric-options[open]{width:100%;}
+.longitudinal-chart-dates label,.longitudinal-plot-options label,.longitudinal-metric-options label{display:inline-flex;align-items:center;gap:5px;margin:4px 12px 4px 0;max-width:100%;font-size:11px;line-height:1.6;overflow-wrap:anywhere;}
+.longitudinal-chart-controls input[type=checkbox],.longitudinal-metric-options input[type=checkbox]{width:14px;height:14px;min-height:0;flex-shrink:0;margin:0;accent-color:var(--green,#176b68);}
+.longitudinal-plot-options{display:flex;flex-wrap:wrap;align-items:center;gap:0 4px;min-width:0;}
+.longitudinal-metric-options{margin:10px 0;}
