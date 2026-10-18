@@ -50,7 +50,7 @@ jobs:
         shell: pwsh
         run: |
           foreach ($channel in @('chrome','msedge')) {
-            $browserArgument = if ($channel -eq 'msedge') { @('--edge') } else { @() }
+            [string[]]$browserArgument = @(if ($channel -eq 'msedge') { '--edge' })
             node tests/longitudinal-layout-v2244-tests.cjs @browserArgument "--artifact-dir=output/playwright/v2244/layout/$channel"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             node tests/longitudinal-layout-browser-tests.cjs @browserArgument "--artifact-dir=output/playwright/v2244/layout-regression/$channel"

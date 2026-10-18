@@ -2,20 +2,21 @@
 // Synthetic browser-only evidence. No desktop process or real profile is opened.
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict"),{createHash}=require("node:crypto"),{pathToFileURL}=require("node:url");
 const {chromium}=require("./helpers/playwright.cjs"),{createFixture}=require("./helpers/longitudinal-fixture.cjs");
-const ROOT=path.resolve(__dirname,".."),SOURCE=path.join(ROOT,"MotionBench.html"),channel=process.argv.includes("--edge")?"msedge":"chrome";
+const ROOT=path.resolve(__dirname,".."),SOURCE=path.join(ROOT,"MotionBench.html"),channel=process.argv.includes("--edge")?"msedge":"chrome",diagnosticOnly=process.argv.includes("--diagnostic-persistence");
 const arg=key=>{const i=process.argv.indexOf(key);return i<0?null:process.argv[i+1];},OUT=path.resolve(ROOT,arg("--artifact-dir")||`output/playwright/v2244/longitudinal-controls/${channel}`);
 const hash=file=>createHash("sha256").update(fs.readFileSync(file)).digest("hex"),copy=value=>JSON.parse(JSON.stringify(value));
 const MODULES=["src/ringside-longitudinal-views.js","src/ringside-longitudinal-store.js","src/ringside-longitudinal-controller.js","src/ringside-longitudinal-view.js","src/ringside-longitudinal.js","src/ringside-app.js","src/ringside-pdf.js"];
 const METRICS=["F0","V0","Pmax","F0Absolute","PmaxAbsolute","slope","RFmax","DRF","Vmax","endVelocity","Vopt"];
 async function main(){
   assert.ok(path.relative(path.join(ROOT,"output"),OUT)&&!path.relative(path.join(ROOT,"output"),OUT).startsWith(".."));fs.mkdirSync(OUT,{recursive:true});
-  const result={synthetic:true,channel,sourceHash:hash(SOURCE),runnerSha256:hash(__filename),fixtureSha256:hash(path.join(__dirname,"helpers/longitudinal-fixture.cjs")),moduleHashes:Object.fromEntries(MODULES.map(f=>[f,hash(path.join(ROOT,f))])),checks:[],errors:[],network:[],artifacts:[],pass:false,startedAt:new Date().toISOString()};
+  const result={synthetic:true,diagnosticOnly,channel,sourceHash:hash(SOURCE),runnerSha256:hash(__filename),fixtureSha256:hash(path.join(__dirname,"helpers/longitudinal-fixture.cjs")),moduleHashes:Object.fromEntries(MODULES.map(f=>[f,hash(path.join(ROOT,f))])),checks:[],errors:[],network:[],artifacts:[],pass:false,startedAt:new Date().toISOString()};
   let browser,context,page,f,baseline;
   const artifact=file=>result.artifacts.push({file:path.relative(ROOT,file).replaceAll("\\","/"),sha256:hash(file),bytes:fs.statSync(file).size});
   const watch=p=>{p.setDefaultTimeout(30000);p.on("pageerror",error=>result.errors.push(error.stack||error.message));p.on("request",request=>{if(/^https?:/.test(request.url()))result.network.push(request.url());});p.on("dialog",dialog=>dialog.accept());};
   const ready=async p=>{await p.waitForFunction(()=>window.App?.ready);assert.equal(await p.evaluate(()=>App.ready),true);};
   const settle=async()=>{assert.equal(await page.evaluate(()=>App.saveNow()),true);await page.waitForFunction(()=>!document.getElementById("saveStatus").textContent.includes("正在保存"));};
-  const check=async(name,run)=>{result.stage=name;console.log("START "+name);await run();result.checks.push(name);console.log("PASS "+name);};
+  let checkIndex=0;
+  const check=async(name,run)=>{checkIndex++;if(diagnosticOnly&&![1,10,11,13,14].includes(checkIndex))return;result.stage=name;console.log("START "+name);await run();result.checks.push(name);console.log("PASS "+name);};
   const panel=id=>page.locator(`[data-longitudinal-panel=${JSON.stringify(id)}]`).first();
   async function reveal(locator){
     const selectors=await locator.evaluate(node=>{document.querySelectorAll("[data-controls-test-reveal]").forEach(el=>el.removeAttribute("data-controls-test-reveal"));const ids=[];for(let p=node.parentElement;p;p=p.parentElement)if(p.tagName==="DETAILS"&&!p.open){p.dataset.controlsTestReveal="r"+ids.length;ids.push(p.dataset.controlsTestReveal);}return ids.reverse();});
@@ -45,6 +46,8 @@ async function main(){
       const f=(0,eval)("("+factory+")")(window,count),M=RingsideModel,lib=M.libraryDefaults();
       f.records.forEach((r,i)=>{r.title="控件验收 "+(i+1);r.evaluationProfileId=f.profile.id;r.narrative.html=M.textToHTML(r.narrative.text);if(minimal)for(const key of Object.keys(r.enabled))r.enabled[key]=key==="cmj";});
       if(!minimal){f.records[1].athlete.date=f.records[0].athlete.date;f.records[1].created="2026-01-01T01:00:00.000Z";f.records[2].enabled.fms=false;f.records[2].enabled.imtp=false;f.records.forEach(r=>{r.sprintFvpView.confidence=false;r.sprintFvpView.metrics.Vopt=false;});}
+      // Match normal data entry: age is derived from the final birth/test dates.
+      f.records.forEach(r=>M.applyAge(r));
       lib.catalog=f.catalog;lib.evaluationProfiles=[f.profile];lib.defaultEvaluationProfileId=f.profile.id;
       lib.athletes=[{id:f.athleteId,name:f.records[0].athlete.name,profile:M.profileFromRecord(f.records[0]),groupId:"",records:f.records,archived:false,deletedAt:null}];
       const other=structuredClone(f.records[0]);other.recordId="controls-other-record";other.athleteId="controls-other-athlete";other.athlete.name="另一名控件验收队员";other.narrative.text="另一名队员独立正文";other.narrative.html=M.textToHTML(other.narrative.text);
@@ -130,7 +133,7 @@ async function main(){
       for(const id of[f.ids[1],f.ids[2]]){const input=panel("risk").locator(`[data-longitudinal-chart-date=${JSON.stringify(id)}]`);await reveal(input);await input.uncheck();}
       await page.waitForFunction(()=>__chartGate.entered);await page.locator("#reportAthleteSearch").fill(f.other.name);await page.locator(`[data-athlete-choice=${JSON.stringify(f.other.athleteId)}]`).click();
       await page.evaluate(()=>__chartGate.release());await page.waitForFunction(id=>App.getState()?.athleteId===id&&App.getLongitudinal()===null,f.other.athleteId);await settle();assert.equal(await page.locator("[data-longitudinal-panel]").count(),0);assert.match(await page.locator("#narrativeView").innerText(),/另一名队员独立正文/);
-      await page.locator("#reportAthleteSearch").fill("纵向验收合成队员");await page.locator(`[data-athlete-choice=${JSON.stringify(f.athleteId)}]`).click();await page.evaluate(ids=>App.selectRecords(ids),f.ids);await settle();
+      await page.locator("#reportAthleteSearch").fill("纵向验收合成队员");await page.locator(`[data-athlete-choice=${JSON.stringify(f.athleteId)}]`).click();await page.waitForFunction(id=>App.getState()?.athleteId===id,f.athleteId);await page.evaluate(ids=>App.selectRecords(ids),f.ids);await settle();
       assert.deepEqual((await panel("risk").locator("[data-longitudinal-chart-date]:checked").evaluateAll(nodes=>nodes.map(n=>n.dataset.longitudinalChartDate))).sort(),[f.ids[0],f.ids[3]].sort());await invariant();
     });
     await check("reload and downloaded JSON HTML preserve graph choices while exporting every homepage record",async()=>{
