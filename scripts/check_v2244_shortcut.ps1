@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $installation = 'D:\Application\Strength&Conditioning\MotionBench'
 $expectedName = '示例运动员｜纵向比较（合成）'

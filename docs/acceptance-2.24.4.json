@@ -1,0 +1,390 @@
+{
+  "version": "2.24.4",
+  "desktopVersion": "2.24.4-desktop.1",
+  "pass": true,
+  "sourceHash": "cb6cce43d3b01f4e4baebf4c5cfe286fc2cf73df4f973d10b082bd7619634088",
+  "verifierSha256": "0c2aa64af9d3ea6379916a937379f0b0cddd5ec872aec78026421953ffcaa31c",
+  "modelSuites": 63,
+  "modelChecks": 1001,
+  "desktopUnitSuites": 5,
+  "unitProof": {
+    "file": "output/tests/v2.24.4/unit-results.json",
+    "sha256": "77d9da427fc3fee4c560cf40763a39c1db365f48eb0936b1ea0fbf7007e704ac"
+  },
+  "desktopUnitProof": {
+    "file": "output/tests/v2.24.4/desktop-unit/results.json",
+    "sha256": "5dab9f0bb44fc7f76160bc6989d1c15e6e95ece2fad15336dc305f26a7d929ec"
+  },
+  "package": {
+    "file": "output/desktop-package/package-check.json",
+    "sha256": "b6d22107a7e66bfa4ebd14aa1c11a7f9dd7cbf2af26f7dde9c9e524a496617ee",
+    "assets": 271,
+    "archiveSha256": "89804b1421ab345d27f5644547b4fd5a158576930fb310280df7cadd9890ddfa"
+  },
+  "browsers": [
+    {
+      "file": "output/playwright/v2244/layout/chrome/results.json",
+      "sha256": "12debdb0fca74956e3b72d4550fbf89312ea12ef042ce9d0d9e98bfd8708fd9f",
+      "runner": "tests/longitudinal-layout-v2244-tests.cjs",
+      "checks": 8,
+      "artifacts": [
+        "output/playwright/v2244/layout/chrome/layout.pdf",
+        "output/playwright/v2244/layout/chrome/fvp-desktop.png",
+        "output/playwright/v2244/layout/chrome/fms-mobile.png",
+        "output/playwright/v2244/layout/chrome/fms-desktop.png"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/layout/msedge/results.json",
+      "sha256": "8413af4ea6b825c044e73ba4a6f05b2b930ac7406ee4fb8502883189ef9e2f01",
+      "runner": "tests/longitudinal-layout-v2244-tests.cjs",
+      "checks": 8,
+      "artifacts": [
+        "output/playwright/v2244/layout/msedge/fms-mobile.png",
+        "output/playwright/v2244/layout/msedge/layout.pdf",
+        "output/playwright/v2244/layout/msedge/fms-desktop.png",
+        "output/playwright/v2244/layout/msedge/fvp-desktop.png"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/layout-regression/chrome/results.json",
+      "sha256": "1cd48cfe7a0092d1edbfaa88b0a270fca61068b5b44edfdf7ca83c1c0501bef5",
+      "runner": "tests/longitudinal-layout-browser-tests.cjs",
+      "checks": 13,
+      "artifacts": [
+        "output/playwright/v2244/layout-regression/chrome/speed-desktop.png",
+        "output/playwright/v2244/layout-regression/chrome/capability-desktop.png",
+        "output/playwright/v2244/layout-regression/chrome/layout.pdf",
+        "output/playwright/v2244/layout-regression/chrome/pdf-date-grid.png",
+        "output/playwright/v2244/layout-regression/chrome/isometric-desktop.png",
+        "output/playwright/v2244/layout-regression/chrome/capability-mobile.png"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/layout-regression/msedge/results.json",
+      "sha256": "1dff39500f65f693d3a1f40730b78e305a087040f1095f904f95300113dbffec",
+      "runner": "tests/longitudinal-layout-browser-tests.cjs",
+      "checks": 13,
+      "artifacts": [
+        "output/playwright/v2244/layout-regression/msedge/pdf-date-grid.png",
+        "output/playwright/v2244/layout-regression/msedge/capability-desktop.png",
+        "output/playwright/v2244/layout-regression/msedge/speed-desktop.png",
+        "output/playwright/v2244/layout-regression/msedge/capability-mobile.png",
+        "output/playwright/v2244/layout-regression/msedge/isometric-desktop.png",
+        "output/playwright/v2244/layout-regression/msedge/layout.pdf"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/longitudinal-controls/chrome/results.json",
+      "sha256": "e1cefa3d439d98debb8a4d47acca56700c56d32f942d1a86f28e231c24480ccd",
+      "runner": "tests/longitudinal-controls-browser-tests.cjs",
+      "checks": 14,
+      "artifacts": [
+        "output/playwright/v2244/longitudinal-controls/chrome/comparison.html",
+        "output/playwright/v2244/longitudinal-controls/chrome/controls-overview.png",
+        "output/playwright/v2244/longitudinal-controls/chrome/comparison.json",
+        "output/playwright/v2244/longitudinal-controls/chrome/nine-dates.png",
+        "output/playwright/v2244/longitudinal-controls/chrome/comparison.pdf",
+        "output/playwright/v2244/longitudinal-controls/chrome/comparison-for-remap.json",
+        "output/playwright/v2244/longitudinal-controls/chrome/comparison-complete.motionbench.jsonl"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/longitudinal-controls/msedge/results.json",
+      "sha256": "1961388d5a5e8830f7aa4e15c1342c902463d9ca8cca1d07c1179bba60b19a34",
+      "runner": "tests/longitudinal-controls-browser-tests.cjs",
+      "checks": 14,
+      "artifacts": [
+        "output/playwright/v2244/longitudinal-controls/msedge/comparison-for-remap.json",
+        "output/playwright/v2244/longitudinal-controls/msedge/controls-overview.png",
+        "output/playwright/v2244/longitudinal-controls/msedge/comparison-complete.motionbench.jsonl",
+        "output/playwright/v2244/longitudinal-controls/msedge/comparison.pdf",
+        "output/playwright/v2244/longitudinal-controls/msedge/nine-dates.png",
+        "output/playwright/v2244/longitudinal-controls/msedge/comparison.html",
+        "output/playwright/v2244/longitudinal-controls/msedge/comparison.json"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/app/chrome/results.json",
+      "sha256": "f0c00cbf7a15978546033794704d13fe8ece3817f8bb852bd26ee042380b535c",
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "checks": 10,
+      "artifacts": [
+        "output/playwright/v2244/app/chrome/report-overview.png",
+        "output/playwright/v2244/app/chrome/comparison.json",
+        "output/playwright/v2244/app/chrome/comparison.html",
+        "output/playwright/v2244/app/chrome/report-desktop.png"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/app/msedge/results.json",
+      "sha256": "db0762f69f841618a5cd731a1c1b6a657455afb4d1373c4156313ac5b8789776",
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "checks": 10,
+      "artifacts": [
+        "output/playwright/v2244/app/msedge/comparison.html",
+        "output/playwright/v2244/app/msedge/comparison.json",
+        "output/playwright/v2244/app/msedge/report-overview.png",
+        "output/playwright/v2244/app/msedge/report-desktop.png"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/personal/chrome/chrome.json",
+      "sha256": "a75491c4900c67c64d02ee9f334f93188b8ead310fb1974094efe0f121a47b50",
+      "runner": "tests/report-v220-browser-tests.cjs",
+      "checks": 6,
+      "artifacts": [
+        "output/playwright/v2244/personal/chrome/chrome-primary.json",
+        "output/playwright/v2244/personal/chrome/chrome-primary.html",
+        "output/playwright/v2244/personal/chrome/chrome-report-1440.png",
+        "output/playwright/v2244/personal/chrome/chrome-report-390.png",
+        "output/playwright/v2244/personal/chrome/chrome-report-1024.png"
+      ],
+      "pass": true
+    },
+    {
+      "file": "output/playwright/v2244/personal/msedge/msedge.json",
+      "sha256": "2099d56908447b9e097197fa7902bb86d057b750a820502f526a839254245653",
+      "runner": "tests/report-v220-browser-tests.cjs",
+      "checks": 6,
+      "artifacts": [
+        "output/playwright/v2244/personal/msedge/msedge-report-1440.png",
+        "output/playwright/v2244/personal/msedge/msedge-primary.json",
+        "output/playwright/v2244/personal/msedge/msedge-report-390.png",
+        "output/playwright/v2244/personal/msedge/msedge-primary.html",
+        "output/playwright/v2244/personal/msedge/msedge-report-1024.png"
+      ],
+      "pass": true
+    },
+    {
+      "sha256": "e523b7cba132c9b430e9b31c02371f42521d0d857b3af83f91ccf9b9ac270a79",
+      "runner": "tests/longitudinal-ai-browser-tests.cjs",
+      "runnerSha256": "7c0fc559a3ec7d39b6d970d62ed5b82e1da21cf234a20393d21e7241f3598ad5",
+      "checks": 11
+    },
+    {
+      "sha256": "165e8c7b708a80699241054bececbb59c52e6ff304e7af03602514432132e82a",
+      "runner": "tests/longitudinal-ai-browser-tests.cjs",
+      "runnerSha256": "7c0fc559a3ec7d39b6d970d62ed5b82e1da21cf234a20393d21e7241f3598ad5",
+      "checks": 11
+    },
+    {
+      "sha256": "89f31e395c5482d4c7f8ad4b2b5657252b7789c69f783508df74707a65fe6211",
+      "runner": "tests/longitudinal-interaction-browser-tests.cjs",
+      "runnerSha256": "5666af8c7e3d9fc09a20079c13ae24a8b92b92f11ba2a936e632054f855e6c72",
+      "checks": 8
+    },
+    {
+      "sha256": "5329c76d7740affc54f5ef3d5b3d2f37bb8eb75c4a18b4693669a82193e05314",
+      "runner": "tests/longitudinal-interaction-browser-tests.cjs",
+      "runnerSha256": "5666af8c7e3d9fc09a20079c13ae24a8b92b92f11ba2a936e632054f855e6c72",
+      "checks": 8
+    }
+  ],
+  "pdfFiles": {
+    "output/playwright/v2244/layout/chrome/layout.pdf": 12,
+    "output/playwright/v2244/layout/msedge/layout.pdf": 12,
+    "output/playwright/v2244/layout-regression/chrome/layout.pdf": 11,
+    "output/playwright/v2244/layout-regression/msedge/layout.pdf": 11,
+    "output/playwright/v2244/longitudinal-controls/chrome/comparison.pdf": 98,
+    "output/playwright/v2244/longitudinal-controls/msedge/comparison.pdf": 98,
+    "output/playwright/v2244/system-candidate/existing-comparison.pdf": 86,
+    "output/desktop-smoke-v2244/native-downloads/MotionBench_Windows_桌面验收运动员（合成）_2026-10-11_bf8cac.pdf": 11
+  },
+  "ci": false,
+  "candidateVerified": true,
+  "privateVerified": true,
+  "private": {
+    "baseline": {
+      "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261019-system-before-2.24.4\\verification\\baseline\\receipt.json",
+      "sha256": "b1a2661496377b955ba5ea182a137a837a5cf38ad59f072eefa62d1363721255",
+      "checks": 5,
+      "example": {
+        "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+        "recordIds": [
+          "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+          "8a99ed67-0706-466a-a447-ff0f47368ca9",
+          "285dc077-3543-43a3-8903-d0e60ce2e9af",
+          "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+        ],
+        "dates": [
+          "2026-09-01",
+          "2026-09-15",
+          "2026-09-29",
+          "2026-10-13"
+        ],
+        "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+      },
+      "counts": {
+        "athletes": 2,
+        "records": 5
+      }
+    },
+    "candidate": {
+      "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261019-system-before-2.24.4\\verification\\candidate\\receipt.json",
+      "sha256": "5c6c03907051cbf5b543b80adaa255b47aaa637b0e934b8dda4e7e3466d0cde5",
+      "checks": 7,
+      "artifacts": [
+        "output/playwright/v2244/system-candidate/existing-comparison.json",
+        "output/playwright/v2244/system-candidate/existing-comparison.html",
+        "output/playwright/v2244/system-candidate/existing-comparison.pdf",
+        "output/playwright/v2244/system-candidate/existing-comparison.png"
+      ],
+      "example": {
+        "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+        "recordIds": [
+          "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+          "8a99ed67-0706-466a-a447-ff0f47368ca9",
+          "285dc077-3543-43a3-8903-d0e60ce2e9af",
+          "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+        ],
+        "dates": [
+          "2026-09-01",
+          "2026-09-15",
+          "2026-09-29",
+          "2026-10-13"
+        ],
+        "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+      },
+      "counts": {
+        "athletes": 2,
+        "records": 5
+      },
+      "independentCalculationsVerified": true,
+      "displayActions": 6,
+      "displayTransitions": 12,
+      "calculationRuntime": {
+        "file": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\node_modules\\electron\\dist\\electron.exe",
+        "sha256": "2529b494f4123f152bce346051f7bd855ef95006424a561953cf17c49a3d1ba8",
+        "electron": "44.7.0",
+        "v8": "15.2.124.28-electron.0",
+        "runAsNode": true
+      }
+    },
+    "installed": {
+      "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261019-system-before-2.24.4\\verification\\installed\\receipt.json",
+      "sha256": "00fc9daf4c454e8cc82f05c82800d75c4beceae3da037ecf55bd0c654193fb43",
+      "checks": 6,
+      "artifacts": [],
+      "example": {
+        "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+        "recordIds": [
+          "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+          "8a99ed67-0706-466a-a447-ff0f47368ca9",
+          "285dc077-3543-43a3-8903-d0e60ce2e9af",
+          "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+        ],
+        "dates": [
+          "2026-09-01",
+          "2026-09-15",
+          "2026-09-29",
+          "2026-10-13"
+        ],
+        "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+      },
+      "counts": {
+        "athletes": 2,
+        "records": 5
+      },
+      "independentCalculationsVerified": true,
+      "displayActions": 6,
+      "displayTransitions": 12,
+      "calculationRuntime": {
+        "file": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\node_modules\\electron\\dist\\electron.exe",
+        "sha256": "2529b494f4123f152bce346051f7bd855ef95006424a561953cf17c49a3d1ba8",
+        "electron": "44.7.0",
+        "v8": "15.2.124.28-electron.0",
+        "runAsNode": true
+      }
+    },
+    "reopened": {
+      "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261019-system-before-2.24.4\\verification\\reopened\\receipt.json",
+      "sha256": "1b6ac67db3dcb2aad2da2a0285cd3d1df05408acad7597ed09dfa386a27c2a32",
+      "checks": 4,
+      "artifacts": [],
+      "example": {
+        "athleteId": "f56b5a5a-6d80-442f-b4e6-73134659b06f",
+        "recordIds": [
+          "8d2e3b11-c17a-4211-9a61-3441316b1a8e",
+          "8a99ed67-0706-466a-a447-ff0f47368ca9",
+          "285dc077-3543-43a3-8903-d0e60ce2e9af",
+          "1a1865cb-560c-4617-b042-e4bf4e8d3db5"
+        ],
+        "dates": [
+          "2026-09-01",
+          "2026-09-15",
+          "2026-09-29",
+          "2026-10-13"
+        ],
+        "documentKey": "[\"f56b5a5a-6d80-442f-b4e6-73134659b06f\",[\"1a1865cb-560c-4617-b042-e4bf4e8d3db5\",\"285dc077-3543-43a3-8903-d0e60ce2e9af\",\"8a99ed67-0706-466a-a447-ff0f47368ca9\",\"8d2e3b11-c17a-4211-9a61-3441316b1a8e\"]]"
+      },
+      "counts": {
+        "athletes": 2,
+        "records": 5
+      },
+      "independentCalculationsVerified": true,
+      "displayActions": 0,
+      "displayTransitions": 0,
+      "calculationRuntime": {
+        "file": "D:\\OneDrive\\工作\\言鼎\\测试工作台\\node_modules\\electron\\dist\\electron.exe",
+        "sha256": "2529b494f4123f152bce346051f7bd855ef95006424a561953cf17c49a3d1ba8",
+        "electron": "44.7.0",
+        "v8": "15.2.124.28-electron.0",
+        "runAsNode": true
+      }
+    }
+  },
+  "native": {
+    "file": "output/desktop-smoke-v2244/results.json",
+    "sha256": "5b79e7053587a1587880c63d5adcece31e31e623b13552c6450e27e962ad2987",
+    "runner": "tests/desktop-smoke.cjs",
+    "runnerSha256": "b1998938e1487b9e00d038f8f0c40b2c29a0944e05a04b78408d8b76489b354d",
+    "checksPassing": 16,
+    "checksExpected": 16,
+    "pass": true,
+    "environmentIssue": null
+  },
+  "visuals": [
+    {
+      "file": "output/implementation-2.24.4/layout-visual-review.json",
+      "sha256": "a8934d2355d80455452b3f997cf00eb9b0948bad45ac1fd7b89fcf867454b80b",
+      "pages": 46,
+      "pass": true
+    },
+    {
+      "file": "output/implementation-2.24.4/visual-review.json",
+      "sha256": "df02c209ac7bb4a2c805b473cbca8488b0c15c5260a5a276cf64497f603f1059",
+      "pages": 86,
+      "pass": true
+    }
+  ],
+  "installation": {
+    "file": "output/implementation-2.24.4/system-installation.json",
+    "sha256": "7b14603b684dd1d7f0b1624fe7b5ac0ffb500bcc6df0ee9d6fe4102fc8206f4c",
+    "pass": true
+  },
+  "shortcut": {
+    "file": "output/implementation-2.24.4/shortcut-launch.json",
+    "sha256": "6e9ede3d690091a4e97529e18811b3d7fc7eaa36591ed9686338305888b89fa4",
+    "pass": true
+  },
+  "displayResumption": {
+    "file": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261019-system-before-2.24.4\\verification\\display-resumption\\receipt.json",
+    "sha256": "82cca3bb58c5d2000a27afdce53fc4061548fb08fe1793b09a90acf091b53f83",
+    "counts": {
+      "athletes": 2,
+      "records": 5
+    },
+    "protectedOriginalsVerified": true,
+    "displayActions": 0,
+    "displayTransitions": 0
+  }
+}

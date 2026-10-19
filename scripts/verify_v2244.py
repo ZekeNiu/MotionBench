@@ -18,6 +18,9 @@ BASELINE_RECEIPT_SHA = 'b1a2661496377b955ba5ea182a137a837a5cf38ad59f072eefa62d13
 BASELINE_SNAPSHOT_SHA = 'bacd965b709acc59030626c7623a4159502d18a1137110ab90d936b896562649'
 OUT = 'output/implementation-2.24.4/'
 ENTRY, STAGES, PROTECTION = 'tests/desktop-system-v2244-current.cjs', 'tests/helpers/desktop-system-v2244-stages.cjs', 'tests/helpers/v2244-display-preservation.cjs'
+REOPEN_ENTRY, REOPEN_STAGES = 'tests/desktop-system-v2244-reopened.cjs', 'tests/helpers/desktop-system-v2244-reopened-stages.cjs'
+PREINSTALL_VERIFIER = 'scripts/verify_v2244_preinstall.py'
+PREINSTALL_VERIFIER_SHA = 'c50f13be53c6950ebe38db91310a23916e1f7fbd9a5969b142b65917f98198e1'
 DEPS = {'tests/desktop-system-v2244.cjs', 'tests/desktop-system-v2243.cjs', 'tests/desktop-system-v2242.cjs', 'tests/helpers/playwright.cjs'}
 require, digest, read, linked, checks, receipt = prior.require, prior.digest, prior.read, prior.linked, prior.checks, prior.receipt
 shared.VERSION, shared.DESKTOP_VERSION, build.VERSION = VERSION, DESKTOP_VERSION, VERSION
@@ -95,16 +98,17 @@ def snapshots(item, directory):
 
 def identity(item, mode, manifest, source_hash=None):
     baseline, actual = mode == 'baseline', mode in ('installed', 'reopened')
+    entry, stages = (REOPEN_ENTRY, REOPEN_STAGES) if mode == 'reopened' else (ENTRY, STAGES)
     directory = CHECKPOINT / 'verification' / mode
-    require(item.get('mode') == mode and item.get('kind') == 'existing-data-display-preservation' and item.get('pass') is True and item.get('checks') == checks(ENTRY if baseline else STAGES, mode), 'Native check inventory is incomplete: ' + mode)
+    require(item.get('mode') == mode and item.get('kind') == 'existing-data-display-preservation' and item.get('pass') is True and item.get('checks') == checks(entry if baseline else stages, mode), 'Native check inventory is incomplete: ' + mode)
     require(item.get('errors') == item.get('network') == [] and not item.get('failure') and not item.get('closeFailure'), 'Native stage contains errors')
     for key in ('normalClose', 'runnerUnchanged', 'sourceUnchanged', 'artifactUnchanged', 'dependenciesUnchanged', 'originalPreserved', 'afterSaveUnchanged', 'defaultSession'):
         require(item.get(key) is True, 'Incomplete native proof: ' + key)
-    require(item.get('runnerSha256') == digest(ROOT / ENTRY), 'Frozen entry producer changed')
+    require(item.get('runnerSha256') == digest(ROOT / entry), 'Frozen entry producer changed')
     deps = DEPS if baseline else DEPS | {ENTRY, PROTECTION}
     require(set(item.get('dependencyHashes', {})) == deps and all(item['dependencyHashes'][file] == digest(ROOT / file) for file in deps), 'Native dependency inventory changed')
     if not baseline:
-        require(item.get('implementationUnchanged') is True and item.get('implementationSha256') == digest(ROOT / STAGES), 'Native stage producer changed')
+        require(item.get('implementationUnchanged') is True and item.get('implementationSha256') == digest(ROOT / stages), 'Native stage producer changed')
         require(item.get('baselineSnapshotSha256') == digest(CHECKPOINT / 'verification/baseline/snapshot.json') and item.get('baselineReceiptSha256') == digest(CHECKPOINT / 'verification/baseline/receipt.json'), 'Original baseline binding differs')
     require(item.get('backupManifestSha256') == MANIFEST_SHA and physical.same_path(item.get('backupManifest', ''), CHECKPOINT / 'manifest.json'), 'Native checkpoint binding differs')
     executable = (CHECKPOINT / 'program' if baseline else shared.INSTALLED if actual else shared.DIST) / 'MotionBench.exe'
@@ -142,7 +146,7 @@ def baseline_proof(manifest):
 
 DATA_PROOF = r"""
 const fs=require('fs'),path=require('path'),assert=require('assert/strict'),e=require('./tests/desktop-system-v2244-current.cjs'),s=require('./tests/helpers/desktop-system-v2244-stages.cjs'),p=require('./tests/helpers/v2244-display-preservation.cjs'),c=require('./tests/helpers/longitudinal-fixture.cjs').context();require('./src/ringside-longitudinal-views.js');
-const read=f=>JSON.parse(fs.readFileSync(f,'utf8').replace(/^\uFEFF/,'')),dir=process.argv[1],r=read(path.join(dir,'receipt.json')),original=read(process.argv[2]),sample=e.base.example(original.library),start=read(path.join(dir,'startup-snapshot.json')),selected=read(path.join(dir,'selected-snapshot.json')),final=read(path.join(dir,'snapshot.json')),reference=r.mode==='reopened'?read(path.join(dir,'../installed/snapshot.json')):original;
+const read=f=>JSON.parse(fs.readFileSync(f,'utf8').replace(/^\uFEFF/,'')),dir=process.argv[1],r=read(path.join(dir,'receipt.json')),original=read(process.argv[2]),sample=e.base.example(original.library),start=read(path.join(dir,'startup-snapshot.json')),selected=read(path.join(dir,'selected-snapshot.json')),final=read(path.join(dir,'snapshot.json')),reference=r.mode==='reopened'?read(path.join(dir,'../display-resumption/snapshot.json')):original;
 const plain=v=>JSON.parse(JSON.stringify(v,(_k,value)=>Object.prototype.toString.call(value)==='[object Set]'?{type:'Set',values:[...value]}:Object.prototype.toString.call(value)==='[object Map]'?{type:'Map',entries:[...value]}:value));
 p.same(r.startupWindow.start,r.launchStartedAt);p.require(Date.parse(r.startupWindow.end)<=Date.parse(r.completedAt),'Startup capture after completion');const initial=s.startupProof(start,reference,sample,r.startupCapture,r.startupWindow);p.same(initial.transitions,r.startupTransitions);p.same(r.guard.windowStart,r.launchStartedAt);let previous=initial.document;
 const replay=p.replay(r.guard,initial.document,p.document(original.library,sample),sample,{start:r.launchStartedAt,end:r.completedAt},RingsideLongitudinalViews.patch,r.mode==='reopened');p.require(replay.documents.some(doc=>p.equal(doc,selected.activeComparison.document))||p.equal(initial.document,selected.activeComparison.document),'Selected document is absent from transition history');s.completed(final,original,sample,r.guard);p.snapshot(selected,original,sample,selected.activeComparison.document);p.same(selected.activeComparison.model,original.activeComparison.model);if(r.mode!=='reopened'){p.same(final.activeComparison.document.views.charts,replay.charts);p.same([...replay.charts['fvp_sj:profile'].recordIds].sort(),[...sample.recordIds].sort());p.require(replay.charts['fvp_sj:profile'].options.fv===true&&replay.charts['sprint_fvp:profile'].metrics.F0===true,'Final original layers/metrics not restored');}else p.same(final.activeComparison.document.views.charts,reference.activeComparison.document.views.charts);
@@ -163,6 +167,8 @@ def stage_proof(mode, source_hash, manifest, pdf_files):
     if mode in ('installed', 'reopened'):
         key, previous = ('candidateSnapshotSha256', 'candidate') if mode == 'installed' else ('installedSnapshotSha256', 'installed')
         require(item.get(key) == digest(CHECKPOINT / f'verification/{previous}/snapshot.json'), 'Saved display-state stage binding differs')
+    if mode == 'reopened':
+        require(item.get('displayResumptionSnapshotSha256') == digest(CHECKPOINT / 'verification/display-resumption/snapshot.json'), 'Resumed display reference differs')
     value = prior.calculation_check(DATA_PROOF, directory, CHECKPOINT / 'verification/baseline/snapshot.json')
     require(item.get('example') == value['example'] and item.get('counts') == value['counts'], 'Native original inventory changed')
     files = []
@@ -182,6 +188,30 @@ def stage_proof(mode, source_hash, manifest, pdf_files):
     else:
         require(files == [], 'Actual-profile verification exported private artifacts')
     return receipt(directory / 'receipt.json', checks=len(item['checks']), artifacts=files, **value)
+
+
+RESUMPTION_PROOF = r"""
+const fs=require('fs'),path=require('path'),e=require('./tests/desktop-system-v2244-current.cjs'),s=require('./tests/helpers/desktop-system-v2244-stages.cjs'),p=require('./tests/helpers/v2244-display-preservation.cjs');require('./src/ringside-longitudinal-views.js');
+const read=f=>JSON.parse(fs.readFileSync(f,'utf8')),dir=process.argv[1],r=read(path.join(dir,'receipt.json')),before=read(path.join(dir,'observed-snapshot.json')),pre=read(path.join(dir,'pre-close-snapshot.json')),after=read(path.join(dir,'snapshot.json')),original=read(path.join(dir,'../baseline/snapshot.json')),installed=read(path.join(dir,'../installed/snapshot.json')),sample=e.base.example(original.library),old=p.document(original.library,sample);
+p.library(before.library,original.library,sample,p.document(before.library,sample));p.same(before.reports,original.reports);p.same(before.activeComparison.model,original.activeComparison.model);p.same(r.initialDocument,before.activeComparison.document);
+for(const doc of[p.document(before.library,sample),before.activeComparison.document]){const protectedCopy=p.clone(doc);for(const k of['views','revision','updated'])protectedCopy[k]=p.clone(old[k]);p.same(protectedCopy,old,'Protected comparison content changed during user display use');p.same(doc.views.charts,installed.activeComparison.document.views.charts);p.require(Number.isSafeInteger(doc.revision)&&doc.revision>=old.revision&&Number.isFinite(Date.parse(doc.updated))&&Date.parse(doc.updated)<=Date.parse(r.startedAt),'Invalid observed display metadata');}
+const preReplay=p.replay(r.preCloseGuard,r.initialDocument,old,sample,{start:r.startedAt,end:r.completedAt},RingsideLongitudinalViews.patch,true);s.completed(pre,original,sample,r.preCloseGuard);p.same(pre.activeComparison.document,preReplay.document);p.same(r.guard.transitions.slice(0,r.preCloseGuard.transitions.length),r.preCloseGuard.transitions,'Close history lost an earlier guarded transition');const replay=p.replay(r.guard,r.initialDocument,old,sample,{start:r.startedAt,end:r.completedAt},RingsideLongitudinalViews.patch,true);s.completed(after,original,sample,r.guard);p.same(after.activeComparison.document,replay.document);pre.library.longitudinalReports[pre.library.longitudinalReports.findIndex(d=>d.key===sample.documentKey)]=p.clone(replay.document);pre.activeComparison.document=p.clone(replay.document);p.same(pre,after,'Expected saved state contains an unobserved change');p.same(after.activeComparison.document.views.charts,installed.activeComparison.document.views.charts);p.same(after.activeComparison.document.views.reportScroll,0);process.stdout.write(JSON.stringify({counts:{athletes:after.library.athletes.length,records:after.reports.length},protectedOriginalsVerified:true,displayActions:r.guard.actions.length,displayTransitions:r.guard.transitions.length}));
+"""
+
+
+def resumption_proof(source_hash, manifest):
+    directory = CHECKPOINT / 'verification/display-resumption'
+    item = read(directory / 'receipt.json')
+    require(item.get('pass') is True and item.get('normalClose') is True and item.get('userConfirmedInterveningDisplayUse') is True, 'Display resumption incomplete')
+    require(item.get('sourceHash') == source_hash and item.get('runnerSha256') == digest(ROOT / 'tests/desktop-system-v2244-display-resumption.cjs'), 'Display resumption producer differs')
+    require(item.get('implementationSha256') == digest(ROOT / REOPEN_STAGES) and item.get('snapshotKind') == 'observed-data-with-guarded-close-document', 'Display close producer or reference semantics differ')
+    prior.actual_context_proof(item, directory, manifest)
+    require(digest(ROOT / PROTECTION) == 'cf0f3ca402aebbaf9fdefa7eb2e48eab489eea139d6387e2ccd3ed3013681f02', 'Frozen original-data protection changed')
+    for key, file in [('observedSnapshotSha256', directory / 'observed-snapshot.json'), ('preCloseSnapshotSha256', directory / 'pre-close-snapshot.json'), ('snapshotSha256', directory / 'snapshot.json'), ('baselineSnapshotSha256', directory.parent / 'baseline/snapshot.json'), ('installedSnapshotSha256', directory.parent / 'installed/snapshot.json')]:
+        require(item.get(key) == digest(file), 'Display resumption snapshot binding differs')
+    value = prior.node_check(RESUMPTION_PROOF, directory)
+    require(item.get('counts') == value['counts'] and value['displayActions'] == 0, 'Resumption inventory differs')
+    return receipt(directory / 'receipt.json', **value)
 
 
 def visual_proof(source_hash, producers, pdf_files, layout=False):
@@ -213,7 +243,8 @@ def installation_proof(manifest):
     relative = OUT + 'system-installation.json'
     item = read(relative)
     require(item.get('pass') is True and item.get('version') == DESKTOP_VERSION and item.get('installerExitCode') == 0, 'System installation failed')
-    require(item.get('runnerSha256') == digest(ROOT / 'scripts/install_v2244_system.ps1') and item.get('verifierSha256') == digest(Path(__file__)), 'Installation/preflight producer changed')
+    require(digest(ROOT / PREINSTALL_VERIFIER) == PREINSTALL_VERIFIER_SHA, 'Frozen preinstallation verifier changed')
+    require(item.get('runnerSha256') == digest(ROOT / 'scripts/install_v2244_system.ps1') and item.get('verifierSha256') == PREINSTALL_VERIFIER_SHA, 'Installation/preflight producer changed')
     require(physical.same_path(item.get('installationDirectory', ''), shared.INSTALLED) and physical.same_path(item.get('profilePath', ''), physical.profile_path()) and item.get('systemManifestSha256') == MANIFEST_SHA, 'Installed destination/checkpoint differs')
     require(item.get('parentName', '').lower() == 'explorer.exe' and physical.same_path(item.get('parentExecutable', ''), Path(os.environ['WINDIR']) / 'explorer.exe'), 'Installer did not run through real Desktop Explorer')
     launch = physical.broker_proof(ROOT / (OUT + 'system-installation-launch.json'), parent=item.get('parentProcessId'), style='Hidden')
@@ -268,7 +299,7 @@ def main():
     desktop = shared.suite_proof('output/tests/v2.24.4/desktop-unit/results.json', 'tests/run-desktop-unit-tests.cjs', source_hash, desktop=True)
     runtime, package = prior.package_proof(source_hash)
     browsers = [browser_proof(kind, channel, source_hash, runtime, pdf_files) for kind in ('layout', 'layout-regression', 'longitudinal-controls', 'app', 'personal', 'ai', 'interaction') for channel in ('chrome', 'msedge')]
-    private, native, visuals, installation, shortcut = None, None, [], None, None
+    private, native, visuals, installation, shortcut, resumption = None, None, [], None, None, None
     if not args.ci:
         manifest = checkpoint_proof()
         baseline = baseline_proof(manifest)
@@ -278,10 +309,12 @@ def main():
         visuals = [visual_proof(source_hash, [item for item in browsers if item['runner'] in ('tests/longitudinal-layout-v2244-tests.cjs', 'tests/longitudinal-layout-browser-tests.cjs')], pdf_files, layout=True), visual_proof(source_hash, [candidate], pdf_files)]
         if args.require_private:
             installation = installation_proof(manifest)
+            resumption = resumption_proof(source_hash, manifest)
             for mode in ('installed', 'reopened'):
                 private[mode] = stage_proof(mode, source_hash, manifest, pdf_files)
             shortcut = shortcut_proof(source_hash, baseline['example'], pdf_files)
     summary = {'version': VERSION, 'desktopVersion': DESKTOP_VERSION, 'pass': True, 'sourceHash': source_hash, 'verifierSha256': digest(Path(__file__)), 'modelSuites': len(unit['suites']), 'modelChecks': sum(item.get('checksPassed', 0) for item in unit['suites']), 'desktopUnitSuites': len(desktop['suites']), 'unitProof': receipt('output/tests/v2.24.4/unit-results.json'), 'desktopUnitProof': receipt('output/tests/v2.24.4/desktop-unit/results.json'), 'package': package, 'browsers': browsers, 'pdfFiles': pdf_files, 'ci': args.ci, 'candidateVerified': not args.ci, 'privateVerified': args.require_private, 'private': private, 'native': native, 'visuals': visuals, 'installation': installation, 'shortcut': shortcut}
+    summary['displayResumption'] = resumption
     require(digest(ROOT / 'MotionBench.html') == source_hash, 'Source changed during verification')
     if args.record:
         (ROOT / ('docs/acceptance-2.24.4-ci.json' if args.ci else 'docs/acceptance-2.24.4.json')).write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
