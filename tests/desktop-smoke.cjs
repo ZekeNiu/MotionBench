@@ -96,7 +96,7 @@ async function launch(dataDir, label) {
   });
   page.on("dialog", dialog => dialog.accept());
   await electron.context().setOffline(true);
-  await ready(page);
+  await ready(page);await electron.evaluate(({BrowserWindow})=>{const window=BrowserWindow.getAllWindows()[0];window.webContents.setBackgroundThrottling(false);window.on("show",()=>window.hide());window.hide();});
   const nativeWindow = await electron.evaluate(({ BrowserWindow, screen }) => {
     const window = BrowserWindow.getAllWindows()[0];
     const bounds = window.getBounds(), display = screen.getDisplayMatching(bounds);

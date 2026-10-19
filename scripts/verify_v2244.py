@@ -11,14 +11,14 @@ import verify_v2243 as prior
 shared, build, regression, physical = prior.shared, prior.build, prior.regression, prior.physical
 ROOT = shared.ROOT
 VERSION, DESKTOP_VERSION = '2.24.4', '2.24.4-desktop.1'
-CHECKPOINT = Path(r'D:\Application\Strength&Conditioning\MotionBench-backups\20261017-system-before-2.24.4')
-MANIFEST_SHA = 'dfa6227ac5fedad87074f7b36ba54b663dbecd6eb06724ed1b18884c1c6fc566'
-BASELINE_ENTRY_SHA = '5a506b52f56ef345f742bbdd994e0c895171080adbfca35d79626a0612ec6566'
-BASELINE_RECEIPT_SHA = '281319b7b6c216cddcbd4e0ea842dd01a965ff31cb59d40907480b039ea509ba'
-BASELINE_SNAPSHOT_SHA = 'c2f1bc55fb67654280e75a6ee543a0f4bfa045774e9652d30a0f4f00be9d0a1c'
+CHECKPOINT = Path(r'D:\Application\Strength&Conditioning\MotionBench-backups\20261019-system-before-2.24.4')
+MANIFEST_SHA = '4fe4a27c202cb6e1653f0058e5adf3bef1d4de2e5d37e8cd427c97e0cf39b227'
+BASELINE_ENTRY_SHA = 'd8878979128f74725d891b3d23fcc7d1038b76e3f5f367b161e3a16bf369fcd4'
+BASELINE_RECEIPT_SHA = 'b1a2661496377b955ba5ea182a137a837a5cf38ad59f072eefa62d1363721255'
+BASELINE_SNAPSHOT_SHA = 'bacd965b709acc59030626c7623a4159502d18a1137110ab90d936b896562649'
 OUT = 'output/implementation-2.24.4/'
-ENTRY, STAGES, PROTECTION = 'tests/desktop-system-v2244.cjs', 'tests/helpers/desktop-system-v2244-stages.cjs', 'tests/helpers/v2244-display-preservation.cjs'
-DEPS = {'tests/desktop-system-v2243.cjs', 'tests/desktop-system-v2242.cjs', 'tests/helpers/playwright.cjs'}
+ENTRY, STAGES, PROTECTION = 'tests/desktop-system-v2244-current.cjs', 'tests/helpers/desktop-system-v2244-stages.cjs', 'tests/helpers/v2244-display-preservation.cjs'
+DEPS = {'tests/desktop-system-v2244.cjs', 'tests/desktop-system-v2243.cjs', 'tests/desktop-system-v2242.cjs', 'tests/helpers/playwright.cjs'}
 require, digest, read, linked, checks, receipt = prior.require, prior.digest, prior.read, prior.linked, prior.checks, prior.receipt
 shared.VERSION, shared.DESKTOP_VERSION, build.VERSION = VERSION, DESKTOP_VERSION, VERSION
 regression.VERSION, regression.NATIVE = VERSION, 'output/desktop-smoke-v2244/results.json'
@@ -74,9 +74,12 @@ def browser_proof(kind, channel, source_hash, runtime, pdf_files):
 
 
 def checkpoint_proof():
+    original = CHECKPOINT.parent / '20261017-system-before-2.24.4'
+    for file, expected in ((original / 'manifest.json', 'dfa6227ac5fedad87074f7b36ba54b663dbecd6eb06724ed1b18884c1c6fc566'), (original / 'verification/baseline/receipt.json', '281319b7b6c216cddcbd4e0ea842dd01a965ff31cb59d40907480b039ea509ba'), (original / 'verification/baseline/snapshot.json', 'c2f1bc55fb67654280e75a6ee543a0f4bfa045774e9652d30a0f4f00be9d0a1c'), (ROOT / 'tests/desktop-system-v2244.cjs', '5a506b52f56ef345f742bbdd994e0c895171080adbfca35d79626a0612ec6566')):
+        require(digest(file) == expected, 'Original frozen checkpoint/producer changed')
     require(digest(CHECKPOINT / 'manifest.json') == MANIFEST_SHA, 'Original system checkpoint changed')
     manifest = read(CHECKPOINT / 'manifest.json')
-    require(manifest.get('runnerSha256') == digest(ROOT / 'scripts/prepare_v2244_system.ps1') and manifest.get('sourceCommit') == '09a6bf89bbd1ae70300d43f15857eadb1992b947', 'Checkpoint producer or original commit differs')
+    require(manifest.get('runnerSha256') == digest(ROOT / 'output/implementation-2.24.4/resume-20261019/prepare-fresh-checkpoint.ps1') and manifest.get('sourceCommit') == '09a6bf89bbd1ae70300d43f15857eadb1992b947', 'Checkpoint producer or original commit differs')
     require(manifest.get('fileCount') == 75 and len(manifest.get('programReference', {}).get('files', [])) == 74, 'Original checkpoint inventory differs')
     require(physical.same_path(manifest.get('source', {}).get('profile', ''), physical.profile_path()), 'Checkpoint belongs to another system profile')
     prior.node_check("const b=require('./tests/desktop-system-v2243.cjs');const value=b.verifyBackup(process.argv[1]);process.stdout.write(JSON.stringify({pass:true,files:value.manifest.fileCount}));", CHECKPOINT)
@@ -120,6 +123,7 @@ def identity(item, mode, manifest, source_hash=None):
         require(item.get('launchStartedAt') == launch.get('requestedAt'), 'Startup window must begin at the verified Explorer launch')
     else:
         require(item.get('launchArgs') == ['--motionbench-test', '--motionbench-data-dir=' + str(profile)] and item.get('profileCopy') == {'files': len(manifest['files']), 'bytes': manifest['bytes'], 'allFilesEqual': True}, 'Isolated native profile was not a complete original byte copy')
+        require(item.get('hiddenWindow') is True, 'Isolated verification window was not protected from desktop interaction')
         require(item.get('closeEvidence') == {'method': 'BrowserWindow.close', 'exited': True}, 'Isolated native app did not close normally')
     require(item.get('guard', {}).get('blocked') == [] and item['guard'].get('writes', 0) > 0, 'Data preservation guard is incomplete')
     snapshots(item, directory)
@@ -131,13 +135,13 @@ def baseline_proof(manifest):
     item = read(directory / 'receipt.json')
     identity(item, 'baseline', manifest)
     require(item.get('selectionPreservedData') is True and item.get('artifacts') == [] and item.get('pdfRequested') is False, 'Baseline scope differs')
-    value = prior.node_check("const fs=require('fs'),path=require('path'),e=require('./tests/desktop-system-v2244.cjs'),read=n=>JSON.parse(fs.readFileSync(path.join(process.argv[1],n),'utf8'));const a=read('startup-snapshot.json'),b=read('selected-snapshot.json'),c=read('snapshot.json'),r=read('receipt.json'),s=e.base.example(c.library);e.base.compareLibrary(a,b,s);e.base.compareSnapshots(b,c,s);e.checkMetadata(b,a,s,r.launchStartedAt,r.completedAt);e.checkMetadata(c,a,s,r.launchStartedAt,r.completedAt);process.stdout.write(JSON.stringify({example:s,counts:{athletes:c.library.athletes.length,records:c.reports.length}}));", directory)
+    value = prior.node_check("const fs=require('fs'),path=require('path'),e=require('./tests/desktop-system-v2244-current.cjs'),read=n=>JSON.parse(fs.readFileSync(path.join(process.argv[1],n),'utf8'));const a=read('startup-snapshot.json'),b=read('selected-snapshot.json'),c=read('snapshot.json'),r=read('receipt.json'),s=e.base.example(c.library);e.base.compareLibrary(a,b,s);e.base.compareSnapshots(b,c,s);e.checkMetadata(b,a,s,r.launchStartedAt,r.completedAt);e.checkMetadata(c,a,s,r.launchStartedAt,r.completedAt);process.stdout.write(JSON.stringify({example:s,counts:{athletes:c.library.athletes.length,records:c.reports.length}}));", directory)
     require(item.get('example') == value['example'] and item.get('counts') == value['counts'], 'Baseline identity/counts differ from snapshots')
     return receipt(directory / 'receipt.json', checks=len(item['checks']), **value)
 
 
 DATA_PROOF = r"""
-const fs=require('fs'),path=require('path'),assert=require('assert/strict'),e=require('./tests/desktop-system-v2244.cjs'),s=require('./tests/helpers/desktop-system-v2244-stages.cjs'),p=require('./tests/helpers/v2244-display-preservation.cjs'),c=require('./tests/helpers/longitudinal-fixture.cjs').context();require('./src/ringside-longitudinal-views.js');
+const fs=require('fs'),path=require('path'),assert=require('assert/strict'),e=require('./tests/desktop-system-v2244-current.cjs'),s=require('./tests/helpers/desktop-system-v2244-stages.cjs'),p=require('./tests/helpers/v2244-display-preservation.cjs'),c=require('./tests/helpers/longitudinal-fixture.cjs').context();require('./src/ringside-longitudinal-views.js');
 const read=f=>JSON.parse(fs.readFileSync(f,'utf8').replace(/^\uFEFF/,'')),dir=process.argv[1],r=read(path.join(dir,'receipt.json')),original=read(process.argv[2]),sample=e.base.example(original.library),start=read(path.join(dir,'startup-snapshot.json')),selected=read(path.join(dir,'selected-snapshot.json')),final=read(path.join(dir,'snapshot.json')),reference=r.mode==='reopened'?read(path.join(dir,'../installed/snapshot.json')):original;
 const plain=v=>JSON.parse(JSON.stringify(v,(_k,value)=>Object.prototype.toString.call(value)==='[object Set]'?{type:'Set',values:[...value]}:Object.prototype.toString.call(value)==='[object Map]'?{type:'Map',entries:[...value]}:value));
 p.same(r.startupWindow.start,r.launchStartedAt);p.require(Date.parse(r.startupWindow.end)<=Date.parse(r.completedAt),'Startup capture after completion');const initial=s.startupProof(start,reference,sample,r.startupCapture,r.startupWindow);p.same(initial.transitions,r.startupTransitions);p.same(r.guard.windowStart,r.launchStartedAt);let previous=initial.document;
@@ -148,7 +152,7 @@ const reports=[];for(const owner of final.library.athletes)for(const record of o
 
 
 EXPORT_PROOF = r"""
-const fs=require('fs'),path=require('path'),e=require('./tests/desktop-system-v2244.cjs'),s=require('./tests/helpers/desktop-system-v2244-stages.cjs'),read=f=>JSON.parse(fs.readFileSync(f,'utf8')),directory=process.argv[1],out=process.argv[2],saved=read(path.join(directory,'selected-snapshot.json')),receipt=read(path.join(directory,'receipt.json')),sample=e.base.example(saved.library),window={start:receipt.launchStartedAt,end:receipt.completedAt};s.verifyExport(read(path.join(out,'existing-comparison.json')),saved,sample,window);const embedded=fs.readFileSync(path.join(out,'existing-comparison.html'),'utf8').match(/<script\b[^>]*\bid="embedded-data"[^>]*>([\s\S]*?)<\/script>/i);if(!embedded)throw Error('Missing saved HTML snapshot');s.verifyExport(JSON.parse(embedded[1]),saved,sample,window);process.stdout.write(JSON.stringify({pass:true}));
+const fs=require('fs'),path=require('path'),e=require('./tests/desktop-system-v2244-current.cjs'),s=require('./tests/helpers/desktop-system-v2244-stages.cjs'),read=f=>JSON.parse(fs.readFileSync(f,'utf8')),directory=process.argv[1],out=process.argv[2],saved=read(path.join(directory,'selected-snapshot.json')),receipt=read(path.join(directory,'receipt.json')),sample=e.base.example(saved.library),window={start:receipt.launchStartedAt,end:receipt.completedAt};s.verifyExport(read(path.join(out,'existing-comparison.json')),saved,sample,window);const embedded=fs.readFileSync(path.join(out,'existing-comparison.html'),'utf8').match(/<script\b[^>]*\bid="embedded-data"[^>]*>([\s\S]*?)<\/script>/i);if(!embedded)throw Error('Missing saved HTML snapshot');s.verifyExport(JSON.parse(embedded[1]),saved,sample,window);process.stdout.write(JSON.stringify({pass:true}));
 """
 
 

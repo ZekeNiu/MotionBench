@@ -8,7 +8,7 @@ trap {
  exit 1
 }
 $installation = 'D:\Application\Strength&Conditioning\MotionBench'
-$checkpoint = 'D:\Application\Strength&Conditioning\MotionBench-backups\20261017-system-before-2.24.4'
+$checkpoint = 'D:\Application\Strength&Conditioning\MotionBench-backups\20261019-system-before-2.24.4'
 $candidate = Join-Path $workspace 'dist-desktop\win-unpacked'
 $installer = Join-Path $workspace 'dist-desktop\MotionBench-2.24.4-desktop.1-Setup-x64.exe'
 $profile = Join-Path $env:APPDATA 'MotionBench Desktop'
