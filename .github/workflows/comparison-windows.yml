@@ -43,27 +43,29 @@ jobs:
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/tests/v2.24.4
+          node tests/run-unit-tests.cjs --artifact-dir output/tests/v2.24.5
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-desktop-unit-tests.cjs --artifact-dir output/tests/v2.24.4/desktop-unit
+          node tests/run-desktop-unit-tests.cjs --artifact-dir output/tests/v2.24.5/desktop-unit
       - name: Check personal reports and all comparison flows in both browsers
         shell: pwsh
         run: |
           foreach ($channel in @('chrome','msedge')) {
             [string[]]$browserArgument = @(if ($channel -eq 'msedge') { '--edge' })
-            node tests/longitudinal-layout-v2244-tests.cjs @browserArgument "--artifact-dir=output/playwright/v2244/layout/$channel"
+            node tests/longitudinal-layout-v2244-tests.cjs @browserArgument "--artifact-dir=output/playwright/v2245/layout/$channel"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            node tests/longitudinal-layout-browser-tests.cjs @browserArgument "--artifact-dir=output/playwright/v2244/layout-regression/$channel"
+            node tests/longitudinal-layout-browser-tests.cjs @browserArgument "--artifact-dir=output/playwright/v2245/layout-regression/$channel"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            node tests/longitudinal-controls-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2244/longitudinal-controls/$channel"
+            node tests/longitudinal-controls-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2245/controls/$channel"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            node tests/longitudinal-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2244/app/$channel"
+            node tests/longitudinal-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2245/app/$channel"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            node tests/report-v220-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2244/personal/$channel"
+            node tests/report-v220-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2245/personal/$channel"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            node tests/longitudinal-ai-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2244/ai/$channel"
+            node tests/longitudinal-ai-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2245/ai/$channel"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-            node tests/longitudinal-interaction-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2244/interaction/$channel"
+            node tests/longitudinal-interaction-browser-tests.cjs @browserArgument --artifact-dir "output/playwright/v2245/interaction/$channel"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            node tests/longitudinal-followup-browser-tests.cjs @browserArgument "--artifact-dir=output/playwright/v2245/followup/$channel"
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
       - name: Build and verify the standalone Windows programs
@@ -74,16 +76,16 @@ jobs:
       - name: Exercise comparison export and reopen in packaged Electron
         run: |
           $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
-          node tests/longitudinal-browser-tests.cjs --desktop --pdf --artifact-dir output/playwright/v2244/app/desktop
+          node tests/longitudinal-browser-tests.cjs --desktop --pdf --artifact-dir output/playwright/v2245/app/desktop
       - name: Verify the source-bound synthetic evidence
-        run: python scripts/verify_v2244.py --ci
+        run: python scripts/verify_v2245.py --ci
       - name: Save synthetic test evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: MotionBench-Comparison-Windows-${{ github.run_number }}
           path: |
-            output/tests/v2.24.4/
-            output/playwright/v2244/
+            output/tests/v2.24.5/
+            output/playwright/v2245/
             output/desktop-package/
           retention-days: 14

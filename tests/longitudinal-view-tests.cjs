@@ -101,12 +101,12 @@ test("folded raw trials retain dates, both FVP protocols and escaped notes",()=>
 test("PDF comparison hook bypasses single-record FVP replacement and repaginates all graphs",()=>{const source=fs.readFileSync(path.join(__dirname,"../src/ringside-pdf.js"),"utf8");assert.match(source,/clone\.dataset\.longitudinal !== "true"/);assert.match(source,/RingsideLongitudinalView\?\.layout\(source, \{ print: true \}\)/);});
 test("quick summary keeps its four roles with large change counts and every metric name in compact text",()=>{
  const m={...model,changeSummary:{declined:[],improved:Array.from({length:5},(_,i)=>({id:'summary-'+i,projectName:'项目'+i,name:'指标'+i,label:'项目'+i+' · 指标'+i,unit:'cm',change:{available:true,kind:'absolute',delta:i+.5,percent:i+1,improvement:'improved'}}))}},html=V.render(m).summary;
- assert.equal((html.match(/<article /g)||[]).length,4);for(const label of['运动员基本信息','下降','改善','所选比较日期','暂无下降指标'])assert.ok(html.includes(label));assert.match(html,/<div class="micro-value">5<small> 项<\/small>/);assert.match(html,/<div class="micro-value">0<small> 项<\/small>/);assert.equal((html.match(/data-summary-metric=/g)||[]).length,5);assert.doesNotMatch(html,/<details|longitudinal-change |<li data-summary-metric|%/);for(const p of m.periods)assert.ok(html.includes('data-summary-record="'+p.id+'"'));
+ assert.equal((html.match(/<article /g)||[]).length,4);for(const label of['运动员基本信息','下降','改善','所选比较日期','暂无下降指标'])assert.ok(html.includes(label));assert.match(html,/<div class="micro-value green">5<small> 项<\/small>/);assert.match(html,/<div class="micro-value red">0<small> 项<\/small>/);assert.equal((html.match(/data-summary-metric=/g)||[]).length,5);assert.doesNotMatch(html,/<details|longitudinal-change |<li data-summary-metric|%/);for(const p of m.periods)assert.ok(html.includes('data-summary-record="'+p.id+'"'));
  m.changeSummary.improved=[{id:'fms',projectName:'FMS 动作筛查',name:'深蹲评分',label:'FMS 动作筛查 · 深蹲评分',unit:'分',pain:{from:true,to:false},change:{available:true,kind:'ordinal',from:{value:0},to:{value:2},improvement:'improved'}}];assert.match(V.render(m).summary,/FMS 动作筛查 · 深蹲评分/);assert.doesNotMatch(V.render(m).summary,/0（疼痛） → 2/);
 });
 test("summary ranks only valid relative changes stably without mutating source metrics",()=>{
  const item=(id,change)=>({id,projectName:id,name:'指标',label:id+' · 指标',unit:'cm',change:{available:true,kind:'absolute',from:{value:10},...change}}),items=[item('ordinal',{kind:'ordinal',percent:1000}),item('small',{percent:-5,delta:9000}),item('tied-first',{percent:20,delta:1}),item('no-percent',{delta:100000}),item('tied-second',{percent:-20,delta:-10}),item('largest',{percent:30,delta:.1}),item('points',{kind:'percentage-point',percent:999}),item('zero-baseline',{percent:999,from:{value:0}}),item('negative-baseline',{percent:999,from:{value:-10}}),item('not-finite',{percent:Infinity}),item('numeric-string',{percent:'99'})],m={...model,changeSummary:{declined:items,improved:[]}},before=items.map(i=>i.id),html=V.render(m).summary,order=[...html.matchAll(/data-summary-metric="([^"]+)"/g)].map(m=>m[1]);
- assert.deepEqual(order,['largest','tied-first','tied-second','small','ordinal','no-percent','points','zero-baseline','negative-baseline','not-finite','numeric-string']);assert.deepEqual(items.map(i=>i.id),before);assert.match(html,/<h3>下降<\/h3>/);assert.match(html,/<h3>改善<\/h3>/);assert.doesNotMatch(html,/<h3>首末/);assert.match(html,/class="longitudinal-summary-names" title="largest · 指标；tied-first · 指标/);assert.match(html,/<div class="micro-value">11<small> 项<\/small>/);
+ assert.deepEqual(order,['largest','tied-first','tied-second','small','ordinal','no-percent','points','zero-baseline','negative-baseline','not-finite','numeric-string']);assert.deepEqual(items.map(i=>i.id),before);assert.match(html,/<h3>下降<\/h3>/);assert.match(html,/<h3>改善<\/h3>/);assert.doesNotMatch(html,/<h3>首末/);assert.match(html,/class="longitudinal-summary-names" title="largest · 指标；tied-first · 指标/);assert.match(html,/<div class="micro-value red">11<small> 项<\/small>/);
 });
 test("overview alone uses a dated table below three dimensions without any upper dimension cutoff",()=>{
  for(const count of[1,2,3,9,12]){const chart={kind:'radar',title:'运动表现概览',overview:true,max:100,axes:Array.from({length:count},(_,i)=>({key:'a'+i,label:'能力'+i})),series:model.periods.map(p=>({id:p.id,label:p.label,color:p.color,values:Array(count).fill(82)}))},html=V.draw(chart,450);assert.equal(/<table/.test(html),count<3);assert.equal(/<svg/.test(html),count>=3);for(const p of model.periods)assert.ok(html.includes(p.label));if(count>=3)assert.equal((html.match(/data-longitudinal-axis-label=/g)||[]).length,count);}
@@ -167,5 +167,25 @@ test("plot date filters recompute observed connections from the displayed measur
  assert.equal(bar.values.find(v=>v.groupId==="dj"&&v.recordId===ids[2]).rsiComparableToPrevious,true);
  assert.equal(mas.values[1].comparableToPrevious,true);
  assert.equal(height.cells[2].comparableToPrevious,true);
+});
+test("unset evaluations disappear while measurements pain and distinct missing reasons survive print",()=>{
+ const labels=["未设置评价","未启用评价标准","未设等级区间","未启用标准"];
+ const rows=labels.map((label,i)=>({id:'unset-'+i,name:'读数',unit:'N',cells:model.periods.map(()=>({value:12,assessment:{status:'gray',label},notes:label+'；原始备注'})),changes:{}}));
+ rows.push({id:'pain',name:'疼痛',cells:[{value:0,pain:true,assessment:{status:'red',label:'疼痛'}},null,null],changes:{}});
+ const html=V.table(rows,model.periods),compact=JSON.parse(decode(html.match(/data-longitudinal-table="([^"]+)"/)[1]));
+ for(const out of[html,V.table(compact.rows,compact.periods,{print:true,wrapped:false})]){assert.doesNotMatch(out,/<span class="pill gray longitudinal-assessment"/);assert.doesNotMatch(out,/<small>未设置评价/);assert.match(out,/<strong>12<\/strong>/);assert.match(out,/原始备注/);assert.match(out,/pill red longitudinal-assessment/);}
+});
+test("FMS uses a fixed zero-to-three mini chart with semantic colors and no ordinal arrows",()=>{
+ const fixture=createFixture(c,3);fixture.records.forEach((r,i)=>{r.data.fms[0].score=[1,3,2][i];r.data.fms[0].pain=false;});
+ const m=L.build(fixture.records,fixture),row=m.projects.find(p=>p.id==='fms').metrics.find(r=>r.id==='fms:0'),before=JSON.stringify(row),html=V.table([row],m.periods),compact=JSON.parse(decode(html.match(/data-longitudinal-table="([^"]+)"/)[1]));
+ assert.equal(row.changes.overall.improvement,'improved');assert.equal(row.changes.recent.improvement,'declined');
+ for(const out of[V.table([row],m.periods,{wrapped:false}),V.table(compact.rows,compact.periods,{print:true,wrapped:false})]){assert.match(out,/longitudinal-fms-change improved/);assert.match(out,/longitudinal-fms-change declined/);assert.equal((out.match(/data-score-scale="0-3"/g)||[]).length,2);assert.match(out,/起点 1 分，终点 2 分/);assert.match(out,/起点 3 分，终点 2 分/);assert.doesNotMatch(out,/1 → 2|3 → 2|相对/);}
+ assert.equal(JSON.stringify(row),before);
+});
+test("joint balance remains visible and explains unselected counterparts without using their stored values",()=>{
+ const fixture=createFixture(c,3);for(const r of fixture.records)r.isoDirectionIds=['iso_shoulder_externalRotation','iso_hip_abduction','iso_knee_extension','iso_ankle_dorsiflexion'];
+ const before=JSON.stringify(fixture),m=L.build(fixture.records,fixture),iso=m.projects.find(p=>p.id==='iso');assert.ok(!iso.metrics.some(row=>row.section==='balance'));
+ const html=V.render(m).details;assert.match(html,/data-iso-section="balance"/);assert.match(html,/未选入配对方向/);for(const name of['内旋','内收','屈曲','跖屈'])assert.ok(html.includes(name));assert.equal(JSON.stringify(fixture),before);
+ assert.ok(!/data-metric-id="balance:/.test(html));
 });
 console.log(`${passed} longitudinal view checks passed`);
