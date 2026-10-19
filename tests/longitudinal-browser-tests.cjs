@@ -16,7 +16,7 @@ async function main(){
   const startNative=async()=>{
     const executable=process.env.MOTIONBENCH_EXECUTABLE||require('electron'),env={...process.env,MOTIONBENCH_TEST_EXPORT_DIR:path.join(temporary,'downloads')};delete env.ELECTRON_RUN_AS_NODE;
     electron=await _electron.launch({executablePath:executable,args:[...(process.env.MOTIONBENCH_EXECUTABLE?[]:[root]),'--motionbench-test','--motionbench-data-dir='+temporary],cwd:root,env,timeout:60000});
-    page=await electron.firstWindow();watch(page);await wait();await electron.evaluate(({BrowserWindow})=>{const window=BrowserWindow.getAllWindows()[0];window.webContents.setBackgroundThrottling(false);window.on("show",()=>window.hide());window.hide();});
+    page=await electron.firstWindow();watch(page);await wait();
     assert.equal(path.resolve(await electron.evaluate(({app})=>app.getPath('userData'))),path.resolve(temporary));
     result.identity=require('./helpers/desktop-artifact-identity.cjs').desktopArtifactIdentity(root,executable,__filename);
     result.versions=await page.evaluate(()=>({desktop:MotionBenchDesktop.version,web:MotionBenchDesktop.webVersion,build:RingsideBuild.version}));
