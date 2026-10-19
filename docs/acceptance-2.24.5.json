@@ -147,7 +147,7 @@
   },
   "shortcut": {
     "file": "output/implementation-2.24.5/shortcut-check.json",
-    "sha256": "d8fad55306cd8bb8848f0240e584c4f5ececcd1e172f52d9127e92821d87d310"
+    "sha256": "ed8a1087d2d8f7d60ed54557ed9b4481b333789f1d3524e3379c93e3bbd62bbb"
   },
   "nativeSmoke": {
     "file": "output/desktop-smoke-v2245/results.json",
