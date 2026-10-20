@@ -62,25 +62,7 @@
     const h=count>12?(print?440:500):count>8?(print?370:410):print?295:330, cx=w/2,cy=h/2-5,r=Math.max(35,Math.min(w/2-(count>10?70:65),h/2-52));
     const polar=(index,value)=>{const a=-Math.PI/2+index*2*Math.PI/count;return[cx+Math.cos(a)*r*value/max,cy+Math.sin(a)*r*value/max];};
     const ring=(value,attrs)=>count<3?`<circle cx="${cx}" cy="${cy}" r="${r*value/max}" ${attrs}/>`:`<polygon points="${points(axes.map((_,i)=>polar(i,value)))}" ${attrs}/>`;
-    const bandColors={red:"#f5dcd9",amber:"#f8edcf",green:"#e9f1ec",gray:"#edf0f3"};
-    let out="",overviewBands=0,overviewUnshared=0;
-    if(spec.overview)axes.forEach((axis,index)=>{
-      const cells=series.filter(s=>N(s.values[index])!==null).map(s=>s.cells?.[index]),references=cells.map(cell=>cell?.overviewReference||null),reference=references[0];
-      if(!reference||references.some(other=>JSON.stringify(other)!==JSON.stringify(reference))){overviewUnshared++;return;}
-      const edge=(neighbor,value)=>{const a=polar(index,value),b=polar((index+neighbor+count)%count,value);return[(a[0]+b[0])/2,(a[1]+b[1])/2];};
-      for(const band of reference.ranges||[]){
-        const low=Math.max(0,N(band.min)??0),high=Math.min(max,N(band.max)??max);
-        if(high<low)continue;
-        if(high===low){
-          if(N(band.min)!==N(band.max)||!band.includeMin||!band.includeMax)continue;
-          out+=`<polyline data-overview-threshold="${E(band.status)}" data-overview-axis="${E(axis.key)}" data-score-value="${low}" points="${points([edge(-1,low),polar(index,low),edge(1,low)])}" fill="none" stroke="${({red:C.red,amber:C.amber,green:C.green})[band.status]||C.muted}" stroke-width="2"><title>${E(axis.label+" · "+band.label+" · "+F(low)+" 分")}</title></polyline>`;
-          overviewBands++;continue;
-        }
-        const sector=[edge(-1,high),polar(index,high),edge(1,high),edge(1,low),polar(index,low),edge(-1,low)];
-        out+=`<polygon data-overview-band="${E(band.status)}" data-overview-axis="${E(axis.key)}" data-score-min="${low}" data-score-max="${high}" points="${points(sector)}" fill="${bandColors[band.status]||bandColors.gray}"><title>${E(axis.label+" · "+band.label+" · "+F(low)+"–"+F(high)+" 分")}</title></polygon>`;
-        overviewBands++;
-      }
-    });
+    let out="";
     if(spec.risk){
       const mix=(a,b,t)=>"#"+[1,3,5].map(i=>Math.round(parseInt(a.slice(i,i+2),16)*(1-t)+parseInt(b.slice(i,i+2),16)*t).toString(16).padStart(2,"0")).join("");
       out+=ring(3,'fill="#e9f1ec"');
@@ -93,9 +75,7 @@
       if(count>=3){if(list.every(Boolean))out+=`<polygon class="radar-fill" points="${points(list)}" fill="${s.color}" fill-opacity="${opacity}" stroke="${s.color}" stroke-width="1.8"${dash}/>`;else{for(let i=0;i<count;i++)if(list[i]&&list[(i+1)%count])out+=`<polygon class="radar-fill" points="${points([[cx,cy],list[i],list[(i+1)%count]])}" fill="${s.color}" fill-opacity="${opacity}" stroke="none"/>`;out+=pathsWithGaps([...list,list[0]],s.color,dash);}}
       list.forEach((p,i)=>{if(p){const grade=spec.risk?root.RingsideResultDisplay.trafficLabel({0:"red",1:"red",2:"amber",3:"green"}[s.values[i]]):F(s.values[i])+(spec.tickSuffix||" / "+max);out+=dot(...p,s.color,`${s.label} · ${axes[i].label} ${grade}${s.cells?.[i]?.pain?" · 疼痛":""}`,3.6);}});
     }
-    const gradeKey=spec.risk||overviewBands?`<p class="longitudinal-chart-note longitudinal-risk-key${spec.overview?' longitudinal-overview-key':''}">${["red","amber","green"].map(status=>`<span><i style="background:${bandColors[status]}"></i>${E(root.RingsideResultDisplay.trafficLabel(status))}</span>`).join("")}</p>`:"";
-    const overviewNote=spec.overview?`<p class="longitudinal-chart-note">底色按各能力的评价标准显示。${overviewUnshared?'评价标准不同、未设置或无法对应评分刻度的维度留白。':''}</p>`:"";
-    return svg(w,h,spec.title,out)+legend(series)+gradeKey+overviewNote+(spec.fms?'<p class="longitudinal-chart-note">0 疼痛 · 1 未完成 · 2 代偿完成 · 3 无代偿完成</p>':"");
+    return svg(w,h,spec.title,out)+legend(series)+(spec.risk?`<p class="longitudinal-chart-note longitudinal-risk-key">${[["red","#f5dcd9"],["amber","#f8edcf"],["green","#e9f1ec"]].map(([status,color])=>`<span><i style="background:${color}"></i>${E(root.RingsideResultDisplay.trafficLabel(status))}</span>`).join("")}</p>`:spec.fms?'<p class="longitudinal-chart-note">0 疼痛 · 1 未完成 · 2 代偿完成 · 3 无代偿完成</p>':"");
   }
   function columns(spec,width,print) {
     const w=Math.max(250,Math.round(width)),h=(print?285:330)+(spec.grouped?30:0),left=48,right=w-(spec.rsi?48:20),top=40,bottom=h-(spec.grouped?104:74),periods=spec.periods,values=spec.values,all=spec.scaleValues || values;
@@ -430,7 +410,7 @@
       return `<article class="capability-direction-card longitudinal-capability" data-capability-direction="${E(key)}"><div class="capability-card-summary"><h4>${E(latest.title)}</h4><div class="longitudinal-direction-grid" data-longitudinal-grid="directions" data-period-count="${periods.length}">${samples.map((d,i)=>d?`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date"><i style="background:${E(periods[i].color)}"></i>${E(periodLabel(periods[i]))}</p><p class="capability-direction-judgment ${E(d.status || "gray")}">${E(d.judgment)}</p><p class="capability-direction-basis">${E(d.label)}</p><p class="capability-direction-value">${F(d.value,3)} ${E(d.unit && d.unit!=="比值"?d.unit:"")}</p>${d.context?.angle?`<p class="capability-direction-context">${F(d.context.angle,0)}° 目标方向</p>`:""}${N(d.context?.targetDistanceM)!==null?`<p class="capability-direction-context">目标距离 ${F(d.context.targetDistanceM,1)} m</p>`:""}</section>`:`<section class="longitudinal-direction-period"><p class="longitudinal-direction-date">${E(periodLabel(periods[i]))}</p><p>—</p></section>`).join("")}</div></div>${card?`<details id="longitudinal-capability-parameters-${E(key)}" class="capability-card-parameters longitudinal-capability-parameters" data-capability-parameters="${E(key)}"><summary><span>查看相关参数</span><small>${card.metrics.length} 项</small></summary>${table(card.metrics,periods)}<div class="longitudinal-capability-notes">${periods.map(period=>capabilitySupplement(period,key,nativeHTML.get(period.id))).join("")}</div></details>`:""}</article>`;}).join("");
     const profiles=model.projects.filter(isProfile).map(projectHTML).join("");
     const capability=(directionCards?`<div class="capability-direction-grid" data-capability-analysis>${directionCards}</div>`:"")+profiles;
-    const chartSeries=data=>dateStyles(data.series.map(s=>({id:s.id,recordId:s.recordId,label:s.label,color:s.color,values:s.values,cells:s.cells?.map(c=>c?{pain:c.pain,...(c.overviewReference?{overviewReference:c.overviewReference}:{})}:null)})),periods);
+    const chartSeries=data=>dateStyles(data.series.map(s=>({id:s.id,recordId:s.recordId,label:s.label,color:s.color,values:s.values,cells:s.cells?.map(c=>c?{pain:c.pain}:null)})),periods);
     const riskSpec={kind:"radar",chartId:"risk",title:"损伤风险筛查",showTitle:false,max:3,risk:true,axes:model.risk.axes,series:chartSeries(model.risk)},overviewSpec={kind:"radar",chartId:"overview",title:"运动表现概览",showTitle:false,overview:true,max:100,axes:model.overview.axes,series:chartSeries(model.overview)};
     return{summary:summaryCards(model),body:chartPanel(riskSpec,model,views),overview:chartPanel(overviewSpec,model,views),legend:"",screenPill:model.risk.axes.length+" 个区域",referenceLabel:model.overview.axes.length+" 个能力维度",screenItems:"",details:`<details class="details-group" id="screenDetail" open><summary>损伤风险筛查<span>按测试日期比较</span></summary><div class="quality-group">${screening || empty("尚无筛查结果")}</div></details><details class="details-group" id="performanceDetail" open><summary>运动表现测试<span>按测试日期比较</span></summary><div class="quality-group">${performance || empty("尚无运动表现结果")}</div></details>${capability?`<details class="details-group" id="capabilityDetail" open><summary>能力结构分析<span>各次参数与变化</span></summary><div class="quality-group capability-analysis-content">${capability}</div></details>`:""}`};
   }

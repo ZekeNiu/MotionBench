@@ -286,7 +286,7 @@
           }).sort((a, b) => a.id.localeCompare(b.id));
           result.set(region, { assessmentKind: "screening", value: riskScore[detail.status] ?? null, unit: "分", name: riskOrder.find(([key]) => key === region)?.[1] || region, measurementScale: "ordinal", context: { region }, direction: "higher", coverageKey: canonical(coverage), evaluationKey: canonical(tests.map(test => ({ id: test.id, target: test.target, kind: test.targetKind, source: test.referenceSource }))), tests: clone(tests), pain: tests.some(test => test.pain), evaluation: { grade: { status: detail.status, label: detail.label } }, notes: detail.detail || "" });
         }
-      } else for (const axis of period.stats.axes) result.set(axis.key, { ...axis, name: axis.label, value: N(axis.value), overviewReference: root.RingsideResultDisplay.abilityReference(axis, period.record), unit: "分", measurementScale: "interval", context: { members: axis.members, method: axis.method, transforms: axis.transforms }, direction: null });
+      } else for (const axis of period.stats.axes) result.set(axis.key, { ...axis, name: axis.label, value: N(axis.value), unit: "分", measurementScale: "interval", context: { members: axis.members, method: axis.method, transforms: axis.transforms }, direction: null });
       return result;
     });
     const keys = kind === "risk" ? riskOrder.map(([id]) => id).filter(id => maps.some(map => map.has(id))) : [...new Set(maps.flatMap(map => [...map.keys()]))];

@@ -7,8 +7,8 @@ compression: maximum
 npmRebuild: false
 forceCodeSigning: false
 extraMetadata:
-  version: 2.24.9-desktop.1
-  webVersion: 2.24.9
+  version: 2.24.8-desktop.1
+  webVersion: 2.24.8
 directories:
   output: dist-desktop
   buildResources: desktop/assets

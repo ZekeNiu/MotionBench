@@ -81,86 +81,6 @@
     reference.ranges = referenceRanges(boundaries, value => root.RingsideModel.evaluation(value, effective, { rules: { scoreAmber, scoreGreen } }), factor);
     return reference;
   }
-  // Ability scores are display coordinates, not a universal traffic-light
-  // scale. Project the actual ability grade only where that coordinate has a
-  // unique measurement inverse; a saturated score must not invent a grade.
-  function abilityReference(axis, record) {
-    const M = root.RingsideModel, S = root.RingsideScoring;
-    if (!axis || !record || !["primary", "mean"].includes(axis.method)) return null;
-    const cfg = root.RingsideTests.axisConfig(record, axis.key);
-    if (cfg && cfg.method !== axis.method) return null;
-    const base = { kind: "ranges", unit: "分", direction: "higher" };
-    const partition = (boundaries, evaluate) => referenceRanges([0, 100, ...boundaries], score => score < 0 || score > 100 ? null : evaluate(score));
-    if (axis.method === "mean") {
-      if (!cfg?.ranges?.length) return null;
-      const definition = { referenceEnabled: true, ranges: cfg.ranges };
-      const ranges = partition(cfg.ranges.flatMap(range => [range.min, range.max]), score => { const grade = M.grade(score, definition); return grade.range ? grade : null; });
-      return ranges.length ? { ...base, basis: { kind: "ability-mean-ranges", ranges: cfg.ranges.map(range => ({ ...range })) }, ranges } : null;
-    }
-    if (axis.defs?.length !== 1 || axis.members?.length !== 1) return null;
-    const definition = axis.defs[0], subjectId = axis.members[0];
-    if (!definition.referenceEnabled) return null;
-    const transform = axis.transforms?.[subjectId] || (cfg?.scoringVersion === 1 ? cfg.transforms?.[cfg.primary] : null) || { kind: "ratio", direction: definition.direction || "higher" };
-    if (transform.kind === "table" || transform.kind === "anchors" && transform.shape === "range") return null;
-    const explicit = cfg?.scoringVersion === 1 ? cfg.transforms?.[cfg.primary] : undefined;
-    const legacy = record.evaluationProfileFormat !== 2 && explicit === undefined;
-    const standard = record.evaluationStandards?.find(rule => rule.subjectId === subjectId);
-    const context = { target: definition.target, targetEnabled: definition.referenceEnabled && definition.targetEnabled !== false,
-      applicable: standard ? standard.enabled && standard.applicable : definition.referenceEnabled,
-      subject: { measurementScale: root.RingsideEvaluation?.measurementScale(definition) || definition.measurementScale || "unknown", zeroValid: definition.zeroValid === true || definition.id === "pushup_reps" } };
-    if (!legacy && context.applicable === false) return null;
-    if (!legacy) { try { S.validateTransform(transform, context.subject); } catch (_) { return null; } }
-    const forward = value => legacy ? N(M.attainment(value, definition)) : (() => { const result = S.evaluate(value, transform, context); return result.valid ? N(result.score) : null; })();
-    let boundaries, evaluate;
-    if (definition.ranges?.length) {
-      boundaries = definition.ranges.flatMap(range => [range.min, range.max]);
-      evaluate = value => { const grade = M.grade(value, definition); return grade.range ? grade : null; };
-    } else {
-      const target = N(definition.target), amber = N(record.rules?.scoreAmber), green = N(record.rules?.scoreGreen);
-      if (!(target > 0) || definition.targetEnabled === false || amber === null || green === null) return null;
-      boundaries = [0, ...[amber, green].map(score => definition.direction === "lower" ? score > 0 ? target * 100 / score : null : target * score / 100)];
-      evaluate = value => M.evaluation(value, definition, record);
-    }
-    const rawAtBoundary = new Map(), cuts = [];
-    for (const raw of boundaries.map(N).filter(value => value !== null)) {
-      const score = forward(raw); if (score === null) continue;
-      cuts.push(score); const values = rawAtBoundary.get(score) || []; if (!values.includes(raw)) values.push(raw); rawAtBoundary.set(score, values);
-    }
-    if (transform.kind === "anchors") cuts.push(...transform.points.map(point => point.score));
-    const inverse = score => {
-      // Both ends can represent an unbounded set after clamping. No region is
-      // extended past the 0–100 score domain to manufacture a visible band.
-      if (!(score > 0 && score < 100)) return null;
-      if (transform.kind === "ratio") {
-        const target = N(definition.target); if (!(target > 0)) return null;
-        const exact = rawAtBoundary.get(score); if (exact?.length > 1) return null;
-        return exact?.[0] ?? (transform.direction === "lower" ? target * 100 / score : target * score / 100);
-      }
-      if (transform.kind !== "anchors") return null;
-      const candidates = [];
-      for (let i = 1; i < transform.points.length; i++) {
-        const a = transform.points[i - 1], b = transform.points[i];
-        if (a.score === b.score) { if (score === a.score) return null; continue; }
-        if (score < Math.min(a.score, b.score) || score > Math.max(a.score, b.score)) continue;
-        const value = score === a.score ? a.value : score === b.score ? b.value : a.value + (score - a.score) / (b.score - a.score) * (b.value - a.value);
-        if (!candidates.includes(value)) candidates.push(value);
-      }
-      if (candidates.length !== 1) return null;
-      const exact = rawAtBoundary.get(score); return exact?.length === 1 ? exact[0] : exact?.length > 1 ? null : candidates[0];
-    };
-    const ranges = partition(cuts, score => { const value = inverse(score); return value === null ? null : evaluate(value); });
-    // A target-only ratio has a provably uniform saturated attainment grade.
-    // Keep its exact 100 point for a threshold edge, never widen it into a band.
-    if (!definition.ranges?.length && transform.kind === "ratio" && transform.direction === (definition.direction || "higher") && forward(N(definition.target)) === 100) {
-      const grade = evaluate(N(definition.target));
-      if (grade && ["red", "amber", "green", "gray"].includes(grade.status)) ranges.push({ min: 100, max: 100, includeMin: true, includeMax: true,
-        status: grade.status, label: trafficLabel(grade.status, grade.label || ""), sourceLabel: grade.label || "" });
-    }
-    if (!ranges.length) return null;
-    return { ...base, basis: { kind: "ability-primary-grade", subjectId, transform: JSON.parse(JSON.stringify(transform)),
-      direction: definition.direction || "higher", target: definition.targetEnabled === false ? null : N(definition.target),
-      ranges: (definition.ranges || []).map(range => ({ ...range })), rules: { scoreAmber: record.rules?.scoreAmber, scoreGreen: record.rules?.scoreGreen } }, ranges };
-  }
   // Positive provenance, independent of wording and traffic-light color.
   // Measurements and diagnostic reasons remain available even without a grade.
   function assessment(cell, factor = 1) {
@@ -322,5 +242,5 @@
       if(next !== undefined){event.preventDefault();nodes[Math.max(0,Math.min(nodes.length-1,next))].focus();}
     });
   }
-  root.RingsideResultDisplay = { assessment, trend, draw, render, layout, mount, number, changeLabel, trendSize, trafficLabel, abilityReference };
+  root.RingsideResultDisplay = { assessment, trend, draw, render, layout, mount, number, changeLabel, trendSize, trafficLabel };
 })(typeof window !== "undefined" ? window : globalThis);
