@@ -39,6 +39,8 @@ jobs:
           npm ci --no-audit --no-fund
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npx playwright install chrome msedge
+      - name: Verify acceptance guard cleanup on success and failure
+        run: node tests/display-guard-lifecycle-tests.cjs
       - name: Build and run full calculation regression in background CI
         run: |
           python scripts/build.py
