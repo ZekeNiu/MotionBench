@@ -159,10 +159,6 @@
     .ringside-pdf-document .fms-detail table th:nth-child(5){width:18%!important;}
     .ringside-pdf-document .detail-data .subheading{margin:10px 0 5px!important;}
     .ringside-pdf-document .metric-meta{display:block!important;font-size:11px!important;color:#636b76!important;}
-    .ringside-pdf-document .comparison-results{display:block!important;}
-    .ringside-pdf-document .comparison-result{padding:8px!important;margin-bottom:8px!important;}
-    .ringside-pdf-document .comparison-heading{display:flex!important;justify-content:space-between!important;gap:8px!important;font-size:12px!important;}
-    .ringside-pdf-document .comparison-note{font-size:12px!important;}
     .ringside-pdf-document .inline-asym{width:100%!important;min-width:0!important;max-width:100%!important;}
     .ringside-pdf-document .inline-asym img{width:100%!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document .iso-charts>img+img{margin-top:10px!important;}

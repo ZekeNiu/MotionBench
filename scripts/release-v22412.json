@@ -1,0 +1,59 @@
+{
+  "version": "2.24.12",
+  "desktopVersion": "2.24.12-desktop.1",
+  "entry": "scripts/release_v22412.py",
+  "baselineCommit": "6082b2b0b73c83357b6b7959d3e3f9bb174d6cb3",
+  "baselineDesktopVersion": "2.24.11-desktop.1",
+  "baselineAcceptance": "docs/acceptance-2.24.11.json",
+  "checkpoint": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261020-system-before-2.24.12",
+  "manifestSha256": "2db7241d07af1c5b3e41c5ed66dd0e261b89c93e570fafac7396729d79fabe27",
+  "installation": "D:\\Application\\Strength&Conditioning\\MotionBench",
+  "actualProfile": "C:\\Users\\ZekeNiu\\AppData\\Roaming\\MotionBench Desktop",
+  "output": "output/implementation-2.24.12/resumed",
+  "acceptanceJson": "docs/acceptance-2.24.12.json",
+  "acceptanceMarkdown": "docs/acceptance-2.24.12.md",
+  "guardSha256": "cf0f3ca402aebbaf9fdefa7eb2e48eab489eea139d6387e2ccd3ed3013681f02",
+  "templates": {
+    "prepare": {
+      "file": "scripts/prepare_v2247_system.ps1",
+      "sha256": "c4502443ade89bdebef30b96ef18d4d73735b66d5255cf5804028a952950550b"
+    },
+    "install": {
+      "file": "scripts/install_v2247_system.ps1",
+      "sha256": "604ff43a1b115b7a7f07db47d67f768bb085aee4cb9fb12885eb2b1e14fb6ecc"
+    },
+    "shortcut": {
+      "file": "scripts/check_v2247_shortcut.ps1",
+      "sha256": "86bbacc6be6c7197d2d0d6434a59bfdaa8f854e6a1fb6b3ea198566e035a0b27"
+    },
+    "native": {
+      "file": "tests/desktop-system-v2248.cjs",
+      "sha256": "196b8fac6a0d548e444a2d8175538ed086eb33bc938bc4a1ca8ab8344113e096"
+    }
+  },
+  "changedSource": [
+    "src/ringside-report.js",
+    "src/ringside.css",
+    "src/ringside-pdf.js"
+  ],
+  "units": [
+    "medicine-ball-report-tests.cjs",
+    "report-v2161-model-tests.cjs",
+    "longitudinal-view-tests.cjs",
+    "display-guard-lifecycle-tests.cjs"
+  ],
+  "focused": [
+    {
+      "runner": "tests/medicine-ball-table-browser-tests.cjs",
+      "receipt": "output/implementation-2.24.12/focused/results.json",
+      "minChecks": 7
+    },
+    {
+      "runner": "tests/medicine-ball-table-browser-tests.cjs",
+      "receipt": "output/implementation-2.24.12/native/results.json",
+      "minChecks": 3,
+      "desktop": true
+    }
+  ],
+  "verificationScope": "Personal medicine-ball result cards become one shared metric table with original measurements, units, grades, valid targets, uncapped target progress, repeat statistics and raw trials retained. Focused local and cloud verification only; no full regression. Longitudinal bars, matrices, records, calculations and prose remain unchanged."
+}

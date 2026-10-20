@@ -84,9 +84,11 @@ async function main() {
       assert.match(await page.locator('#detail-pushup tr[data-metric-id="pushup_reps"] .pill.gray').innerText(), /未分级/); await invariant();
       await reveal("#detail-lactate"); await shot("desktop-lactate", "#detail-lactate");
     });
-    await check("two medicine-ball sides retain independent bounded comparison charts at desktop width", async () => {
-      await reveal("#detail-mb"); const data = await page.locator("#detail-mb .comparison-result").evaluateAll(nodes => nodes.map(n => { const box = n.getBoundingClientRect(), svg = n.querySelector("svg"), s = svg.getBoundingClientRect(); return { width: box.width, svg: { width: s.width, height: s.height, viewBox: svg.getAttribute("viewBox") }, text: n.textContent }; }));
-      assert.equal(data.length, 2); assert.ok(data.every(n => n.width > 200 && n.width <= 620.5 && n.svg.height <= 83)); result.twoSidedBall = data; await shot("desktop-medicine-ball", "#detail-mb"); await invariant();
+    await check("two medicine-ball sides retain independent values grades and target comparisons in one desktop result table", async () => {
+      await reveal("#detail-mb"); const data = await page.locator("#detail-mb tr[data-metric-id]").evaluateAll(nodes => nodes.map(n => ({ id: n.dataset.metricId, text: n.textContent, labels: [...n.querySelectorAll("td")].map(td => td.dataset.label) })));
+      assert.deepEqual(data.map(row => row.id), ["mb_dom", "mb_non"]); assert.ok(data.every(row => row.labels.includes("目标对照") && row.labels.includes("结果")));
+      assert.match(data[0].text, /11\.00/); assert.match(data[1].text, /9\.00/); assert.equal(await page.locator("#detail-mb svg, #detail-mb .chart-wrap").count(), 0);
+      result.twoSidedBall = data; await shot("desktop-medicine-ball", "#detail-mb"); await invariant();
     });
     await check("capability summary uses peer section geometry and internal headings follow the normal h3 h4 h5 hierarchy", async () => {
       await reveal("#capabilityDetail > summary");
@@ -123,20 +125,23 @@ async function main() {
       await page.locator("#capabilityDetail > summary").click(); const toggle = page.locator('[data-fvp-panel="fvp_sj"] [data-fvp-view="pv"]'); await toggle.uncheck(); await settle(); assert.equal(await page.locator("#capabilityDetail").getAttribute("open"), "");
       assert.equal((await snapshot(page)).calculated, before.calculated); await toggle.check(); await settle(); await noMethod(); await invariant();
     });
-    await check("a genuine custom gray lactate range remains visible and one medicine-ball side stays bounded", async () => {
+    await check("a genuine custom gray lactate range remains visible and one medicine-ball side uses one measured result row", async () => {
       await select(ids[1]); assert.equal(await page.locator('#detail-lactate tr[data-metric-id="lt1"] .pill.gray').innerText(), "未分级"); assert.equal(await page.locator('#detail-lactate tr[data-metric-id="lt2"] .pill.green').count(), 1);
-      await reveal("#detail-mb"); const data = await page.locator("#detail-mb .comparison-result").evaluateAll(nodes => nodes.map(n => { const b = n.getBoundingClientRect(), svg = n.querySelector("svg").getBoundingClientRect(); return { width: b.width, height: svg.height }; })); assert.equal(data.length, 1); assert.ok(data[0].width <= 620.5 && data[0].height <= 83); result.oneSidedBall = data; await shot("desktop-one-sided-ball", "#detail-mb"); await invariant();
+      await reveal("#detail-mb"); const data = await page.locator("#detail-mb tr[data-metric-id]").evaluateAll(nodes => nodes.map(n => ({ id: n.dataset.metricId, text: n.textContent })));
+      assert.deepEqual(data.map(row => row.id), ["mb_dom"]); assert.match(data[0].text, /11\.00/); assert.equal(await page.locator("#detail-mb svg").count(), 0);
+      result.oneSidedBall = data; await shot("desktop-one-sided-ball", "#detail-mb"); await invariant();
     });
     await check("a target-only lactate standard retains its actual traffic grade and other personal gaps keep their prior display", async () => {
       await select(ids[2]); for (const id of ["lt1", "lt2"]) assert.equal(await page.locator(`#detail-lactate tr[data-metric-id="${id}"] .pill.green`).count(), 1);
       assert.equal(await page.locator('#detail-pushup tr[data-metric-id="pushup_reps"] .pill.gray').innerText(), "未分级"); await invariant();
     });
-    await check("1440 and 390 pixel reports retain every result with no page overflow and bounded single or double ball charts", async () => {
+    await check("1440 and 390 pixel reports retain every result with no page overflow and single or double medicine-ball table rows", async () => {
       result.responsive = [];
       for (const id of [ids[0], ids[1]]) for (const width of [1440, 390]) {
         await select(id); await page.setViewportSize({ width, height: 1000 }); await reveal("#detail-mb"); await reveal("#detail-fms"); await reveal("#capabilityDetail > summary");
-        await page.waitForTimeout(200); const geometry = await page.evaluate(() => ({ width: innerWidth, page: document.documentElement.scrollWidth, balls: [...document.querySelectorAll("#detail-mb .comparison-result")].map(n => ({ width: n.getBoundingClientRect().width, parent: n.parentElement.getBoundingClientRect().width })), fmsRows: document.querySelectorAll('#detail-fms td[data-label="评价"]').length, group: getComputedStyle(document.querySelector(".capability-direction-grid")).gridTemplateColumns }));
-        assert.ok(geometry.page <= width + 1); assert.ok(geometry.balls.every(b => b.width <= 620.5 && b.width <= b.parent + 1)); assert.equal(geometry.fmsRows, 7); result.responsive.push({ id, ...geometry });
+        await page.waitForTimeout(200); const geometry = await page.evaluate(() => { const table = document.querySelector("#detail-mb table"), wrap = table.parentElement; return { width: innerWidth, page: document.documentElement.scrollWidth, ball: { rows: table.querySelectorAll("tr[data-metric-id]").length, charts: document.querySelectorAll("#detail-mb svg").length, tableWidth: table.getBoundingClientRect().width, wrapWidth: wrap.getBoundingClientRect().width, scrollWidth: wrap.scrollWidth, overflowX: getComputedStyle(wrap).overflowX }, fmsRows: document.querySelectorAll('#detail-fms td[data-label="评价"]').length, group: getComputedStyle(document.querySelector(".capability-direction-grid")).gridTemplateColumns }; });
+        assert.ok(geometry.page <= width + 1); assert.equal(geometry.ball.rows, id === ids[0] ? 2 : 1); assert.equal(geometry.ball.charts, 0); assert.ok(geometry.ball.wrapWidth <= width + 1);
+        if (geometry.ball.tableWidth > geometry.ball.wrapWidth + 1) assert.ok(["auto", "scroll"].includes(geometry.ball.overflowX)); assert.equal(geometry.fmsRows, 7); result.responsive.push({ id, ...geometry });
         await shot((id === ids[0] ? "two-sided" : "one-sided") + "-" + width); await invariant();
       }
       await page.setViewportSize({ width: 1440, height: 1000 }); await select(ids[0]);

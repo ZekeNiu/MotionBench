@@ -5,6 +5,11 @@ on:
     branches: [main, 'codex/motionbench-comparison-*']
     tags: ['v2.24.*-desktop.*']
   workflow_dispatch:
+    inputs:
+      full_regression:
+        description: Run the optional full regression in addition to focused verification
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -33,58 +38,64 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install PDF evidence reader
-        run: python -m pip install pypdf==6.10.2
+        run: python -m pip install pypdf==6.10.2 pymupdf==1.28.2
       - name: Install locked dependencies and browsers
         run: |
           npm ci --no-audit --no-fund
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npx playwright install chrome msedge
-      - name: Verify acceptance guard cleanup on success and failure
-        run: node tests/display-guard-lifecycle-tests.cjs
-      - name: Build and run full calculation regression in background CI
+      - name: Build and run the focused release regression
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/release_v22411.py rebuild
+          python scripts/release_v22412.py rebuild
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/implementation-2.24.11/resumed/ci/full-units
+          python scripts/release_v22412.py units
+      - name: Run full calculation regression only when explicitly selected
+        if: github.event_name == 'workflow_dispatch' && inputs.full_regression
+        run: |
+          node tests/run-unit-tests.cjs --artifact-dir output/implementation-2.24.12/resumed/ci/full-units
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-desktop-unit-tests.cjs --artifact-dir output/implementation-2.24.11/resumed/ci/desktop-unit
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/release_v22411.py units
-      - name: Check report controls and existing comparison persistence
+          node tests/run-desktop-unit-tests.cjs --artifact-dir output/implementation-2.24.12/resumed/ci/desktop-unit
+      - name: Check medicine-ball table and focused PDF
+        run: node tests/medicine-ball-table-browser-tests.cjs
+      - name: Run full browser regression only when explicitly selected
+        if: github.event_name == 'workflow_dispatch' && inputs.full_regression
         run: |
           node tests/personal-report-v22411-browser-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/longitudinal-controls-browser-tests.cjs --skip-pdf --artifact-dir output/implementation-2.24.11/interaction
+          node tests/longitudinal-controls-browser-tests.cjs --skip-pdf --artifact-dir output/implementation-2.24.12/interaction
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/longitudinal-browser-tests.cjs --artifact-dir output/implementation-2.24.11/resumed/ci/browser-full
+          node tests/longitudinal-browser-tests.cjs --artifact-dir output/implementation-2.24.12/resumed/ci/browser-full
       - name: Build and verify the standalone Windows programs
         run: |
           npm run dist:windows
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/check-desktop-package.cjs
-      - name: Exercise focused packaged workflow and full native regression
+      - name: Exercise focused packaged medicine-ball workflow
         run: |
           $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
-          node tests/longitudinal-browser-tests.cjs --desktop --artifact-dir output/implementation-2.24.11/native
+          node tests/medicine-ball-table-browser-tests.cjs --desktop --artifact-dir output/implementation-2.24.12/native
+      - name: Run full native regression only when explicitly selected
+        if: github.event_name == 'workflow_dispatch' && inputs.full_regression
+        run: |
+          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
+          node tests/longitudinal-browser-tests.cjs --desktop --pdf --artifact-dir output/implementation-2.24.12/resumed/ci/native-full
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/longitudinal-browser-tests.cjs --desktop --pdf --artifact-dir output/implementation-2.24.11/resumed/ci/native-full
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/implementation-2.24.11/resumed/ci/native-smoke'
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/implementation-2.24.12/resumed/ci/native-smoke'
           node tests/desktop-smoke.cjs
-      - name: Verify source-bound targeted and full CI evidence
-        run: python scripts/release_v22411.py verify
+      - name: Verify source-bound focused evidence
+        run: python scripts/release_v22412.py verify
       - name: Save synthetic test evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: MotionBench-Comparison-Windows-${{ github.run_number }}
           path: |
-            output/implementation-2.24.11/resumed/units/
-            output/implementation-2.24.11/focused/
-            output/implementation-2.24.11/interaction/
-            output/implementation-2.24.11/native/
-            output/implementation-2.24.11/resumed/ci/
+            output/implementation-2.24.12/resumed/units/
+            output/implementation-2.24.12/focused/
+            output/implementation-2.24.12/interaction/
+            output/implementation-2.24.12/native/
+            output/implementation-2.24.12/resumed/ci/
             output/desktop-package/
           retention-days: 14

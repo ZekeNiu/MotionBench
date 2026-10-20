@@ -40,7 +40,7 @@
       rows = rows.map((row) => row.filter((_, i) => i !== evaluation));
       widths = widths.filter((_, i) => i !== evaluation);
     }
-    const cell = (value) => /with-repeat-columns|repeat-raw-table/.test(className) ? `<div class="result-cell">${value || "—"}</div>` : value || "—";
+    const cell = (value) => /with-repeat-columns|repeat-raw-table|responsive-results/.test(className) ? `<div class="result-cell">${value || "—"}</div>` : value || "—";
     const columns = widths.length === headers.length ? `<colgroup>${widths.map(width => `<col style="width:${width}%">`).join("")}</colgroup>` : "";
     return `<div class="table-wrap"><table${className ? ` class="${E(className)}"` : ""}>${columns}<thead><tr>${headers.map((h) => `<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row, i) => `<tr${typeof keys[i] === "object" ? ` data-row-id="${E(keys[i].id)}" data-iso-region="${E(keys[i].region || "")}"` : keys[i] ? ` data-metric-id="${E(keys[i])}"` : ""}>${row.map((value, col) => `<td data-label="${E(headers[col])}">${cell(value)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   };
@@ -270,17 +270,27 @@
         `<div class="repeat-stat-cv">${label}<span>${metric.cv === null ? "—" : F(metric.cv, 1) + "%"}</span></div>`,
       ];
     };
-    const metricTable = (metrics, target = false, assessmentOptions) => {
+    const referenceProgress = (metric) => {
+      const target = metric.attainment !== null ? N(metric.target) : null;
+      if (target === null) return "";
+      const gap = metric.direction === "lower" ? metric.value - target : target - metric.value;
+      const rate = metric.direction === "lower" ? metric.value === 0 ? null : target / metric.value * 100 : metric.value / target * 100;
+      const note = gap > 0 ? "距参考目标 " + F(gap) + " " + E(metric.unit)
+        : gap === 0 ? "达到参考目标" : "超过参考目标 " + F(-gap) + " " + E(metric.unit);
+      return (rate === null ? "" : "达成比例 " + F(rate) + "%") + `<small class="metric-meta">${note}</small>`;
+    };
+    const metricTable = (metrics, target = false, { referenceProgress: showProgress = false, ...assessmentOptions } = {}) => {
       const repeated = hasStatistics(metrics.map((d) => repeatedMetric(d.id)));
       return table(
-        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["参考目标"] : [])],
+        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["参考目标"] : []), ...(showProgress ? ["目标对照"] : [])],
         consume(metrics).map((d) => [
           E(d.name) + (repeated && d.unit ? `<small class="metric-meta">${E(d.unit)}</small>` : ""),
           F(d.value, 2),
           ...(repeated ? statisticCells(repeatedMetric(d.id)) : [E(d.unit)]),
           evaluationPill(d, assessmentOptions),
           ...(target ? [d.attainment !== null ? F(d.target, 2) + " " + E(d.unit) : "—"] : []),
-        ]), metrics.map((d) => d.id), repeated ? "with-repeat-columns" : "",
+          ...(showProgress ? [referenceProgress(d)] : []),
+        ]), metrics.map((d) => d.id), [repeated ? "with-repeat-columns" : "", showProgress ? "responsive-results" : ""].filter(Boolean).join(" "),
       );
     };
     const supplemental = (tests) => {
@@ -428,38 +438,6 @@
         )
         .join("");
     }
-    const comparison = (metrics) => {
-      if (!metrics.length) return "";
-      consume(metrics);
-      return `<div class="comparison-results">${metrics
-        .map((d) => {
-          const target = d.attainment !== null ? N(d.target) : null;
-          const gap =
-            target === null
-              ? null
-              : d.direction === "lower"
-                ? d.value - target
-                : target - d.value;
-          const rate =
-            target === null
-              ? null
-              : d.direction === "lower"
-                ? d.value === 0
-                  ? null
-                  : (target / d.value) * 100
-                : (d.value / target) * 100;
-          const note =
-            gap === null
-              ? ""
-              : gap > 0
-                ? "距参考目标 " + F(gap) + " " + E(d.unit)
-                : gap === 0
-                  ? "达到参考目标"
-                  : "超过参考目标 " + F(-gap) + " " + E(d.unit);
-          return `<div class="comparison-result" data-metric-id="${E(d.id)}" data-pdf-atomic><div class="comparison-heading"><strong>${E(d.name)}</strong>${evaluationPill(d)}</div>${chart(V.compare([{ label: d.name, value: d.value, unit: d.unit, target, status: d.evaluation.status }], { title: "", compact: true }))}${note ? `<p class="comparison-note">${rate === null ? "" : "达成比例 " + F(rate) + "% · "}${note}</p>` : ""}</div>`;
-        })
-        .join("")}</div>`;
-    };
     const renderers = {
       fms: (tests) => {
         const items = state.data.fms.map((item, i) => ({
@@ -662,15 +640,16 @@
           ),
         );
       },
-      ball: (tests) =>
-        block(
+      ball: (tests) => {
+        const metrics = tests[0].metrics.filter((d) => !T.isManualMetric(d));
+        return block(
           tests,
           tests[0].name,
           state.protocol.mb,
-          comparison(tests[0].metrics.filter((d) => !T.isManualMetric(d))) +
-            (hasStatistics(tests[0].metrics.map((d) => repeatedMetric(d.id))) ? metricTable(tests[0].metrics.filter((d) => !T.isManualMetric(d)), true) : "") +
+          (metrics.length ? metricTable(metrics, true, { referenceProgress: true }) : "") +
             supplemental(tests),
-        ),
+        );
+      },
       cpet: (tests) => {
         const measured = r.cpet, peakLabel = measured?.peak.label === "VO2max" ? "VO₂max" : "VO₂peak";
         const metrics = tests[0].metrics.map(metric => {

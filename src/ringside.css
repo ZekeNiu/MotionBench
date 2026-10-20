@@ -2634,36 +2634,6 @@ body.sidebar-collapsed .workspace {
   display: block;
   scroll-margin-top: 90px;
 }
-.comparison-results {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 16px;
-}
-.comparison-result {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 14px;
-  min-width: 0;
-  width: 100%;
-  max-width: 620px;
-}
-.comparison-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.comparison-heading strong {
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-.comparison-note {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
-}
 .inline-asym {
   width: 160px;
   max-width: 100%;
@@ -2717,9 +2687,6 @@ body.sidebar-collapsed .workspace {
   overflow-wrap: anywhere;
 }
 @media (max-width: 900px) {
-  .comparison-results {
-    grid-template-columns: 1fr;
-  }
   .sidebar-bottom {
     padding-top: 8px;
   }
@@ -2800,14 +2767,14 @@ body.sidebar-collapsed .workspace {
 .iso-repeat-entry{margin-top:18px;padding-top:12px;border-top:1px solid var(--line,#dfe5eb);}
 .iso-repeat-entry h4{margin:0 0 8px;}
 @media(max-width:600px){
-  #reportView .with-repeat-columns,#reportView .repeat-raw-table,
-  #reportView .with-repeat-columns tbody,#reportView .repeat-raw-table tbody{display:block;width:100%;}
-  #reportView .with-repeat-columns thead,#reportView .repeat-raw-table thead{display:none;}
-  #reportView .with-repeat-columns tr,#reportView .repeat-raw-table tr{display:block;padding:10px 12px;margin:8px 0;border:1px solid #dfe5eb;border-radius:8px;}
-  #reportView .with-repeat-columns td,#reportView .repeat-raw-table td{display:grid;grid-template-columns:minmax(80px,36%) minmax(0,1fr);gap:8px;padding:5px 0;border:0;white-space:normal;overflow-wrap:anywhere;}
-  #reportView .with-repeat-columns td::before,#reportView .repeat-raw-table td::before{content:attr(data-label);color:#61748a;font-weight:500;grid-column:1;grid-row:1;}
-  #reportView .with-repeat-columns td>*{grid-column:2;}
-  #reportView .with-repeat-columns .metric-meta{grid-column:2;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results),
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) tbody{display:block;width:100%;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) thead{display:none;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) tr{display:block;padding:10px 12px;margin:8px 0;border:1px solid #dfe5eb;border-radius:8px;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) td{display:grid;grid-template-columns:minmax(80px,36%) minmax(0,1fr);gap:8px;padding:5px 0;border:0;white-space:normal;overflow-wrap:anywhere;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) td::before{content:attr(data-label);color:#61748a;font-weight:500;grid-column:1;grid-row:1;}
+  #reportView :is(.with-repeat-columns,.responsive-results) td>*{grid-column:2;}
+  #reportView :is(.with-repeat-columns,.responsive-results) .metric-meta{grid-column:2;}
   #reportView .with-repeat-columns .stat-side,#reportView .with-repeat-columns .stat-load{min-height:0;margin-bottom:5px;}
   #reportView .iso-results.with-repeat-columns{min-width:0;}
   #reportView .iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type{white-space:normal;overflow-wrap:normal;}

@@ -262,10 +262,12 @@ async function run() {
     assert.ok(!JSON.stringify(requestBody).includes('AI竞态隔离运动员')); assert.ok(!JSON.stringify(requestBody).includes('"name":"示例运动员"'));
     return { model: 'locally simulated', delayedResult: 'discarded after record switch' };
   });
-  await check('medicine-grade', '药球保留原良好绿等级、评价目标明确显示差距', async page => {
+  await check('medicine-grade', '药球结果表保留原绿色等级依据、参考目标、达成比例和差距', async page => {
     await seed(page); const text = await page.locator('#detail-mb').innerText();
-    assert.ok(text.includes('良好')); assert.ok(text.includes('距目标 1.2 m') && text.includes('距目标 1.7 m') && text.includes('达成比例')); assert.ok(text.includes('11.8') && text.includes('10.3'));
-    const graphics = await page.locator('#detail-mb').innerHTML(); assert.ok(graphics.includes('目标 13 m') && graphics.includes('目标 12 m')); assert.ok(graphics.includes('stroke-dasharray="3 3"')); assert.ok(graphics.includes(await page.evaluate(() => RingsideViz.C.green)));
+    assert.ok(text.includes('距参考目标 1.2 m') && text.includes('距参考目标 1.7 m') && text.includes('达成比例')); assert.ok(text.includes('11.80') && text.includes('10.30'));
+    assert.deepEqual(await page.locator('#detail-mb tr[data-metric-id]').evaluateAll(nodes => nodes.map(n => n.dataset.metricId)), ['mb_dom', 'mb_non']);
+    for (const [id, target] of [['mb_dom', '13.00 m'], ['mb_non', '12.00 m']]) { const row = page.locator('#detail-mb tr[data-metric-id="' + id + '"]'); assert.equal(await row.locator('td[data-label="参考目标"]').innerText(), target); assert.equal(await row.locator('td[data-label="评价"] .pill.green').innerText(), '达标'); }
+    assert.equal(await page.locator('#detail-mb svg, #detail-mb .chart-wrap').count(), 0);
     const grades = await page.evaluate(() => { const s = App.stats(), r = App.getState(); return ['mb_dom', 'mb_non'].map(id => ({ value: s.values[id], grade: RingsideModel.evaluation(s.values[id], r.definitions.find(d => d.id === id), r) })); });
     assert.ok(grades.every(x => x.grade.label === '良好' && x.grade.status === 'green')); return grades;
   });

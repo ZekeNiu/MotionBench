@@ -2649,36 +2649,6 @@ body.sidebar-collapsed .workspace {
   display: block;
   scroll-margin-top: 90px;
 }
-.comparison-results {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 16px;
-}
-.comparison-result {
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 14px;
-  min-width: 0;
-  width: 100%;
-  max-width: 620px;
-}
-.comparison-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.comparison-heading strong {
-  font-size: 13px;
-  overflow-wrap: anywhere;
-}
-.comparison-note {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
-}
 .inline-asym {
   width: 160px;
   max-width: 100%;
@@ -2732,9 +2702,6 @@ body.sidebar-collapsed .workspace {
   overflow-wrap: anywhere;
 }
 @media (max-width: 900px) {
-  .comparison-results {
-    grid-template-columns: 1fr;
-  }
   .sidebar-bottom {
     padding-top: 8px;
   }
@@ -2815,14 +2782,14 @@ body.sidebar-collapsed .workspace {
 .iso-repeat-entry{margin-top:18px;padding-top:12px;border-top:1px solid var(--line,#dfe5eb);}
 .iso-repeat-entry h4{margin:0 0 8px;}
 @media(max-width:600px){
-  #reportView .with-repeat-columns,#reportView .repeat-raw-table,
-  #reportView .with-repeat-columns tbody,#reportView .repeat-raw-table tbody{display:block;width:100%;}
-  #reportView .with-repeat-columns thead,#reportView .repeat-raw-table thead{display:none;}
-  #reportView .with-repeat-columns tr,#reportView .repeat-raw-table tr{display:block;padding:10px 12px;margin:8px 0;border:1px solid #dfe5eb;border-radius:8px;}
-  #reportView .with-repeat-columns td,#reportView .repeat-raw-table td{display:grid;grid-template-columns:minmax(80px,36%) minmax(0,1fr);gap:8px;padding:5px 0;border:0;white-space:normal;overflow-wrap:anywhere;}
-  #reportView .with-repeat-columns td::before,#reportView .repeat-raw-table td::before{content:attr(data-label);color:#61748a;font-weight:500;grid-column:1;grid-row:1;}
-  #reportView .with-repeat-columns td>*{grid-column:2;}
-  #reportView .with-repeat-columns .metric-meta{grid-column:2;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results),
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) tbody{display:block;width:100%;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) thead{display:none;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) tr{display:block;padding:10px 12px;margin:8px 0;border:1px solid #dfe5eb;border-radius:8px;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) td{display:grid;grid-template-columns:minmax(80px,36%) minmax(0,1fr);gap:8px;padding:5px 0;border:0;white-space:normal;overflow-wrap:anywhere;}
+  #reportView :is(.with-repeat-columns,.repeat-raw-table,.responsive-results) td::before{content:attr(data-label);color:#61748a;font-weight:500;grid-column:1;grid-row:1;}
+  #reportView :is(.with-repeat-columns,.responsive-results) td>*{grid-column:2;}
+  #reportView :is(.with-repeat-columns,.responsive-results) .metric-meta{grid-column:2;}
   #reportView .with-repeat-columns .stat-side,#reportView .with-repeat-columns .stat-load{min-height:0;margin-bottom:5px;}
   #reportView .iso-results.with-repeat-columns{min-width:0;}
   #reportView .iso-results.with-repeat-columns .repeat-stat-value>span:last-of-type{white-space:normal;overflow-wrap:normal;}
@@ -4302,7 +4269,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.24.11"});
+window.RingsideBuild=Object.freeze({"version": "2.24.12"});
 </script>
 <script>
 (function (root) {
@@ -17057,7 +17024,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       rows = rows.map((row) => row.filter((_, i) => i !== evaluation));
       widths = widths.filter((_, i) => i !== evaluation);
     }
-    const cell = (value) => /with-repeat-columns|repeat-raw-table/.test(className) ? `<div class="result-cell">${value || "—"}</div>` : value || "—";
+    const cell = (value) => /with-repeat-columns|repeat-raw-table|responsive-results/.test(className) ? `<div class="result-cell">${value || "—"}</div>` : value || "—";
     const columns = widths.length === headers.length ? `<colgroup>${widths.map(width => `<col style="width:${width}%">`).join("")}</colgroup>` : "";
     return `<div class="table-wrap"><table${className ? ` class="${E(className)}"` : ""}>${columns}<thead><tr>${headers.map((h) => `<th scope="col">${E(h)}</th>`).join("")}</tr></thead><tbody>${rows.map((row, i) => `<tr${typeof keys[i] === "object" ? ` data-row-id="${E(keys[i].id)}" data-iso-region="${E(keys[i].region || "")}"` : keys[i] ? ` data-metric-id="${E(keys[i])}"` : ""}>${row.map((value, col) => `<td data-label="${E(headers[col])}">${cell(value)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   };
@@ -17287,17 +17254,27 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         `<div class="repeat-stat-cv">${label}<span>${metric.cv === null ? "—" : F(metric.cv, 1) + "%"}</span></div>`,
       ];
     };
-    const metricTable = (metrics, target = false, assessmentOptions) => {
+    const referenceProgress = (metric) => {
+      const target = metric.attainment !== null ? N(metric.target) : null;
+      if (target === null) return "";
+      const gap = metric.direction === "lower" ? metric.value - target : target - metric.value;
+      const rate = metric.direction === "lower" ? metric.value === 0 ? null : target / metric.value * 100 : metric.value / target * 100;
+      const note = gap > 0 ? "距参考目标 " + F(gap) + " " + E(metric.unit)
+        : gap === 0 ? "达到参考目标" : "超过参考目标 " + F(-gap) + " " + E(metric.unit);
+      return (rate === null ? "" : "达成比例 " + F(rate) + "%") + `<small class="metric-meta">${note}</small>`;
+    };
+    const metricTable = (metrics, target = false, { referenceProgress: showProgress = false, ...assessmentOptions } = {}) => {
       const repeated = hasStatistics(metrics.map((d) => repeatedMetric(d.id)));
       return table(
-        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["参考目标"] : [])],
+        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["参考目标"] : []), ...(showProgress ? ["目标对照"] : [])],
         consume(metrics).map((d) => [
           E(d.name) + (repeated && d.unit ? `<small class="metric-meta">${E(d.unit)}</small>` : ""),
           F(d.value, 2),
           ...(repeated ? statisticCells(repeatedMetric(d.id)) : [E(d.unit)]),
           evaluationPill(d, assessmentOptions),
           ...(target ? [d.attainment !== null ? F(d.target, 2) + " " + E(d.unit) : "—"] : []),
-        ]), metrics.map((d) => d.id), repeated ? "with-repeat-columns" : "",
+          ...(showProgress ? [referenceProgress(d)] : []),
+        ]), metrics.map((d) => d.id), [repeated ? "with-repeat-columns" : "", showProgress ? "responsive-results" : ""].filter(Boolean).join(" "),
       );
     };
     const supplemental = (tests) => {
@@ -17445,38 +17422,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         )
         .join("");
     }
-    const comparison = (metrics) => {
-      if (!metrics.length) return "";
-      consume(metrics);
-      return `<div class="comparison-results">${metrics
-        .map((d) => {
-          const target = d.attainment !== null ? N(d.target) : null;
-          const gap =
-            target === null
-              ? null
-              : d.direction === "lower"
-                ? d.value - target
-                : target - d.value;
-          const rate =
-            target === null
-              ? null
-              : d.direction === "lower"
-                ? d.value === 0
-                  ? null
-                  : (target / d.value) * 100
-                : (d.value / target) * 100;
-          const note =
-            gap === null
-              ? ""
-              : gap > 0
-                ? "距参考目标 " + F(gap) + " " + E(d.unit)
-                : gap === 0
-                  ? "达到参考目标"
-                  : "超过参考目标 " + F(-gap) + " " + E(d.unit);
-          return `<div class="comparison-result" data-metric-id="${E(d.id)}" data-pdf-atomic><div class="comparison-heading"><strong>${E(d.name)}</strong>${evaluationPill(d)}</div>${chart(V.compare([{ label: d.name, value: d.value, unit: d.unit, target, status: d.evaluation.status }], { title: "", compact: true }))}${note ? `<p class="comparison-note">${rate === null ? "" : "达成比例 " + F(rate) + "% · "}${note}</p>` : ""}</div>`;
-        })
-        .join("")}</div>`;
-    };
     const renderers = {
       fms: (tests) => {
         const items = state.data.fms.map((item, i) => ({
@@ -17679,15 +17624,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           ),
         );
       },
-      ball: (tests) =>
-        block(
+      ball: (tests) => {
+        const metrics = tests[0].metrics.filter((d) => !T.isManualMetric(d));
+        return block(
           tests,
           tests[0].name,
           state.protocol.mb,
-          comparison(tests[0].metrics.filter((d) => !T.isManualMetric(d))) +
-            (hasStatistics(tests[0].metrics.map((d) => repeatedMetric(d.id))) ? metricTable(tests[0].metrics.filter((d) => !T.isManualMetric(d)), true) : "") +
+          (metrics.length ? metricTable(metrics, true, { referenceProgress: true }) : "") +
             supplemental(tests),
-        ),
+        );
+      },
       cpet: (tests) => {
         const measured = r.cpet, peakLabel = measured?.peak.label === "VO2max" ? "VO₂max" : "VO₂peak";
         const metrics = tests[0].metrics.map(metric => {
@@ -18928,10 +18874,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     .ringside-pdf-document .fms-detail table th:nth-child(5){width:18%!important;}
     .ringside-pdf-document .detail-data .subheading{margin:10px 0 5px!important;}
     .ringside-pdf-document .metric-meta{display:block!important;font-size:11px!important;color:#636b76!important;}
-    .ringside-pdf-document .comparison-results{display:block!important;}
-    .ringside-pdf-document .comparison-result{padding:8px!important;margin-bottom:8px!important;}
-    .ringside-pdf-document .comparison-heading{display:flex!important;justify-content:space-between!important;gap:8px!important;font-size:12px!important;}
-    .ringside-pdf-document .comparison-note{font-size:12px!important;}
     .ringside-pdf-document .inline-asym{width:100%!important;min-width:0!important;max-width:100%!important;}
     .ringside-pdf-document .inline-asym img{width:100%!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document .iso-charts>img+img{margin-top:10px!important;}
