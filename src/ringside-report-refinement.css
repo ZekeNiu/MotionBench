@@ -240,7 +240,7 @@
 .longitudinal-record-option:hover{background:#eef3f8}
 .longitudinal-record-option input{width:16px;height:16px;flex:none}
 .longitudinal-record-option small{display:block;margin-top:3px;color:var(--muted,#5d6b7c);font-size:11px}
-.report-ai-button{width:34px;height:34px;display:grid;place-items:center;padding:7px!important}
+.report-icon-button{width:34px;height:34px;display:grid;place-items:center;padding:7px!important}
 .report-ai-button.is-running svg{animation:longitudinal-ai-pulse 1.2s ease-in-out infinite alternate}
 .report-ai-status{border-bottom:1px solid var(--line,#d7dfe8);padding-bottom:12px;margin-bottom:16px;font-size:12px}
 .report-ai-status p{margin:5px 0 10px;color:var(--muted,#5d6b7c)}

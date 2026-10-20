@@ -200,7 +200,7 @@
                 <p>表现意义 · 训练优先级 · 执行方式</p>
               </div>
             </div>
-            <div class="row no-print"><span id="interpState" class="pill no-print">尚未填写</span><button type="button" class="btn small" onclick="App.openEntry('narrative')">编辑解读</button><button id="reportAIButton" type="button" class="btn small report-ai-button" aria-label="生成AI分析" title="生成AI分析" onclick="App.ai()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/><path d="m20 2 .7 2.3L23 5l-2.3.7L20 8l-.7-2.3L17 5l2.3-.7Z"/></svg></button></div>
+            <div class="row no-print"><span id="interpState" class="pill no-print" hidden></span><button id="reportNarrativeButton" type="button" class="btn small report-icon-button" aria-label="编辑解读" title="编辑解读" onclick="App.openEntry('narrative')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg></button><button id="reportAIButton" type="button" class="btn small report-icon-button report-ai-button" aria-label="生成AI分析" title="生成AI分析" onclick="App.ai()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/><path d="m20 2 .7 2.3L23 5l-2.3.7L20 8l-.7-2.3L17 5l2.3-.7Z"/></svg></button></div>
           </div>
           <article class="card narrative-card">
             <div id="reportAIStatus" class="report-ai-status no-print" hidden></div>

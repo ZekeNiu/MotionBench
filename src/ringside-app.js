@@ -2274,7 +2274,7 @@
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
-          ? "尚未填写"
+          ? ""
           : directionsStale
             ? "分析依据已更新 · 待复核"
           : stale
@@ -2282,11 +2282,13 @@
             : n.origin === "AI"
               ? "AI稿"
               : "已填写";
-    const reportLabel = directionStatus.ruleOnly && !dataStale && !n.migrationReview?.required
+    const reportLabel = n.text && directionStatus.ruleOnly && !dataStale && !n.migrationReview?.required
       ? (n.origin === "AI" ? "AI稿" : "已填写") : label;
     $("interpState").textContent = reportLabel;
+    $("interpState").hidden = !reportLabel;
     $("interpState").className = "pill no-print " + (dataStale || directionsStale && !directionStatus.ruleOnly ? "amber" : "gray");
     $("editorState").textContent = job ? "AI正在生成" : label;
+    $("editorState").hidden = !job && !label;
     $("interpUpdated").textContent = n.updated
       ? new Date(n.updated).toLocaleString("zh-CN", { hour12: false })
       : "";
@@ -2296,7 +2298,7 @@
       );
     $("narrativeView").innerHTML = n.text
       ? M.sanitizeHTML(n.html || M.textToHTML(n.text))
-      : '<div class="empty">本次测试尚未填写解读与建议。</div>';
+      : "";
   }
   function saveEditor() {
     const ed = $("interpEditor");

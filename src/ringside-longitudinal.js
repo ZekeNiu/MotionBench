@@ -368,11 +368,20 @@
     const records = sortRecords(input.map(clone)), athleteId = options.athleteId || records[0].athleteId;
     if (!athleteId || records.some(record => record.athleteId !== athleteId)) throw Error("纵向比较只支持同一名队员");
     const latest = records.at(-1), mode = options.mode ?? latest.mode ?? "best", profile = options.profile ? clone(options.profile) : null, catalog = options.catalog ? clone(options.catalog) : null;
+    const charts = options.views ? root.RingsideLongitudinalViews.normalize(options.views, records.map(record => record.recordId)).charts || {} : {};
     if (!["best", "mean"].includes(mode)) throw Error("代表成绩须为最佳值或均值");
     const dateCounts = records.reduce((counts, record) => ({ ...counts, [record.athlete.date]: (counts[record.athlete.date] || 0) + 1 }), {});
     const sameDateIndex = {};
     const periods = records.map((source, index) => {
       let record = M.normalizeRecord(clone(source)); record.mode = mode; M.applyAge(record);
+      // Comparison conditions apply to derived reports only. Source records and
+      // their recorded analysis settings remain the historical measurements.
+      for (const id of ["fvp_sj", "fvp_cmj", "sprint_fvp"]) {
+        const overrides = { ...charts[id + ":profile"]?.analysis, ...charts[id + ":elasticity"]?.analysis };
+        const values = Object.fromEntries(Object.entries(overrides).filter(([, value]) => value !== null));
+        if (id === "sprint_fvp") record.sprintFvpAnalysis = { ...record.sprintFvpAnalysis, ...values };
+        else record.fvpAnalysis[id] = { ...record.fvpAnalysis[id], ...values };
+      }
       record = E.resolve(record, profile);
       sameDateIndex[record.athlete.date] = (sameDateIndex[record.athlete.date] || 0) + 1;
       const report = root.RingsideReport.build(record, { catalog }), label = record.athlete.date + (dateCounts[record.athlete.date] > 1 ? " · " + sameDateIndex[record.athlete.date] + (source.title ? " " + source.title : "") : "");

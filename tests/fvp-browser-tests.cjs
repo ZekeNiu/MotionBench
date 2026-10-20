@@ -29,6 +29,7 @@ fs.mkdirSync(out,{recursive:true});
   if(!opts.legacy)for(const key of Object.keys(r.enabled))r.enabled[key]=false;
   for(const id of opts.both?['fvp_sj','fvp_cmj']:['fvp_sj']){
    r.enabled[id]=true;r.fvpConfig[id]={device:'跳垫验收',method:'腾空时间',posture:id==='fvp_sj'?'静止蹲深':'固定蹲深反向跳',distanceCm:33,distanceSource:'髋高差实测'};
+   r.fvpView[id].range='measured';
    r.data[id]=[0,20,40,60,80].flatMap((load,i)=>Array.from({length:opts.dense?3:1},(_,j)=>({id:id+'-'+i+'-'+j,load,height:[33,27,22,14,10][i]+(id==='fvp_cmj'?2:0)-j*.2,distanceCm:'',notes:'负荷试次 '+i+'-'+j,excluded:false,exclusionReason:''})));
   }
   if(opts.both){r.fvpAnalysis.fvp_cmj.angle=30;r.fvpView.fvp_cmj.pv=false;}
@@ -115,7 +116,7 @@ fs.mkdirSync(out,{recursive:true});
     assert.equal(await page.evaluate(()=>App.recordBasis()),basis);
    }
    for(const key of ['points','optimum','comparison','confidence']){await page.locator(`[data-fvp-view="${key}"]`).uncheck();await page.locator(`[data-fvp-view="${key}"]`).check();}
-   await page.locator('[data-fvp-view="range"]').selectOption('measured');await page.locator('[data-fvp-view="range"]').selectOption('full');
+   assert.equal(await page.locator('[data-fvp-view="range"]').count(),0);assert.equal(await page.evaluate(()=>App.getState().fvpView.fvp_sj.range),'measured');
    assert.equal(await page.evaluate(()=>App.recordBasis()),basis);
   });
   await check('load points and table rows link hover, keyboard pin, resize and Escape',async()=>{

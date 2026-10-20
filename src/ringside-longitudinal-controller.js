@@ -52,7 +52,7 @@
         const saved = store.get(lib, athleteId, ids);
         const mode = options.mode || saved?.mode || latest.mode;
         const profile = lib.evaluationProfiles.find(p => p.id === latest.evaluationProfileId);
-        const built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog});
+        const built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog, views:saved?.views || {}});
         if (ticket !== sequence) return false;
         host.cancelAI();
         const stamp = new Date().toISOString();
@@ -96,10 +96,15 @@
       if (previous) document.previousNarrative = clone(document.narrative);
       document.narrative = clone(value); putDocument(); return true;
     }
-    function setViews(value) {
+    function setViews(value, replace = false) {
       if (!active()) return;
-      const next = root.RingsideLongitudinalViews.normalize({...document.views, ...clone(value)}, selection.recordIds);
+      const next = root.RingsideLongitudinalViews.normalize(replace ? clone(value) : {...document.views, ...clone(value)}, selection.recordIds);
       if (JSON.stringify(next) === JSON.stringify(document.views)) return;
+      const analysisIdentity = views => JSON.stringify(Object.entries(views.charts || {}).filter(([, chart]) => chart.analysis).map(([id, chart]) => [id, chart.analysis]));
+      if (analysisIdentity(next) !== analysisIdentity(document.views)) {
+        const built = root.RingsideLongitudinal.build(rawRecords, {...selection, profile:document.profileSnapshot, catalog:host.library().catalog, views:next});
+        host.cancelAI(); model = built; document.basis = built.basis;
+      }
       document.views = next; putDocument(); return true;
     }
     async function updateChartView(chartId, delta) {
@@ -134,7 +139,7 @@
           const reverted = clone(document.views);
           if (savedCharts === undefined) delete reverted.charts;
           else reverted.charts = clone(savedCharts);
-          document.views = reverted; putDocument();
+          setViews(reverted, true);
           if (active()) { host.renderDisplay ? host.renderDisplay() : render(); host.remember(); }
         }
         return saved;

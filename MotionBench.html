@@ -3482,7 +3482,7 @@ body.sidebar-collapsed .workspace {
 .longitudinal-record-option:hover{background:#eef3f8}
 .longitudinal-record-option input{width:16px;height:16px;flex:none}
 .longitudinal-record-option small{display:block;margin-top:3px;color:var(--muted,#5d6b7c);font-size:11px}
-.report-ai-button{width:34px;height:34px;display:grid;place-items:center;padding:7px!important}
+.report-icon-button{width:34px;height:34px;display:grid;place-items:center;padding:7px!important}
 .report-ai-button.is-running svg{animation:longitudinal-ai-pulse 1.2s ease-in-out infinite alternate}
 .report-ai-status{border-bottom:1px solid var(--line,#d7dfe8);padding-bottom:12px;margin-bottom:16px;font-size:12px}
 .report-ai-status p{margin:5px 0 10px;color:var(--muted,#5d6b7c)}
@@ -3779,6 +3779,9 @@ body.sidebar-collapsed .workspace {
 .longitudinal-chart-dates label,.longitudinal-plot-options label,.longitudinal-metric-options label{display:inline-flex;align-items:center;gap:5px;margin:4px 12px 4px 0;max-width:100%;font-size:11px;line-height:1.6;overflow-wrap:anywhere;}
 .longitudinal-chart-controls input[type=checkbox],.longitudinal-metric-options input[type=checkbox]{width:14px;height:14px;min-height:0;flex-shrink:0;margin:0;accent-color:var(--green,#176b68);}
 .longitudinal-plot-options{display:flex;flex-wrap:wrap;align-items:center;gap:0 4px;min-width:0;}
+.longitudinal-analysis-controls{flex-basis:100%;min-width:0;}
+.longitudinal-analysis-controls input[type=number]{width:110px;min-width:0;max-width:100%;}
+.longitudinal-analysis-controls .fvp-form-help{margin:2px 0 6px;}
 .longitudinal-metric-options{margin:10px 0;}
 
 /* The mini chart is shared; table sizing stays within comparison reports. */
@@ -3982,7 +3985,7 @@ body.sidebar-collapsed .workspace {
                 <p>表现意义 · 训练优先级 · 执行方式</p>
               </div>
             </div>
-            <div class="row no-print"><span id="interpState" class="pill no-print">尚未填写</span><button type="button" class="btn small" onclick="App.openEntry('narrative')">编辑解读</button><button id="reportAIButton" type="button" class="btn small report-ai-button" aria-label="生成AI分析" title="生成AI分析" onclick="App.ai()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/><path d="m20 2 .7 2.3L23 5l-2.3.7L20 8l-.7-2.3L17 5l2.3-.7Z"/></svg></button></div>
+            <div class="row no-print"><span id="interpState" class="pill no-print" hidden></span><button id="reportNarrativeButton" type="button" class="btn small report-icon-button" aria-label="编辑解读" title="编辑解读" onclick="App.openEntry('narrative')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg></button><button id="reportAIButton" type="button" class="btn small report-icon-button report-ai-button" aria-label="生成AI分析" title="生成AI分析" onclick="App.ai()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/><path d="m20 2 .7 2.3L23 5l-2.3.7L20 8l-.7-2.3L17 5l2.3-.7Z"/></svg></button></div>
           </div>
           <article class="card narrative-card">
             <div id="reportAIStatus" class="report-ai-status no-print" hidden></div>
@@ -4298,7 +4301,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.24.8"});
+window.RingsideBuild=Object.freeze({"version": "2.24.10"});
 </script>
 <script>
 (function (root) {
@@ -13448,6 +13451,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       else if (patch) throw Error("此设置不是比较图表的显示选项");
     }
   }
+  function analysis(input, chartId) {
+    if (!plain(input)) throw Error("比较分析条件无效");
+    const match = chartId.match(/^(fvp_sj|fvp_cmj|sprint_fvp):(profile|elasticity)$/);
+    if (!match) throw Error("此图表不支持比较分析条件");
+    const allowed = match[2] === "elasticity" ? ["deltaForcePct", "deltaVelocityPct"] : match[1] === "sprint_fvp" ? ["targetDistanceM"] : ["angle"];
+    for (const [key, value] of Object.entries(input)) {
+      if (!allowed.includes(key)) throw Error("此条件不适用于当前分析");
+      if (value === null) continue;
+      if (typeof value !== "number" || !Number.isFinite(value)) throw Error("比较分析条件须为有限数值");
+      if (key === "angle" && ![90, 30].includes(value)) throw Error("F–V 目标角度须为 90° 或 30°");
+      if (key === "targetDistanceM" && value <= 0) throw Error("冲刺目标距离须大于 0");
+      if (["deltaForcePct", "deltaVelocityPct"].includes(key) && value <= -100) throw Error("情景变化须大于 −100%");
+    }
+  }
   function normalize(input = {}, recordIds) {
     if (!plain(input)) throw Error("纵向报告显示设置无效");
     json(input);
@@ -13461,6 +13478,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         chart.recordIds.sort();
       }
       if (chart.options !== undefined) options(chart.options);
+      if (chart.analysis !== undefined) analysis(chart.analysis, chartId);
       if (chart.metrics !== undefined && (!plain(chart.metrics) || Object.entries(chart.metrics).some(([key, value]) => !identifier(key) || typeof value !== "boolean"))) throw Error("比较显示指标无效");
     }
     return output;
@@ -13471,13 +13489,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return recordIds.filter(id => !chosen || chosen.includes(id));
   }
   function patch(views, chartId, delta, recordIds) {
-    if (!identifier(chartId) || !plain(delta) || Object.keys(delta).some(key => !["recordIds", "options", "metrics"].includes(key))) throw Error("比较图表显示修改无效");
+    if (!identifier(chartId) || !plain(delta) || Object.keys(delta).some(key => !["recordIds", "options", "metrics", "analysis"].includes(key))) throw Error("比较图表显示修改无效");
     json(delta);
     if (delta.options !== undefined) options(delta.options, true);
+    if (delta.analysis !== undefined) analysis(delta.analysis, chartId);
     const output = normalize(views, recordIds), previous = config(output, chartId);
     output.charts ||= {};
     output.charts[chartId] = {...previous, ...clone(delta),
       ...(delta.options ? {options:{...previous.options, ...delta.options}} : {}),
+      ...(delta.analysis ? {analysis:{...previous.analysis, ...delta.analysis}} : {}),
       ...(delta.metrics ? {metrics:{...previous.metrics, ...delta.metrics}} : {})};
     return normalize(output, recordIds);
   }
@@ -16717,9 +16737,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const profiles = (data.profiles || []).filter(profile => profile.kind === "current" || profile.kind === "optimum" && options.optimum !== false || profile.kind === "comparison" && options.comparison === true);
     const points = (data.points || []).filter(p => num(p.velocity) !== null);
     const band = options.confidence !== false ? (data.band || []) : [];
-    const support = points.map(p => p.velocity), measured = options.range === "measured", bandVelocities = sprint ? band.map(p => p.x).filter(v => num(v) !== null) : [];
-    const vMin = measured ? Math.min(...support) : Math.min(0, ...bandVelocities);
-    const vMax = Math.max(vMin + .01, ...(measured ? support : [...support, ...profiles.map(p => p.V0), ...bandVelocities])) * (measured ? 1.015 : 1.04);
+    const support = points.map(p => p.velocity), bandVelocities = sprint ? band.map(p => p.x).filter(v => num(v) !== null) : [];
+    const vMin = Math.min(0, ...bandVelocities);
+    const vMax = Math.max(vMin + .01, ...support, ...profiles.map(p => p.V0), ...bandVelocities) * 1.04;
     const fMin = Math.min(0,...band.map(p=>p.low))*1.1, pMin = Math.min(0,...band.map(p=>p.powerLow))*1.1;
     const fMax = Math.max(1, ...points.map(p => p.force), ...profiles.map(p => p.F0), ...band.map(p => p.high)) * 1.12;
     const pMax = Math.max(1, ...points.map(p => p.power), ...profiles.map(p => p.Pmax), ...band.map(p => p.powerHigh)) * 1.13;
@@ -18216,7 +18236,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const graph=fvpChartData({...solved,id}),elasticity=view.elasticityView==="constraint"?{...solved.elasticityConstraint,id}:fvpElasticityData({...solved,id},view),elasticityKind=view.elasticityView==="constraint"?"jumpElasticityConstraint":"jumpElasticity";
       const toggle=(key,text)=>`<label><input type="checkbox" data-action="fvp-view" data-fvp-view="${key}" data-fvp-id="${id}" aria-label="${E(text)}"${view[key]?" checked":""}>${E(text)}</label>`;
       const common=print?"":`<div class="fvp-controls fvp-shared-controls no-print"><label>跳跃协议 <select data-fvp-protocol aria-label="FVP 跳跃协议">${profileOptions}</select></label><label>目标方向 <select data-action="fvp-angle" data-fvp-angle data-fvp-id="${id}" aria-label="FVP 目标方向"><option value="90"${angle===90?" selected":""}>90° 垂直</option><option value="30"${angle===30?" selected":""}>30° 倾斜目标</option></select></label></div>`;
-      const controls=print?"":`<div class="fvp-controls no-print">${toggle("fv","F–V")}${toggle("pv","P–V")}${toggle("points","实测点")}${toggle("optimum","目标最优曲线")}${toggle("comparison","另一角度参照")}${toggle("confidence","95%置信带")}<label>显示范围 <select data-action="fvp-range" data-fvp-view="range" data-fvp-id="${id}" aria-label="FVP 显示范围"><option value="full"${view.range!=="measured"?" selected":""}>完整剖面</option><option value="measured"${view.range==="measured"?" selected":""}>实测范围</option></select></label></div>`;
+      const controls=print?"":`<div class="fvp-controls no-print">${toggle("fv","F–V")}${toggle("pv","P–V")}${toggle("points","实测点")}${toggle("optimum","目标最优曲线")}${toggle("comparison","另一角度参照")}${toggle("confidence","95%置信带")}</div>`;
       const input=(key,text)=>`<label>${text}<input type="number" data-fvp-scenario="${key}" data-fvp-id="${id}" value="${E(analysis[key]??0)}" step="any" aria-label="${text}"></label>`;
       const scenario=print?`<p class="fvp-table-note">情景参数改变：F₀ ${F(analysis.deltaForcePct??0,2)}% · V₀ ${F(analysis.deltaVelocityPct??0,2)}%。</p>`:`<form class="fvp-scenario-form no-print" data-fvp-scenario-form data-fvp-id="${id}">${input("deltaForcePct","F₀ 改变 · %")}${input("deltaVelocityPct","V₀ 改变 · %")}<p class="fvp-form-help">编辑完成后自动保存；0% 表示保持当前参数。</p></form><p class="fvp-draft-status no-print" data-elasticity-draft-status data-elasticity-id="${id}" role="status" hidden></p><div class="fvp-scenario-shortcuts no-print">${[["force","仅 F₀ +5%"],["velocity","仅 V₀ +5%"],["both","两者 +5%"]].map(([key,text])=>`<button type="button" class="btn small" data-fvp-shortcut="${key}" data-fvp-id="${id}">${text}</button>`).join("")}</div>`;
       const responseControls=print?"":`<div class="fvp-controls fvp-response-controls no-print"><label>图表视图 <select data-fvp-view="elasticityView" data-fvp-id="${id}" aria-label="跳跃FVP弹性框架图表视图"><option value="response"${view.elasticityView!=="constraint"?" selected":""}>参数改变与表现响应</option><option value="constraint"${view.elasticityView==="constraint"?" selected":""}>固定预测跳跃高度 · ER–EN</option></select></label><span class="fvp-response-toggles"${view.elasticityView==="constraint"?" hidden":""}>${toggle("responseForce","仅 F₀")}${toggle("responseVelocity","仅 V₀")}${toggle("responseBoth","F₀ 与 V₀ 同时")}</span></div>`;
@@ -22926,11 +22946,20 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const records = sortRecords(input.map(clone)), athleteId = options.athleteId || records[0].athleteId;
     if (!athleteId || records.some(record => record.athleteId !== athleteId)) throw Error("纵向比较只支持同一名队员");
     const latest = records.at(-1), mode = options.mode ?? latest.mode ?? "best", profile = options.profile ? clone(options.profile) : null, catalog = options.catalog ? clone(options.catalog) : null;
+    const charts = options.views ? root.RingsideLongitudinalViews.normalize(options.views, records.map(record => record.recordId)).charts || {} : {};
     if (!["best", "mean"].includes(mode)) throw Error("代表成绩须为最佳值或均值");
     const dateCounts = records.reduce((counts, record) => ({ ...counts, [record.athlete.date]: (counts[record.athlete.date] || 0) + 1 }), {});
     const sameDateIndex = {};
     const periods = records.map((source, index) => {
       let record = M.normalizeRecord(clone(source)); record.mode = mode; M.applyAge(record);
+      // Comparison conditions apply to derived reports only. Source records and
+      // their recorded analysis settings remain the historical measurements.
+      for (const id of ["fvp_sj", "fvp_cmj", "sprint_fvp"]) {
+        const overrides = { ...charts[id + ":profile"]?.analysis, ...charts[id + ":elasticity"]?.analysis };
+        const values = Object.fromEntries(Object.entries(overrides).filter(([, value]) => value !== null));
+        if (id === "sprint_fvp") record.sprintFvpAnalysis = { ...record.sprintFvpAnalysis, ...values };
+        else record.fvpAnalysis[id] = { ...record.fvpAnalysis[id], ...values };
+      }
       record = E.resolve(record, profile);
       sameDateIndex[record.athlete.date] = (sameDateIndex[record.athlete.date] || 0) + 1;
       const report = root.RingsideReport.build(record, { catalog }), label = record.athlete.date + (dateCounts[record.athlete.date] > 1 ? " · " + sameDateIndex[record.athlete.date] + (source.title ? " " + source.title : "") : "");
@@ -23222,7 +23251,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(spec.scaleValues)out.scaleValues=spec.scaleValues.filter(v=>!v?.recordId || selected.has(v.recordId));
     if(spec.series)out.series=spec.series.filter(s=>selected.has(s.recordId||s.id));
     for(const key of["markers","horizontalMarkers"])if(spec[key])out[key]=spec[key].filter(m=>!m.recordId || selected.has(m.recordId));
-    if(spec.measuredDomains){const values=spec.measuredDomains.filter(d=>selected.has(d.recordId)).flatMap(d=>d.values);if(values.length)out.xRange={min:Math.min(...values),max:Math.max(Math.min(...values)+.01,...values)*1.015};}
     if(spec.dynamicRadarMax)out.max=Math.max(100,...(out.series||[]).flatMap(s=>s.values.filter(v=>N(v)!==null)));
     return out;
   }
@@ -23231,16 +23259,25 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const check=(key,label)=>`<label><input type="checkbox" data-longitudinal-option="${E(key)}"${options[key]!==false?" checked":""}>${E(label)}</label>`;
     const select=(key,label,choices)=>`<label>${E(label)} <select data-longitudinal-option="${E(key)}" aria-label="${E(spec.title+" · "+label)}">${choices.map(([value,name])=>`<option value="${E(value)}"${options[key]===value?" selected":""}>${E(name)}</option>`).join("")}</select></label>`;
     let controls="";
-    if(spec.section==="profile")controls=check("fv","F–V")+check("pv","P–V")+(spec.sprint?"":check("points","实测点"))+check("optimum","目标最优曲线")+(spec.sprint?"":check("comparison","另一角度参照"))+`<label><input type="checkbox" data-longitudinal-option="confidence"${options.confidence===true?" checked":""}>${spec.sprint?"95%拟合置信区间（近似）":"95%置信带"}</label>`+(spec.sprint?"":select("range","显示范围",[["full","完整剖面"],["measured","实测范围"]]));
+    if(spec.section==="profile")controls=check("fv","F–V")+check("pv","P–V")+(spec.sprint?"":check("points","实测点"))+check("optimum","目标最优曲线")+(spec.sprint?"":check("comparison","另一角度参照"))+`<label><input type="checkbox" data-longitudinal-option="confidence"${options.confidence===true?" checked":""}>${spec.sprint?"95%拟合置信区间（近似）":"95%置信带"}</label>`;
     else if(spec.section==="elasticity")controls=select("elasticityView","图表视图",spec.sprint?[["response","参数改变与表现响应"],["distance","弹性随距离变化"]]:[["response","参数改变与表现响应"],["constraint","固定预测跳跃高度 · ER–EN"]])+(options.elasticityView==="response"?check("responseForce","仅 F₀")+check("responseVelocity","仅 V₀")+check("responseBoth","F₀ 与 V₀ 同时"):"");
     else if(spec.chartId==="imtp" || spec.chartId?.startsWith("imtp:"))controls=select("yAxis","纵轴",[["percent","占峰值力 · %"],["force","力 · N"]]);
     else if(spec.kind==="lvp")controls=(spec.actionChoices||[]).map(([id,name])=>`<label><input type="checkbox" data-longitudinal-action="${E(id)}"${options.selected?.includes(id)?" checked":""}>${E(name)}</label>`).join("")+check("showPoints","实测点")+check("showBand","95%置信带")+check("showEstimate","估计点");
     return controls?`<div class="longitudinal-plot-options" data-longitudinal-options-panel="${E(options.id)}">${controls}</div>`:"";
   }
+  function analysisControls(spec, views) {
+    if (!["profile", "elasticity"].includes(spec.section)) return "";
+    const values=chartConfig(views,spec.chartId).analysis || {};
+    const input=(key,label,min)=>`<label>${E(label)}<input type="number" step="any"${min===undefined?"":` min="${min}"`} data-longitudinal-analysis="${key}" value="${E(values[key]??"")}" placeholder="按各期记录" aria-label="${E(spec.title+" · "+label)}"></label>`;
+    let controls;
+    if(spec.section==="profile")controls=spec.sprint?input("targetDistanceM","目标距离 · m","0.000001"):`<label>目标方向 <select data-longitudinal-analysis="angle" aria-label="${E(spec.title+" · 目标方向")}">${[["","按各期记录"],[90,"90° 垂直"],[30,"30° 倾斜目标"]].map(([value,label])=>`<option value="${value}"${String(values.angle??"")===String(value)?" selected":""}>${label}</option>`).join("")}</select></label>`;
+    else controls=input("deltaForcePct","F₀ 改变 · %")+input("deltaVelocityPct","V₀ 改变 · %")+(spec.sprint?"":`<span class="fvp-scenario-shortcuts">${[["force","仅 F₀ +5%"],["velocity","仅 V₀ +5%"],["both","两者 +5%"]].map(([key,label])=>`<button type="button" class="btn small" data-longitudinal-scenario-shortcut="${key}">${label}</button>`).join("")}</span>`);
+    return `<div class="longitudinal-analysis-controls"><div class="longitudinal-plot-options">${controls}</div><p class="fvp-form-help">留空沿用各期记录；设置后统一用于本报告的所有比较日期。</p></div>`;
+  }
   function chartPanel(spec,model,views) {
     if(spec.kind==="notice")return figure(spec);
     const chosen=chosenDates(views,spec.chartId,model.periods),selected=new Set(chosen.map(p=>p.id)),options=optionControls(spec),filtered=filterFigure(spec,model.periods,views);
-    const controls=`<div class="longitudinal-chart-controls no-print"><details class="longitudinal-chart-dates"><summary>图中日期 ${chosen.length}/${model.periods.length}</summary><div>${model.periods.map(p=>`<label><input type="checkbox" data-longitudinal-chart-date="${E(p.id)}"${selected.has(p.id)?" checked":""}${chosen.length===1&&selected.has(p.id)?" disabled":""}>${E(periodLabel(p))}</label>`).join("")}</div></details>${options}</div>`;
+    const controls=`<div class="longitudinal-chart-controls no-print">${analysisControls(spec,views)}<details class="longitudinal-chart-dates"><summary>图中日期 ${chosen.length}/${model.periods.length}</summary><div>${model.periods.map(p=>`<label><input type="checkbox" data-longitudinal-chart-date="${E(p.id)}"${selected.has(p.id)?" checked":""}${chosen.length===1&&selected.has(p.id)?" disabled":""}>${E(periodLabel(p))}</label>`).join("")}</div></details>${options}</div>`;
     const noData=filtered.series&&!filtered.series.some(s=>s.values?.some(v=>N(v)!==null)||(spec.kind==="lvp"?s.points?.length:s.points?.some(p=>p&&N(p.y)!==null)))&&!filtered.horizontalMarkers?.length;
     return `<div class="longitudinal-chart-panel" data-longitudinal-panel="${E(spec.chartId)}">${controls}${noData?`<p class="longitudinal-empty" role="status">所选日期暂无可显示的数据或曲线。</p>`:figure(filtered)}</div>`;
   }
@@ -23255,7 +23292,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return result;
   }
   function fvpSpec(periods,id,override) {
-    const series=[],measuredDomains=[];for(const p of periods){const solved=id==="sprint_fvp"?p.stats.sprintFvp:p.stats.fvp?.[id];if(!solved?.valid)continue;const view=override||(id==="sprint_fvp"?p.record.sprintFvpView:p.record.fvpView?.[id] || {}),domain=(solved.points||[]).map(q=>N(q.velocity)).filter(v=>v!==null);if(view.range==="measured"&&domain.length)measuredDomains.push({recordId:p.id,values:domain});const profiles=[{profile:solved.current || solved.model,label:"实测剖面"},{profile:solved.optimum || solved.optimal,label:"最优剖面",dash:"7 4"},...(id!=="sprint_fvp"&&view.comparison?[{profile:solved.comparison,label:"角度参照",dash:"2 4"}]:[])];for(const {profile,label,dash} of profiles){if(!profile||N(profile.F0)===null||N(profile.V0)===null||label==="最优剖面"&&view.optimum===false)continue;const sampled=Array.from({length:61},(_,i)=>{const x=profile.V0*i/60,y=profile.F0*(1-x/profile.V0);return{x,y};});if(view.fv!==false)series.push(xySeries(p,label+" F–V",sampled,{dash,pointsVisible:false}));if(view.pv!==false)series.push(xySeries(p,label+" P–V",sampled.map(q=>({x:q.x,y:q.x*q.y})),{right:true,dash:dash||"3 2",pointsVisible:false}));}
+    const series=[];for(const p of periods){const solved=id==="sprint_fvp"?p.stats.sprintFvp:p.stats.fvp?.[id];if(!solved?.valid)continue;const view=override||(id==="sprint_fvp"?p.record.sprintFvpView:p.record.fvpView?.[id] || {}),profiles=[{profile:solved.current || solved.model,label:"实测剖面"},{profile:solved.optimum || solved.optimal,label:"最优剖面",dash:"7 4"},...(id!=="sprint_fvp"&&view.comparison?[{profile:solved.comparison,label:"角度参照",dash:"2 4"}]:[])];for(const {profile,label,dash} of profiles){if(!profile||N(profile.F0)===null||N(profile.V0)===null||label==="最优剖面"&&view.optimum===false)continue;const sampled=Array.from({length:61},(_,i)=>{const x=profile.V0*i/60,y=profile.F0*(1-x/profile.V0);return{x,y};});if(view.fv!==false)series.push(xySeries(p,label+" F–V",sampled,{dash,pointsVisible:false}));if(view.pv!==false)series.push(xySeries(p,label+" P–V",sampled.map(q=>({x:q.x,y:q.x*q.y})),{right:true,dash:dash||"3 2",pointsVisible:false}));}
       if(id!=="sprint_fvp"&&view.points!==false){const measured=(solved.points||[]).map(q=>({x:q.velocity,y:q.forceRelative??q.force,note:"负荷 "+F(q.load)+" kg"}));if(view.fv!==false)series.push(xySeries(p,"实测负荷点 F–V",measured,{connect:false}));if(view.pv!==false)series.push(xySeries(p,"实测负荷点 P–V",measured.map(q=>({...q,y:q.x*q.y})),{connect:false,right:true,shape:"diamond"}));}
       let band=[];
       if(view.confidence!==false&&id!=="sprint_fvp"&&typeof solved.ci==="function"&&solved.points?.length){const xs=solved.points.map(q=>q.velocity),a=Math.min(...xs),b=Math.max(...xs);band=Array.from({length:31},(_,i)=>solved.ci(a+(b-a)*i/30)).filter(q=>q&&N(q.low)!==null);}
@@ -23264,7 +23301,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const current=solved.current || solved.model;if(view.pv!==false&&N(current?.Pmax)!==null)series.push(xySeries(p,"Pmax · V₀/2",[{x:current.V0/2,y:current.Pmax}],{right:true,connect:false,shape:"triangle"}));
     }
     const powerOnly=series.length>0&&series.every(s=>s.right);if(powerOnly)series.forEach(s=>s.right=false);
-    return{kind:"xy",section:"profile",chartId:id+":profile",sprint:id==="sprint_fvp",displayOptions:override,measuredDomains:measuredDomains.length?measuredDomains:undefined,rich:true,title:id==="sprint_fvp"?"冲刺FVP":"跳跃FVP · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:"速度 V · m/s",yLabel:powerOnly?"功率 P · W/kg":"力 F · N/kg",rightLabel:"功率 P · W/kg",series};
+    return{kind:"xy",section:"profile",chartId:id+":profile",sprint:id==="sprint_fvp",displayOptions:override,rich:true,title:id==="sprint_fvp"?"冲刺FVP":"跳跃FVP · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:"速度 V · m/s",yLabel:powerOnly?"功率 P · W/kg":"力 F · N/kg",rightLabel:"功率 P · W/kg",series};
   }
   function elasticitySpec(periods,id,override) {
     const series=[],sprint=id==="sprint_fvp",latest=periods.at(-1).record,view=override||(sprint?latest.sprintFvpView || {}:latest.fvpView?.[id] || {}),kind=view.elasticityView;
@@ -23398,7 +23435,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const handlers=new WeakMap();
   function mount(container,model,{onChange}={}) {
     observer?.disconnect();layout(container);root.RingsideResultDisplay.mount(container);
-    if(handlers.has(container))container.removeEventListener("change",handlers.get(container));
+    if(handlers.has(container)){const previous=handlers.get(container);container.removeEventListener("change",previous);container.removeEventListener("click",previous.shortcut);}
     const change=event=>{
       const input=event.target,panel=input.closest("[data-longitudinal-panel]");if(!panel||!onChange)return;
       let id=panel.dataset.longitudinalPanel,delta,attribute;
@@ -23411,6 +23448,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         attribute="data-longitudinal-option";id=input.closest("[data-longitudinal-options-panel]")?.dataset.longitudinalOptionsPanel||id;
         delta={options:{[input.dataset.longitudinalOption]:input.tagName==="SELECT"?input.value:input.checked}};
         if(input.dataset.longitudinalOption==="showBand")delta.options.bandExplicit=true;
+      }else if(input.hasAttribute("data-longitudinal-analysis")){
+        attribute="data-longitudinal-analysis";
+        if(input.validity?.badInput){input.reportValidity();return;}
+        delta={analysis:{[input.dataset.longitudinalAnalysis]:input.value.trim()===""?null:Number(input.value)}};
+      }else if(input.hasAttribute("data-longitudinal-scenario-shortcut")){
+        attribute="data-longitudinal-scenario-shortcut";
+        const key=input.dataset.longitudinalScenarioShortcut;
+        delta={analysis:{deltaForcePct:["force","both"].includes(key)?5:0,deltaVelocityPct:["velocity","both"].includes(key)?5:0}};
       }else if(input.hasAttribute("data-longitudinal-action")){
         attribute="data-longitudinal-action";id=input.closest("[data-longitudinal-options-panel]")?.dataset.longitudinalOptionsPanel||id;
         delta={options:{selected:[...panel.querySelectorAll("[data-longitudinal-action]:checked")].map(n=>n.dataset.longitudinalAction),selectionExplicit:true}};
@@ -23423,7 +23468,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
       Promise.resolve(result).catch(()=>{});
     };
-    handlers.set(container,change);container.addEventListener("change",change);
+    change.shortcut=event=>{const button=event.target.closest("[data-longitudinal-scenario-shortcut]");if(button)change({target:button});};
+    handlers.set(container,change);container.addEventListener("change",change);container.addEventListener("click",change.shortcut);
     if(typeof ResizeObserver!=="undefined"){let scheduled=false;observer=new ResizeObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;if(container.isConnected)layout(container);});});observer.observe(container);}
   }
   root.RingsideLongitudinalView={render,layout,mount,draw,table,projectFigures};
@@ -23485,7 +23531,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const saved = store.get(lib, athleteId, ids);
         const mode = options.mode || saved?.mode || latest.mode;
         const profile = lib.evaluationProfiles.find(p => p.id === latest.evaluationProfileId);
-        const built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog});
+        const built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog, views:saved?.views || {}});
         if (ticket !== sequence) return false;
         host.cancelAI();
         const stamp = new Date().toISOString();
@@ -23529,10 +23575,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (previous) document.previousNarrative = clone(document.narrative);
       document.narrative = clone(value); putDocument(); return true;
     }
-    function setViews(value) {
+    function setViews(value, replace = false) {
       if (!active()) return;
-      const next = root.RingsideLongitudinalViews.normalize({...document.views, ...clone(value)}, selection.recordIds);
+      const next = root.RingsideLongitudinalViews.normalize(replace ? clone(value) : {...document.views, ...clone(value)}, selection.recordIds);
       if (JSON.stringify(next) === JSON.stringify(document.views)) return;
+      const analysisIdentity = views => JSON.stringify(Object.entries(views.charts || {}).filter(([, chart]) => chart.analysis).map(([id, chart]) => [id, chart.analysis]));
+      if (analysisIdentity(next) !== analysisIdentity(document.views)) {
+        const built = root.RingsideLongitudinal.build(rawRecords, {...selection, profile:document.profileSnapshot, catalog:host.library().catalog, views:next});
+        host.cancelAI(); model = built; document.basis = built.basis;
+      }
       document.views = next; putDocument(); return true;
     }
     async function updateChartView(chartId, delta) {
@@ -23567,7 +23618,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           const reverted = clone(document.views);
           if (savedCharts === undefined) delete reverted.charts;
           else reverted.charts = clone(savedCharts);
-          document.views = reverted; putDocument();
+          setViews(reverted, true);
           if (active()) { host.renderDisplay ? host.renderDisplay() : render(); host.remember(); }
         }
         return saved;
@@ -25913,7 +25964,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
         : !n.text
-          ? "尚未填写"
+          ? ""
           : directionsStale
             ? "分析依据已更新 · 待复核"
           : stale
@@ -25921,11 +25972,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
             : n.origin === "AI"
               ? "AI稿"
               : "已填写";
-    const reportLabel = directionStatus.ruleOnly && !dataStale && !n.migrationReview?.required
+    const reportLabel = n.text && directionStatus.ruleOnly && !dataStale && !n.migrationReview?.required
       ? (n.origin === "AI" ? "AI稿" : "已填写") : label;
     $("interpState").textContent = reportLabel;
+    $("interpState").hidden = !reportLabel;
     $("interpState").className = "pill no-print " + (dataStale || directionsStale && !directionStatus.ruleOnly ? "amber" : "gray");
     $("editorState").textContent = job ? "AI正在生成" : label;
+    $("editorState").hidden = !job && !label;
     $("interpUpdated").textContent = n.updated
       ? new Date(n.updated).toLocaleString("zh-CN", { hour12: false })
       : "";
@@ -25935,7 +25988,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       );
     $("narrativeView").innerHTML = n.text
       ? M.sanitizeHTML(n.html || M.textToHTML(n.text))
-      : '<div class="empty">本次测试尚未填写解读与建议。</div>';
+      : "";
   }
   function saveEditor() {
     const ed = $("interpEditor");

@@ -26,6 +26,20 @@
       else if (patch) throw Error("此设置不是比较图表的显示选项");
     }
   }
+  function analysis(input, chartId) {
+    if (!plain(input)) throw Error("比较分析条件无效");
+    const match = chartId.match(/^(fvp_sj|fvp_cmj|sprint_fvp):(profile|elasticity)$/);
+    if (!match) throw Error("此图表不支持比较分析条件");
+    const allowed = match[2] === "elasticity" ? ["deltaForcePct", "deltaVelocityPct"] : match[1] === "sprint_fvp" ? ["targetDistanceM"] : ["angle"];
+    for (const [key, value] of Object.entries(input)) {
+      if (!allowed.includes(key)) throw Error("此条件不适用于当前分析");
+      if (value === null) continue;
+      if (typeof value !== "number" || !Number.isFinite(value)) throw Error("比较分析条件须为有限数值");
+      if (key === "angle" && ![90, 30].includes(value)) throw Error("F–V 目标角度须为 90° 或 30°");
+      if (key === "targetDistanceM" && value <= 0) throw Error("冲刺目标距离须大于 0");
+      if (["deltaForcePct", "deltaVelocityPct"].includes(key) && value <= -100) throw Error("情景变化须大于 −100%");
+    }
+  }
   function normalize(input = {}, recordIds) {
     if (!plain(input)) throw Error("纵向报告显示设置无效");
     json(input);
@@ -39,6 +53,7 @@
         chart.recordIds.sort();
       }
       if (chart.options !== undefined) options(chart.options);
+      if (chart.analysis !== undefined) analysis(chart.analysis, chartId);
       if (chart.metrics !== undefined && (!plain(chart.metrics) || Object.entries(chart.metrics).some(([key, value]) => !identifier(key) || typeof value !== "boolean"))) throw Error("比较显示指标无效");
     }
     return output;
@@ -49,13 +64,15 @@
     return recordIds.filter(id => !chosen || chosen.includes(id));
   }
   function patch(views, chartId, delta, recordIds) {
-    if (!identifier(chartId) || !plain(delta) || Object.keys(delta).some(key => !["recordIds", "options", "metrics"].includes(key))) throw Error("比较图表显示修改无效");
+    if (!identifier(chartId) || !plain(delta) || Object.keys(delta).some(key => !["recordIds", "options", "metrics", "analysis"].includes(key))) throw Error("比较图表显示修改无效");
     json(delta);
     if (delta.options !== undefined) options(delta.options, true);
+    if (delta.analysis !== undefined) analysis(delta.analysis, chartId);
     const output = normalize(views, recordIds), previous = config(output, chartId);
     output.charts ||= {};
     output.charts[chartId] = {...previous, ...clone(delta),
       ...(delta.options ? {options:{...previous.options, ...delta.options}} : {}),
+      ...(delta.analysis ? {analysis:{...previous.analysis, ...delta.analysis}} : {}),
       ...(delta.metrics ? {metrics:{...previous.metrics, ...delta.metrics}} : {})};
     return normalize(output, recordIds);
   }

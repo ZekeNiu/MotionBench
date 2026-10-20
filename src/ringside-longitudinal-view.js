@@ -253,7 +253,6 @@
     if(spec.scaleValues)out.scaleValues=spec.scaleValues.filter(v=>!v?.recordId || selected.has(v.recordId));
     if(spec.series)out.series=spec.series.filter(s=>selected.has(s.recordId||s.id));
     for(const key of["markers","horizontalMarkers"])if(spec[key])out[key]=spec[key].filter(m=>!m.recordId || selected.has(m.recordId));
-    if(spec.measuredDomains){const values=spec.measuredDomains.filter(d=>selected.has(d.recordId)).flatMap(d=>d.values);if(values.length)out.xRange={min:Math.min(...values),max:Math.max(Math.min(...values)+.01,...values)*1.015};}
     if(spec.dynamicRadarMax)out.max=Math.max(100,...(out.series||[]).flatMap(s=>s.values.filter(v=>N(v)!==null)));
     return out;
   }
@@ -262,16 +261,25 @@
     const check=(key,label)=>`<label><input type="checkbox" data-longitudinal-option="${E(key)}"${options[key]!==false?" checked":""}>${E(label)}</label>`;
     const select=(key,label,choices)=>`<label>${E(label)} <select data-longitudinal-option="${E(key)}" aria-label="${E(spec.title+" · "+label)}">${choices.map(([value,name])=>`<option value="${E(value)}"${options[key]===value?" selected":""}>${E(name)}</option>`).join("")}</select></label>`;
     let controls="";
-    if(spec.section==="profile")controls=check("fv","F–V")+check("pv","P–V")+(spec.sprint?"":check("points","实测点"))+check("optimum","目标最优曲线")+(spec.sprint?"":check("comparison","另一角度参照"))+`<label><input type="checkbox" data-longitudinal-option="confidence"${options.confidence===true?" checked":""}>${spec.sprint?"95%拟合置信区间（近似）":"95%置信带"}</label>`+(spec.sprint?"":select("range","显示范围",[["full","完整剖面"],["measured","实测范围"]]));
+    if(spec.section==="profile")controls=check("fv","F–V")+check("pv","P–V")+(spec.sprint?"":check("points","实测点"))+check("optimum","目标最优曲线")+(spec.sprint?"":check("comparison","另一角度参照"))+`<label><input type="checkbox" data-longitudinal-option="confidence"${options.confidence===true?" checked":""}>${spec.sprint?"95%拟合置信区间（近似）":"95%置信带"}</label>`;
     else if(spec.section==="elasticity")controls=select("elasticityView","图表视图",spec.sprint?[["response","参数改变与表现响应"],["distance","弹性随距离变化"]]:[["response","参数改变与表现响应"],["constraint","固定预测跳跃高度 · ER–EN"]])+(options.elasticityView==="response"?check("responseForce","仅 F₀")+check("responseVelocity","仅 V₀")+check("responseBoth","F₀ 与 V₀ 同时"):"");
     else if(spec.chartId==="imtp" || spec.chartId?.startsWith("imtp:"))controls=select("yAxis","纵轴",[["percent","占峰值力 · %"],["force","力 · N"]]);
     else if(spec.kind==="lvp")controls=(spec.actionChoices||[]).map(([id,name])=>`<label><input type="checkbox" data-longitudinal-action="${E(id)}"${options.selected?.includes(id)?" checked":""}>${E(name)}</label>`).join("")+check("showPoints","实测点")+check("showBand","95%置信带")+check("showEstimate","估计点");
     return controls?`<div class="longitudinal-plot-options" data-longitudinal-options-panel="${E(options.id)}">${controls}</div>`:"";
   }
+  function analysisControls(spec, views) {
+    if (!["profile", "elasticity"].includes(spec.section)) return "";
+    const values=chartConfig(views,spec.chartId).analysis || {};
+    const input=(key,label,min)=>`<label>${E(label)}<input type="number" step="any"${min===undefined?"":` min="${min}"`} data-longitudinal-analysis="${key}" value="${E(values[key]??"")}" placeholder="按各期记录" aria-label="${E(spec.title+" · "+label)}"></label>`;
+    let controls;
+    if(spec.section==="profile")controls=spec.sprint?input("targetDistanceM","目标距离 · m","0.000001"):`<label>目标方向 <select data-longitudinal-analysis="angle" aria-label="${E(spec.title+" · 目标方向")}">${[["","按各期记录"],[90,"90° 垂直"],[30,"30° 倾斜目标"]].map(([value,label])=>`<option value="${value}"${String(values.angle??"")===String(value)?" selected":""}>${label}</option>`).join("")}</select></label>`;
+    else controls=input("deltaForcePct","F₀ 改变 · %")+input("deltaVelocityPct","V₀ 改变 · %")+(spec.sprint?"":`<span class="fvp-scenario-shortcuts">${[["force","仅 F₀ +5%"],["velocity","仅 V₀ +5%"],["both","两者 +5%"]].map(([key,label])=>`<button type="button" class="btn small" data-longitudinal-scenario-shortcut="${key}">${label}</button>`).join("")}</span>`);
+    return `<div class="longitudinal-analysis-controls"><div class="longitudinal-plot-options">${controls}</div><p class="fvp-form-help">留空沿用各期记录；设置后统一用于本报告的所有比较日期。</p></div>`;
+  }
   function chartPanel(spec,model,views) {
     if(spec.kind==="notice")return figure(spec);
     const chosen=chosenDates(views,spec.chartId,model.periods),selected=new Set(chosen.map(p=>p.id)),options=optionControls(spec),filtered=filterFigure(spec,model.periods,views);
-    const controls=`<div class="longitudinal-chart-controls no-print"><details class="longitudinal-chart-dates"><summary>图中日期 ${chosen.length}/${model.periods.length}</summary><div>${model.periods.map(p=>`<label><input type="checkbox" data-longitudinal-chart-date="${E(p.id)}"${selected.has(p.id)?" checked":""}${chosen.length===1&&selected.has(p.id)?" disabled":""}>${E(periodLabel(p))}</label>`).join("")}</div></details>${options}</div>`;
+    const controls=`<div class="longitudinal-chart-controls no-print">${analysisControls(spec,views)}<details class="longitudinal-chart-dates"><summary>图中日期 ${chosen.length}/${model.periods.length}</summary><div>${model.periods.map(p=>`<label><input type="checkbox" data-longitudinal-chart-date="${E(p.id)}"${selected.has(p.id)?" checked":""}${chosen.length===1&&selected.has(p.id)?" disabled":""}>${E(periodLabel(p))}</label>`).join("")}</div></details>${options}</div>`;
     const noData=filtered.series&&!filtered.series.some(s=>s.values?.some(v=>N(v)!==null)||(spec.kind==="lvp"?s.points?.length:s.points?.some(p=>p&&N(p.y)!==null)))&&!filtered.horizontalMarkers?.length;
     return `<div class="longitudinal-chart-panel" data-longitudinal-panel="${E(spec.chartId)}">${controls}${noData?`<p class="longitudinal-empty" role="status">所选日期暂无可显示的数据或曲线。</p>`:figure(filtered)}</div>`;
   }
@@ -286,7 +294,7 @@
     return result;
   }
   function fvpSpec(periods,id,override) {
-    const series=[],measuredDomains=[];for(const p of periods){const solved=id==="sprint_fvp"?p.stats.sprintFvp:p.stats.fvp?.[id];if(!solved?.valid)continue;const view=override||(id==="sprint_fvp"?p.record.sprintFvpView:p.record.fvpView?.[id] || {}),domain=(solved.points||[]).map(q=>N(q.velocity)).filter(v=>v!==null);if(view.range==="measured"&&domain.length)measuredDomains.push({recordId:p.id,values:domain});const profiles=[{profile:solved.current || solved.model,label:"实测剖面"},{profile:solved.optimum || solved.optimal,label:"最优剖面",dash:"7 4"},...(id!=="sprint_fvp"&&view.comparison?[{profile:solved.comparison,label:"角度参照",dash:"2 4"}]:[])];for(const {profile,label,dash} of profiles){if(!profile||N(profile.F0)===null||N(profile.V0)===null||label==="最优剖面"&&view.optimum===false)continue;const sampled=Array.from({length:61},(_,i)=>{const x=profile.V0*i/60,y=profile.F0*(1-x/profile.V0);return{x,y};});if(view.fv!==false)series.push(xySeries(p,label+" F–V",sampled,{dash,pointsVisible:false}));if(view.pv!==false)series.push(xySeries(p,label+" P–V",sampled.map(q=>({x:q.x,y:q.x*q.y})),{right:true,dash:dash||"3 2",pointsVisible:false}));}
+    const series=[];for(const p of periods){const solved=id==="sprint_fvp"?p.stats.sprintFvp:p.stats.fvp?.[id];if(!solved?.valid)continue;const view=override||(id==="sprint_fvp"?p.record.sprintFvpView:p.record.fvpView?.[id] || {}),profiles=[{profile:solved.current || solved.model,label:"实测剖面"},{profile:solved.optimum || solved.optimal,label:"最优剖面",dash:"7 4"},...(id!=="sprint_fvp"&&view.comparison?[{profile:solved.comparison,label:"角度参照",dash:"2 4"}]:[])];for(const {profile,label,dash} of profiles){if(!profile||N(profile.F0)===null||N(profile.V0)===null||label==="最优剖面"&&view.optimum===false)continue;const sampled=Array.from({length:61},(_,i)=>{const x=profile.V0*i/60,y=profile.F0*(1-x/profile.V0);return{x,y};});if(view.fv!==false)series.push(xySeries(p,label+" F–V",sampled,{dash,pointsVisible:false}));if(view.pv!==false)series.push(xySeries(p,label+" P–V",sampled.map(q=>({x:q.x,y:q.x*q.y})),{right:true,dash:dash||"3 2",pointsVisible:false}));}
       if(id!=="sprint_fvp"&&view.points!==false){const measured=(solved.points||[]).map(q=>({x:q.velocity,y:q.forceRelative??q.force,note:"负荷 "+F(q.load)+" kg"}));if(view.fv!==false)series.push(xySeries(p,"实测负荷点 F–V",measured,{connect:false}));if(view.pv!==false)series.push(xySeries(p,"实测负荷点 P–V",measured.map(q=>({...q,y:q.x*q.y})),{connect:false,right:true,shape:"diamond"}));}
       let band=[];
       if(view.confidence!==false&&id!=="sprint_fvp"&&typeof solved.ci==="function"&&solved.points?.length){const xs=solved.points.map(q=>q.velocity),a=Math.min(...xs),b=Math.max(...xs);band=Array.from({length:31},(_,i)=>solved.ci(a+(b-a)*i/30)).filter(q=>q&&N(q.low)!==null);}
@@ -295,7 +303,7 @@
       const current=solved.current || solved.model;if(view.pv!==false&&N(current?.Pmax)!==null)series.push(xySeries(p,"Pmax · V₀/2",[{x:current.V0/2,y:current.Pmax}],{right:true,connect:false,shape:"triangle"}));
     }
     const powerOnly=series.length>0&&series.every(s=>s.right);if(powerOnly)series.forEach(s=>s.right=false);
-    return{kind:"xy",section:"profile",chartId:id+":profile",sprint:id==="sprint_fvp",displayOptions:override,measuredDomains:measuredDomains.length?measuredDomains:undefined,rich:true,title:id==="sprint_fvp"?"冲刺FVP":"跳跃FVP · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:"速度 V · m/s",yLabel:powerOnly?"功率 P · W/kg":"力 F · N/kg",rightLabel:"功率 P · W/kg",series};
+    return{kind:"xy",section:"profile",chartId:id+":profile",sprint:id==="sprint_fvp",displayOptions:override,rich:true,title:id==="sprint_fvp"?"冲刺FVP":"跳跃FVP · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:"速度 V · m/s",yLabel:powerOnly?"功率 P · W/kg":"力 F · N/kg",rightLabel:"功率 P · W/kg",series};
   }
   function elasticitySpec(periods,id,override) {
     const series=[],sprint=id==="sprint_fvp",latest=periods.at(-1).record,view=override||(sprint?latest.sprintFvpView || {}:latest.fvpView?.[id] || {}),kind=view.elasticityView;
@@ -429,7 +437,7 @@
   const handlers=new WeakMap();
   function mount(container,model,{onChange}={}) {
     observer?.disconnect();layout(container);root.RingsideResultDisplay.mount(container);
-    if(handlers.has(container))container.removeEventListener("change",handlers.get(container));
+    if(handlers.has(container)){const previous=handlers.get(container);container.removeEventListener("change",previous);container.removeEventListener("click",previous.shortcut);}
     const change=event=>{
       const input=event.target,panel=input.closest("[data-longitudinal-panel]");if(!panel||!onChange)return;
       let id=panel.dataset.longitudinalPanel,delta,attribute;
@@ -442,6 +450,14 @@
         attribute="data-longitudinal-option";id=input.closest("[data-longitudinal-options-panel]")?.dataset.longitudinalOptionsPanel||id;
         delta={options:{[input.dataset.longitudinalOption]:input.tagName==="SELECT"?input.value:input.checked}};
         if(input.dataset.longitudinalOption==="showBand")delta.options.bandExplicit=true;
+      }else if(input.hasAttribute("data-longitudinal-analysis")){
+        attribute="data-longitudinal-analysis";
+        if(input.validity?.badInput){input.reportValidity();return;}
+        delta={analysis:{[input.dataset.longitudinalAnalysis]:input.value.trim()===""?null:Number(input.value)}};
+      }else if(input.hasAttribute("data-longitudinal-scenario-shortcut")){
+        attribute="data-longitudinal-scenario-shortcut";
+        const key=input.dataset.longitudinalScenarioShortcut;
+        delta={analysis:{deltaForcePct:["force","both"].includes(key)?5:0,deltaVelocityPct:["velocity","both"].includes(key)?5:0}};
       }else if(input.hasAttribute("data-longitudinal-action")){
         attribute="data-longitudinal-action";id=input.closest("[data-longitudinal-options-panel]")?.dataset.longitudinalOptionsPanel||id;
         delta={options:{selected:[...panel.querySelectorAll("[data-longitudinal-action]:checked")].map(n=>n.dataset.longitudinalAction),selectionExplicit:true}};
@@ -454,7 +470,8 @@
       }
       Promise.resolve(result).catch(()=>{});
     };
-    handlers.set(container,change);container.addEventListener("change",change);
+    change.shortcut=event=>{const button=event.target.closest("[data-longitudinal-scenario-shortcut]");if(button)change({target:button});};
+    handlers.set(container,change);container.addEventListener("change",change);container.addEventListener("click",change.shortcut);
     if(typeof ResizeObserver!=="undefined"){let scheduled=false;observer=new ResizeObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;if(container.isConnected)layout(container);});});observer.observe(container);}
   }
   root.RingsideLongitudinalView={render,layout,mount,draw,table,projectFigures};

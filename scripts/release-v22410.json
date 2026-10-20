@@ -1,0 +1,78 @@
+{
+  "version": "2.24.10",
+  "desktopVersion": "2.24.10-desktop.1",
+  "entry": "scripts/release_v22410.py",
+  "baselineCommit": "12d25348eb864988680b740efad2ef5427899ed4",
+  "baselineDesktopVersion": "2.24.8-desktop.1",
+  "baselineAcceptance": "docs/acceptance-2.24.8.json",
+  "checkpoint": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261020-system-before-2.24.10",
+  "manifestSha256": "57d85a81e3ae80af6b1e3cd5ec2a08e2d40b52acab9b33ee3f08bbbd4ae05de4",
+  "installation": "D:\\Application\\Strength&Conditioning\\MotionBench",
+  "actualProfile": "C:\\Users\\ZekeNiu\\AppData\\Roaming\\MotionBench Desktop",
+  "output": "output/implementation-2.24.10/resumed",
+  "acceptanceJson": "docs/acceptance-2.24.10.json",
+  "acceptanceMarkdown": "docs/acceptance-2.24.10.md",
+  "guardSha256": "cf0f3ca402aebbaf9fdefa7eb2e48eab489eea139d6387e2ccd3ed3013681f02",
+  "templates": {
+    "prepare": {
+      "file": "scripts/prepare_v2247_system.ps1",
+      "sha256": "c4502443ade89bdebef30b96ef18d4d73735b66d5255cf5804028a952950550b"
+    },
+    "install": {
+      "file": "scripts/install_v2247_system.ps1",
+      "sha256": "604ff43a1b115b7a7f07db47d67f768bb085aee4cb9fb12885eb2b1e14fb6ecc"
+    },
+    "shortcut": {
+      "file": "scripts/check_v2247_shortcut.ps1",
+      "sha256": "86bbacc6be6c7197d2d0d6434a59bfdaa8f854e6a1fb6b3ea198566e035a0b27"
+    },
+    "native": {
+      "file": "tests/desktop-system-v2248.cjs",
+      "sha256": "196b8fac6a0d548e444a2d8175538ed086eb33bc938bc4a1ca8ab8344113e096"
+    }
+  },
+  "changedSource": [
+    "src/ringside-app.js",
+    "src/ringside-longitudinal-controller.js",
+    "src/ringside-longitudinal-view.js",
+    "src/ringside-longitudinal-views.js",
+    "src/ringside-longitudinal.css",
+    "src/ringside-longitudinal.js",
+    "src/ringside-report-refinement.css",
+    "src/ringside-report.js",
+    "src/ringside-shell.html",
+    "src/ringside-viz.js"
+  ],
+  "units": [
+    "longitudinal-model-tests.cjs",
+    "longitudinal-view-tests.cjs",
+    "longitudinal-display-state-tests.cjs",
+    "longitudinal-store-model-tests.cjs",
+    "fvp-report-model-tests.cjs",
+    "dual-elasticity-report-model-tests.cjs",
+    "sprint-fvp-display-report-model-tests.cjs",
+    "v2244-display-preservation-tests.cjs",
+    "display-guard-lifecycle-tests.cjs",
+    "report-controls-v22410-tests.cjs",
+    "narrative-status-v22410-tests.cjs"
+  ],
+  "focused": [
+    {
+      "runner": "tests/report-controls-v22410-browser-tests.cjs",
+      "receipt": "output/implementation-2.24.10/focused/results.json",
+      "minChecks": 12
+    },
+    {
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "receipt": "output/implementation-2.24.10/native/results.json",
+      "minChecks": 10,
+      "desktop": true
+    },
+    {
+      "runner": "tests/longitudinal-controls-browser-tests.cjs",
+      "receipt": "output/implementation-2.24.10/interaction/results.json",
+      "minChecks": 13
+    }
+  ],
+  "verificationScope": "Targeted control parity, complete-profile defaults, narrative editing, comparison condition isolation and persistence; synthetic Chrome and final packaged Electron. Original-library preservation is recorded separately. No physical printer or external-provider acceptance."
+}

@@ -45,6 +45,7 @@ async function main(){
     return page.evaluate(async({factory,count,minimal})=>{
       const f=(0,eval)("("+factory+")")(window,count),M=RingsideModel,lib=M.libraryDefaults();
       f.records.forEach((r,i)=>{r.title="控件验收 "+(i+1);r.evaluationProfileId=f.profile.id;r.narrative.html=M.textToHTML(r.narrative.text);if(minimal)for(const key of Object.keys(r.enabled))r.enabled[key]=key==="cmj";});
+      f.records.forEach(r=>{r.fvpView.fvp_sj.range="measured";r.fvpView.fvp_cmj.range="measured";});
       if(!minimal){f.records[1].athlete.date=f.records[0].athlete.date;f.records[1].created="2026-01-01T01:00:00.000Z";f.records[2].enabled.fms=false;f.records[2].enabled.imtp=false;f.records.forEach(r=>{r.sprintFvpView.confidence=false;r.sprintFvpView.metrics.Vopt=false;});}
       // Match normal data entry: age is derived from the final birth/test dates.
       f.records.forEach(r=>M.applyAge(r));
@@ -82,13 +83,13 @@ async function main(){
       for(const id of ids.filter(id=>!tested.has(id))){await dates(id,[f.ids[3]]);for(const chart of await specs(id)){const ids=[...new Set((chart.series||[]).map(s=>s.recordId||s.id).concat((chart.periods||[]).map(p=>p.id)))];assert.ok(ids.length&&ids.every(id=>id===f.ids[3]),id+" contains a hidden record");}}
       assert.deepEqual(await tables(),before);await invariant();result.dateFilteredChartIds=ids;
     });
-    await check("jump FVP layers confidence and measured range respond without altering any comparison result",async()=>{
+    await check("jump FVP layers confidence and full profiles preserve legacy settings and comparison results",async()=>{
       for(const id of["fvp_sj:profile","fvp_cmj:profile"]){
         await control(id,"data-longitudinal-option","fv",false);assert.ok((await specs(id))[0].series.every(s=>!s.label.includes("F–V")));
         await control(id,"data-longitudinal-option","fv",true);await control(id,"data-longitudinal-option","pv",false);assert.ok((await specs(id))[0].series.every(s=>!s.label.includes("P–V")&&!s.label.includes("Pmax")));
         await control(id,"data-longitudinal-option","pv",true);await control(id,"data-longitudinal-option","confidence",false);assert.ok((await specs(id))[0].series.every(s=>!s.band?.length));
         await control(id,"data-longitudinal-option","confidence",true);assert.ok((await specs(id))[0].series.some(s=>s.band?.length));
-        await control(id,"data-longitudinal-option","range","measured");assert.ok((await specs(id))[0].xRange?.min>0);await control(id,"data-longitudinal-option","range","full");
+        assert.equal(await panel(id).locator('[data-longitudinal-option="range"]').count(),0);const full=(await specs(id))[0];assert.equal(full.xRange,undefined);assert.equal(full.measuredDomains,undefined);assert.ok(full.series.some(s=>s.points.some(point=>point?.x===0)));
         for(const key of["points","optimum","comparison"]){await control(id,"data-longitudinal-option",key,false);await control(id,"data-longitudinal-option",key,true);}await control(id,"data-longitudinal-option","comparison",false);
       }await invariant();
     });

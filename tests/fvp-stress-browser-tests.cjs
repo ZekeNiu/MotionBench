@@ -24,6 +24,7 @@ fs.mkdirSync(out, { recursive: true });
     r.athlete.name = (kind === 'wide' ? '宽置信带' : '密集负荷点') + '验收（模拟数据）'; r.athlete.mass = 72;
     for (const id of Object.keys(r.enabled)) r.enabled[id] = false;
     r.enabled.fvp_sj = true; r.views.fvpProtocol = 'fvp_sj';
+    r.fvpView.fvp_sj.range = 'measured';
     r.fvpConfig.fvp_sj = { device: '离线图表验收', method: '合成跳跃高度', posture: '统一静止起跳姿势', distanceCm: 33, distanceSource: '固定合成推进距离' };
     if (kind === 'wide') {
       r.data.fvp_sj = [0, 40, 80].map((load, i) => ({ id: 'wide_' + i, load, height: [33, 12, 10][i], excluded: false, notes: '三负荷宽区间样本', exclusionReason: '' }));
@@ -51,8 +52,8 @@ fs.mkdirSync(out, { recursive: true });
       const rect = svg.querySelector('clipPath rect');
       const left = Number(rect.getAttribute('x')), right = left + Number(rect.getAttribute('width'));
       const min = Math.min(...graph.points.map(p => p.velocity)), max = Math.max(...graph.points.map(p => p.velocity));
-      const vMin = options.range === 'measured' ? min : 0;
-      const vMax = options.range === 'measured' ? max * 1.015 : Math.max(max, ...graph.profiles.filter(p => p.kind !== 'comparison' || options.comparison).map(p => p.V0)) * 1.04;
+      const vMin = 0;
+      const vMax = Math.max(max, ...graph.profiles.filter(p => p.kind !== 'comparison' || options.comparison).map(p => p.V0)) * 1.04;
       const x = v => left + (v - vMin) / (vMax - vMin) * (right - left);
       const polygonXs = [...svg.querySelectorAll('polygon[fill-opacity=".11"]')].map(p => {
         const coordinates = p.getAttribute('points').trim().split(/[\s,]+/).map(Number);
@@ -97,8 +98,8 @@ fs.mkdirSync(out, { recursive: true });
         if (kind === 'wide') { assert.equal(meta.df, 1); assert.ok(meta.minBandForce < 0 && meta.minBandPower < 0); }
       });
       await check(kind + ': full profile has finite FV/PV curves and mean bands confined to measured support', () => geometry(kind, 900));
-      await check(kind + ': measured range keeps both confidence polygons and all independent load points', async () => {
-        await panel().locator('[data-fvp-view="range"]').selectOption('measured'); await page.waitForTimeout(140); await geometry(kind, 900);
+      await check(kind + ': legacy measured settings keep full profiles without a range selector', async () => {
+        assert.equal(await panel().locator('[data-fvp-view="range"]').count(),0);assert.equal(await page.evaluate(()=>App.getState().fvpView.fvp_sj.range),'measured');await geometry(kind, 900);
       });
       const load = kind === 'wide' ? 40 : 128;
       await check(kind + ': hover links the measured load across FV/PV and table', async () => {
@@ -116,7 +117,7 @@ fs.mkdirSync(out, { recursive: true });
       await check(kind + ': 900px resize preserves selection and restores coherent full-range axes', async () => {
         await page.setViewportSize({ width: 900, height: 1100 }); await page.waitForTimeout(180);
         assert.ok(await panel().locator('[data-fvp-load="' + load + '"].is-fvp-pinned').count() >= 3);
-        await panel().locator('[data-fvp-view="range"]').selectOption('full'); await page.waitForTimeout(140);
+        assert.equal(await panel().locator('[data-fvp-view="range"]').count(),0);
         await geometry(kind, 900); await shot(kind, 900);
       });
       await check(kind + ': Escape clears the pin without changing calculations or measurements', async () => {

@@ -1859,9 +1859,9 @@
     const profiles = (data.profiles || []).filter(profile => profile.kind === "current" || profile.kind === "optimum" && options.optimum !== false || profile.kind === "comparison" && options.comparison === true);
     const points = (data.points || []).filter(p => num(p.velocity) !== null);
     const band = options.confidence !== false ? (data.band || []) : [];
-    const support = points.map(p => p.velocity), measured = options.range === "measured", bandVelocities = sprint ? band.map(p => p.x).filter(v => num(v) !== null) : [];
-    const vMin = measured ? Math.min(...support) : Math.min(0, ...bandVelocities);
-    const vMax = Math.max(vMin + .01, ...(measured ? support : [...support, ...profiles.map(p => p.V0), ...bandVelocities])) * (measured ? 1.015 : 1.04);
+    const support = points.map(p => p.velocity), bandVelocities = sprint ? band.map(p => p.x).filter(v => num(v) !== null) : [];
+    const vMin = Math.min(0, ...bandVelocities);
+    const vMax = Math.max(vMin + .01, ...support, ...profiles.map(p => p.V0), ...bandVelocities) * 1.04;
     const fMin = Math.min(0,...band.map(p=>p.low))*1.1, pMin = Math.min(0,...band.map(p=>p.powerLow))*1.1;
     const fMax = Math.max(1, ...points.map(p => p.force), ...profiles.map(p => p.F0), ...band.map(p => p.high)) * 1.12;
     const pMax = Math.max(1, ...points.map(p => p.power), ...profiles.map(p => p.Pmax), ...band.map(p => p.powerHigh)) * 1.13;

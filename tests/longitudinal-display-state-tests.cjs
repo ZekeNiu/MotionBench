@@ -164,4 +164,37 @@ test("import remaps every per-figure record ID including archived document versi
   const doc=copy(c.document()), recordMap=Object.fromEntries(f.f.records.map((r,i)=>[r.recordId,"mapped-"+i])), mapped=S.remap({...doc,importedVersions:[doc]},{recordMap});
   assert.deepEqual(copy(mapped.views.charts.risk.recordIds),["mapped-1"]);assert.deepEqual(copy(mapped.importedVersions[0].views.charts.risk.recordIds),["mapped-1"]);
 });
+test("comparison analysis changes model facts and basis while display changes and source records stay independent", async () => {
+  const f=await fixture(), controller=f.controller, original=JSON.stringify(f.library.athletes), originalBasis=controller.basis(), originalFacts=JSON.stringify(controller.facts());
+  assert.equal(await controller.updateChartView("fvp_sj:profile",{analysis:{angle:30}}),true);
+  assert.notEqual(controller.basis(),originalBasis);assert.notEqual(JSON.stringify(controller.facts()),originalFacts);assert.equal(controller.document().basis,controller.basis());
+  const changedBasis=controller.basis(), changedModel=JSON.stringify(controller.model());
+  await controller.updateChartView("fvp_sj:profile",{recordIds:[f.f.records[0].recordId],options:{fv:false}});
+  assert.equal(controller.basis(),changedBasis);assert.equal(JSON.stringify(controller.model()),changedModel);assert.equal(JSON.stringify(f.library.athletes),original);
+  const exported=controller.payload();assert.equal(exported.library.longitudinalReports[0].views.charts["fvp_sj:profile"].analysis.angle,30);
+  assert.deepEqual(copy(exported.library.athletes[0].records).sort((a,b)=>a.recordId.localeCompare(b.recordId)),copy(f.f.records).sort((a,b)=>a.recordId.localeCompare(b.recordId)));
+  await controller.refresh();assert.equal(controller.basis(),changedBasis);assert.equal(JSON.stringify(controller.facts()),JSON.stringify(c.RingsideLongitudinal.facts(controller.model())));
+  assert.deepEqual(copy(controller.document().views.charts["fvp_sj:profile"].recordIds),[f.f.records[0].recordId]);
+  await controller.updateChartView("fvp_sj:profile",{analysis:{angle:null}});assert.equal(controller.basis(),originalBasis);assert.equal(JSON.stringify(controller.facts()),originalFacts);
+});
+test("failed analysis writes restore model basis and absent settings without losing later narrative", async () => {
+  const f=await fixture(), controller=f.controller, basis=controller.basis(), facts=JSON.stringify(controller.facts()), original=JSON.stringify(f.library.athletes);f.startDeferred();
+  const task=controller.updateChartView("sprint_fvp:profile",{analysis:{targetDistanceM:20}});assert.notEqual(controller.basis(),basis);
+  controller.setNarrative({...copy(controller.narrative()),text:"Later preserved text",html:"<p>Later preserved text</p>"});controller.setViews({detailOpen:{screenDetail:false}});
+  f.calls[0].finish(false);assert.equal(await task,false);assert.equal(controller.basis(),basis);assert.equal(controller.document().basis,basis);assert.equal(JSON.stringify(controller.facts()),facts);
+  assert.equal(controller.document().views.charts,undefined);assert.equal(controller.narrative().text,"Later preserved text");assert.equal(controller.document().views.detailOpen.screenDetail,false);assert.equal(JSON.stringify(f.library.athletes),original);assert.equal(controller.pendingDisplaySave(),null);
+});
+test("rapid mixed analysis failures restore the last saved common conditions and keep chart dates", async () => {
+  const f=await fixture(), controller=f.controller;await controller.updateChartView("fvp_sj:profile",{recordIds:[f.f.records[1].recordId]});f.startDeferred();
+  const first=controller.updateChartView("fvp_sj:profile",{analysis:{angle:30}}), changed=controller.basis();
+  const second=controller.updateChartView("fvp_sj:elasticity",{analysis:{deltaForcePct:5}});assert.notEqual(controller.basis(),changed);
+  f.calls[0].finish(true);await first;f.calls[1].finish(false);await second;
+  assert.equal(controller.basis(),changed);assert.equal(controller.document().basis,changed);assert.equal(controller.document().views.charts["fvp_sj:profile"].analysis.angle,30);assert.equal(controller.document().views.charts["fvp_sj:elasticity"],undefined);
+  assert.deepEqual(copy(controller.document().views.charts["fvp_sj:profile"].recordIds),[f.f.records[1].recordId]);assert.equal(controller.model().periods[0].record.fvpAnalysis.fvp_sj.deltaForcePct,f.f.records[0].fvpAnalysis.fvp_sj.deltaForcePct);
+});
+test("invalid comparison conditions are rejected before model document or source data changes", async () => {
+  const f=await fixture(), controller=f.controller, before={model:JSON.stringify(controller.model()),document:JSON.stringify(controller.document()),records:JSON.stringify(f.library.athletes)};
+  assert.equal(await controller.updateChartView("sprint_fvp:profile",{analysis:{targetDistanceM:0}}),false);assert.equal(await controller.updateChartView("fvp_sj:elasticity",{analysis:{deltaForcePct:-100}}),false);
+  assert.equal(JSON.stringify(controller.model()),before.model);assert.equal(JSON.stringify(controller.document()),before.document);assert.equal(JSON.stringify(f.library.athletes),before.records);assert.equal(f.errors.length,2);
+});
 (async()=>{for(const [name,run]of tests){await run();console.log("PASS "+name);}console.log(tests.length+" longitudinal display state checks passed");})().catch(error=>{console.error(error);process.exitCode=1;});

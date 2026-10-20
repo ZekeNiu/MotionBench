@@ -115,6 +115,9 @@
 .longitudinal-chart-dates label,.longitudinal-plot-options label,.longitudinal-metric-options label{display:inline-flex;align-items:center;gap:5px;margin:4px 12px 4px 0;max-width:100%;font-size:11px;line-height:1.6;overflow-wrap:anywhere;}
 .longitudinal-chart-controls input[type=checkbox],.longitudinal-metric-options input[type=checkbox]{width:14px;height:14px;min-height:0;flex-shrink:0;margin:0;accent-color:var(--green,#176b68);}
 .longitudinal-plot-options{display:flex;flex-wrap:wrap;align-items:center;gap:0 4px;min-width:0;}
+.longitudinal-analysis-controls{flex-basis:100%;min-width:0;}
+.longitudinal-analysis-controls input[type=number]{width:110px;min-width:0;max-width:100%;}
+.longitudinal-analysis-controls .fvp-form-help{margin:2px 0 6px;}
 .longitudinal-metric-options{margin:10px 0;}
 
 /* The mini chart is shared; table sizing stays within comparison reports. */
