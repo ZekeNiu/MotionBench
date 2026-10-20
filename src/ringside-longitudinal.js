@@ -110,8 +110,9 @@
         add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "force", groupName: "力量结果", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · " + (detail?.sideLabel || "中线"), unit: item.unit, value: item.value, preserveMissing: measured, measurementScale: "ratio", context: { ...E.isoContext(row, record), side: item.side }, evaluation: item, referenceTarget: detail?.target, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason,
           direction: item.applicable && N(item.target) > 0 ? "higher" : null, statistics: group?.statistics[0] ? clone(group.statistics[0]) : null, rawTrials: clone(group?.attempts || []), pain: !!detail?.pain,
+          warnings: [detail?.pain ? { status: "red", label: "疼痛" } : null, item.side === row.weakSide && ["red", "amber"].includes(row.asymStatus) ? { status: row.asymStatus, label: "双侧差异 " + root.RingsideResultDisplay.number(row.asym, 1) + "%" } : null].filter(Boolean),
           notes: [detail?.pain ? "疼痛" : "", row.notes, ...(group?.attempts || []).map(row => row.notes)].filter(Boolean).join("；") });
-        if (item.side === "L" && measured) add("asym:" + row.id, { testId: "iso", section: "asymmetry", groupName: "双侧差异", region: row.region, directionId: row.id,
+        if (item.side === "L" && measured) add("asym:" + row.id, { assessmentKind: "asymmetry", testId: "iso", section: "asymmetry", groupName: "双侧差异", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · 双侧差异", unit: "%", value: row.asym, preserveMissing: true, measurementScale: "ratio", context: E.isoContext(row, record),
           evaluation: { grade: { status: row.asymStatus, label: N(row.asym) === null ? "缺少完整双侧结果" : row.weakSide ? (row.weakSide === "L" ? "左" : "右") + "侧更弱" : "双侧一致" }, reason: N(row.asym) === null ? "缺少完整双侧结果" : "", rules: { asymAmber: record.rules.asymAmber, asymRed: record.rules.asymRed } },
           notes: N(row.asym) === null ? "缺少完整双侧结果" : row.weakSide ? (row.weakSide === "L" ? "左" : "右") + "侧更弱" : "双侧一致" });
@@ -124,13 +125,13 @@
         const reasons = [detail?.reason, detail?.evaluationReason, detail?.referenceReason].filter(Boolean);
         add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "balance", groupName: "关节平衡", region: pair.region, pairId: pair.id,
           name: (M.REG[pair.region] || pair.region) + " · " + item.name + (item.side ? " · " + (item.side === "L" ? "左侧" : "右侧") : ""), value: item.value, preserveMissing: true, unit: item.unit, measurementScale: "ratio", evaluation: item,
-          referenceTarget: detail?.referenceTarget, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason, notes: [...new Set(reasons)].join("；"),
+          referenceTarget: detail?.referenceTarget, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason, notes: [...new Set(reasons)].join("；"), diagnosticNotes: [detail?.evaluationReason, detail?.referenceReason].filter(Boolean),
           balance: { pairId: pair.id, label: pair.label, numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, numerator: clone(computed?.numerator || null), denominator: clone(computed?.denominator || null), referenceEnabled: pair.referenceEnabled, ranges: clone(pair.ranges || []), result: clone(detail || null) },
           context: { side: item.side, numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, confirmed: pair.confirmed, contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(row => row.id === id); return row ? E.isoContext(row, record) : null; }) } });
       } else if (item.kind === "imtp-time") {
         const existing = result.get(item.metricId);
-        if (existing && existing.unit === item.unit && existing.value === item.value) { existing.evaluation = item; continue; }
-        add(item.subjectId, { subjectId: item.subjectId, testId: "imtp", name: item.name, unit: item.unit, value: item.value, measurementScale: "ratio", evaluation: item, context: { ...E.imtpTimeContext(record), timeMs: item.timeMs, unit: item.unit } });
+        if (existing && existing.unit === item.unit && existing.value === item.value) { existing.evaluation = item; existing.displayDefinition = stats.imtpTimeResults.find(result => result.id === item.metricId)?.standard || existing.definition; continue; }
+        add(item.subjectId, { subjectId: item.subjectId, testId: "imtp", name: item.name, unit: item.unit, value: item.value, measurementScale: "ratio", evaluation: item, displayDefinition: stats.imtpTimeResults.find(result => result.id === item.metricId)?.standard, context: { ...E.imtpTimeContext(record), timeMs: item.timeMs, unit: item.unit } });
       }
     }
     for (const series of stats.lvpSeries || []) if (record.enabled[series.testId]) for (const point of series.points) {
@@ -243,6 +244,7 @@
         reason: evaluation.reason || cell.referenceReason || (N(cell.value) === null ? cell.notes || "缺少有效测量" : ""),
         target: scaleTarget(evaluation.target ?? cell.target), referenceTarget: scaleTarget(cell.referenceTarget), referenceSource: cell.referenceSource || evaluation.source || "",
         attainment: N(evaluation.attainment ?? cell.attainment), ...(evaluation.reference ? { reference: clone(evaluation.reference) } : {}) };
+      next.display = root.RingsideResultDisplay.assessment(next, converted ? factor : 1);
       return next;
     });
     normalized.forEach((cell, i) => { if (cell) cell.comparableToPrevious = !!(i && normalized[i - 1] && cell.contextKey === normalized[i - 1].contextKey); });
@@ -279,7 +281,7 @@
             const definition = period.record.definitions.find(d => d.id === test.id);
             return { id: test.id, testId: test.testId, side: test.side, unit: test.unit, context: iso ? E.isoContext(iso, period.record) : definition ? metricContext(period.record, definition, period.stats) : testContext(period.record, test.testId, period.stats) };
           }).sort((a, b) => a.id.localeCompare(b.id));
-          result.set(region, { value: riskScore[detail.status] ?? null, unit: "分", name: riskOrder.find(([key]) => key === region)?.[1] || region, measurementScale: "ordinal", context: { region }, direction: "higher", coverageKey: canonical(coverage), evaluationKey: canonical(tests.map(test => ({ id: test.id, target: test.target, kind: test.targetKind, source: test.referenceSource }))), tests: clone(tests), pain: tests.some(test => test.pain), evaluation: { grade: { status: detail.status, label: detail.label } }, notes: detail.detail || "" });
+          result.set(region, { assessmentKind: "screening", value: riskScore[detail.status] ?? null, unit: "分", name: riskOrder.find(([key]) => key === region)?.[1] || region, measurementScale: "ordinal", context: { region }, direction: "higher", coverageKey: canonical(coverage), evaluationKey: canonical(tests.map(test => ({ id: test.id, target: test.target, kind: test.targetKind, source: test.referenceSource }))), tests: clone(tests), pain: tests.some(test => test.pain), evaluation: { grade: { status: detail.status, label: detail.label } }, notes: detail.detail || "" });
         }
       } else for (const axis of period.stats.axes) result.set(axis.key, { ...axis, name: axis.label, value: N(axis.value), unit: "分", measurementScale: "interval", context: { members: axis.members, method: axis.method, transforms: axis.transforms }, direction: null });
       return result;
@@ -327,7 +329,7 @@
         const target = N(metric.target) > 0 ? N(metric.target) : source?.referenceEnabled && source.matched !== false && N(source.target) > 0 ? N(source.target) : null;
         return [metric.id, { ...metric, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null,
           evaluation: evaluation || { grade: { status: metric.status || "gray", label: metric.judgment || "未设置评价" }, target, source: source?.source || "" },
-          target, notes: metric.judgment || "", components: clone(metric.components || []) }];
+          target, displayDefinition: source, diagnosticNotes: [metric.judgment].filter(Boolean), notes: metric.judgment || "", components: clone(metric.components || []) }];
         }));
       });
       return { id: card.id, title: card.title, metrics: matrixRows(maps, periods), periods: periods.map(period => ({ periodId: period.id,
@@ -399,5 +401,5 @@
       periods: model.periods.map(period => ({ recordId: period.id, date: period.date, label: period.label, athlete: clone(period.record.athlete), trainingContext: clone(period.record.trainingContext), qualityIssues: period.stats.qualityIssues })),
       projects: model.projects.map(project => ({ id: project.id, name: project.name, metrics: rows(project.metrics) })), risk: rows(model.risk.rows), overview: rows(model.overview.rows), capability: model.capability.cards.map(card => ({ id: card.id, title: card.title, metrics: rows(card.metrics) })) };
   }
-  root.RingsideLongitudinal = { build, key, facts, validDate, sortRecords };
+  root.RingsideLongitudinal = { build, key, facts, validDate, sortRecords, change };
 })(typeof window !== "undefined" ? window : globalThis);

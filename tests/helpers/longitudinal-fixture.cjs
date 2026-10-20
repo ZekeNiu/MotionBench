@@ -2,7 +2,7 @@
 const fs = require("node:fs"), path = require("node:path"), vm = require("node:vm");
 function context() {
   const c = vm.createContext({ console, Intl, Blob, TextDecoder, crypto: require("node:crypto").webcrypto }); c.window = c;
-  for (const name of ["calc", "scoring", "fvp", "sprint-fvp", "sprint-elasticity", "sprint-fvp-confidence", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "generic-report", "model", "evaluation", "interventions", "viz", "report", "longitudinal"])
+  for (const name of ["calc", "scoring", "fvp", "sprint-fvp", "sprint-elasticity", "sprint-fvp-confidence", "sources", "cpet-reference", "iso-reference", "definitions", "tests", "generic-report", "model", "evaluation", "interventions", "viz", "report", "result-display", "longitudinal"])
     vm.runInContext(fs.readFileSync(path.join(__dirname, "../../src/ringside-" + name + ".js"), "utf8"), c);
   return c;
 }

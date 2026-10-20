@@ -1,0 +1,455 @@
+{
+  "status": "passed-local-candidate",
+  "date": "2026-10-19T17:28:27.324746+08:00",
+  "confidence": "high",
+  "sourceHash": "e6937310f389a1929a7102c6936a13174d205880ef110e15f0eb6e06d37898ff",
+  "sourceBytes": 4945372,
+  "baseCommit": "f08f7b9007d17a2dd187accbd6d6a02f91d03c1b",
+  "branch": "codex/motionbench-comparison-trend",
+  "unitSuites": 64,
+  "unitChecks": 1019,
+  "browserAndPdfChecks": 71,
+  "baselineChecks": 18,
+  "baselineAdditionalToUnit": 2,
+  "evidence": [
+    {
+      "name": "chrome",
+      "path": "output/comparison-trend/verified/chrome/results.json",
+      "sha256": "dc01517272b2b7b68c88a8f56b452699782bcfd0ad7cbb48c5e8269e73b85e71",
+      "producer": "comparison-trend-browser-tests.cjs",
+      "producerSha256": "4786adf5dfb5f46a8ff0132bff83e8d2a4ba59795ed1748fa821388b3e60e955",
+      "checks": 11
+    },
+    {
+      "name": "edge",
+      "path": "output/comparison-trend/verified/edge/results.json",
+      "sha256": "9f9b2406bc7f4247ecd2b30c11f4a9d527fdb8a30472052799f3d848159418a1",
+      "producer": "comparison-trend-browser-tests.cjs",
+      "producerSha256": "4786adf5dfb5f46a8ff0132bff83e8d2a4ba59795ed1748fa821388b3e60e955",
+      "checks": 9
+    },
+    {
+      "name": "controls",
+      "path": "output/comparison-trend/verified/controls/results.json",
+      "sha256": "a947e3f8f43a20b110742a0781ec176dee1dd2a547160daac3b35c0331389d59",
+      "producer": "longitudinal-controls-browser-tests.cjs",
+      "producerSha256": "852ff739c5fcac8a5ef2e420490ec2ccbeb35eab8d990df605ec1c3a9ff019d2",
+      "checks": 13
+    },
+    {
+      "name": "layout",
+      "path": "output/comparison-trend/verified/layout/results.json",
+      "sha256": "33738482ff620b90ff0b57f2de1d76361aafbf7aad2e5c6c94adfd004ce13415",
+      "producer": "longitudinal-layout-v2244-tests.cjs",
+      "producerSha256": "2544d164e02b2798e129a16caf74046eeb06c1e8c50c9b2834bd26e77c9d1aaa",
+      "checks": 7
+    },
+    {
+      "name": "followup",
+      "path": "output/comparison-trend/verified/followup/results.json",
+      "sha256": "842a8a36cc429e78b1b4f751fd02cb3a8f499ab0da33ceb6c35bb87678dc3af9",
+      "producer": "longitudinal-followup-browser-tests.cjs",
+      "producerSha256": "293cfcb876c2030947d9f56f2794a71ebeb1b38b4156a327b6f0d309bf277700",
+      "checks": 7
+    },
+    {
+      "name": "ai",
+      "path": "output/comparison-trend/verified/ai/results.json",
+      "sha256": "16db574b1ff0378bd7db74c3173bce1171f795268f1e6025d74bb7e859408589",
+      "producer": "longitudinal-ai-browser-tests.cjs",
+      "producerSha256": "7c0fc559a3ec7d39b6d970d62ed5b82e1da21cf234a20393d21e7241f3598ad5",
+      "checks": 11
+    },
+    {
+      "name": "interaction",
+      "path": "output/comparison-trend/verified/interaction/results.json",
+      "sha256": "6928972a3be8a3d982b015efaa128088239217c1748527ae1bb178f34b02e1ff",
+      "producer": "longitudinal-interaction-browser-tests.cjs",
+      "producerSha256": "5666af8c7e3d9fc09a20079c13ae24a8b92b92f11ba2a936e632054f855e6c72",
+      "checks": 8
+    },
+    {
+      "name": "tooltip",
+      "path": "output/comparison-trend/verified/tooltip/results.json",
+      "sha256": "6bc5b2e9c679a1adc80895421798a484bab5f497496f9a754364340fe9bcfa99",
+      "producer": "comparison-trend-interaction-tests.cjs",
+      "producerSha256": "9efeb4517f1f9cbeb48d98d20513984e27e52cf36fba04d8e9cac31f3bf7da6a",
+      "checks": 3
+    },
+    {
+      "name": "balance-pdf",
+      "path": "output/comparison-trend/verified/balance-pdf/results.json",
+      "sha256": "7a758926048ad7b62af1b3b3f98fba8f2072a04e720c66a6e053946704fc82a5",
+      "producer": "comparison-trend-pdf-edgecases.cjs",
+      "producerSha256": "f462df1605e2b9f0c0c400a6d4bf9edbec83b62505ea863af82d12e9dd6f7ff8",
+      "checks": 2
+    }
+  ],
+  "files": [
+    {
+      "path": "output/tests/comparison-trend-verified/unit-results.json",
+      "sha256": "4e91307792831a6f35ff5f15b1df88e23d76b820e0c65f885fbdaa287fefb2cf"
+    },
+    {
+      "path": "output/comparison-trend/baseline-verified.log",
+      "sha256": "813906565e9918a1c2632a8d8480c0d737fdad868a0e2476f164a5161270d3fb"
+    },
+    {
+      "path": "output/comparison-trend/build-verification.json",
+      "sha256": "38dd12e9710f91d1a7e0f87823384fb6f5ff55b98ca90155bcb9c2fc3a150fba"
+    },
+    {
+      "path": "output/comparison-trend/verified/visual-qa.json",
+      "sha256": "dd44478325c7e3f773bb3c714a77bdc48b578e4574344448cd7456670834af6c"
+    },
+    {
+      "path": "tests/helpers/longitudinal-fixture.cjs",
+      "sha256": "b47e0d4c31829df863f6b5b3045c965c25d30e0930931dbd343968f9561a82fc"
+    }
+  ],
+  "pdfs": [
+    {
+      "name": "full",
+      "path": "output/comparison-trend/verified/chrome/comparison-trend-full.pdf",
+      "sha256": "fbf90f266a28b3869158c137648e616148b1e3ead19fa606b596081c06db9424",
+      "pages": 51,
+      "renderScale": 1.2,
+      "contactSheets": [
+        "output/comparison-trend/verified/rendered/full/contact-001.png",
+        "output/comparison-trend/verified/rendered/full/contact-026.png",
+        "output/comparison-trend/verified/rendered/full/contact-051.png"
+      ],
+      "contactsReviewed": true,
+      "manualReviewedPages": [
+        2,
+        4,
+        5,
+        6,
+        7,
+        10,
+        11,
+        17,
+        22,
+        29,
+        34,
+        41
+      ],
+      "renderedPages": [
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-001.png",
+          "sha256": "31347325496d61d187c4c820398bba79c1126e3acecef790e767011d3edd85bc"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-002.png",
+          "sha256": "facc03c73a4a246c13b677fb6d1f3b57ea03c62f1008ae4b8e05775ecf1010bd"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-003.png",
+          "sha256": "9f9550589b0a3ddd3fac62b23b74f16d7fe8118c6ed7f5a359cf52b609a95f93"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-004.png",
+          "sha256": "0faf18a48d18e725d3c3a78a221ab926c129c8a3f77fcd744bb7fb4ac8315810"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-005.png",
+          "sha256": "bb9ed7a471985fab0408bc7a98cbe511876a4dbf7aa00cd14d158313b04f03e1"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-006.png",
+          "sha256": "feac54a3ec6e4fe282b64d75d14d9ee9298a7dd6db82f9c90ff1a79572851fab"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-007.png",
+          "sha256": "832776bf85c4270d3cdc3d1c1d39774054543155ab31077668807fc21ec51d80"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-008.png",
+          "sha256": "2f6cfa8e5c8ae05137c0178ccfea75d3245685b87078b9376f5d925088203283"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-009.png",
+          "sha256": "e88c79f5cebc66ed525c97ca693f139e94727133e71729cdc70105ed802f6b4b"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-010.png",
+          "sha256": "7c257f566ec63f75f70f95d36d873f876c12f66cc453cb2cfff1ba2570075132"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-011.png",
+          "sha256": "09d1aa193efbeb7a6300cbc154456c722ec3a6dd60f3083b322a057791cc6de3"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-012.png",
+          "sha256": "a4c89326d64d966ad20ad99efa70e83485e41cb8a11ea923d05bd3ee118664e5"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-013.png",
+          "sha256": "7e8bba0bc47d9e400e97aa4074afd9256e76e0c59c33e1e4819b3aa69e48eabc"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-014.png",
+          "sha256": "d32dbec8903849be2bed0ba705c19389cc458c5a578363c53183ffe1b469ccf5"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-015.png",
+          "sha256": "d66997f65fd1e44642aa995f7d574d6f2bc6e9b2e954cecebe867bd099614e97"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-016.png",
+          "sha256": "8ed88e68025922237fe2263906b26eb0211a58ca45df22cb3c5d3ba0c0f079ca"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-017.png",
+          "sha256": "1603aecf71c79d0f1595da75cd0302e1e5f77626dc4325aa9202eb552b512931"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-018.png",
+          "sha256": "44f33d6fdd1ffb9d23249fb5e97dfbe915729b1ff0c67b98b0414279660268cc"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-019.png",
+          "sha256": "5e36e3c65c511f06f29018e6e46bb354489e1d2330827b73aa3c2372e1cbf629"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-020.png",
+          "sha256": "dc29aa9cb125064da3f2901e94f30d589254f6cdca91a4d3defae6aacb35dbe8"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-021.png",
+          "sha256": "0ff3df576143b6294a904fa6e57d09998d783b3a0c1f4256a7c8c884a1108a30"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-022.png",
+          "sha256": "a580947a6a191d88bbe05c284cb3a6a28a891cf2f8eb11bbf217beb5f0e88faf"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-023.png",
+          "sha256": "cb5e6201b286069e3a5fc5ead00e09c65a5edb2ff62e1e51df390562fc080b9b"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-024.png",
+          "sha256": "489308a2bfe4c200e5c0e6bf7d43edf077f7102d9a2242b4d20a430c199ef49d"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-025.png",
+          "sha256": "763ac63541860febddb6ee902a1bab4267b34668c107b2a74bd10f505eda4318"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-026.png",
+          "sha256": "6e1d95af11e35efd95d53eb026a9ce90b363fa115158f31207c92ea783e134d8"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-027.png",
+          "sha256": "8d1ec4ad598a98035b8cad41c06f2a1e5ff7bcf84a08088643c9325c7b925f4f"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-028.png",
+          "sha256": "a4754a4b2c8470bd45400fb4ba4946d3cd0f6d29ef1a4ddc899fe67777e2d5ac"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-029.png",
+          "sha256": "b7cdbd304a661583f204855cbf7d5f100010d5ed9f96da388b1f50f30cfce33c"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-030.png",
+          "sha256": "80c2f18693a5f8872557f5f22fa47dcf707fb0558f83a3928c9d3dd6417abe60"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-031.png",
+          "sha256": "75d1194205c8a7726bd714886b54ac804c98e2962cb49b12f7020ce4c3ba5f62"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-032.png",
+          "sha256": "94e8e91dd53158f2e048a18b78157b4f3dc1b1d78b9657f232cd010f04d6f1a8"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-033.png",
+          "sha256": "b6d97102bb3689a3989b8a1a83bb69efc700aa18d4ec9792baf4c299f9ccebdf"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-034.png",
+          "sha256": "238d411d89157b1ab40f0e3ef267aaeab086b3e09ea1dfe04a3801fdd51d2c33"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-035.png",
+          "sha256": "25757619a1c972ae5a316b825dae4f057e6e91965ef7bb7c2b50dd261112bb22"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-036.png",
+          "sha256": "6cbb1fb5865d3aaa8b3832e0d63271d82e4100254f58d5f8e2f37f5e3cccd201"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-037.png",
+          "sha256": "72a25c32d1bfe75779bdc33c03626e9ca87577b57ac67ca72804608e35e04115"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-038.png",
+          "sha256": "2f97a0086c4a1d4df80ba20b5c4a9cdabc382a980113ec15facd5b12c997b76f"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-039.png",
+          "sha256": "ab828678b044321ad7289455496fe923b16eb340c307bce30c3aff790b089689"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-040.png",
+          "sha256": "85f75ebb31c3dfe829db860e8e0ddc2684e860ea2b226746b52d2aa8ad8a44c0"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-041.png",
+          "sha256": "e42a5dfd571a4d19e96ddb4fe66d026c311d7a655657a17dcfd56db0fc625015"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-042.png",
+          "sha256": "4f1eecd9d4391e72227a7e9d64b9b2e8e7bf38464473be08efd87073608f479b"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-043.png",
+          "sha256": "01c1a9483a23cfe47a21cc99d1c7b79287c33b6bf1a14bf53a60b124d63d566e"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-044.png",
+          "sha256": "458a51c0dae6143bdf3e3236cf96c428daa89fd35a89aa17ac2a3e94dc7dc37f"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-045.png",
+          "sha256": "839028219f1e15460645f0442426fea1eb7b16fae75995518c4c032086930050"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-046.png",
+          "sha256": "2bbdc285e85243e51934702b45c5837d73c7fbea67003ab5381520c698aaa48a"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-047.png",
+          "sha256": "f97116f2b159abc097b449c91b08034426fce4ea7a19df5fc05d96037b489f14"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-048.png",
+          "sha256": "854b9ac5f959e98b1c8d2755be00a1ada3e44024f128ca7845c80e70f93bb6d2"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-049.png",
+          "sha256": "3ed07be032ed2355265d7a83fe6869bdf8908489ad739f08b1d7dc647f02c876"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-050.png",
+          "sha256": "545915e76222e8412986bf09903f3c57b926973c858266874077886f6225e5a2"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/full/page-051.png",
+          "sha256": "ec1908bca3698dd3f8228375cd63d2bb8fde1891cddf01c957bf0f284dffb1e9"
+        }
+      ],
+      "reviewNotes": "All pages checked in contact sheets; listed pages enlarged and inspected for dates, units, axis labels, points, gaps, valid gray grades, values, and pagination. No clipping or misplaced labels observed."
+    },
+    {
+      "name": "balance",
+      "path": "output/comparison-trend/verified/balance-pdf/comparison-balance.pdf",
+      "sha256": "db0f0b009268059b8fb62ba47e8ee0b16d8a913ca9e03b4064caa18d98a341bd",
+      "pages": 1,
+      "renderScale": 1.2,
+      "contactSheets": [
+        "output/comparison-trend/verified/rendered/balance/contact-001.png"
+      ],
+      "contactsReviewed": true,
+      "manualReviewedPages": [
+        1
+      ],
+      "renderedPages": [
+        {
+          "path": "output/comparison-trend/verified/rendered/balance/page-001.png",
+          "sha256": "8ed87b807d7654f7e95113821b3901d7803c4195a09f45c1cc80d743da481d2a"
+        }
+      ],
+      "reviewNotes": "All pages checked in contact sheets; listed pages enlarged and inspected for dates, units, axis labels, points, gaps, valid gray grades, values, and pagination. No clipping or misplaced labels observed."
+    },
+    {
+      "name": "eight-dates",
+      "path": "output/comparison-trend/verified/chrome/comparison-trend-eight-dates.pdf",
+      "sha256": "97fedf51ac2aa01bf6d10344b5dac450a401f4609a0fb1cd77558375a14920b0",
+      "pages": 5,
+      "renderScale": 1.2,
+      "contactSheets": [
+        "output/comparison-trend/verified/rendered/eight-dates/contact-001.png"
+      ],
+      "contactsReviewed": true,
+      "manualReviewedPages": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "renderedPages": [
+        {
+          "path": "output/comparison-trend/verified/rendered/eight-dates/page-001.png",
+          "sha256": "43347766fc1beb4420cbca6600ea9dfc69c64a3ea066371d94bc92b0a3c29425"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/eight-dates/page-002.png",
+          "sha256": "7488d5dec84d4dcc870ab41e366e3058a1cd3d61fa934272fafcc5d67a759334"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/eight-dates/page-003.png",
+          "sha256": "fe3f455ff4b670acb8a16621bf4d7183ea8f48470117ccb01c6ecf3cb6fc4ec2"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/eight-dates/page-004.png",
+          "sha256": "38b82e2fa7f9535f7a72ba9b4a2f48b09a52aff05f7198c9a5843215edecb9fc"
+        },
+        {
+          "path": "output/comparison-trend/verified/rendered/eight-dates/page-005.png",
+          "sha256": "48d8f01d6be17fd76fa121a6319fca726593474bbcc58a239ed6ae087019b690"
+        }
+      ],
+      "reviewNotes": "All pages checked in contact sheets; listed pages enlarged and inspected for dates, units, axis labels, points, gaps, valid gray grades, values, and pagination. No clipping or misplaced labels observed."
+    }
+  ],
+  "modules": {
+    "ringside-acquisition.js": "656bed15b92949d29b076c83c3f54244d1b1eb28d26f48fb911d1ec0cbc5c2a2",
+    "ringside-ai-settings.js": "52bd1ceb4c1b95c9e3266476bedbb7a68dd7983650a3340fd2c5e07129600372",
+    "ringside-app.js": "6d33145bd62ee8d17c59c7ae42345eee270f00c2dfb3c1a84555fa35ffead211",
+    "ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+    "ringside-context-ui.js": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5",
+    "ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+    "ringside-definitions.js": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+    "ringside-entry-session.js": "11ddbb50920163ca9e19ffe413b265584270a671a4d7bf2f08e12dde863e934a",
+    "ringside-evaluation.js": "5d99b3db5844fd00325a33fc6743b6361520af342ff8fe359c3bb0676002501d",
+    "ringside-excel-flow.js": "f6b5fc3f981794bfdd668d9551f78b5b8a640f085b8e4d266514b7c828eb2b14",
+    "ringside-excel-v3.js": "cd631e7037e6878ce6754a3411a04f43d6a8bdac4528ad722351d10c27ff25f4",
+    "ringside-excel.js": "5d6339a0a523ad7b4c64f946621c7214eb527ea6be6ddc4751c1c1b57d418937",
+    "ringside-fvp-entry.js": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db",
+    "ringside-fvp.js": "d347a4eb782843def779e002ba605480a572b60b866f8d832943d7b4fb0ce9a9",
+    "ringside-generic-report-ui.js": "77645d3cc48c13406022f7007bec6821a072008100fe64e3cbd175592bcc40f1",
+    "ringside-generic-report.js": "a24ba8f9c521db6d09533f375691ebe3d38ec8cf1d77d165ff2017d11c78c42d",
+    "ringside-interventions.js": "2cb3427bbe4ba4d81b51cc93ae7d01201d72e1eb0f7a51a038a9b9e9dedf0394",
+    "ringside-iso-reference.js": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+    "ringside-longitudinal-controller.js": "cfa7340b445301e063f2187b3daa06a4bb1c93677cdfc82bcdc8706ab092b688",
+    "ringside-longitudinal-store.js": "9307bb776040c2ad3fac6809ff41193a9850c10942dec6e0bba2983a7657633f",
+    "ringside-longitudinal-view.js": "f96209bb4685ea128b0225d829a5c8c6b4b776f8d83a1b1a135bfca9d0b8eb75",
+    "ringside-longitudinal-views.js": "d7461c8d7a68ec2e17a6fcf43398aa1a1815c15cd09e0cfffa0efb26b8bf1cff",
+    "ringside-longitudinal.js": "cbbf08634a27cf79bf6255b4692705b8817472b9091be9301436b9bcc4dcbc0a",
+    "ringside-management.js": "8fbb7086580a398fa8cf77f769f0571a76a6577fd930765bf23e9bd387c130d8",
+    "ringside-model.js": "3774da896837d031c68b5cca1f2a8997627f301ffbc53974851083e8826c864c",
+    "ringside-pdf.js": "2c9200a457c6acd8108702da7db7625d6dd27b65d7d540ca89cd260e198a55fb",
+    "ringside-picker.js": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1",
+    "ringside-profile.js": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9",
+    "ringside-report.js": "8702c07b9b419fa34062e5bd63b84a3717ac10c960d58f6995e587bcc8e9964c",
+    "ringside-result-display.js": "3d022910a61ac2b5fb3d7c0a080ffc5a99154956f969d801b2aa8212744579b2",
+    "ringside-scoring.js": "5d0a46e99f7b4c94177ecfdb915857a4719716830aa1e34fe1c52c381f6f8959",
+    "ringside-settings.js": "e115150b7593b4593fe632537f4299c9fd7b9302d64f6a1ae61f186736cfc3c7",
+    "ringside-sources.js": "68f1d4c2a88145077e2c1c628a44b6cb93c7e4b6c82488e9210ae9c6f1f9a3e7",
+    "ringside-sprint-elasticity.js": "00c4d827f92cf0261ecbd43b727b8209bdb8cbd7261c5ecf38b2713d3e5e9f27",
+    "ringside-sprint-fvp-confidence.js": "d307e1e3575454696c89e6520026e17e858f0970123b42effc92a71fd8ead020",
+    "ringside-sprint-fvp-entry.js": "86332c1ca4327af3e95f0c54ac5b6864464e74f1ab75bb61a059a17653137d7e",
+    "ringside-sprint-fvp.js": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+    "ringside-store.js": "451cfba8e6c84ee57bfb201a8c77ecf6a56875a8e5a4107f821a610c0bb103f6",
+    "ringside-tests.js": "260a78c156845db5488e1627ef7e1d193f0f776d212d1fa90c879e33bcb3651e",
+    "ringside-viz.js": "214d315d9c878b186271ede157ae6a6493ebc3231ed592ea97cf8f716a0a8626"
+  },
+  "installed": false,
+  "published": false,
+  "userAccepted": false,
+  "scope": "Synthetic isolated-browser local acceptance only. Mobile/touch/zoom emulated; AI reply simulated. No private data, physical devices/printers or real provider validated.",
+  "supersededBy": "acceptance-2.24.6.json"
+}

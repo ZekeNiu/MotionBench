@@ -2,15 +2,15 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**本轮版本：Windows `2.24.5-desktop.1` · HTML `2.24.5`**
+**本轮版本：Windows `2.24.6-desktop.1` · HTML `2.24.6`**
 
-2.24.5 的使用说明、下载入口与校验记录见下文。[2.24.4 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.4-desktop.1)继续保留。
+2.24.6 的使用说明、下载入口与校验记录见下文。[2.24.5 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.5-desktop.1)继续保留。
 
-[在线 Demo](https://zekeniu.github.io/MotionBench/) · [安装版 2.24.5](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.5-desktop.1/MotionBench-2.24.5-desktop.1-Setup-x64.exe) · [便携版 2.24.5](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.5-desktop.1/MotionBench-2.24.5-desktop.1-Portable-x64.exe) · [离线 HTML 2.24.5](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.5-desktop.1/MotionBench.html)
+[在线 Demo](https://zekeniu.github.io/MotionBench/) · [安装版 2.24.6](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.6-desktop.1/MotionBench-2.24.6-desktop.1-Setup-x64.exe) · [便携版 2.24.6](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.6-desktop.1/MotionBench-2.24.6-desktop.1-Portable-x64.exe) · [离线 HTML 2.24.6](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.6-desktop.1/MotionBench.html)
 
-同一运动员的纵向比较直接从首页开始：勾选多条测试记录，每张图可独立选择展示日期；两个日期的结果表显示单一“变化”，三个及以上显示固定的首末与近期变化，损伤风险筛查使用部位雷达。下降／改善卡按可计算的相对变化幅度排列，名单最多三行并显示省略号；比较日期放大并逐行显示。运动表现概览少于 3 维用表格、3 维及以上用雷达。
+同一运动员的纵向比较直接从首页开始：勾选多条测试记录，每张图可独立选择展示日期；结果表统一显示一列“变化趋势”，mini 图展示全部所选日期，并带纵轴刻度与单位。悬停、键盘或触屏可查看具体读数与相邻变化。损伤风险筛查使用部位雷达，运动表现概览少于3维用表格、3维及以上用雷达。
 
-2.24.5 隐藏未设置评价的灰色占位标签，统一摘要与变化列的改善绿色、下降红色，FMS 变化改用固定0–3分微型图，并保留关节平衡分组及缺少配对方向的说明。手机端变化列不再被个人报告列宽挤压。此前的逐图日期选择、FVP／弹性显示选项、逐期两列分析和完整原始记录继续保留。详见 [2.24.5 使用说明](docs/motionbench-2.24.5.md)、[纵向比较操作](docs/motionbench-2.24.0.md) 和 [本轮验收记录](docs/acceptance-2.24.5.md)。
+2.24.6 按真实评价依据决定是否显示标签，隐藏未分级和仅表示已测的占位，保留有效自定义灰色等级、疼痛与双侧差异警告。统一趋势组件保留缺测断线与不同测量口径，FMS固定0–3分，百分数变化明确为百分点；打印和PDF保留完整日期与趋势。原始试次、均值±SD、CV、人工正文、日期选择及逐图显示配置继续保留。详见 [2.24.6 使用说明](docs/motionbench-2.24.6.md) 和 [本轮验收记录](docs/acceptance-2.24.6.md)。
 
 ![MotionBench 在线演示，全部资料为模拟数据](assets/motionbench-demo.png)
 
@@ -43,7 +43,7 @@
 | 速度与心肺 | MAS、MSS、30–15 VIFT、速度耐力、乳酸、CPET 摄氧量与阈值 |
 | 评价体系 | 项目及能力目录、可复用方案、参考目标、分级区间、单位与协议匹配 |
 | 通用项目图表 | 六种图型、指标选择与排序、项目统一配置、已有兼容报告同步、导出图样保留 |
-| 纵向比较 | 多记录勾选、统一评价依据、日期图层、首末与近期变化、逐期完整分析与评价、独立解读及完整导出 |
+| 纵向比较 | 多记录勾选、统一评价依据、日期图层、全部所选日期的变化趋势、逐期完整分析与评价、独立解读及完整导出 |
 | 人员和记录 | 队伍、搜索、批量操作、历史记录、归档、回收站和测试方案 |
 | 数据与交付 | Excel 模板及导入、JSON/JSONL 备份与恢复、独立 HTML、PDF |
 | 解读 | 可编辑人工正文、离线规则摘要、AI 草稿预览与应用、历史正文保留 |
@@ -56,7 +56,7 @@
 
 适用于 Windows 10 / 11 x64。Setup 包含完整 Electron 运行环境，安装向导可选择中文、含空格及非系统盘目录。Portable 首次启动会解包运行环境。
 
-- **本轮 2.24.5 升级**：使用 `MotionBench-2.24.5-desktop.1-Setup-x64.exe`，本机沿用 `D:\Application\Strength&Conditioning\MotionBench`。实际升级与资料核对的完成状态见 [2.24.5 验收记录](docs/acceptance-2.24.5.md)。
+- **本轮 2.24.6 升级**：使用 `MotionBench-2.24.6-desktop.1-Setup-x64.exe`，本机沿用 `D:\Application\Strength&Conditioning\MotionBench`。实际升级与资料核对的完成状态见 [2.24.6 验收记录](docs/acceptance-2.24.6.md)。
 - **公开版本升级**：在侧栏底部“应用设置”检查、下载并重启更新，或运行公开发行的 Setup。
 - **安装版更新**：沿用原安装目录。启动检查默认开启，可关闭；下载和安装均需点击，普通退出不会自动安装。
 - **便携版更新**：在应用设置检查并打开便携版下载，退出程序后替换 exe。
@@ -68,11 +68,11 @@
 
 ## HTML、本机入口与资料迁移
 
-2.24.5 发布后，下载[版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.5-desktop.1)中的 `MotionBench.html` 即可直接打开，无需安装。需要本机 AI 中转时，可使用同版本源码包中的启动器：Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
+2.24.6 发布后，下载[版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.6-desktop.1)中的 `MotionBench.html` 即可直接打开，无需安装。需要本机 AI 中转时，可使用同版本源码包中的启动器：Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
 
 本机启动器默认地址为 `http://127.0.0.1:8765/MotionBench.html`。保持原文件位置、浏览器和打开地址可继续使用原资料。浏览器、地址、路径或桌面入口变化前，请先在“备份与恢复”导出完整 JSONL，再在目标入口导入并核对。单条 JSON、HTML 和 PDF 用于报告分享，完整资料库迁移使用 JSONL。
 
-重要测试批次完成后另存完整备份。回退程序和恢复资料是两个步骤；本轮上一版程序见 [2.24.4 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.4-desktop.1)，历次发行与迁移说明保留在 [Releases](https://github.com/ZekeNiu/MotionBench/releases) 和 `docs/`。公开安装包不包含本机运动员、测量或解读正文；本机已有的四期合成示例属于本机资料库。
+重要测试批次完成后另存完整备份。回退程序和恢复资料是两个步骤；本轮上一版程序见 [2.24.5 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.5-desktop.1)，历次发行与迁移说明保留在 [Releases](https://github.com/ZekeNiu/MotionBench/releases) 和 `docs/`。公开安装包不包含本机运动员、测量或解读正文；本机已有的四期合成示例属于本机资料库。
 
 ## AI 服务
 
@@ -84,11 +84,11 @@
 
 ## 验证与方法资料
 
-2.24.5 已通过63组／1004项模型检查、5组桌面单元检查、Chrome／Edge共156项浏览器检查、11项原生比较检查及16项桌面功能检查。本机原目录升级后，原有2名运动员、5条记录、人工解读及完整计算结果保持一致，最近3次日期的选择、正常保存重开和原桌面快捷方式均已核验。本轮针对性PDF的24页渲染结果与已逐页检查的12幅页面完全一致；其他布局和导出检查范围见 [2.24.5 验收记录](docs/acceptance-2.24.5.md)。
+2.24.6 的最终文件校验值、模型与浏览器检查、PDF核看及桌面资料保留范围见 [本轮验收记录](docs/acceptance-2.24.6.md)。安装与发布以同版本的验收记录及GitHub正式附件为准。
 
 公开版本 2.20.1 的历史验证包含 54 组／806 项模型检查、132 项浏览器检查、37 项原生程序检查，以及 14 份合成 PDF／101 页渲染核对。其公开下载、更新与本机验收范围见 [公开发布核验记录](docs/publication-2.20.1.md)。
 
-[2.24.5 使用说明](docs/motionbench-2.24.5.md) · [2.24.5 验收记录](docs/acceptance-2.24.5.md) · [2.24.4 回退验收](docs/acceptance-2.24.4.md) · [2.22.0 使用说明](docs/motionbench-2.22.0.md) · [2.20.1 历史公开版验收](docs/acceptance-2.20.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
+[2.24.6 使用说明](docs/motionbench-2.24.6.md) · [2.24.6 验收记录](docs/acceptance-2.24.6.md) · [2.24.4 回退验收](docs/acceptance-2.24.4.md) · [2.22.0 使用说明](docs/motionbench-2.22.0.md) · [2.20.1 历史公开版验收](docs/acceptance-2.20.1.md) · [软件结构](docs/architecture.md) · [速度参考](docs/speed-reference.md) · [冲刺 FVP 方法](docs/sprint-fvp-method.md)
 
 ## 评价方案与项目目录
 
@@ -119,3 +119,5 @@ npm run verify:desktop-package
 ## 许可
 
 项目当前声明为 `UNLICENSED`，尚未指定开源许可证。第三方依赖的许可文本保留在 `vendor/`，各依赖按其许可证使用。
+
+项目维护时按 [交付约定](docs/delivery-workflow.md) 同步安装包、当前安装版与GitHub。

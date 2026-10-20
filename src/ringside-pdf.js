@@ -1414,6 +1414,13 @@
           windowWidth: 1280,
           windowHeight: 1200,
           removeContainer: true,
+          // Keep the current page, its ancestors and shared styles. Repeated
+          // report SVGs and other prepared pages do not belong in this canvas.
+          ignoreElements: (element) =>
+            element.ownerDocument.body.contains(element) &&
+            element.tagName.toLowerCase() !== "style" &&
+            !page.contains(element) &&
+            !element.contains(page),
         });
         if (!canvas.width || !canvas.height)
           throw new Error("PDF 页面渲染失败。");

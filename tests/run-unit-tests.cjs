@@ -22,6 +22,7 @@ for (const name of [
   "v2244-display-preservation-tests.cjs",
   "longitudinal-model-tests.cjs",
   "longitudinal-view-tests.cjs",
+  "comparison-trend-tests.cjs",
   "jump-add-row-tests.cjs",
   "generic-report-model-tests.cjs",
   "generic-report-render-model-tests.cjs",
