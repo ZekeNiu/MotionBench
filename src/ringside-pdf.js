@@ -238,7 +238,7 @@
     // Empty report sections have no results to paginate. Keep all test blocks
     // and the separate LVP cards, including partial measurements.
     clone.querySelectorAll(".details-group").forEach((node) => {
-      if (node.querySelector(".empty") && !node.querySelector(".test-block,.lvp-card,.fvp-analysis-card")) node.remove();
+      if (node.querySelector(".empty") && !node.querySelector(".test-block,.lvp-card,.fvp-analysis-card,.capability-direction-card")) node.remove();
     });
     // Capability parameters alone follow the screen's disclosure state. Flatten
     // open disclosures before row annotation; closed rows never enter the PDF

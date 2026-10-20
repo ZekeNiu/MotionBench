@@ -33,9 +33,9 @@ test("both radar and compact ability list use points while raw scientific percen
   const radar = V.radar(items), list = V.radar(items.slice(0, 1)); assert.match(radar, /50 分 \/ 100/); assert.match(radar, /50 分 \/ 100 · 原始成绩/); assert.match(list, /50 分 \/ 100/);
   assert.match(V.asymInline(12, "L"), /12%/);
 });
-test("capability analysis uses the same true h3 section and subordinate h4 card hierarchy as other results", () => {
+test("capability analysis uses a common summary then h3 group and subordinate h4 card hierarchy", () => {
   const { r, p } = fixture(), html = R.renderCapabilityAnalysis(R.build(E.resolve(r, p)));
-  assert.match(html, /<div class="quality-heading"><h3>能力结构分析<\/h3><\/div>/); assert.match(html, /class="capability-card-summary"><h4>/); assert.match(html, /class="capability-parameter-heading"><h5>/);
+  assert.match(html, /<summary>能力结构分析<span>/); assert.match(html, /<div class="quality-heading"><h3>发展方向<\/h3><\/div>/); assert.match(html, /class="capability-card-summary"><h4>/); assert.match(html, /class="capability-parameter-heading"><h5>/);
   assert.equal((html.match(/<h3>/g) || []).length, 1); assert.doesNotMatch(html, /capability-region-heading pdf-group-heading/);
 });
 test("each independent parameter fold remains record-controlled in both web and print renders", () => {

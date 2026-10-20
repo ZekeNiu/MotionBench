@@ -1,0 +1,456 @@
+{
+  "version": "2.24.11",
+  "desktopVersion": "2.24.11-desktop.1",
+  "sourceHash": "865b0cf4a967d4d25c1dcb0870ee5e73e2ecfb99620144f6665123d9506e280d",
+  "pass": true,
+  "verificationStrategy": "risk-based",
+  "model": {
+    "file": "output/implementation-2.24.11/resumed/units/results.json",
+    "sha256": "ee33617e78338782e13bd03126efa6da5fa2c67a236c3dcccdace859ccf88c00"
+  },
+  "focused": [
+    {
+      "file": "output/implementation-2.24.11/focused/results.json",
+      "sha256": "a5aa92715ef8410bce1c8e16a25ad682dd96b7cee91fd0f5e5e850b2523822a9",
+      "checks": 13
+    },
+    {
+      "file": "output/implementation-2.24.11/native/results.json",
+      "sha256": "4ef0c4b136553fe5f31cec7e65a11acbc749f6237783f872a5b02dc9701cdc10",
+      "checks": 10
+    }
+  ],
+  "rebuild": {
+    "file": "output/implementation-2.24.11/resumed/build-verification.json",
+    "sha256": "bdbc5d35345bdd910f1ac900475940677dfbcef8a086a5ee8822c8419f66151b"
+  },
+  "inheritedBaseline": {
+    "commit": "4ff10c5782a8008aac1d12c1ea411415f99ef788",
+    "acceptance": {
+      "file": "docs/acceptance-2.24.10.json",
+      "sha256": "ea72c49e351d60b2cefe7c3db55d9ab1902822ed7bad80dbd4d90ff54d6807ee"
+    },
+    "inheritedOnly": true,
+    "unchangedFiles": [
+      {
+        "file": "body-map-front.png",
+        "sha256": "79f7eb61a6d838e450de6afd2dcb07f32a6c1cf75d0b1fee896a7eb6954e6e20"
+      },
+      {
+        "file": "desktop/ai-bridge.cjs",
+        "sha256": "21dac8bbf5fa3895f658326789b1ac3bd065e48bd991afc6f2665bd14f3bd47b"
+      },
+      {
+        "file": "desktop/ai-service.cjs",
+        "sha256": "74fbec96779992ad877e785a7e69e34631459b0d48a9d6fdb49f0b9674c2de27"
+      },
+      {
+        "file": "desktop/assets/motionbench.ico",
+        "sha256": "cdc4ee27a0d9b6f00d20927a9e36cce4ee05375bab79ce8cfb9ae067c6a7b8be"
+      },
+      {
+        "file": "desktop/assets/motionbench.png",
+        "sha256": "eba00951558b2a49d3861b186b2f420520468eacf36f613237c418fc59bae1a3"
+      },
+      {
+        "file": "desktop/installer.nsh",
+        "sha256": "156d17dd37d9c250e198114ea98cca78be33f6bfeedc55a7dcd63dfa506eea89"
+      },
+      {
+        "file": "desktop/main.cjs",
+        "sha256": "c592df284e5ed8da8f9560765d5b4d83e0925122b05917cf15c36f24632e6360"
+      },
+      {
+        "file": "desktop/preferences.cjs",
+        "sha256": "686dc0a8f355d4907137b3527e491c5bca85fa6eb5c1cd7e653c089368b669a6"
+      },
+      {
+        "file": "desktop/preload.cjs",
+        "sha256": "7b20d3a150b9eb0b4d962c1ff54a4943c2e599b0c64d2d19df04b1977e14d7f9"
+      },
+      {
+        "file": "desktop/security.cjs",
+        "sha256": "2bf795382b30efdc22c271a62d22a73484441404991f25357a412f6071606762"
+      },
+      {
+        "file": "desktop/update-bridge.cjs",
+        "sha256": "1522768ab385c34e279ca1b21e88195bc20df3769d93d2d2b121696d6edc9dea"
+      },
+      {
+        "file": "desktop/update-service.cjs",
+        "sha256": "7719a9201731fc16f07f7a49909ed4df7d016de41629746faaf3254516be1e72"
+      },
+      {
+        "file": "desktop/windows-updater.cjs",
+        "sha256": "582ec5d4f8a11c837776821dbe72f5f33966f2b50cdd33ac6776ed3978c81a14"
+      },
+      {
+        "file": "scripts/build.py",
+        "sha256": "15e8b539cff1d912912afc0cb706b6a6264a5cff0862c854a2d5478650ada587"
+      },
+      {
+        "file": "src/ringside-acquisition.js",
+        "sha256": "656bed15b92949d29b076c83c3f54244d1b1eb28d26f48fb911d1ec0cbc5c2a2"
+      },
+      {
+        "file": "src/ringside-ai-settings.js",
+        "sha256": "52bd1ceb4c1b95c9e3266476bedbb7a68dd7983650a3340fd2c5e07129600372"
+      },
+      {
+        "file": "src/ringside-calc.js",
+        "sha256": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1"
+      },
+      {
+        "file": "src/ringside-context-ui.js",
+        "sha256": "6196d0e6624858de700aa04ac7bce3bca5fc076bf1506a821e478778790371f5"
+      },
+      {
+        "file": "src/ringside-cpet-reference.js",
+        "sha256": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87"
+      },
+      {
+        "file": "src/ringside-entry-session.js",
+        "sha256": "11ddbb50920163ca9e19ffe413b265584270a671a4d7bf2f08e12dde863e934a"
+      },
+      {
+        "file": "src/ringside-evaluation.js",
+        "sha256": "5d99b3db5844fd00325a33fc6743b6361520af342ff8fe359c3bb0676002501d"
+      },
+      {
+        "file": "src/ringside-excel-flow.js",
+        "sha256": "f6b5fc3f981794bfdd668d9551f78b5b8a640f085b8e4d266514b7c828eb2b14"
+      },
+      {
+        "file": "src/ringside-excel-v3.js",
+        "sha256": "cd631e7037e6878ce6754a3411a04f43d6a8bdac4528ad722351d10c27ff25f4"
+      },
+      {
+        "file": "src/ringside-excel.css",
+        "sha256": "25cfe4e3bff61779bf0820a0aa94b0fb6278fd9d358b1a8a088cd74bb9de91d9"
+      },
+      {
+        "file": "src/ringside-excel.js",
+        "sha256": "5d6339a0a523ad7b4c64f946621c7214eb527ea6be6ddc4751c1c1b57d418937"
+      },
+      {
+        "file": "src/ringside-fvp-entry.js",
+        "sha256": "29435009f90166f070141ce6b790fb968e7f35b8c646234a97a7ea77d439c3db"
+      },
+      {
+        "file": "src/ringside-fvp.css",
+        "sha256": "6f4186f5d9359d076beb77fa2aee9f7882f56cd89a4e807a21fb3c550a5fa5b7"
+      },
+      {
+        "file": "src/ringside-fvp.js",
+        "sha256": "d347a4eb782843def779e002ba605480a572b60b866f8d832943d7b4fb0ce9a9"
+      },
+      {
+        "file": "src/ringside-generic-report-ui.css",
+        "sha256": "b3c43d026b9ab24af7d9623ed7b0898a58ecf71db5387a908d60b198ff02146d"
+      },
+      {
+        "file": "src/ringside-generic-report-ui.js",
+        "sha256": "77645d3cc48c13406022f7007bec6821a072008100fe64e3cbd175592bcc40f1"
+      },
+      {
+        "file": "src/ringside-generic-report.js",
+        "sha256": "a24ba8f9c521db6d09533f375691ebe3d38ec8cf1d77d165ff2017d11c78c42d"
+      },
+      {
+        "file": "src/ringside-interventions.js",
+        "sha256": "2cb3427bbe4ba4d81b51cc93ae7d01201d72e1eb0f7a51a038a9b9e9dedf0394"
+      },
+      {
+        "file": "src/ringside-iso-reference.js",
+        "sha256": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91"
+      },
+      {
+        "file": "src/ringside-longitudinal-controller.js",
+        "sha256": "cc065bed7ac5ad5d24e99fc555ff2db8f0d27a81deade0c190c28dc8599cc7f3"
+      },
+      {
+        "file": "src/ringside-longitudinal-store.js",
+        "sha256": "9307bb776040c2ad3fac6809ff41193a9850c10942dec6e0bba2983a7657633f"
+      },
+      {
+        "file": "src/ringside-longitudinal-views.js",
+        "sha256": "90885c311e3b5f1a673c8a123195a9a0dad77c062bafe9afc565111f6e3b735c"
+      },
+      {
+        "file": "src/ringside-longitudinal.css",
+        "sha256": "7bcb87f2998eb7b5c2e3222a0c142c561086b0f4154405f794fa6bab21ab1d4a"
+      },
+      {
+        "file": "src/ringside-longitudinal.js",
+        "sha256": "7e0fd7e2e5ab81470a7f7e12e7a34b78ab302060898d959905e817a4b52874c5"
+      },
+      {
+        "file": "src/ringside-management-refinement.css",
+        "sha256": "aeeee71ea89cf96c1153c9941703642f52cf718bc040a86f5f189f086608d4ba"
+      },
+      {
+        "file": "src/ringside-management.js",
+        "sha256": "8fbb7086580a398fa8cf77f769f0571a76a6577fd930765bf23e9bd387c130d8"
+      },
+      {
+        "file": "src/ringside-model.js",
+        "sha256": "c29dd69b7f09d9f9565ca42decf68023c11d9912d8ec9b87131d7835d040c4ca"
+      },
+      {
+        "file": "src/ringside-picker.js",
+        "sha256": "8be41fd7ce2dc53601b989947c46f5593d84a354445eb3ae5719674c906a79d1"
+      },
+      {
+        "file": "src/ringside-profile.js",
+        "sha256": "c1f7457b96e26e1cc53abd317b40872576e02508e5657634649de9f170af6bb9"
+      },
+      {
+        "file": "src/ringside-scoring.js",
+        "sha256": "5d0a46e99f7b4c94177ecfdb915857a4719716830aa1e34fe1c52c381f6f8959"
+      },
+      {
+        "file": "src/ringside-settings.js",
+        "sha256": "e115150b7593b4593fe632537f4299c9fd7b9302d64f6a1ae61f186736cfc3c7"
+      },
+      {
+        "file": "src/ringside-shell.html",
+        "sha256": "25542129e5092b8defd19a9c5016f4b70f298e334733f9dcce5afac6719d098d"
+      },
+      {
+        "file": "src/ringside-sources.js",
+        "sha256": "68f1d4c2a88145077e2c1c628a44b6cb93c7e4b6c82488e9210ae9c6f1f9a3e7"
+      },
+      {
+        "file": "src/ringside-sprint-elasticity.js",
+        "sha256": "00c4d827f92cf0261ecbd43b727b8209bdb8cbd7261c5ecf38b2713d3e5e9f27"
+      },
+      {
+        "file": "src/ringside-sprint-fvp-confidence.js",
+        "sha256": "d307e1e3575454696c89e6520026e17e858f0970123b42effc92a71fd8ead020"
+      },
+      {
+        "file": "src/ringside-sprint-fvp-entry.js",
+        "sha256": "86332c1ca4327af3e95f0c54ac5b6864464e74f1ab75bb61a059a17653137d7e"
+      },
+      {
+        "file": "src/ringside-sprint-fvp.js",
+        "sha256": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4"
+      },
+      {
+        "file": "src/ringside-store.js",
+        "sha256": "451cfba8e6c84ee57bfb201a8c77ecf6a56875a8e5a4107f821a610c0bb103f6"
+      },
+      {
+        "file": "src/ringside-tests.js",
+        "sha256": "260a78c156845db5488e1627ef7e1d193f0f776d212d1fa90c879e33bcb3651e"
+      },
+      {
+        "file": "src/ringside-viz.js",
+        "sha256": "ea0140524bf8f208d1797385837d5039d2857125d37c2f45e3267b86df400ee7"
+      },
+      {
+        "file": "src/ringside-workflow.css",
+        "sha256": "dc958ff24c0a57d2af678011aa8fdbfecbbb9681ac896919b35fa98491ad9a0e"
+      },
+      {
+        "file": "tests/helpers/ai-launcher-fixture.py",
+        "sha256": "71f2184c2684dea90c88b5f7dfae48a9e4a474f37d2857f59a450ea768126f97"
+      },
+      {
+        "file": "tests/helpers/chart-ai-fixture.cjs",
+        "sha256": "6e12ddf93a07a32a950459c5818bce9e2b5205f597c36d24d5b04b05593d4e16"
+      },
+      {
+        "file": "tests/helpers/core-fixtures.cjs",
+        "sha256": "d836c1ce1556c74968d7036a21a69dab6ea5c5d16b3287c284baaa7de7c7cc0c"
+      },
+      {
+        "file": "tests/helpers/desktop-artifact-identity.cjs",
+        "sha256": "f36a33623b6d52c7f9cd5e4f219ebbf3bc984ebe2dee47dac954ea428268141e"
+      },
+      {
+        "file": "tests/helpers/desktop-installer-native.cs",
+        "sha256": "37e709b7104791dff88942dbf3cda5241bc46fba174c2b2acbc4af435abd2326"
+      },
+      {
+        "file": "tests/helpers/desktop-live-update-window.cs",
+        "sha256": "b9dd6b915b957d539a323011d4770c22f012d6fdc2144c748002e69936877218"
+      },
+      {
+        "file": "tests/helpers/desktop-system-installed-v2242.cjs",
+        "sha256": "281147d60ef8f68d613a6dc4a517dda6200eb1d5d681c53412152b289a26e6dd"
+      },
+      {
+        "file": "tests/helpers/desktop-system-v2244-reopened-stages.cjs",
+        "sha256": "65de3c4ee51683d4b0a740a8e2f98374a417aa6f22e4258890f9aafb45b2b48d"
+      },
+      {
+        "file": "tests/helpers/desktop-system-v2244-stages.cjs",
+        "sha256": "258214c3b5625845cd8c4ffb2b15f3a9a173edbc29507cee214b497ecfff05a5"
+      },
+      {
+        "file": "tests/helpers/display-guard-lifecycle.cjs",
+        "sha256": "57f9de4e69a9d413a1c94c65afe2cb70a4ad3e0e8a872e2fbcda27597a01d8b0"
+      },
+      {
+        "file": "tests/helpers/excel-template.cjs",
+        "sha256": "b965f94148ff3d3c065e549ba0000f2c0c98cb88493ca16d971090a7b4591b31"
+      },
+      {
+        "file": "tests/helpers/longitudinal-fixture.cjs",
+        "sha256": "b47e0d4c31829df863f6b5b3045c965c25d30e0930931dbd343968f9561a82fc"
+      },
+      {
+        "file": "tests/helpers/pdf-browser.cjs",
+        "sha256": "b1792d9c4634bcd7cad404d3f9a9a4a64a370291e2a74a0a66954edc6386ddaa"
+      },
+      {
+        "file": "tests/helpers/playwright.cjs",
+        "sha256": "e3b59e20e025d134519e02af6ad56ce31654231802f5fe44c3ca3b0749d24d5d"
+      },
+      {
+        "file": "tests/helpers/radar-fixtures.cjs",
+        "sha256": "8946492edc221efb34a7c004600779d4cfd5ad3145ec3a8edb92f7a7d29c806d"
+      },
+      {
+        "file": "tests/helpers/sprint-display-excel-probe.cjs",
+        "sha256": "60a19d434720708b096cbc65591f7b46f13b0a5112fa3919e7695c679a776c99"
+      },
+      {
+        "file": "tests/helpers/v2243-example-preservation.cjs",
+        "sha256": "09503d9e9f27b51b4e8d75901485c090092ddde2c8f13e27e17166d9fe3cfa9d"
+      },
+      {
+        "file": "tests/helpers/v2244-display-preservation.cjs",
+        "sha256": "cf0f3ca402aebbaf9fdefa7eb2e48eab489eea139d6387e2ccd3ed3013681f02"
+      },
+      {
+        "file": "vendor/README.md",
+        "sha256": "40f2f413fea2624e1df35dedfc3508fefd8ef4ad925b9ba653f2fbe09957cbec"
+      },
+      {
+        "file": "vendor/exceljs.LICENSE.txt",
+        "sha256": "2ed526b7e7c7681dc2347995b5036ddf73dc27d0539cdea59b6d4a72b63a57a0"
+      },
+      {
+        "file": "vendor/exceljs.min.js",
+        "sha256": "7e49da68588e250dbb8bba190d2caa8ab3787cc0284bda1d8b2f805c4df742c9"
+      },
+      {
+        "file": "vendor/html2canvas.LICENSE.txt",
+        "sha256": "86200ce4e92d9a22c41c8647a55f7a5fddff304ff89b4d36ecc699ed8c123d2c"
+      },
+      {
+        "file": "vendor/html2canvas.min.js",
+        "sha256": "e87e550794322e574a1fda0c1549a3c70dae5a93d9113417a429016838eab8cb"
+      },
+      {
+        "file": "vendor/jspdf.LICENSE.txt",
+        "sha256": "dc388ec35ff463288cdde3588a36fd4ed12a45deff053243b37309acc9ef583b"
+      },
+      {
+        "file": "vendor/jspdf.umd.min.js",
+        "sha256": "e6551fcdc32f09d6853b2c5126d18d01d9447e0da618a41a11ebeee0f6c20d54"
+      },
+      {
+        "file": "vendor/versions.json",
+        "sha256": "4f2a59a286cd6a242a4d1793a2b1c14eae2cd05182fc6d17b6eba21a14465a74"
+      }
+    ],
+    "changedFiles": [
+      {
+        "file": "src/ringside-app.js",
+        "baselineSha256": "7951ed02e25d8bfe8bc49fafa725e278cda94ffa43b7b306364f574d942552ea",
+        "sha256": "06c25183ea59c56e6253a5853822aa493732600bf85ed2a51ef8d5e81a7d9eb0"
+      },
+      {
+        "file": "src/ringside-definitions.js",
+        "baselineSha256": "cb828f2f575a7eb5654ed5f547ae00da7911276a779de1a0119d86c596502bc9",
+        "sha256": "af0cbab7b5cf6115a53abf38b2cdbecbe7ee7b6fa4d15a93699565bca2fba22a"
+      },
+      {
+        "file": "src/ringside-longitudinal-view.js",
+        "baselineSha256": "bcb4d81d49cf022fe9b006fbafe758a5e98bbb3dbeeccf512b38649d7a0e426a",
+        "sha256": "812a583c6b8ecad0d96dfe645e0b3ceb9b19ba70abcb46ccef7597642f35a5d7"
+      },
+      {
+        "file": "src/ringside-pdf.js",
+        "baselineSha256": "63a34baf117bd51f2b51eec5dbbebef14dfc404df1b5433fd140891b3e4a74a8",
+        "sha256": "56424b80cbdfa28ffbb02c0e917fd8647e2c12cac4db271ccce8715b61a8b40d"
+      },
+      {
+        "file": "src/ringside-report-refinement.css",
+        "baselineSha256": "b16ca32cc949ed608de1a0d979d9e2009429bfa3ddedbdf5f453f3fee7b4e3d2",
+        "sha256": "3fb3238aba673fcde3246d847daf8be00b42b963acedf27cb6d6199fcc185e0d"
+      },
+      {
+        "file": "src/ringside-report.js",
+        "baselineSha256": "3b00ead985369ad9fd55190ccc1c1d833360d8ded3880aaff741e11766a4e623",
+        "sha256": "a8a7f5dfdb22099af1fe3210fcd775150ef9df107ba911e9bd87c48175e6ba68"
+      },
+      {
+        "file": "src/ringside-result-display.js",
+        "baselineSha256": "ae6c492eee2a52b35be1cfb0379d6ca5cc845fb0d4ccb21cb653af25834f2368",
+        "sha256": "5ddd149420516ccce5a8a61357173d0e4673e29784f8c3fb16d792da9c6cbbf0"
+      },
+      {
+        "file": "src/ringside.css",
+        "baselineSha256": "08cc2f577df2de9935e3bbb6c700a3f47b4fbddce18d0e19e04f3f2342d50bc4",
+        "sha256": "d8c5ba2afc249454da1f9787d25430fe8ee54d28d0e67d72f150dee79b2119b1"
+      }
+    ],
+    "meaning": "Earlier accepted behavior is inherited only for unchanged protected bytes, not counted as fresh executions."
+  },
+  "package": {
+    "archiveSha256": "8c0972413e3d0e5775094d30c3039ed0601c12918ded819f924d53eed58d7ca9",
+    "assets": 271
+  },
+  "privateVerified": true,
+  "userAccepted": false,
+  "scope": "Personal-report FMS presentation, qualified lactate grades, comparison-chart intrinsic sizing, capability heading hierarchy and FVP method-block removal. Preserve original records, scoring, protocols and sources; validate real personal browser/PDF and packaged workflow. Inherit unrelated unchanged runtime from 2.24.10.",
+  "private": {
+    "stages": {
+      "baseline": {
+        "pass": true,
+        "receiptSha256": "cc7e96d8e08330d86a138d8960a83a1e260653c2a5a32f566898c37ef4a2090d",
+        "checks": 3,
+        "normalClose": true,
+        "guardRemoved": true
+      },
+      "candidate": {
+        "pass": true,
+        "receiptSha256": "c722f31cf46a007b3d36970c7e8bf23e063e444e5f5cd04102e231375fbf9ef4",
+        "checks": 5,
+        "normalClose": true,
+        "guardRemoved": true
+      },
+      "installed": {
+        "pass": true,
+        "receiptSha256": "97737b5a6f54f1af7caf91b4afaf8a8951358a08e319b75032db754eb7f61ced",
+        "checks": 5,
+        "normalClose": true,
+        "guardRemoved": true
+      },
+      "reopened": {
+        "pass": true,
+        "receiptSha256": "42a28e8a74601a2c61f46e4f41e49280e48c69e31e70ce38de160f2433787776",
+        "checks": 5,
+        "normalClose": true,
+        "guardRemoved": true
+      }
+    },
+    "counts": {
+      "athletes": 2,
+      "records": 5
+    },
+    "checkpointSha256": "d51912c44feb9f5eba95126c5b78322f610a65cb63fc9d2c2112d20313eda981"
+  },
+  "installation": {
+    "file": "output/implementation-2.24.11/resumed/system-installation.json",
+    "sha256": "1f4c17a976e539cda052e873f3e46dacc723b8109af21f7023db4de3537c436d"
+  },
+  "shortcut": {
+    "file": "output/implementation-2.24.11/resumed/shortcut-check.json",
+    "sha256": "974b76e6e53d97fe6a8b6bbcb6c8d8afae3ae0e5381450af8e694015f8bd23e8"
+  }
+}

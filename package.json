@@ -1,6 +1,6 @@
 {
   "name": "motionbench",
-  "version": "2.24.10",
+  "version": "2.24.11",
   "private": true,
   "description": "Offline sport performance assessment and contextual coaching reports",
   "scripts": {

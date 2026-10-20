@@ -162,7 +162,11 @@
     var labels = { red: '预警', amber: '关注', green: '达标' };
     return Object.prototype.hasOwnProperty.call(labels, status) ? labels[status] : fallback === undefined ? '' : String(fallback);
   }
+  function trafficLabel(status, fallback) {
+    var labels = { red: '预警', amber: '关注', green: '优秀' };
+    return Object.prototype.hasOwnProperty.call(labels, status) ? labels[status] : fallback === undefined ? '' : String(fallback);
+  }
   root.Def = { builtins: builtins, source: SOURCE, anomalies: anomalies, viftProtocol: viftProtocol, factoryText: factoryText,
     defaultDefinitions: function () { return JSON.parse(JSON.stringify(builtins)); },
-    parseRanges: parseRanges, rangeText: rangeText, grade: grade, assessmentLabel: assessmentLabel };
+    parseRanges: parseRanges, rangeText: rangeText, grade: grade, assessmentLabel: assessmentLabel, trafficLabel: trafficLabel };
 })(typeof window !== 'undefined' ? window : globalThis);

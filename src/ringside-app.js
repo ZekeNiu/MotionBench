@@ -876,6 +876,7 @@
           settingsTab,
           reportScroll: ui.reportScroll,
           detailOpen: ui.detailOpen,
+          records: ui.records,
           sidebarCollapsed: ui.sidebarCollapsed,
           lastViewed: ui.lastViewed || {},
           longitudinal: longitudinal.selection(),
@@ -883,10 +884,14 @@
       );
     } catch {}
   }
+  function reportViewOwned() {
+    if (!state || ui.mode !== "report") return false;
+    const view = $("reportView");
+    if (longitudinal.active()) return view.dataset.longitudinal === "true" && view.dataset.longitudinalOwner === longitudinal.owner();
+    return view.dataset.longitudinal !== "true" && view.dataset.reportRecordId === state.recordId;
+  }
   function captureReportUI() {
-    if (!state) return;
-    if (ui.mode !== "report") return;
-    if (longitudinal.active() && $("reportView").dataset.longitudinalOwner !== longitudinal.owner()) return;
+    if (!reportViewOwned()) return;
     ui.reportScroll = window.scrollY;
     document
       .querySelectorAll("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings],#reportView .longitudinal-capability-parameters")
@@ -2235,6 +2240,7 @@
       window.scrollTo({ top: previousScroll, behavior: "instant" });
   }
   function renderDetails(report) {
+    delete $("reportView").dataset.reportRecordId;
     const menus = [...document.querySelectorAll(".multi-select[open]")].map(
       (el) => el.id,
     );
@@ -2262,6 +2268,7 @@
         ?.focus({ preventScroll: true });
     if (fvpFocus)
       $("detailContent").querySelector(`[${fvpFocus}="${CSS.escape(fvpFocusValue)}"]${fvpFocusId ? `[data-fvp-id="${CSS.escape(fvpFocusId)}"]` : ""}`)?.focus({ preventScroll: true });
+    $("reportView").dataset.reportRecordId = state.recordId;
   }
   function renderNarrativeStatus() {
     if (!state) return;
@@ -5721,6 +5728,7 @@
   document.addEventListener(
     "toggle",
     (e) => {
+      if(e.target.matches("#reportView details") && !reportViewOwned()) return;
       if(state && e.target.isConnected && e.target.matches("#reportView [data-capability-parameters]")) {
         if(longitudinal.active()){if(captureReportUI())persist();rememberUI();return;}
         const key=e.target.dataset.capabilityParameters;
@@ -5734,7 +5742,8 @@
         e.target.matches("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings]")
       ) {
         ui.detailOpen[e.target.id] = e.target.open;
-        if(longitudinal.active()&&captureReportUI())persist();
+        const captured = captureReportUI();
+        if(longitudinal.active()&&captured)persist();
         rememberUI();
       }
     },
@@ -5758,7 +5767,21 @@
       await restoreEntrySession();
       try {
         const saved=JSON.parse(draftStorage.getItem(uiKey)||"null");
-        if(saved){ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}initialLongitudinal=saved.longitudinal||initialLongitudinal;}
+        if(saved){
+          ui.sidebarCollapsed=!!saved.sidebarCollapsed;ui.lastViewed=saved.lastViewed||{};
+          const object = value => value && typeof value === "object" && !Array.isArray(value);
+          ui.records = Object.fromEntries(Object.entries(object(saved.records) ? saved.records : {}).filter(([,view]) => object(view)));
+          if(state){
+            const personal = ui.records[state.recordId] || (saved.recordId === state.recordId && !saved.longitudinal ? saved : null);
+            if(object(personal)){
+              ui.reportScroll = Number.isFinite(personal.reportScroll) ? Math.max(0,personal.reportScroll) : 0;
+              ui.detailOpen = object(personal.detailOpen) ? {...personal.detailOpen} : {};
+              ui.records[state.recordId] = {reportScroll:ui.reportScroll,detailOpen:{...ui.detailOpen}};
+            }
+          }
+          if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}
+          initialLongitudinal=saved.longitudinal||initialLongitudinal;
+        }
       } catch {}
       if(initialLongitudinal){
         try{await longitudinal.restore(initialLongitudinal);if(ui.mode==="entry"&&entryTab!=="narrative")longitudinal.suspend();}

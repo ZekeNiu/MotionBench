@@ -3,8 +3,7 @@
   const N = value => root.Calc.num(value), escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   const colors = { improved: "#187459", declined: "#b23f3d", neutral: "#708699", red: "#b23f3d", amber: "#ac7a21", green: "#187459", gray: "#708699" };
   const statusOf = value => Object.hasOwn(colors, value) ? value : "gray";
-  const labels = { red: "预警", amber: "关注", green: "优秀" };
-  const trafficLabel = (status, fallback = "") => labels[status] || fallback;
+  const trafficLabel = (status, fallback = "") => root.Def.trafficLabel(status, fallback);
   const trendSize = Object.freeze({ width: 160, height: 72, minWidth: 120, columnWidth: 172, top: 18, bottom: 57, dateY: 68, unitY: 9 });
   const asymmetry = cell => cell.assessmentKind === "asymmetry" || cell.section === "asymmetry";
   // Partition only at declared or algebraically inverted boundaries. The
@@ -40,9 +39,9 @@
     const direction = evaluation.direction || definition?.direction || cell.direction || "higher";
     const base = { unit, direction, source: evaluation.source || "" };
     if (evaluation.kind === "fixed") return { ...base, kind: "ordinal", basis: { kind: "fixed-fms" },
-      levels: [0, 1, 2, 3].map(value => { const status = value === 0 ? "red" : value < 3 ? "amber" : "green"; return { value, status, label: labels[status] }; }) };
+      levels: [0, 1, 2, 3].map(value => { const status = value === 0 ? "red" : value < 3 ? "amber" : "green"; return { value, status, label: trafficLabel(status) }; }) };
     if (cell.assessmentKind === "screening") return { ...base, kind: "ordinal", basis: { kind: "screening-status" },
-      levels: ["red", "amber", "green"].map((status, i) => ({ value: i + 1, status, label: labels[status] })) };
+      levels: ["red", "amber", "green"].map((status, i) => ({ value: i + 1, status, label: trafficLabel(status) })) };
     if (asymmetry(cell)) {
       const amber = N(evaluation.rules?.asymAmber), red = N(evaluation.rules?.asymRed);
       if (amber === null || red === null || amber < 0 || red <= amber) return null;
@@ -106,7 +105,7 @@
     }
     // Symptoms override the displayed traffic light, independently of the
     // measurement's target grade. A pain-only record still has a missing value.
-    if (cell.pain && !asymmetry(cell)) { state = "warning"; status = "red"; label = labels.red; reasons.push("疼痛记录"); }
+    if (cell.pain && !asymmetry(cell)) { state = "warning"; status = "red"; label = trafficLabel("red"); reasons.push("疼痛记录"); }
     if (["graded", "warning"].includes(state) && !asymmetry(cell)) label = trafficLabel(status, label);
     return { state, visible: !!label && ["graded", "warning"].includes(state), label, sourceLabel, status, reference, reason: [...new Set(reasons.filter(Boolean))].join("；") };
   }

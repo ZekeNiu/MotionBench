@@ -383,7 +383,7 @@
       }
       return report;
     };
-    const nativeHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.renderCapabilityAnalysis(displayReport(p),{print:true})]));
+    const nativeHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.renderCapabilityAnalysis(displayReport(p),{print:true,showFvpMethod:true})]));
     const merge=(peers,id,name)=>{const metrics=peers.flatMap(p=>p.metrics);if(peers[0].renderer==="speed")for(const row of model.capability?.cards.find(card=>card.id==="speed")?.metrics || [])if(["asr","srr"].includes(row.metricId)&&!metrics.some(item=>item.metricId===row.metricId))metrics.push(row.metricId==="srr"?{...row,cells:row.cells.map((cell,index)=>cell?{...cell,notes:[cell.notes,periods[index].report.speedReference?.athleteType].filter(Boolean).join("；")}:null)}:row);return{...peers[0],id,name,peers,testIds:peers.flatMap(p=>p.testIds||[p.id]),metrics};};
     const projectHTML=project=>{
       const specifications=projectFigures(project,model,{specsOnly:true,views}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?nativeHTML.get(p.id):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");

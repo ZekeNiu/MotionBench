@@ -2644,6 +2644,8 @@ body.sidebar-collapsed .workspace {
   border-radius: 10px;
   padding: 14px;
   min-width: 0;
+  width: 100%;
+  max-width: 620px;
 }
 .comparison-heading {
   display: flex;

@@ -121,7 +121,9 @@ test("four independently folded cards precede both FVP and elasticity regions", 
   assert.doesNotMatch(html, /trainingAnalysisDetail|能力发展方向与参数|data-pdf-title="能力发展方向/);
   assert.deepEqual([...html.matchAll(/data-capability-parameters="([^"]+)"/g)].map(m => m[1]), ["strength", "reactive", "speed", "endurance"]);
   assert.doesNotMatch(html, /data-capability-parameters="[^"]+" open/);
-  assert.equal((html.match(/class="quality-heading"><h3>能力结构分析<\/h3>/g) || []).length, 1);
+  assert.match(html, /<summary>能力结构分析<span>/);
+  assert.equal((html.match(/class="quality-heading"><h3>发展方向<\/h3>/g) || []).length, 1);
+  assert.equal((html.match(/class="quality-heading"><h3>力–速度剖面与弹性<\/h3>/g) || []).length, 1);
   for (const key of ["strength", "reactive", "speed", "endurance"]) assert.match(html.slice(cards, profile), new RegExp(`data-capability-direction="${key}"`));
   assert.match(html, /data-fvp-protocol/); assert.match(html, /data-fvp-scenario-form/);
   assert.match(html, /data-raw-trials="fvp_cmj"/); assert.match(html, /data-raw-trials="sprint_fvp"/);
