@@ -142,13 +142,15 @@
   }
   function assessmentAttributes(cell) {
     const assessment=cell?.assessment;if(!assessment)return "";
-    const status=cell.display?.status||"gray",basis=[assessment.reason,assessment.referenceSource,assessment.referenceTarget,assessment.target!=null?"参考目标 "+assessment.target:null].filter(value=>value!==null&&value!==undefined&&value!=="").join("；");
+    const status=cell.display?.status||"gray",basis=[cell.display?.reason??assessment.reason,assessment.referenceSource,assessment.referenceTarget,assessment.target!=null?"参考目标 "+assessment.target:null].filter(value=>value!==null&&value!==undefined&&value!=="").join("；");
     return (evaluationLabel(cell)?` data-assessment-status="${status}"`:"")+(basis?` title="${E(basis)}"`:"");
   }
   function cellHTML(cell,row) {
     if(!cell)return '<span class="longitudinal-unavailable">—</span>';
     const stat=cell.statistics,label=evaluationLabel(cell),rawStatus=cell.display?.status,status=["red","amber","green","gray"].includes(rawStatus)?rawStatus:"gray",known=new Set([label,...(cell.diagnosticNotes||[]),...(cell.pain?["疼痛"]:[])]),notes=(Array.isArray(cell.notes)?cell.notes:String(cell.notes || "").split("；")).filter(note=>String(note).trim()&&!known.has(String(note).trim())).join("；"),measured=N(cell.value)!==null;
-    return (measured?`<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>`:'<span class="longitudinal-unavailable">—</span>')+`${measured&&stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${label?`<span class="pill ${status} longitudinal-assessment"><i class="dot" aria-hidden="true"></i>${E(label)}</span>`:""}${cell.pain&&label.trim()!=="疼痛"?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
+    const value=measured?`<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>`:'<span class="longitudinal-unavailable">—</span>',pill=label?`<span class="pill ${status} longitudinal-assessment"><i class="dot" aria-hidden="true"></i>${E(label)}</span>`:"";
+    const inline=row.measurementScale==="ordinal",result=inline?`<span class="longitudinal-result-value">${value}${pill}</span>`:value;
+    return result+`${measured&&stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${inline?"":pill}${cell.pain&&row.section==="force"?'<small class="longitudinal-symptom">录入标记：疼痛</small>':cell.pain&&label.trim()!=="疼痛"?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
   }
   function table(rows,periods,{print=false,wrapped=true}={}) {
     if(!rows.length)return "";
@@ -165,10 +167,10 @@
     const hasTrend=periods.length>1&&rows.some(row=>row.cells.some(cell=>N(cell?.value)!==null));
     const html=chunks(periods.map((p,i)=>({p,i})),print?3:periods.length).map((group,index,groups)=>{
       const showTrend=hasTrend&&index===groups.length-1,headers=[{label:"指标"},...group.map(x=>({label:periodLabel(x.p)})),...(showTrend?[{label:"变化趋势"}]:[])];
-      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+(showTrend?192:0)}px"`}><colgroup><col style="width:140px">${group.map(()=>'<col>').join("")}${showTrend?'<col style="width:192px">':""}</colgroup><thead><tr>${headers.map(h=>`<th scope="col">${E(h.label)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}"${assessmentAttributes(row.cells[i])}>${cellHTML(row.cells[i],row)}</td>`).join("")}${showTrend?`<td data-label="变化趋势">${root.RingsideResultDisplay.render(root.RingsideResultDisplay.trend({...row,digits:resultPrecision(row)},periods,root.RingsideLongitudinal.change),print)}</td>`:""}</tr>`).join("")}</tbody></table></div>`;
+      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+(showTrend?root.RingsideResultDisplay.trendSize.columnWidth:0)}px"`}><colgroup><col style="width:140px">${group.map(()=>'<col>').join("")}${showTrend?`<col style="width:${root.RingsideResultDisplay.trendSize.columnWidth}px">`:""}</colgroup><thead><tr>${headers.map(h=>`<th scope="col">${E(h.label)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}"${assessmentAttributes(row.cells[i])}>${cellHTML(row.cells[i],row)}</td>`).join("")}${showTrend?`<td data-label="变化趋势">${root.RingsideResultDisplay.render(root.RingsideResultDisplay.trend({...row,digits:resultPrecision(row)},periods,root.RingsideLongitudinal.change),print)}</td>`:""}</tr>`).join("")}</tbody></table></div>`;
     }).join("");
     if(!wrapped)return html;
-    const compactRows=rows.map(row=>({id:row.id,name:row.name,unit:row.unit,digits:resultPrecision(row),measurementScale:row.measurementScale,changes:row.changes,cells:row.cells.map(cell=>cell?{value:cell.value,unit:cell.unit,statistics:cell.statistics,notes:cell.notes,pain:cell.pain,assessment:cell.assessment,display:cell.display,diagnosticNotes:cell.diagnosticNotes,contextKey:cell.contextKey,evaluationKey:cell.evaluationKey,direction:cell.direction,coverageKey:cell.coverageKey,evaluation:cell.evaluation?{label:cell.evaluation.label,grade:cell.evaluation.grade}:null}:null)}));
+    const compactRows=rows.map(row=>({id:row.id,name:row.name,section:row.section,unit:row.unit,digits:resultPrecision(row),measurementScale:row.measurementScale,changes:row.changes,cells:row.cells.map(cell=>cell?{value:cell.value,unit:cell.unit,statistics:cell.statistics,notes:cell.notes,pain:cell.pain,assessment:cell.assessment,display:cell.display,diagnosticNotes:cell.diagnosticNotes,contextKey:cell.contextKey,evaluationKey:cell.evaluationKey,direction:cell.direction,coverageKey:cell.coverageKey,evaluation:cell.evaluation?{label:cell.evaluation.label,grade:cell.evaluation.grade}:null}:null)}));
     return `<div class="longitudinal-table" data-longitudinal-table="${E(JSON.stringify({rows:compactRows,periods:periods.map(p=>({id:p.id,date:p.date,label:p.label}))}))}">${html}</div>`;
   }
   // Work with balanced native report fragments, including nested disclosures.
@@ -362,19 +364,6 @@
     const available=specs.map(spec=>spec.series?{...spec,series:dateStyles(spec.series,periods)}:spec);
     return specsOnly?available:available.map(figure).join("");
   }
-  function balanceUnavailable(periods) {
-    const groups=new Map();
-    for(const period of periods){
-      const record=period.record,selected=new Set(record.enabled.iso?root.RingsideModel.selectedIsoRows(record).map(row=>row.id):[]);
-      const missing=(record.balancePairs||[]).filter(pair=>[pair.numeratorId,pair.denominatorId].some(id=>selected.has(id))&&![pair.numeratorId,pair.denominatorId].every(id=>selected.has(id))).map(pair=>{
-        const directions=[pair.numeratorId,pair.denominatorId].filter(id=>!selected.has(id)).map(id=>record.data.iso.find(row=>row.id===id)?.direction||id);
-        return (root.RingsideModel.REG[pair.region]||pair.region)+" · "+pair.label+"：未选入配对方向（"+directions.join("、")+"）";
-      });
-      const reason=missing.join("；")||(selected.size?"所选配对方向尚无有效测量结果":"本期未选择等长力量测试方向");
-      if(!groups.has(reason))groups.set(reason,[]);groups.get(reason).push(periodLabel(period));
-    }
-    return '<div class="longitudinal-balance-unavailable"><p>关节平衡需要同一关节的两个配对方向。当前没有可展示的配对比值。</p>'+[...groups].map(([reason,dates])=>`<div><p><strong>${E(dates.join("、"))}</strong></p><p>${E(reason)}</p></div>`).join("")+"</div>";
-  }
   function render(model,{views={}}={}) {
     const periods=model.periods,sourceHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.render(p.report)]));
     const displayReport=period=>{
@@ -392,7 +381,7 @@
       const specifications=projectFigures(project,model,{specsOnly:true,views}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?nativeHTML.get(p.id):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");
       const pair=(charts,data)=>charts?`<div class="detail-pair longitudinal-pair" data-pdf-pair><div class="longitudinal-figures">${charts}</div><div class="detail-data">${data}</div></div>`:data;
       const figures=items=>project.renderer==="speed"?`<div class="longitudinal-speed-grid" data-longitudinal-grid="speed" data-period-count="${items.length}">${items.map(spec=>chartPanel(spec,model,views)).join("")}</div>`:items.map(spec=>chartPanel(spec,model,views)).join("");
-      const resultTables=project.renderer==="iso"?["force","asymmetry","balance"].map(section=>{const rows=(project.metrics||[]).filter(row=>row.section===section);return rows.length||section==="balance"?`<section class="longitudinal-iso-section" data-iso-section="${section}"><h5 class="longitudinal-table-caption">${E({force:"力量结果",asymmetry:"双侧差异",balance:"关节平衡"}[section])}</h5>${rows.length?table(rows,periods):balanceUnavailable(periods)}</section>`:"";}).join(""):table(project.metrics||[],periods);
+      const resultTables=project.renderer==="iso"?["force","asymmetry","balance"].map(section=>{const rows=(project.metrics||[]).filter(row=>row.section===section);return rows.length&&(section!=="balance"||rows.some(row=>row.cells.some(cell=>N(cell?.value)!==null)))?`<section class="longitudinal-iso-section" data-iso-section="${section}"><h5 class="longitudinal-table-caption">${E({force:"力量结果",asymmetry:"双侧差异",balance:"关节平衡"}[section])}</h5>${table(rows,periods)}</section>`:"";}).join(""):table(project.metrics||[],periods);
       const content=["fvp","sprint-fvp"].includes(project.renderer)?["profile","elasticity"].map(section=>{
         const options=displayOptions(project,model,section,views),choices=section==="profile"?profileChoices(project):[],choiceKeys=new Set(choices.map(([key])=>key)),metrics=(project.metrics||[]).filter(row=>section==="profile"?!["elasticity","scenario"].includes(row.section)&&(!choiceKeys.has(profileMetricKey(row,project))||options.metrics[profileMetricKey(row,project)]!==false):["elasticity","scenario"].includes(row.section));
         const metricControls=choices.length?`<div class="no-print" data-longitudinal-panel="${E(options.id)}"><details class="longitudinal-metric-options" data-longitudinal-metrics="${E(options.id)}"><summary>显示指标</summary><div>${choices.map(([key,name])=>`<label><input type="checkbox" data-longitudinal-metric="${E(key)}"${options.metrics[key]!==false?" checked":""}>${E(name)}</label>`).join("")}</div></details></div>`:"";

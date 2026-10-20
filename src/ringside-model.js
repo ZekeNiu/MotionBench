@@ -1843,6 +1843,17 @@
     const target = positive(row.target);
     return {target,kind:target === null ? "none" : "manual",source:"",reason:"",matched:target !== null,basis:row.unit};
   }
+  // Strength against its target is independent of recorded symptoms and
+  // bilateral balance. Reports can reuse this evidence without a risk label.
+  function isoStrengthAssessment(value, target, { referenceComparison = null, targetKind = "manual", unit = "" } = {}) {
+    let status = value === null || target === null ? "gray" : "green";
+    const reasons = [];
+    if (target !== null && value !== null && (referenceComparison ? referenceComparison.status === "amber" : value < target)) {
+      status = "amber";
+      reasons.push((targetKind === "reference" ? "低于参考目标 " : "低于评价标准 ") + fmt(target) + " " + unit);
+    }
+    return { status, reasons };
+  }
   function isoAnalysis(record) {
     return selectedIsoRows(record).map((row) => {
       const left = nonnegative(row.left),
@@ -1872,16 +1883,13 @@
       ).map(([side, value, pain]) => {
         const resolved = effectiveIsoTarget(record,row,side), target = resolved.target;
         const referenceComparison = root.RingsideIsoReferences?.comparison(value,resolved) || null;
-        let status = value === null || target === null ? "gray" : "green",
-          reasons = [];
+        const strength = isoStrengthAssessment(value, target, { referenceComparison, targetKind: resolved.kind, unit: row.unit });
+        let status = strength.status, reasons = [];
         if (pain) {
           status = "red";
           reasons.push("疼痛");
         }
-        if (target !== null && value !== null && (referenceComparison ? referenceComparison.status === "amber" : value < target)) {
-          if (rank.amber > rank[status]) status = "amber";
-          reasons.push((resolved.kind === "reference" ? "低于参考目标 " : "低于评价标准 ") + fmt(target) + " " + row.unit);
-        }
+        reasons.push(...strength.reasons);
         if (side === weakSide && ["red", "amber"].includes(asymStatus)) {
           if (rank[asymStatus] > rank[status]) status = asymStatus;
           reasons.push("双侧差异 " + fmt(asym, 1) + "% " + strongSide);
@@ -5337,6 +5345,7 @@
     normalizeIsoDirection,
     migrateBalancePair,
     effectiveIsoTarget,
+    isoStrengthAssessment,
     legacyIsoDirectionIds,
     isoDirectionCatalog,
     selectedIsoRows,

@@ -30,7 +30,7 @@ async function main(){
   });
   await check('every result table uses one all-date trend with no old endpoint headings',async()=>{
    const tables=await page.locator('#trendFixture .longitudinal-results').evaluateAll(nodes=>nodes.map(table=>({measured:!!table.querySelector('td[data-record-id] strong'),head:[...table.querySelectorAll('th')].map(n=>n.textContent),points:[...table.querySelectorAll('[data-result-trend]')].map(n=>n.querySelectorAll('[data-trend-point]').length),widths:[...table.querySelectorAll('td[data-label="变化趋势"]')].map(n=>n.getBoundingClientRect().width)})));
-   assert.ok(tables.length>=10);for(const table of tables){assert.equal(table.head.filter(x=>x==='变化趋势').length,table.measured?1:0);assert.ok(table.head.every(x=>!['首末变化','近期变化'].includes(x)));assert.ok(table.points.every(n=>n===0||n===3));assert.ok(table.widths.every(n=>n>=180));}result.tables=tables.length;
+   assert.ok(tables.length>=10);for(const table of tables){assert.equal(table.head.filter(x=>x==='变化趋势').length,table.measured?1:0);assert.ok(table.head.every(x=>!['首末变化','近期变化'].includes(x)));assert.ok(table.points.every(n=>n===0||n===3));assert.ok(table.widths.every(n=>n>=172));}result.tables=tables.length;
   });
   const fms=page.locator('#trendFixture [data-metric-id="fms:0"] .result-trend');
   await check('FMS keeps fixed score ticks and both meaningful segment colors in the shared renderer',async()=>{

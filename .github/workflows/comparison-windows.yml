@@ -43,14 +43,16 @@ jobs:
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/tests/v2.24.6-delivery
+          python scripts/run_v2247_model_baseline.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-desktop-unit-tests.cjs --artifact-dir output/tests/v2.24.6-delivery/desktop-unit
+          node tests/run-unit-tests.cjs --artifact-dir output/tests/v2.24.7-delivery
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/run-desktop-unit-tests.cjs --artifact-dir output/tests/v2.24.7-delivery/desktop-unit
       - name: Check shared trends, PDF and browser workflows
         run: |
-          node tests/comparison-trend-browser-tests.cjs --artifact-dir=output/comparison-trend/release-v2246-pdf-isolated/chrome
+          node tests/comparison-trend-browser-tests.cjs --artifact-dir=output/comparison-trend/release-v2247-pdf-isolated/chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/run_v2246_browser.py
+          python scripts/run_v2247_browser.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build and verify the standalone Windows programs
         run: |
@@ -60,20 +62,21 @@ jobs:
       - name: Exercise comparison export and reopen in packaged Electron
         run: |
           $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
-          node tests/longitudinal-browser-tests.cjs --desktop --pdf --artifact-dir output/comparison-trend/release-v2246-pdf-isolated/native
+          node tests/longitudinal-browser-tests.cjs --desktop --pdf --artifact-dir output/comparison-trend/release-v2247-pdf-isolated/native
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/implementation-2.24.6/resumed/native-smoke-isolated'
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/implementation-2.24.7/resumed/native-smoke-isolated'
           node tests/desktop-smoke.cjs
       - name: Verify the source-bound synthetic evidence
-        run: python scripts/verify_v2246.py --ci
+        run: python scripts/verify_v2247.py --ci
       - name: Save synthetic test evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: MotionBench-Comparison-Windows-${{ github.run_number }}
           path: |
-            output/tests/v2.24.6-delivery/
-            output/comparison-trend/release-v2246-pdf-isolated/
-            output/implementation-2.24.6/resumed/native-smoke-isolated/
+            output/tests/v2.24.7-delivery/
+            output/comparison-trend/release-v2247-pdf-isolated/
+            output/implementation-2.24.7/resumed/native-smoke-isolated/
+            output/implementation-2.24.7/resumed/model-baseline.*
             output/desktop-package/
           retention-days: 14

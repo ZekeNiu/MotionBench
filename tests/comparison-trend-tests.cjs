@@ -40,12 +40,40 @@ test('disabled mismatched missing and ambiguous evaluations never acquire a disp
   const f=createFixture(c,3);setup(f);const m=L.build(f.records,f),row=metric(m,'cmj_height');if(row)assert.ok(row.cells.filter(Boolean).every(cell=>!cell.display.visible));
  }
 });
-test('target grades fixed FMS and true pain/asymmetry warnings have positive provenance',()=>{
- const f=createFixture(c,3);f.profile.standards.find(r=>r.directionId==='iso_neck_flexion').enabled=false;f.records.forEach(r=>r.data.iso.find(t=>t.id==='iso_neck_flexion').painCenter=true);
- const m=L.build(f.records,f);assert.equal(metric(m,'iso:iso_neck_flexion:C').cells[0].display.state,'warning');assert.match(metric(m,'iso:iso_neck_flexion:C').cells[0].display.label,/疼痛/);
- assert.ok(metric(m,'long_time').cells.every(cell=>cell.display.visible));assert.ok(metric(m,'fms:0').cells.every(cell=>cell.display.visible));
- const asym=m.projects.find(p=>p.id==='iso').metrics.find(r=>r.section==='asymmetry'&&r.cells.some(cell=>cell?.value!==null));assert.ok(asym.cells.some(cell=>cell?.display.visible));
+function isoDisplayFixture(directionId, { target = null, value = 220, pain = true, left = null, right = null } = {}) {
+ const f=createFixture(c,3),rule=f.profile.standards.find(r=>r.directionId===directionId);assert.ok(rule);
+ Object.assign(rule,{enabled:true,targetEnabled:target!==null,target,rangesEnabled:false});if(rule.reference)rule.reference.enabled=false;
+ f.records.forEach(record=>{const row=record.data.iso.find(r=>r.id===directionId);assert.ok(row);if(row.reference)row.reference.enabled=false;row.target=target===null?'':target;
+  if(row.paired)Object.assign(row,{left,right,painLeft:pain,painRight:false});else Object.assign(row,{center:value===null?'':value,painCenter:pain});});
+ return f;
+}
+test('isometric pain without a target remains a recorded symptom and never invents a force grade',()=>{
+ const f=isoDisplayFixture('iso_neck_flexion'),before=JSON.stringify(f),m=L.build(f.records,f),row=metric(m,'iso:iso_neck_flexion:C');
+ for(const cell of row.cells){assert.equal(cell.pain,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.display.visible,false);assert.doesNotMatch(cell.displayEvaluation.reason,/疼痛|双侧差异/);}
+ assert.doesNotMatch(V.table([row],m.periods,{wrapped:false}),/class="pill [^"]*longitudinal-assessment/);assert.equal(JSON.stringify(f),before);
 });
+test('isometric force grading uses its target while original pain evaluation and regional risk remain red',()=>{
+ const f=isoDisplayFixture('iso_neck_flexion',{target:150}),before=JSON.stringify(f),m=L.build(f.records,f),row=metric(m,'iso:iso_neck_flexion:C');
+ for(const cell of row.cells){assert.equal(cell.pain,true);assert.equal(cell.display.status,'green');assert.equal(cell.display.visible,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.displayEvaluation.grade.status,'green');assert.doesNotMatch(cell.display.label,/疼痛|双侧差异/);assert.doesNotMatch(cell.displayEvaluation.reason,/疼痛|双侧差异/);}
+ for(const period of m.periods){const side=period.stats.isoAnalyses.find(r=>r.id==='iso_neck_flexion').sides[0];assert.equal(side.status,'red');assert.ok(side.reasons.includes('疼痛'));}
+ const risk=m.risk.rows.find(r=>r.id==='neck');assert.ok(risk.cells.every(cell=>cell.pain&&cell.evaluation.grade.status==='red'&&cell.display.status==='red'));assert.equal(JSON.stringify(f),before);
+});
+test('a 22.2 percent asymmetry grades only its dedicated row and does not downgrade target-met force',()=>{
+ const f=isoDisplayFixture('iso_shoulder_externalRotation',{target:100,left:140,right:180,pain:false}),m=L.build(f.records,f),force=metric(m,'iso:iso_shoulder_externalRotation:L'),asym=metric(m,'asym:iso_shoulder_externalRotation');
+ for(const cell of force.cells){assert.equal(cell.value,140);assert.equal(cell.display.status,'green');assert.equal(cell.displayEvaluation.grade.status,'green');assert.doesNotMatch(cell.display.label,/疼痛|双侧差异/);assert.doesNotMatch(cell.displayEvaluation.reason,/疼痛|双侧差异/);assert.equal(cell.evaluation.grade.status,'red');}
+ for(const cell of asym.cells){assert.ok(Math.abs(cell.value-22.22222222222222)<1e-10);assert.equal(cell.display.status,'red');assert.equal(cell.display.visible,true);assert.match(cell.display.label,/左侧更弱/);}
+});
+test('missing force stays ungraded even when the original record has a pain flag and a target',()=>{
+ const f=isoDisplayFixture('iso_neck_flexion',{target:150,value:null}),m=L.build(f.records,f),row=metric(m,'iso:iso_neck_flexion:C');assert.ok(row);
+ for(const cell of row.cells){assert.equal(cell.value,null);assert.equal(cell.pain,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.display.visible,false);assert.equal(cell.display.state,'missing');}
+ assert.doesNotMatch(V.table([row],m.periods,{wrapped:false}),/class="pill [^"]*longitudinal-assessment/);
+});
+test('fixed FMS pain takes precedence over complete 3 and 3 side scores as a zero red grade',()=>{
+ const f=createFixture(c,3);f.records.forEach(record=>Object.assign(record.data.fms[1],{left:3,right:3,pain:true}));const before=JSON.stringify(f),m=L.build(f.records,f),row=metric(m,'fms:1');
+ for(const cell of row.cells){assert.equal(cell.value,0);assert.equal(cell.pain,true);assert.equal(cell.display.visible,true);assert.equal(cell.display.status,'red');assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.rawTrials[0].left,3);assert.equal(cell.rawTrials[0].right,3);}
+ assert.equal(JSON.stringify(f),before);
+});
+
 test('joint balance uses actual matched gray range and retains invalid denominator reason',()=>{
  const f=createFixture(c,3),rule=f.profile.standards.find(r=>r.kind==='balance');assert.ok(rule);rule.enabled=true;rule.rangesEnabled=true;rule.ranges=[{min:0,max:100,includeMin:true,includeMax:true,label:'平衡观察区',status:'gray'}];
  for(const r of f.records){const pair=r.balancePairs.find(p=>p.id===rule.pairId);Object.assign(r.data.iso.find(t=>t.id===pair.numeratorId),{left:100,right:150});Object.assign(r.data.iso.find(t=>t.id===pair.denominatorId),{left:200,right:200});}
@@ -89,6 +117,17 @@ test('flat tiny negative and extreme observed values render finite chart coordin
 test('each mini chart has a readable unit and numeric vertical axis including ordinal data',()=>{
  const f=createFixture(c,3),m=L.build(f.records,f);for(const id of['cmj_height','long_pct','long_time','long_unknown','fms:0']){const row=metric(m,id),html=D.draw(projection(row,m.periods)),axis=html.match(/<g data-trend-axis="y"[\s\S]*?<\/g>/)[0];assert.match(axis,new RegExp('纵坐标 '+row.unit));assert.ok((axis.match(/<text /g)||[]).length>=4);}
 });
+test('shared mini geometry stays compact across input widths and arbitrary selected point counts',()=>{
+ assert.equal(D.trendSize.width,160);assert.equal(D.trendSize.height,72);assert.equal(D.trendSize.columnWidth,172);assert.equal(Object.isFrozen(D.trendSize),true);
+ const f=createFixture(c,3),m=L.build(f.records,f),base=projection(metric(m,'fms:0'),m.periods);
+ for(const count of[2,3,8,24])for(const requested of[120,160,420]){
+  const spec={...base,points:Array.from({length:count},(_,i)=>({...base.points[i%3],id:'synthetic-point-'+i,change:i?{available:true,delta:0,kind:'ordinal',improvement:null}:null}))},html=D.draw(spec,requested),width=Math.min(160,requested);
+  assert.match(html,new RegExp('viewBox="0 0 '+width+' 72" width="'+width+'" height="72"'));assert.equal((html.match(/data-trend-point=/g)||[]).length,count);
+  const axis=html.match(/<g data-trend-axis="y"[\s\S]*?<\/g>/)[0],labels=[...axis.matchAll(/<text [^>]*font-size="(\d+)"[^>]*>([^<]*)<\/text>/g)];assert.deepEqual(labels.map(m=>m[2]),['分','0','1','2','3']);assert.ok(labels.every(m=>m[1]==='9'));
+ }
+ const html=V.table([metric(m,'fms:0')],m.periods,{wrapped:false});assert.match(html,/col style="width:172px"/);
+});
+
 test('incompatible units are separate rows with the correct unit on each vertical axis',()=>{
  const f=createFixture(c,3);f.records.forEach((r,i)=>r.definitions.find(d=>d.id==='long_unknown').unit=i===2?'自定':'N');const m=L.build(f.records,f),row=metric(m,'long_unknown'),html=V.table([row],m.periods,{wrapped:false}),axes=[...html.matchAll(/data-trend-axis="y"[^>]*aria-label="([^"]+)"/g)].map(m=>m[1]);assert.deepEqual(axes,['纵坐标 N','纵坐标 自定']);
 });
@@ -96,6 +135,20 @@ test('FMS shares the renderer with its fixed domain and never exposes relative s
  const f=createFixture(c,3);f.records.forEach((r,i)=>{r.data.fms[0].score=[1,3,2][i];r.data.fms[0].pain=false;});const m=L.build(f.records,f),spec=projection(metric(m,'fms:0'),m.periods),html=D.draw(spec);
  assert.match(html,/data-score-scale="0-3"/);assert.equal(spec.points[1].change.improvement,'improved');assert.equal(spec.points[2].change.improvement,'declined');assert.match(html,/#187459/);assert.match(html,/#b23f3d/);assert.doesNotMatch(html,/相对|起点|终点/);
 });
+// The immutable previous model is checked explicitly because CI may use a
+// shallow checkout without historical objects; the normal suite stays portable.
+if(process.argv.includes('--model-baseline'))test('extracting target-only strength assessment leaves complete original stats identical to f4f4fd4',()=>{
+ const previous=context(),oldModel=require('node:child_process').execFileSync('git',['show','f4f4fd4:src/ringside-model.js'],{cwd:path.resolve(__dirname,'..'),encoding:'utf8',maxBuffer:8*1024*1024});
+ vm.runInContext(oldModel,previous);vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/ringside-evaluation.js'),'utf8'),previous);
+ const f=createFixture(c,3);f.records.forEach((record,index)=>{const neck=record.data.iso.find(r=>r.id==='iso_neck_flexion'),shoulder=record.data.iso.find(r=>r.id==='iso_shoulder_externalRotation');
+  if(neck.reference)neck.reference.enabled=false;if(shoulder.reference)shoulder.reference.enabled=false;
+  Object.assign(neck,{target:[200,150,150][index],center:index===1?'':index===2?220:192,painCenter:true});Object.assign(shoulder,{target:index===2?200:100,left:index===2?100:140,right:index===2?100:180,painLeft:index===1});});
+ const before=JSON.stringify(f);for(const record of f.records)assert.deepEqual(copy(c.RingsideModel.stats(record)),copy(previous.RingsideModel.stats(record)));assert.equal(JSON.stringify(f),before);
+ for(const record of f.records){const row=record.data.iso.find(r=>r.id==='iso_neck_flexion');row.target='';row.center=192;}const withoutTargets=JSON.stringify(f);
+ for(const record of f.records)assert.deepEqual(copy(c.RingsideModel.stats(record)),copy(previous.RingsideModel.stats(record)));
+ assert.equal(JSON.stringify(f),withoutTargets);
+});
+
 if(process.argv.includes('--baseline'))test('source records calculations summaries AI facts and chart choices match the baseline',()=>{
  const f=createFixture(c,3),before=JSON.stringify(f),current=L.build(f.records,f),facts=copy(L.facts(current));
  vm.runInContext(fs.readFileSync(path.join(__dirname,'../output/comparison-trend/baseline/ringside-longitudinal.js'),'utf8'),c);const previous=c.RingsideLongitudinal.build(f.records,f);

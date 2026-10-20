@@ -107,10 +107,11 @@
         if (!row) continue;
         const group = stats.repetitions.find(group => group.testId === "iso" && group.directionId === row.id && group.side === side), detail = row.sides.find(s => s.side === item.side);
         const measured = row.sides.some(side => N(side.value) !== null || side.pain);
+        const strength = M.isoStrengthAssessment(item.value, detail?.target ?? null, { referenceComparison: detail?.referenceComparison, targetKind: detail?.targetKind, unit: row.unit });
         add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "force", groupName: "力量结果", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · " + (detail?.sideLabel || "中线"), unit: item.unit, value: item.value, preserveMissing: measured, measurementScale: "ratio", context: { ...E.isoContext(row, record), side: item.side }, evaluation: item, referenceTarget: detail?.target, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason,
           direction: item.applicable && N(item.target) > 0 ? "higher" : null, statistics: group?.statistics[0] ? clone(group.statistics[0]) : null, rawTrials: clone(group?.attempts || []), pain: !!detail?.pain,
-          warnings: [detail?.pain ? { status: "red", label: "疼痛" } : null, item.side === row.weakSide && ["red", "amber"].includes(row.asymStatus) ? { status: row.asymStatus, label: "双侧差异 " + root.RingsideResultDisplay.number(row.asym, 1) + "%" } : null].filter(Boolean),
+          displayEvaluation: { ...item, grade: { status: strength.status, label: root.Def.assessmentLabel(strength.status, "已测"), range: null }, reason: strength.reasons.join("；") },
           notes: [detail?.pain ? "疼痛" : "", row.notes, ...(group?.attempts || []).map(row => row.notes)].filter(Boolean).join("；") });
         if (item.side === "L" && measured) add("asym:" + row.id, { assessmentKind: "asymmetry", testId: "iso", section: "asymmetry", groupName: "双侧差异", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · 双侧差异", unit: "%", value: row.asym, preserveMissing: true, measurementScale: "ratio", context: E.isoContext(row, record),

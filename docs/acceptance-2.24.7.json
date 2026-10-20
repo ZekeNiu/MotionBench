@@ -1,0 +1,182 @@
+{
+  "version": "2.24.7",
+  "desktopVersion": "2.24.7-desktop.1",
+  "sourceHash": "fb858a64eb4161165d7bd33fd5366cdf65580512e1bc97bc5dad8aa9511c1376",
+  "pass": true,
+  "model": {
+    "file": "output/tests/v2.24.7-delivery/unit-results.json",
+    "sha256": "da963bdd181819fe34d4417d14d68b0d9b4715551ef2ffd0a8e3496ab74d5993",
+    "suites": 64,
+    "checks": 1025
+  },
+  "desktopUnit": {
+    "file": "output/tests/v2.24.7-delivery/desktop-unit/results.json",
+    "sha256": "ff89c7efed54445bed649ddce5fb93b1d405a18942f6751472d8cb5efd619b23",
+    "suites": 5
+  },
+  "browsers": {
+    "page-isolation": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/page-isolation/results.json",
+      "sha256": "08b13b93bc72d0fa8ce4423f0a284fbb39da273de2661bbe72948bbb01e0c351",
+      "checks": 2
+    },
+    "chrome": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/chrome/results.json",
+      "sha256": "f82e06c95ee4d9039bbcc889314ec379f7936c16ad03dfc8e8c1c950d6a460b7",
+      "checks": 11
+    },
+    "edge": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/edge/results.json",
+      "sha256": "b5eb47a43bda552e2841f398dc6a471d2e105d3e66e13b15f020fc7107e72d55",
+      "checks": 9
+    },
+    "controls": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/controls/results.json",
+      "sha256": "135b37139a7e0f5545f1e502e09fc7a8e57d14e28cf10c9fc03914b94e0a6b54",
+      "checks": 13
+    },
+    "layout": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/layout/results.json",
+      "sha256": "9b905138c1767e1e966284d56a9348e54e9d54cf6531bd21eb54cc9acf85963e",
+      "checks": 7
+    },
+    "layout-regression": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/layout-regression/results.json",
+      "sha256": "09cd91df8a6a7534468729cd96fbc7bc9dabdb00b2090377a97659668993950d",
+      "checks": 13
+    },
+    "followup": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/followup/results.json",
+      "sha256": "2fadcbbac60da5475ca0dda96832830d18f7e7705f62e3c1963881eb490f382a",
+      "checks": 7
+    },
+    "ai": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/ai/results.json",
+      "sha256": "0f4dc8125988fef7ba7bfb77e5922368f0113d1bbcf1b90c735512c7356fdf80",
+      "checks": 11
+    },
+    "interaction": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/interaction/results.json",
+      "sha256": "e4b98d1e75c1ca8949ef30b179b39a366246596fe1adb8dff0b46dcffed26122",
+      "checks": 8
+    },
+    "tooltip": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/tooltip/results.json",
+      "sha256": "6532448297dc8ca9299b145d36c83a5f2b654c8af42c792203e2c1d38c39dd67",
+      "checks": 3
+    },
+    "balance-pdf": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/balance-pdf/results.json",
+      "sha256": "4952a086b409148767f370ba75392aa352197fc476eccf1515c38454191e65f5",
+      "checks": 2
+    },
+    "app": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/app/results.json",
+      "sha256": "bd291f8c546aee8056b8f033b65da164fef0f625615a1f4717ee324c7801229b",
+      "checks": 10
+    },
+    "personal": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/personal/chrome.json",
+      "sha256": "bad6978e1e6f8f9c6cf15fba10f13ce9df51f8738fa23b390645f443541405a2",
+      "checks": 6
+    },
+    "polish": {
+      "file": "output/comparison-trend/release-v2247-pdf-isolated/polish/results.json",
+      "sha256": "29601486dc56c983580210ff62a647bf53c7339ecb17bed2abccb11aa9c77175",
+      "checks": 8
+    }
+  },
+  "native": {
+    "file": "output/comparison-trend/release-v2247-pdf-isolated/native/results.json",
+    "sha256": "137acc3e5facba30a21f0bdf12d34fad4b3a943687a5514ec3ed0e40ada9970d",
+    "checks": 11
+  },
+  "nativeSmoke": {
+    "file": "output/implementation-2.24.7/resumed/native-smoke-isolated/results.json",
+    "sha256": "bc33db127ac3482de95506e173cc75e08549f34581fa9734e14900be730e8489",
+    "checks": 16
+  },
+  "package": {
+    "archiveSha256": "12626ed70ac45af268c2e8646ca18e0d5dbed368648084b3ddf49bef90923243",
+    "assets": 271
+  },
+  "userAccepted": false,
+  "scope": "Synthetic isolated Chrome/Edge, emulated mobile/touch/zoom and simulated AI responses. Local actual-library protection is separately recorded. No physical printer/mobile or live AI-provider acceptance.",
+  "modelBaseline": {
+    "file": "output/implementation-2.24.7/resumed/model-baseline.json",
+    "sha256": "6a7dcce4b5617c12e0290929c3cb990c484d8c3662f11a76f4c94f0fc0b6249d",
+    "checks": 23,
+    "baselineModelSha256": "3774da896837d031c68b5cca1f2a8997627f301ffbc53974851083e8826c864c"
+  },
+  "renderIsolation": {
+    "samples": [
+      {
+        "baselineMs": 8136.799999999814,
+        "filteredMs": 174,
+        "pixelsEqual": true,
+        "pageNodes": 112,
+        "bodyNodes": 30236
+      },
+      {
+        "baselineMs": 8716.400000000373,
+        "filteredMs": 148.79999999981374,
+        "pixelsEqual": true,
+        "pageNodes": 186,
+        "bodyNodes": 30123
+      }
+    ],
+    "pixelsEqual": true
+  },
+  "rebuild": {
+    "file": "output/implementation-2.24.7/resumed/build-verification.json",
+    "sha256": "929307344323bd42fa4d89c9bd444b8b9fab8f1d5913c748a044ecc9bd1e0405"
+  },
+  "pdfReview": {
+    "file": "output/comparison-trend/release-v2247-pdf-isolated/visual-qa.json",
+    "sha256": "aa3acfab51d27865516c32141d556946d783fbb7c7847dc96bd1407435e5edb0",
+    "pages": 148,
+    "documents": 5
+  },
+  "private": {
+    "stages": {
+      "baseline": {
+        "pass": true,
+        "checks": 3,
+        "normalClose": true,
+        "receiptSha256": "258987c27dc0fd4a0764900896cda6770a2f1e33b03eda39161e191d5757a1d1"
+      },
+      "candidate": {
+        "pass": true,
+        "checks": 5,
+        "normalClose": true,
+        "receiptSha256": "8baa61fa4cd3ad7cee6e88346b3e6da75c8edf2264a3763c575d9adb2680e2df"
+      },
+      "installed": {
+        "pass": true,
+        "checks": 5,
+        "normalClose": true,
+        "receiptSha256": "8c8ac76ae185aee11ba22f72c0da0b2193613f908ea1d6ccf55b2cbe96898c35"
+      },
+      "reopened": {
+        "pass": true,
+        "checks": 5,
+        "normalClose": true,
+        "receiptSha256": "def42270518b52e3313e890cf822370d75342a5db452559bad2bf1381a3592c9"
+      }
+    },
+    "counts": {
+      "athletes": 2,
+      "records": 5
+    },
+    "checkpointSha256": "1817c63b79c7ad3575a24851f83314c11df733080268d4b22bd099fb52bc2594"
+  },
+  "privateVerified": true,
+  "installation": {
+    "file": "output/implementation-2.24.7/resumed/system-installation.json",
+    "sha256": "2b2ba51c6a5a9dfb7e2518962ce796cb383a0698a67db0a6d42a6ed0fb417713"
+  },
+  "shortcut": {
+    "file": "output/implementation-2.24.7/resumed/shortcut-check.json",
+    "sha256": "bb59cd2b5d733d0ed3dc0dd1316845f6ec8401332057befa03fe2a3af09f0e36"
+  }
+}

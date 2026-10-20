@@ -3,16 +3,17 @@
   const N = value => root.Calc.num(value), escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   const colors = { improved: "#187459", declined: "#b23f3d", neutral: "#708699", red: "#b23f3d", amber: "#ac7a21", green: "#187459", gray: "#708699" };
   const statusOf = value => Object.hasOwn(colors, value) ? value : "gray";
+  const trendSize = Object.freeze({ width: 160, height: 72, minWidth: 120, columnWidth: 172, top: 18, bottom: 57, dateY: 68, unitY: 9 });
   // Positive provenance, independent of wording and traffic-light color.
   // Measurements and diagnostic reasons remain available even without a grade.
   function assessment(cell, factor = 1) {
-    const e = cell.evaluation || {}, grade = e.grade || {}, value = N(cell.value), definition = cell.displayDefinition || cell.definition || cell.balance;
+    const e = cell.displayEvaluation || cell.evaluation || {}, grade = e.grade || {}, value = N(cell.value), definition = cell.displayDefinition || cell.definition || cell.balance;
     const applicable = e.applicable !== false && definition?.referenceEnabled !== false;
     const ranges = applicable && e.rangesApplicable !== false ? definition?.ranges || [] : [];
     const convert = value => N(value) === null ? null : value * factor;
     const reference = ranges.length ? { kind: "ranges", ranges: ranges.map(r => ({ min: convert(r.min), max: convert(r.max), includeMin: r.includeMin, includeMax: r.includeMax, status: statusOf(r.status), label: r.label })) }
       : applicable && e.targetApplicable !== false && N(e.target) > 0 ? { kind: "target", target: convert(e.target), source: e.source || "" } : null;
-    const warnings = cell.warnings || (cell.pain ? [{ status: "red", label: "疼痛" }] : []);
+    const warnings = cell.warnings || [];
     let state = value === null ? "missing" : "observed", label = "", status = "gray";
     if (value !== null) {
       const matched = !!grade.range || cell.balance && ranges.length && !!root.RingsideModel.grade(cell.rawValue ?? value, cell.balance).range;
@@ -26,7 +27,7 @@
       const rank = { red: 3, amber: 2, green: 1, gray: 0 }, strongest = warnings.reduce((a, b) => rank[b.status] > rank[a.status] ? b : a);
       state = "warning"; label = warnings.map(w => w.label).join("；"); status = statusOf(strongest.status);
     }
-    return { state, visible: !!label && ["graded", "warning"].includes(state), label, status, reference };
+    return { state, visible: !!label && ["graded", "warning"].includes(state), label, status, reference, ...(cell.displayEvaluation ? { reason: e.reason || "" } : {}) };
   }
   function number(value, digits = 2) {
     if (N(value) === null) return "—";
@@ -54,13 +55,13 @@
   }
   function pointLabel(spec, index) {
     const point = spec.points[index], comparison = index ? "；较 " + spec.points[index - 1].label + "：" + changeLabel(point.change, point.unit, spec.digits) : "";
-    return point.label + "：" + number(point.value, spec.digits) + (point.value !== null ? " " + point.unit : "（缺测）") + (point.pain ? "；疼痛" : "") + comparison;
+    return point.label + "：" + number(point.value, spec.digits) + (point.value !== null ? " " + point.unit : "（缺测）") + (point.pain ? "；录入标记：疼痛" : "") + comparison;
   }
-  function draw(spec, width = 180, print = false) {
+  function draw(spec, width = trendSize.width, print = false) {
     const measured = spec.points.filter(p => p.value !== null);
     if (!measured.length || spec.points.length < 2) return "";
-    width = Math.max(120, Math.min(420, width));
-    const height = 82, right = width - 10, top = 19, bottom = 58, color = colors.neutral;
+    width = Math.max(trendSize.minWidth, Math.min(trendSize.width, width));
+    const { height, top, bottom } = trendSize, right = width - 10, color = colors.neutral;
     const values = measured.map(p => p.value), min = Math.min(...values), max = Math.max(...values), pad = Math.abs(min) * .05 || 1;
     const extent = max === min ? [min-pad, max+pad] : [min, max], span = extent[1]-extent[0];
     const base = 10 ** Math.floor(Math.log10(span)), step = base * (span/base < 2 ? .2 : span/base < 5 ? .5 : 1);
@@ -74,7 +75,9 @@
       return Math.abs(value)>=1e5 || Math.abs(value)<.001 ? value.toExponential(digits).replace(/\.0+(?=e)/,"").replace(/e\+/,"e") : number(value, Math.max(0,Math.min(10,-Math.floor(Math.log10(high-low))+2)));
     };
     const tickLabels = ticks.map(axisNumber), unit = spec.unit || "", textWidth = label => [...label].reduce((sum,c)=>sum+(/[\u3400-\u9fff]/.test(c)?9:7),0);
-    const left = Math.max(25, Math.min(width*.5, Math.max(...tickLabels.map(textWidth),textWidth(unit))+10));
+    // Units have their own full-width heading. A long unit must not squeeze
+    // the plotting area toward the right edge.
+    const left = Math.max(25, Math.min(width*.5, Math.max(...tickLabels.map(textWidth))+10));
     const x = i => left + (right - left) * i / (spec.points.length - 1), y = value => bottom - (value - low) / (high - low) * (bottom - top), coord = n => Number(n.toFixed(2));
     const text = (x, y, label, anchor = "middle") => `<text x="${coord(x)}" y="${coord(y)}" text-anchor="${anchor}" font-family="Microsoft YaHei,Segoe UI,sans-serif" font-size="9" fill="#667684">${escape(label)}</text>`;
     let body = "";
@@ -84,7 +87,7 @@
       body += `<rect x="${left}" y="${coord(y(b))}" width="${right-left}" height="${coord(y(a)-y(b))}" fill="${colors[range.status] || color}" fill-opacity=".075"><title>${escape(range.label)}</title></rect>`;
     }
     body += '<g data-trend-axis="y" data-axis-min="'+low+'" data-axis-max="'+high+'" aria-label="纵坐标 '+escape(unit)+'">';
-    body += text(left-8,9,unit,"end");
+    body += text(0,trendSize.unitY,unit,"start");
     for (let i=0;i<ticks.length;i++) body += `<path d="M${left} ${coord(y(ticks[i]))}H${right}" fill="none" stroke="#dbe2e8" stroke-dasharray="2 3"/>` + text(left-8,y(ticks[i])+3,tickLabels[i],"end");
     body += `<path d="M${left} ${top}V${bottom}" fill="none" stroke="#c5d0d8"/></g>`;
     if (spec.reference?.kind === "target" && spec.reference.target >= low && spec.reference.target <= high) body += `<path data-trend-reference="target" d="M${left} ${coord(y(spec.reference.target))}H${right}" fill="none" stroke="#9aab9e" stroke-dasharray="3 3"><title>参考目标 ${escape(number(spec.reference.target))} ${escape(spec.unit)}</title></path>`;
@@ -94,18 +97,18 @@
     spec.points.forEach((point, i) => {
       const label = pointLabel(spec, i), cy = point.value === null ? bottom : y(point.value), tone = point.pain ? colors.red : colors[point.change?.improvement] || color;
       const mark = point.value === null ? `<path d="M${coord(x(i)-2)} ${bottom}h4" stroke="#b8c5ce"/>` : `<circle cx="${coord(x(i))}" cy="${coord(cy)}" r="3" fill="${i===spec.points.length-1?tone:"white"}" stroke="${tone}" stroke-width="1.5"/>`;
-      const slot = Math.min(22, (right-left)/(spec.points.length-1)), hit = `<rect x="${coord(x(i)-slot/2)}" y="13" width="${coord(slot)}" height="51" fill="transparent"/>`;
+      const slot = Math.min(22, (right-left)/(spec.points.length-1)), hit = `<rect x="${coord(x(i)-slot/2)}" y="${top-6}" width="${coord(slot)}" height="${bottom-top+12}" fill="transparent"/>`;
       body += `<g data-trend-point="${i}" data-trend-tip="${escape(label)}"${print ? "" : ' tabindex="0" role="button"'} aria-label="${escape(label)}"><title>${escape(label)}</title>${mark}${hit}</g>`;
     });
     const room = (right-left)/(spec.points.length-1), allDates = room >= 45, shortDate = point => point.label.replace(/^\d{4}-/, "");
-    spec.points.forEach((point, i) => { if (allDates || i === 0 || i === spec.points.length-1) body += text(x(i), 77, shortDate(point), i===0?"start":i===spec.points.length-1?"end":"middle"); });
+    spec.points.forEach((point, i) => { if (allDates || i === 0 || i === spec.points.length-1) body += text(x(i), trendSize.dateY, shortDate(point), i===0?"start":i===spec.points.length-1?"end":"middle"); });
     const title = spec.name + " · 变化趋势（按测试次序，点距不代表时间间隔）" + (spec.fms ? "；FMS 0–3 分，0 为疼痛" : "") + (spec.reference ? "；含所测日期共同适用的参考" : "") + "；" + spec.points.map((_, i) => pointLabel(spec, i)).join("；");
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="group" aria-label="${escape(title)}" data-pixel-layout="true"${spec.fms?' data-score-scale="0-3"':""}><title>${escape(title)}</title>${body}</svg>`;
   }
-  function render(spec, print = false) { return `<div class="result-trend" data-result-trend="${escape(JSON.stringify(spec))}">${draw(spec, 180, print)}</div>`; }
+  function render(spec, print = false) { return `<div class="result-trend" style="--result-trend-width:${trendSize.width}px;--result-trend-min-width:${trendSize.minWidth}px" data-result-trend="${escape(JSON.stringify(spec))}">${draw(spec, trendSize.width, print)}</div>`; }
   function layout(container, { print = false } = {}) {
     container.querySelectorAll("[data-result-trend]").forEach(node => {
-      const width = Math.max(120, Math.floor(node.getBoundingClientRect().width || 180)), key = width + ":" + print;
+      const width = Math.max(trendSize.minWidth, Math.min(trendSize.width, Math.floor(node.getBoundingClientRect().width || trendSize.width))), key = width + ":" + print;
       if (node.dataset.trendLayout === key) return;
       node.innerHTML = draw(JSON.parse(node.dataset.resultTrend), width, print); node.dataset.trendLayout = key;
     });
@@ -137,5 +140,5 @@
       if(next !== undefined){event.preventDefault();nodes[Math.max(0,Math.min(nodes.length-1,next))].focus();}
     });
   }
-  root.RingsideResultDisplay = { assessment, trend, draw, render, layout, mount, number, changeLabel };
+  root.RingsideResultDisplay = { assessment, trend, draw, render, layout, mount, number, changeLabel, trendSize };
 })(typeof window !== "undefined" ? window : globalThis);

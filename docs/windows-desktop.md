@@ -2,9 +2,9 @@
 
 桌面版通过 Windows 程序或快捷方式启动，自带运行环境。离线录入、计算、图表、Excel 和报告 PDF 可以直接使用。
 
-本说明对应 **2.24.6-desktop.1**，共用工作台版本为 **2.24.6**。原目录升级、原资料保持、重开和系统快捷方式核验已完成，详见 [2.24.6 验收记录](acceptance-2.24.6.md)，功能说明见 [2.24.6](motionbench-2.24.6.md)。
+本说明对应 **2.24.7-desktop.1**，共用工作台版本为 **2.24.7**。原目录升级、原资料保持、重开和系统快捷方式核验已完成，详见 [2.24.7 验收记录](acceptance-2.24.7.md)，功能说明见 [2.24.7](motionbench-2.24.7.md)。
 
-从 [2.24.6 版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.6-desktop.1)下载安装版、便携版或离线 HTML。[2.24.5 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.5-desktop.1)继续保留。
+从 [2.24.7 版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.7-desktop.1)下载安装版、便携版或离线 HTML。[2.24.6 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.6-desktop.1)继续保留。
 
 ## 安装
 
@@ -12,15 +12,15 @@
 
 | 文件 | 用途 |
 | --- | --- |
-| [MotionBench-2.24.6-desktop.1-Setup-x64.exe](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.6-desktop.1/MotionBench-2.24.6-desktop.1-Setup-x64.exe) | 安装程序，升级时沿用原程序目录 |
-| [MotionBench-2.24.6-desktop.1-Portable-x64.exe](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.6-desktop.1/MotionBench-2.24.6-desktop.1-Portable-x64.exe) | 便携程序 |
-| [2.24.6 验收记录](acceptance-2.24.6.md) | 成品校验与本轮核验范围 |
+| [MotionBench-2.24.7-desktop.1-Setup-x64.exe](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.7-desktop.1/MotionBench-2.24.7-desktop.1-Setup-x64.exe) | 安装程序，升级时沿用原程序目录 |
+| [MotionBench-2.24.7-desktop.1-Portable-x64.exe](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.7-desktop.1/MotionBench-2.24.7-desktop.1-Portable-x64.exe) | 便携程序 |
+| [2.24.7 验收记录](acceptance-2.24.7.md) | 成品校验与本轮核验范围 |
 
 本机安装目录为 `D:\Application\Strength&Conditioning\MotionBench`。运行 Setup 时确认这个原目录，完成后核对运动员、测试记录、方案与人工解读，再关闭并重新打开。原目录升级及真实资料检查的完成状态以验收记录为准。
 
 安装版与便携版均把资料保存在当前 Windows 用户的 `%APPDATA%\MotionBench Desktop`，与程序所在目录分开。
 
-从 2.24.5 或更早版本升级时使用 2.24.6 的 Setup。公开发行版可使用“应用设置 → 更新与版本”，或运行公开发行的 Setup。公开发行附件中的 `SHA256SUMS.txt` 和 `build-provenance.json` 分别提供文件校验与构建来源。公开安装包不包含本机运动员、测量或解读正文。
+从 2.24.5 或更早版本升级时使用 2.24.7 的 Setup。公开发行版可使用“应用设置 → 更新与版本”，或运行公开发行的 Setup。公开发行附件中的 `SHA256SUMS.txt` 和 `build-provenance.json` 分别提供文件校验与构建来源。公开安装包不包含本机运动员、测量或解读正文。
 
 ## 纵向比较
 
@@ -28,7 +28,7 @@
 
 每张比较图可独立勾选首页所选日期中的一个或多个，并随比较文档保存。结果表使用统一“变化趋势”，展示全部所选日期，带纵轴刻度和单位；悬停或聚焦查看完整日期、读数和相邻变化。FMS只显示分差，百分数指标显示百分点差；缺测保持断线，不补零。无实际评价依据的数据保留读数，不显示占位评价。
 
-损伤风险筛查使用部位雷达；等长力量保留力量结果、双侧差异和关节平衡分组，以及各期带状态颜色的短标签和评价依据。运动表现概览少于 3 维显示表格，3 维及以上显示雷达。能力结构、乳酸、CPET、SJ／CMJ 跳跃 FVP、冲刺 FVP 和弹性分析按期保留适用的组成值、判定、目标、代表点与方法说明。FMS 图表采用紧凑布局；跳跃及冲刺 FVP、弹性、IMTP 和负荷－速度图恢复适用的显示选项，逐期 FVP 与弹性分析在宽窗口每行两期、窄窗口每行一期。详见 [2.24.6 纵向显示设置](motionbench-2.24.6.md)和 [2.24.0 比较操作](motionbench-2.24.0.md)。
+损伤风险筛查使用部位雷达；等长力量保留力量结果、双侧差异和关节平衡分组，以及各期带状态颜色的短标签和评价依据。运动表现概览少于 3 维显示表格，3 维及以上显示雷达。能力结构、乳酸、CPET、SJ／CMJ 跳跃 FVP、冲刺 FVP 和弹性分析按期保留适用的组成值、判定、目标、代表点与方法说明。FMS 图表采用紧凑布局；跳跃及冲刺 FVP、弹性、IMTP 和负荷－速度图恢复适用的显示选项，逐期 FVP 与弹性分析在宽窗口每行两期、窄窗口每行一期。详见 [2.24.7 纵向显示设置](motionbench-2.24.7.md)和 [2.24.0 比较操作](motionbench-2.24.0.md)。
 
 ## 设置通用项目报告图表
 
@@ -68,7 +68,7 @@
 
 返回旧程序前，先另存完整备份。程序版本回退与资料恢复分别进行；网页版回退使用原浏览器入口与相应备份。
 
-本轮上一版的源码、程序和校验文件保留在 [2.24.5 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.5-desktop.1)，其完成范围见 [2.24.4 验收记录](acceptance-2.24.4.md)。本轮升级前保护与升级结果见 [2.24.6 验收记录](acceptance-2.24.6.md)。
+本轮上一版的源码、程序和校验文件保留在 [2.24.6 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.6-desktop.1)，其完成范围见 [2.24.4 验收记录](acceptance-2.24.4.md)。本轮升级前保护与升级结果见 [2.24.7 验收记录](acceptance-2.24.7.md)。
 
 ## 开发构建
 

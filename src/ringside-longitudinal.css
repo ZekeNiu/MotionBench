@@ -22,9 +22,6 @@
 .longitudinal-results th:first-child,.longitudinal-results td:first-child{width:140px;}
 .longitudinal-results strong{display:block;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums;}
 .longitudinal-results small{display:block;margin-top:3px;font-size:10px;line-height:1.5;color:var(--muted,#667684);font-weight:400;}
-.longitudinal-balance-unavailable{font-size:11px;line-height:1.7;color:var(--muted,#667684);}
-.longitudinal-balance-unavailable p{margin:0 0 8px;}
-.longitudinal-balance-unavailable strong{font-size:10px;font-weight:500;color:var(--ink,#263747);}
 .longitudinal-unavailable,.longitudinal-empty{color:var(--muted,#667684);font-size:10px;line-height:1.6;}
 .longitudinal-table-caption{font-size:10px;color:var(--muted,#667684);margin:16px 0 6px;}
 .longitudinal-table-caption:first-child{margin-top:0;}
@@ -80,6 +77,8 @@
 .longitudinal-iso-section+.longitudinal-iso-section{margin-top:22px;}
 .longitudinal-iso-section>.longitudinal-table-caption{font-size:13px;color:var(--ink,#263747);}
 .longitudinal-results .longitudinal-assessment{display:inline-flex;width:fit-content;max-width:100%;margin:4px 0 0;padding:2px 6px;font-size:10px;line-height:1.45;font-weight:500;white-space:normal;}
+.longitudinal-results .longitudinal-result-value{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;}
+.longitudinal-results .longitudinal-result-value .longitudinal-assessment{margin:0;}
 .longitudinal-print-grid-row{display:grid!important;grid-template-columns:repeat(var(--longitudinal-columns,2),minmax(0,1fr))!important;gap:14px;align-items:start;}
 .longitudinal-print-grid-row>.longitudinal-chart{margin:0!important;min-width:0;}
 [data-longitudinal-print-grid]{display:block!important;}
@@ -119,7 +118,7 @@
 /* The mini chart is shared; table sizing stays within comparison reports. */
 .longitudinal-results th,.longitudinal-results td{width:auto!important;}
 .longitudinal-results td[data-label="变化趋势"]{padding-top:5px!important;padding-bottom:5px!important;vertical-align:middle;}
-.result-trend{width:100%;min-width:120px;max-width:420px;line-height:0;}
+.result-trend{width:var(--result-trend-width,160px);min-width:var(--result-trend-min-width,120px);max-width:100%;margin-inline:0 auto;line-height:0;text-align:left;}
 .result-trend svg,.result-trend img{display:block;width:100%;height:auto;max-height:none!important;}
 .result-trend [data-trend-point]{cursor:crosshair;outline:none;}
 .result-trend [data-trend-point]:focus circle{stroke-width:3;}
