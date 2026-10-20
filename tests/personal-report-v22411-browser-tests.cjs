@@ -86,7 +86,8 @@ async function main() {
     });
     await check("two medicine-ball sides retain independent values grades and target comparisons in one desktop result table", async () => {
       await reveal("#detail-mb"); const data = await page.locator("#detail-mb tr[data-metric-id]").evaluateAll(nodes => nodes.map(n => ({ id: n.dataset.metricId, text: n.textContent, labels: [...n.querySelectorAll("td")].map(td => td.dataset.label) })));
-      assert.deepEqual(data.map(row => row.id), ["mb_dom", "mb_non"]); assert.ok(data.every(row => row.labels.includes("目标对照") && row.labels.includes("结果")));
+      assert.deepEqual(data.map(row => row.id), ["mb_dom", "mb_non"]); assert.ok(data.every(row => row.labels.includes("结果") && row.labels.includes("参考目标") && !row.labels.includes("目标对照")));
+      assert.doesNotMatch(data.map(row => row.text).join("\n"), /目标对照|达成比例|距参考目标|超过参考目标|达到参考目标/);
       assert.match(data[0].text, /11\.00/); assert.match(data[1].text, /9\.00/); assert.equal(await page.locator("#detail-mb svg, #detail-mb .chart-wrap").count(), 0);
       result.twoSidedBall = data; await shot("desktop-medicine-ball", "#detail-mb"); await invariant();
     });

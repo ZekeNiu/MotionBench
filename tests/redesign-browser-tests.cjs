@@ -262,9 +262,9 @@ async function run() {
     assert.ok(!JSON.stringify(requestBody).includes('AI竞态隔离运动员')); assert.ok(!JSON.stringify(requestBody).includes('"name":"示例运动员"'));
     return { model: 'locally simulated', delayedResult: 'discarded after record switch' };
   });
-  await check('medicine-grade', '药球结果表保留原绿色等级依据、参考目标、达成比例和差距', async page => {
+  await check('medicine-grade', '药球普通结果表保留原绿色等级依据、实测值和参考目标', async page => {
     await seed(page); const text = await page.locator('#detail-mb').innerText();
-    assert.ok(text.includes('距参考目标 1.2 m') && text.includes('距参考目标 1.7 m') && text.includes('达成比例')); assert.ok(text.includes('11.80') && text.includes('10.30'));
+    assert.doesNotMatch(text, /目标对照|达成比例|距参考目标|超过参考目标|达到参考目标/); assert.ok(text.includes('11.80') && text.includes('10.30'));
     assert.deepEqual(await page.locator('#detail-mb tr[data-metric-id]').evaluateAll(nodes => nodes.map(n => n.dataset.metricId)), ['mb_dom', 'mb_non']);
     for (const [id, target] of [['mb_dom', '13.00 m'], ['mb_non', '12.00 m']]) { const row = page.locator('#detail-mb tr[data-metric-id="' + id + '"]'); assert.equal(await row.locator('td[data-label="参考目标"]').innerText(), target); assert.equal(await row.locator('td[data-label="评价"] .pill.green').innerText(), '达标'); }
     assert.equal(await page.locator('#detail-mb svg, #detail-mb .chart-wrap').count(), 0);

@@ -270,27 +270,17 @@
         `<div class="repeat-stat-cv">${label}<span>${metric.cv === null ? "—" : F(metric.cv, 1) + "%"}</span></div>`,
       ];
     };
-    const referenceProgress = (metric) => {
-      const target = metric.attainment !== null ? N(metric.target) : null;
-      if (target === null) return "";
-      const gap = metric.direction === "lower" ? metric.value - target : target - metric.value;
-      const rate = metric.direction === "lower" ? metric.value === 0 ? null : target / metric.value * 100 : metric.value / target * 100;
-      const note = gap > 0 ? "距参考目标 " + F(gap) + " " + E(metric.unit)
-        : gap === 0 ? "达到参考目标" : "超过参考目标 " + F(-gap) + " " + E(metric.unit);
-      return (rate === null ? "" : "达成比例 " + F(rate) + "%") + `<small class="metric-meta">${note}</small>`;
-    };
-    const metricTable = (metrics, target = false, { referenceProgress: showProgress = false, ...assessmentOptions } = {}) => {
+    const metricTable = (metrics, target = false, { responsive = false, ...assessmentOptions } = {}) => {
       const repeated = hasStatistics(metrics.map((d) => repeatedMetric(d.id)));
       return table(
-        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["参考目标"] : []), ...(showProgress ? ["目标对照"] : [])],
+        ["指标", "结果", ...(repeated ? ["均值 ± SD", "CV"] : ["单位"]), "评价", ...(target ? ["参考目标"] : [])],
         consume(metrics).map((d) => [
           E(d.name) + (repeated && d.unit ? `<small class="metric-meta">${E(d.unit)}</small>` : ""),
           F(d.value, 2),
           ...(repeated ? statisticCells(repeatedMetric(d.id)) : [E(d.unit)]),
           evaluationPill(d, assessmentOptions),
           ...(target ? [d.attainment !== null ? F(d.target, 2) + " " + E(d.unit) : "—"] : []),
-          ...(showProgress ? [referenceProgress(d)] : []),
-        ]), metrics.map((d) => d.id), [repeated ? "with-repeat-columns" : "", showProgress ? "responsive-results" : ""].filter(Boolean).join(" "),
+        ]), metrics.map((d) => d.id), [repeated ? "with-repeat-columns" : "", responsive ? "responsive-results" : ""].filter(Boolean).join(" "),
       );
     };
     const supplemental = (tests) => {
@@ -646,7 +636,7 @@
           tests,
           tests[0].name,
           state.protocol.mb,
-          (metrics.length ? metricTable(metrics, true, { referenceProgress: true }) : "") +
+          (metrics.length ? metricTable(metrics, true, { responsive: true }) : "") +
             supplemental(tests),
         );
       },

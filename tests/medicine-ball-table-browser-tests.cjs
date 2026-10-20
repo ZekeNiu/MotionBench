@@ -7,7 +7,7 @@ const { desktopArtifactIdentity } = require("./helpers/desktop-artifact-identity
 const ROOT = path.resolve(__dirname, ".."), native = process.argv.includes("--desktop");
 const arg = key => { const i = process.argv.indexOf(key); return i < 0 ? null : process.argv[i + 1]; };
 const SOURCE = path.resolve(ROOT, arg("--source") || "MotionBench.html");
-const OUT = path.resolve(ROOT, arg("--artifact-dir") || "output/implementation-2.24.12/" + (native ? "native" : "focused"));
+const OUT = path.resolve(ROOT, arg("--artifact-dir") || "output/implementation-2.24.13/" + (native ? "native" : "focused"));
 const hash = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 
 async function seedMedicineBall() {
@@ -86,20 +86,22 @@ async function main() {
   const download = async (kind, name) => { const waiting = page.waitForEvent("download", { timeout: 240000 }); waiting.catch(() => {}); await page.evaluate(kind => App["download" + kind](), kind); const item = await waiting; assert.equal(await item.failure(), null); const file = path.join(OUT, name + "." + kind.toLowerCase()); await item.saveAs(file); artifact(file); return file; };
   const assertDual = async () => {
     await reveal(); const state = await tableState();
-    assert.deepEqual(state.headers, ["指标", "结果", "均值 ± SD", "CV", "评价", "参考目标", "目标对照"]); assert.deepEqual(state.rows.map(r => r.id), ["mb_dom", "mb_non"]);
+    assert.deepEqual(state.headers, ["指标", "结果", "均值 ± SD", "CV", "评价", "参考目标"]); assert.deepEqual(state.rows.map(r => r.id), ["mb_dom", "mb_non"]);
     assert.equal(state.rows[0].cells["结果"], "10.00"); assert.equal(state.rows[1].cells["结果"], "7.00");
     assert.match(state.rows[0].cells["均值 ± SD"], /10\.00\s*±\s*2\.00/); assert.match(state.rows[1].cells["均值 ± SD"], /7\.00\s*±\s*2\.00/);
     assert.match(state.rows[0].cells.CV, /20\.0%/); assert.match(state.rows[1].cells.CV, /28\.6%/);
-    assert.match(state.rows[0].cells["目标对照"], /达成比例\s*100(?:\.0+)?%.*达到参考目标/s); assert.match(state.rows[1].cells["目标对照"], /达成比例\s*87\.5%.*距参考目标\s*1(?:\.0+)?\s*m/s);
+    assert.equal(state.rows[0].cells["参考目标"], "10.00 m"); assert.equal(state.rows[1].cells["参考目标"], "8.00 m");
+    assert.doesNotMatch(await page.locator("#detail-mb").innerText(), /目标对照|达成比例|距参考目标|超过参考目标|达到参考目标/);
     assert.equal(await page.locator("#detail-mb svg,#detail-mb img").count(), 0); assert.equal(await row("mb_dom").locator(".pill.amber").count(), 1);
     assert.match(await page.locator("#detail-mb").innerText(), /手工补充指标原始说明/); assert.equal(await row("mb_session_note").count(), 1);
     const raw = page.locator('#detail-mb [data-raw-trials="mb"]'); assert.equal(await raw.count(), 1); assert.equal(await raw.locator("tbody tr").count(), 6);
     await invariant(); return state;
   };
   const assertSingle = async () => {
-    await reveal(); const state = await tableState(); assert.deepEqual(state.headers, ["指标", "结果", "单位", "评价", "参考目标", "目标对照"]); assert.equal(state.rows.length, 1);
+    await reveal(); const state = await tableState(); assert.deepEqual(state.headers, ["指标", "结果", "单位", "评价", "参考目标"]); assert.equal(state.rows.length, 1);
     assert.equal(state.rows[0].cells["结果"], "12.00"); assert.equal(state.rows[0].cells["单位"], "m");
-    assert.match(state.rows[0].cells["目标对照"], /达成比例\s*120(?:\.0+)?%.*超过参考目标\s*2(?:\.0+)?\s*m/s);
+    assert.equal(state.rows[0].cells["参考目标"], "10.00 m");
+    assert.doesNotMatch(await page.locator("#detail-mb").innerText(), /目标对照|达成比例|距参考目标|超过参考目标|达到参考目标/);
     assert.equal(await row("mb_non").count(), 0); assert.equal(await page.locator("#detail-mb svg,#detail-mb img").count(), 0);
     assert.equal(await page.locator('#detail-mb [data-raw-trials="mb"] tbody tr').count(), 2); await invariant(); return state;
   };
@@ -109,7 +111,7 @@ async function main() {
     await check("isolated dual-side mean report renders one table with original grades references repeated statistics and raw trials", async () => {
       ids = await page.evaluate(seedMedicineBall); baseline = await snapshot(page); result.dual = await assertDual(); await shot("dual-side-desktop");
     });
-    await check("single-side best report has no invented second side or short-sample statistics and retains an uncapped 120 percent target comparison", async () => {
+    await check("single-side best report uses ordinary result columns without an invented second side short-sample statistics or extra target interpretation", async () => {
       await select(ids[1]); result.single = await assertSingle(); await shot("single-side-desktop");
     });
     if (native) {
@@ -120,8 +122,8 @@ async function main() {
     } else {
       await check("disabled reference standards leave measured values intact without invented badges targets or comparisons", async () => {
         await select(ids[2]); await reveal(); const state = await tableState(); assert.equal(state.rows.length, 2); assert.equal(state.rows[0].cells["结果"], "9.00"); assert.equal(state.rows[1].cells["结果"], "7.00");
-        for (const r of state.rows) { assert.equal(r.cells["参考目标"], "—"); assert.equal(r.cells["目标对照"], "—"); }
-        assert.equal(await page.locator("#detail-mb .pill").count(), 0); assert.doesNotMatch(await page.locator("#detail-mb").innerText(), /NaN|Infinity|达成比例/); result.ungraded = state; await invariant();
+        for (const r of state.rows) assert.equal(r.cells["参考目标"], "—");
+        assert.equal(await page.locator("#detail-mb .pill").count(), 0); assert.doesNotMatch(await page.locator("#detail-mb").innerText(), /NaN|Infinity|目标对照|达成比例|距参考目标|超过参考目标|达到参考目标/); result.ungraded = state; await invariant();
       });
       await check("1440 and 390 pixel single and dual-side tables keep every result and reference without horizontal page overflow", async () => {
         result.responsive = [];
@@ -169,7 +171,8 @@ async function main() {
         for (const key of ["missingRows", "duplicateRows", "changedRows", "missingCharts", "duplicateCharts"]) assert.deepEqual(result.pdf.diagnostics[key], []);
         const allRows = result.pdf.pages.flatMap(p => p.rowIds); for (const id of ["mb_dom", "mb_non", "mb_session_note"]) assert.equal(allRows.filter(value => value === id).length, 1, id);
         for (const p of result.pdf.pages) { assert.equal(p.charts, 0); assert.equal(p.controls, 0); assert.deepEqual(p.overflow, []); }
-        const text = result.pdf.pages.map(p => p.text).join("\n"); for (const value of ["药球反手投掷", "均值 ± SD", "CV", "参考目标", "目标对照", "达成比例", "优势侧原始备注 3", "非优势侧原始备注 3", "手工补充指标原始说明"]) assert.ok(text.includes(value), value);
+        const text = result.pdf.pages.map(p => p.text).join("\n"); for (const value of ["药球反手投掷", "均值 ± SD", "CV", "参考目标", "优势侧原始备注 3", "非优势侧原始备注 3", "手工补充指标原始说明"]) assert.ok(text.includes(value), value);
+        assert.doesNotMatch(text, /目标对照|达成比例|距参考目标|超过参考目标|达到参考目标/);
         assert.ok(result.pdf.pages.flatMap(p => p.headerSets).some(headers => JSON.stringify(headers) === JSON.stringify(result.dual.headers)));
         const renderer = "import sys,json;from pathlib import Path;import pymupdf; p=Path(sys.argv[1]);d=pymupdf.open(p);out=[]\nfor i,page in enumerate(d):\n f=p.parent/('medicine-ball-focused-page-%02d.png'%(i+1));page.get_pixmap(matrix=pymupdf.Matrix(1.5,1.5),alpha=False).save(str(f));out.append(str(f))\nprint(json.dumps(out))";
         const pngs = JSON.parse(execFileSync("python", ["-c", renderer, file], { cwd: ROOT, encoding: "utf8" })); for (const png of pngs) artifact(png); result.pdf.renderedPages = pngs.map(p => path.relative(ROOT, p).replaceAll("\\", "/")); result.pdfPageCount = pngs.length; await invariant();

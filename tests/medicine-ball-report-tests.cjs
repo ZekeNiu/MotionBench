@@ -38,11 +38,11 @@ function renderUnchanged(record) {
   return { report, html, ball: detail(html), table: resultTable(html) };
 }
 
-test("two measured sides use one result table with independent values grades targets and uncapped progress", () => {
+test("two measured sides use one ordinary result table with independent values grades and reference targets", () => {
   const { report, ball, table } = renderUnchanged(fixture());
-  assert.deepEqual(headers(table), ["指标", "结果", "单位", "评价", "参考目标", "目标对照"]);
+  assert.deepEqual(headers(table), ["指标", "结果", "单位", "评价", "参考目标"]);
   assert.equal((ball.match(/<table\b/g) || []).length, 1);
-  assert.doesNotMatch(ball, /<svg|chart-wrap|comparison-result|双侧差异|NaN|Infinity/);
+  assert.doesNotMatch(ball, /<svg|chart-wrap|comparison-result|双侧差异|目标对照|达成比例|距参考目标|超过参考目标|达到参考目标|NaN|Infinity/);
   assert.equal((table.match(/data-metric-id="mb_dom"/g) || []).length, 1);
   assert.equal((table.match(/data-metric-id="mb_non"/g) || []).length, 1);
   const dominant = row(table, "mb_dom"), other = row(table, "mb_non");
@@ -50,8 +50,6 @@ test("two measured sides use one result table with independent values grades tar
   assert.equal(text(cell(dominant, "单位")), "m"); assert.equal(text(cell(other, "单位")), "m");
   assert.match(cell(dominant, "评价"), /pill green/); assert.match(cell(other, "评价"), /pill amber/);
   assert.equal(text(cell(dominant, "参考目标")), "12.00 m"); assert.equal(text(cell(other, "参考目标")), "8.00 m");
-  assert.match(text(cell(dominant, "目标对照")), /达成比例 83\.3%.*距参考目标 2\.0 m/);
-  assert.match(text(cell(other, "目标对照")), /达成比例 112\.5%.*超过参考目标 1\.0 m/);
   assert.equal(report.projects[0].metrics.find(d => d.id === "mb_non").attainment, 100);
   assert.match(ball, /原始协议：3 kg；第一落点/);
 });
@@ -83,7 +81,8 @@ test("best and mean modes retain representative results sample SD CV and all raw
     r.data.mb.push({ id: "single-ND", side: "ND", distance: 9, notes: "非优势侧单次原文" },
       { id: "orphan", side: "D", distance: "", notes: "无效试次原文 & <保留>" });
     const { report, ball, table } = renderUnchanged(r);
-    assert.deepEqual(headers(table), ["指标", "结果", "均值 ± SD", "CV", "评价", "参考目标", "目标对照"]);
+    assert.deepEqual(headers(table), ["指标", "结果", "均值 ± SD", "CV", "评价", "参考目标"]);
+    assert.doesNotMatch(table, /目标对照|达成比例|距参考目标|超过参考目标|达到参考目标/);
     assert.equal(text(cell(row(table, "mb_dom"), "结果")), mode === "best" ? "12.00" : "10.00");
     assert.equal(text(cell(row(table, "mb_dom"), "均值 ± SD")), "10.00 ± 2.00");
     assert.equal(text(cell(row(table, "mb_dom"), "CV")), "20.0%");
@@ -107,14 +106,14 @@ test("fewer than three trials retain raw observations while omitting unsupported
   assert.match(ball, /原始试次 · 共 2 次/); assert.equal((table.match(/<table\b/g) || []).length, 1);
 });
 
-test("disabled absent zero or negative targets produce no invented ratio or gap while configured grades remain", () => {
+test("disabled absent zero or negative targets stay empty while configured grades remain", () => {
   for (const update of [{ referenceEnabled: false }, { targetEnabled: false }, { target: "" }, { target: 0 }, { target: -1 }]) {
     const r = fixture(); r.definitions.filter(d => d.testId === "mb").forEach(d => Object.assign(d, update));
     const { table } = renderUnchanged(r);
     for (const id of ["mb_dom", "mb_non"]) {
       const html = row(table, id); assert.ok(html);
-      assert.equal(text(cell(html, "参考目标")), "—"); assert.equal(text(cell(html, "目标对照")), "—");
-      assert.doesNotMatch(html, /达成比例|距参考目标|超过参考目标|达到参考目标|NaN|Infinity/);
+      assert.equal(text(cell(html, "参考目标")), "—");
+      assert.doesNotMatch(html, /目标对照|达成比例|距参考目标|超过参考目标|达到参考目标|NaN|Infinity/);
       if (update.referenceEnabled === false) assert.doesNotMatch(html, /class="pill/);
       else assert.match(html, /class="pill/);
     }
@@ -135,12 +134,15 @@ test("custom red amber green and genuine gray ranges preserve evaluation semanti
   const { table } = renderUnchanged(r); assert.match(cell(row(table, "mb_dom"), "评价"), /pill gray/); assert.equal(text(cell(row(table, "mb_dom"), "评价")), "未分级");
 });
 
-test("exact target attainment and lower-direction custom definitions retain their existing progress calculations", () => {
+test("exact-target and lower-direction definitions preserve measurements references and calculations without additional interpretation", () => {
   const r = fixture(); Object.assign(r.definitions.find(d => d.id === "mb_dom"), { target: 10 });
   Object.assign(r.definitions.find(d => d.id === "mb_non"), { target: 6, direction: "lower" });
-  const { table } = renderUnchanged(r);
-  assert.match(text(cell(row(table, "mb_dom"), "目标对照")), /达成比例 100\.0%.*达到参考目标/);
-  assert.match(text(cell(row(table, "mb_non"), "目标对照")), /达成比例 66\.7%.*距参考目标 3\.0 m/);
+  const { report, table } = renderUnchanged(r);
+  assert.equal(text(cell(row(table, "mb_dom"), "结果")), "10.00"); assert.equal(text(cell(row(table, "mb_dom"), "参考目标")), "10.00 m");
+  assert.equal(text(cell(row(table, "mb_non"), "结果")), "9.00"); assert.equal(text(cell(row(table, "mb_non"), "参考目标")), "6.00 m");
+  assert.equal(report.projects[0].metrics.find(d => d.id === "mb_dom").attainment, 100);
+  near(report.projects[0].metrics.find(d => d.id === "mb_non").attainment, 200 / 3);
+  assert.doesNotMatch(table, /目标对照|达成比例|距参考目标|超过参考目标|达到参考目标/);
 });
 
 test("other personal projects keep their result columns while longitudinal medicine-ball retains dated bars and trends", () => {
