@@ -3741,8 +3741,10 @@ body.sidebar-collapsed .workspace {
 .longitudinal-iso-section+.longitudinal-iso-section{margin-top:22px;}
 .longitudinal-iso-section>.longitudinal-table-caption{font-size:13px;color:var(--ink,#263747);}
 .longitudinal-results .longitudinal-assessment{display:inline-flex;width:fit-content;max-width:100%;margin:4px 0 0;padding:2px 6px;font-size:10px;line-height:1.45;font-weight:500;white-space:normal;}
-.longitudinal-results .longitudinal-result-value{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;}
+.longitudinal-results .longitudinal-result-value{display:flex;align-items:center;flex-wrap:nowrap;gap:4px 6px;}
+.longitudinal-results .longitudinal-result-value>strong{flex-shrink:0;white-space:nowrap;}
 .longitudinal-results .longitudinal-result-value .longitudinal-assessment{margin:0;}
+.longitudinal-results .longitudinal-result-value .longitudinal-assessment:is(.red,.amber,.green){flex-shrink:0;white-space:nowrap;}
 .longitudinal-print-grid-row{display:grid!important;grid-template-columns:repeat(var(--longitudinal-columns,2),minmax(0,1fr))!important;gap:14px;align-items:start;}
 .longitudinal-print-grid-row>.longitudinal-chart{margin:0!important;min-width:0;}
 [data-longitudinal-print-grid]{display:block!important;}
@@ -4296,7 +4298,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.24.7"});
+window.RingsideBuild=Object.freeze({"version": "2.24.8"});
 </script>
 <script>
 (function (root) {
@@ -22310,21 +22312,97 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const N = value => root.Calc.num(value), escape = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   const colors = { improved: "#187459", declined: "#b23f3d", neutral: "#708699", red: "#b23f3d", amber: "#ac7a21", green: "#187459", gray: "#708699" };
   const statusOf = value => Object.hasOwn(colors, value) ? value : "gray";
+  const labels = { red: "预警", amber: "关注", green: "优秀" };
+  const trafficLabel = (status, fallback = "") => labels[status] || fallback;
   const trendSize = Object.freeze({ width: 160, height: 72, minWidth: 120, columnWidth: 172, top: 18, bottom: 57, dateY: 68, unitY: 9 });
+  const asymmetry = cell => cell.assessmentKind === "asymmetry" || cell.section === "asymmetry";
+  // Partition only at declared or algebraically inverted boundaries. The
+  // established evaluator decides each open interval and its exact endpoints;
+  // overlaps and gaps therefore remain unclassified instead of being painted
+  // according to whichever configured range happens to be drawn last.
+  function referenceRanges(boundaries, evaluate, factor = 1) {
+    const cuts = [...new Set(boundaries.map(N).filter(value => value !== null))].sort((a, b) => a - b), result = [];
+    const edges = [null, ...cuts, null];
+    const same = (a, b) => !!(a && b && a.status === b.status && a.label === b.label);
+    for (let i = 1; i < edges.length; i++) {
+      const min = edges[i - 1], max = edges[i];
+      let sample = min === null ? max === null ? 0 : max - Math.max(1, Math.abs(max) / 2)
+        : max === null ? min + Math.max(1, Math.abs(min) / 2) : min / 2 + max / 2;
+      if (!Number.isFinite(sample)) sample = min === null ? -Number.MAX_VALUE : Number.MAX_VALUE;
+      if (min !== null && sample <= min || max !== null && sample >= max) continue;
+      const grade = evaluate(sample);
+      if (!grade || !["red", "amber", "green", "gray"].includes(grade.status)) continue;
+      const interval = { min: min === null ? null : min * factor, max: max === null ? null : max * factor,
+        includeMin: min === null || same(evaluate(min), grade), includeMax: max === null || same(evaluate(max), grade),
+        status: grade.status, label: trafficLabel(grade.status, grade.label || ""), sourceLabel: grade.label || "" };
+      const previous = result.at(-1);
+      if (previous && previous.max === interval.min && previous.status === interval.status && previous.sourceLabel === interval.sourceLabel && (previous.includeMax || interval.includeMin)) {
+        previous.max = interval.max; previous.includeMax = interval.includeMax;
+      } else result.push(interval);
+    }
+    return result;
+  }
+  function referenceFor(cell, evaluation, definition, factor) {
+    const applicable = evaluation.applicable !== false && definition?.referenceEnabled !== false;
+    if (!applicable) return null;
+    const unit = cell.unit || evaluation.unit || definition?.unit || "";
+    const direction = evaluation.direction || definition?.direction || cell.direction || "higher";
+    const base = { unit, direction, source: evaluation.source || "" };
+    if (evaluation.kind === "fixed") return { ...base, kind: "ordinal", basis: { kind: "fixed-fms" },
+      levels: [0, 1, 2, 3].map(value => { const status = value === 0 ? "red" : value < 3 ? "amber" : "green"; return { value, status, label: labels[status] }; }) };
+    if (cell.assessmentKind === "screening") return { ...base, kind: "ordinal", basis: { kind: "screening-status" },
+      levels: ["red", "amber", "green"].map((status, i) => ({ value: i + 1, status, label: labels[status] })) };
+    if (asymmetry(cell)) {
+      const amber = N(evaluation.rules?.asymAmber), red = N(evaluation.rules?.asymRed);
+      if (amber === null || red === null || amber < 0 || red <= amber) return null;
+      return { ...base, kind: "ranges", direction: "lower", basis: { kind: "asymmetry-rules", asymAmber: amber, asymRed: red }, ranges: [
+        { min: 0, max: amber, includeMin: true, includeMax: false, status: "green", label: "双侧差异低于关注阈值" },
+        { min: amber, max: red, includeMin: true, includeMax: false, status: "amber", label: "双侧差异达到关注阈值" },
+        { min: red, max: null, includeMin: true, includeMax: true, status: "red", label: "双侧差异达到预警阈值" }
+      ] };
+    }
+    const ranges = evaluation.rangesApplicable !== false ? definition?.ranges || [] : [];
+    const target = evaluation.targetApplicable !== false && N(evaluation.target) > 0 ? N(evaluation.target) : null;
+    const targetFields = target === null ? {} : { target: target * factor };
+    if (ranges.length) {
+      const evaluate = value => { const grade = root.RingsideModel.grade(value, definition); return grade.range ? grade : null; };
+      return { ...base, kind: "ranges", basis: { kind: "configured-ranges" }, ...targetFields,
+        ranges: referenceRanges(ranges.flatMap(range => [range.min, range.max]), evaluate, factor) };
+    }
+    if (target === null) return null;
+    if (evaluation.kind === "iso" || cell.testId === "iso" && cell.section === "force") {
+      // A reference mean for a ratio is descriptive, not a force threshold.
+      const descriptive = evaluation.reference?.kind === "literature-mean" && evaluation.reference.status === "gray";
+      return { ...base, kind: "target", direction: "higher", ...targetFields,
+        basis: { kind: descriptive ? "reference-mean" : "isometric-target", referenceKind: evaluation.reference?.kind || "manual" },
+        ranges: descriptive ? [] : referenceRanges([target], value => root.RingsideModel.isoStrengthAssessment(value, target, { unit: definition?.unit || unit }), factor) };
+    }
+    const scoreAmber = N(cell.displayRules?.scoreAmber), scoreGreen = N(cell.displayRules?.scoreGreen);
+    const basis = { kind: "metric-target-score", scoreAmber, scoreGreen };
+    const reference = { ...base, kind: "target", ...targetFields, basis, ranges: [] };
+    if (scoreAmber === null || scoreGreen === null || scoreAmber < 0 || scoreGreen > 100 || scoreGreen <= scoreAmber) return reference;
+    const effective = { ...definition, direction, target, targetEnabled: true, referenceEnabled: true, ranges: [] };
+    const boundaries = [0, ...[scoreAmber, scoreGreen].map(score => {
+      if (direction === "lower" && score === 0) return null;
+      const boundary = direction === "lower" ? target * 100 / score : target * score / 100;
+      return Number.isFinite(boundary) ? boundary : direction === "lower" ? target / (score / 100) : target * (score / 100);
+    })];
+    reference.ranges = referenceRanges(boundaries, value => root.RingsideModel.evaluation(value, effective, { rules: { scoreAmber, scoreGreen } }), factor);
+    return reference;
+  }
   // Positive provenance, independent of wording and traffic-light color.
   // Measurements and diagnostic reasons remain available even without a grade.
   function assessment(cell, factor = 1) {
     const e = cell.displayEvaluation || cell.evaluation || {}, grade = e.grade || {}, value = N(cell.value), definition = cell.displayDefinition || cell.definition || cell.balance;
     const applicable = e.applicable !== false && definition?.referenceEnabled !== false;
     const ranges = applicable && e.rangesApplicable !== false ? definition?.ranges || [] : [];
-    const convert = value => N(value) === null ? null : value * factor;
-    const reference = ranges.length ? { kind: "ranges", ranges: ranges.map(r => ({ min: convert(r.min), max: convert(r.max), includeMin: r.includeMin, includeMax: r.includeMax, status: statusOf(r.status), label: r.label })) }
-      : applicable && e.targetApplicable !== false && N(e.target) > 0 ? { kind: "target", target: convert(e.target), source: e.source || "" } : null;
+    const reference = referenceFor(cell, e, definition, factor);
     const warnings = cell.warnings || [];
-    let state = value === null ? "missing" : "observed", label = "", status = "gray";
+    let state = value === null ? "missing" : "observed", label = "", status = "gray", sourceLabel = grade.label || "";
+    const reasons = [cell.displayEvaluation ? e.reason || "" : e.reason || cell.assessment?.reason || cell.referenceReason || (value === null ? cell.notes || "" : "")];
     if (value !== null) {
       const matched = !!grade.range || cell.balance && ranges.length && !!root.RingsideModel.grade(cell.rawValue ?? value, cell.balance).range;
-      const fixed = e.kind === "fixed" && Number.isInteger(value) && value >= 0 && value <= 3 || cell.assessmentKind === "asymmetry" || cell.assessmentKind === "screening";
+      const fixed = e.kind === "fixed" && Number.isInteger(value) && value >= 0 && value <= 3 || asymmetry(cell) || cell.assessmentKind === "screening";
       const target = !ranges.length && reference?.kind === "target" && N(e.attainment) !== null;
       if (applicable && matched || fixed || applicable && target) { state = "graded"; label = grade.label || ""; status = statusOf(grade.status); }
       else if (e.applicable === false) state = "not-applicable";
@@ -22333,8 +22411,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (warnings.length) {
       const rank = { red: 3, amber: 2, green: 1, gray: 0 }, strongest = warnings.reduce((a, b) => rank[b.status] > rank[a.status] ? b : a);
       state = "warning"; label = warnings.map(w => w.label).join("；"); status = statusOf(strongest.status);
+      sourceLabel = label; reasons.push(label);
     }
-    return { state, visible: !!label && ["graded", "warning"].includes(state), label, status, reference, ...(cell.displayEvaluation ? { reason: e.reason || "" } : {}) };
+    // Symptoms override the displayed traffic light, independently of the
+    // measurement's target grade. A pain-only record still has a missing value.
+    if (cell.pain && !asymmetry(cell)) { state = "warning"; status = "red"; label = labels.red; reasons.push("疼痛记录"); }
+    if (["graded", "warning"].includes(state) && !asymmetry(cell)) label = trafficLabel(status, label);
+    return { state, visible: !!label && ["graded", "warning"].includes(state), label, sourceLabel, status, reference, reason: [...new Set(reasons.filter(Boolean))].join("；") };
   }
   function number(value, digits = 2) {
     if (N(value) === null) return "—";
@@ -22357,12 +22440,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         reference: cell?.display?.reference || null, evaluationKey: cell?.evaluationKey || "", change };
     });
     const measured = points.filter(p => p.value !== null), reference = measured[0]?.reference;
-    const shared = reference && measured.every(p => p.evaluationKey === measured[0].evaluationKey && JSON.stringify(p.reference) === JSON.stringify(reference));
-    return { name: row.name, unit: measured[0]?.unit || row.unit || "", digits: row.digits ?? 2, ordinal: row.measurementScale === "ordinal", fms: /^fms:/.test(row.id), points: points.map(({ evaluationKey, reference, ...point }) => point), reference: shared ? reference : null };
+    const shared = reference && points.every(p => p.evaluationKey === measured[0].evaluationKey && JSON.stringify(p.reference) === JSON.stringify(reference));
+    return { name: row.name, unit: measured[0]?.unit || row.unit || "", digits: row.digits ?? 2, ordinal: row.measurementScale === "ordinal", fms: /^fms:/.test(row.id), points: points.map(({ evaluationKey, reference, ...point }) => point), reference: shared ? reference : null,
+      ...(!shared && points.some(point => point.reference) ? { references: points.map(point => point.reference) } : {}) };
   }
   function pointLabel(spec, index) {
     const point = spec.points[index], comparison = index ? "；较 " + spec.points[index - 1].label + "：" + changeLabel(point.change, point.unit, spec.digits) : "";
-    return point.label + "：" + number(point.value, spec.digits) + (point.value !== null ? " " + point.unit : "（缺测）") + (point.pain ? "；录入标记：疼痛" : "") + comparison;
+    const reference = spec.references?.[index], referenceText = !spec.references ? "" : !reference ? "；本期无适用评价标准"
+      : "；本期评价：" + (reference.kind === "ordinal" ? "固定等级" : reference.kind === "ranges" ? "配置的等级区间" : "参考目标 " + number(reference.target, spec.digits) + " " + reference.unit);
+    return point.label + "：" + number(point.value, spec.digits) + (point.value !== null ? " " + point.unit : "（缺测）") + (point.pain ? "；疼痛记录：预警" : "") + referenceText + comparison;
   }
   function draw(spec, width = trendSize.width, print = false) {
     const measured = spec.points.filter(p => p.value !== null);
@@ -22373,9 +22459,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const extent = max === min ? [min-pad, max+pad] : [min, max], span = extent[1]-extent[0];
     const base = 10 ** Math.floor(Math.log10(span)), step = base * (span/base < 2 ? .2 : span/base < 5 ? .5 : 1);
     const clean = value => Number(value.toPrecision(16));
-    let low = spec.fms ? 0 : clean(Math.floor(extent[0]/step)*step), high = spec.fms ? 3 : clean(Math.ceil(extent[1]/step)*step);
+    const ordinalReference = [spec.reference, ...(spec.references || [])].find(reference => reference?.kind === "ordinal"), levels = ordinalReference?.levels || [];
+    let low = levels.length ? Math.min(...levels.map(level => level.value)) : spec.fms ? 0 : clean(Math.floor(extent[0]/step)*step), high = levels.length ? Math.max(...levels.map(level => level.value)) : spec.fms ? 3 : clean(Math.ceil(extent[1]/step)*step);
     if(high<=low){low=extent[0];high=extent[1];}
-    const ticks = spec.fms ? [0,1,2,3] : [low, clean((low+high)/2), high];
+    const ticks = levels.length ? levels.map(level => level.value) : spec.fms ? [0,1,2,3] : [low, clean((low+high)/2), high];
     const axisNumber = value => {
       if (!value) return "0";
       const digits = Math.max(0, Math.min(10, Math.ceil(Math.log10(Math.abs(value)/(high-low)))+2));
@@ -22387,17 +22474,34 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const left = Math.max(25, Math.min(width*.5, Math.max(...tickLabels.map(textWidth))+10));
     const x = i => left + (right - left) * i / (spec.points.length - 1), y = value => bottom - (value - low) / (high - low) * (bottom - top), coord = n => Number(n.toFixed(2));
     const text = (x, y, label, anchor = "middle") => `<text x="${coord(x)}" y="${coord(y)}" text-anchor="${anchor}" font-family="Microsoft YaHei,Segoe UI,sans-serif" font-size="9" fill="#667684">${escape(label)}</text>`;
-    let body = "";
-    if (spec.reference?.kind === "ranges") for (const range of spec.reference.ranges) {
-      const a = Math.max(low, N(range.min) ?? low), b = Math.min(high, N(range.max) ?? high);
-      if (b <= a) continue;
-      body += `<rect x="${left}" y="${coord(y(b))}" width="${right-left}" height="${coord(y(a)-y(b))}" fill="${colors[range.status] || color}" fill-opacity=".075"><title>${escape(range.label)}</title></rect>`;
+    const referenceSlots = spec.reference ? [{ reference: spec.reference, start: left, end: right, scope: "shared" }] : (spec.references || []).map((reference, index) => ({ reference, index, scope: "period",
+      start: index ? (x(index - 1) + x(index)) / 2 : left, end: index < spec.points.length - 1 ? (x(index) + x(index + 1)) / 2 : right })).filter(slot => slot.reference);
+    // A changed standard belongs only to its own test-date slot. Both screen
+    // and print consume these same projected references and boundaries.
+    function referenceMarkup(slot, targets = false) {
+      const { reference, scope, index } = slot, start = coord(slot.start), end = coord(slot.end);
+      const attributes = ` data-trend-reference-scope="${scope}"${index === undefined ? "" : ` data-trend-period-index="${index}"`}`;
+      if (targets) return N(reference.target) !== null && reference.target >= low && reference.target <= high
+        ? `<path data-trend-reference="target"${attributes} d="M${start} ${coord(y(reference.target))}H${end}" fill="none" stroke="#9aab9e" stroke-dasharray="3 3"><title>参考目标 ${escape(number(reference.target))} ${escape(spec.unit)}</title></path>` : "";
+      const ordinal = reference.kind === "ordinal", referenceLevels = ordinal ? reference.levels : [];
+      const bands = ordinal ? referenceLevels.map((level, i) => ({ ...level,
+        min: i ? (referenceLevels[i - 1].value + level.value) / 2 : low,
+        max: i < referenceLevels.length - 1 ? (level.value + referenceLevels[i + 1].value) / 2 : high,
+        label: "等级 " + level.value + "：" + level.label })) : reference.ranges || [];
+      let markup = "";
+      for (const range of bands) {
+        const a = Math.max(low, N(range.min) ?? low), b = Math.min(high, N(range.max) ?? high);
+        if (b <= a) continue;
+        markup += `<rect data-trend-band="${escape(range.status)}" data-trend-band-scope="${scope}"${index === undefined ? "" : ` data-trend-period-index="${index}"`} data-trend-reference="${ordinal ? "ordinal" : "range"}" data-reference-status="${escape(range.status)}" x="${start}" y="${coord(y(b))}" width="${coord(end-start)}" height="${coord(y(a)-y(b))}" fill="${colors[range.status] || color}" fill-opacity=".075"><title>${escape(range.label)}</title></rect>`;
+      }
+      return `<g${attributes}${index === undefined ? "" : ` data-trend-reference-period="${index}"`}>${markup}</g>`;
     }
+    let body = referenceSlots.map(slot => referenceMarkup(slot)).join("");
     body += '<g data-trend-axis="y" data-axis-min="'+low+'" data-axis-max="'+high+'" aria-label="纵坐标 '+escape(unit)+'">';
     body += text(0,trendSize.unitY,unit,"start");
     for (let i=0;i<ticks.length;i++) body += `<path d="M${left} ${coord(y(ticks[i]))}H${right}" fill="none" stroke="#dbe2e8" stroke-dasharray="2 3"/>` + text(left-8,y(ticks[i])+3,tickLabels[i],"end");
     body += `<path d="M${left} ${top}V${bottom}" fill="none" stroke="#c5d0d8"/></g>`;
-    if (spec.reference?.kind === "target" && spec.reference.target >= low && spec.reference.target <= high) body += `<path data-trend-reference="target" d="M${left} ${coord(y(spec.reference.target))}H${right}" fill="none" stroke="#9aab9e" stroke-dasharray="3 3"><title>参考目标 ${escape(number(spec.reference.target))} ${escape(spec.unit)}</title></path>`;
+    body += referenceSlots.map(slot => referenceMarkup(slot, true)).join("");
     spec.points.forEach((point, i) => {
       if (i && point.change?.available) body += `<path data-trend-segment="${i}" d="M${coord(x(i-1))} ${coord(y(spec.points[i-1].value))}L${coord(x(i))} ${coord(y(point.value))}" fill="none" stroke="${colors[point.change.improvement] || color}" stroke-width="1.8" stroke-linecap="round"/>`;
     });
@@ -22409,7 +22513,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     });
     const room = (right-left)/(spec.points.length-1), allDates = room >= 45, shortDate = point => point.label.replace(/^\d{4}-/, "");
     spec.points.forEach((point, i) => { if (allDates || i === 0 || i === spec.points.length-1) body += text(x(i), trendSize.dateY, shortDate(point), i===0?"start":i===spec.points.length-1?"end":"middle"); });
-    const title = spec.name + " · 变化趋势（按测试次序，点距不代表时间间隔）" + (spec.fms ? "；FMS 0–3 分，0 为疼痛" : "") + (spec.reference ? "；含所测日期共同适用的参考" : "") + "；" + spec.points.map((_, i) => pointLabel(spec, i)).join("；");
+    const title = spec.name + " · 变化趋势（按测试次序，点距不代表时间间隔）" + (spec.fms ? "；FMS 0–3 分，0 为疼痛" : "") + (spec.reference ? "；含所测日期共同适用的参考" : spec.references ? "；各日期使用各自评价标准" : "") + "；" + spec.points.map((_, i) => pointLabel(spec, i)).join("；");
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="group" aria-label="${escape(title)}" data-pixel-layout="true"${spec.fms?' data-score-scale="0-3"':""}><title>${escape(title)}</title>${body}</svg>`;
   }
   function render(spec, print = false) { return `<div class="result-trend" style="--result-trend-width:${trendSize.width}px;--result-trend-min-width:${trendSize.minWidth}px" data-result-trend="${escape(JSON.stringify(spec))}">${draw(spec, trendSize.width, print)}</div>`; }
@@ -22447,7 +22551,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(next !== undefined){event.preventDefault();nodes[Math.max(0,Math.min(nodes.length-1,next))].focus();}
     });
   }
-  root.RingsideResultDisplay = { assessment, trend, draw, render, layout, mount, number, changeLabel, trendSize };
+  root.RingsideResultDisplay = { assessment, trend, draw, render, layout, mount, number, changeLabel, trendSize, trafficLabel };
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -22457,6 +22561,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const M = root.RingsideModel, E = root.RingsideEvaluation, T = root.RingsideTests, N = root.Calc.num;
   const clone = value => JSON.parse(JSON.stringify(value));
   const canonical = value => E.canonical(value);
+  const displayRules = record => ({ scoreAmber: record.rules.scoreAmber, scoreGreen: record.rules.scoreGreen });
   const colors = ["#355e86", "#b76735", "#397b6f", "#815e9b", "#a35163", "#647a36", "#477e9c", "#a87932"];
   const riskOrder = [["neck", "颈部"], ["shoulder_r", "右肩"], ["shoulder_l", "左肩"], ["scapula_r", "右肩胛带"], ["scapula_l", "左肩胛带"], ["elbow_r", "右肘"], ["elbow_l", "左肘"], ["forearm_r", "右前臂"], ["forearm_l", "左前臂"], ["wrist_r", "右腕"], ["wrist_l", "左腕"], ["trunk", "躯干"], ["hip_r", "右髋"], ["hip_l", "左髋"], ["knee_r", "右膝"], ["knee_l", "左膝"], ["ankle_r", "右踝足"], ["ankle_l", "左踝足"]];
   const riskScore = { green: 3, amber: 2, red: 1 };
@@ -22533,7 +22638,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     function add(id, properties) {
       if (N(properties.value) === null && !properties.preserveMissing) return;
       const rawTrials = properties.rawTrials || [];
-      result.set(id, { id, metricId: properties.metricId || id, measurementScale: "unknown", notes: "", rawTrials, statistics: null, evaluation: null, direction: null, ...properties, value: N(properties.value), rawValue: N(properties.value), rawUnit: properties.unit || "" });
+      result.set(id, { id, metricId: properties.metricId || id, measurementScale: "unknown", notes: "", rawTrials, statistics: null, evaluation: null, direction: null, displayRules: displayRules(record), ...properties, value: N(properties.value), rawValue: N(properties.value), rawUnit: properties.unit || "" });
     }
     for (const project of report.projects) for (const d of project.metrics) {
       const evaluation = evaluations.find(item => item.metricId === d.id && item.kind === "metric") || evaluations.find(item => item.metricId === d.id);
@@ -22565,7 +22670,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "force", groupName: "力量结果", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · " + (detail?.sideLabel || "中线"), unit: item.unit, value: item.value, preserveMissing: measured, measurementScale: "ratio", context: { ...E.isoContext(row, record), side: item.side }, evaluation: item, referenceTarget: detail?.target, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason,
           direction: item.applicable && N(item.target) > 0 ? "higher" : null, statistics: group?.statistics[0] ? clone(group.statistics[0]) : null, rawTrials: clone(group?.attempts || []), pain: !!detail?.pain,
-          displayEvaluation: { ...item, grade: { status: strength.status, label: root.Def.assessmentLabel(strength.status, "已测"), range: null }, reason: strength.reasons.join("；") },
+          displayEvaluation: { ...item, targetApplicable: item.targetApplicable || item.applicable !== false && detail?.targetKind === "reference" && N(detail.target) > 0,
+            targetKind: detail?.targetKind, grade: { status: strength.status, label: root.Def.assessmentLabel(strength.status, "已测"), range: null }, reason: strength.reasons.join("；") },
           notes: [detail?.pain ? "疼痛" : "", row.notes, ...(group?.attempts || []).map(row => row.notes)].filter(Boolean).join("；") });
         if (item.side === "L" && measured) add("asym:" + row.id, { assessmentKind: "asymmetry", testId: "iso", section: "asymmetry", groupName: "双侧差异", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · 双侧差异", unit: "%", value: row.asym, preserveMissing: true, measurementScale: "ratio", context: E.isoContext(row, record),
@@ -22782,7 +22888,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         // a separate unmeasured catalog slot must not label that result "未录入".
         const evaluation = period.stats.evaluationResults.find(item => item.metricId === (metric.metricId || metric.id) && N(item.value) !== null);
         const target = N(metric.target) > 0 ? N(metric.target) : source?.referenceEnabled && source.matched !== false && N(source.target) > 0 ? N(source.target) : null;
-        return [metric.id, { ...metric, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null,
+        return [metric.id, { ...metric, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null, displayRules: displayRules(period.record),
           evaluation: evaluation || { grade: { status: metric.status || "gray", label: metric.judgment || "未设置评价" }, target, source: source?.source || "" },
           target, displayDefinition: source, diagnosticNotes: [metric.judgment].filter(Boolean), notes: metric.judgment || "", components: clone(metric.components || []) }];
         }));
@@ -22936,9 +23042,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const opacity=Math.max(.035,.14/Math.sqrt(Math.max(1,series.length)));
     for(const s of series){const list=axes.map((_,i)=>N(s.values[i])===null?null:polar(i,s.values[i])),dash=s.dash?' stroke-dasharray="'+E(s.dash)+'"':"";
       if(count>=3){if(list.every(Boolean))out+=`<polygon class="radar-fill" points="${points(list)}" fill="${s.color}" fill-opacity="${opacity}" stroke="${s.color}" stroke-width="1.8"${dash}/>`;else{for(let i=0;i<count;i++)if(list[i]&&list[(i+1)%count])out+=`<polygon class="radar-fill" points="${points([[cx,cy],list[i],list[(i+1)%count]])}" fill="${s.color}" fill-opacity="${opacity}" stroke="none"/>`;out+=pathsWithGaps([...list,list[0]],s.color,dash);}}
-      list.forEach((p,i)=>{if(p){const grade=spec.risk?({0:"疼痛",1:"预警",2:"关注",3:"达标"}[s.values[i]]||""):F(s.values[i])+(spec.tickSuffix||" / "+max);out+=dot(...p,s.color,`${s.label} · ${axes[i].label} ${grade}${s.cells?.[i]?.pain?" · 疼痛":""}`,3.6);}});
+      list.forEach((p,i)=>{if(p){const grade=spec.risk?root.RingsideResultDisplay.trafficLabel({0:"red",1:"red",2:"amber",3:"green"}[s.values[i]]):F(s.values[i])+(spec.tickSuffix||" / "+max);out+=dot(...p,s.color,`${s.label} · ${axes[i].label} ${grade}${s.cells?.[i]?.pain?" · 疼痛":""}`,3.6);}});
     }
-    return svg(w,h,spec.title,out)+legend(series)+(spec.risk?'<p class="longitudinal-chart-note longitudinal-risk-key"><span><i style="background:#f5dcd9"></i>预警</span><span><i style="background:#f8edcf"></i>关注</span><span><i style="background:#e9f1ec"></i>达标</span></p>':spec.fms?'<p class="longitudinal-chart-note">0 疼痛 · 1 未完成 · 2 代偿完成 · 3 无代偿完成</p>':"");
+    return svg(w,h,spec.title,out)+legend(series)+(spec.risk?`<p class="longitudinal-chart-note longitudinal-risk-key">${[["red","#f5dcd9"],["amber","#f8edcf"],["green","#e9f1ec"]].map(([status,color])=>`<span><i style="background:${color}"></i>${E(root.RingsideResultDisplay.trafficLabel(status))}</span>`).join("")}</p>`:spec.fms?'<p class="longitudinal-chart-note">0 疼痛 · 1 未完成 · 2 代偿完成 · 3 无代偿完成</p>':"");
   }
   function columns(spec,width,print) {
     const w=Math.max(250,Math.round(width)),h=(print?285:330)+(spec.grouped?30:0),left=48,right=w-(spec.rsi?48:20),top=40,bottom=h-(spec.grouped?104:74),periods=spec.periods,values=spec.values,all=spec.scaleValues || values;
@@ -23005,15 +23111,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function assessmentAttributes(cell) {
     const assessment=cell?.assessment;if(!assessment)return "";
-    const status=cell.display?.status||"gray",basis=[cell.display?.reason??assessment.reason,assessment.referenceSource,assessment.referenceTarget,assessment.target!=null?"参考目标 "+assessment.target:null].filter(value=>value!==null&&value!==undefined&&value!=="").join("；");
+    const status=cell.display?.status||"gray",basis=[cell.display?.reason??assessment.reason,cell.display?.sourceLabel&&cell.display.sourceLabel!==evaluationLabel(cell)?"原评价："+cell.display.sourceLabel:null,assessment.referenceSource,assessment.referenceTarget,assessment.target!=null?"参考目标 "+assessment.target:null].filter(value=>value!==null&&value!==undefined&&value!=="").join("；");
     return (evaluationLabel(cell)?` data-assessment-status="${status}"`:"")+(basis?` title="${E(basis)}"`:"");
   }
   function cellHTML(cell,row) {
     if(!cell)return '<span class="longitudinal-unavailable">—</span>';
     const stat=cell.statistics,label=evaluationLabel(cell),rawStatus=cell.display?.status,status=["red","amber","green","gray"].includes(rawStatus)?rawStatus:"gray",known=new Set([label,...(cell.diagnosticNotes||[]),...(cell.pain?["疼痛"]:[])]),notes=(Array.isArray(cell.notes)?cell.notes:String(cell.notes || "").split("；")).filter(note=>String(note).trim()&&!known.has(String(note).trim())).join("；"),measured=N(cell.value)!==null;
     const value=measured?`<strong>${F(cell.value,resultPrecision(row))}${cell.unit&&cell.unit!==row.unit?" "+E(cell.unit):""}</strong>`:'<span class="longitudinal-unavailable">—</span>',pill=label?`<span class="pill ${status} longitudinal-assessment"><i class="dot" aria-hidden="true"></i>${E(label)}</span>`:"";
-    const inline=row.measurementScale==="ordinal",result=inline?`<span class="longitudinal-result-value">${value}${pill}</span>`:value;
-    return result+`${measured&&stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${inline?"":pill}${cell.pain&&row.section==="force"?'<small class="longitudinal-symptom">录入标记：疼痛</small>':cell.pain&&label.trim()!=="疼痛"?'<small class="red">疼痛</small>':""}${notes?`<small>${E(notes)}</small>`:""}`;
+    const inline=row.section!=="asymmetry",result=inline?`<span class="longitudinal-result-value">${value}${pill}</span>`:value;
+    return result+`${measured&&stat?.n>=3?`<small>${F(stat.mean,resultPrecision(row))} ± ${F(stat.sd,resultPrecision(row))}${N(stat.cv)!==null?" · CV "+F(stat.cv)+"%":""}</small>`:""}${inline?"":pill}${notes?`<small>${E(notes)}</small>`:""}`;
   }
   function table(rows,periods,{print=false,wrapped=true}={}) {
     if(!rows.length)return "";
@@ -23030,7 +23136,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const hasTrend=periods.length>1&&rows.some(row=>row.cells.some(cell=>N(cell?.value)!==null));
     const html=chunks(periods.map((p,i)=>({p,i})),print?3:periods.length).map((group,index,groups)=>{
       const showTrend=hasTrend&&index===groups.length-1,headers=[{label:"指标"},...group.map(x=>({label:periodLabel(x.p)})),...(showTrend?[{label:"变化趋势"}]:[])];
-      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*105+(showTrend?root.RingsideResultDisplay.trendSize.columnWidth:0)}px"`}><colgroup><col style="width:140px">${group.map(()=>'<col>').join("")}${showTrend?`<col style="width:${root.RingsideResultDisplay.trendSize.columnWidth}px">`:""}</colgroup><thead><tr>${headers.map(h=>`<th scope="col">${E(h.label)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}"${assessmentAttributes(row.cells[i])}>${cellHTML(row.cells[i],row)}</td>`).join("")}${showTrend?`<td data-label="变化趋势">${root.RingsideResultDisplay.render(root.RingsideResultDisplay.trend({...row,digits:resultPrecision(row)},periods,root.RingsideLongitudinal.change),print)}</td>`:""}</tr>`).join("")}</tbody></table></div>`;
+      return `${groups.length>1?`<p class="longitudinal-table-caption">${E(periodLabel(group[0].p))} — ${E(periodLabel(group.at(-1).p))}</p>`:""}<div class="table-wrap"><table class="longitudinal-results"${print?"":` style="min-width:${140+periods.length*120+(showTrend?root.RingsideResultDisplay.trendSize.columnWidth:0)}px"`}><colgroup><col style="width:140px">${group.map(()=>'<col>').join("")}${showTrend?`<col style="width:${root.RingsideResultDisplay.trendSize.columnWidth}px">`:""}</colgroup><thead><tr>${headers.map(h=>`<th scope="col">${E(h.label)}</th>`).join("")}</tr></thead><tbody>${rows.map(row=>`<tr data-metric-id="${E(row.id)}"><td data-label="指标">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}</td>${group.map(({p,i})=>`<td data-label="${E(periodLabel(p))}" data-record-id="${E(p.id)}"${assessmentAttributes(row.cells[i])}>${cellHTML(row.cells[i],row)}</td>`).join("")}${showTrend?`<td data-label="变化趋势">${root.RingsideResultDisplay.render(root.RingsideResultDisplay.trend({...row,digits:resultPrecision(row)},periods,root.RingsideLongitudinal.change),print)}</td>`:""}</tr>`).join("")}</tbody></table></div>`;
     }).join("");
     if(!wrapped)return html;
     const compactRows=rows.map(row=>({id:row.id,name:row.name,section:row.section,unit:row.unit,digits:resultPrecision(row),measurementScale:row.measurementScale,changes:row.changes,cells:row.cells.map(cell=>cell?{value:cell.value,unit:cell.unit,statistics:cell.statistics,notes:cell.notes,pain:cell.pain,assessment:cell.assessment,display:cell.display,diagnosticNotes:cell.diagnosticNotes,contextKey:cell.contextKey,evaluationKey:cell.evaluationKey,direction:cell.direction,coverageKey:cell.coverageKey,evaluation:cell.evaluation?{label:cell.evaluation.label,grade:cell.evaluation.grade}:null}:null)}));

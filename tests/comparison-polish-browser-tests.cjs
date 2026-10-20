@@ -92,16 +92,16 @@ async function main() {
       result.desktopFMS = await fmsAlignment(); assertAlignment(result.desktopFMS);
       assert.match(await page.locator('#polishFixture [data-metric-id="fms:0"]').innerText(), /动作备注完整保留/);
       const bilateral = await page.locator('#polishFixture [data-metric-id="fms:3"]').innerText(); assert.match(bilateral, /左侧 2 \/ 右侧 3/); assert.match(bilateral, /双侧动作备注保留/);
-      const painful = page.locator('#polishFixture [data-metric-id="fms:3"] td[data-record-id="synthetic-period-02"]'); assert.equal(await painful.locator("strong").innerText(), "0"); assert.equal(await painful.locator(".longitudinal-assessment.red").count(), 1); assert.match(await painful.innerText(), /疼痛/); assert.match(await painful.innerText(), /左侧 3 \/ 右侧 3/); assert.match(await painful.innerText(), /双侧动作备注保留/);
+      const painful = page.locator('#polishFixture [data-metric-id="fms:3"] td[data-record-id="synthetic-period-02"]'); assert.equal(await painful.locator("strong").innerText(), "0"); assert.equal(await painful.locator(".longitudinal-assessment.red").count(), 1); assert.equal(await painful.locator(".longitudinal-assessment").innerText(), "预警"); assert.match(await painful.getAttribute("title"), /疼痛记录/); assert.match(await painful.innerText(), /左侧 3 \/ 右侧 3/); assert.match(await painful.innerText(), /双侧动作备注保留/);
     });
-    await check("recorded pain stays separate from target and asymmetry evaluation for three real isometric cases", async () => {
+    await check("recorded pain adds a red display warning while target assessment and independent asymmetry remain intact", async () => {
       result.painCases = await page.evaluate(() => {
         const noPain = JSON.parse(JSON.stringify(polishInput)); noPain.records.forEach(r => r.data.iso.forEach(row => { row.painLeft = false; row.painRight = false; row.painCenter = false; }));
         const control = RingsideLongitudinal.build(noPain.records, noPain), ids = ["iso:iso_shoulder_externalRotation:L", "iso:iso_shoulder_internalRotation:L", "iso:iso_neck_flexion:C"], find = (m, id) => m.projects.find(p => p.id === "iso").metrics.find(r => r.id === id).cells[0];
         return { rows: ids.map(id => { const cell = find(polishModel, id), clean = find(control, id), node = document.querySelector('#polishFixture [data-metric-id="' + id + '"] td[data-record-id]'); return { id, pain: cell.pain, display: cell.display, cleanDisplay: clean.display, pills: [...node.querySelectorAll(".longitudinal-assessment")].map(n => n.textContent), text: node.textContent }; }), risks: polishModel.periods.map(p => p.stats.signals.regions), noPainRisks: control.periods.map(p => p.stats.signals.regions) };
       });
-      for (const row of result.painCases.rows) { assert.equal(row.pain, true); assert.deepEqual(row.display, row.cleanDisplay); assert.ok(row.pills.every(p => !p.includes("疼痛"))); assert.match(row.text, /录入标记：疼痛/); }
-      assert.ok(result.painCases.rows.every(row => row.pills.every(p => !p.includes("双侧差异")))); assert.ok(result.painCases.rows[1].display.visible); assert.equal(result.painCases.rows[1].display.status, "green"); assert.equal(result.painCases.rows[2].pills.length, 0);
+      for (const row of result.painCases.rows) { assert.equal(row.pain, true); assert.equal(row.display.status, "red"); assert.equal(row.display.state, "warning"); assert.match(row.display.reason, /疼痛记录/); assert.deepEqual(row.pills, ["预警"]); assert.doesNotMatch(row.text, /录入标记：疼痛/); assert.deepEqual(row.display.reference, row.cleanDisplay.reference); }
+      assert.ok(result.painCases.rows.every(row => row.pills.every(p => !p.includes("双侧差异")))); assert.ok(result.painCases.rows[1].display.visible); assert.equal(result.painCases.rows[1].cleanDisplay.status, "green"); assert.equal(result.painCases.rows[2].cleanDisplay.visible, false);
       assert.match(await page.locator('#polishFixture [data-iso-section="asymmetry"]').innerText(), /22.22/);
       assert.ok(result.painCases.risks.some(regions => Object.values(regions).some(r => r.status === "red"))); assert.notDeepEqual(result.painCases.risks, result.painCases.noPainRisks);
     });
@@ -140,12 +140,12 @@ async function main() {
       });
       assert.equal(data.unchanged, true); assert.equal(data.diagnostics.status, "complete"); assert.ok(data.capture.length >= 1 && data.capture.length <= 6, String(data.capture.length));
       const cells = data.capture.flatMap(p => p.fms); assert.equal(cells.length, 21); for (const cell of cells) { assert.ok(cell.score && cell.pill); assert.ok(cell.pill.left >= cell.score.right - .5); assert.ok(Math.min(cell.score.bottom, cell.pill.bottom) > Math.max(cell.score.top, cell.pill.top)); }
-      const fmsPain = cells.find(cell => cell.id === "fms:3" && cell.record === "synthetic-period-02"); assert.equal(fmsPain.value, "0"); assert.match(fmsPain.status, /\bred\b/); assert.match(fmsPain.text, /疼痛.*左侧 3 \/ 右侧 3/);
-      const forces = data.capture.flatMap(p => p.forces); assert.ok(forces.some(c => c.neutralSymptom)); for (const cell of forces) { assert.ok(cell.pills.every(label => !/疼痛|双侧差异/.test(label))); assert.equal(cell.alarmingSymptom, false); }
+      const fmsPain = cells.find(cell => cell.id === "fms:3" && cell.record === "synthetic-period-02"); assert.equal(fmsPain.value, "0"); assert.match(fmsPain.status, /\bred\b/); assert.match(fmsPain.text, /0.*预警.*左侧 3 \/ 右侧 3/);
+      const forces = data.capture.flatMap(p => p.forces); assert.ok(forces.some(c => c.pills.includes("预警"))); for (const cell of forces) { assert.ok(cell.pills.every(label => !/疼痛|双侧差异/.test(label))); assert.equal(cell.neutralSymptom, false); assert.equal(cell.alarmingSymptom, false); }
       for (const p of data.capture) assert.ok(p.rows.every(r => r.top >= -.5 && r.bottom <= p.height + .5));
       const charts = data.capture.flatMap(p => p.charts); assert.ok(charts.length >= 20); for (const chart of charts) { assert.equal(chart.image, true); assert.ok([2, 3].includes(chart.points)); assert.ok(chart.width <= 160.5 && chart.width >= 120); assert.ok(chart.height <= 72.5 && chart.height >= 54); assert.ok(chart.source?.startsWith("data:image/")); }
       const sfv = charts.filter(c => /SFV/.test(c.name)); assert.equal(sfv.length, 4); for (const chart of sfv) { assert.ok(Math.abs(chart.width - 160) <= .5); assert.ok(Math.abs(chart.left - sfv[0].left) <= .5, JSON.stringify(sfv)); }
-      const text = data.capture.map(p => p.text).join(""); assert.match(text, /分母为零/); assert.match(text, /录入标记：疼痛/); assert.match(text, /动作备注完整保留/);
+      const text = data.capture.map(p => p.text).join(""); assert.match(text, /分母为零/); assert.doesNotMatch(text, /录入标记：疼痛/); assert.match(text, /动作备注完整保留/);
       const pdf = path.join(out, "comparison-polish.pdf"); fs.writeFileSync(pdf, Buffer.from(data.pdf, "base64")); result.artifacts.push({ file: path.relative(root, pdf).replaceAll("\\", "/"), sha256: hash(pdf) });
       result.pdfCapture = data.capture.map(p => ({ ...p, charts: p.charts.map(({ source, ...chart }) => chart) })); result.pdfDiagnostics = data.diagnostics;
     });

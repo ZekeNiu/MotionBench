@@ -3,6 +3,7 @@
   const M = root.RingsideModel, E = root.RingsideEvaluation, T = root.RingsideTests, N = root.Calc.num;
   const clone = value => JSON.parse(JSON.stringify(value));
   const canonical = value => E.canonical(value);
+  const displayRules = record => ({ scoreAmber: record.rules.scoreAmber, scoreGreen: record.rules.scoreGreen });
   const colors = ["#355e86", "#b76735", "#397b6f", "#815e9b", "#a35163", "#647a36", "#477e9c", "#a87932"];
   const riskOrder = [["neck", "颈部"], ["shoulder_r", "右肩"], ["shoulder_l", "左肩"], ["scapula_r", "右肩胛带"], ["scapula_l", "左肩胛带"], ["elbow_r", "右肘"], ["elbow_l", "左肘"], ["forearm_r", "右前臂"], ["forearm_l", "左前臂"], ["wrist_r", "右腕"], ["wrist_l", "左腕"], ["trunk", "躯干"], ["hip_r", "右髋"], ["hip_l", "左髋"], ["knee_r", "右膝"], ["knee_l", "左膝"], ["ankle_r", "右踝足"], ["ankle_l", "左踝足"]];
   const riskScore = { green: 3, amber: 2, red: 1 };
@@ -79,7 +80,7 @@
     function add(id, properties) {
       if (N(properties.value) === null && !properties.preserveMissing) return;
       const rawTrials = properties.rawTrials || [];
-      result.set(id, { id, metricId: properties.metricId || id, measurementScale: "unknown", notes: "", rawTrials, statistics: null, evaluation: null, direction: null, ...properties, value: N(properties.value), rawValue: N(properties.value), rawUnit: properties.unit || "" });
+      result.set(id, { id, metricId: properties.metricId || id, measurementScale: "unknown", notes: "", rawTrials, statistics: null, evaluation: null, direction: null, displayRules: displayRules(record), ...properties, value: N(properties.value), rawValue: N(properties.value), rawUnit: properties.unit || "" });
     }
     for (const project of report.projects) for (const d of project.metrics) {
       const evaluation = evaluations.find(item => item.metricId === d.id && item.kind === "metric") || evaluations.find(item => item.metricId === d.id);
@@ -111,7 +112,8 @@
         add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "force", groupName: "力量结果", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · " + (detail?.sideLabel || "中线"), unit: item.unit, value: item.value, preserveMissing: measured, measurementScale: "ratio", context: { ...E.isoContext(row, record), side: item.side }, evaluation: item, referenceTarget: detail?.target, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason,
           direction: item.applicable && N(item.target) > 0 ? "higher" : null, statistics: group?.statistics[0] ? clone(group.statistics[0]) : null, rawTrials: clone(group?.attempts || []), pain: !!detail?.pain,
-          displayEvaluation: { ...item, grade: { status: strength.status, label: root.Def.assessmentLabel(strength.status, "已测"), range: null }, reason: strength.reasons.join("；") },
+          displayEvaluation: { ...item, targetApplicable: item.targetApplicable || item.applicable !== false && detail?.targetKind === "reference" && N(detail.target) > 0,
+            targetKind: detail?.targetKind, grade: { status: strength.status, label: root.Def.assessmentLabel(strength.status, "已测"), range: null }, reason: strength.reasons.join("；") },
           notes: [detail?.pain ? "疼痛" : "", row.notes, ...(group?.attempts || []).map(row => row.notes)].filter(Boolean).join("；") });
         if (item.side === "L" && measured) add("asym:" + row.id, { assessmentKind: "asymmetry", testId: "iso", section: "asymmetry", groupName: "双侧差异", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · 双侧差异", unit: "%", value: row.asym, preserveMissing: true, measurementScale: "ratio", context: E.isoContext(row, record),
@@ -328,7 +330,7 @@
         // a separate unmeasured catalog slot must not label that result "未录入".
         const evaluation = period.stats.evaluationResults.find(item => item.metricId === (metric.metricId || metric.id) && N(item.value) !== null);
         const target = N(metric.target) > 0 ? N(metric.target) : source?.referenceEnabled && source.matched !== false && N(source.target) > 0 ? N(source.target) : null;
-        return [metric.id, { ...metric, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null,
+        return [metric.id, { ...metric, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null, displayRules: displayRules(period.record),
           evaluation: evaluation || { grade: { status: metric.status || "gray", label: metric.judgment || "未设置评价" }, target, source: source?.source || "" },
           target, displayDefinition: source, diagnosticNotes: [metric.judgment].filter(Boolean), notes: metric.judgment || "", components: clone(metric.components || []) }];
         }));

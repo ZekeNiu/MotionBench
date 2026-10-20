@@ -39,44 +39,48 @@ jobs:
           npm ci --no-audit --no-fund
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npx playwright install chrome msedge
-      - name: Build and check all calculation and desktop modules
+      - name: Build and run full calculation regression in background CI
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/run_v2247_model_baseline.py
+          node tests/run-unit-tests.cjs --artifact-dir output/implementation-2.24.8/resumed/ci/full-units
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/tests/v2.24.7-delivery
+          node tests/run-desktop-unit-tests.cjs --artifact-dir output/implementation-2.24.8/resumed/ci/desktop-unit
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-desktop-unit-tests.cjs --artifact-dir output/tests/v2.24.7-delivery/desktop-unit
-      - name: Check shared trends, PDF and browser workflows
+          python scripts/release_v2248.py run units
+      - name: Check focused assessment behavior and full browser regression
         run: |
-          node tests/comparison-trend-browser-tests.cjs --artifact-dir=output/comparison-trend/release-v2247-pdf-isolated/chrome
+          python scripts/release_v2248.py run browser
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/run_v2247_browser.py
+          python scripts/release_v2248.py run interaction
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/release_v2248.py full-browser
       - name: Build and verify the standalone Windows programs
         run: |
           npm run dist:windows
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node scripts/check-desktop-package.cjs
-      - name: Exercise comparison export and reopen in packaged Electron
+      - name: Exercise focused packaged workflow and full native regression
         run: |
-          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
-          node tests/longitudinal-browser-tests.cjs --desktop --pdf --artifact-dir output/comparison-trend/release-v2247-pdf-isolated/native
+          python scripts/release_v2248.py run native
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/implementation-2.24.7/resumed/native-smoke-isolated'
+          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
+          node tests/longitudinal-browser-tests.cjs --desktop --pdf --artifact-dir output/implementation-2.24.8/resumed/ci/native-full
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/implementation-2.24.8/resumed/ci/native-smoke'
           node tests/desktop-smoke.cjs
-      - name: Verify the source-bound synthetic evidence
-        run: python scripts/verify_v2247.py --ci
+      - name: Verify source-bound targeted and full CI evidence
+        run: python scripts/release_v2248.py verify --ci
       - name: Save synthetic test evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: MotionBench-Comparison-Windows-${{ github.run_number }}
           path: |
-            output/tests/v2.24.7-delivery/
-            output/comparison-trend/release-v2247-pdf-isolated/
-            output/implementation-2.24.7/resumed/native-smoke-isolated/
-            output/implementation-2.24.7/resumed/model-baseline.*
+            output/implementation-2.24.8/resumed/units/
+            output/implementation-2.24.8/resumed/focused/
+            output/implementation-2.24.8/resumed/interaction/
+            output/implementation-2.24.8/resumed/native/
+            output/implementation-2.24.8/resumed/ci/
             output/desktop-package/
           retention-days: 14

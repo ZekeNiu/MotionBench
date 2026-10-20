@@ -29,7 +29,7 @@ test('capability parameters retain the original range provenance instead of gues
  const rule=f.profile.standards.find(r=>r.metricId==='lt1');rule.enabled=true;rule.rangesEnabled=true;rule.targetEnabled=true;rule.target=5;
  rule.ranges=[{min:0,max:3,label:'低区',status:'red'},{min:5,max:8,label:'自定观察区',status:'gray'}];
  const m=L.build(f.records,f),row=m.capability.cards.find(c=>c.id==='cardio').metrics.find(r=>r.id==='lt1');assert.ok(row.cells.every(c=>c?.value>0));assert.ok(row.cells.every(c=>c.evaluation.grade.range===null));
- assert.ok(row.cells.every(c=>!c.display.visible));assert.doesNotMatch(V.table([row],m.periods,{wrapped:false}),/未分级/);
+ assert.ok(row.cells.every(c=>!c.display.visible));assert.doesNotMatch(V.table([row],m.periods,{wrapped:false}),/class="pill [^"]*longitudinal-assessment/);
  f.records.forEach(r=>r.thresholds.lt1=6);const graded=L.build(f.records,f).capability.cards.find(c=>c.id==='cardio').metrics.find(r=>r.id==='lt1');assert.ok(graded.cells.every(c=>c.display.visible&&c.display.label==='自定观察区'));
 });
 test('disabled mismatched missing and ambiguous evaluations never acquire a display grade',()=>{
@@ -47,14 +47,14 @@ function isoDisplayFixture(directionId, { target = null, value = 220, pain = tru
   if(row.paired)Object.assign(row,{left,right,painLeft:pain,painRight:false});else Object.assign(row,{center:value===null?'':value,painCenter:pain});});
  return f;
 }
-test('isometric pain without a target remains a recorded symptom and never invents a force grade',()=>{
+test('isometric pain without a target displays a symptom warning and never invents a target grade',()=>{
  const f=isoDisplayFixture('iso_neck_flexion'),before=JSON.stringify(f),m=L.build(f.records,f),row=metric(m,'iso:iso_neck_flexion:C');
- for(const cell of row.cells){assert.equal(cell.pain,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.display.visible,false);assert.doesNotMatch(cell.displayEvaluation.reason,/疼痛|双侧差异/);}
- assert.doesNotMatch(V.table([row],m.periods,{wrapped:false}),/class="pill [^"]*longitudinal-assessment/);assert.equal(JSON.stringify(f),before);
+ for(const cell of row.cells){assert.equal(cell.pain,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.display.visible,true);assert.equal(cell.display.state,'warning');assert.equal(cell.display.status,'red');assert.equal(cell.display.label,'预警');assert.match(cell.display.reason,/疼痛记录/);assert.doesNotMatch(cell.displayEvaluation.reason,/疼痛|双侧差异/);}
+ assert.match(V.table([row],m.periods,{wrapped:false}),/class="pill red longitudinal-assessment/);assert.equal(JSON.stringify(f),before);
 });
-test('isometric force grading uses its target while original pain evaluation and regional risk remain red',()=>{
+test('isometric pain warning overrides display while original target assessment and regional risk remain intact',()=>{
  const f=isoDisplayFixture('iso_neck_flexion',{target:150}),before=JSON.stringify(f),m=L.build(f.records,f),row=metric(m,'iso:iso_neck_flexion:C');
- for(const cell of row.cells){assert.equal(cell.pain,true);assert.equal(cell.display.status,'green');assert.equal(cell.display.visible,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.displayEvaluation.grade.status,'green');assert.doesNotMatch(cell.display.label,/疼痛|双侧差异/);assert.doesNotMatch(cell.displayEvaluation.reason,/疼痛|双侧差异/);}
+ for(const cell of row.cells){assert.equal(cell.pain,true);assert.equal(cell.display.status,'red');assert.equal(cell.display.state,'warning');assert.equal(cell.display.label,'预警');assert.equal(cell.display.visible,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.displayEvaluation.grade.status,'green');assert.match(cell.display.reason,/疼痛记录/);assert.doesNotMatch(cell.display.label,/疼痛|双侧差异/);assert.doesNotMatch(cell.displayEvaluation.reason,/疼痛|双侧差异/);}
  for(const period of m.periods){const side=period.stats.isoAnalyses.find(r=>r.id==='iso_neck_flexion').sides[0];assert.equal(side.status,'red');assert.ok(side.reasons.includes('疼痛'));}
  const risk=m.risk.rows.find(r=>r.id==='neck');assert.ok(risk.cells.every(cell=>cell.pain&&cell.evaluation.grade.status==='red'&&cell.display.status==='red'));assert.equal(JSON.stringify(f),before);
 });
@@ -63,10 +63,10 @@ test('a 22.2 percent asymmetry grades only its dedicated row and does not downgr
  for(const cell of force.cells){assert.equal(cell.value,140);assert.equal(cell.display.status,'green');assert.equal(cell.displayEvaluation.grade.status,'green');assert.doesNotMatch(cell.display.label,/疼痛|双侧差异/);assert.doesNotMatch(cell.displayEvaluation.reason,/疼痛|双侧差异/);assert.equal(cell.evaluation.grade.status,'red');}
  for(const cell of asym.cells){assert.ok(Math.abs(cell.value-22.22222222222222)<1e-10);assert.equal(cell.display.status,'red');assert.equal(cell.display.visible,true);assert.match(cell.display.label,/左侧更弱/);}
 });
-test('missing force stays ungraded even when the original record has a pain flag and a target',()=>{
+test('missing force preserves its absent numeric result while an explicit pain flag still displays a symptom warning',()=>{
  const f=isoDisplayFixture('iso_neck_flexion',{target:150,value:null}),m=L.build(f.records,f),row=metric(m,'iso:iso_neck_flexion:C');assert.ok(row);
- for(const cell of row.cells){assert.equal(cell.value,null);assert.equal(cell.pain,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.display.visible,false);assert.equal(cell.display.state,'missing');}
- assert.doesNotMatch(V.table([row],m.periods,{wrapped:false}),/class="pill [^"]*longitudinal-assessment/);
+ for(const cell of row.cells){assert.equal(cell.value,null);assert.equal(cell.pain,true);assert.equal(cell.evaluation.grade.status,'red');assert.equal(cell.display.visible,true);assert.equal(cell.display.state,'warning');assert.equal(cell.display.label,'预警');assert.match(cell.display.reason,/疼痛记录/);}
+ const html=V.table([row],m.periods,{wrapped:false});assert.match(html,/class="pill red longitudinal-assessment/);assert.doesNotMatch(html,/<strong>0<\/strong>/);
 });
 test('fixed FMS pain takes precedence over complete 3 and 3 side scores as a zero red grade',()=>{
  const f=createFixture(c,3);f.records.forEach(record=>Object.assign(record.data.fms[1],{left:3,right:3,pain:true}));const before=JSON.stringify(f),m=L.build(f.records,f),row=metric(m,'fms:1');

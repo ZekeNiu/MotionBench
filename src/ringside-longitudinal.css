@@ -77,8 +77,10 @@
 .longitudinal-iso-section+.longitudinal-iso-section{margin-top:22px;}
 .longitudinal-iso-section>.longitudinal-table-caption{font-size:13px;color:var(--ink,#263747);}
 .longitudinal-results .longitudinal-assessment{display:inline-flex;width:fit-content;max-width:100%;margin:4px 0 0;padding:2px 6px;font-size:10px;line-height:1.45;font-weight:500;white-space:normal;}
-.longitudinal-results .longitudinal-result-value{display:flex;align-items:center;flex-wrap:wrap;gap:4px 6px;}
+.longitudinal-results .longitudinal-result-value{display:flex;align-items:center;flex-wrap:nowrap;gap:4px 6px;}
+.longitudinal-results .longitudinal-result-value>strong{flex-shrink:0;white-space:nowrap;}
 .longitudinal-results .longitudinal-result-value .longitudinal-assessment{margin:0;}
+.longitudinal-results .longitudinal-result-value .longitudinal-assessment:is(.red,.amber,.green){flex-shrink:0;white-space:nowrap;}
 .longitudinal-print-grid-row{display:grid!important;grid-template-columns:repeat(var(--longitudinal-columns,2),minmax(0,1fr))!important;gap:14px;align-items:start;}
 .longitudinal-print-grid-row>.longitudinal-chart{margin:0!important;min-width:0;}
 [data-longitudinal-print-grid]{display:block!important;}
