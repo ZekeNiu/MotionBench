@@ -1,0 +1,33 @@
+{
+  "version": "2.24.9",
+  "desktopVersion": "2.24.9-desktop.1",
+  "baselineCommit": "5371d20288c64be346e3510ddbc9b75d66d537b5",
+  "baselineVersion": "2.24.8",
+  "baselineDesktopVersion": "2.24.8-desktop.1",
+  "checkpoint": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261020-system-before-2.24.9",
+  "manifestSha256": "9f9bbf39174e490f7c0fb2f052345da32b8e7952524333596e09216cd2c5aef1",
+  "output": "output/implementation-2.24.9/resumed",
+  "entry": "scripts/release_v2249.py",
+  "privateRunner": "tests/desktop-system-display.cjs",
+  "privateEntry": "tests/desktop-system-v2249.cjs",
+  "changedSource": [
+    "src/ringside-result-display.js",
+    "src/ringside-longitudinal.js",
+    "src/ringside-longitudinal-view.js"
+  ],
+  "units": [
+    "comparison-trend-tests.cjs",
+    "longitudinal-model-tests.cjs",
+    "longitudinal-view-tests.cjs",
+    "longitudinal-display-state-tests.cjs",
+    "longitudinal-store-model-tests.cjs",
+    "evaluation-v220-model-tests.cjs",
+    "v2244-display-preservation-tests.cjs",
+    "overview-background-tests.cjs",
+    "overview-reference-tests.cjs"
+  ],
+  "focusedBrowser": {
+    "runner": "overview-background-browser-tests.cjs",
+    "checks": 6
+  }
+}
