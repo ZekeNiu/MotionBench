@@ -126,6 +126,7 @@
     if(document.profileSnapshot && profileIds.has(document.profileSnapshot.id) && !profiles.some(profile=>profile.id===document.profileSnapshot.id))profiles.push(clone(document.profileSnapshot));
     if (profiles.length !== profileIds.size) throw Error("导出纵向报告缺少所选测试的评价方案");
     const output = { schema: 3, kind: "athlete-library", version: library.version, catalog: clone(library.catalog), testPlans: [],
+      ...(library.classifications !== undefined ? { classifications: clone(library.classifications) } : {}),
       groups: clone((library.groups || []).filter(group => group.id === owner.groupId)), evaluationProfiles: profiles,
       defaultEvaluationProfileId: document.evaluationProfileId || profiles[0]?.id || "", athletes: [owner],
       activeAthleteId: owner.id, activeRecordId: selected.slice().sort((a, b) => a.athlete.date.localeCompare(b.athlete.date) || String(a.created || "").localeCompare(String(b.created || "")) || a.recordId.localeCompare(b.recordId)).at(-1).recordId,

@@ -1,7 +1,7 @@
 "use strict";
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 global.window=global;global.ExcelJS=require("../vendor/exceljs.min.js");
-for(const name of ["calc","fvp","cpet-reference","definitions","tests","scoring", "model","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
+for(const name of ["calc","fvp","cpet-reference","definitions","tests","scoring", "model","classifications","excel"])vm.runInThisContext(fs.readFileSync(path.join(__dirname,"../src/ringside-"+name+".js"),"utf8"));
 const M=RingsideModel,X=RingsideExcel,copy=value=>JSON.parse(JSON.stringify(value));let passed=0;
 const catalog=M.normalizeCatalog();
 function record(profile={}){const r=M.recordFromCatalog(catalog,{name:"生日测试运动员",...profile},{cmj:true},"2026-10-09");r.evaluationProfileId="evaluation_context";r.data.cmj[0].height=30;return r;}
@@ -13,6 +13,13 @@ const parse=book=>book.xlsx.writeBuffer().then(bytes=>X.readTemplate(bytes));
 const preview=(parsed,owners,records=[])=>X.preview(parsed,{athletes:owners,catalog,records});
 async function test(name,run){await run();passed++;console.log("PASS "+name);}
 (async()=>{
+ await test("renamed current sport labels apply only to newly imported records and never rewrite historical templates",async()=>{
+  const r=record({sport:"原专项",sportId:"s1",subdivisionId:"d1"}),latest=owner(r),classes={sports:[{id:"s1",name:"更名专项",subdivisionLabel:"自由称谓"}],subdivisions:[{id:"d1",sportId:"s1",name:"细分"}],ageBands:[]};
+  const {book}=await workbook([r]),cmj=book.worksheets.find(ws=>ws.name.endsWith("_CMJ"));set(cmj,"height",35);
+  const parsed=await parse(book),before=JSON.stringify({r,parsed,latest});
+  const fresh=X.apply(X.preview(parsed,{athletes:[latest],catalog,classifications:classes})).records[0];assert.equal(fresh.athlete.sport,"更名专项");assert.equal(fresh.athlete.sportId,"s1");
+  const existing=X.apply(X.preview(parsed,{athletes:[latest],catalog,classifications:classes,records:[r]}),{[r.recordId]:{projects:{cmj:"replace"}}}).records[0];assert.equal(existing.athlete.sport,"原专项");assert.equal(existing.data.cmj[0].height,35);assert.equal(JSON.stringify({r,parsed,latest}),before);
+ });
  await test("known birthday age is locked while date and missing birthday age remain editable",async()=>{
   const known=record({birthDate:"2000-10-10"}),manual=record();manual.athlete.age=20;
   const {book,exported}=await workbook([known,manual]),ws=book.getWorksheet("本次测试");

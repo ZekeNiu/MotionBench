@@ -2,7 +2,7 @@ name: MotionBench Comparison Windows
 
 on:
   push:
-    branches: [main, 'codex/motionbench-comparison-*']
+    branches: ['codex/motionbench-comparison-*']
     tags: ['v2.24.*-desktop.*']
   workflow_dispatch:
     inputs:

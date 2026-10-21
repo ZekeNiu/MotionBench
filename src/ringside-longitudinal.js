@@ -77,6 +77,7 @@
   function observations(period) {
     const { record, stats, report } = period, result = new Map();
     const evaluations = stats.evaluationResults || [];
+    const canonicalDefinition = (direction, resultMeaning = "numeric") => ({ direction, resultMeaning, directionStatus: "confirmed" });
     function add(id, properties) {
       if (N(properties.value) === null && !properties.preserveMissing) return;
       const rawTrials = properties.rawTrials || [];
@@ -101,7 +102,7 @@
         // not a claim about injury probability or overall athletic ability.
         const fixedFMS = M.FM[index]?.[0] === original.name && M.FM[index]?.[1] === original.bilateral;
         add(item.subjectId, { subjectId: item.subjectId, testId: "fms", name: item.name, unit: "分", value: item.value, measurementScale: "ordinal",
-          context: { ...testContext(record, "fms"), item: item.subjectId, name: original.name, bilateral: original.bilateral, aggregation: original.bilateral ? "lower-side" : "single", scoring: "fms-0-pain-1-unable-2-compensated-3-uncompensated" }, evaluation: item, direction: fixedFMS ? "higher" : null,
+          context: { ...testContext(record, "fms"), item: item.subjectId, name: original.name, bilateral: original.bilateral, aggregation: original.bilateral ? "lower-side" : "single", scoring: "fms-0-pain-1-unable-2-compensated-3-uncompensated" }, evaluation: item, direction: fixedFMS ? "higher" : null, canonicalDefinition: canonicalDefinition(fixedFMS ? "higher" : "none", "ordinal"),
           notes: [original.bilateral ? "左侧 " + (original.left ?? "—") + " / 右侧 " + (original.right ?? "—") : "", raw.pain || item.value === 0 ? "疼痛" : "", original.notes].filter(Boolean).join("；"), pain: raw.pain || item.value === 0, rawTrials: [clone(original)] });
       } else if (item.kind === "iso") {
         const row = stats.isoAnalyses.find(row => row.id === item.directionId), side = item.side === "L" ? "left" : item.side === "R" ? "right" : "center";
@@ -111,7 +112,7 @@
         const strength = M.isoStrengthAssessment(item.value, detail?.target ?? null, { referenceComparison: detail?.referenceComparison, targetKind: detail?.targetKind, unit: row.unit });
         add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "force", groupName: "力量结果", region: row.region, directionId: row.id,
           name: (M.REG[row.region] || row.region) + " · " + item.name + " · " + (detail?.sideLabel || "中线"), unit: item.unit, value: item.value, preserveMissing: measured, measurementScale: "ratio", context: { ...E.isoContext(row, record), side: item.side }, evaluation: item, referenceTarget: detail?.target, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason,
-          direction: item.applicable && N(item.target) > 0 ? "higher" : null, statistics: group?.statistics[0] ? clone(group.statistics[0]) : null, rawTrials: clone(group?.attempts || []), pain: !!detail?.pain,
+          direction: item.applicable && N(item.target) > 0 ? "higher" : null, canonicalDefinition: canonicalDefinition("higher"), statistics: group?.statistics[0] ? clone(group.statistics[0]) : null, rawTrials: clone(group?.attempts || []), pain: !!detail?.pain,
           displayEvaluation: { ...item, targetApplicable: item.targetApplicable || item.applicable !== false && detail?.targetKind === "reference" && N(detail.target) > 0,
             targetKind: detail?.targetKind, grade: { status: strength.status, label: root.Def.assessmentLabel(strength.status, "已测"), range: null }, reason: strength.reasons.join("；") },
           notes: [detail?.pain ? "疼痛" : "", row.notes, ...(group?.attempts || []).map(row => row.notes)].filter(Boolean).join("；") });
@@ -133,8 +134,8 @@
           context: { side: item.side, numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, confirmed: pair.confirmed, contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(row => row.id === id); return row ? E.isoContext(row, record) : null; }) } });
       } else if (item.kind === "imtp-time") {
         const existing = result.get(item.metricId);
-        if (existing && existing.unit === item.unit && existing.value === item.value) { existing.evaluation = item; existing.displayDefinition = stats.imtpTimeResults.find(result => result.id === item.metricId)?.standard || existing.definition; continue; }
-        add(item.subjectId, { subjectId: item.subjectId, testId: "imtp", name: item.name, unit: item.unit, value: item.value, measurementScale: "ratio", evaluation: item, displayDefinition: stats.imtpTimeResults.find(result => result.id === item.metricId)?.standard, context: { ...E.imtpTimeContext(record), timeMs: item.timeMs, unit: item.unit } });
+        if (existing && existing.unit === item.unit && existing.value === item.value) { existing.evaluation = item; existing.canonicalDefinition = canonicalDefinition("higher"); existing.displayDefinition = stats.imtpTimeResults.find(result => result.id === item.metricId)?.standard || existing.definition; continue; }
+        add(item.subjectId, { subjectId: item.subjectId, testId: "imtp", name: item.name, unit: item.unit, value: item.value, measurementScale: "ratio", canonicalDefinition: canonicalDefinition("higher"), evaluation: item, displayDefinition: stats.imtpTimeResults.find(result => result.id === item.metricId)?.standard, context: { ...E.imtpTimeContext(record), timeMs: item.timeMs, unit: item.unit } });
       }
     }
     for (const series of stats.lvpSeries || []) if (record.enabled[series.testId]) for (const point of series.points) {
@@ -145,7 +146,7 @@
         existing.statistics = group?.statistics[0] ? clone(group.statistics[0]) : null; existing.rawTrials = clone(group?.attempts || []);
         existing.context.velocity = record.lvp[series.id]?.metric || ""; continue;
       }
-      add("lvp:" + series.id + ":" + point.load, { testId: series.testId, name: series.label + " · " + point.load + " kg 速度", value: point.velocity, unit: "m/s", measurementScale: "ratio",
+      add("lvp:" + series.id + ":" + point.load, { testId: series.testId, name: series.label + " · " + point.load + " kg 速度", value: point.velocity, unit: "m/s", measurementScale: "ratio", canonicalDefinition: canonicalDefinition("higher"),
         context: { ...testContext(record, series.testId), load: point.load, seriesId: series.id, velocity: record.lvp[series.id]?.metric || "" }, statistics: group?.statistics[0] ? clone(group.statistics[0]) : null, rawTrials: clone(group?.attempts || []) });
     }
     for (const series of stats.lvpSeries || []) if (record.enabled[series.testId] && series.points.length) {
@@ -154,7 +155,7 @@
       addFit("intercept", "回归截距", fit.a, "m/s"); addFit("slope", "回归斜率", fit.b, "(m/s)/kg");
       if (fit.valid) addFit("r2", "拟合 R²", fit.r2, "");
       if (est?.valid) {
-        const extra = { context: { ...context, minimumVelocity: series.mvt }, notes: "速度口径 " + series.metric + "；MVT " + series.mvt + " m/s；" + (est.extrapolated ? "含外推" : "实测范围") };
+        const extra = { context: { ...context, minimumVelocity: series.mvt }, canonicalDefinition: canonicalDefinition("higher"), notes: "速度口径 " + series.metric + "；MVT " + series.mvt + " m/s；" + (est.extrapolated ? "含外推" : "实测范围") };
         addFit("1rm", "预估 1RM", est.load, "kg", "ratio", extra);
         if (N(record.athlete.mass) > 0) addFit("relative1rm", "预估 1RM 体重比", est.load / record.athlete.mass, "kg/kg", "ratio", extra);
       }
@@ -330,7 +331,7 @@
         // a separate unmeasured catalog slot must not label that result "未录入".
         const evaluation = period.stats.evaluationResults.find(item => item.metricId === (metric.metricId || metric.id) && N(item.value) !== null);
         const target = N(metric.target) > 0 ? N(metric.target) : source?.referenceEnabled && source.matched !== false && N(source.target) > 0 ? N(source.target) : null;
-        return [metric.id, { ...metric, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null, displayRules: displayRules(period.record),
+        return [metric.id, { ...metric, metricId: metric.metricId || metric.id, testId, name: metric.label, value: metric.value, unit: metric.unit, measurementScale: source ? E.measurementScale(source) : "unknown", context, direction: null, displayRules: displayRules(period.record),
           evaluation: evaluation || { grade: { status: metric.status || "gray", label: metric.judgment || "未设置评价" }, target, source: source?.source || "" },
           target, displayDefinition: source, diagnosticNotes: [metric.judgment].filter(Boolean), notes: metric.judgment || "", components: clone(metric.components || []) }];
         }));
@@ -413,5 +414,16 @@
       periods: model.periods.map(period => ({ recordId: period.id, date: period.date, label: period.label, athlete: clone(period.record.athlete), trainingContext: clone(period.record.trainingContext), qualityIssues: period.stats.qualityIssues })),
       projects: model.projects.map(project => ({ id: project.id, name: project.name, metrics: rows(project.metrics) })), risk: rows(model.risk.rows), overview: rows(model.overview.rows), capability: model.capability.cards.map(card => ({ id: card.id, title: card.title, metrics: rows(card.metrics) })) };
   }
+  // Both report kinds use these original, pure single-record calculations.
+  // A horizontal participant never masquerades as another athlete's period.
+  function prepareRecord(source, options = {}) {
+    let record = M.normalizeRecord(clone(source));
+    record.mode = options.mode || record.mode || "best"; M.applyAge(record);
+    record = E.resolve(record, options.profile || null);
+    const report = root.RingsideReport.build(record, { catalog: options.catalog || null });
+    return { id: source.recordId, recordId: source.recordId, date: record.athlete.date, label: options.label || record.athlete.date,
+      color: options.color || colors[0], record: report.record, report, stats: report.stats };
+  }
+  root.RingsideComparison = { observations, rowFrom, matrixRows, radar, capability, testContext, metricContext, derivedContext, prepareRecord, contentHash, validDate, sortRecords, colors };
   root.RingsideLongitudinal = { build, key, facts, validDate, sortRecords, change };
 })(typeof window !== "undefined" ? window : globalThis);

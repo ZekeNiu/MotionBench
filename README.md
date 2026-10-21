@@ -2,15 +2,15 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**本轮版本：Windows `2.24.8-desktop.1` · HTML `2.24.8`**
+**本轮版本：Windows `2.25.0-desktop.1` · HTML `2.25.0`**
 
-2.24.8 的使用说明、下载入口与校验记录见下文。[2.24.7 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.7-desktop.1)继续保留。
+2.25.0 新增横向比较报告、专项细分和年龄段管理。[2.24.13 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.13-desktop.1)继续保留。回退时同时恢复升级前的资料备份。
 
-[在线 Demo](https://zekeniu.github.io/MotionBench/) · [安装版 2.24.8](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.8-desktop.1/MotionBench-2.24.8-desktop.1-Setup-x64.exe) · [便携版 2.24.8](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.8-desktop.1/MotionBench-2.24.8-desktop.1-Portable-x64.exe) · [离线 HTML 2.24.8](https://github.com/ZekeNiu/MotionBench/releases/download/v2.24.8-desktop.1/MotionBench.html)
+[在线 Demo](https://zekeniu.github.io/MotionBench/) · [安装版 2.25.0](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.0-desktop.1/MotionBench-2.25.0-desktop.1-Setup-x64.exe) · [便携版 2.25.0](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.0-desktop.1/MotionBench-2.25.0-desktop.1-Portable-x64.exe) · [离线 HTML 2.25.0](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.0-desktop.1/MotionBench.html)
 
 同一运动员的纵向比较直接从首页开始：勾选多条测试记录，每张图可独立选择展示日期；结果表统一显示一列“变化趋势”，mini 图展示全部所选日期，并带纵轴刻度与单位。悬停、键盘或触屏可查看具体读数与相邻变化。损伤风险筛查使用部位雷达，运动表现概览少于3维用表格、3维及以上用雷达。
 
-2.24.8 将纵向比较的评价标签放在数值后，除双侧差异外统一为预警／关注／优秀；疼痛记录优先红色预警。mini图按实际适用标准绘制底色，原阈值和计算保留。采用按变更风险验收，减少重复全量检查，继续保留资料与交付保护。详见 [2.24.8 使用说明](docs/motionbench-2.24.8.md)、[验收策略](docs/verification-strategy.md)和[本轮验收记录](docs/acceptance-2.24.8.md)。
+横向比较从“横向比较”入口开始：每人选择一条实际记录，设置主角或多人并列视角，并添加全库、专项或队伍参照。参照按人员等权汇总，区分最近可比测试与阶段个人纪录；每行显示实际人数，报告保存独立快照。详见 [2.25.0 使用说明](docs/motionbench-2.25.0.md)、[验收策略](docs/verification-strategy.md)和[本轮验收记录](docs/acceptance-2.25.0.md)。
 
 ![MotionBench 在线演示，全部资料为模拟数据](assets/motionbench-demo.png)
 
@@ -44,6 +44,7 @@
 | 评价体系 | 项目及能力目录、可复用方案、参考目标、分级区间、单位与协议匹配 |
 | 通用项目图表 | 六种图型、指标选择与排序、项目统一配置、已有兼容报告同步、导出图样保留 |
 | 纵向比较 | 多记录勾选、统一评价依据、日期图层、全部所选日期的变化趋势、逐期完整分析与评价、独立解读及完整导出 |
+| 横向比较 | 个人主角或多人并列、全库/专项/队伍参照、性别/细分/测试年龄筛选、每人等权统计、来源明细、独立正文和冻结快照 |
 | 人员和记录 | 队伍、搜索、批量操作、历史记录、归档、回收站和测试方案 |
 | 数据与交付 | Excel 模板及导入、JSON/JSONL 备份与恢复、独立 HTML、PDF |
 | 解读 | 可编辑人工正文、离线规则摘要、AI 草稿预览与应用、历史正文保留 |
@@ -56,7 +57,7 @@
 
 适用于 Windows 10 / 11 x64。Setup 包含完整 Electron 运行环境，安装向导可选择中文、含空格及非系统盘目录。Portable 首次启动会解包运行环境。
 
-- **本轮 2.24.8 升级**：使用 `MotionBench-2.24.8-desktop.1-Setup-x64.exe`，本机沿用 `D:\Application\Strength&Conditioning\MotionBench`。实际升级与资料核对的完成状态见 [2.24.8 验收记录](docs/acceptance-2.24.8.md)。
+- **本轮 2.25.0 升级**：使用 `MotionBench-2.25.0-desktop.1-Setup-x64.exe`。实际升级与资料核对的完成状态见 [2.25.0 验收记录](docs/acceptance-2.25.0.md)。
 - **公开版本升级**：在侧栏底部“应用设置”检查、下载并重启更新，或运行公开发行的 Setup。
 - **安装版更新**：沿用原安装目录。启动检查默认开启，可关闭；下载和安装均需点击，普通退出不会自动安装。
 - **便携版更新**：在应用设置检查并打开便携版下载，退出程序后替换 exe。
@@ -68,11 +69,11 @@
 
 ## HTML、本机入口与资料迁移
 
-2.24.8 发布后，下载[版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.8-desktop.1)中的 `MotionBench.html` 即可直接打开，无需安装。需要本机 AI 中转时，可使用同版本源码包中的启动器：Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
+下载[2.25.0 版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.25.0-desktop.1)中的 `MotionBench.html` 即可直接打开，无需安装。需要本机 AI 中转时，可使用同版本源码包中的启动器：Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
 
 本机启动器默认地址为 `http://127.0.0.1:8765/MotionBench.html`。保持原文件位置、浏览器和打开地址可继续使用原资料。浏览器、地址、路径或桌面入口变化前，请先在“备份与恢复”导出完整 JSONL，再在目标入口导入并核对。单条 JSON、HTML 和 PDF 用于报告分享，完整资料库迁移使用 JSONL。
 
-重要测试批次完成后另存完整备份。回退程序和恢复资料是两个步骤；本轮上一版程序见 [2.24.7 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.7-desktop.1)，历次发行与迁移说明保留在 [Releases](https://github.com/ZekeNiu/MotionBench/releases) 和 `docs/`。公开安装包不包含本机运动员、测量或解读正文；本机已有的四期合成示例属于本机资料库。
+重要测试批次完成后另存完整备份。2.25.0 增加了独立报告存储，回退到 [2.24.13](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.13-desktop.1) 时，需要同时恢复升级前的资料副本；旧程序不能直接打开已经升级的浏览器数据库。历次发行与迁移说明保留在 [Releases](https://github.com/ZekeNiu/MotionBench/releases) 和 `docs/`。公开安装包不包含本机运动员、测量或解读正文。
 
 ## AI 服务
 

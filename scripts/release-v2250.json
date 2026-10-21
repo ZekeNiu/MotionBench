@@ -1,0 +1,223 @@
+{
+  "version": "2.25.0",
+  "desktopVersion": "2.25.0-desktop.1",
+  "entry": "scripts/release_v2250.py",
+  "baselineCommit": "bdaec08a54fef73d6e8f79554ff10b2111fbf7f9",
+  "baselineDesktopVersion": "2.24.13-desktop.1",
+  "baselineAcceptance": "docs/acceptance-2.24.13.json",
+  "checkpoint": "D:\\Application\\Strength&Conditioning\\MotionBench-backups\\20261022-system-before-2.25.0",
+  "manifestSha256": "8acb4284a6da8e3051a065907fb1081de5dd45df08dfcb73b000bfe0963b6f87",
+  "installation": "D:\\Application\\Strength&Conditioning\\MotionBench",
+  "actualProfile": "C:\\Users\\ZekeNiu\\AppData\\Roaming\\MotionBench Desktop",
+  "output": "output/horizontal-2.25.0/native",
+  "acceptanceJson": "docs/acceptance-2.25.0.json",
+  "acceptanceMarkdown": "docs/acceptance-2.25.0.md",
+  "guardSha256": "cf0f3ca402aebbaf9fdefa7eb2e48eab489eea139d6387e2ccd3ed3013681f02",
+  "templates": {
+    "prepare": {
+      "file": "scripts/prepare_v2247_system.ps1",
+      "sha256": "c4502443ade89bdebef30b96ef18d4d73735b66d5255cf5804028a952950550b"
+    },
+    "install": {
+      "file": "scripts/install_v2247_system.ps1",
+      "sha256": "604ff43a1b115b7a7f07db47d67f768bb085aee4cb9fb12885eb2b1e14fb6ecc"
+    },
+    "shortcut": {
+      "file": "scripts/check_v2247_shortcut.ps1",
+      "sha256": "86bbacc6be6c7197d2d0d6434a59bfdaa8f854e6a1fb6b3ea198566e035a0b27"
+    },
+    "native": {
+      "file": "tests/desktop-system-v2248.cjs",
+      "sha256": "196b8fac6a0d548e444a2d8175538ed086eb33bc938bc4a1ca8ab8344113e096"
+    }
+  },
+  "changedSource": [
+    "scripts/build.py",
+    "src/ringside-app.js",
+    "src/ringside-classification-ui.js",
+    "src/ringside-classifications.js",
+    "src/ringside-comparison.js",
+    "src/ringside-evaluation.js",
+    "src/ringside-excel-flow.js",
+    "src/ringside-excel.js",
+    "src/ringside-horizontal-controller.js",
+    "src/ringside-horizontal-setup.js",
+    "src/ringside-horizontal-store.js",
+    "src/ringside-horizontal-view.js",
+    "src/ringside-horizontal.css",
+    "src/ringside-horizontal.js",
+    "src/ringside-longitudinal-store.js",
+    "src/ringside-longitudinal.js",
+    "src/ringside-management.js",
+    "src/ringside-metric-semantics.js",
+    "src/ringside-model.js",
+    "src/ringside-pdf.js",
+    "src/ringside-profile.js",
+    "src/ringside-report-owner.js",
+    "src/ringside-shell.html",
+    "src/ringside-store.js",
+    "src/ringside-tests.js",
+    "tests/helpers/horizontal-migration-proof.cjs"
+  ],
+  "units": [
+    "horizontal-model-tests.cjs",
+    "horizontal-async-model-tests.cjs",
+    "horizontal-view-controller-tests.cjs",
+    "horizontal-migration-proof-tests.cjs",
+    "report-owner-model-tests.cjs",
+    "pdf-metadata-model-tests.cjs",
+    "medicine-ball-report-tests.cjs",
+    "personal-assessment-v22411-tests.cjs",
+    "personal-layout-v22411-tests.cjs",
+    "longitudinal-store-model-tests.cjs",
+    "longitudinal-display-state-tests.cjs",
+    "v2244-display-preservation-tests.cjs",
+    "longitudinal-model-tests.cjs",
+    "longitudinal-view-tests.cjs",
+    "comparison-trend-tests.cjs",
+    "jump-add-row-tests.cjs",
+    "generic-report-model-tests.cjs",
+    "generic-report-render-model-tests.cjs",
+    "generic-entry-integration-model-tests.cjs",
+    "evaluation-v220-model-tests.cjs",
+    "report-v220-model-tests.cjs",
+    "evaluation-v219-model-tests.cjs",
+    "report-semantics-v2191-model-tests.cjs",
+    "layout-v2191-model-tests.cjs",
+    "excel-v219-contract-tests.cjs",
+    "model-tests.cjs",
+    "athlete-context-model-tests.cjs",
+    "athlete-context-excel-tests.cjs",
+    "athlete-context-report-tests.cjs",
+    "fvp-model-tests.cjs",
+    "dual-elasticity-model-tests.cjs",
+    "dual-elasticity-report-model-tests.cjs",
+    "sprint-elasticity-model-tests.cjs",
+    "sprint-fvp-model-tests.cjs",
+    "sprint-fvp-display-model-tests.cjs",
+    "sprint-fvp-display-report-model-tests.cjs",
+    "sprint-fvp-entry-controls-tests.cjs",
+    "sprint-fvp-confidence-model-tests.cjs",
+    "sprint-fvp-usability-model-tests.cjs",
+    "sprint-capability-report-model-tests.cjs",
+    "capability-directions-model-tests.cjs",
+    "sprint-fvp-excel-model-tests.cjs",
+    "fvp-report-model-tests.cjs",
+    "report-v216-model-tests.cjs",
+    "report-v2161-model-tests.cjs",
+    "dsi-v2161-model-tests.cjs",
+    "fvp-excel-model-tests.cjs",
+    "entry-session-model-tests.cjs",
+    "entry-session-save-model-tests.cjs",
+    "ordinary-save-model-tests.cjs",
+    "isometric-selection-model-tests.cjs",
+    "picker-model-tests.cjs",
+    "excel-model-tests.cjs",
+    "excel-v216-tests.cjs",
+    "derived-jump-model-tests.cjs",
+    "v216-direction-model-tests.cjs",
+    "isometric-reference-model-tests.cjs",
+    "cpet-reference-tests.cjs",
+    "capability-cpet-model-tests.cjs",
+    "force-model-tests.cjs",
+    "viz-tests.cjs",
+    "workflow-model-tests.cjs",
+    "core-model-tests.cjs",
+    "report-v2-model-tests.cjs",
+    "chart-ai-model-tests.cjs",
+    "repeat-model-tests.cjs",
+    "management-model-tests.cjs",
+    "imtp-standards-model-tests.cjs",
+    "report-refinement-model-tests.cjs",
+    "catalog-body-vift-model-tests.cjs",
+    "store-catalog-model-tests.cjs",
+    "report-v210-model-tests.cjs",
+    "report-v211-model-tests.cjs",
+    "desktop-security-tests.cjs",
+    "desktop-ai-tests.cjs",
+    "desktop-ai-bridge-tests.cjs",
+    "desktop-bridge-tests.cjs",
+    "desktop-update-tests.cjs"
+  ],
+  "focused": [
+    {
+      "runner": "tests/horizontal-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-2.25.0/chrome/results.json",
+      "minChecks": 9
+    },
+    {
+      "runner": "tests/horizontal-storage-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-storage/result-chrome.json",
+      "minChecks": 19
+    },
+    {
+      "runner": "tests/horizontal-classification-ui-tests.cjs",
+      "receipt": "output/playwright/horizontal-classification-ui/result-chrome.json",
+      "minChecks": 5
+    },
+    {
+      "runner": "tests/horizontal-snapshot-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-snapshot/result-chrome.json",
+      "minChecks": 6
+    },
+    {
+      "runner": "tests/horizontal-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-2.25.0/msedge/results.json",
+      "minChecks": 9
+    },
+    {
+      "runner": "tests/horizontal-storage-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-storage/result-msedge.json",
+      "minChecks": 19
+    },
+    {
+      "runner": "tests/horizontal-classification-ui-tests.cjs",
+      "receipt": "output/playwright/horizontal-classification-ui/result-msedge.json",
+      "minChecks": 5
+    },
+    {
+      "runner": "tests/horizontal-snapshot-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-snapshot/result-msedge.json",
+      "minChecks": 6
+    },
+    {
+      "runner": "tests/horizontal-scale-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-scale/result-chrome.json",
+      "minChecks": 10
+    },
+    {
+      "runner": "tests/horizontal-setup-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-2.25.0/setup/results.json",
+      "minChecks": 3
+    },
+    {
+      "runner": "tests/horizontal-lifecycle-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-2.25.0/lifecycle/results.json",
+      "minChecks": 4
+    },
+    {
+      "runner": "tests/horizontal-multiperson-pdf-tests.cjs",
+      "receipt": "output/playwright/horizontal-2.25.0/multiperson/results.json",
+      "minChecks": 3
+    },
+    {
+      "runner": "tests/longitudinal-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-2.25.0/longitudinal-verified/results.json",
+      "minChecks": 10
+    },
+    {
+      "runner": "tests/horizontal-native-browser-tests.cjs",
+      "receipt": "output/playwright/horizontal-2.25.0/desktop/results.json",
+      "minChecks": 11,
+      "desktop": true
+    },
+    {
+      "runner": "tests/desktop-smoke.cjs",
+      "receipt": "output/desktop-smoke/horizontal-2.25.0-unlocked/results.json",
+      "minChecks": 16,
+      "desktop": true
+    }
+  ],
+  "verificationScope": "Horizontal reporting: unified numeric meaning/direction, current-profile cohorts and test-age/window/protocol sampling, equal person weighting, frozen independent report persistence, stable sport/subdivision identities, all-reference PDF and offline HTML/JSON. Full model suites and affected browser/storage/native workflows rerun; exact Windows installation and original data checked against an immutable Explorer-backed 2.24.13 checkpoint. Additive metadata is validated explicitly; original measurements, scores and narrative remain protected.",
+  "additiveComparisonMetadataMigration": true
+}

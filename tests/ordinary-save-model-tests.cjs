@@ -15,7 +15,7 @@ function harness(baseline){
   const c=vm.createContext({console,Intl,crypto:crypto.webcrypto,Map,Set,JSON,Promise,copy,clearTimeout,
     now:()=>"2026-10-10T02:00:00.000Z",recordBaselines:new Map(),recordStorageBaselines:new Map(),queuedRecords:new Map(),entryPersistQueue:Promise.resolve(),
     pendingSaves:0,saveSequence:0,saveTimer:null,storageFailed:false,libraryTransferActive:false,entrySession:null,state:null,reportDirty:false,longitudinalStoredJSON:"[]",
-    T:model.RingsideTests,M,$:()=>status,refreshEntryChrome:()=>{},upgradeDemo:()=>({changed:false}),longitudinal:{active:()=>false,selection:()=>null},library,
+    T:model.RingsideTests,M,$:()=>status,refreshEntryChrome:()=>{},upgradeDemo:()=>({changed:false}),longitudinal:{active:()=>false,isLoading:()=>false,owner:()=>"",selection:()=>null},library,
     repository:{directory:async()=>copy(library),
       saveRecords(records,checks) { return this.save(null,records,{},checks); },
       loadRecord:async id=>{const value=copy(stored);loads.push(id);if(loadHook)await loadHook(value,loads.length);return value;},
@@ -25,6 +25,9 @@ function harness(baseline){
       },
     },
   });c.window=c;c.RingsideStore={summary:value=>({recordId:value.recordId,athleteId:value.athleteId})};c.RingsideEvaluation={upgradeLibraryProfiles:()=>false};
+  c.horizontal={active:()=>false,isLoading:()=>false,owner:()=>"",save:async()=>true};
+  vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-report-owner.js"),"utf8"),c);
+  c.reports=c.RingsideReportOwner.create({controllers:[c.horizontal,c.longitudinal],state:()=>c.state});
   // Production load/baseline/persist code runs against synthetic storage and DOM boundaries.
   for(const[startMarker,endMarker]of [["  function recordContent(record) {","  function draftRecordKey("],["  async function loadDirectory(","  async function saveLibraryChanges("],["  function persist(","  function persistSessionRecord("]]){
     const start=app.indexOf(startMarker),end=app.indexOf(endMarker,start+startMarker.length);assert.ok(start>=0&&end>start);vm.runInContext(app.slice(start,end),c);

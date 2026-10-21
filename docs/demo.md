@@ -1,12 +1,14 @@
 # MotionBench 在线演示
 
-[打开在线演示](https://zekeniu.github.io/MotionBench/) · [下载 Windows 2.20.1](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.20.1-desktop.1)
+[打开在线演示](https://zekeniu.github.io/MotionBench/) · [下载 Windows 2.25.0](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.25.0-desktop.1)
 
-2.20.1 共用工作台修复多轴能力图及评分明细组合过高时的 PDF 分页。模拟演示从正式 HTML 独立构建，本地 Chrome、Edge 各 8 项流程已验证，1440、1024、390px 的完整页面及能力评分区域已审阅。真实网址和下载的核验状态见 [发布核验记录](publication-2.20.1.md)；JSON、HTML、JSONL 流程与专项 PDF 验收分别记录。
+2.25.0 共用工作台增加横向比较、专项细分和年龄段管理。模拟演示从正式 HTML 独立构建，部署清单记录对应版本和文件校验值。功能及验收范围见 [使用说明](motionbench-2.25.0.md)与[验收记录](acceptance-2.25.0.md)。
 
 演示版使用与 HTML、Windows 版相同的报告、计算与录入界面。首次打开时加载一名模拟运动员和一条综合测试记录，可以编辑数据、查看原始试次、切换计算方式并导出 JSON、可编辑 HTML 和 PDF。
 
 初始姓名、训练背景和测量值均由构建脚本从空白记录生成，未使用真实运动员资料。修改保存在当前浏览器中；演示版采用独立的资料库和草稿命名空间。更换浏览器或清除站点数据后，修改不会保留。需要长期使用时，请下载桌面版或 HTML，并定期导出资料库备份。
+
+标记为示例的数据不进入横向群体参照。可以选择示例的实际记录直接比较；若要体验多人并列或群体取样，需要在演示资料库中建立相应的测试资料。
 
 GitHub Pages 只托管静态演示文件。基础报告不需要账号或后台服务。在线演示可填写个人 AI 连接，服务须支持浏览器跨域请求；密钥仅在当前页面临时使用，刷新后需重新填写。演示不提供公共 AI 密钥。桌面版与 HTML 本机启动入口使用各自的个人配置。
 

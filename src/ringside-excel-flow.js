@@ -4,7 +4,7 @@
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   let session=null,serial=0,busy=false;
   const lib=()=>root.App.getLibrary();
-  const personLabel=entry=>{const owner=lib().athletes.find(a=>a.id===entry.athleteId);return [entry.name,owner?.profile?.sport,entry.athleteId.slice(-6)].filter(Boolean).join(" · ");};
+  const personLabel=entry=>{const owner=lib().athletes.find(a=>a.id===entry.athleteId);return [entry.name,root.RingsideClassifications?.resolve(owner?.profile,lib().classifications).sportName||owner?.profile?.sport,entry.athleteId.slice(-6)].filter(Boolean).join(" · ");};
   function error(message){$("excelError").textContent=message;$("excelError").hidden=!message;}
   function setBusy(value){busy=value;$("excelModal").setAttribute("aria-busy",String(value));document.querySelectorAll("#excelModal button,#excelModal input,#excelModal select,[data-entry-excel-action]").forEach(el=>{if(value){el.dataset.excelWasDisabled=String(el.disabled);el.disabled=true;}else if(el.dataset.excelWasDisabled!==undefined){el.disabled=el.dataset.excelWasDisabled==="true";delete el.dataset.excelWasDisabled;}});}
   function importControl(){return '<label class="btn primary excel-file">选择 Excel 文件<input id="excelFile" type="file" accept=".xlsx" onchange="RingsideExcelFlow.readFile(this.files[0]);this.value=\'\'"></label>';}
@@ -39,7 +39,7 @@
       const repo=root.App.getRepository();await repo.flush();
       const targets=parsed.targets||[],stored=await Promise.all(targets.map(t=>repo.loadRecord(t.recordId))),config=await repo.get("config","library"),athletes=await Promise.all([...new Set(targets.map(t=>t.athleteId))].map(async id=>[id,await repo.get("athletes",id)]));
       const directory=await repo.directory();if(!session||session.token!==token)return;
-      const preview=root.RingsideExcel.preview(parsed,{athletes:directory.athletes,catalog:directory.catalog,records:stored.filter(Boolean)});
+      const preview=root.RingsideExcel.preview(parsed,{athletes:directory.athletes,catalog:directory.catalog,classifications:directory.classifications,records:stored.filter(Boolean)});
       session.preview=preview;session.directory=directory;session.decisions={};session.checks={expectedConfig:JSON.stringify(config??null),expectedRecords:Object.fromEntries(targets.map((t,i)=>[t.recordId,JSON.stringify(stored[i]??null)])),expectedAthletes:Object.fromEntries(athletes.map(([id,a])=>[id,JSON.stringify(a??null)]))};
       session.fileName=file.name;renderPreview();
     }catch(e){error(e.message);}finally{setBusy(false);}

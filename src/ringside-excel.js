@@ -606,7 +606,7 @@
     if(id==="imtp")count=M.repeatRows(record,id).filter(row=>meaningful(row,attemptFields(record,id).map(f=>f.key))||row.timePoints?.some(p=>!empty(p.force)||!empty(p.rfd))).length;
     return count+record.definitions.filter(d=>d.testId===id&&T.isManualMetric(d)&&!T.isAttemptMetric(d)&&!empty(record.customValues[d.id]?.value)).length+settings(record,id).filter(f=>["thresholds.lt1","thresholds.lt2"].includes(f.key)&&!empty(get(record,f.key))).length;
   }
-  function preview(parsed,{athletes,catalog,records=[]}) {
+  function preview(parsed,{athletes,catalog,classifications,records=[]}) {
     const errors=clone(parsed.errors||[]),entries=[],owners=new Map(athletes.map(a=>[a.id,a])),existing=new Map(records.map(r=>[r.recordId,r]));
     for(const item of parsed.entries){
       const incoming=clone(item.record),previous=existing.get(incoming.recordId),owner=owners.get(incoming.athleteId);
@@ -623,7 +623,8 @@
         M.applyAge(incoming, owner.profile?.birthDate ?? previous?.athlete.birthDate ?? incoming.athlete.birthDate);
         M.validateAthleteContext(incoming);
       } catch (error) { issue(errors,null,0,0,incoming.athlete.name+"："+error.message); continue; }
-      const current=previous||M.recordFromCatalog(catalog,owner.profile,incoming.enabled,incoming.athlete.date);
+      const currentProfile={...owner.profile,sport:root.RingsideClassifications?.resolve(owner.profile,classifications).sportName||owner.profile.sport||""};
+      const current=previous||M.recordFromCatalog(catalog,currentProfile,incoming.enabled,incoming.athlete.date);
       const projects=selectedTests(incoming).map(test=>{
         const catalogTest=catalog.tests.find(t=>t.id===test.id);
         if(!previous&&(!catalogTest||catalogTest.disabled||catalog.conflicts.some(c=>c.testId===test.id&&!c.resolved)))issue(errors,null,0,0,test.name+"：项目已停用或存在未解决定义冲突，请重新下载模板");

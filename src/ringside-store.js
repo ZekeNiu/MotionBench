@@ -2,7 +2,7 @@
   "use strict";
   const M = root.RingsideModel, E = root.RingsideEvaluation;
   const clone = v => JSON.parse(JSON.stringify(v)), uid = () => root.crypto.randomUUID();
-  const tables = ["athletes", "records", "recordIndex", "groups", "profiles", "config"];
+  const tables = ["athletes", "records", "recordIndex", "groups", "profiles", "config", "horizontalReports", "horizontalSnapshots"];
   const request = r => new Promise((resolve,reject) => { r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error); });
   const completed = tx => new Promise((resolve,reject) => { tx.oncomplete=resolve; tx.onabort=()=>reject(tx.error || Error("保存事务已取消")); tx.onerror=()=>{}; });
   const keyRange = generation => IDBKeyRange.bound([generation, ""], [generation, "\uffff"]);
@@ -86,6 +86,7 @@
     const version = root.RingsideBuild?.version || lib.version;
     return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
       activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version,
+      ...(lib.classifications !== undefined ? {classifications:root.RingsideClassifications.normalize(lib.classifications)} : {}),
       ...(lib.longitudinalReports !== undefined ? {longitudinalReports:longitudinalReports(lib.longitudinalReports)} : {})};
   }
   function validateEntity(type, value) {
@@ -95,17 +96,19 @@
     else if (type === "athlete") {
       if (!safe(value.id) || typeof value.name !== "string" || !value.profile || typeof value.profile !== "object" || Array.isArray(value.profile)) throw Error("运动员资料无效");
     } else if (type === "group") { if (!safe(value.id) || typeof value.name !== "string" || !value.name.trim()) throw Error("队伍信息无效"); }
-    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); longitudinalReports(value.longitudinalReports); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
+    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); longitudinalReports(value.longitudinalReports); if(value.classifications!==undefined)root.RingsideClassifications.normalize(value.classifications); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
+    else if (type === "horizontal-report") root.RingsideHorizontalStore.normalize(value,{metadata:true});
+    else if (type === "horizontal-snapshot") root.RingsideHorizontalStore.validateChunk(value);
     else throw Error("备份包含未知资料类型");
-    if (type !== "record" && type !== "config" && !safe(value.id)) throw Error("资料 ID 无效");
+    if (!["record","config","horizontal-snapshot"].includes(type) && !safe(value.id)) throw Error("资料 ID 无效");
   }
   class Repository {
     constructor(db) { this.db=db; this.generation=""; this.queue=Promise.resolve(); this.metadataHashes=new Map(); }
     static async open(pathname=root.location.pathname) {
-      const r=indexedDB.open("motionbench-v3:"+pathname,1);
+      const r=indexedDB.open("motionbench-v3:"+pathname,2);
       r.onupgradeneeded=()=>{
-        r.result.createObjectStore("meta",{keyPath:"id"});
-        for(const name of tables) r.result.createObjectStore(name,{keyPath:["generation","id"]});
+        if(!r.result.objectStoreNames.contains("meta"))r.result.createObjectStore("meta",{keyPath:"id"});
+        for(const name of tables) if(!r.result.objectStoreNames.contains(name))r.result.createObjectStore(name,{keyPath:["generation","id"]});
       };
       const db=await new Promise((resolve,reject)=>{
         r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);
@@ -145,6 +148,97 @@
       return lib;
     }
     loadRecord(id) { return this.get("records",id); }
+    ensureClassifications() {
+      return this.enqueue(async()=>{
+        if(!root.RingsideClassifications)return false;
+        const generation=this.generation,before=await this.versionState(),library=await this.stableRead(generation,()=>this.directory(generation)),next=root.RingsideClassifications.migrate(library);
+        const changed=JSON.stringify(next.classifications)!==JSON.stringify(library.classifications)||next.athletes.some((owner,index)=>JSON.stringify(owner.profile)!==JSON.stringify(library.athletes[index].profile));
+        if(!changed)return false;
+        const tx=this.db.transaction(["meta","config","athletes"],"readwrite"),done=completed(tx);
+        try{
+          const actual=await Promise.all(["active","previous","revision"].map(id=>request(tx.objectStore("meta").get(id))));
+          if(!this.sameVersion(before,{active:actual[0]?.value||"",previous:actual[1]?.value||"",revision:actual[2]?.value}))throw Error("资料库已在其他页面修改，请重新打开后升级专项分类");
+          const stored=(await request(tx.objectStore("config").get([generation,"library"]))).value;
+          tx.objectStore("config").put({generation,id:"library",value:{...stored,classifications:next.classifications}});
+          for(let index=0;index<next.athletes.length;index++)if(JSON.stringify(next.athletes[index].profile)!==JSON.stringify(library.athletes[index].profile))tx.objectStore("athletes").put({generation,id:next.athletes[index].id,value:athleteMetadata(next.athletes[index])});
+          tx.objectStore("meta").put({id:"revision",value:uid()});await done;this.metadataHashes.clear();return true;
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
+    loadHorizontalSources({window={},recordIds=[],onProgress=()=>{}}={}) {
+      return this.enqueue(()=>{
+        const generation=this.generation;
+        return this.stableRead(generation,async()=>{
+        const library=await this.directory(generation),state=await this.versionState(),selected=new Set(recordIds),owners=library.athletes.filter(owner=>!owner.deletedAt&&!owner.sample);
+        const candidates=owners.flatMap(owner=>owner.records.filter(record=>!record.deletedAt&&!record.demo&&(selected.has(record.recordId)||(!window.from||record.athlete.date>=window.from)&&(!window.to||record.athlete.date<=window.to))));
+        const records=[];
+        for(let offset=0;offset<candidates.length;offset+=40){
+          const tx=this.db.transaction("records"),batch=await Promise.all(candidates.slice(offset,offset+40).map(record=>request(tx.objectStore("records").get([generation,record.recordId]))));
+          if(batch.some(row=>!row))throw Error("参照记录在读取期间发生变化，请重新生成");
+          records.push(...batch.map(row=>row.value));await onProgress(records.length,candidates.length);
+        }
+        return {library,records,revision:state.revision,generation};
+        });
+      });
+    }
+    async listHorizontalReports() {
+      return this.enqueue(()=>{
+        const generation=this.generation;
+        return this.stableRead(generation,async()=> (await this.values("horizontalReports",generation)).map(root.RingsideHorizontalStore.summary).sort((a,b)=>b.updated.localeCompare(a.updated)||a.id.localeCompare(b.id)));
+      });
+    }
+    async readHorizontalReport(id,generation=this.generation) {
+      const tx=this.db.transaction(["horizontalReports","horizontalSnapshots"]),metadata=(await request(tx.objectStore("horizontalReports").get([generation,id])))?.value;
+      if(!metadata)return null;
+      const rows=await request(tx.objectStore("horizontalSnapshots").getAll(IDBKeyRange.bound([generation,id+":"],[generation,id+":\uffff"])));
+      return root.RingsideHorizontalStore.unpack(metadata,rows.map(row=>row.value).filter(value=>value.reportId===id));
+    }
+    getHorizontalReport(id) {return this.enqueue(()=>{const generation=this.generation;return this.stableRead(generation,()=>this.readHorizontalReport(id,generation));});}
+    saveHorizontalReport(input,{expectedRevision}={}) {
+      if(expectedRevision!==null&&(!Number.isSafeInteger(expectedRevision)||expectedRevision<1))throw Error("保存横向报告缺少原版本校验依据");
+      const generation=this.generation,document=root.RingsideHorizontalStore.normalize(input);
+      return this.enqueue(async()=>{
+        const packed=await root.RingsideHorizontalStore.pack(document),tx=this.db.transaction(["meta","horizontalReports","horizontalSnapshots"],"readwrite"),done=completed(tx);
+        try{
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开横向报告");
+          const old=(await request(tx.objectStore("horizontalReports").get([generation,document.id])))?.value;
+          if((old?.revision??null)!==expectedRevision)throw Error("横向报告已在其他页面修改或删除，请重新打开并核对后保存");
+          const stamp=new Date().toISOString();packed.metadata.created=old?.created||document.created||stamp;packed.metadata.updated=stamp;packed.metadata.revision=(old?.revision||0)+1;
+          if(old?.snapshotInfo.sha256!==packed.metadata.snapshotInfo.sha256){
+            const prior=await request(tx.objectStore("horizontalSnapshots").getAll(IDBKeyRange.bound([generation,document.id+":"],[generation,document.id+":\uffff"])));
+            for(const row of prior)if(row.value.reportId===document.id)tx.objectStore("horizontalSnapshots").delete([generation,row.id]);
+            for(const value of packed.chunks)tx.objectStore("horizontalSnapshots").put({generation,id:value.id,value});
+          }
+          tx.objectStore("horizontalReports").put({generation,id:document.id,value:packed.metadata});tx.objectStore("meta").put({id:"revision",value:uid()});await done;
+          const {snapshotInfo,...metadata}=packed.metadata;return root.RingsideHorizontalStore.normalize({...metadata,snapshot:document.snapshot});
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
+    deleteHorizontalReport(id,{expectedRevision}={}) {
+      if(!Number.isSafeInteger(expectedRevision)||expectedRevision<1)throw Error("删除横向报告缺少原版本校验依据");
+      const generation=this.generation;
+      return this.enqueue(async()=>{
+        const tx=this.db.transaction(["meta","horizontalReports","horizontalSnapshots"],"readwrite"),done=completed(tx);
+        try{
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开横向报告");
+          const old=(await request(tx.objectStore("horizontalReports").get([generation,id])))?.value;
+          if(old?.revision!==expectedRevision)throw Error("横向报告已在其他页面修改或删除，请重新打开后操作");
+          const chunks=await request(tx.objectStore("horizontalSnapshots").getAll(IDBKeyRange.bound([generation,id+":"],[generation,id+":\uffff"])));
+          for(const row of chunks)if(row.value.reportId===id)tx.objectStore("horizontalSnapshots").delete([generation,row.id]);
+          tx.objectStore("horizontalReports").delete([generation,id]);tx.objectStore("meta").put({id:"revision",value:uid()});await done;return true;
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
+    async importHorizontalReport(input,maps={}) {
+      let document=root.RingsideHorizontalStore.remapDocument(input,maps),old=await this.getHorizontalReport(document.id);
+      if(old&&E.canonical(old)===E.canonical(document))return old;
+      if(old)document={...document,id:"horizontal_"+uid(),title:document.title+"（导入副本）",revision:0};
+      return this.saveHorizontalReport(document,{expectedRevision:null});
+    }
+    listHorizontalDocuments(){return this.listHorizontalReports();}
+    getHorizontalDocument(id){return this.getHorizontalReport(id);}
+    saveHorizontalDocument(document,checks){return this.saveHorizontalReport(document,checks);}
+    deleteHorizontalDocument(id,checks){return this.deleteHorizontalReport(id,checks);}
     enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
     flush() { return this.queue; }
     saveRecords(records=[],checks={},options={}) {
@@ -170,6 +264,7 @@
           for(const owner of newAthletes){
             if(await request(tx.objectStore("athletes").get([generation,owner.id])))throw Error("运动员已在其他页面建立，请重新核对后保存");
             if(owner.groupId && !await request(tx.objectStore("groups").get([generation,owner.groupId])))throw Error("运动员所属队伍已不存在，请重新选择");
+            if(storedConfig.classifications)root.RingsideClassifications.validateProfile(owner.profile,storedConfig.classifications);
             owners.set(owner.id,owner);
           }
           for(const record of snapshots){
@@ -226,6 +321,7 @@
       }
       const owners=new Set(lib.athletes.map(a=>a.id)),profileIds=new Set(lib.evaluationProfiles.map(p=>p.id)),groupIds=new Set(lib.groups.map(g=>g.id));
       if(lib.athletes.some(a=>a.groupId&&!groupIds.has(a.groupId)))throw Error("运动员所属队伍不存在");
+      if(config.classifications)lib.athletes.forEach(owner=>root.RingsideClassifications.validateProfile(owner.profile,config.classifications));
       if(!profileIds.has(lib.defaultEvaluationProfileId)||records.some(r=>!owners.has(r.athleteId)||!profileIds.has(r.evaluationProfileId)))throw Error("测试关联的运动员或评价方案不存在");
       const snapshots=records.map(r=>{validateEntity("record",r);return clone(r);}),deletions=clone(removals),expected=clone(checks);
       // Capture caller values now, but compare metadata only after preceding writes commit.
@@ -303,9 +399,11 @@
       }
     }
     async *rows(generation=this.generation) {
-      yield {type:"header",format:"motionbench-backup",schema:3,created:new Date().toISOString()};
+      const hasHorizontal=(await this.values("horizontalReports",generation)).length>0;
+      yield {type:"header",format:"motionbench-backup",schema:hasHorizontal?4:3,created:new Date().toISOString()};
       const counts={athlete:0,record:0,group:0,profile:0,config:0};
-      for(const [table,type] of [["config","config"],["groups","group"],["profiles","profile"],["athletes","athlete"],["records","record"]]) {
+      if(hasHorizontal){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}
+      for(const [table,type] of [["config","config"],["groups","group"],["profiles","profile"],["athletes","athlete"],["records","record"],...(hasHorizontal?[["horizontalReports","horizontal-report"],["horizontalSnapshots","horizontal-snapshot"]]:[])]) {
         for await(const batch of this.batches(table,generation)) for(const value of batch){counts[type]++;yield {type,value};}
       }
       yield {type:"end",counts};
@@ -325,6 +423,8 @@
         for await(const batch of this.batches("records",generation))for(const record of batch){
           const owner=owners.get(record.athleteId);if(!owner)throw Error("资料在读取期间已更改或记录归属缺失，请核对资料后重新导出");owner.records.push(record);
         }
+        const documents=await this.values("horizontalReports",generation);
+        if(documents.length){lib.horizontalReports=[];for(const document of documents)lib.horizontalReports.push(await this.readHorizontalReport(document.id,generation));}
         return lib;
       });
     }
@@ -381,9 +481,10 @@
     async stageImport(iterable,{merge=false,onProgress=()=>{},upgradeCheckpoint=null,expectedRevision,expectedState}={}) {
       const generation="generation_"+uid(),oldGeneration=this.generation,initial=await this.versionState(),obsoleteGeneration=initial.previous,revision=initial.revision;
       if(initial.active!==oldGeneration || expectedState&&!this.sameVersion(initial,expectedState) || expectedRevision!==undefined&&revision!==expectedRevision)throw Error("资料已在其他页面修改，请重新打开后升级或导入");
-      const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config"};
+      const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config","horizontal-report":"horizontalReports","horizontal-snapshot":"horizontalSnapshots"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
-      let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1;
+      let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1,backupSchema=3;
+      let classificationMaps={};const horizontalMap=new Map(),horizontalIds=new Set();
       let incomingPlans=[],incomingReports=[],plansMerged=false;const planMap=new Map();
       const mergePlans=()=>{
         if(plansMerged)return;plansMerged=true;
@@ -419,12 +520,13 @@
         }
         for await(const raw of iterable){
           if(ended)throw Error("备份结束标记后仍有内容");
-          if(!header){if(raw.type!=="header"||raw.format!=="motionbench-backup"||raw.schema!==3)throw Error("不是 MotionBench 3 版备份");header=true;continue;}
+          if(!header){if(raw.type!=="header"||raw.format!=="motionbench-backup"||![3,4].includes(raw.schema))throw Error("不是支持的 MotionBench 备份");backupSchema=raw.schema;if(backupSchema===4){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}header=true;continue;}
           if(raw.type==="end"){
             if(E.canonical(raw.counts)!==E.canonical(counts))throw Error("备份条数校验失败");ended=true;continue;
           }
           if(!mapTable[raw.type])throw Error("备份包含未知类型");
-          const order=["config","group","profile","athlete","record"].indexOf(raw.type);
+          if(backupSchema===3&&raw.type.startsWith("horizontal-"))throw Error("横向报告需要新版备份格式");
+          const order=["config","group","profile","athlete","record","horizontal-report","horizontal-snapshot"].indexOf(raw.type);
           if(order<lastType)throw Error("备份资料顺序无效");lastType=order;
           const row={type:raw.type,value:raw.type==="profile"&&E.serializeProfile?E.serializeProfile(raw.value):clone(raw.value)},v=row.value;validateEntity(row.type,v);
           const incomingId=row.type==="record"?v.recordId:row.type==="config"?"library":v.id;
@@ -435,7 +537,7 @@
             incomingPlans=clone(v.testPlans||[]);
             incomingReports=longitudinalReports(v.longitudinalReports);
             v.defaultEvaluationProfileId=profileMap.get(v.defaultEvaluationProfileId)||v.defaultEvaluationProfileId;
-            if(seeded){mergeCatalog(config.catalog,v.catalog);continue;}
+            if(seeded){mergeCatalog(config.catalog,v.catalog);if(root.RingsideClassifications){const merged=root.RingsideClassifications.merge(config.classifications,v.classifications);config.classifications=merged.classifications;classificationMaps=merged.maps;}continue;}
             config=v;
           }
           if(row.type==="profile"){
@@ -450,6 +552,7 @@
           if(row.type==="athlete"){
             mergePlans();
             v.groupId=groupMap.get(v.groupId)||v.groupId||"";
+            if(root.RingsideClassifications)v.profile=root.RingsideClassifications.remapProfile(v.profile,classificationMaps);
             if(owners.has(v.id)&&seeded)continue;
             delete v.records;owners.set(v.id,v);
           }
@@ -461,9 +564,24 @@
             if(seeded){const old=await this.get("records",v.recordId,generation);if(old){if(old.athleteId!==v.athleteId)throw Error("测试 ID 已属于另一运动员");if(E.canonical(old)===E.canonical(v))continue;v.recordId=uid();recordMap[incomingId]=v.recordId;v.title=(v.title||v.athlete.date||"测试")+"（导入副本）";}}
             imported++;if(imported%100===0)onProgress(imported);
           }
+          if(row.type==="horizontal-report"){
+            const mapped=root.RingsideHorizontalStore.remapMetadata(v,{recordMap,profileMap,groupMap,...classificationMaps});
+            Object.assign(v,mapped);
+            const old=seeded?await this.get("horizontalReports",v.id,generation):null;
+            if(old&&E.canonical(old)===E.canonical(v)){
+              const tx=this.db.transaction("horizontalSnapshots","readwrite"),done=completed(tx),chunks=await request(tx.objectStore("horizontalSnapshots").getAll(IDBKeyRange.bound([generation,v.id+":"],[generation,v.id+":\uffff"])));
+              for(const chunk of chunks)if(chunk.value.reportId===v.id)tx.objectStore("horizontalSnapshots").delete([generation,chunk.id]);await done;
+            }else if(old){const next="horizontal_"+uid();horizontalMap.set(v.id,next);v.id=next;v.title+="（导入副本）";}
+            horizontalIds.add(v.id);
+          }
+          if(row.type==="horizontal-snapshot"){
+            if(!seen.get("horizontal-report").has(v.reportId))throw Error("横向报告快照缺少所属报告");
+            v.reportId=horizontalMap.get(v.reportId)||v.reportId;v.id=root.RingsideHorizontalStore.chunkId(v.reportId,v.index);
+          }
           pending.push(row);if(pending.length>=40)await flush();
         }
         if(!header||!ended||counts.config!==1)throw Error("备份不完整，原资料库保持不变");
+        if(root.RingsideClassifications){const normalized=root.RingsideClassifications.migrate({classifications:config.classifications,athletes:[...owners.values()]});config.classifications=normalized.classifications;for(const owner of normalized.athletes){if(E.canonical(owner)!==E.canonical(owners.get(owner.id)))pending.push({type:"athlete",value:owner});owners.set(owner.id,owner);}}
         mergePlans(); validateTestPlans(config.testPlans,config.catalog);
         for(const plan of config.testPlans)if(!profiles.has(plan.defaultEvaluationProfileId))throw Error("测试方案的推荐评价方案不存在");
         for(const [athleteId,profileId] of references)if(!owners.has(athleteId)||!profiles.has(profileId))throw Error("测试的运动员或评价方案不存在");
@@ -483,6 +601,9 @@
         config.activeAthleteId=owners.has(config.activeAthleteId)?config.activeAthleteId:"";
         if(config.activeRecordId){await flush();const active=await this.get("records",config.activeRecordId,generation);if(!active||active.athleteId!==config.activeAthleteId)config.activeRecordId="";}
         pending.push({type:"config",value:config});await flush();
+        for(const id of horizontalIds)await this.readHorizontalReport(id,generation);
+        const reportIds=new Set((await this.values("horizontalReports",generation)).map(document=>document.id));
+        for await(const batch of this.batches("horizontalSnapshots",generation))for(const chunk of batch)if(!reportIds.has(chunk.reportId))throw Error("横向报告快照归属缺失");
         const actual=[await this.values("athletes",generation),await this.values("recordIndex",generation)];
         if(actual[0].length>2000||actual[1].length>10000)throw Error("合并后资料超过容量边界");
         const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
@@ -496,7 +617,7 @@
         tx.objectStore("meta").put({id:"previous",value:oldGeneration});await done;
         this.generation=generation;this.metadataHashes.clear();
         if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
-        return{added:imported,skipped:counts.record-imported,recordMap,profileMap:Object.fromEntries(profileMap)};
+        return{added:imported,skipped:counts.record-imported,recordMap,profileMap:Object.fromEntries(profileMap),groupMap:Object.fromEntries(groupMap),...classificationMaps,horizontalMap:Object.fromEntries(horizontalMap),horizontalReportMap:Object.fromEntries(horizontalMap)};
       }catch(error){await this.discardGeneration(generation).catch(()=>{});throw error;}
     }
     async discardGeneration(generation) {
@@ -526,13 +647,19 @@
     close(){this.db.close();}
   }
   async function *libraryRows(lib){
-    yield{type:"header",format:"motionbench-backup",schema:3};
+    const horizontal=lib.horizontalReports||[];
+    yield{type:"header",format:"motionbench-backup",schema:horizontal.length?4:3};
     const counts={athlete:0,record:0,group:0,profile:0,config:1};
     yield{type:"config",value:configuration(lib)};
     for(const value of lib.groups||[]){counts.group++;yield{type:"group",value};}
     for(const value of lib.evaluationProfiles){counts.profile++;yield{type:"profile",value:E.serializeProfile?E.serializeProfile(value):value};}
     for(const a of lib.athletes){counts.athlete++;yield{type:"athlete",value:athleteMetadata(a)};}
     for(const a of lib.athletes)for(const value of a.records){counts.record++;yield{type:"record",value};}
+    if(horizontal.length){
+      counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;
+      const packed=[];for(const document of horizontal){const value=await root.RingsideHorizontalStore.pack(document);packed.push(value);counts["horizontal-report"]++;yield{type:"horizontal-report",value:value.metadata};}
+      for(const document of packed)for(const value of document.chunks){counts["horizontal-snapshot"]++;yield{type:"horizontal-snapshot",value};}
+    }
     yield{type:"end",counts};
   }
   async function *fileRows(file){

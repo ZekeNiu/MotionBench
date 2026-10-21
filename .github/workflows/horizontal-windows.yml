@@ -1,0 +1,103 @@
+name: MotionBench Horizontal Windows
+
+on:
+  push:
+    branches: [main, 'codex/motionbench-horizontal-*']
+    tags: ['v2.25.*-desktop.*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: horizontal-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      CI: true
+      CSC_IDENTITY_AUTO_DISCOVERY: false
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install locked dependencies and browsers
+        run: |
+          npm ci --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npx playwright install chrome msedge
+      - name: Install PDF verification readers
+        run: python -m pip install pypdf==6.10.2 pymupdf==1.28.2
+      - name: Build and verify every calculation suite
+        run: |
+          python scripts/build.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/run-unit-tests.cjs --artifact-dir output/tests/horizontal-2.25.0/final
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          npm run test:desktop-unit
+      - name: Verify classification and snapshot storage
+        run: |
+          node tests/horizontal-storage-browser-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-storage-browser-tests.cjs --edge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-classification-ui-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-classification-ui-tests.cjs --edge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-snapshot-browser-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-snapshot-browser-tests.cjs --edge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-scale-browser-tests.cjs
+      - name: Verify horizontal reports and complete PDFs
+        run: |
+          node tests/horizontal-setup-browser-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-lifecycle-browser-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-multiperson-pdf-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-browser-tests.cjs --pdf
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/horizontal-browser-tests.cjs --edge --pdf
+      - name: Verify existing longitudinal interactions
+        run: node tests/longitudinal-browser-tests.cjs --artifact-dir output/playwright/horizontal-2.25.0/longitudinal-regression
+      - name: Build and verify Windows delivery
+        run: |
+          npm run dist:windows
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node scripts/check-desktop-package.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
+          node tests/horizontal-native-browser-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/desktop-smoke/horizontal-2.25.0'
+          node tests/desktop-smoke.cjs
+      - name: Preserve synthetic verification artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: MotionBench-Horizontal-Windows-${{ github.run_number }}
+          path: |
+            output/tests/horizontal-2.25.0/
+            output/playwright/horizontal-2.25.0/
+            output/playwright/horizontal-storage/
+            output/playwright/horizontal-classification-ui/
+            output/playwright/horizontal-snapshot/
+            output/playwright/horizontal-scale/
+            output/desktop-package/
+            output/desktop-smoke/horizontal-2.25.0/
+          if-no-files-found: warn
+          retention-days: 14

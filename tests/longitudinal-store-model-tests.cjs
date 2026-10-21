@@ -11,6 +11,12 @@ function fixture() {
   const document = L.normalize({ athleteId: "a1", recordIds: ["r2", "r1"], mode: "mean", evaluationProfileId: library.defaultEvaluationProfileId, profileSnapshot: library.evaluationProfiles[0], views: { highlightRecordId: "r2" }, narrative: { text: "Coach original", revision: 2, basis: "original-basis" }, previousNarrative: { text: "Previous coach text" }, basis: "current-basis" });
   return { library, document };
 }
+test("standalone and longitudinal exports carry stable classification dependencies", () => {
+  const { library, document } = fixture();library.classifications={version:1,sports:[{id:"sport_one",name:"当前专项名称",subdivisionLabel:"用户自定"}],subdivisions:[{id:"detail_one",sportId:"sport_one",name:"细分名称"}],ageBands:[]};
+  Object.assign(library.athletes[0].profile,{sport:"原专项名称",sportId:"sport_one",subdivisionId:"detail_one"});const before=JSON.stringify(library);
+  const output=L.exportLibrary(library,document,library.athletes[0].records);assert.deepEqual(plain(output.classifications),plain(library.classifications));assert.equal(output.athletes[0].profile.sportId,"sport_one");
+  const report=M.recordEnvelope(library.athletes[0].records[0],library.athletes[0].profile,library.catalog,library.classifications),normalized=E.migrate(report);assert.deepEqual(plain(normalized.classifications),plain(library.classifications));assert.equal(normalized.athletes[0].profile.subdivisionId,"detail_one");assert.equal(JSON.stringify(library),before);
+});
 test("document key is order independent and cannot collide across athletes or ID sets", () => {
   assert.equal(L.key("a1", ["r2", "r1"]), L.key("a1", ["r1", "r2"])); assert.notEqual(L.key("a1", ["r1", "r2"]), L.key("a2", ["r1", "r2"]));
   assert.throws(() => L.key("__proto__", ["r1", "r2"])); assert.throws(() => L.normalize({ athleteId: "a1", recordIds: ["r1", "r1"] }));

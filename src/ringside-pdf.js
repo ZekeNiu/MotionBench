@@ -211,7 +211,8 @@
 
   function cleanClone(reportElement,snapshot) {
     const clone = reportElement.cloneNode(true);
-    if(snapshot && clone.dataset.longitudinal !== "true")root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
+    if(snapshot?.horizontalModel)root.RingsideHorizontalView.preparePrint(clone,snapshot.horizontalModel,snapshot.horizontalViews||{});
+    if(snapshot && clone.dataset.longitudinal !== "true" && clone.dataset.horizontal !== "true")root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
     if (clone.dataset.longitudinal === "true") {
       clone.querySelector("#directionMetrics")?.remove();
       clone.querySelector("#radarLegend")?.closest(".card-foot")?.remove();
@@ -315,6 +316,7 @@
   }
 
   function backgroundFields(snapshot) {
+    if (snapshot.horizontal) return [];
     const athlete = snapshot.athlete || {};
     return [
       ["sport", "专项", athlete.sport],
@@ -794,7 +796,52 @@
     return result;
   }
 
+  function reportIdentity(snapshot) {
+    if(snapshot.horizontal){
+      const title=snapshot.horizontalTitle||"横向比较报告",subject="横向比较报告 · "+(snapshot.horizontalModel?.participants?.length||0)+" 名运动员";
+      return {title,subject,header:subject,footer:"横向比较报告"};
+    }
+    return {title:[snapshot.athlete?.name,"运动表现与筛查"].filter(Boolean).join(" · "),
+      subject:["选定测试报告",...backgroundFields(snapshot).map(field=>field.text)].join(" · "),
+      header:[snapshot.athlete?.name,snapshot.longitudinal&&snapshot.longitudinalDateRange||snapshot.athlete?.date].filter(Boolean).join(" · "),
+      footer:"运动表现与损伤风险筛查报告"};
+  }
+
+  function metadataBlob(doc, properties) {
+    // jsPDF's literal strings leave UTF-16 CR bytes unescaped. Write text
+    // strings as UTF-16BE hex in a standard incremental Info update instead;
+    // the original pages, resources and cross-reference offsets stay intact.
+    const bytes = new Uint8Array(doc.output("arraybuffer"));
+    const tail = Array.from(bytes.subarray(Math.max(0, bytes.length - 2048)), byte => String.fromCharCode(byte)).join("");
+    const trailer = tail.slice(tail.lastIndexOf("\ntrailer") + 1)
+      .match(/^trailer\s*<<([\s\S]*?)>>\s*startxref\s+(\d+)\s*%%EOF\s*$/);
+    const info = trailer?.[1].match(/\/Info\s+(\d+)\s+(\d+)\s+R/);
+    if (!info || !/\/Root\s+\d+\s+\d+\s+R/.test(trailer[1]) ||
+        !/\/Size\s+\d+/.test(trailer[1]) || /\/Encrypt\b/.test(trailer[1]))
+      throw new Error("PDF 文档信息写入失败。");
+    const hex = value => {
+      const text = String(value);
+      let encoded = "<FEFF";
+      for (let index = 0; index < text.length; index++)
+        encoded += text.charCodeAt(index).toString(16).padStart(4, "0");
+      return encoded + ">";
+    };
+    const values = { producer: "jsPDF " + root.jspdf.jsPDF.version,
+      creationDate: doc.getCreationDate(), ...properties };
+    const fields = ["producer", "title", "subject", "author", "keywords", "creator", "creationDate"]
+      .filter(key => values[key] !== undefined && values[key] !== null)
+      .map(key => "/" + key[0].toUpperCase() + key.slice(1) + " " + hex(values[key])).join("\n");
+    const offset = bytes.length + 1;
+    const object = info[1] + " " + info[2] + " obj\n<<\n" + fields + "\n>>\nendobj\n";
+    const dictionary = trailer[1].replace(/\/Prev\s+\d+\b/g, "").trim();
+    const update = "\n" + object + "xref\n0 1\n0000000000 65535 f \n" + info[1] + " 1\n" +
+      String(offset).padStart(10, "0") + " " + info[2].padStart(5, "0") + " n \ntrailer\n<<\n" +
+      dictionary + "\n/Prev " + trailer[2] + "\n>>\nstartxref\n" + (offset + object.length) + "\n%%EOF\n";
+    return new Blob([bytes, update], { type: "application/pdf" });
+  }
+
   function makePaginator(stage, snapshot) {
+    const identity=reportIdentity(snapshot);
     const pages = [];
     const headings = [];
     let content;
@@ -806,15 +853,13 @@
         element(
           "span",
           "",
-          [snapshot.athlete?.name, snapshot.longitudinal && snapshot.longitudinalDateRange || snapshot.athlete?.date]
-            .filter(Boolean)
-            .join(" · "),
+          identity.header,
         ),
       );
       content = element("div", "ringside-pdf-content");
       const footer = element("div", "ringside-pdf-page-foot");
       footer.append(
-        element("span", "", "运动表现与损伤风险筛查报告"),
+        element("span", "", identity.footer),
         element("span", "ringside-pdf-page-number"),
       );
       page.append(header, content, footer);
@@ -1311,6 +1356,7 @@
       const primaryLayouts = layoutPrimaryPairs(source, stage);
       root.RingsideReport.layoutCharts(source, { print: true });
       if (source.dataset.longitudinal === "true") root.RingsideLongitudinalView?.layout(source, { print: true });
+      if (source.dataset.horizontal === "true") root.RingsideHorizontalView.layout(source, { print: true });
       freezePrimaryColumns(source);
       await freezeCharts(source);
       const sourceChartCount = source.querySelectorAll(
@@ -1385,17 +1431,13 @@
         format: "a4",
         compress: true,
       });
-      doc.setProperties({
-        title: [captured.athlete?.name, "运动表现与筛查"]
-          .filter(Boolean)
-          .join(" · "),
-        subject: [
-          "选定测试报告",
-          ...backgroundFields(captured).map((field) => field.text),
-        ].join(" · "),
+      const identity=reportIdentity(captured);
+      const properties = {
+        title: identity.title,
+        subject: identity.subject,
         creator: "MotionBench",
         author: "MotionBench",
-      });
+      };
       for (let index = 0; index < pages.length; index++) {
         const page = pages[index];
         const canvas = await root.html2canvas(page, {
@@ -1442,7 +1484,7 @@
         );
         await new Promise((resolve) => root.setTimeout(resolve, 0));
       }
-      const blob = doc.output("blob");
+      const blob = metadataBlob(doc, properties);
       if (!(blob instanceof Blob) || blob.size < 100)
         throw new Error("PDF 文件生成失败。");
       progress(options.onProgress, "complete", pages.length, pages.length, 100);

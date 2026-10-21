@@ -91,6 +91,14 @@ class Delivery:
    const renderer=inventory.find(p=>p.ParentProcessId===pid&&p.CommandLine?.includes('--type=renderer')),profile=renderer?.CommandLine.match(/--user-data-dir="([^"]+)"/)?.[1];assert.ok(profile);result.profilePath=profile;assert.equal(path.resolve(profile),path.join(base,'system-'+mode+'-profile'));result.launchReceiptSha256=fileHash(arg('--launch-receipt'));
   }''' + text[end:]
             text = self.native_selection_adapter(text)
+            if self.c.get('additiveComparisonMetadataMigration'):
+                helper = ROOT / 'tests/helpers/horizontal-migration-proof.cjs'
+                declaration = 'const Migration=require(' + json.dumps(str(helper)) + ');result.migrationProofSha256=fileHash(' + json.dumps(str(helper)) + ');\n'
+                text = text.replace("async function snapshot(page){return page.evaluate(async source=>{", declaration + "async function snapshot(page){return page.evaluate(async ({source,migrationSource})=>{\n const migration=(0,eval)('('+migrationSource+')')();")
+                text = text.replace("proof.canonical(wire)", "proof.canonical(migration.report(wire))")
+                text = text.replace("},P.createProof.toString());}", "},{source:P.createProof.toString(),migrationSource:Migration.createMigrationProof.toString()});}")
+                text = text.replace("P.library(actual.library,reference.library,sample,document);", "Migration.validate(actual.library,reference.library,{requireClassifications:mode!=='baseline'});P.library(Migration.library(actual.library),Migration.library(reference.library),sample,document);")
+                text = text.replace("Complete original single-report calculations changed", "Original single-report calculations changed outside declared additive metadata")
         else:
             text = text.replace('2.24.7', self.version).replace('2247', self.version.replace('.', ''))
             text = text.replace("$workspace = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))", '$workspace = ' + quote(ROOT))
@@ -166,7 +174,14 @@ class Delivery:
         file = self.base / 'manifest.json'
         item = read(file)
         require(item['complete'] and item['kind'] == 'system-profile-checkpoint' and item['source']['virtualized'] is False and item['source']['parentName'] == 'explorer.exe', 'Invalid physical checkpoint')
-        require(item['sourceCommit'] == self.c['baselineCommit'] and item['runnerSha256'] == self.adapters()['prepare']['sha256'], 'Checkpoint producer/baseline differs')
+        producer = self.adapters()['prepare']['sha256']
+        if self.c.get('checkpointProducer'):
+            original = self.c['checkpointProducer']
+            script = ROOT / original['file']
+            require(digest(script) == original['sha256'], 'Checkpoint original producer changed')
+            require(script.read_text(encoding='utf-8') == self.adapter('prepare')[1].decode('utf-8'), 'Checkpoint original script differs from the pinned preparation procedure')
+            producer = original['sha256']
+        require(item['sourceCommit'] == self.c['baselineCommit'] and item['runnerSha256'] == producer, 'Checkpoint producer/baseline differs')
         require(item['source']['profile'] == self.c['actualProfile'], 'Wrong actual profile')
         for name, entries in [('system-userdata', item['files']), ('program', item['programReference']['files'])]:
             directory = (self.base / name).resolve()
@@ -318,7 +333,7 @@ class Delivery:
             identity = item.get('identity', {})
             require(item.get('pass') and not any(item.get(k) for k in ('errors', 'error', 'failure')), 'Focused receipt failed: ' + str(file))
             require(item.get('sourceHash', identity.get('runtimeHtmlSha256')) == source, 'Focused source differs')
-            require(item.get('runnerSha256', identity.get('runnerSha256')) == digest(ROOT / spec['runner']), 'Focused producer changed')
+            require(item.get('runnerSha256', identity.get('runnerSha256', identity.get('testScriptSha256'))) == digest(ROOT / spec['runner']), 'Focused producer changed: ' + spec['runner'])
             require(len(item['checks']) >= spec['minChecks'], 'Focused checks incomplete')
             if spec.get('desktop'):
                 require(identity['runtimeHtmlSha256'] == source and identity['runtimeMatchesSourceHtml'] and identity == item['finalIdentity'], 'Native identity changed')
@@ -346,6 +361,8 @@ class Delivery:
             require(item['snapshotSha256'] == digest(folder / 'snapshot.json') and item['counts'] == baseline['counts'] and len(item['checks']) == (3 if mode == 'baseline' else 5), 'Private snapshot/check inventory differs')
             require(item['currentSelection'] == baseline['currentSelection'], 'Private saved report shape or selected record differs')
             require(item['guardSha256'] == self.c['guardSha256'], 'Original preservation proof changed')
+            if self.c.get('additiveComparisonMetadataMigration'):
+                require(item.get('migrationProofSha256') == digest(ROOT / 'tests/helpers/horizontal-migration-proof.cjs'), 'Additive migration preservation proof changed')
             if mode != 'baseline':
                 require(item['runtimeHtmlSha256'] == digest(ROOT / 'MotionBench.html') and item['archiveSha256'] == digest(ROOT / 'dist-desktop/win-unpacked/resources/app.asar'), 'Private tested package differs')
             result[mode] = {'pass': True, 'receiptSha256': digest(folder / 'receipt.json'), 'checks': len(item['checks']), 'normalClose': True, 'guardRemoved': True}
@@ -408,7 +425,7 @@ class Delivery:
         setup = destination / ('MotionBench-' + self.desktop + '-Setup-x64.exe')
         require(base64.b64encode(hashlib.sha512(setup.read_bytes()).digest()).decode() in (destination / 'desktop.yml').read_text(), 'Updater installer hash differs')
         commit = git('rev-parse', 'HEAD').decode().strip()
-        files = git('ls-files', '--', 'src', 'desktop', 'vendor', 'MotionBench.html', 'body-map-front.png', 'package.json', 'package-lock.json', 'electron-builder.yml', 'scripts', 'tests', '.github/workflows/comparison-windows.yml').decode('utf-8').splitlines()
+        files = git('ls-files', '--', 'src', 'desktop', 'vendor', 'MotionBench.html', 'body-map-front.png', 'package.json', 'package-lock.json', 'electron-builder.yml', 'scripts', 'tests', '.github/workflows').decode('utf-8').splitlines()
         inputs = []
         for name in files:
             require((ROOT / name).read_bytes() == git('show', commit + ':' + name), 'Input differs from accepted commit: ' + name)

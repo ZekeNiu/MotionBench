@@ -289,9 +289,11 @@
   function descriptor(id, record) { return record?.definitions?.find(d => d.id === id) || definitions.get(id) || defaults().definitions.find(d => d.id === id); }
   function ruleFromDefinition(d) {
     const enabled = d.referenceEnabled === true;
+    const canonicalOnly = ["none", "unconfirmed"].includes(d.direction);
     return { id: "metric:" + d.id, kind: "metric", testId: d.testId, metricId: d.id,
-      context: clone(E.compatibleContext(d, d.context)), enabled, targetEnabled: number(d.target) !== null || !!d.referenceGroups?.some(group=>number(group.target)!==null), rangesEnabled: !!d.ranges?.length || !!d.referenceGroups?.length,
+      context: clone(E.compatibleContext(d, d.context)), enabled, targetEnabled: !canonicalOnly && (number(d.target) !== null || !!d.referenceGroups?.some(group=>number(group.target)!==null)), rangesEnabled: !!d.ranges?.length || !!d.referenceGroups?.length,
       target: number(d.target), direction: d.direction || "higher", ranges: clone(d.ranges || []), source: typeof d.source === "string" ? d.source : "",
+      ...(canonicalOnly || d.directionSource === "metric" ? { directionSource: "metric" } : {}),
       ...(d.referenceGroups ? { referenceGroups: clone(d.referenceGroups) } : {}),
       legacyRangesSignature: E.canonical(d.ranges || []) };
   }
@@ -345,8 +347,9 @@
     const ruleDefinitions = [];
     for (const rule of profile.standards) if (rule.kind === "metric") {
       const d = descriptor(rule.metricId, record) || { id: rule.metricId, testId: rule.testId, name: rule.metricId, unit: rule.context?.unit || "", ability: "", category: "performance", protocol: rule.context?.metricProtocol || "", entryScope: "record" };
-      ruleDefinitions.push({ ...clone(d), context: clone(rule.context), target: rule.targetEnabled ? rule.target : null,
-        ranges: rule.rangesEnabled ? clone(rule.ranges) : [], direction: rule.direction, referenceEnabled: rule.enabled && (rule.targetEnabled || rule.rangesEnabled), source: rule.source,
+      const directional = ["higher", "lower"].includes(rule.direction);
+      ruleDefinitions.push({ ...clone(d), context: clone(rule.context), target: rule.targetEnabled && directional ? rule.target : null,
+        ranges: rule.rangesEnabled ? clone(rule.ranges) : [], direction: directional ? rule.direction : "higher", referenceEnabled: rule.enabled && (rule.targetEnabled && directional || rule.rangesEnabled), source: rule.source,
         ...(rule.referenceGroups ? { referenceGroups: clone(rule.referenceGroups), referenceMode: "grouped" } : {}) });
     }
     c.definitions = ruleDefinitions;
@@ -429,7 +432,10 @@
       name: measureKind === "rfd" ? "0–" + timeMs + " ms 平均 RFD" : timeMs + " ms 力占峰值力比例", unit: measureKind === "rfd" ? "N/s" : "%PF", ability: "早期发力", measurementScale: "ratio", zeroValid: false, context: E.imtpTimeContext(record) });
     for (const rule of profile?.standards || []) if (!subjects.some(subject => subject.id === subjectId(rule))) subjects.push({ id: subjectId(rule), kind: rule.kind, testId: rule.testId, metricId: rule.metricId, directionId: rule.directionId, pairId: rule.pairId,
       timeMs: rule.timeMs, measureKind: rule.measureKind, name: rule.metricId || rule.directionId || rule.pairId || rule.id, unit: rule.context?.unit || "", ability: "", measurementScale: "unknown", context: clone(rule.context), historical: true });
-    subjects.forEach(subject => { subject.capabilities = { target: !["balance", "fixed"].includes(subject.kind), ranges: !["iso", "fixed"].includes(subject.kind), reference: ["iso", "balance"].includes(subject.kind), referenceGroups: subject.kind === "metric", conditions: !subject.locked }; });
+    subjects.forEach(subject => {
+      if (subject.kind === "metric" && root.RingsideMetricSemantics) subject.performanceDirection = root.RingsideMetricSemantics.resolve(descriptor(subject.metricId, record));
+      subject.capabilities = { target: !["balance", "fixed"].includes(subject.kind), ranges: !["iso", "fixed"].includes(subject.kind), reference: ["iso", "balance"].includes(subject.kind), referenceGroups: subject.kind === "metric", conditions: !subject.locked };
+    });
     return subjects;
   }
   function measurementScale(d) {
@@ -445,7 +451,8 @@
     if (rule) return rule;
     if (subject.locked) throw Error("固定评分不允许编辑");
     rule = { id: subject.id, kind: subject.kind, testId: subject.testId, context: clone(subject.context), enabled: true,
-      targetEnabled: false, rangesEnabled: false, target: null, ranges: [], direction: "higher", source: "" };
+      targetEnabled: false, rangesEnabled: false, target: null, ranges: [], direction: subject.kind === "metric" ? subject.performanceDirection?.direction || "unconfirmed" : "higher", source: "",
+      ...(subject.kind === "metric" ? { directionSource: "metric" } : {}) };
     for (const key of ["metricId", "directionId", "pairId", "timeMs", "measureKind"]) if (subject[key] !== undefined) rule[key] = subject[key];
     p.standards.push(rule); return rule;
   }
@@ -488,7 +495,8 @@
     const ids = new Set();
     for (const rule of p.standards) {
       if (!safe(rule.id) || ids.has(rule.id) || !["metric", "imtp-time", "iso", "balance"].includes(rule.kind) || !safe(rule.testId) || !rule.context ||
-        ["enabled", "targetEnabled", "rangesEnabled"].some(key => typeof rule[key] !== "boolean") || !["higher", "lower"].includes(rule.direction) || typeof rule.source !== "string") throw Error("标准编号、开关或测量条件无效");
+        ["enabled", "targetEnabled", "rangesEnabled"].some(key => typeof rule[key] !== "boolean") || !["higher", "lower"].includes(rule.direction) && !(rule.directionSource === "metric" && ["none", "unconfirmed"].includes(rule.direction) && !rule.targetEnabled) || typeof rule.source !== "string") throw Error("标准编号、开关或测量条件无效");
+      if (rule.directionSource !== undefined && rule.directionSource !== "metric") throw Error("评价方向来源无效");
       ids.add(rule.id);
       if (rule.kind === "iso" && rule.rangesEnabled || rule.kind === "balance" && rule.targetEnabled) throw Error("该结果不支持此评价方式");
       if (rule.kind !== "metric" && rule.referenceGroups !== undefined) throw Error("该结果不支持通用分层标准");
@@ -623,8 +631,41 @@
       profiles: (after.evaluationProfiles || []).map(profile => ({ id: profile.id, name: profile.name, formatVersion: profile.formatVersion,
         aggregations: Object.entries(profile.aggregations || {}).filter(([, axis]) => axis.migrationIssue).map(([ability, axis]) => ({ ability, method: axis.method, reason: axis.migrationIssue, members: clone(axis.members || []), legacy: clone(axis.legacy || {}) })) })) };
   }
+  function bindMetricDirections(input, catalog, options = {}) {
+    const p = normalizeProfile(clone(input), catalog), metrics = new Map((catalog?.definitions || []).map(d => [d.id, d]));
+    for (const rule of p.standards) {
+      if (rule.kind !== "metric" || rule.directionSource !== "metric" && !options.adoptLegacy) continue;
+      const definition = metrics.get(rule.metricId); if (!definition) continue;
+      const resolved = root.RingsideMetricSemantics.resolve(definition);
+      rule.directionSource = "metric"; rule.direction = resolved.direction;
+      if (!["higher", "lower"].includes(resolved.direction)) rule.targetEnabled = false;
+      // These are frozen function parameters, not a second editable definition
+      // of what constitutes a better measurement.
+      for (const axis of Object.values(p.aggregations)) {
+        const transform = axis.transforms?.[rule.id];
+        if (transform?.kind === "ratio" && ["higher", "lower"].includes(resolved.direction)) transform.direction = resolved.direction;
+      }
+    }
+    return p;
+  }
+  function reviewDirections(catalog, profiles = []) {
+    const unconfirmed = [], conflicts = [], definitions = new Map((catalog?.definitions || []).map(d => [d.id, d]));
+    for (const definition of definitions.values()) if (!root.RingsideMetricSemantics.resolve(definition).confirmed)
+      unconfirmed.push({ metricId: definition.id, testId: definition.testId, name: definition.name });
+    for (const original of profiles) {
+      const profile = normalizeProfile(clone(original), catalog);
+      for (const rule of profile.standards) {
+        const definition = definitions.get(rule.metricId); if (!definition || rule.directionSource === "metric") continue;
+        const resolved = root.RingsideMetricSemantics.resolve(definition);
+        if (resolved.confirmed && ["higher", "lower"].includes(rule.direction) && resolved.direction !== rule.direction &&
+            (["higher", "lower"].includes(resolved.direction) || resolved.direction === "none" && rule.enabled && rule.targetEnabled))
+          conflicts.push({ metricId: definition.id, name: definition.name, profileId: profile.id, profileName: profile.name, metricDirection: resolved.direction, profileDirection: rule.direction });
+      }
+    }
+    return { unconfirmed, conflicts };
+  }
   Object.assign(E, { normalizeProfile, serializeProfile, ruleSubjects, ensureStandard, validateProfile, resolve, previewTransform, changesBetween, measurementScale, migrationReport,
-    conditionsMatch, matchReferenceGroup, upgradeLibraryProfiles,
+    conditionsMatch, matchReferenceGroup, upgradeLibraryProfiles, bindMetricDirections, reviewDirections,
     create(record, name) { return normalizeProfile(legacy.create(record, name), record); },
     template(input, source) { const p = normalizeProfile(input, source); sync(p); return legacy.template({ criteria: criteriaOf(p, source) }); },
     fromTemplate(record, original) { const p = normalizeProfile(original, record); return legacy.fromTemplate(record, { criteria: criteriaOf(p, record) }); },

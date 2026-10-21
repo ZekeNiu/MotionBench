@@ -1109,7 +1109,7 @@
     out.balancePairs.forEach(pair => migrateBalancePair(pair, out.data.iso));
     out.definitions = preserveAddedMetricCollisions((
       Array.isArray(s.definitions) ? s.definitions : d.definitions
-    ), s).map((x) => convertDefinition(x, legacy));
+    ), s).map((x) => convertDefinition(x, legacy)).map(x => root.RingsideMetricSemantics?.normalize(x, { legacy: true }) || x);
     const existing = new Set(out.definitions.map((x) => x.id));
     extraDefs()
       .filter(
@@ -3655,7 +3655,7 @@
     invisible.forEach((id) => { delete data[id]; delete enabled[id]; delete protocol[id]; });
     Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
     const projection = definition => {
-      const { referenceMatch, referenceGroups, targetEnabled, rangesEnabled, protocolIdentity, ...result } = definition;
+      const { referenceMatch, referenceGroups, targetEnabled, rangesEnabled, protocolIdentity, resultMeaning, directionStatus, ...result } = definition;
       if (protocolIdentity?.version > 1) result.protocolIdentity = protocolIdentity;
       if (!T.isManualMetric(result) && result.measurementScale === "ratio") delete result.measurementScale;
       if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
@@ -3709,6 +3709,7 @@
     const derivedEnabled = Object.fromEntries(Object.entries(record.derivedEnabled || {}).filter(([,enabled]) => enabled === false));
     const athlete = { ...record.athlete }, trainingContext = { ...record.trainingContext };
     delete athlete.birthDate;
+    delete athlete.sportId; delete athlete.subdivisionId;
     if (empty(athlete.injuryHistory)) delete athlete.injuryHistory;
     for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (empty(trainingContext[key])) delete trainingContext[key];
     return JSON.stringify({
@@ -3764,7 +3765,7 @@
       return canonicalJSON(value) === fingerprintWithoutAge(comparison);
     } catch (_) { return false; }
   }
-  function recordEnvelope(record, profile, catalog) {
+  function recordEnvelope(record, profile, catalog, classifications) {
     const evaluation = profile && (profile.formatVersion === 2 || profile.criteria);
     return {
       schema: 2,
@@ -3772,9 +3773,10 @@
       record: clone(record),
       ...(profile ? evaluation ? { evaluationProfile: root.RingsideEvaluation?.serializeProfile(profile) || clone(profile) } : { profile: clone(profile) } : {}),
       ...(catalog ? { catalog: clone(catalog) } : {}),
+      ...(classifications !== undefined ? { classifications: clone(classifications) } : {}),
     };
   }
-  const PROFILE_KEYS = ["name", "sex", "sport", "dominantHand", "sportLevel", "birthDate", "injuryHistory", "experienceYears"];
+  const PROFILE_KEYS = ["name", "sex", "sport", "sportId", "subdivisionId", "dominantHand", "sportLevel", "birthDate", "injuryHistory", "experienceYears"];
   function profileFromRecord(record) {
     const a = record?.athlete || record || {};
     return Object.fromEntries(
@@ -3823,7 +3825,7 @@
   function catalogMetric(definition) {
     const d = { ...definition, target: null, ranges: [], referenceEnabled: false };
     for (const key of ["reference", "referenceGroups", "referenceMode", "referenceMatch", "targetEnabled", "rangesEnabled", "context"]) delete d[key];
-    return d;
+    return root.RingsideMetricSemantics?.normalize(d, { legacy: true }) || d;
   }
   function normalizeCatalog(input) {
     const base = catalogDefaults(),
@@ -4062,6 +4064,7 @@
         lib = libraryDefaults();
       const suppliedProfile = input?.profile;
       const profile = profileFromRecord(suppliedProfile && !(suppliedProfile.formatVersion === 2 || suppliedProfile.criteria) ? suppliedProfile : record);
+      if (input?.classifications !== undefined) lib.classifications = clone(input.classifications);
       lib.athletes.push({
         id: record.athleteId,
         name: profile.name || record.athlete.name || "未命名运动员",
@@ -4535,7 +4538,9 @@
           !safeId(definition.testId) ||
           !knownTests.has(definition.testId) ||
           typeof definition.name !== "string" ||
-          !["higher", "lower"].includes(definition.direction) ||
+          !["higher", "lower", "none", "unconfirmed"].includes(definition.direction) ||
+          (definition.resultMeaning !== undefined && !["numeric", "ordinal", "category"].includes(definition.resultMeaning)) ||
+          (definition.directionStatus !== undefined && !["confirmed", "unconfirmed"].includes(definition.directionStatus)) ||
           !Array.isArray(definition.ranges) ||
           (definition.entryScope !== undefined &&
             !["record", "attempt"].includes(definition.entryScope)) ||
@@ -4671,7 +4676,7 @@
     if (typeof input.athlete.name !== "string")
       throw new Error("运动员姓名字段无效");
     validateAthleteContext(input);
-    ["sport", "dominantHand"].forEach((key) => {
+    ["sport", "sportId", "subdivisionId", "dominantHand"].forEach((key) => {
       if (
         input.athlete[key] !== undefined &&
         typeof input.athlete[key] !== "string"
@@ -4763,7 +4768,9 @@
         ids.has(d.id) ||
         !Array.isArray(d.ranges) ||
         typeof d.name !== "string" ||
-        !["higher", "lower"].includes(d.direction) ||
+        !["higher", "lower", "none", "unconfirmed"].includes(d.direction) ||
+        (d.resultMeaning !== undefined && !["numeric", "ordinal", "category"].includes(d.resultMeaning)) ||
+        (d.directionStatus !== undefined && !["confirmed", "unconfirmed"].includes(d.directionStatus)) ||
         (d.entryScope !== undefined &&
           !["record", "attempt"].includes(d.entryScope)) ||
         (d.entryScope === "attempt" && !T.supportsAttemptMetrics(d.testId) && !d.legacyManual) ||
@@ -5280,7 +5287,7 @@
     for (const rule of (effective.imtpTimeStandards || []).filter(rule=>rule.legacyMetricId)) { const d=effective.definitions.find(d=>d.id===rule.legacyMetricId); if(d) for(const key of ["target","ranges","direction","referenceEnabled","source"]) d[key]=clone(rule[key]); }
     if (canonicalJSON(core(effective)) !== canonicalJSON(core(original))) return { record:input, changed:false };
     const definitionProjection = definition => {
-      const { context,referenceMatch,protocolIdentity,targetEnabled,rangesEnabled,...value } = definition;
+      const { context,referenceMatch,protocolIdentity,targetEnabled,rangesEnabled,resultMeaning,directionStatus,...value } = definition;
       if (!value.legacyManual) ["name","protocol"].forEach(key => { value[key] = Def.factoryText(value.id,key,value[key]); });
       if (/(?:^|_)rsi(?:_modified)?$/.test(value.id) && value.target == null && value.ranges.length === 0 && value.source === "用户配置评价标准" && value.protocol === "使用实际测试协议与匹配评价标准") {
         const current = original.definitions.find(d => d.id === value.id);

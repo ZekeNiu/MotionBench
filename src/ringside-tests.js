@@ -27,7 +27,7 @@
     ["mas", "MAS 最大有氧速度", "performance", "speed"],
     ["mss", "MSS 最大冲刺速度", "performance", "speed"],
   ].map(([id, name, category, renderer]) =>
-    Object.freeze({ id, name, category, renderer }),
+    Object.freeze({ id, name, category, renderer, comparisonSubjectInputs: renderer === "fvp" ? ["distanceCm"] : [] }),
   );
   const registry = new Map(builtins.map((test) => [test.id, test]));
   const reactiveIds = ["dj","hop","cmrj"];
@@ -56,30 +56,30 @@
     {
       key: "landingPeakForce",
       suffix: "landing_peak_force",
-      label: "落地峰值力",
+      label: "落地峰值力", performanceDirection: "none",
       unit: "N",
     },
   ];
   const reactiveFields = [
     { key: "height", suffix: "height", label: "反弹垂直跳跃高度", unit: "cm" },
     { key: "rsi", suffix: "rsi", label: "RSI", unit: "m/s", computed: true },
-    { key: "contactTimeMs", suffix: "contact_time", label: "触地时间", unit: "ms" },
+    { key: "contactTimeMs", suffix: "contact_time", label: "触地时间", unit: "ms", performanceDirection: "none" },
     { key: "flightTimeMs", suffix: "flight_time", label: "腾空时间", unit: "ms" },
     { key: "flightTimeRatio", suffix: "flight_time_ratio", label: "腾空 / 触地时间", unit: "比值", computed: true },
-    { key: "activeStiffness", suffix: "active_stiffness", label: "Active Stiffness", unit: "kN/m" },
+    { key: "activeStiffness", suffix: "active_stiffness", label: "Active Stiffness", unit: "kN/m", performanceDirection: "none" },
   ];
   function fieldsForTest(id) {
-    if (id === "dj") return reactiveFields.concat({ key: "dropHeightCm", suffix: "drop_height", label: "跌落高度", unit: "cm" });
+    if (id === "dj") return reactiveFields.concat({ key: "dropHeightCm", suffix: "drop_height", label: "跌落高度", unit: "cm", performanceDirection: "none" });
     if (id === "hop") return reactiveFields;
     if (id === "cmrj") return [
       { key: "firstHeight", suffix: "first_height", label: "首跳垂直跳跃高度", unit: "cm" },
-      { key: "firstTimeToTakeoffMs", suffix: "first_time_to_takeoff", label: "首跳起跳用时", unit: "ms" },
+      { key: "firstTimeToTakeoffMs", suffix: "first_time_to_takeoff", label: "首跳起跳用时", unit: "ms", performanceDirection: "none" },
       { key: "firstRsiModified", suffix: "first_rsi_modified", label: "首跳 RSI-modified", unit: "m/s", computed: true },
       ...reactiveFields,
     ];
     return id === "cmj" ? jumpFields.concat([
       { key: "propulsiveImpulse", suffix: "propulsive_impulse", label: "推进期冲量", unit: "N·s" },
-      { key: "propulsiveDurationMs", suffix: "propulsive_duration", label: "推进期时长", unit: "ms" },
+      { key: "propulsiveDurationMs", suffix: "propulsive_duration", label: "推进期时长", unit: "ms", performanceDirection: "none" },
     ]) : jumpFields;
   }
   const derivedRegistry = [
@@ -92,19 +92,19 @@
     ["asr", "ASR · 无氧速度储备", "m/s", "MSS − MAS", ["mss", "mas"], ["sandford-asr-2019"], "常用", "使用有效 MSS 与 MAS，保留具体测量方法；不以 VIFT 替代 MAS。"],
     ["srr", "SRR · 速度储备比", "比值", "MSS / MAS", ["mss", "mas"], ["sandford-asr-2019", "buchheit-srr-2025"], "常用", "结合 MSS、MAS 与专项要求解释，不套用其他专项的分组界值。"],
   ].map(([id, name, unit, formula, dependencies, sourceIds, evidenceLevel, protocol]) =>
-    ({ id, name, unit, formula, dependencies, sourceIds, evidenceLevel, protocol, ability: analysisLabel, scoring: false }));
+    ({ id, name, unit, formula, dependencies, sourceIds, evidenceLevel, protocol, ability: analysisLabel, scoring: false, resultMeaning: "numeric", direction: "none", directionStatus: "confirmed" }));
   const derivedDefinitions = () => JSON.parse(JSON.stringify(derivedRegistry));
   const derivedDefaults = () => Object.fromEntries(derivedRegistry.map((d) => [d.id, true]));
   const extraMetrics = [
     ...[
-      ["f0", "冲刺 F₀", "N/kg"], ["v0", "冲刺 V₀", "m/s"], ["pmax", "冲刺 Pmax", "W/kg"],
-      ["rfmax", "冲刺 RF max", "%"], ["drf", "冲刺 DRF", "百分点/(m/s)"], ["imbalance", "冲刺 FVP 不平衡度", "%"],
-    ].map(([key, name, unit]) => ["sprint_fvp_" + key, "sprint_fvp", name, unit, "最大速度"]),
+      ["f0", "冲刺 F₀", "N/kg", "none"], ["v0", "冲刺 V₀", "m/s", "none"], ["pmax", "冲刺 Pmax", "W/kg", "higher"],
+      ["rfmax", "冲刺 RF max", "%", "none"], ["drf", "冲刺 DRF", "百分点/(m/s)", "none"], ["imbalance", "冲刺 FVP 不平衡度", "%", "none"],
+    ].map(([key, name, unit, direction]) => ["sprint_fvp_" + key, "sprint_fvp", name, unit, "最大速度", direction]),
     ...["fvp_sj", "fvp_cmj"].flatMap(id => [
-      [id + "_f0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " F₀", "N/kg", "爆发力"],
-      [id + "_v0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " V₀", "m/s", "爆发力"],
+      [id + "_f0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " F₀", "N/kg", "爆发力", "none"],
+      [id + "_v0", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " V₀", "m/s", "爆发力", "none"],
       [id + "_pmax", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " Pmax", "W/kg", "爆发力"],
-      [id + "_imbalance", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " FVP的不平衡性", "%", "爆发力"],
+      [id + "_imbalance", id, (id === "fvp_sj" ? "SJ" : "CMJ") + " FVP的不平衡性", "%", "爆发力", "none"],
     ]),
     ...["cmj", "sj"].flatMap((id) =>
       fieldsForTest(id)
@@ -115,11 +115,12 @@
           id.toUpperCase() + " " + field.label,
           field.unit,
           "爆发力",
+          field.performanceDirection || "higher",
         ]),
     ),
     ...["dj", "hop", "cmrj"].flatMap((id) => fieldsForTest(id).map((field) =>
-      [id + "_" + field.suffix, id, id.toUpperCase() + " " + field.label, field.unit, "反应力量"])),
-    ["rqr", "dj", "DJ/Hop FT/CT 反应比", "比值", "反应力量"],
+      [id + "_" + field.suffix, id, id.toUpperCase() + " " + field.label, field.unit, "反应力量", field.performanceDirection || "higher"])),
+    ["rqr", "dj", "DJ/Hop FT/CT 反应比", "比值", "反应力量", "none"],
     ["squat_1rm", "squat", "深蹲预估1RM / 体重", "kg/kg", "最大力量"],
     ["bench_1rm", "bench", "卧推预估1RM / 体重", "kg/kg", "最大力量"],
     ["deadlift_1rm", "deadlift", "硬拉预估1RM / 体重", "kg/kg", "最大力量"],
@@ -134,15 +135,15 @@
     ["imtp_rfd200", "imtp", "IMTP 0–200 ms RFD", "N/s", "早期发力"],
     ["imtp_impulse250", "imtp", "IMTP 0–250 ms 冲量", "N·s", "早期发力"],
     ["imtp_matched_impulse", "imtp", "IMTP 匹配时窗冲量", "N·s", "早期发力"],
-    ["imtp_matched_duration", "imtp", "IMTP 匹配时窗", "ms", "早期发力"],
+    ["imtp_matched_duration", "imtp", "IMTP 匹配时窗", "ms", "早期发力", "none"],
     ["cpet_vo2_relative", "cpet", "CPET 相对摄氧量", "mL·kg⁻¹·min⁻¹", "有氧代谢能力"],
     ["cpet_vo2_absolute", "cpet", "CPET 绝对摄氧量", "L/min", "有氧代谢能力"],
-    ["cpet_peak_hr", "cpet", "CPET 峰值心率", "bpm", "有氧代谢能力"],
+    ["cpet_peak_hr", "cpet", "CPET 峰值心率", "bpm", "有氧代谢能力", "none"],
     ...[1, 2].flatMap(n => [
       [`cpet_threshold${n}_vo2_relative`, "cpet", `第 ${n} 阈值相对摄氧量`, "mL·kg⁻¹·min⁻¹", "有氧代谢能力"],
       [`cpet_threshold${n}_vo2_absolute`, "cpet", `第 ${n} 阈值绝对摄氧量`, "L/min", "有氧代谢能力"],
-      [`cpet_threshold${n}_pct`, "cpet", `第 ${n} 阈值摄氧量占比`, "%", "有氧代谢能力"],
-      [`cpet_threshold${n}_hr`, "cpet", `第 ${n} 阈值心率`, "bpm", "有氧代谢能力"],
+      [`cpet_threshold${n}_pct`, "cpet", `第 ${n} 阈值摄氧量占比`, "%", "有氧代谢能力", "none"],
+      [`cpet_threshold${n}_hr`, "cpet", `第 ${n} 阈值心率`, "bpm", "有氧代谢能力", "none"],
       [`cpet_threshold${n}_speed`, "cpet", `第 ${n} 阈值速度`, "m/s", "有氧代谢能力"],
       [`cpet_threshold${n}_power`, "cpet", `第 ${n} 阈值功率`, "W", "有氧代谢能力"],
     ]),
@@ -157,8 +158,8 @@
     return { referenceEnabled: true, source: "用户指定评价标准（2026-10-08）", protocol: modified ? "垂直跳跃高度(m) / 整个起跳动作时间(s)" : "垂直跳跃高度(m) / 触地时间(s)",
       ranges: global.Def.parseRanges(modified ? "<0.35 | 较差 | red\n[0.35..0.50) | 一般 | amber\n0.50..0.65 | 良好 | green\n>0.65 | 优秀 | green" : "<1.5 | 较差 | red\n[1.5..2.0) | 中等 | amber\n2.0..2.5 | 良好 | green\n>2.5 | 优秀 | green") };
   };
-  const extraDefinitions = () =>
-    extraMetrics.map(([id, testId, name, unit, ability]) => ({
+  const extraDefinitions = (options = {}) =>
+    extraMetrics.map(([id, testId, name, unit, ability, direction = "higher"]) => ({
       id,
       testId,
       name,
@@ -166,7 +167,10 @@
       ability,
       category: "performance",
       measurementScale: "ratio",
-      direction: "higher",
+      // Old records and scoring fingerprints retain their original defaults.
+      // Canonical consumers explicitly ask for the declared measurement meaning.
+      direction: options.canonical ? direction : "higher",
+      ...(options.canonical ? { directionStatus: "confirmed", resultMeaning: "numeric" } : {}),
       target: null,
       referenceEnabled: false,
       ranges: [],
@@ -371,6 +375,7 @@
         abilities,
         definitions: metrics,
         renderer: isNative(source,test.id) ? registry.get(test.id).renderer : "scalar",
+        comparisonSubjectInputs: isNative(source,test.id) ? registry.get(test.id).comparisonSubjectInputs || [] : [],
         inputKind: isNative(source,test.id) ? test.id : "scalar",
         ...(test.legacyCustom ? { legacyCustom: true } : {}),
         dataContract: dataContract(source, test.id),

@@ -38,9 +38,11 @@
           <span class="nav-label">日常使用</span>
           <button data-workspace-nav="entry" onclick="App.startDataEntry()">数据录入</button>
           <button data-workspace-nav="records" onclick="App.openManagement('records')">测试记录</button>
+          <button onclick="App.openHorizontalReports()">横向比较报告</button>
           <span class="nav-label">人员管理</span>
           <button data-workspace-nav="teams" onclick="App.openManagement('teams')">队伍管理</button>
           <button data-workspace-nav="athletes" onclick="App.openManagement('athletes')">运动员管理</button>
+          <button onclick="App.openClassifications()">专项与年龄分组</button>
           <span class="nav-label">测试配置</span>
           <button data-workspace-nav="plans" onclick="App.openManagement('plans')">测试方案</button>
           <button data-workspace-nav="metrics" onclick="App.openManagement('metrics')">项目与指标库</button>
@@ -96,7 +98,7 @@
           <details id="recordChoiceMenu" class="record-choice-menu"><summary id="recordChoiceLabel">选择测试记录</summary><div id="recordChoices" class="record-choices" aria-label="选择测试记录"></div></details>
         </div>
       </div>
-        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">本次测试 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">本次测试数据 JSON</button></div></details></div>
+        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="horizontalButton" class="btn small" onclick="App.openHorizontal()">横向比较</button><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">报告 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">报告数据 JSON</button></div></details></div>
       </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
       <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button></div></section>

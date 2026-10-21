@@ -172,7 +172,7 @@
     pdfJob = false,
     scrollFrame = null,
     uiSaveTimer;
-  let longitudinalStoredJSON = "[]", initialLongitudinal = null;
+  let longitudinalStoredJSON = "[]", initialLongitudinal = null, initialHorizontal = null;
   const longitudinal = window.RingsideLongitudinalController.create({
     state:()=>state, library:()=>library, repository:()=>repository, save:persist, saveEditor,
     switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close,
@@ -181,25 +181,36 @@
     restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
     prepareAnchor:()=>{if(state && recordBaselines.get(state.recordId)===recordContent(state)){M.applyAge(state);recordBaselines.set(state.recordId,recordContent(state));}}
   });
-  const narrativeOwner = () => longitudinal.active() ? longitudinal.document() : state;
+  const horizontal = window.RingsideHorizontalController.create({
+    state:()=>state, library:()=>library, repository:()=>repository, save:persist, saveEditor,
+    switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close,
+    activate:({detached=false}={})=>{longitudinal.clear();if(detached){state=null;library.activeAthleteId="";library.activeRecordId="";}ui.mode="report";reportDirty=true;},
+    confirmDeleteReport:({title})=>Promise.resolve(confirm("删除横向报告“"+(title||"横向比较报告")+"”？报告正文和统计快照将删除，原始测试记录保留。")),
+    error:message=>toast(message), render:()=>{renderReport(false);renderWorkspace();},
+    captureView:captureReportUI, renderDisplay:()=>renderReport(),
+    restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
+    commitLibraryChange,
+    manageClassifications:()=>classificationsUI.open(),
+  });
+  const reports = window.RingsideReportOwner.create({controllers:[horizontal,longitudinal],state:()=>state});
+  const classificationsUI = window.RingsideClassificationUI.create({library:()=>library,commit:commitLibraryChange,modal,close});
+  const narrativeOwner = () => reports.document();
   const positive = (x) => N(x) !== null && Number(x) > 0;
   const definition = (id) => state?.definitions?.find((d) => d.id === id);
   const thresholdLabel = (id) =>
     definition(id)?.name?.match(/\bLTP?[12]\b/i)?.[0] ||
     (id === "lt1" ? "阈值1" : "阈值2");
   const snapshot = () => ({
-    athleteId: state.athleteId,
-    recordId: state.recordId,
+    ...reports.binding(),
     basis: recordBasis(),
     revision: narrativeOwner()?.narrative?.revision || 0,
-    reportOwner: longitudinal.owner(),
   });
   function effectiveRecord(record = state) {
     if (!record) return null;
     return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
   }
-  function recordBasis() { return longitudinal.active() ? longitudinal.basis() : state ? M.fingerprint(effectiveRecord()) : ""; }
-  function capabilityDirectionsBasis() { return longitudinal.active() ? longitudinal.basis() : state ? M.capabilityDirectionsBasis(effectiveRecord()) : ""; }
+  function recordBasis() { return reports.active() ? reports.basis() : state ? M.fingerprint(effectiveRecord()) : ""; }
+  function capabilityDirectionsBasis() { return reports.active() ? reports.basis() : state ? M.capabilityDirectionsBasis(effectiveRecord()) : ""; }
   function capabilityDirectionsMatch(binding) {
     if (binding?.capabilityDirectionsBasis === undefined) {
       // Older AI drafts did not bind the training-direction rule. Preserve
@@ -479,9 +490,7 @@
     renderEntry(); renderWorkspace(); focusContentTitle(); return true;
   }
   function currentMatches(s) {
-    return (
-      !!s && !!state && state.athleteId === s.athleteId && state.recordId === s.recordId && (s.reportOwner || "") === longitudinal.owner()
-    );
+    return reports.matchesBinding(s);
   }
   function sampleRecord() {
     return M.sampleRecord();
@@ -533,6 +542,7 @@
     return parts.join(".");
   }
   function draftsFor(record = state) {
+    if(!record)return {};
     const entries = inputDrafts[draftRecordKey(record)] || {};
     let migrated = false;
     for (const key of Object.keys(entries)) {
@@ -689,13 +699,14 @@
     return projects.sort((a,b) => ranks.get(a.id)-ranks.get(b.id));
   }
   function entryTabs() {
+    if(reports.active())return [["narrative","解读与干预建议"]];
     return [["athlete", "本次背景"], ["plan", "测试项目与标准"], ...orderedEntryProjects().map(t=>[t.id,t.name]), ["review", "核对本次结果"], ["narrative", "解读与干预建议"]];
   }
   function workflowSteps(step) {
     return ["选择运动员", "设置本次测试", "按项目录入", "核对并查看报告"].map((name,i)=>`<span class="workflow-step ${step===i+1?"active":step>i+1?"done":""}" ${step===i+1?'aria-current="step"':""}><b>${i+1}</b>${name}</span>`).join("");
   }
   function renderEntryNavigation() {
-    const computed = M.stats(effectiveRecord());
+    const computed = reports.active() ? null : M.stats(effectiveRecord());
     const button = ([id, name], project) => {
       const issues = Object.values(draftsFor()).filter(
         (d) => d.mode === "entry" && d.tab === id,
@@ -718,10 +729,20 @@
       const accessibleLabel = [name, ...other, statusLabel].filter(Boolean).join(" · ");
       return `<button data-entry-tab="${E(id)}" aria-label="${E(accessibleLabel)}" class="${entryTab === id ? "active" : ""}" ${entryTab === id ? 'aria-current="page"' : ""} onclick="App.entry('${E(id)}')"><span>${E(name)}${other.length ? '<small class="ability-tags">' + other.map(E).join(" · ") + "</small>" : ""}</span>${text ? '<small class="entry-status-pill ' + (issues ? "amber" : "") + '" title="' + E(statusLabel) + '">' + E(text) + "</small>" : ""}</button>`;
     };
-    $("entryNav").innerHTML = button(["athlete", "本次背景"]) + button(["plan", "项目与标准"]) + orderedEntryProjects().map(test=>button([test.id,test.name],test)).join("") + button(["review","核对结果"]) + button(["narrative","解读与建议"]);
+    $("entryNav").innerHTML = reports.active() ? button(["narrative","解读与建议"]) : button(["athlete", "本次背景"]) + button(["plan", "项目与标准"]) + orderedEntryProjects().map(test=>button([test.id,test.name],test)).join("") + button(["review","核对结果"]) + button(["narrative","解读与建议"]);
     revealActiveNavigation();
   }
   function refreshEntryChrome() {
+    if(reports.active()){
+      const title=reports.document().title||"比较报告";
+      if($("entryIdentity"))$("entryIdentity").textContent=title;
+      $("entryAthleteControls")?.replaceChildren();
+      $("entryProjectTitle").textContent="解读与干预建议";
+      $("entryPrevious").disabled=true;$("entryNext").hidden=true;
+      document.querySelectorAll("[data-entry-excel-action]").forEach(el=>{el.disabled=true;el.title="打开测试录入后使用 Excel";});
+      if(ui.mode==="entry")$("workspaceLabel").textContent="解读与干预建议";
+      return;
+    }
     if (!state) return;
     if (!state || !$("entryIdentity")) return;
     const a = activeAthlete(),
@@ -734,7 +755,7 @@
     } else controls.replaceChildren();
     const canUseExcel = people.every(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived));
     if (!window.RingsideExcelFlow.isBusy()) document.querySelectorAll("[data-entry-excel-action]").forEach(el => { el.disabled = !canUseExcel; el.title = canUseExcel ? "" : "录入并保存后，运动员建档完成即可使用 Excel"; });
-    $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : longitudinal.active() && ui.mode === "report" ? `${a?.profile.name || state.athlete.name || ""} · ${longitudinal.selection().recordIds.length} 次测试` : context;
+    $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : horizontal.active() && ui.mode === "report" ? `${horizontal.model().participants.length} 名运动员 · 横向比较` : longitudinal.active() && ui.mode === "report" ? `${a?.profile.name || state.athlete.name || ""} · ${longitudinal.selection().recordIds.length} 次测试` : context;
     $("entryIdentity").textContent = context;
     const tabs = entryTabs(),
       index = tabs.findIndex((t) => t[0] === entryTab);
@@ -808,7 +829,9 @@
       ?.focus();
   }
   function ensureExportable(records = [state]) {
-    if (longitudinal.isLoading()) throw Error("比较报告正在更新，请稍后导出。");
+    if (reports.isLoading()) throw Error("比较报告正在更新，请稍后导出。");
+    if(!reports.hasContent())throw Error("请先打开一份报告");
+    records=records.filter(Boolean);
     saveEditor();
     flushReportEdits(records);
     const pending = records.filter((r) =>
@@ -846,6 +869,7 @@
         if (old) { lastRestorePayload = {rawText:old}; input = JSON.parse(old); }
       }
       lastRestorePayload = input || lastRestorePayload;
+      if (input?.kind === "horizontal-report") { initialHorizontal=input.document;input=input.library; }
       if (input?.kind === "longitudinal-report") { initialLongitudinal=input.selection;input=input.library; }
       const migrated = window.RingsideEvaluation.migrate(input || M.libraryDefaults());
       if (!input) {
@@ -856,19 +880,22 @@
         migrated.athletes.push({id:record.athleteId,name:"示例",profile:M.profileFromRecord(record),sample:true,groupId:"",archived:false,deletedAt:null,records:[record]});
         migrated.activeAthleteId = record.athleteId; migrated.activeRecordId = record.recordId;
       }
-      await repository.importLibrary(migrated);
+      if(initialHorizontal)migrated.horizontalReports=[window.RingsideHorizontalStore.normalize(initialHorizontal)];
+      const imported=await repository.importLibrary(migrated);
+      if(initialHorizontal)initialHorizontal={id:imported.horizontalMap?.[initialHorizontal.id]||initialHorizontal.id};
     }
     await repository.upgradeMeasurementContract();
+    await repository.ensureClassifications();
     await loadDirectory(false);
   }
   function rememberUI() {
     saveEntrySession();
-    if (!state) return;
+    if (!library) return;
     try {
       draftStorage.setItem(
         uiKey,
         JSON.stringify({
-          recordId: state.recordId,
+          recordId: state?.recordId || "",
           mode: ui.mode,
           returnMode: ui.returnMode,
           entryTab,
@@ -880,15 +907,17 @@
           sidebarCollapsed: ui.sidebarCollapsed,
           lastViewed: ui.lastViewed || {},
           longitudinal: longitudinal.selection(),
+          horizontal: horizontal.selection(),
         }),
       );
     } catch {}
   }
   function reportViewOwned() {
-    if (!state || ui.mode !== "report") return false;
+    if (!reports.hasContent() || ui.mode !== "report") return false;
     const view = $("reportView");
+    if (horizontal.active()) return view.dataset.horizontal === "true" && view.dataset.horizontalOwner === horizontal.owner();
     if (longitudinal.active()) return view.dataset.longitudinal === "true" && view.dataset.longitudinalOwner === longitudinal.owner();
-    return view.dataset.longitudinal !== "true" && view.dataset.reportRecordId === state.recordId;
+    return view.dataset.longitudinal !== "true" && view.dataset.horizontal !== "true" && view.dataset.reportRecordId === state.recordId;
   }
   function captureReportUI() {
     if (!reportViewOwned()) return;
@@ -896,7 +925,7 @@
     document
       .querySelectorAll("#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings],#reportView .longitudinal-capability-parameters")
       .forEach((el) => {if(el.id)ui.detailOpen[el.id] = el.open;});
-    if (longitudinal.active()) return longitudinal.setViews({...longitudinal.document().views,reportScroll:ui.reportScroll,detailOpen:{...ui.detailOpen}});
+    if (reports.active()) return reports.setViews({...reports.document().views,reportScroll:ui.reportScroll,detailOpen:{...ui.detailOpen}});
     ui.records[state.recordId] = {
       reportScroll: ui.reportScroll,
       detailOpen: { ...ui.detailOpen },
@@ -909,16 +938,16 @@
     const management = ui.mode === "management";
     $("managementView").hidden = !management;
     $("creationView").hidden = ui.mode !== "creation";
-    $("emptyReport").hidden = ui.mode !== "report" || !!state;
+    $("emptyReport").hidden = ui.mode !== "report" || reports.hasContent();
     document.body.classList.toggle("management-mode", management);
     $("reportToolbar").hidden = ui.mode !== "report";
     $("reportControls").hidden = ui.mode !== "report";
-    $("reportActions").hidden = ui.mode !== "report" || !state;
-    $("reportView").hidden = ui.mode !== "report" || !state;
+    $("reportActions").hidden = ui.mode !== "report" || !reports.hasContent();
+    $("reportView").hidden = ui.mode !== "report" || !reports.hasContent();
     $("entryView").hidden = ui.mode !== "entry";
     $("settingsView").hidden = ui.mode !== "settings";
     $("entryNav").hidden = ui.mode !== "entry";
-    $("editButton").hidden = !state;
+    $("editButton").hidden = !reports.hasContent();
     $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
     if (management || ui.mode === "creation" || ui.mode === "settings" && settingsTab === "app") $("recordContext").textContent = "";
     $("workspaceBack").hidden = ui.mode === "report";
@@ -1007,6 +1036,7 @@
     ui.mode = "report";
     ui.returnMode = "report";
     await longitudinal.resume();
+    await horizontal.resume();
     renderWorkspace();
     renderReport(false);
     closeMobileSidebar();
@@ -1171,13 +1201,13 @@
       '<button class="btn small" onclick="App.addRow(\'imtp\')">＋ 新增试次</button>'
     );
   }
-  function persist({duringTransfer = false, longitudinalDisplay = false} = {}) {
-    const displaySave = longitudinal.pendingDisplaySave?.();
-    if (displaySave && !longitudinalDisplay)
+  function persist({duringTransfer = false, longitudinalDisplay = false, horizontalDisplay = false} = {}) {
+    const displaySave = reports.pendingDisplaySave();
+    if (displaySave && !longitudinalDisplay && !horizontalDisplay)
       return displaySave.then(() => persist({duringTransfer}));
     if (!library || !repository) return Promise.resolve(false);
     if (libraryTransferActive && !duringTransfer) return Promise.resolve(false);
-    if (state) { try { if (!longitudinal.active()) M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }
+    if (state) { try { if (!reports.active()) M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }
     clearTimeout(saveTimer); saveTimer = null;
     if (entrySession?.records.some(r => r.recordId === state?.recordId)) {
       const index = entrySession.records.findIndex(r => r.recordId === state.recordId);
@@ -1218,6 +1248,7 @@
         options.longitudinalReports = longitudinalDocuments;
       }
       await repository.saveRecords(writeRecord ? [snapshot] : [], checks, options);
+      if (!await horizontal.save()) throw Error("横向报告尚未保存，请重试");
       longitudinalStoredJSON = serializedDocuments;
       if (writeRecord) rememberRecordBaseline(snapshot);
     });
@@ -1362,16 +1393,16 @@
   }
   async function switchRecord(a, r, options = {}) {
     const sequence = ++selectionSequence;
-    if (!options.longitudinal) longitudinal.cancelPending();
+    if (!options.longitudinal && !options.horizontal) reports.cancelPending();
     if(reportEditInfo(document.activeElement))commitReportControl(document.activeElement);
     if (state) { captureReportUI(); saveEditor(); }
-    if (!await persist()) return;
+    if (!await persist({duringTransfer:!!options.duringTransfer})) return;
     if (sequence !== selectionSequence) return;
-    if (!options.longitudinal) longitudinal.clear();
+    if (!options.longitudinal && !options.horizontal) reports.clear();
     await leaveEntrySession();
     const stored = r ? await repository.loadRecord(r.recordId) : null;
     if (sequence !== selectionSequence) return;
-    const upgrade = stored && !(options.longitudinal && !options.edit) ? upgradeDemo(stored) : {changed:false};
+    const upgrade = stored && !((options.longitudinal || options.horizontal) && !options.edit) ? upgradeDemo(stored) : {changed:false};
     const loaded = stored ? M.normalizeRecord(upgrade.record || stored) : null;
     if (loaded && options.longitudinal && !options.edit) M.applyAge(loaded);
     if (upgrade.changed) {
@@ -1387,7 +1418,7 @@
     const saved = loaded && ui.records[loaded.recordId];
     ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
     ui.mode = options.edit && loaded ? "entry" : "report";
-    await persist(); renderReport(false);
+    await persist({duringTransfer:!!options.duringTransfer}); renderReport(false);
     if (ui.mode === "entry") renderEntry();
     renderWorkspace(); closeMobileSidebar(); window.scrollTo({top:ui.mode === "report" ? ui.reportScroll:0,behavior:"instant"});
     return true;
@@ -1628,7 +1659,7 @@
     if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return;
     if (!library) return;
-    if(longitudinal.selection()){saveEditor();if(!await persist())return;longitudinal.clear();cancelJob();}
+    if(longitudinal.selection()||horizontal.selection()){saveEditor();if(!await persist())return;reports.clear();cancelJob();}
     const wanted = requestedIds || (athleteId ? [athleteId] : []);
     if (wanted.some(id=>!library.athletes.some(a=>a.id===id&&!a.deletedAt&&!a.archived))) return toast("所选运动员已归档或移入回收站，请先恢复");
     if (entrySession) {
@@ -1646,7 +1677,8 @@
     captureReportUI();saveEditor();if(!await persist())return;
     const owner=library.athletes.find(a=>a.id===athleteId&&!a.deletedAt&&!a.archived);
     creation={kind:newAthlete?"athlete":"record",ownerId:owner?.id||"",ownerIds:owner?[owner.id]:[],returnMode:ui.mode,returnTab:window.RingsideManagement.tab(),returnAthleteId:library.activeAthleteId,returnRecordId:library.activeRecordId,step:"select",isoDirectionIds:[],isoCatalog:M.isoRows(),enabled:Object.fromEntries(library.catalog.tests.map(t=>[t.id,false])),profile:{name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""},evaluationProfileId:library.defaultEvaluationProfileId,testPlanId:"",submitting:false};
-    $("creationProfileFields").innerHTML=window.RingsideProfile.render(creation.profile,{creation:true,groups:library.groups,groupId:""});
+    $("creationProfileFields").innerHTML=window.RingsideProfile.render(creation.profile,{creation:true,groups:library.groups,groupId:"",classifications:library.classifications});
+    window.RingsideProfile.bind($("creationProfileFields"),library.classifications);
     creation.contexts={};creation.previousContexts={};
     $("creationAthleteSearch").value="";$("creationDate").value=today();$("creationError").hidden=true;
     $("creationGroupFilter").innerHTML='<option value="">全部队伍</option>'+(library.groups||[]).filter(g=>!g.deletedAt).map(g=>`<option value="${E(g.id)}">${E(g.name)}</option>`).join("");
@@ -1671,8 +1703,8 @@
     if(!creation)return;
     const q=$("creationAthleteSearch").value.trim().toLocaleLowerCase();
     const group=$("creationGroupFilter").value,all=library.athletes.filter(a=>!a.archived&&!a.deletedAt);
-    const athletes=all.filter(a=>(!group||a.groupId===group)&&(!q||[a.name,a.profile?.sport,a.id].join(" ").toLocaleLowerCase().includes(q)));
-    $("creationAthletes").innerHTML=athletes.length?athletes.map(a=>`<label class="creation-person check-line"><input type="checkbox" data-creation-athlete="${E(a.id)}" ${creation.ownerIds.includes(a.id)?"checked":""} onchange="App.toggleCreationAthlete(this.dataset.creationAthlete,this.checked)"><span><strong>${E(a.name)}</strong><small>${E(a.profile?.sport||"未填专项")} · ${E(a.id.slice(-6))}</small></span></label>`).join(""):'<p class="note">没有匹配的运动员</p>';
+    const athletes=all.filter(a=>(!group||a.groupId===group)&&(!q||[a.name,currentSport(a.profile),a.id].join(" ").toLocaleLowerCase().includes(q)));
+    $("creationAthletes").innerHTML=athletes.length?athletes.map(a=>`<label class="creation-person check-line"><input type="checkbox" data-creation-athlete="${E(a.id)}" ${creation.ownerIds.includes(a.id)?"checked":""} onchange="App.toggleCreationAthlete(this.dataset.creationAthlete,this.checked)"><span><strong>${E(a.name)}</strong><small>${E(currentSport(a.profile)||"未填专项")} · ${E(a.id.slice(-6))}</small></span></label>`).join(""):'<p class="note">没有匹配的运动员</p>';
     $("creationAthleteCount").textContent=`已选 ${creation.ownerIds.length} 人`;
     $("creationAthleteSelect").innerHTML='<option value="">选择运动员</option>'+all.map(a=>`<option value="${E(a.id)}" ${a.id===creation.ownerId?"selected":""}>${E(a.name)}</option>`).join("");
   }
@@ -1697,7 +1729,8 @@
       creation.selectionToken=(creation.selectionToken||0)+1;
       creation.profile={name:"",sex:"未注明",sport:"",dominantHand:"未注明",sportLevel:""};
       creation.contexts={};creation.previousContexts={};creation.contextOwnerId="";creation.setupPrepared=false;
-      $("creationProfileFields").innerHTML=window.RingsideProfile.render(creation.profile,{creation:true,groups:library.groups,groupId:""});
+      $("creationProfileFields").innerHTML=window.RingsideProfile.render(creation.profile,{creation:true,groups:library.groups,groupId:"",classifications:library.classifications});
+      window.RingsideProfile.bind($("creationProfileFields"),library.classifications);
       creation.testPlanId="";creation.evaluationProfileId=library.defaultEvaluationProfileId;
       creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,false]));creation.isoDirectionIds=[];creation.isoCatalog=M.isoRows();
       $("creationSource").textContent="";renderCreationAthletes();
@@ -1826,7 +1859,7 @@
       else $("creationSource").textContent="设置本次共同测试项目；身体资料和测试背景按各自档案保存。";
     }else{
       const name=$("newAthleteName").value.trim();if(!name){creationError("请填写姓名或编号");$("newAthleteName").focus();return;}
-      try{const entered=window.RingsideProfile.read($("creationProfileFields"),{creation:true});creation.profile=entered.profile;creation.groupId=entered.groupId;M.validateAthleteProfile(creation.profile);}catch(error){return creationError(error.message);}
+      try{const entered=window.RingsideProfile.read($("creationProfileFields"),{creation:true,classifications:library.classifications});creation.profile=entered.profile;creation.groupId=entered.groupId;M.validateAthleteProfile(creation.profile);}catch(error){return creationError(error.message);}
       $("creationSource").textContent=name+" · 首次测试，请选择方案或项目。";
     }
     try{if(!await prepareCreationContexts(draft)||creation!==draft)return;}catch(error){return creationError(error.message);}
@@ -1870,7 +1903,7 @@
       const pendingAthletes=[], owners=creation.kind==="athlete"?[{id:uid(),name:creation.profile.name,profile:copy(creation.profile),sample:false,groupId:creation.groupId||"",archived:false,deletedAt:null,records:[]}]:creation.ownerIds.map(id=>library.athletes.find(a=>a.id===id&&!a.deletedAt&&!a.archived));
       if(!owners.length||owners.some(a=>!a))throw Error("请选择有效运动员");
       if(creation.kind==="athlete")pendingAthletes.push(owners[0]);
-      const base=M.recordFromCatalog(library.catalog,owners[0].profile,creation.enabled,$("creationDate").value);
+      const base=M.recordFromCatalog(library.catalog,{...owners[0].profile,sport:currentSport(owners[0].profile)},creation.enabled,$("creationDate").value);
       base.evaluationProfileId=$("creationEvaluationProfile").value;
       installIsoSelection(base,creation.isoDirectionIds||[],creation.isoCatalog);
       const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
@@ -1879,7 +1912,7 @@
       for(const owner of owners){
         const draft=copy(base);draft.athleteId=owner.id;draft.recordId=uid();
         const context=creation.contexts[creation.kind==="athlete"?"new":owner.id];
-        draft.athlete={...draft.athlete,...M.profileFromRecord(owner.profile),...copy(context.athlete),date:$("creationDate").value};
+        draft.athlete={...draft.athlete,...M.profileFromRecord({...owner.profile,sport:currentSport(owner.profile)}),...copy(context.athlete),date:$("creationDate").value};
         delete draft.athlete.experienceYears;
         for(const key of ["age","mass","height"])if(draft.athlete[key]!=="")draft.athlete[key]=Number(draft.athlete[key]);
         draft.trainingContext={...draft.trainingContext,...copy(context.trainingContext)};M.applyAge(draft,owner.profile.birthDate||"");
@@ -2047,6 +2080,7 @@
       (/^(data\.sprint_fvp\.|sprintFvpConfig\.|sprintFvpAnalysis\.)/.test(path) || ["athlete.mass", "athlete.height"].includes(path)))
       window.RingsideSprintFVPEntry?.update?.(state, $("entryContent"));
   }
+  function currentSport(profile) { return window.RingsideClassifications?.resolve(profile,library?.classifications).sportName || profile?.sport || ""; }
   function athleteTag(a) {
     let length = 6;
     while (
@@ -2075,9 +2109,9 @@
   let athleteChooserOpen = false, athleteChooserIndex = -1;
   function reportAthletes(query = "") {
     const group = $("reportGroupFilter").value, q = query.trim().toLocaleLowerCase();
-    return library.athletes.filter(a => !a.deletedAt && !a.archived && (!group || a.groupId === group) && (!q || [a.name,a.profile?.sport,a.id].join(" ").toLocaleLowerCase().includes(q)));
+    return library.athletes.filter(a => !a.deletedAt && !a.archived && (!group || a.groupId === group) && (!q || [a.name,currentSport(a.profile),a.id].join(" ").toLocaleLowerCase().includes(q)));
   }
-  function athleteLabel(a) { return a ? `${a.name} · ${library.groups.find(g=>g.id===a.groupId)?.name || a.profile?.sport || "未分组"} · ${a.id.slice(-6)}` : ""; }
+  function athleteLabel(a) { return a ? `${a.name} · ${library.groups.find(g=>g.id===a.groupId)?.name || currentSport(a.profile) || "未分组"} · ${a.id.slice(-6)}` : ""; }
   function closeAthleteChooser() {
     athleteChooserOpen = false; athleteChooserIndex = -1;
     $("reportAthleteOptions").hidden = true;
@@ -2145,7 +2179,7 @@
     const athletes = reportAthletes();
     if (!athleteChooserOpen) $("reportAthleteSearch").value = athleteLabel(a);
     $("recordSelect").disabled = !a || !a.records.some(r=>!r.deletedAt&&!r.archived);
-    updateSelectOptions($("athleteSelect"), [["","选择运动员"],...athletes.map(x=>[x.id,`${x.name} · ${library.groups.find(g=>g.id===x.groupId)?.name||x.profile?.sport||"未分组"} · ${x.id.slice(-6)}`])],a?.id);
+    updateSelectOptions($("athleteSelect"), [["","选择运动员"],...athletes.map(x=>[x.id,`${x.name} · ${library.groups.find(g=>g.id===x.groupId)?.name||currentSport(x.profile)||"未分组"} · ${x.id.slice(-6)}`])],a?.id);
     updateSelectOptions($("recordSelect"), [["","选择测试记录"],...[...(a?.records||[])].filter(r=>!r.deletedAt&&!r.archived).sort((x,y)=>(y.athlete.date||"").localeCompare(x.athlete.date||"")||y.recordId.localeCompare(x.recordId)).map(r=>[r.recordId,`${r.athlete.date||"未填日期"} · ${r.title||Object.values(r.enabled).filter(Boolean).length+"个项目 · "+r.recordId.slice(-4)}`])],state?.recordId);
     $("sampleLabel").classList.toggle("hidden", !state?.demo);
     $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : state ? `${a?.name || state.athlete.name} · ${state.athlete.date}` : a ? a.name + " · 暂无测试" : "选择一条测试记录";
@@ -2153,19 +2187,22 @@
 
   }
   function renderReport(preserveUI = true) {
-    if (!state) { renderSelectors(); renderWorkspace(); return; }
+    if (!reports.hasContent()) { renderSelectors(); renderWorkspace(); return; }
     const visible =
       preserveUI && ui.mode === "report" && !$("reportView").hidden;
     const previousScroll = visible ? window.scrollY : null;
     if (visible) captureReportUI();
     renderSelectors();
-    if (longitudinal.active()) {
-      longitudinal.render();renderNarrativeStatus();reportDirty=false;refreshEntryChrome();renderNavigation();
+    if (reports.active()) {
+      reports.render();renderNarrativeStatus();reportDirty=false;refreshEntryChrome();renderNavigation();
       if(previousScroll!==null)window.scrollTo({top:previousScroll,behavior:"instant"});
       return;
     }
     delete $("reportView").dataset.longitudinal;
     delete $("reportView").dataset.longitudinalOwner;
+    delete $("reportView").dataset.horizontal;
+    delete $("reportView").dataset.horizontalOwner;
+    delete $("reportView").dataset.reportKind;
     $("directionMetrics").hidden = false;
     $("editButton").textContent = "编辑本次数据";
     $("reportExportMenu").querySelector("summary").textContent = "导出本次测试";
@@ -2271,12 +2308,12 @@
     $("reportView").dataset.reportRecordId = state.recordId;
   }
   function renderNarrativeStatus() {
-    if (!state) return;
+    if (!reports.hasContent()) return;
     renderAIStatus();
     const n = narrativeOwner().narrative,
-      directionStatus = longitudinal.active() ? {changed:false,ruleOnly:false} : narrativeDirectionStatus(n),
+      directionStatus = reports.active() ? {changed:false,ruleOnly:false} : narrativeDirectionStatus(n),
       directionsStale = directionStatus.changed,
-      dataStale = n.text && n.basis !== recordBasis() && (longitudinal.active() || !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId))),
+      dataStale = n.text && n.basis !== recordBasis() && (reports.active() || !M.fingerprintMatchesExceptAge(n.basis,effectiveRecord(),library.evaluationProfiles.find(profile=>profile.id===state.evaluationProfileId))),
       stale = directionsStale || dataStale;
     const label = n.migrationReview?.required
         ? "旧速度文字待复核"
@@ -2327,7 +2364,7 @@
       ...(owner.narrative.capabilityDirectionsBasis !== undefined ? { capabilityDirectionsBasis: capabilityDirectionsBasis() } : {}),
       revision: (owner.narrative.revision || 0) + 1,
     };
-    if(longitudinal.active()){longitudinal.setNarrative(owner.narrative);persist();renderNarrativeStatus();return;}
+    if(reports.active()){reports.setNarrative(owner.narrative);persist();renderNarrativeStatus();return;}
     changed(false);
   }
   function format(command, value) {
@@ -2501,8 +2538,8 @@
   function openEntry(tab) {
     if (managementNavigationBlocked()) return false;
     if (creation?.submitting) return;
-    if (!state) return startDataEntry();
-    if (longitudinal.active() && tab !== "narrative") return longitudinal.edit();
+    if (!reports.hasContent()) return startDataEntry();
+    if (reports.active() && tab !== "narrative") return reports.edit();
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
@@ -2516,7 +2553,7 @@
     focusContentTitle();
   }
   function renderEntry() {
-    if (!state) return showReport();
+    if (!reports.hasContent()) return showReport();
     const all = entryTabs();
     if (!all.some((t) => t[0] === entryTab)) entryTab = "plan";
     renderAIStatus();
@@ -2533,7 +2570,7 @@
     if (entryTab === "athlete" || entryTab === "plan") h += `<div class="record-evaluation"><label class="field"><span>共用评价方案</span><select id="recordEvaluationSelect" onchange="App.assignRecordProfile(this.value)">${library.evaluationProfiles.filter(p=>!p.disabled||p.id===state.evaluationProfileId).map(p=>`<option value="${E(p.id)}" ${p.id===state.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("")}</select></label><button class="btn small" onclick="App.viewEvaluation()">查看生效标准</button></div>`;
     if (entryTab === "athlete") {
       const profile = activeAthlete()?.profile || state.athlete;
-      h += `<div class="record-evaluation"><div><b>${E(profile.name || state.athlete.name)}</b><p class="note">${[profile.sport, profile.sex, profile.birthDate ? "出生日期 " + profile.birthDate : "", profile.sportLevel].filter(Boolean).map(E).join(" · ")}</p>${profile.injuryHistory ? `<p class="note">相关既往伤病：${E(profile.injuryHistory)}</p>` : ""}${profile.experienceYears !== "" && profile.experienceYears != null ? `<p class="note">抗阻训练年限：${E(profile.experienceYears)} 年</p>` : ""}</div><button type="button" class="btn small" onclick="App.editCurrentAthlete()">编辑运动员档案</button></div>`;
+      h += `<div class="record-evaluation"><div><b>${E(profile.name || state.athlete.name)}</b><p class="note">${[currentSport(profile), profile.sex, profile.birthDate ? "出生日期 " + profile.birthDate : "", profile.sportLevel].filter(Boolean).map(E).join(" · ")}</p>${profile.injuryHistory ? `<p class="note">相关既往伤病：${E(profile.injuryHistory)}</p>` : ""}${profile.experienceYears !== "" && profile.experienceYears != null ? `<p class="note">抗阻训练年限：${E(profile.experienceYears)} 年</p>` : ""}</div><button type="button" class="btn small" onclick="App.editCurrentAthlete()">编辑运动员档案</button></div>`;
       const priorSummary = previousRecordSummary();
       h += previousBackground() + window.RingsideContextUI.render(state, {source:priorSummary});
     } else if (entryTab === "plan")
@@ -3505,6 +3542,9 @@
       );
     }
     if (!projectOnly) {
+      const semantics=window.RingsideMetricSemantics.resolve(definition||{}, {catalogDefinition:definition});
+      fields += label("结果含义", `<select id="catalogResultMeaning" aria-label="结果含义"><option value="numeric" ${semantics.meaning==='numeric'?'selected':''}>普通数值 · 计算均值</option><option value="ordinal" ${semantics.meaning==='ordinal'?'selected':''}>有序等级 · 统计分布</option><option value="category" ${semantics.meaning==='category'?'selected':''}>类别编码 · 统计人数</option></select>`);
+      fields += label("表现方向", `<select id="catalogPerformanceDirection" aria-label="表现方向"><option value="unconfirmed" disabled ${!semantics.confirmed?'selected':''}>请选择方向</option><option value="higher" ${semantics.confirmed&&semantics.direction==='higher'?'selected':''}>数值越高越好</option><option value="lower" ${semantics.confirmed&&semantics.direction==='lower'?'selected':''}>数值越低越好</option><option value="none" ${semantics.confirmed&&semantics.direction==='none'?'selected':''}>无固定优劣方向</option></select>`);
       fields += label(
         "指标名称",
         `<input id="catalogMetricName" value="${E(definition?.name || "")}" aria-label="指标名称" required maxlength="120" ${mode === "new-metric" ? "data-initial-focus" : ""}>`,
@@ -3775,7 +3815,9 @@
           unit,
           ability,
           category,
-          direction: existing?.direction || selectionDirection,
+          direction: value("catalogPerformanceDirection")==="unconfirmed" ? existing?.direction || selectionDirection : value("catalogPerformanceDirection"),
+          directionStatus: value("catalogPerformanceDirection")==="unconfirmed" ? "unconfirmed" : "confirmed",
+          resultMeaning: value("catalogResultMeaning") || "numeric",
           ratioEligible: existing && !T.isManualMetric(existing) ? existing.ratioEligible : $("catalogRatioEligible")?.checked === true,
           entryScope,
           ...(!(existing && !T.isManualMetric(existing)) ? { cvEligible: $("catalogCVEligible")?.checked === true } : {}),
@@ -4035,7 +4077,7 @@
   }
 
   function facts() {
-    if(longitudinal.active())return longitudinal.facts();
+    if(reports.active())return reports.facts();
     // Suppress inactive custom targets in AI-derived scores/findings as well as
     // metric rows, without changing the saved record or local report formulas.
     flushReportEdits();
@@ -4161,6 +4203,10 @@
   }
   function localDraft() {
     if (job) return;
+    if(horizontal.active()){
+      preview(window.RingsideHorizontal.localText(horizontal.model()),"本地",{...snapshot(),capabilityDirectionsBasis:capabilityDirectionsBasis()});
+      setAIStatus("ready","离线摘要已生成，等待应用","");return;
+    }
     if(longitudinal.active()){
       preview(longitudinal.model().periods.map(p=>"## "+p.date+"\n"+M.localText(p.record)).join("\n\n"),"本地",{...snapshot(),capabilityDirectionsBasis:capabilityDirectionsBasis()});
       setAIStatus("ready","离线摘要已生成，等待应用","");return;
@@ -4192,7 +4238,7 @@
       origin: p.origin,
       revision: (owner.narrative.revision || 0) + 1,
     };
-    if(longitudinal.active())longitudinal.setNarrative(owner.narrative);
+    if(reports.active())reports.setNarrative(owner.narrative);
     pendingAI = null;
     $("previewModal").classList.remove("show");
     document.body.style.overflow = "";
@@ -4428,16 +4474,17 @@
     }
   }
   async function ai() {
-    if(longitudinal.isLoading())return;
+    if(reports.isLoading())return;
     if (job) return toast("当前分析正在生成", "ai");
-    if (!(longitudinal.active() ? longitudinal.model().periods.some(period => period.stats.validTests.size) : M.stats(effectiveRecord()).validTests.size)) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
-    const requestedRecord = state.recordId, requestedOwner = longitudinal.owner();
+    const hasData = horizontal.active() ? horizontal.model().projects.some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null))) : longitudinal.active() ? longitudinal.model().periods.some(period=>period.stats.validTests.size) : M.stats(effectiveRecord()).validTests.size;
+    if (!hasData) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
+    const requestedBinding = reports.binding();
     let connection;
     try {connection=await configuredAI(true);}catch(error){
       openSettings("ai");
       return setAIStatus("error", "AI 服务尚未配置完整", safeAIError(error));
     }
-    if(state.recordId!==requestedRecord || longitudinal.owner()!==requestedOwner)return;
+    if(!reports.matchesBinding(requestedBinding))return;
     saveEditor();
     const binding = { ...snapshot(), capabilityDirectionsBasis: capabilityDirectionsBasis() },
       task = {
@@ -4452,7 +4499,7 @@
     renderNarrativeStatus();
     try {
       const messages = [
-        { role: "system", content: window.RingsideInterventions.systemPrompt + (longitudinal.active() ? "\n当前任务为同一运动员的纵向比较。逐期对照所给统一计算结果，使用程序提供的变化值。缺测不能作为零；不得自行计算或编造显著性、p值、MDC、标准化效果量、改善方向。分清测量变化、评价条件变化和训练推断。" : "") },
+        { role: "system", content: window.RingsideInterventions.systemPrompt + (horizontal.active() ? "\n当前任务为运动员横向比较。使用提供的参照组、各指标实际人数、取样口径及差值。最近结果与阶段个人纪录按各行事实区分；数据库参照不等于常模或评价标准。不同人的差异不写成时间上的改善或下降。根据实际数值与已有评价提出具体建议，不编造统计检验或把群体参数拼成真实个人。" : longitudinal.active() ? "\n当前任务为同一运动员的纵向比较。逐期对照所给统一计算结果，使用程序提供的变化值。缺测不能作为零；不得自行计算或编造显著性、p值、MDC、标准化效果量、改善方向。分清测量变化、评价条件变化和训练推断。" : "") },
         { role: "user", content: "生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n" + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
@@ -4517,7 +4564,7 @@
   }
   function reportPayload() {
     ensureExportable();
-    if(longitudinal.active())return longitudinal.payload();
+    if(reports.active())return reports.payload();
     const profile=library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId);
     const record = window.RingsideEvaluation.materialize(effectiveRecord());
     window.RingsideGenericReport.freezeViews(record, library.catalog);
@@ -4526,6 +4573,7 @@
       kind: "report",
       record: { ...record, evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
       profile: copy(activeAthlete().profile),
+      classifications: copy(library.classifications || {}),
       ...(profile ? {evaluationProfile:window.RingsideEvaluation.serializeProfile(profile)} : {}),
     };
   }
@@ -4539,6 +4587,7 @@
     clone.querySelector("#embedded-data").textContent = JSON.stringify(
       payload,
     ).replace(/</g, "\\u003c");
+    clone.querySelectorAll('#horizontalDialog,#classificationModal').forEach(node=>node.remove());
     for (const id of [
       "entryNav",
       "entryContent",
@@ -4646,6 +4695,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   function filename(ext) {
+    if(horizontal.active())return "MotionBench_横向比较_"+(horizontal.document().title||horizontal.document().id).replace(/[<>:"/\\|?*\s]/g,"_")+"."+ext;
     if(longitudinal.active())return "MotionBench_"+(state.athlete.name||"athlete").replace(/[<>:"/\\|?*\s]/g,"_")+"_纵向比较_"+longitudinal.model().periods[0].date+"_"+longitudinal.model().periods.at(-1).date+"."+ext;
     return (
       "MotionBench_" +
@@ -4761,11 +4811,13 @@
   async function importPayload(parsed, conflictChoice = "merge") {
     return runLibraryTransfer(async()=>{
     const incomingSelection=parsed?.kind==="longitudinal-report"?parsed.selection:null;
-    const incoming=window.RingsideEvaluation.migrate(parsed?.kind==="longitudinal-report"?parsed.library:parsed);
+    const incomingHorizontal=parsed?.kind==="horizontal-report"?window.RingsideHorizontalStore.normalize(parsed.document):null;
+    const incoming=window.RingsideEvaluation.migrate(incomingSelection||incomingHorizontal?parsed.library:parsed);
+    if(incomingHorizontal)incoming.horizontalReports=[incomingHorizontal];
     if(incomingSelection&&!window.RingsideLongitudinalStore.get(incoming,incomingSelection.athleteId,incomingSelection.recordIds))throw Error("比较报告缺少对应正文或所选记录。");
     if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
     const result=await repository.importLibrary(incoming,{merge:conflictChoice!=="replace-library"});
-    cancelJob(); longitudinal.clear(); await loadDirectory(false);
+    cancelJob(); reports.clear(); await loadDirectory(false);
     const importedRecord=incoming.activeRecordId && await repository.loadRecord(result.recordMap[incoming.activeRecordId]||incoming.activeRecordId);
     if (importedRecord && !importedRecord.deletedAt) {
       const upgrade = upgradeDemo(importedRecord);
@@ -4777,6 +4829,7 @@
     }
     ui.mode="report";
     if(incomingSelection)await longitudinal.restore({...incomingSelection,athleteId:result.athleteMap?.[incomingSelection.athleteId]||incomingSelection.athleteId,recordIds:incomingSelection.recordIds.map(id=>result.recordMap[id]||id)});
+    if(incomingHorizontal&&!await horizontal.restore({id:result.horizontalMap?.[incomingHorizontal.id]||incomingHorizontal.id},{flush:false,duringTransfer:true}))throw Error("已导入横向报告，但无法打开，请从横向报告列表重开。");
     renderReport(false);renderWorkspace();return result;
     });
   }
@@ -4784,7 +4837,7 @@
     return runLibraryTransfer(async()=>{
     if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
     const result=await repository.importRows(window.RingsideStore.fileRows(file),{merge,onProgress:n=>toast("正在校验与导入 "+n+" 条测试")});
-    cancelJob();longitudinal.clear();await loadDirectory(false);ui.mode="management";window.RingsideManagement.open("athletes");renderReport(false);renderWorkspace();return result;
+    cancelJob();reports.clear();await loadDirectory(false);ui.mode="management";window.RingsideManagement.open("athletes");renderReport(false);renderWorkspace();return result;
     });
   }
   function parseImportText(value) {
@@ -4923,7 +4976,7 @@
       return toast(e.message);
     }
     renderReport();
-    const record = longitudinal.active() ? {...copy(longitudinal.model().periods.at(-1).record),longitudinal:true,longitudinalDateRange:longitudinal.model().periods[0].date+" — "+longitudinal.model().periods.at(-1).date,narrative:copy(longitudinal.narrative())} : effectiveRecord(),
+    const record = horizontal.active() ? {...copy(horizontal.model().participants[0].record),horizontal:true,horizontalModel:copy(horizontal.model()),horizontalViews:copy(horizontal.document().views),horizontalTitle:horizontal.document().title,narrative:copy(horizontal.narrative())} : longitudinal.active() ? {...copy(longitudinal.model().periods.at(-1).record),longitudinal:true,longitudinalDateRange:longitudinal.model().periods[0].date+" — "+longitudinal.model().periods.at(-1).date,narrative:copy(longitudinal.narrative())} : effectiveRecord(),
       name = filename("pdf"),
       report = $("reportView").cloneNode(true);
     pdfJob = true;
@@ -4995,7 +5048,14 @@
     return {ok:true};
   }
   window.App = {
-    selectRecords: ids=>longitudinal.select(ids),
+    selectRecords: async ids=>{if(horizontal.active()){saveEditor();if(!await persist())return false;horizontal.clear();}return longitudinal.select(ids);},
+    openHorizontal: options=>horizontal.openSetup(options),
+    openHorizontalReports: ()=>horizontal.listReports(),
+    selectHorizontal: options=>horizontal.createReport(options),
+    getHorizontal:()=>horizontal.active()?horizontal.model():null,
+    getHorizontalDocument:()=>horizontal.document()?copy(horizontal.document()):null,
+    refreshHorizontal:()=>horizontal.refresh(),
+    openClassifications:()=>classificationsUI.open(),
     getLongitudinal:()=>longitudinal.active()?longitudinal.model():null,
     getLongitudinalDocument:()=>longitudinal.document()?copy(longitudinal.document()):null,
     openEntry,
@@ -5011,7 +5071,7 @@
         saveEditor();
         if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存，请保存后再恢复");
         await entryPersistQueue; await repository.restorePrevious();
-        cancelJob(); longitudinal.clear(); await loadDirectory(false); ui.mode="management";
+        cancelJob(); reports.clear(); await loadDirectory(false); ui.mode="management";
         window.RingsideManagement.open("athletes"); renderReport(); renderWorkspace();
       });
     },
@@ -5046,7 +5106,7 @@
     recoverData,
     downloadRecovery,
     entry(t) {
-      if(longitudinal.active()&&t!=="narrative")return longitudinal.edit();
+      if(reports.active()&&t!=="narrative")return reports.edit();
       saveEditor();
       persist();
       entryTab = t;
@@ -5110,7 +5170,7 @@
     },
     addIso,
     changeMode(v) {
-      if(longitudinal.active())return longitudinal.changeMode(v);
+      if(reports.active())return reports.changeMode(v);
       state.mode = v;
       persist();
       renderReport();
@@ -5730,7 +5790,7 @@
     (e) => {
       if(e.target.matches("#reportView details") && !reportViewOwned()) return;
       if(state && e.target.isConnected && e.target.matches("#reportView [data-capability-parameters]")) {
-        if(longitudinal.active()){if(captureReportUI())persist();rememberUI();return;}
+        if(reports.active()){if(captureReportUI())persist();rememberUI();return;}
         const key=e.target.dataset.capabilityParameters;
         if(["strength","reactive","speed","endurance"].includes(key) && state.views.capabilityExpanded?.[key]!==e.target.open) {
           (state.views.capabilityExpanded ||= {})[key]=e.target.open;changed(false);
@@ -5743,7 +5803,7 @@
       ) {
         ui.detailOpen[e.target.id] = e.target.open;
         const captured = captureReportUI();
-        if(longitudinal.active()&&captured)persist();
+        if(reports.active()&&captured)persist();
         rememberUI();
       }
     },
@@ -5772,7 +5832,7 @@
           const object = value => value && typeof value === "object" && !Array.isArray(value);
           ui.records = Object.fromEntries(Object.entries(object(saved.records) ? saved.records : {}).filter(([,view]) => object(view)));
           if(state){
-            const personal = ui.records[state.recordId] || (saved.recordId === state.recordId && !saved.longitudinal ? saved : null);
+            const personal = ui.records[state.recordId] || (saved.recordId === state.recordId && !saved.longitudinal && !saved.horizontal ? saved : null);
             if(object(personal)){
               ui.reportScroll = Number.isFinite(personal.reportScroll) ? Math.max(0,personal.reportScroll) : 0;
               ui.detailOpen = object(personal.detailOpen) ? {...personal.detailOpen} : {};
@@ -5780,12 +5840,16 @@
             }
           }
           if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}
-          initialLongitudinal=saved.longitudinal||initialLongitudinal;
+          if(!initialHorizontal&&!initialLongitudinal){initialLongitudinal=saved.longitudinal;initialHorizontal=saved.horizontal;}
         }
       } catch {}
       if(initialLongitudinal){
         try{await longitudinal.restore(initialLongitudinal);if(ui.mode==="entry"&&entryTab!=="narrative")longitudinal.suspend();}
         catch(error){longitudinal.clear();toast(error.message);}
+      }
+      if(initialHorizontal){
+        try{await horizontal.restore(initialHorizontal);if(ui.mode==="entry"&&entryTab!=="narrative")horizontal.suspend();}
+        catch(error){horizontal.clear();toast(error.message);}
       }
       document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);
       renderReport(false);if(ui.mode==="entry")renderEntry();renderWorkspace();

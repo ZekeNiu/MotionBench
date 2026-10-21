@@ -1,0 +1,78 @@
+"use strict";
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{createHash}=require('node:crypto'),{pathToFileURL}=require('node:url'),{execFileSync}=require('node:child_process');
+const {chromium}=require('./helpers/playwright.cjs'),{createFixture}=require('./helpers/longitudinal-fixture.cjs');
+const root=path.resolve(__dirname,'..'),channel=process.argv.includes('--edge')?'msedge':'chrome',pdf=process.argv.includes('--pdf');
+const out=path.join(root,'output/playwright/horizontal-2.25.0',channel),source=path.join(root,'MotionBench.html'),hash=file=>createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+const projection=()=>{const m=App.getHorizontal();return {basis:m.fingerprint,participants:m.participants.map(p=>[p.athleteId,p.recordId]),references:m.references.map(r=>({id:r.id,rows:r.projects.flatMap(p=>p.metrics).map(row=>({id:row.id,cells:row.cells.map(c=>c?.value??null),benchmark:row.benchmark}))})),narrative:App.getHorizontalDocument().narrative.text};};
+async function main(){
+ fs.mkdirSync(out,{recursive:true});const result={synthetic:true,channel,sourceHash:hash(source),runnerSha256:hash(__filename),checks:[],errors:[],pass:false};let browser,page,context,ids,baseline;
+ const check=async(name,fn)=>{await fn();result.checks.push(name);console.log('PASS '+name);};
+ const watch=p=>p.on('pageerror',e=>result.errors.push(e.stack||e.message));
+ const ready=async p=>{await p.waitForFunction(()=>window.App?.ready);assert.equal(await p.evaluate(()=>App.ready),true,await p.locator('#startupStatus').innerText());};
+ const download=async kind=>{const event=page.waitForEvent('download',{timeout:900000});event.catch(()=>{});await page.evaluate(kind=>App['download'+kind](),kind);if(kind==='PDF')assert.equal(await page.evaluate(()=>RingsidePDF.lastDiagnostics?.status),'complete',await page.locator('#toast').innerText());const item=await event;assert.equal(await item.failure(),null);const file=path.join(out,'horizontal.'+kind.toLowerCase());await item.saveAs(file);return file;};
+ try{
+  browser=await chromium.launch({channel});context=await browser.newContext({viewport:{width:1440,height:1000}});page=await context.newPage();watch(page);await page.goto(pathToFileURL(source).href);await ready(page);
+  await check('create isolated current-profile reference population',async()=>{
+   ids=await page.evaluate(async factory=>{
+    const f=(0,eval)('('+factory+')')(window,3),M=RingsideModel,lib=M.libraryDefaults();lib.schema=3;
+    lib.classifications={version:1,sports:[{id:'sport-a',name:'综合运动甲',subdivisionLabel:'主要位置'},{id:'sport-b',name:'综合运动乙',subdivisionLabel:'项目小项'}],subdivisions:[{id:'position-a',sportId:'sport-a',name:'位置一'},{id:'position-b',sportId:'sport-b',name:'位置一'}],ageBands:[{id:'age-adult',name:'20–29岁',min:20,max:29}]};
+    lib.groups=[{id:'team-a',name:'合成一队'},{id:'team-b',name:'合成二队'}];lib.catalog=f.catalog;
+    lib.catalog.definitions.forEach(d=>{if(d.id.startsWith('long_')){d.directionStatus='confirmed';d.resultMeaning='numeric';if(d.id==='long_unknown')d.direction='none';}});
+    lib.evaluationProfiles=[RingsideEvaluation.serializeProfile(f.profile)];lib.defaultEvaluationProfileId=f.profile.id;
+    lib.athletes=Array.from({length:3},(_,i)=>{const id='horizontal-athlete-'+i,name=i===1?'横向比较长姓名运动员·用于检查表头与图例完整显示':'横向合成队员'+(i+1),records=f.records.map((source,j)=>{const r=structuredClone(source);r.athleteId=id;r.recordId='horizontal-record-'+i+'-'+j;r.athlete.name=name;r.athlete.sex='男';r.athlete.sport=i===2?'综合运动乙':'综合运动甲';r.evaluationProfileId=f.profile.id;r.data.cmj.forEach(row=>row.height+=i*5);if(i===0&&j===0)r.data.cmj.forEach(row=>row.height+=40);return r;});return {id,name,profile:{...M.profileFromRecord(records[0]),sportId:i===2?'sport-b':'sport-a',subdivisionId:i===2?'position-b':'position-a'},groupId:i===2?'team-b':'team-a',archived:i===2,deletedAt:null,records};});
+    lib.activeAthleteId=lib.athletes[0].id;lib.activeRecordId=lib.athletes[0].records[0].recordId;await App.importPayload(lib,'replace-library');await App.showReport(false);return {people:lib.athletes.map(a=>a.id),records:lib.athletes.map(a=>a.records.map(r=>r.recordId)),profileId:f.profile.id};
+   },createFixture.toString());
+   baseline=await page.evaluate(async ids=>Promise.all(ids.records.flat().map(id=>App.getRepository().loadRecord(id))),ids);
+  });
+  await check('setup requires explicit window and creates two reference groups',async()=>{
+   await page.locator('#horizontalButton').click();const dialog=page.locator('#horizontalDialog');
+   await dialog.locator('[data-field="mode"]').selectOption('mean');await dialog.locator('[data-add-person]').click();await dialog.locator('[data-person-athlete]').nth(1).selectOption(ids.people[1]);
+   await dialog.locator('[data-add-reference]').click();await dialog.locator('[type="submit"]').click();assert.match(await dialog.innerText(),/请选择统计时间窗/);assert.equal(await page.evaluate(()=>App.getHorizontal()),null);
+   await dialog.locator('[data-field="window.kind"]').selectOption('all');await dialog.locator('[data-reference-field="label"]').fill('数据库男性 · 最近测试');
+   await dialog.locator('[data-add-reference]').click();await dialog.locator('[data-reference-field="label"]').nth(1).fill('数据库男性 · 阶段纪录');await dialog.locator('[data-reference-field="sampling"]').nth(1).selectOption('period-record');
+   await dialog.locator('[type="submit"]').click();await page.waitForFunction(()=>App.getHorizontal()?.references.length===2);await page.waitForFunction(()=>!document.getElementById('horizontalDialog'));
+   const facts=await page.evaluate(()=>App.getHorizontal().references.map(ref=>ref.projects.flatMap(p=>p.metrics).find(row=>row.metricId==='cmj_height')?.benchmark));
+   assert.equal(facts[0].n,3);assert.equal(facts[0].mean,49);assert.equal(facts[1].mean,61);assert.equal(facts[1].best,80);
+   assert.ok(await page.locator('#detailContent svg').count());assert.equal(await page.locator('#reportView').getAttribute('data-horizontal'),'true');
+   assert.deepEqual(await page.evaluate(async ids=>Promise.all(ids.records.flat().map(id=>App.getRepository().loadRecord(id))),ids),baseline);
+  });
+  await check('view selection is independent of sample and survives reopen',async()=>{
+   const before=await page.evaluate(projection);await page.locator('.horizontal-controls details summary').click();await page.locator('[data-horizontal-person]').nth(1).uncheck();await page.evaluate(()=>App.saveNow());assert.deepEqual(await page.evaluate(projection),before);
+   await page.locator('[data-horizontal-view="activeReferenceId"]').selectOption(await page.evaluate(()=>App.getHorizontal().references[1].id));await page.evaluate(()=>App.saveNow());await page.reload();await ready(page);
+   assert.equal(await page.evaluate(()=>App.getHorizontalDocument().views.hiddenParticipantIds.length),1);assert.equal(await page.evaluate(()=>App.getHorizontalDocument().views.activeReferenceId),before.references[1].id);assert.deepEqual(await page.evaluate(projection),before);
+  });
+  await check('independent narrative and frozen JSON HTML round trips',async()=>{
+   await page.evaluate(()=>App.openEntry('narrative'));await page.locator('#interpEditor').fill('横向人工解读：按同条件群体参照安排下一阶段训练。');await page.evaluate(()=>App.showReport(false));await page.evaluate(()=>App.saveNow());assert.match(await page.locator('#narrativeView').innerText(),/横向人工解读/);
+   const expected=await page.evaluate(projection),profiles=await page.evaluate(()=>App.getLibrary().evaluationProfiles.map(p=>RingsideEvaluation.serializeProfile(p))),json=await download('JSON'),html=await download('HTML'),payload=JSON.parse(fs.readFileSync(json,'utf8'));assert.equal(payload.kind,'horizontal-report');assert.equal(payload.library.athletes.length,2);assert.equal(payload.library.athletes.flatMap(a=>a.records).length,2);assert.deepEqual(payload.library.evaluationProfiles,profiles);
+   const extra=await context.newPage();watch(extra);await extra.goto(pathToFileURL(html).href);await ready(extra);assert.deepEqual(await extra.evaluate(projection),expected);assert.equal(await extra.evaluate(()=>App.getLibrary().athletes.length),2);await extra.close();
+   await page.evaluate(payload=>App.importPayload(payload),payload);assert.deepEqual(await page.evaluate(projection),expected);
+   assert.deepEqual(await page.evaluate(async ids=>Promise.all(ids.records.flat().map(id=>App.getRepository().loadRecord(id))),ids),baseline);
+  });
+  await check('desktop and narrow layout have no page overflow',async()=>{
+   await page.screenshot({path:path.join(out,'desktop.png'),fullPage:true});await page.setViewportSize({width:390,height:844});await page.waitForFunction(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1,null,{timeout:10000});
+   const sizes=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(sizes.scroll<=sizes.viewport+1,JSON.stringify(sizes));await page.screenshot({path:path.join(out,'mobile.png'),fullPage:true});await page.setViewportSize({width:1440,height:1000});
+  });
+  await check('peers perspective uses explicit common references',async()=>{
+   const expectedProfile=await page.evaluate(()=>App.getLibrary().defaultEvaluationProfileId);await page.evaluate(()=>App.openHorizontal());const dialog=page.locator('#horizontalDialog');await dialog.locator('[data-field="perspective"]').selectOption('peers');await dialog.locator('[data-reference-field="sex"]').first().selectOption('男');await dialog.locator('[data-reference-field="sex"]').nth(1).selectOption('男');await dialog.locator('[type="submit"]').click();await page.waitForFunction(()=>App.getHorizontal()?.perspective==='peers'&&!document.getElementById('horizontalDialog'));assert.equal(await page.evaluate(()=>App.getHorizontal().profile.id),expectedProfile);
+  });
+  await check('saved evidence refreshes only on request and preserves narrative',async()=>{
+   const before=await page.evaluate(projection),recordId=ids.records[2][2],original=await page.evaluate(async id=>App.getRepository().loadRecord(id),recordId);
+   await page.evaluate(async original=>{const next=structuredClone(original);next.data.cmj.forEach(row=>row.height+=6);await App.getRepository().saveRecords([next],{expectedRecords:{[next.recordId]:JSON.stringify(original)}});},original);
+   await page.reload();await ready(page);assert.deepEqual(await page.evaluate(projection),before);
+   await page.locator('[data-horizontal-refresh]').click();await page.waitForFunction(basis=>App.getHorizontal()?.fingerprint!==basis,before.basis);await page.waitForFunction(()=>!document.querySelector('[data-horizontal-refresh]')?.disabled);assert.equal(await page.evaluate(()=>App.getHorizontalDocument().narrative.text),before.narrative);
+   const changed=await page.evaluate(()=>App.getHorizontal().references[0].projects.flatMap(p=>p.metrics).find(r=>r.metricId==='cmj_height').benchmark.mean);assert.equal(changed,51);
+   await page.evaluate(async original=>{const current=await App.getRepository().loadRecord(original.recordId);await App.getRepository().saveRecords([original],{expectedRecords:{[original.recordId]:JSON.stringify(current)}});},original);await page.locator('[data-horizontal-refresh]').click();await page.waitForFunction(()=>App.getHorizontal().references[0].projects.flatMap(p=>p.metrics).find(r=>r.metricId==='cmj_height').benchmark.mean===49);await page.waitForFunction(()=>!document.querySelector('[data-horizontal-refresh]')?.disabled);
+  });
+  await check('PDF range and sample details use frozen references',async()=>{
+   await page.locator('[data-horizontal-view="pdfReferences"]').selectOption('current');await page.evaluate(()=>App.saveNow());
+   assert.equal(await page.evaluate(()=>{const node=document.querySelector('#reportView').cloneNode(true);RingsideHorizontalView.preparePrint(node,App.getHorizontal(),App.getHorizontalDocument().views);return node.querySelectorAll('[data-horizontal-reference]').length;}),1);
+   await page.locator('[data-horizontal-view="pdfReferences"]').selectOption('all');await page.evaluate(()=>App.saveNow());
+   const print=await page.evaluate(()=>{const node=document.querySelector('#reportView').cloneNode(true);RingsideHorizontalView.preparePrint(node,App.getHorizontal(),App.getHorizontalDocument().views);const keys=[...node.querySelectorAll('[data-horizontal-raw-key]')].map(n=>n.dataset.horizontalRawKey);return {references:node.querySelectorAll('[data-horizontal-reference]').length,rawCount:keys.length,uniqueRaw:new Set(keys).size,direction:!!node.querySelector('#directionMetrics')};});assert.equal(print.references,2);assert.ok(print.rawCount>0);assert.equal(print.rawCount,print.uniqueRaw);assert.equal(print.direction,false);
+   await page.locator('[data-horizontal-samples]>summary').click();assert.equal(await page.locator('[data-horizontal-sample-data] tbody tr').count(),3);
+  });
+  if(pdf)await check('PDF includes every reference complete rows and horizontal metadata',async()=>{await page.locator('.horizontal-controls details summary').click();await page.locator('[data-horizontal-person]').nth(1).check();await page.evaluate(()=>App.saveNow());const labels=await page.locator('.horizontal-scalar-chart svg text').allTextContents();assert.ok(labels.some(text=>text.includes('横向比较长姓名运动员')&&text.includes('2026-03-20')));assert.ok(labels.every(text=>!text.includes('…')));await page.evaluate(()=>{window.__horizontalPDFMeta=null;const observer=new MutationObserver(()=>{const meta=document.querySelector(".ringside-pdf-stage .hero-sub");if(meta){window.__horizontalPDFMeta={text:meta.textContent,athleteFields:[...meta.querySelectorAll("[data-athlete-field]")].map(node=>node.dataset.athleteField)};observer.disconnect();}});observer.observe(document.body,{childList:true,subtree:true});});const file=await download('PDF'),d=await page.evaluate(()=>RingsidePDF.lastDiagnostics);const hero=await page.evaluate(()=>window.__horizontalPDFMeta);assert.ok(hero);assert.deepEqual(hero.athleteFields,[]);fs.writeFileSync(path.join(out,'pdf-diagnostics.json'),JSON.stringify(d,null,2));assert.equal(d.status,'complete');assert.ok(d.pages>0||d.pageCount>0);const metadata=JSON.parse(execFileSync('python',['-X','utf8','-c','import json,sys,pymupdf; from pypdf import PdfReader; m=PdfReader(sys.argv[1]).metadata; native=pymupdf.open(sys.argv[1]).metadata; print(json.dumps({"title":m.title,"subject":m.subject,"mupdf":{"title":native["title"],"subject":native["subject"]}},ensure_ascii=False))',file],{encoding:'utf8'}));assert.equal(metadata.title,'横向比较报告');assert.equal(metadata.subject,'横向比较报告 · 2 名运动员');assert.deepEqual(metadata.mupdf,{title:metadata.title,subject:metadata.subject});fs.writeFileSync(path.join(out,'pdf-metadata.json'),JSON.stringify(metadata,null,2));});
+  assert.deepEqual(result.errors,[]);result.pass=true;
+ }catch(error){result.failure=error.stack||String(error);if(page){result.failureState=await page.evaluate(()=>({toast:document.querySelector('#toast')?.textContent,revision:App.getHorizontalDocument()?.revision,configuration:App.getHorizontalDocument()?.configuration,cmj:App.getHorizontal()?.references.map(ref=>ref.projects.flatMap(p=>p.metrics).find(r=>r.metricId==='cmj_height')?.benchmark.mean)})).catch(()=>null);await page.screenshot({path:path.join(out,'failure.png'),fullPage:true}).catch(()=>{});}throw error;}
+ finally{result.finished=new Date().toISOString();fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));await browser?.close();}
+}
+main().catch(error=>{console.error(error);process.exitCode=1;});
