@@ -1,6 +1,6 @@
 /* Comparison styles are scoped so a single-record report retains its layout. */
 [data-longitudinal="true"] .screen-layout,
-[data-longitudinal="true"] .performance-layout{display:block;}
+[data-longitudinal="true"] .performance-layout{display:flex;flex-direction:column;justify-content:flex-start;min-height:0;padding-top:8px;}
 [data-longitudinal="true"] .body-art,
 [data-longitudinal="true"] .radar{width:100%;max-width:none;min-height:0;}
 [data-longitudinal="true"] .body-art>svg{height:auto;max-height:none;}

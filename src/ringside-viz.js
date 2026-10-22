@@ -69,6 +69,7 @@
       ticks = Array.from({ length: Math.round(max / step) }, (_, index) => (index + 1) * step);
     return { max, ticks: [...new Set([...ticks, 100])].sort((a, b) => a - b) };
   }
+  const radarRadius = (available, count) => Math.min(available, count > 8 ? 108 : Infinity);
   function radarSeries(points, stroke, center = null, opacity = 0.12) {
     if (points.length < 3) return "";
     if (points.every(Boolean))
@@ -544,15 +545,15 @@
     return layoutSVG(w, h, "FMS 动作表现雷达图", out, "保留原动作分数、疼痛与缺测，不推断病因。", layout);
   }
   function isoRadar(data, layout = {}) {
-    if (data.axes.length < 3 || data.axes.length > 8) return isoRegionPlot(data, layout);
-    const w = layout.width || 470,
-      h = layout.height || 360,
+    if (data.axes.length < 3) return isoRegionPlot(data, layout);
+    const axes = data.axes,
+      w = layout.width || 470,
+      h = Math.min(layout.height || 360, axes.length > 8 ? 330 : Infinity),
       cx = w / 2,
-      axes = data.axes,
       scale = radarScale(Math.max(data.max || 100, ...axes.flatMap(axis => [num(axis.strength) || 0, num(axis.symmetry) || 0]))),
       max = scale.max,
       labelClearance = Math.max(34, ...axes.map((axis) => (axis.label.length + (axis.pain ? 5 : 0)) * 6.5 * (layout.print ? .86 : 1) + 27)),
-      radius = .9 * Math.min(w / 2 - labelClearance, (h - 112) / 2),
+      radius = radarRadius(.9 * Math.min(w / 2 - labelClearance, (h - 112) / 2), axes.length),
       cy = (h - 36) / 2,
       polar = polarFrame(cx, cy, axes.length);
     const series = [
@@ -2106,6 +2107,7 @@
     bodyTooltip,
     radar,
     radarScale,
+    radarRadius,
     generic,
     fms,
     isoRadar,

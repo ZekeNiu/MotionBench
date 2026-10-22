@@ -59,7 +59,7 @@
     if(!count)return empty("尚无已测维度");
     if(spec.overview&&count<3)return `<div class="table-wrap longitudinal-overview-table"><table class="longitudinal-results"><thead><tr><th scope="col">能力</th>${series.map(s=>`<th scope="col">${E(s.label)}</th>`).join("")}</tr></thead><tbody>${axes.map((axis,i)=>`<tr><th scope="row">${E(axis.label)}</th>${series.map(s=>`<td>${N(s.values[i])===null?"—":F(s.values[i],1)+" 分 / 100"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
     const scale=spec.max===3?{max:3,ticks:[1,2,3]}:root.RingsideViz.radarScale(spec.max||100),max=scale.max;
-    const h=count>12?(print?440:500):count>8?(print?370:410):print?295:330, cx=w/2,cy=h/2-5,r=Math.max(35,Math.min(w/2-(count>10?70:65),h/2-52));
+    const h=print?295:330, cx=w/2,cy=h/2-5,r=root.RingsideViz.radarRadius(Math.max(35,Math.min(w/2-(count>10?70:65),h/2-52)),count);
     const polar=(index,value)=>{const a=-Math.PI/2+index*2*Math.PI/count;return[cx+Math.cos(a)*r*value/max,cy+Math.sin(a)*r*value/max];};
     const ring=(value,attrs)=>count<3?`<circle cx="${cx}" cy="${cy}" r="${r*value/max}" ${attrs}/>`:`<polygon points="${points(axes.map((_,i)=>polar(i,value)))}" ${attrs}/>`;
     let out="";

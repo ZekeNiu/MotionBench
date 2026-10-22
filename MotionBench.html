@@ -760,6 +760,17 @@ section {
   color: #485970;
   font-variant-numeric: tabular-nums;
 }
+.performance-layout>.aux-metrics:empty,.screen-layout>.screen-items:empty { display:none!important; }
+.performance-layout:has(>.aux-metrics:empty)>.radar:has(>svg) {
+  display:flex;
+  flex:1;
+  align-items:center;
+  justify-content:center;
+}
+.performance-layout:has(>.aux-metrics:empty)>.radar>svg {
+  height:auto;
+  max-height:390px;
+}
 .details-group {
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
@@ -3632,7 +3643,7 @@ body.sidebar-collapsed .workspace {
 
 /* Comparison styles are scoped so a single-record report retains its layout. */
 [data-longitudinal="true"] .screen-layout,
-[data-longitudinal="true"] .performance-layout{display:block;}
+[data-longitudinal="true"] .performance-layout{display:flex;flex-direction:column;justify-content:flex-start;min-height:0;padding-top:8px;}
 [data-longitudinal="true"] .body-art,
 [data-longitudinal="true"] .radar{width:100%;max-width:none;min-height:0;}
 [data-longitudinal="true"] .body-art>svg{height:auto;max-height:none;}
@@ -3765,7 +3776,7 @@ body.sidebar-collapsed .workspace {
 .ringside-pdf-document .result-trend-tooltip{display:none!important;}
 @media print{.result-trend-tooltip{display:none!important;}}
 
-[data-horizontal="true"] .screen-layout,[data-horizontal="true"] .performance-layout{display:block;}
+[data-horizontal="true"] .screen-layout,[data-horizontal="true"] .performance-layout{display:flex;flex-direction:column;justify-content:flex-start;min-height:0;padding-top:8px;}
 [data-horizontal="true"] .body-art,[data-horizontal="true"] .radar{width:100%;max-width:none;min-height:0;}
 [data-horizontal="true"] .card-foot:has(#radarLegend){display:none;}
 .horizontal-controls{display:flex;align-items:flex-start;flex-wrap:wrap;gap:12px 20px;margin:0 0 24px;font-size:12px;}
@@ -4308,7 +4319,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.25.0"});
+window.RingsideBuild=Object.freeze({"version": "2.25.2"});
 </script>
 <script>
 (function (root) {
@@ -15402,6 +15413,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       ticks = Array.from({ length: Math.round(max / step) }, (_, index) => (index + 1) * step);
     return { max, ticks: [...new Set([...ticks, 100])].sort((a, b) => a - b) };
   }
+  const radarRadius = (available, count) => Math.min(available, count > 8 ? 108 : Infinity);
   function radarSeries(points, stroke, center = null, opacity = 0.12) {
     if (points.length < 3) return "";
     if (points.every(Boolean))
@@ -15877,15 +15889,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return layoutSVG(w, h, "FMS 动作表现雷达图", out, "保留原动作分数、疼痛与缺测，不推断病因。", layout);
   }
   function isoRadar(data, layout = {}) {
-    if (data.axes.length < 3 || data.axes.length > 8) return isoRegionPlot(data, layout);
-    const w = layout.width || 470,
-      h = layout.height || 360,
+    if (data.axes.length < 3) return isoRegionPlot(data, layout);
+    const axes = data.axes,
+      w = layout.width || 470,
+      h = Math.min(layout.height || 360, axes.length > 8 ? 330 : Infinity),
       cx = w / 2,
-      axes = data.axes,
       scale = radarScale(Math.max(data.max || 100, ...axes.flatMap(axis => [num(axis.strength) || 0, num(axis.symmetry) || 0]))),
       max = scale.max,
       labelClearance = Math.max(34, ...axes.map((axis) => (axis.label.length + (axis.pain ? 5 : 0)) * 6.5 * (layout.print ? .86 : 1) + 27)),
-      radius = .9 * Math.min(w / 2 - labelClearance, (h - 112) / 2),
+      radius = radarRadius(.9 * Math.min(w / 2 - labelClearance, (h - 112) / 2), axes.length),
       cy = (h - 36) / 2,
       polar = polarFrame(cx, cy, axes.length);
     const series = [
@@ -17439,6 +17451,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     bodyTooltip,
     radar,
     radarScale,
+    radarRadius,
     generic,
     fms,
     isoRadar,
@@ -23970,7 +23983,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(!count)return empty("尚无已测维度");
     if(spec.overview&&count<3)return `<div class="table-wrap longitudinal-overview-table"><table class="longitudinal-results"><thead><tr><th scope="col">能力</th>${series.map(s=>`<th scope="col">${E(s.label)}</th>`).join("")}</tr></thead><tbody>${axes.map((axis,i)=>`<tr><th scope="row">${E(axis.label)}</th>${series.map(s=>`<td>${N(s.values[i])===null?"—":F(s.values[i],1)+" 分 / 100"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
     const scale=spec.max===3?{max:3,ticks:[1,2,3]}:root.RingsideViz.radarScale(spec.max||100),max=scale.max;
-    const h=count>12?(print?440:500):count>8?(print?370:410):print?295:330, cx=w/2,cy=h/2-5,r=Math.max(35,Math.min(w/2-(count>10?70:65),h/2-52));
+    const h=print?295:330, cx=w/2,cy=h/2-5,r=root.RingsideViz.radarRadius(Math.max(35,Math.min(w/2-(count>10?70:65),h/2-52)),count);
     const polar=(index,value)=>{const a=-Math.PI/2+index*2*Math.PI/count;return[cx+Math.cos(a)*r*value/max,cy+Math.sin(a)*r*value/max];};
     const ring=(value,attrs)=>count<3?`<circle cx="${cx}" cy="${cy}" r="${r*value/max}" ${attrs}/>`:`<polygon points="${points(axes.map((_,i)=>polar(i,value)))}" ${attrs}/>`;
     let out="";

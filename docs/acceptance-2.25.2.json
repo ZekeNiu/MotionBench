@@ -1,0 +1,86 @@
+{
+  "pass": true,
+  "version": "2.25.2",
+  "desktopVersion": "2.25.2-desktop.1",
+  "sourceHash": "6fb110b336823c094a73f44b3cb0a99f324e8971a1b624ff922316df7f47a102",
+  "completedAt": "2026-10-22T08:37:22.060666+00:00",
+  "scope": [
+    "10 targeted layout checks using the current fictional-record copy: personal, longitudinal, shared horizontal layout; desktop, narrow screen and print CSS; existing capability cards retained",
+    "12 isometric-selection model checks, including three through ten radar axes",
+    "Final Windows installer and 271 packaged runtime assets; byte-identical packaged HTML",
+    "Real Windows profile backup, installed version, saved report and ordinary reopen; raw measurements, evaluation definitions and longitudinal facts preserved"
+  ],
+  "layout": {
+    "checks": 10,
+    "errors": [],
+    "axes": {
+      "risk": 18,
+      "overview": 6,
+      "iso": 10
+    },
+    "runnerSha256": "5983a49836897a867d55ad54a09c33c0f0c3246474e2042fd8f06ef0b6a91a4d",
+    "sourceHashes": {
+      "ringside-calc.js": "c945cc770da0c93e81cff6991eb982f8e791ae25517de23e53c0d8a68f1294f1",
+      "ringside-scoring.js": "5d0a46e99f7b4c94177ecfdb915857a4719716830aa1e34fe1c52c381f6f8959",
+      "ringside-fvp.js": "d347a4eb782843def779e002ba605480a572b60b866f8d832943d7b4fb0ce9a9",
+      "ringside-sprint-fvp.js": "29b2d2955ef327a28976d37c21f2a072c93229c933e38a4eec42f7ad525c4ef4",
+      "ringside-sprint-elasticity.js": "00c4d827f92cf0261ecbd43b727b8209bdb8cbd7261c5ecf38b2713d3e5e9f27",
+      "ringside-sprint-fvp-confidence.js": "d307e1e3575454696c89e6520026e17e858f0970123b42effc92a71fd8ead020",
+      "ringside-sources.js": "68f1d4c2a88145077e2c1c628a44b6cb93c7e4b6c82488e9210ae9c6f1f9a3e7",
+      "ringside-cpet-reference.js": "eddbd0c754424544119697999ee011e83419064d3f2add14291cbf0b122ceb87",
+      "ringside-iso-reference.js": "304c55e4eaf72e64217df8676a8ed7ee3ef148ffabc9ee9133d3bed6c429cd91",
+      "ringside-definitions.js": "af0cbab7b5cf6115a53abf38b2cdbecbe7ee7b6fa4d15a93699565bca2fba22a",
+      "ringside-tests.js": "98f3d37522a689c3c3325b843a6f1b52ccb27ad4a18fe8332254b3ac9dceeab9",
+      "ringside-generic-report.js": "a24ba8f9c521db6d09533f375691ebe3d38ec8cf1d77d165ff2017d11c78c42d",
+      "ringside-model.js": "0d95c6a6faa0362731e6ca565b7baf678a7ed01c368f7d378b8ffe940b7dd663",
+      "ringside-evaluation.js": "eb6c9f109a6bc23c546fa07a74d6d58e070885540e8940fe6a020c39e8ee1ad0",
+      "ringside-interventions.js": "2cb3427bbe4ba4d81b51cc93ae7d01201d72e1eb0f7a51a038a9b9e9dedf0394",
+      "ringside-viz.js": "79b4927d75a54fe9b4017df09efabd3d1d100035383f2cbebead588b4834da92",
+      "ringside-report.js": "abd46a475f03d2fd03ac7da93c82a8a2032742685b48b1187b21f45b6d280ba5",
+      "ringside-result-display.js": "5ddd149420516ccce5a8a61357173d0e4673e29784f8c3fb16d792da9c6cbbf0",
+      "ringside-longitudinal.js": "bc4cf3d983202b88b21d86562491462130a80bbf1cd301a643eb3f15251bfd11",
+      "ringside-longitudinal-view.js": "d71b60c0928355f875908497512b6dc337e0a5726dacd41e4f2dbd05dd71e092",
+      "ringside-horizontal-view.js": "6c94704235478b246e94b2ae86b161f3a39b844c7d3862ed56c2914a84f52120",
+      "ringside.css": "cf0e8ae68a641a7f714d31998afb513e598bf4e5ec88f5908a4900eb66dcbd7d",
+      "ringside-workflow.css": "dc958ff24c0a57d2af678011aa8fdbfecbbb9681ac896919b35fa98491ad9a0e",
+      "ringside-report-refinement.css": "3fb3238aba673fcde3246d847daf8be00b42b963acedf27cb6d6199fcc185e0d",
+      "ringside-longitudinal.css": "54c7c55156315cb4fb426df8fdebce394efe473bff6d0cf517fedbc85255f204",
+      "ringside-horizontal.css": "d283ca6a158daceab52cbe79d9038c7795905635b5ef658c10991922cd638345",
+      "ringside-shell.html": "e581bbe600567d4415f1aeef805e475c53b568a643105483a6a18666c79e3bec",
+      "ringside-pdf.js": "2171241351dbb44c283ac8b724856adfb6a06b230d28bdac0fbb283e8bd246f3"
+    }
+  },
+  "package": {
+    "archiveSha256": "28951c20f958b3d0663c0e364828f3732b3738da56c27f48e3d6129ad085caf2",
+    "assets": 271,
+    "installerSha256": "5d0f871c807fe7021127cf22b2e04d6b325e538c39ad11da42643dfb517e3d08"
+  },
+  "installed": {
+    "versions": {
+      "web": "2.25.2",
+      "desktop": "2.25.2-desktop.1"
+    },
+    "individual": {
+      "axes": 10,
+      "series": 2,
+      "labels": 10,
+      "height": 330
+    },
+    "statisticalFactsPreserved": true,
+    "rawMeasurementsPreserved": true,
+    "schemeDefinitionsUnchanged": true,
+    "saveBeforeClose": true
+  },
+  "ordinaryReopen": true,
+  "limitations": [
+    "Print CSS and print rendering checked; no new PDF file exported in this patch acceptance.",
+    "Horizontal checks cover the shared chart layout; the complete horizontal creation workflow was not repeated.",
+    "No full application regression or clean-machine installation repeated; automated GitHub workflow results are separate."
+  ],
+  "evidenceHashes": {
+    "local-layout/results.json": "5bd060ccfb3eb689dd0130fe4f412d0f5d64883315a12f6b0ce2909fc56d091a",
+    "installation.json": "3f5bc8ce6a7b9d5285632bda1223580adc376f71bdd09f17f91954d452a5a77c",
+    "installed-verification.json": "58490eac11a10202c400812e983bbcf190cc4517e3724c6c8c6d459884decb22",
+    "normal-reopen.json": "ae1c9e54259887c01c3567bff68cc1351918db8f2555c557c40446ec49be3a1f"
+  }
+}

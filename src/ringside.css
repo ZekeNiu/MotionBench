@@ -745,6 +745,17 @@ section {
   color: #485970;
   font-variant-numeric: tabular-nums;
 }
+.performance-layout>.aux-metrics:empty,.screen-layout>.screen-items:empty { display:none!important; }
+.performance-layout:has(>.aux-metrics:empty)>.radar:has(>svg) {
+  display:flex;
+  flex:1;
+  align-items:center;
+  justify-content:center;
+}
+.performance-layout:has(>.aux-metrics:empty)>.radar>svg {
+  height:auto;
+  max-height:390px;
+}
 .details-group {
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);

@@ -2,15 +2,17 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**本轮版本：Windows `2.25.0-desktop.1` · HTML `2.25.0`**
+**本轮版本：Windows `2.25.2-desktop.1` · HTML `2.25.2`**
 
 2.25.0 新增横向比较报告、专项细分和年龄段管理。[2.24.13 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.13-desktop.1)继续保留。回退时同时恢复升级前的资料备份。
 
-[在线 Demo](https://zekeniu.github.io/MotionBench/) · [安装版 2.25.0](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.0-desktop.1/MotionBench-2.25.0-desktop.1-Setup-x64.exe) · [便携版 2.25.0](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.0-desktop.1/MotionBench-2.25.0-desktop.1-Portable-x64.exe) · [离线 HTML 2.25.0](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.0-desktop.1/MotionBench.html)
+2.25.2 调整报告雷达图的大小与留白：比较报告的风险与能力图使用一致高度，多维图形收紧半径；等长力量有 10 个部位时保留完整雷达图。
+
+[在线 Demo](https://zekeniu.github.io/MotionBench/) · [安装版 2.25.2](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.2-desktop.1/MotionBench-2.25.2-desktop.1-Setup-x64.exe) · [便携版 2.25.2](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.2-desktop.1/MotionBench-2.25.2-desktop.1-Portable-x64.exe) · [离线 HTML 2.25.2](https://github.com/ZekeNiu/MotionBench/releases/download/v2.25.2-desktop.1/MotionBench.html)
 
 同一运动员的纵向比较直接从首页开始：勾选多条测试记录，每张图可独立选择展示日期；结果表统一显示一列“变化趋势”，mini 图展示全部所选日期，并带纵轴刻度与单位。悬停、键盘或触屏可查看具体读数与相邻变化。损伤风险筛查使用部位雷达，运动表现概览少于3维用表格、3维及以上用雷达。
 
-横向比较从“横向比较”入口开始：每人选择一条实际记录，设置主角或多人并列视角，并添加全库、专项或队伍参照。参照按人员等权汇总，区分最近可比测试与阶段个人纪录；每行显示实际人数，报告保存独立快照。详见 [2.25.0 使用说明](docs/motionbench-2.25.0.md)、[验收策略](docs/verification-strategy.md)和[本轮验收记录](docs/acceptance-2.25.0.md)。
+横向比较从“横向比较”入口开始：每人选择一条实际记录，设置主角或多人并列视角，并添加全库、专项或队伍参照。参照按人员等权汇总，区分最近可比测试与阶段个人纪录；每行显示实际人数，报告保存独立快照。详见 [2.25.0 使用说明](docs/motionbench-2.25.0.md)、[验收策略](docs/verification-strategy.md)和[本轮验收记录](docs/acceptance-2.25.2.md)。
 
 ![MotionBench 在线演示，全部资料为模拟数据](assets/motionbench-demo.png)
 
@@ -57,7 +59,7 @@
 
 适用于 Windows 10 / 11 x64。Setup 包含完整 Electron 运行环境，安装向导可选择中文、含空格及非系统盘目录。Portable 首次启动会解包运行环境。
 
-- **本轮 2.25.0 升级**：使用 `MotionBench-2.25.0-desktop.1-Setup-x64.exe`。实际升级与资料核对的完成状态见 [2.25.0 验收记录](docs/acceptance-2.25.0.md)。
+- **本轮 2.25.2 升级**：使用 `MotionBench-2.25.2-desktop.1-Setup-x64.exe`。实际升级与资料核对的完成状态见 [2.25.2 验收记录](docs/acceptance-2.25.2.md)。
 - **公开版本升级**：在侧栏底部“应用设置”检查、下载并重启更新，或运行公开发行的 Setup。
 - **安装版更新**：沿用原安装目录。启动检查默认开启，可关闭；下载和安装均需点击，普通退出不会自动安装。
 - **便携版更新**：在应用设置检查并打开便携版下载，退出程序后替换 exe。
@@ -69,7 +71,7 @@
 
 ## HTML、本机入口与资料迁移
 
-下载[2.25.0 版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.25.0-desktop.1)中的 `MotionBench.html` 即可直接打开，无需安装。需要本机 AI 中转时，可使用同版本源码包中的启动器：Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
+下载[2.25.2 版本页](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.25.2-desktop.1)中的 `MotionBench.html` 即可直接打开，无需安装。需要本机 AI 中转时，可使用同版本源码包中的启动器：Windows 运行 `Start_MotionBench.cmd`；其他系统运行 `python3 scripts/serve.py`，需要 Python 3.10+。
 
 本机启动器默认地址为 `http://127.0.0.1:8765/MotionBench.html`。保持原文件位置、浏览器和打开地址可继续使用原资料。浏览器、地址、路径或桌面入口变化前，请先在“备份与恢复”导出完整 JSONL，再在目标入口导入并核对。单条 JSON、HTML 和 PDF 用于报告分享，完整资料库迁移使用 JSONL。
 

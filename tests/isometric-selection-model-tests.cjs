@@ -51,11 +51,18 @@ test("neck and trunk labels mean movement direction and body payloads use centra
   assert.ok(regions.trunk.tests.some(t=>t.sideLabel==="L"));assert.match(R.render(R.build(r)),/左侧更弱/);
   assert.match(V.body(regions),/data-region="trunk"/);assert.match(V.bodyTooltip({...regions.trunk,name:"躯干"}),/L/);
 });
-test("plots use selected regions with sparse and ten-region horizontal fallback instead of direction axes",()=>{
-  const r=isoOnly();for(const n of [0,1,2,3,8,9,10]){
+test("plots preserve every selected region and measurement in radars from three through ten axes",()=>{
+  const r=isoOnly();r.data.iso.forEach((row,i)=>Object.assign(row,{left:80+i,right:90+i,center:85+i,target:100}));
+  for(const n of [0,1,2,3,8,9,10]){
     const regions=Object.keys(M.REG).slice(0,n);M.setIsoDirectionSelection(r,regions.map(region=>r.data.iso.find(row=>row.region===region).id));
-    const report=R.build(r),html=V.isoRadar(report.isoRadar);assert.equal(report.isoRadar.axes.length,n);assert.ok(!/NaN|Infinity/.test(html));
-    if(n===0)assert.match(html,/等待数据/);else assert.match(html,n<3||n>8?/部位力量与对称性/:/关节力量与对称性/);
+    const recordBefore=JSON.stringify(r),report=R.build(r),radarBefore=JSON.stringify(report.isoRadar),html=V.isoRadar(report.isoRadar);
+    assert.equal(report.isoRadar.axes.length,n);assert.ok(!/NaN|Infinity/.test(html));
+    assert.equal(JSON.stringify(r),recordBefore);assert.equal(JSON.stringify(report.isoRadar),radarBefore);
+    for(const axis of report.isoRadar.axes)assert.ok(html.includes('>'+axis.label+'</text>'),axis.label+' axis label');
+    if(n===0)assert.match(html,/等待数据/);else assert.match(html,n<3?/部位力量与对称性/:/关节力量与对称性/);
+    assert.equal((html.match(/data-radar-series=/g)||[]).length,n>=3?2:0);
+    const measured=report.isoRadar.axes.flatMap(axis=>[axis.strength,axis.symmetry]).filter(value=>value!==null).length;
+    assert.equal((html.match(/class="viz-point"/g)||[]).length,measured);
   }
 });
 test("new body hotspots preserve separate shoulder scapular forearm and wrist identities",()=>{
