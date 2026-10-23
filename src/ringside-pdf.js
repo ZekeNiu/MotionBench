@@ -266,7 +266,7 @@
         card.prepend(summary);
       }
     });
-    const rawTrials = [...clone.querySelectorAll("[data-raw-trials]")];
+    const rawTrials = clone.dataset.horizontal === "true" ? [] : [...clone.querySelectorAll("[data-raw-trials]")];
     if (rawTrials.length) {
       const appendix = document.createElement("section");
       appendix.className = "repeat-appendix";
@@ -286,7 +286,7 @@
       });
       clone.append(appendix);
     }
-    clone.querySelectorAll("details").forEach((node) => {
+    if(clone.dataset.horizontal !== "true")clone.querySelectorAll("details").forEach((node) => {
       node.open = true;
     });
     clone.querySelectorAll('a[href^="#"]').forEach((node) => {
@@ -798,8 +798,8 @@
 
   function reportIdentity(snapshot) {
     if(snapshot.horizontal){
-      const title=snapshot.horizontalTitle||"横向比较报告",subject="横向比较报告 · "+(snapshot.horizontalModel?.participants?.length||0)+" 名运动员";
-      return {title,subject,header:subject,footer:"横向比较报告"};
+      const model=snapshot.horizontalModel||{},count=model.participants?.length||0,reference=model.references?.find(item=>item.id===snapshot.horizontalViews?.activeReferenceId)||model.references?.[0],kind=count?"横向比较报告":"群体统计报告",title=snapshot.horizontalTitle||kind,subject=kind+" · "+(count?count+" 名运动员":reference?.label||"群体结果");
+      return {title,subject,header:subject,footer:kind};
     }
     return {title:[snapshot.athlete?.name,"运动表现与筛查"].filter(Boolean).join(" · "),
       subject:["选定测试报告",...backgroundFields(snapshot).map(field=>field.text)].join(" · "),

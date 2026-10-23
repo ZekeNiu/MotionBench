@@ -101,7 +101,7 @@
         // the lower of two complete side scores. This is a score direction,
         // not a claim about injury probability or overall athletic ability.
         const fixedFMS = M.FM[index]?.[0] === original.name && M.FM[index]?.[1] === original.bilateral;
-        add(item.subjectId, { subjectId: item.subjectId, testId: "fms", name: item.name, unit: "分", value: item.value, measurementScale: "ordinal",
+        add(item.subjectId, { subjectId: item.subjectId, testId: "fms", name: item.name, unit: "分", value: item.value, measurementScale: "ordinal", aggregation: fixedFMS ? { mean: true, best: true, evaluator: "fixed-fms" } : { mean: false, best: false }, region: original.location || "",
           context: { ...testContext(record, "fms"), item: item.subjectId, name: original.name, bilateral: original.bilateral, aggregation: original.bilateral ? "lower-side" : "single", scoring: "fms-0-pain-1-unable-2-compensated-3-uncompensated" }, evaluation: item, direction: fixedFMS ? "higher" : null, canonicalDefinition: canonicalDefinition(fixedFMS ? "higher" : "none", "ordinal"),
           notes: [original.bilateral ? "左侧 " + (original.left ?? "—") + " / 右侧 " + (original.right ?? "—") : "", raw.pain || item.value === 0 ? "疼痛" : "", original.notes].filter(Boolean).join("；"), pain: raw.pain || item.value === 0, rawTrials: [clone(original)] });
       } else if (item.kind === "iso") {
@@ -130,6 +130,7 @@
         add(item.subjectId + ":" + (item.side || "C"), { subjectId: item.subjectId, testId: "iso", section: "balance", groupName: "关节平衡", region: pair.region, pairId: pair.id,
           name: (M.REG[pair.region] || pair.region) + " · " + item.name + (item.side ? " · " + (item.side === "L" ? "左侧" : "右侧") : ""), value: item.value, preserveMissing: true, unit: item.unit, measurementScale: "ratio", evaluation: item,
           referenceTarget: detail?.referenceTarget, referenceSource: detail?.referenceSource, referenceReason: detail?.referenceReason, notes: [...new Set(reasons)].join("；"), diagnosticNotes: [detail?.evaluationReason, detail?.referenceReason].filter(Boolean),
+          displayNotes: [detail?.reason, pair.referenceEnabled && pair.ranges?.length ? detail?.evaluationReason : "", detail?.referenceReason].filter(Boolean),
           balance: { pairId: pair.id, label: pair.label, numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, numerator: clone(computed?.numerator || null), denominator: clone(computed?.denominator || null), referenceEnabled: pair.referenceEnabled, ranges: clone(pair.ranges || []), result: clone(detail || null) },
           context: { side: item.side, numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, confirmed: pair.confirmed, contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(row => row.id === id); return row ? E.isoContext(row, record) : null; }) } });
       } else if (item.kind === "imtp-time") {

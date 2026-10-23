@@ -1,0 +1,138 @@
+{
+  "pass": true,
+  "version": "2.26.0",
+  "scope": "Final HTML and Windows x64 package; model/browser/PDF acceptance, isolated native export tests, fresh Explorer-backed library preservation, actual installed shortcut launch/save/close and reopen.",
+  "artifact": {
+    "file": "MotionBench.html",
+    "sha256": "7e61a98dc9d2aba88520765756d2d14369d15b7793d92d00b311a06babdeb3b5",
+    "bytes": 5201717
+  },
+  "unitSuites": 76,
+  "unitChecks": 1181,
+  "evidence": [
+    {
+      "file": "output/horizontal-refinement/acceptance/unit/unit-results.json",
+      "sha256": "43daca560779f3401332d6846551ef7ec501e498417e9570a74f593fadd72427",
+      "checks": 76
+    },
+    {
+      "file": "output/horizontal-refinement/acceptance/desktop-unit/results.json",
+      "sha256": "9b8eaf9bc32d914402d427c179991fa4c376fbf34016c8c4e94a2a24a15905f7",
+      "checks": 5
+    },
+    {
+      "file": "output/playwright/horizontal-refinement/chrome/result.json",
+      "sha256": "563c7fcf8b6d966edb5d55967510ea539e0df28ca03e6a4eac7d75d98804a8c6",
+      "checks": 15
+    },
+    {
+      "file": "output/playwright/horizontal-refinement-copy/chrome/result.json",
+      "sha256": "868ce0018bd22d7345b315c01d1b1aaadb07b30708168688655de11f2fc0e7ca",
+      "checks": 8
+    },
+    {
+      "file": "output/playwright/horizontal-classification-ui/result-chrome.json",
+      "sha256": "a71446349accb05395f97997971f0e214aec35d01d1290da784e9400f3923f2d",
+      "checks": 10
+    },
+    {
+      "file": "output/playwright/horizontal-refinement/msedge/result.json",
+      "sha256": "597d0d5cd42697367b741a08ef523ac564f1c0f16a5db869339e3b62757581e0",
+      "checks": 15
+    },
+    {
+      "file": "output/playwright/horizontal-refinement-copy/msedge/result.json",
+      "sha256": "901d7925c0cd8da6f20c48bbe9bad3ba432d3fb0260ab80165b9167709ad9662",
+      "checks": 8
+    },
+    {
+      "file": "output/playwright/horizontal-classification-ui/result-msedge.json",
+      "sha256": "eaf5205bf2a61a02ec675c8868a257919f8f73ada633103ea9cb453b61c5a344",
+      "checks": 10
+    },
+    {
+      "file": "output/playwright/horizontal-refinement/multiperson/results.json",
+      "sha256": "890646ab34a0f73d7a78e23da64c211ad159c831d813a15515f1f5c8e9e2dd43",
+      "checks": 7
+    },
+    {
+      "file": "output/playwright/horizontal-refinement/presentation/results.json",
+      "sha256": "f738d535d43b1e73d1df47049851933eb1eb5ec7fdbd3b1cef3a5813a19fd0d1",
+      "checks": 4
+    },
+    {
+      "file": "output/horizontal-refinement/acceptance/visual-review.json",
+      "sha256": "56ff7aecfbe892a41e95c331b4797cd36843f02c324f753c1f31dd24b8d35063"
+    }
+  ],
+  "boundaries": [
+    "External AI providers and physical printer jobs were not exercised.",
+    "Private profile snapshots and original data are excluded from public assets."
+  ],
+  "desktopVersion": "2.26.0-desktop.1",
+  "package": {
+    "archiveSha256": "545c60707dbb2b4df78e74b8f0f99c2f01b39037b778dec34fd1ecef496153b0",
+    "assets": 271,
+    "installerSha256": "cf3b76bf53a9492e03049d9c2d8f99d0ee512d4754d9cb99ad31515ab591e383",
+    "portableSha256": "27a33b8c1332153fabeea2ce8ea8240904bc2bead14df49cfb97d0d2327408f0",
+    "runtimeHtmlMatchesSource": true,
+    "installedRuntimeFilesVerified": 73
+  },
+  "native": {
+    "isolatedReportChecks": 11,
+    "isolatedDesktopChecks": 16,
+    "sourceHash": "7e61a98dc9d2aba88520765756d2d14369d15b7793d92d00b311a06babdeb3b5",
+    "archiveSha256": "545c60707dbb2b4df78e74b8f0f99c2f01b39037b778dec34fd1ecef496153b0",
+    "errors": 0
+  },
+  "installation": {
+    "pass": true,
+    "version": "2.26.0-desktop.1",
+    "installerExitCode": 0,
+    "profileUnchangedByInstaller": true,
+    "protectedLibraryHash": "4d1e9bb9f66da3841cafea0015b13cbfd56686e7e1f4ad4b82e7be4bb69709ad",
+    "counts": {
+      "athletes": 8,
+      "records": 17,
+      "evaluationProfiles": 2,
+      "horizontalReports": 1,
+      "longitudinalReports": 8
+    },
+    "ordinaryShortcut": true,
+    "ordinaryArguments": [],
+    "savedReportRestored": true,
+    "normalClose": true,
+    "reopenedPreservation": true,
+    "backupManifestSha256": "f48d109610c6b797c43a6902f708b0ed6e73edce786e327219fa3a8ad8e5e5cc"
+  },
+  "additionalEvidence": [
+    {
+      "role": "packaging",
+      "sha256": "49984a6fe760ba2e502f42c7e1d695ab09dbb79e20f11f57771334ae8c69aca9"
+    },
+    {
+      "role": "package-check",
+      "sha256": "91c4dccc9d0be84aa53c2d467b9cd3edbd3fe37a335f207d047a086ae18b37d6"
+    },
+    {
+      "role": "isolated-native",
+      "sha256": "53d1a765e4963aeab2bd0b9e5ae20be3b75c857f40080b43d08e09b1111e42cc"
+    },
+    {
+      "role": "native-smoke",
+      "sha256": "faa6ed9ac7abeb0dc6fe571f4d3d1ac2d20797d956942b599bcde07646d92caa"
+    },
+    {
+      "role": "actual-installation",
+      "sha256": "8deeea429b54ec7ed3c4f7a4b00ace7b8ccaad9a598dcfbdda61ada2614b95d6"
+    },
+    {
+      "role": "ordinary-shortcut",
+      "sha256": "7616c21f8847971b1142296dd9f835a20f419c73ecf3d591fbc4a685f6528fa2"
+    },
+    {
+      "role": "reopened-preservation",
+      "sha256": "4668cc693c7ea9e5b345b3ec09be8b004721d9d212ac7d4520ad11aae7058a8c"
+    }
+  ]
+}

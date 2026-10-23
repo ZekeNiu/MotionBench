@@ -37,7 +37,14 @@ test("cancellation at a batch boundary returns no partial snapshot and stops fur
   }finally{c.RingsideComparison.prepareRecord=original;}
 });
 test("cooperative validation reports the same invalid participant error as synchronous build",async()=>{
-  const records=simpleRecords(2),settings={...options(records),participants:[]};let expected;try{H.build(records,settings);}catch(error){expected=error.message;}
+  const records=simpleRecords(2),settings={...options(records),participants:[{athleteId:"different-person",recordId:records[0].recordId}]};let expected;try{H.build(records,settings);}catch(error){expected=error.message;}
   assert.ok(expected);await assert.rejects(H.buildAsync(records,settings),error=>error.message===expected);
+});
+test("group-only cooperative builds discover the same projects and preserve synchronous sampling and evaluation",async()=>{
+  const records=simpleRecords(5),settings={...options(records,1),participants:[]};settings.references[0].sampling="period-mean";
+  const expected=H.build(records,settings),actual=await H.buildAsync(records,settings,{batchSize:2,yieldControl:turn});
+  assert.deepEqual(copy(actual),copy(expected));assert.equal(actual.participants.length,0);
+  const metric=actual.references[0].projects.find(project=>project.id==="cmj").metrics.find(row=>row.metricId==="cmj_height");
+  assert.equal(metric.benchmark.n,3);assert.equal(metric.benchmark.contributors[0].sources.length,2);assert.equal(metric.benchmark.mean,(30.5+32.5+34)/3);
 });
 (async()=>{let passed=0;for(const[name,fn]of tests){await fn();passed++;console.log("PASS "+name);}console.log(passed+" horizontal cooperative model checks passed");})().catch(error=>{console.error(error);process.exitCode=1;});

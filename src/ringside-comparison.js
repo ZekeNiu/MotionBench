@@ -3,6 +3,35 @@
   const C = root.RingsideComparison, E = root.RingsideEvaluation, M = root.RingsideModel, S = root.RingsideMetricSemantics;
   if (!C) throw Error("请先加载共享测试结果计算");
   const clone = value => JSON.parse(JSON.stringify(value));
+  function resolvedStandard(cell, period, unit) {
+    const record = period.record, factor = M.unitFactor(cell.unit || "", unit || "") ?? 1;
+    const scale = value => root.Calc.num(value) === null ? null : value * factor;
+    const ranges = values => (values || []).map(range => ({ ...clone(range), min: scale(range.min), max: scale(range.max) }));
+    const rules = Object.fromEntries(["scoreAmber", "scoreGreen", "asymAmber", "asymRed"].map(key => [key, record.rules[key]]));
+    const match = record.evaluationStandards?.find(item => item.subjectId === cell.subjectId);
+    const base = { subjectId: cell.subjectId || cell.metricId || cell.id, unit: unit || "", ruleId: match?.ruleId || "", revision: record.evaluationProfileRevision || 0, rules,
+      ruleEnabled: match?.enabled === true, applicabilityReason: match?.reason || "" };
+    if (cell.aggregation?.evaluator === "fixed-fms") return { ...base, kind: "fixed-fms", enabled: true, applicable: true };
+    if (cell.section === "asymmetry") return { ...base, kind: "asymmetry", enabled: true, applicable: true };
+    if (cell.section === "force") {
+      const row = record.data.iso.find(item => item.id === cell.directionId), side = cell.context?.side || "";
+      if (!row) return null;
+      const target = M.effectiveIsoTarget(record, row, side);
+      return { ...base, kind: "iso", enabled: target.target !== null, applicable: target.matched !== false, target: scale(target.target), targetKind: target.kind,
+        referenceBasis: target.basis || "", referenceGroup: target.group || null, sideKey: target.sideKey || side, source: target.source || "" };
+    }
+    if (cell.section === "balance") {
+      const pair = record.balancePairs.find(item => item.id === cell.pairId);
+      return pair ? { ...base, kind: "balance", enabled: pair.referenceEnabled === true, applicable: match?.applicable !== false, ranges: ranges(pair.ranges), source: pair.source || "" } : null;
+    }
+    const definition = cell.definition || cell.displayDefinition || record.definitions.find(d => d.id === cell.metricId || d.id === cell.id);
+    if (!definition) return null;
+    const missingGroup = definition.referenceMatch && !definition.referenceMatch.groupId;
+    return { ...base, kind: "metric", enabled: definition.referenceEnabled === true, applicable: match?.applicable !== false && !missingGroup,
+      applicabilityReason: missingGroup ? definition.referenceMatch.reason || "没有匹配的分层标准" : base.applicabilityReason,
+      targetEnabled: definition.targetEnabled !== false, target: scale(definition.target), ranges: ranges(definition.ranges), direction: definition.direction || "higher",
+      measurementScale: E.measurementScale(definition), zeroValid: definition.zeroValid === true || definition.id === "pushup_reps", ability: definition.ability || "", source: definition.source || "", referenceGroupId: definition.referenceMatch?.groupId || "" };
+  }
   function horizontalCell(cell, period, catalog, unit = cell?.unit || "") {
     if (!cell) return null;
     const normalized = C.rowFrom(cell.id || cell.metricId || cell.name, [cell], [period]).cells[0];
@@ -40,15 +69,17 @@
     next.contextKey = E.canonical({ context: JSON.parse(E.contextSignature(context)), unit: next.unit, scale: cell.measurementScale || "unknown", meaning: semantics.meaning });
     next.comparisonContext = context; next.subjectInputs = subjectInputs;
     next.semantics = semantics; next.direction = semantics.direction; next.meaning = semantics.meaning;
+    next.resolvedStandard = resolvedStandard(cell, period, next.unit);
     delete next.comparableToPrevious;
     return next;
   }
   function difference(value, reference, scale, unit) {
     if (root.Calc.num(value) === null || root.Calc.num(reference) === null) return { available: false, reason: "缺少有效参照" };
-    const delta = value - reference, percentage = /^(?:%|％)[A-Za-z0-9]*$/.test(unit || "");
+    const rawDelta = value - reference, tolerance = Number.EPSILON * Math.max(Math.abs(value), Math.abs(reference), Number.MIN_VALUE) * 16;
+    const delta = Math.abs(rawDelta) <= tolerance ? 0 : rawDelta, percentage = /^(?:%|％)[A-Za-z0-9]*$/.test(unit || "");
     return { available: true, delta, kind: scale === "ordinal" ? "ordinal" : percentage ? "percentage-point" : "absolute",
       ...(scale === "ratio" && !percentage && reference > 0 ? { percent: delta / reference * 100 } : {}),
       relation: delta === 0 ? "equal" : delta > 0 ? "higher" : "lower" };
   }
-  Object.assign(C, { horizontalCell, difference });
+  Object.assign(C, { horizontalCell, difference, resolvedStandard });
 })(typeof window !== "undefined" ? window : globalThis);

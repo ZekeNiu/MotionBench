@@ -167,7 +167,7 @@ test("structured ISO FMS IMTP and LVP results declare directions at their produc
   const model = build(records, { profile: fixture.profile }), rows = model.projects.flatMap(p => p.metrics);
   const iso = rows.find(row => row.testId === "iso" && row.section === "force" && row.benchmark.n);
   assert.equal(iso.direction, "higher"); assert.ok(iso.benchmark.best !== null);
-  const fms = rows.find(row => row.testId === "fms" && row.benchmark.n); assert.equal(fms.meaning, "ordinal"); assert.equal(fms.benchmark.mean, null); assert.ok(fms.benchmark.best !== null);
+  const fms = rows.find(row => row.testId === "fms" && row.benchmark.n); assert.equal(fms.meaning, "ordinal"); assert.equal(fms.aggregation.mean, true); assert.ok(fms.benchmark.mean !== null); assert.ok(fms.benchmark.best !== null);
   const imtp = rows.find(row => row.testId === "imtp" && row.unit === "%PF" && row.benchmark.n); assert.equal(imtp.direction, "higher"); assert.ok(imtp.benchmark.best !== null);
   const estimated = rows.find(row => row.id.startsWith("lvp-fit:") && row.id.endsWith(":1rm")); assert.equal(estimated.direction, "higher"); assert.ok(estimated.benchmark.best !== null); assert.equal(estimated.sourceKind, "model");
   assert.ok(rows.filter(row => row.section === "balance" || row.section === "asymmetry").every(row => row.benchmark.best === null));

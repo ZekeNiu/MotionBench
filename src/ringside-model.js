@@ -1782,6 +1782,22 @@
       range: null,
     };
   }
+  // These value-only rules are shared by individual and aggregate reports.
+  function fixedFmsAssessment(value) {
+    const v = N(value), status = v === null || v < 0 || v > 3 ? "gray" : v === 0 ? "red" : v < 3 ? "amber" : "green";
+    return { status, label: Def.assessmentLabel(status, v === null ? "未测" : "已测"), range: null };
+  }
+  function regionalAssessment(tests) {
+    const hasMeasured = tests.some(test => test.hasMeasured), graded = tests.filter(test => test.hasMeasured && ["red", "amber", "green"].includes(test.status));
+    const worst = graded.reduce((selected, test) => !selected || rank[test.status] > rank[selected.status] ? test : selected, null), status = worst?.status || "gray";
+    return { hasMeasured, status, label: Def.assessmentLabel(status, hasMeasured ? "已测" : "未测") };
+  }
+  function abilityScoreSummary(config, scores, primaryAssessment) {
+    if (!scores.length || scores.some(score => N(score) === null)) return { value: null, status: "gray" };
+    const value = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+    const status = config.method === "primary" ? primaryAssessment?.status || "gray" : config.ranges?.length ? grade(value, { referenceEnabled: true, ranges: config.ranges }).status : "gray";
+    return { value, status };
+  }
   function aggregate(rows, key, mode) {
     return Calc.aggregate(
       (rows || []).filter((r) => positive(r[key]) !== null),
@@ -1854,6 +1870,17 @@
     }
     return { status, reasons };
   }
+  function isoSideAssessment(strength, { pain = false, side = "", weakSide = "", strongSide = "", asym = null, asymStatus = "gray" } = {}) {
+    let status = strength.status;
+    const reasons = [];
+    if (pain) { status = "red"; reasons.push("疼痛"); }
+    reasons.push(...strength.reasons || []);
+    if (side && side === weakSide && ["red", "amber"].includes(asymStatus)) {
+      if (rank[asymStatus] > rank[status]) status = asymStatus;
+      reasons.push("双侧差异 " + fmt(asym, 1) + "% " + strongSide);
+    }
+    return { status, reasons };
+  }
   function isoAnalysis(record) {
     return selectedIsoRows(record).map((row) => {
       const left = nonnegative(row.left),
@@ -1884,16 +1911,7 @@
         const resolved = effectiveIsoTarget(record,row,side), target = resolved.target;
         const referenceComparison = root.RingsideIsoReferences?.comparison(value,resolved) || null;
         const strength = isoStrengthAssessment(value, target, { referenceComparison, targetKind: resolved.kind, unit: row.unit });
-        let status = strength.status, reasons = [];
-        if (pain) {
-          status = "red";
-          reasons.push("疼痛");
-        }
-        reasons.push(...strength.reasons);
-        if (side === weakSide && ["red", "amber"].includes(asymStatus)) {
-          if (rank[asymStatus] > rank[status]) status = asymStatus;
-          reasons.push("双侧差异 " + fmt(asym, 1) + "% " + strongSide);
-        }
+        const { status, reasons } = isoSideAssessment(strength, { pain, side, weakSide, strongSide, asym, asymStatus });
         return {
           side,
           sideLabel: side || "单项",
@@ -2854,14 +2872,7 @@
       raw.fms.items = state.data.fms.map((r, i) => ({
         ...r,
         value: raw.fms.scores[i],
-        status:
-          raw.fms.scores[i] === null
-            ? "gray"
-            : raw.fms.scores[i] === 0
-              ? "red"
-              : raw.fms.scores[i] < 3
-                ? "amber"
-                : "green",
+        status: fixedFmsAssessment(raw.fms.scores[i]).status,
       }));
       if (raw.fms.completed) validTests.add("fms");
     }
@@ -3012,9 +3023,7 @@
       });
       if (transformed.some(result => !result.valid)) return missing(transformed.find(result => !result.valid).reason);
       const scores = transformed.map(result => result.score);
-      const status = cfg.method === "primary" ? targetStatus(selected[0].value, chosen[0], state)
-        : cfg.ranges?.length ? grade(scores.reduce((a,b) => a+b,0)/scores.length, { referenceEnabled: true, ranges: cfg.ranges }).status : "gray";
-      const value = scores.reduce((a,b) => a+b,0)/scores.length;
+      const { value, status } = abilityScoreSummary(cfg, scores, evaluation(selected[0].value, chosen[0], state));
       return {
         key: label,
         label: T.abilityLabel(state, label),
@@ -3259,11 +3268,7 @@
     }
     Object.values(regions).forEach(region => {
       region.tests ||= [];
-      region.hasMeasured = region.tests.some(test => test.hasMeasured);
-      const graded = region.tests.filter(test => test.hasMeasured && ["red", "amber", "green"].includes(test.status));
-      const worst = graded.reduce((selected, test) => !selected || rank[test.status] > rank[selected.status] ? test : selected, null);
-      region.status = worst?.status || "gray";
-      region.label = Def.assessmentLabel(region.status, region.hasMeasured ? "已测" : "未测");
+      Object.assign(region, regionalAssessment(region.tests));
     });
     const allTests = T.describe(state).map((t) => [t.id, t.name, t.category]),
       plannedTests = allTests.filter((t) => use(t[0]));
@@ -5347,11 +5352,15 @@
     changeMetricUnit,
     targetStatus,
     evaluation,
+    fixedFmsAssessment,
+    regionalAssessment,
+    abilityScoreSummary,
     evaluationResults,
     isoRows,
     normalizeIsoDirection,
     migrateBalancePair,
     effectiveIsoTarget,
+    isoSideAssessment,
     isoStrengthAssessment,
     legacyIsoDirectionIds,
     isoDirectionCatalog,

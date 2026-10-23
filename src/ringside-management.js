@@ -4,9 +4,12 @@
   const $=id=>document.getElementById(id), clone=v=>JSON.parse(JSON.stringify(v));
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const uid=()=>crypto.randomUUID(), now=()=>new Date().toISOString(), lib=()=>App.getLibrary();
-  const sections=[["athletes","运动员管理"],["teams","队伍管理"],["records","测试记录"],["plans","测试方案"],["metrics","项目与指标库"],["profiles","评价方案"],["backup","备份与恢复"]];
+  const sections=[["athletes","运动员管理"],["teams","队伍管理"],["sports","专项分类"],["ageBands","年龄分组"],["records","测试记录"],["plans","测试方案"],["metrics","项目与指标库"],["profiles","评价方案"],["backup","备份与恢复"]];
   let current="athletes", selected=new Set(), selections={}, filters={}, editor=null, planDraft=null, planBaseline="", formBaseline="", formAction=null, pendingReview=null, busy=false, filterTimer;
   let formSession=null, formSequence=0, previewSequence=0, profileOrigin=null, activeAction="";
+  let classificationEditor=null, classificationReturn=null, recordsTab="records", savedReports=[], reportsLoading=false, reportsError="", reportsSequence=0;
+  const classificationTab=tab=>tab==="sports"||tab==="ageBands";
+  const classifications=()=>classificationEditor ||= root.RingsideClassificationUI.create({library:lib,commit});
   const pathKey=value=>encodeURIComponent(value).replace(/\./g,"%2E");
   const freshFilters=()=>({q:"",group:"",sport:"",status:"active",from:"",to:"",test:"",page:1,sort:"recent",athleteId:"",advanced:false});
   const filter=()=>filters[current] ||= freshFilters();
@@ -23,7 +26,35 @@
   const sportInfo=profile=>root.RingsideClassifications?.resolve(profile,lib().classifications)||{sportId:"",sportName:profile?.sport||""};
   const sportKey=profile=>{const value=sportInfo(profile);return value.sportId||value.sportName;};
   function navigation(){return sections.map(([id,label])=>`<button data-manager-action="section" data-id="${id}" class="${current===id?"active":""}" ${current===id?'aria-current="page"':""}>${label}</button>`).join("");}
-  function open(tab="athletes"){selections[current]=selected;clearTimeout(filterTimer);if(tab==="catalog")tab="metrics";current=sections.some(s=>s[0]===tab)?tab:"athletes";selected=selections[current] ||= new Set();render();requestAnimationFrame(()=>window.scrollTo({top:filter().scroll||0,behavior:"instant"}));}
+  function beforeLeave(nextTab) {
+    if(!classificationTab(current)||nextTab===current)return true;
+    if(classificationEditor&&!classificationEditor.beforeLeave())return false;
+    classificationReturn=null;return true;
+  }
+  function open(tab="athletes",options={}){
+    if(tab==="catalog")tab="metrics";tab=sections.some(s=>s[0]===tab)?tab:"athletes";
+    if(!beforeLeave(tab))return false;
+    selections[current]=selected;clearTimeout(filterTimer);
+    if(classificationTab(tab)&&(current!==tab||!classificationEditor?.isOpen()))classifications().open(tab);
+    if(classificationTab(tab)&&Object.hasOwn(options,"onReturn"))classificationReturn={action:options.onReturn,label:options.returnLabel||"返回报告设置"};
+    current=tab;selected=selections[current] ||= new Set();
+    if(tab==="records"&&options.view)recordsTab=options.view==="reports"?"reports":"records";
+    render();if(tab==="records"&&recordsTab==="reports")loadSavedReports();
+    requestAnimationFrame(()=>window.scrollTo({top:filter().scroll||0,behavior:"instant"}));return true;
+  }
+  async function loadSavedReports() {
+    const sequence=++reportsSequence;reportsLoading=true;reportsError="";render();
+    try { const rows=await App.listSavedReports();if(sequence===reportsSequence)savedReports=rows.slice().sort((a,b)=>String(b.updated||"").localeCompare(String(a.updated||""))); }
+    catch(error) { if(sequence===reportsSequence)reportsError=error.message; }
+    finally { if(sequence===reportsSequence){reportsLoading=false;if(current==="records"&&recordsTab==="reports")render();} }
+  }
+  function recordLists() {
+    const tabs='<nav class="profile-tabs" aria-label="测试记录页面">'+[["records","测试记录"],["reports","已保存报告"]].map(([id,label])=>button(label,"records-tab",id,recordsTab===id?'aria-current="page"':'')).join("")+'</nav>';
+    if(recordsTab!=="reports")return tabs+lists();
+    if(reportsLoading)return tabs+'<p class="note" role="status">正在读取已保存报告…</p>';
+    if(reportsError)return tabs+'<p class="field-error" role="alert">'+esc(reportsError)+'</p>'+button("重新读取","reports-refresh");
+    return tabs+(savedReports.map(report=>'<article class="management-catalog-item" data-saved-report="'+esc(report.id)+'"><div><h2>'+esc(report.title||"横向比较报告")+'</h2><p class="note">'+esc([report.subtitle,String(report.updated||"").slice(0,10)].filter(Boolean).join(" · "))+'</p></div><div class="row">'+button("打开报告","saved-report-open",report.id)+more(button("删除报告","saved-report-delete",report.id))+'</div></article>').join("")||'<p class="empty">暂无已保存报告。</p>');
+  }
   function visibleStatus(item,owner) {return item.deletedAt||owner?.deletedAt?"trash":item.archived||owner?.archived?"archived":"active";}
   function allRows() {
     const f=filter();let rows;
@@ -309,10 +340,11 @@
   }
   function render(options={}) {
     if(!lib())return;
+    if(classificationTab(current))classificationEditor?.isDirty();
     const focused=document.activeElement, key=focused?.dataset.managerFilter, caret=focused?.selectionStart;
     const title=sections.find(([id])=>id===current)[1];
-    const action=current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new")+button("指标方向核对","metric-directions"),"更多设置"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
-    const content=$("managementContent"),html=`<div class="management-heading"><div><h1>${title}</h1></div><div class="row">${action}</div></div>`+(current==="athletes"||current==="records"?lists():current==="teams"?teams():current==="plans"?testPlans():current==="metrics"?metrics():current==="profiles"?profiles():backup());
+    const action=classificationTab(current)&&classificationReturn?button(esc(classificationReturn.label),"classification-return"):current==="athletes"?button("＋ 新建运动员","new-athlete"):current==="teams"&&!filter().teamId?button("＋ 新建队伍","group-new"):current==="plans"&&!planDraft?button("＋ 新建测试方案","plan-new"):current==="records"&&recordsTab==="records"?button("＋ 新建测试","choose-new-record"):current==="metrics"?button("＋ 新建项目","new-test")+more(button("新建能力分类","ability-new")+button("指标方向核对","metric-directions"),"更多设置"):current==="profiles"&&!editor?button("＋ 新建方案","profile-new"):"";
+    const content=$("managementContent"),html=`<div class="management-heading"><div><h1>${title}</h1></div><div class="row">${action}</div></div>`+(classificationTab(current)?'<div id="classificationContent"></div>':current==="athletes"?lists():current==="records"?recordLists():current==="teams"?teams():current==="plans"?testPlans():current==="metrics"?metrics():current==="profiles"?profiles():backup());
     const filterBar=node=>{const control=node.querySelector("[data-manager-filter]");return control?.closest(".manager-filter-shell")||control?.closest(".management-filters")||control?.closest(".field");};
     const retained=options.preserveFilters&&filterBar(content);
     if(retained?.parentNode===content){
@@ -325,6 +357,7 @@
         for(const node of [...draft.children]){if(node===incoming){after=true;continue;}if(after)content.append(node);else content.insertBefore(node,retained);}
       }else content.innerHTML=html;
     }else content.innerHTML=html;
+    if(classificationTab(current))classifications().render($("classificationContent"));
     if(current==="plans"&&planDraft)root.RingsidePicker.bind($("testPlanPicker"),planPickerOptions());
     if(editor?.readOnly&&current==="profiles") $("profileEditorFields")?.querySelectorAll("input,select,textarea,button").forEach(el=>{if(el.id!=="profileProjectSelect"&&el.dataset.managerAction!=="profile-subject")el.disabled=true;});
     if(key){const el=$("managementContent").querySelector(`[data-manager-filter="${key}"]`);el?.focus({preventScroll:true});if(caret!==null&&el?.setSelectionRange)try{el.setSelectionRange(caret,caret);}catch{}}
@@ -391,8 +424,9 @@
   function desktopCloseStatus() {
     const modalOpen=$("managementModal")?.classList.contains("show"), submit=$("managementForm")?.querySelector('[type="submit"]');
     const writing=busy&&["archive","unarchive","trash","restore","purge","team-remove","group-delete","plan-save","plan-toggle","plan-delete","ability-up","ability-down","ability-conflict-local","ability-conflict-incoming","derived-toggle","catalog-resolve","catalog-toggle","profile-default","profile-toggle","restore-library"].includes(activeAction);
-    return {busy:writing||!!formSession?.submitting||!!(modalOpen&&submit?.disabled),
-      unsaved:editorDirty()||!!(!editor?.readOnly&&editor?.invalid?.size)||!!(planDraft&&Eval.canonical(planDraft)!==planBaseline)||!!(modalOpen&&formSnapshot()!==formBaseline)};
+    const classification=classificationEditor?.desktopCloseStatus()||{};
+    return {busy:writing||classification.busy||!!formSession?.submitting||!!(modalOpen&&submit?.disabled),
+      unsaved:classification.unsaved||editorDirty()||!!(!editor?.readOnly&&editor?.invalid?.size)||!!(planDraft&&Eval.canonical(planDraft)!==planBaseline)||!!(modalOpen&&formSnapshot()!==formBaseline)};
   }
   function beforeModalClose(id){
     if(id!=="managementModal")return true;
@@ -464,6 +498,11 @@
     document.querySelectorAll('[data-score-output-axis]').forEach(node=>{const axis=node.dataset.scoreOutputAxis,id=node.dataset.scoreOutputSubject,subject=subjects.find(s=>s.id===id);if(subject)node.textContent=previewScore(subject,editor.profile.aggregations[axis]?.transforms?.[id],editor.previewValues[axis+"/"+id]);});
   }
   async function action(name,id) {
+    if(name==="classification-return"){const callback=classificationReturn?.action;if(beforeLeave()&&callback)await callback();return;}
+    if(name==="records-tab"){recordsTab=id==="reports"?"reports":"records";if(recordsTab==="reports"){loadSavedReports();return;}reportsSequence++;reportsLoading=false;return render();}
+    if(name==="reports-refresh"){loadSavedReports();return;}
+    if(name==="saved-report-open")return App.restoreSavedReport(id);
+    if(name==="saved-report-delete"){if(await App.deleteSavedReport(id)!==false)await loadSavedReports();return;}
     if(name==="section")return App.openManagement(id);
     if(name==="page"){filter().page=Number(id);return render();}
     if(name==="clear-selection"){selected.clear();return render();}
@@ -477,7 +516,7 @@
     if(name==="new-record")return App.startDataEntry(id);
     if(name==="batch-new-record")return App.startTeamDataEntry([...selected],current==="teams"?filter().teamId:filter().group);
     if(name==="choose-new-record")return App.startDataEntry(filter().athleteId||"");
-    if(name==="athlete-records"){filters.records={...freshFilters(),athleteId:id,status:"all",originTab:current};selections.records=new Set();return App.openManagement("records");}
+    if(name==="athlete-records"){recordsTab="records";filters.records={...freshFilters(),athleteId:id,status:"all",originTab:current};selections.records=new Set();return App.openManagement("records");}
     if(name==="report"||name==="entry"){const a=lib().athletes.find(a=>a.records.some(r=>r.recordId===id));if(a)return App.openManagedRecord(a.id,id,name==="entry");return;}
     if(name==="edit-record"){
       const r=await App.getRepository().loadRecord(id);return showForm("测试名称与日期",field("名称",`<input name="title" maxlength="100" value="${esc(r.title)}">`)+field("测试日期",`<input type="date" name="date" value="${esc(r.athlete.date)}" required>`),async form=>{const data=new FormData(form);await App.updateRecordDate(id,data.get("date"),{title:data.get("title").trim()});});
@@ -598,7 +637,7 @@
     }
     if(name==="profile-default"){await commit(candidate=>{if(candidate.evaluationProfiles.find(p=>p.id===id)?.disabled)throw Error("请先启用方案");candidate.defaultEvaluationProfileId=id;});return render();}
     if(name==="profile-toggle"){await commit(candidate=>{if(id===candidate.defaultEvaluationProfileId)throw Error("请先指定其他默认方案");const p=candidate.evaluationProfiles.find(p=>p.id===id);p.disabled=!p.disabled;});return render();}
-    if(name==="profile-records"){filters.records={...freshFilters(),status:"all",evaluationProfileId:id,originTab:"profiles"};selections.records=new Set();return App.openManagement("records");}
+    if(name==="profile-records"){recordsTab="records";filters.records={...freshFilters(),status:"all",evaluationProfileId:id,originTab:"profiles"};selections.records=new Set();return App.openManagement("records");}
     if(name==="profile-revert"||name==="profile-history")return reviewHistory(id,name==="profile-revert");
     if(name==="restore-library"){if(confirm("切换回上次导入或迁移前保留的资料库？当前资料库仍会保留。"))await App.restorePreviousLibrary();return;}
   }
@@ -693,5 +732,5 @@
     showForm("本次生效标准",`<p>${esc(profile?.name||"未关联方案")} · v${profile?.revision||1}</p>${rows}${imtp}<h3>目标达成与双侧差异</h3>${Object.entries(ruleLabels).map(([id,label])=>'<p>'+esc(label)+'：'+number(record.rules[id])+'</p>').join("")}${axes}${iso}${lvp?'<h3>LVP 参数</h3>'+lvp:""}`,async()=>{});
     $("managementForm").querySelector('[type="submit"]').textContent="关闭";
   }
-  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective,desktopCloseStatus,beforeModalClose,afterModalClose};
+  root.RingsideManagement={init,open,render,cancelPending:()=>clearTimeout(filterTimer),navigation,tab:()=>current,editAthlete,viewProfile,changesBetween,showEffective,desktopCloseStatus,beforeLeave,beforeModalClose,afterModalClose};
 })(window);

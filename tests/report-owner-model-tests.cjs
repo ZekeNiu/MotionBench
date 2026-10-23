@@ -19,7 +19,7 @@ function harness({ actualPersist = false } = {}) {
     facts:() => ({kind}), payload:() => ({kind}), setNarrative:value => { documents[kind].narrative = copy(value); calls.push(["narrative", kind]); },
     setViews:value => { documents[kind].views = copy(value); }, render:() => kind, edit:() => kind, changeMode:value => calls.push(["mode",kind,value]),
     isLoading:() => false, pendingDisplaySave:() => null, clear:() => {calls.push(["clear",kind]);if(selected===kind)selected="personal";}, cancelPending:() => calls.push(["cancel",kind]),
-    model:() => kind === "horizontal" ? {projects:[{metrics:[{cells:[{value:12}]}]}]} : {periods:[{stats:{validTests:new Set(["synthetic-test"])}}]},
+    model:() => kind === "horizontal" ? {projects:[{metrics:[{cells:[{value:12}]}]}],references:[]} : {periods:[{stats:{validTests:new Set(["synthetic-test"])}}]},
   });
   const c = vm.createContext({console, AbortController, setTimeout, copy, now:() => "2026-10-21T00:00:00Z", $:node,
     state:{...documents.personal, athleteId:"same-athlete",recordId:"same-record"}, library:{evaluationProfiles:[]},
