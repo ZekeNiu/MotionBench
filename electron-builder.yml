@@ -7,7 +7,7 @@ compression: maximum
 npmRebuild: false
 forceCodeSigning: false
 extraMetadata:
-  version: 2.26.2-desktop.1
+  version: 2.26.2-desktop.2
   webVersion: 2.26.2
 directories:
   output: dist-desktop

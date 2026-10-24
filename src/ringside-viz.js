@@ -20,7 +20,7 @@
     amber: statusColor("amber", "#8a5a12"),
     red: statusColor("red", "#b23f3d"),
     gray: statusColor("gray", "#66707b"),
-    paper: role("paper", "#f8f9fb"),
+    paper: "#f8f9fb",
     neutral: role("accent", "#365b7a"),
   };
   const FONT = "Segoe UI, 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif";

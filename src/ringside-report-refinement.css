@@ -17,7 +17,6 @@
 #reportView[data-report-appearance="ink-teal-history-v1"] { background:var(--bg); }
 [data-report-appearance="ink-teal-history-v1"] .quality-heading { background:var(--surface-soft); }
 [data-report-appearance="ink-teal-history-v1"] .quality-heading h3 { color:var(--ink); }
-[data-report-appearance="ink-teal-history-v1"] :is(.chart-wrap,.radar,.body-art) { background:var(--surface); }
 [data-report-appearance="ink-teal-history-v1"] :is(.hero,.section-heading) { border-color:var(--line); }
 .capability-plot-region { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); margin:24px 0; overflow:hidden; }
 .capability-plot-region > .quality-group { border-top:0; }
