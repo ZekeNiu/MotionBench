@@ -3239,7 +3239,6 @@ body.sidebar-collapsed .workspace {
 #reportView[data-report-appearance="ink-teal-history-v1"] { background:var(--bg); }
 [data-report-appearance="ink-teal-history-v1"] .quality-heading { background:var(--surface-soft); }
 [data-report-appearance="ink-teal-history-v1"] .quality-heading h3 { color:var(--ink); }
-[data-report-appearance="ink-teal-history-v1"] :is(.chart-wrap,.radar,.body-art) { background:var(--surface); }
 [data-report-appearance="ink-teal-history-v1"] :is(.hero,.section-heading) { border-color:var(--line); }
 .capability-plot-region { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); margin:24px 0; overflow:hidden; }
 .capability-plot-region > .quality-group { border-top:0; }
@@ -15592,7 +15591,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     amber: statusColor("amber", "#8a5a12"),
     red: statusColor("red", "#b23f3d"),
     gray: statusColor("gray", "#66707b"),
-    paper: role("paper", "#f8f9fb"),
+    paper: "#f8f9fb",
     neutral: role("accent", "#365b7a"),
   };
   const FONT = "Segoe UI, 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif";
@@ -24597,8 +24596,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     for(const value of scale.ticks)out+=ring(value,`fill="none" stroke="${C.grid}"${spec.risk?' stroke-opacity=".45"':""}`)+(spec.risk?"":text(cx+5,cy-r*value/max+10,F(value,1)+(spec.tickSuffix||""),'font-size="9" data-radar-tick="'+value+'"'));
     axes.forEach((a,i)=>{const edge=polar(i,max);out+=line(cx,cy,...edge);const p=polar(i,max*(1+22/r)),anchor=p[0]<cx-8?"end":p[0]>cx+8?"start":"middle",label=Array.from(String(a.label||a.key)),font=count>10?10:11,room=anchor==="end"?p[0]-6:anchor==="start"?w-p[0]-6:2*Math.min(p[0]-6,w-p[0]-6),length=Math.max(1,Math.floor(room/font)),parts=chunks(label,length).map(part=>part.join(""));parts.forEach((part,j)=>out+=text(p[0],p[1]+(j-(parts.length-1)/2)*14,part,`text-anchor="${anchor}" style="font-size:${font}px" data-longitudinal-axis-label="${E(a.key||a.id||i)}"`));});
+    const opacity=Math.max(.035,.14/Math.sqrt(Math.max(1,series.length)));
     for(const s of series){const list=axes.map((_,i)=>N(s.values[i])===null?null:polar(i,s.values[i])),dash=s.dash?' stroke-dasharray="'+E(s.dash)+'"':"";
-      if(count>=3){if(list.every(Boolean))out+=`<polygon class="radar-fill" points="${points(list)}" fill="none" stroke="${s.color}" stroke-width="${s.strokeWidth||1.8}"${dash}/>`;else out+=pathsWithGaps([...list,list[0]],s.color,dash,s.strokeWidth);}
+      if(count>=3){if(list.every(Boolean))out+=`<polygon class="radar-fill" points="${points(list)}" fill="${s.color}" fill-opacity="${opacity}" stroke="${s.color}" stroke-width="${s.strokeWidth||1.8}"${dash}/>`;else{for(let i=0;i<count;i++)if(list[i]&&list[(i+1)%count])out+=`<polygon class="radar-fill" points="${points([[cx,cy],list[i],list[(i+1)%count]])}" fill="${s.color}" fill-opacity="${opacity}" stroke="none"/>`;out+=pathsWithGaps([...list,list[0]],s.color,dash,s.strokeWidth);}}
       list.forEach((p,i)=>{if(p){const grade=spec.risk?root.RingsideResultDisplay.trafficLabel({0:"red",1:"red",2:"amber",3:"green"}[s.values[i]]):F(s.values[i])+(spec.tickSuffix||" / "+max);out+=dot(...p,s.color,`${periodLabel(s)} · ${axes[i].label} ${grade}${s.cells?.[i]?.pain?" · 疼痛":""}`,s.latest?4.1:3.6,s.latest?'data-latest-test-day="true"':"");}});
     }
     return svg(w,h,spec.title,out)+legend(series)+(spec.risk?`<p class="longitudinal-chart-note longitudinal-risk-key">${[["red","#f5dcd9"],["amber","#f8edcf"],["green","#e9f1ec"]].map(([status,color])=>`<span><i style="background:${color}"></i>${E(root.RingsideResultDisplay.trafficLabel(status))}</span>`).join("")}</p>`:spec.fms?'<p class="longitudinal-chart-note">0 疼痛 · 1 未完成 · 2 代偿完成 · 3 无代偿完成</p>':"");
