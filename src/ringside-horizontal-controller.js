@@ -9,12 +9,12 @@
     const error=e=>host.error?.(e.message||String(e));
     function clear(){ticket++;displayTicket++;document=null;savedRevision=null;savedBody="";committedViews={};suspended=loading=false;}
     function touch(){document.updated=stamp();}
-    async function save({guard}={}){
-      const current=document;if(!current)return true;
-      const operation=async()=>{if(guard&&!guard())return false;if(document!==current)return true;const snapshot=root.RingsideHorizontalStore.normalize(document),body=stable(snapshot);if(body===savedBody)return true;
-        try{const result=await host.repository().saveHorizontalReport(snapshot,{expectedRevision:savedRevision});if(document===current){savedRevision=result.revision;document.revision=result.revision;savedBody=stable(result);committedViews=copy(result.views||{});}return true;}catch(e){error(e);return false;}};
-      const task=queue.then(operation);queue=task.then(()=>{},()=>{});return task;
+    function enqueue(operation){const task=queue.then(operation);queue=task.then(()=>{},()=>{});return task;}
+    async function saveCurrent(current,guard){
+      if(guard&&!guard())return false;if(!current||document!==current)return true;const snapshot=root.RingsideHorizontalStore.normalize(document),body=stable(snapshot);if(body===savedBody)return true;
+      try{const result=await host.repository().saveHorizontalReport(snapshot,{expectedRevision:savedRevision});if(document===current){savedRevision=result.revision;document.revision=result.revision;savedBody=stable(result);committedViews=copy(result.views||{});}return true;}catch(e){error(e);return false;}
     }
+    function save({guard}={}){const current=document;return current?enqueue(()=>saveCurrent(current,guard)):Promise.resolve(true);}
     function setNarrative(value,previous=false){if(!active())return false;if(previous)document.previousNarrative=copy(document.narrative);document.narrative=copy(value);touch();return true;}
     function setViews(value,replace=false){if(!active())return false;const next=replace?copy(value):{...document.views,...copy(value)};if(JSON.stringify(next)===JSON.stringify(document.views))return false;document.views=next;touch();return true;}
     async function updateViews(delta){
@@ -35,52 +35,57 @@
       if(document?.id===stored.id){document.revision=saved.revision;savedRevision=saved.revision;savedBody=stable(saved);committedViews=copy(saved.views||{});}
       return true;
     }
-    async function cancelCommit(commit){
-      const operation=async()=>{try{return await undoCommit(commit);}catch(e){const latest=await host.repository().getHorizontalReport(commit.result.id);if(latest?.revision===commit.result.revision)error(e);return false;}};
-      const task=queue.then(operation);queue=task.then(()=>{},()=>{});return task;
+    async function undoCurrentCommit(commit){
+      try{return await undoCommit(commit);}catch(e){const latest=await host.repository().getHorizontalReport(commit.result.id);if(latest?.revision===commit.result.revision)error(e);return false;}
     }
-    async function stage(next,guard,priorCommit=null){
-      const operation=async()=>{
-        if(guard&&!guard())return null;
-        const prepared=candidate(next),same=document?.id===prepared.id,expectedRevision=same?savedRevision:priorCommit?.result.revision||prepared.revision||null;
-        if(priorCommit&&expectedRevision===priorCommit.result.revision&&stable(prepared)===stable(priorCommit.result))return priorCommit;
-        const backup=priorCommit?priorCommit.backup:expectedRevision===null?null:same?copy(document):await host.repository().getHorizontalReport(prepared.id);
-        const result=await host.repository().saveHorizontalReport(prepared,{expectedRevision}),commit={result,backup};
-        if(guard&&!guard()){try{await undoCommit(commit);}catch(e){const latest=await host.repository().getHorizontalReport(result.id);if(latest?.revision===result.revision)error(e);}return null;}
-        // The editor continues to own its old snapshot until activation. Its
-        // saves must nevertheless compare against the revision just committed.
-        if(same){document.revision=result.revision;savedRevision=result.revision;}
-        return commit;
-      };
-      const task=queue.then(operation);queue=task.then(()=>{},()=>{});return task;
+    function cancelCommit(commit){return enqueue(()=>undoCurrentCommit(commit));}
+    async function stageCurrent(next,guard,priorCommit=null){
+      if(guard&&!guard())return null;
+      const prepared=candidate(next),same=document?.id===prepared.id,expectedRevision=same?savedRevision:priorCommit?.result.revision||prepared.revision||null;
+      if(priorCommit&&expectedRevision===priorCommit.result.revision&&stable(prepared)===stable(priorCommit.result))return priorCommit;
+      const backup=priorCommit?priorCommit.backup:expectedRevision===null?null:same?copy(document):await host.repository().getHorizontalReport(prepared.id);
+      const result=await host.repository().saveHorizontalReport(prepared,{expectedRevision}),commit={result,backup};
+      if(guard&&!guard()){await undoCurrentCommit(commit);return null;}
+      // The editor continues to own its old snapshot until activation. Its
+      // saves must nevertheless compare against the revision just committed.
+      if(same){document.revision=result.revision;savedRevision=result.revision;}
+      return commit;
     }
+    function stage(next,guard,priorCommit=null){return enqueue(()=>stageCurrent(next,guard,priorCommit));}
     async function activate(next,{persist=false,flush=true,duringTransfer=false,guard}={}){
+      const sequence=ticket,allowed=()=>sequence===ticket&&(!guard||guard());
       if(flush){if(host.saveEditor)host.saveEditor();if(!await host.save({duringTransfer}))return false;}
-      if(guard&&!guard())return false;
-      const selected=next.configuration.participants.find(p=>p.athleteId===next.configuration.focusAthleteId)||next.configuration.participants[0],lib=host.library(),athlete=selected&&lib.athletes.find(a=>a.id===selected.athleteId&&!a.deletedAt),indexed=athlete?.records.find(r=>r.recordId===selected.recordId&&!r.deletedAt),record=indexed&&(host.repository().loadRecord?await host.repository().loadRecord(selected.recordId):indexed),live=record&&!record.deletedAt;if(guard&&!guard())return false;
-      let commit=persist?await stage(next,guard):null;if(persist&&!commit)return false;
+      if(!allowed())return false;
+      const selected=next.configuration.participants.find(p=>p.athleteId===next.configuration.focusAthleteId)||next.configuration.participants[0],lib=host.library(),athlete=selected&&lib.athletes.find(a=>a.id===selected.athleteId&&!a.deletedAt),indexed=athlete?.records.find(r=>r.recordId===selected.recordId&&!r.deletedAt),record=indexed&&(host.repository().loadRecord?await host.repository().loadRecord(selected.recordId):indexed),live=record&&!record.deletedAt;if(!allowed())return false;
+      let commit=persist?await stage(next,allowed):null;if(persist&&!commit)return false;
       const rollback=async()=>{if(commit)await cancelCommit(commit);host.render();return false;};
       try{
-      if(guard&&!guard())return rollback();
+      if(!allowed())return rollback();
       // switchRecord can save the editor more than once. Keep both the visible
       // editor and its owner on the prior report throughout those awaits.
       if(live&&host.switchRecord&&!await host.switchRecord(athlete,record,{horizontal:true,duringTransfer}))return rollback();
-      if(guard&&!guard())return rollback();
-      if(persist){
+      if(!allowed())return rollback();
+      return await enqueue(async()=>{
+        const rollbackCurrent=async()=>{if(commit)await undoCurrentCommit(commit);host.render();return false;};
         for(;;){
+          if(!allowed())return rollbackCurrent();
           host.saveEditor?.();
-          if(document?.id!==next.id&&!await save())return rollback();
-          if(guard&&!guard())return rollback();
-          const updated=await stage(next,guard,commit);if(!updated)return false;commit=updated;
+          if((!persist||document?.id!==next.id)&&!await saveCurrent(document,allowed))return rollbackCurrent();
+          if(!allowed())return rollbackCurrent();
+          let adopted;
+          if(persist){const updated=await stageCurrent(next,allowed,commit);if(!updated)return false;commit=updated;adopted=commit.result;}
+          else{adopted=await host.repository().getHorizontalReport(next.id);if(!adopted)throw Error("此横向报告已不存在");}
           host.saveEditor?.();
-          if(guard&&!guard())return rollback();
-          const unsettled=document?.id===next.id?stable(candidate(commit.result))!==stable(commit.result):document&&stable(root.RingsideHorizontalStore.normalize(document))!==savedBody;
-          if(!unsettled)break;
+          if(!allowed())return rollbackCurrent();
+          const unsettled=persist&&document?.id===next.id?stable(candidate(commit.result))!==stable(commit.result):document&&stable(root.RingsideHorizontalStore.normalize(document))!==savedBody;
+          if(unsettled)continue;
+          // Commit and owner adoption share one queue operation. Old-owner saves
+          // queued during the commit cannot write its snapshot after adoption.
+          document=root.RingsideHorizontalStore.normalize(adopted);savedRevision=document.revision;savedBody=stable(document);committedViews=copy(document.views||{});suspended=false;
+          host.cancelAI?.();host.activate?.({detached:!live});host.restoreView?.(document.views);host.render();host.remember?.();return true;
         }
-      }
+      });
       }catch(e){await rollback();throw e;}
-      document=root.RingsideHorizontalStore.normalize(commit?.result||next);savedRevision=document.revision;savedBody=stable(document);committedViews=copy(document.views||{});suspended=false;
-      host.cancelAI?.();host.activate?.({detached:!live});host.restoreView?.(document.views);host.render();host.remember?.();return true;
     }
     function progress(prepared){const node=root.document?.getElementById?.("horizontalDialog")?.querySelector("[data-horizontal-progress]")||root.document?.querySelector?.("[data-horizontal-progress]");if(node){node.hidden=false;node.textContent=prepared===undefined?"正在读取测试记录…":`已处理 ${prepared} 条测试`;}}
     function compatibleViews(prior){
@@ -112,7 +117,7 @@
         if(!current())return false;return await activate(next,{persist:true,flush:false,guard:current});
       }catch(e){error(e);return false;}finally{if(sequence===ticket)loading=false;}
     }
-    async function restore(value,options={}){const reportId=typeof value==="string"?value:value?.id;if(!reportId)return false;const next=await host.repository().getHorizontalReport(reportId);if(!next)throw Error("此横向报告已不存在");return activate(next,options);}
+    async function restore(value,options={}){const reportId=typeof value==="string"?value:value?.id;if(!reportId)return false;const sequence=ticket,current=()=>sequence===ticket&&(!options.guard||options.guard()),next=await host.repository().getHorizontalReport(reportId);if(!current())return false;if(!next)throw Error("此横向报告已不存在");return activate(next,{...options,guard:current});}
     async function refresh(){if(!document)return false;return build(document.configuration,{prior:document});}
     async function changeMode(mode){if(!["best","mean"].includes(mode)||!document)return false;return build({...copy(document.configuration),mode},{prior:document});}
     function render(){
@@ -134,7 +139,7 @@
       const groupIds=new Set([...owners.map(a=>a.groupId),...m.references.map(r=>r.spec.teamId)].filter(Boolean));
       return {schema:1,kind:"horizontal-report",document:exported,library:{schema:3,kind:"athlete-library",version:m.libraryVersion||"2.25.0",catalog:copy(m.catalog),classifications:copy(m.classifications||{}),testPlans:[],groups:copy((m.groups||[]).filter(g=>groupIds.has(g.id))),evaluationProfiles:profiles,defaultEvaluationProfileId:m.profile?.id||profiles[0]?.id||"",athletes:owners,activeAthleteId:owners[0]?.id||"",activeRecordId:records[0]?.recordId||"",updated:stamp()}};
     }
-    async function importPayload(value){let incoming=root.RingsideHorizontalStore.normalize(value.document),prior=await host.repository().getHorizontalReport(incoming.id);if(prior)incoming={...incoming,id:id(),revision:0};const saved=await host.repository().saveHorizontalReport(incoming,{expectedRevision:null});return activate(saved);}
+    async function importPayload(value){const sequence=ticket;let incoming=root.RingsideHorizontalStore.normalize(value.document),prior=await host.repository().getHorizontalReport(incoming.id);if(sequence!==ticket)return false;if(prior)incoming={...incoming,id:id(),revision:0};const saved=await host.repository().saveHorizontalReport(incoming,{expectedRevision:null});return activate(saved,{guard:()=>sequence===ticket});}
     async function deleteReport(reportId){if(loading)return false;try{if(displayBarrier)await displayBarrier.promise;await queue;if(document?.id===reportId){host.saveEditor?.();if(!await save())return false;}const stored=await host.repository().getHorizontalReport(reportId);if(!stored)return false;if(!host.confirmDeleteReport)throw Error("报告删除确认暂不可用");if(!await host.confirmDeleteReport({id:stored.id,title:stored.title,revision:stored.revision}))return false;await host.repository().deleteHorizontalReport(reportId,{expectedRevision:stored.revision});if(document?.id===reportId){clear();host.render();host.remember?.();}return true;}catch(e){error(e);return false;}}
     function listReports(){return host.listReports?.();}
     function openSetup(initial=undefined){const config=initial?.configuration||initial||(initial===null?null:document?.configuration);return host.editSelection?.(config);}    return {active,model,document:()=>document,narrative:()=>document?.narrative,setNarrative,setViews,updateViews,payload,facts:()=>root.RingsideHorizontal.facts(model(),document?.views||{}),owner,basis:()=>document?(document.basis+":"+root.RingsideComparison.contentHash(JSON.stringify({focus:document.views.focus,baseline:document.views.baseline,activeReferenceId:document.views.activeReferenceId}))):"",save,clear,suspend:()=>{suspended=true;},resume:async()=>{if(document){suspended=false;host.render();}return !!document;},restore,openSetup,listReports,deleteReport,refresh,render,edit:()=>openSetup(),selection:()=>document?{id:document.id}:null,cancelPending:()=>{ticket++;loading=false;},changeMode,isLoading:()=>loading||!!displayBarrier,pendingDisplaySave:()=>displayBarrier?.promise||null,importPayload,configure:build,createReport:configuration=>build(configuration,{prior:null})};

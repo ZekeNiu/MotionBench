@@ -43,7 +43,7 @@ jobs:
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/tests/horizontal-2.26.0/final
+          node tests/run-unit-tests.cjs --artifact-dir output/tests/horizontal-2.26.1/final
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run test:desktop-unit
       - name: Verify shared classification and frozen report storage
@@ -58,6 +58,10 @@ jobs:
           node tests/horizontal-refinement-browser-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/horizontal-refinement-browser-tests.cjs --edge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-selection-edge-cases-browser-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-selection-edge-cases-browser-tests.cjs --edge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/horizontal-classification-ui-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -74,9 +78,11 @@ jobs:
           node scripts/check-desktop-package.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
+          node tests/native-runner-failure-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/horizontal-refinement-native-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/desktop-smoke/horizontal-2.26.0'
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/desktop-smoke/horizontal-2.26.1'
           node tests/desktop-smoke.cjs
       - name: Preserve synthetic verification artifacts
         if: always()
@@ -84,16 +90,18 @@ jobs:
         with:
           name: MotionBench-Horizontal-Windows-${{ github.run_number }}
           path: |
-            output/tests/horizontal-2.26.0/
+            output/tests/horizontal-2.26.1/
             output/playwright/horizontal-refinement/chrome/
             output/playwright/horizontal-refinement/msedge/
             output/playwright/horizontal-refinement/presentation/
             output/playwright/horizontal-refinement/multiperson/
             output/playwright/horizontal-storage/
+            output/playwright/report-selection-edge-cases/
             output/playwright/horizontal-classification-ui/
             output/playwright/horizontal-scale/
-            output/horizontal-refinement/native-2.26.0/
+            output/horizontal-refinement/native-2.26.1/
+            output/release/2.26.1-local/native-failure-tests/
             output/desktop-package/
-            output/desktop-smoke/horizontal-2.26.0/
+            output/desktop-smoke/horizontal-2.26.1/
           if-no-files-found: warn
           retention-days: 14

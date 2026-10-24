@@ -60,4 +60,65 @@ test("explicit refresh maps imported focus baseline and chart record choices to 
 test("group-only export preserves the referenced team metadata without fabricating a personal record",async()=>{const f=controllerFixture(),h=f.controller;await h.createReport({...config,participants:[],focusAthleteId:""});h.document().snapshot.groups=[{id:"group-only-team",name:"群体所属队伍"}];h.document().snapshot.references[0].spec.teamId="group-only-team";const payload=h.payload();assert.deepEqual(copy(payload.library.groups),[{id:"group-only-team",name:"群体所属队伍"}]);assert.equal(payload.library.athletes.length,0);assert.equal(payload.library.activeRecordId,"");});
 test("new configurations use one canonical window representation through export and restore",async()=>{const f=controllerFixture(),h=f.controller;await h.createReport({...copy(config),perspective:"peers",focusAthleteId:"",references:config.references.map(ref=>({...copy(ref),window:{kind:"all",from:"",to:""}}))});const before=copy(h.document().configuration);assert.deepEqual(before.window,{kind:"all",from:null,to:null});assert.ok(before.references.every(ref=>ref.window.from===null&&ref.window.to===null));const payload=h.payload();assert.deepEqual(copy(payload.document.configuration),before);h.clear();await h.importPayload(payload);assert.deepEqual(copy(h.document().configuration),before);});
 test("export does not recanonicalize a legacy report's frozen conditions",async()=>{const f=controllerFixture(),h=f.controller;await h.createReport(config);const legacy=copy(h.document());legacy.snapshot.version=1;legacy.configuration.window={kind:"all",from:"",to:""};legacy.configuration.references.forEach(ref=>{delete ref.window;});f.saved.set(legacy.id,copy(legacy));await h.restore(legacy.id);const before=copy(h.document().configuration);assert.deepEqual(copy(h.payload().document.configuration),before);});
+test("final commit and activation exclude an already queued old-owner save",async()=>{
+  const f=controllerFixture(),h=f.controller,before=JSON.stringify(records);await h.createReport(config);
+  const write=f.repo.saveHorizontalReport;let bestWrites=0,release,queued;
+  const gate=new Promise(resolve=>{release=resolve;});
+  f.setSwitch(async()=>{h.setNarrative({text:"切换期间的人工正文",html:"<p>切换期间的人工正文</p>"});return true;});
+  f.repo.saveHorizontalReport=async(d,options)=>{
+    if(d.configuration.mode==="best"){const result=await write(d,options);if(++bestWrites===2)queued=h.save();return result;}
+    if(bestWrites===2)await gate;return write(d,options);
+  };
+  try{assert.equal(await h.changeMode("best"),true);}finally{release();}
+  await queued;assert.equal(bestWrites,2);assert.equal(f.saved.get(h.document().id).configuration.mode,"best");
+  assert.equal(f.saved.get(h.document().id).revision,h.document().revision);
+  assert.equal(h.narrative().text,"切换期间的人工正文");
+  h.setNarrative({text:"激活后的正文",html:"<p>激活后的正文</p>"});assert.equal(await h.save(),true);
+  assert.equal(f.saved.get(h.document().id).narrative.text,"激活后的正文");assert.deepEqual(f.errors,[]);assert.equal(JSON.stringify(records),before);
+});
+test("same-report restore adopts the version saved by its own editor flush",async()=>{
+  const f=controllerFixture(),h=f.controller;await h.createReport(config);const reportId=h.document().id;
+  h.setNarrative({text:"重新打开前尚未保存的正文",html:"<p>重新打开前尚未保存的正文</p>"});
+  assert.equal(await h.restore(reportId),true);assert.equal(h.narrative().text,"重新打开前尚未保存的正文");
+  assert.equal(h.document().revision,f.saved.get(reportId).revision);
+  h.setNarrative({text:"重新打开后继续补写",html:"<p>重新打开后继续补写</p>"});assert.equal(await h.save(),true);assert.deepEqual(f.errors,[]);
+});
+test("external writers retain CAS protection after activation",async()=>{
+  const f=controllerFixture(),h=f.controller;await h.createReport(config);const external=copy(h.document());external.revision++;
+  external.narrative={text:"其他页面的正文",html:"<p>其他页面的正文</p>"};f.saved.set(external.id,copy(external));
+  h.setNarrative({text:"本页面未保存的正文",html:"<p>本页面未保存的正文</p>"});assert.equal(await h.save(),false);
+  assert.equal(f.saved.get(external.id).narrative.text,"其他页面的正文");assert.equal(h.narrative().text,"本页面未保存的正文");assert.deepEqual(f.errors,["conflict"]);
+});
+test("cancelling the final queued commit restores its owner without queue self-wait",async()=>{
+  const f=controllerFixture(),h=f.controller;await h.createReport(config);const previous=copy(h.document()),write=f.repo.saveHorizontalReport;
+  let bestWrites=0,release,enter;const entered=new Promise(resolve=>{enter=resolve;}),gate=new Promise(resolve=>{release=resolve;});
+  f.setSwitch(async()=>{h.setNarrative({text:"最终提交时继续补写",html:"<p>最终提交时继续补写</p>"});return true;});
+  f.repo.saveHorizontalReport=async(d,options)=>{if(d.configuration.mode==="best"&&++bestWrites===2){enter();await gate;}return write(d,options);};
+  const task=h.changeMode("best");await entered;h.cancelPending();release();let timer;
+  try{assert.equal(await Promise.race([task,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error("final cancellation must not wait on its own queue")),5000);})]),false);}finally{clearTimeout(timer);}
+  assert.equal(h.document().snapshot.fingerprint,previous.snapshot.fingerprint);assert.equal(h.narrative().text,"最终提交时继续补写");
+  assert.equal(f.saved.get(previous.id).narrative.text,h.narrative().text);assert.equal(f.saved.get(previous.id).revision,h.document().revision);assert.deepEqual(f.errors,[]);
+});
+test("final commit incorporates edits made while that commit is awaiting storage",async()=>{
+  const f=controllerFixture(),h=f.controller;await h.createReport(config);const write=f.repo.saveHorizontalReport;let bestWrites=0;
+  f.setSwitch(async()=>{h.setNarrative({text:"提交前的正文",html:"<p>提交前的正文</p>"});return true;});
+  f.repo.saveHorizontalReport=async(d,options)=>{const saved=await write(d,options);if(d.configuration.mode==="best"&&++bestWrites===2){h.setNarrative({text:"提交等待中继续补写",html:"<p>提交等待中继续补写</p>"},true);h.setViews({activeReferenceId:"age"});}return saved;};
+  assert.equal(await h.changeMode("best"),true);assert.equal(bestWrites,3);assert.equal(h.narrative().text,"提交等待中继续补写");
+  assert.equal(h.document().previousNarrative.text,"提交前的正文");assert.equal(h.document().views.activeReferenceId,"age");
+  assert.deepEqual(copy(h.document()),f.saved.get(h.document().id));assert.deepEqual(f.errors,[]);
+});
+test("import activation flushes late old-owner edits without taking their narrative",async()=>{
+  const f=controllerFixture(),h=f.controller;await h.createReport(config);h.setNarrative({text:"导出的原正文",html:"<p>导出的原正文</p>"});await h.save();
+  const payload=h.payload(),oldId=h.document().id,read=f.repo.getHorizontalReport;let edited=false,queued;
+  f.repo.getHorizontalReport=async reportId=>{const saved=await read(reportId);if(reportId!==oldId&&!edited){edited=true;h.setNarrative({text:"导入等待时旧报告的补写",html:"<p>导入等待时旧报告的补写</p>"});queued=h.save();}return saved;};
+  assert.equal(await h.importPayload(payload),true);await queued;assert.equal(edited,true);assert.notEqual(h.document().id,oldId);
+  assert.equal(h.narrative().text,"导出的原正文");assert.equal(f.saved.get(oldId).narrative.text,"导入等待时旧报告的补写");
+  h.setNarrative({text:"导入后的正文",html:"<p>导入后的正文</p>"});assert.equal(await h.save(),true);assert.deepEqual(f.errors,[]);
+});
+test("clearing while a restore read is pending cannot activate its old report",async()=>{
+  const f=controllerFixture(),h=f.controller;await h.createReport(config);const reportId=h.document().id,read=f.repo.getHorizontalReport;
+  let release,enter;const entered=new Promise(resolve=>{enter=resolve;}),gate=new Promise(resolve=>{release=resolve;});
+  f.repo.getHorizontalReport=async id=>{const saved=await read(id);enter();await gate;return saved;};
+  const task=h.restore(reportId);await entered;h.clear();release();assert.equal(await task,false);assert.equal(h.document(),null);assert.equal(f.activations.length,1);
+});
 (async()=>{for(const[name,fn]of tests){await fn();passed++;console.log("PASS "+name);}console.log(passed+" horizontal view/controller checks passed");})().catch(e=>{console.error(e);process.exitCode=1;});

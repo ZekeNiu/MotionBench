@@ -4627,7 +4627,7 @@
     clone.querySelector("#embedded-data").textContent = JSON.stringify(
       payload,
     ).replace(/</g, "\\u003c");
-    clone.querySelectorAll('#horizontalDialog,#classificationModal').forEach(node=>node.remove());
+    clone.querySelectorAll('#horizontalDialog,#classificationModal,#reportReferenceDialog').forEach(node=>node.remove());
     for (const id of [
       "entryNav",
       "entryContent",
@@ -5074,8 +5074,9 @@
     await window.App.ready;
     if (!library || !repository) return {ok:true};
     const management = window.RingsideManagement.desktopCloseStatus?.() || {};
+    const reportChoice = reportSelection.desktopCloseStatus();
     if (desktopPreferencesBusy) return {ok:false,reason:"正在保存启动检查设置，请保存完成后再退出或更新。"};
-    if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || window.RingsideExcelFlow.isBusy())
+    if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || reportChoice.busy || window.RingsideExcelFlow.isBusy())
       return {ok:false,reason:"正在处理资料、AI 设置或文件导出，请完成或取消当前操作后再退出。"};
     saveEditor(); saveDrafts(); saveEntrySession(); rememberUI();
     if (!await persist()) return {ok:false,reason:"当前数据尚未保存。请修正输入或重试保存，再退出程序。"};
@@ -5085,8 +5086,8 @@
     saveDrafts(); saveEntrySession();
     if (storageFailed || entrySessionStorageFailed || inputDraftStorageFailed)
       return {ok:false,reason:"本机保存失败，请检查磁盘空间并导出资料后重试。"};
-    if (!discardSettings && (aiDirty || management.unsaved || creation || catalogEdit || unitChange))
-      return {ok:false,discardable:true,reason:"有尚未提交的设置或管理表单。"};
+    if (!discardSettings && (aiDirty || management.unsaved || reportChoice.unsaved || creation || catalogEdit || unitChange))
+      return {ok:false,discardable:true,reason:"有尚未提交的报告选择、设置或管理表单。"};
     if (job) cancelJob();
     return {ok:true};
   }
