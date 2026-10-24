@@ -1,6 +1,6 @@
 "use strict";
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict"),{spawnSync}=require("node:child_process"),{createHash}=require("node:crypto");
-const root=path.resolve(__dirname,".."),out=path.join(root,"output/release/2.26.1-local/native-failure-tests"),executable=path.resolve(process.env.MOTIONBENCH_EXECUTABLE||path.join(root,"output/release/2.26.1-local/desktop/win-unpacked/MotionBench.exe")),hash=file=>createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+const root=path.resolve(__dirname,".."),out=path.join(root,"output/release/2.26.2-local/native-failure-tests"),executable=path.resolve(process.env.MOTIONBENCH_EXECUTABLE||path.join(root,"output/release/2.26.2-local/desktop/win-unpacked/MotionBench.exe")),hash=file=>createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 fs.mkdirSync(out,{recursive:true});assert.ok(fs.existsSync(executable),"Build the isolated native candidate before failure injection");const result={pass:false,synthetic:true,executableSha256:hash(executable),sourceHash:hash(path.join(root,"MotionBench.html")),helperSha256:hash(path.join(__dirname,"helpers/native-runner-limits.cjs")),childSha256:hash(path.join(__dirname,"helpers/native-runner-failure-child.cjs")),runnerSha256:hash(__filename),checks:[]};
 try{
  for(const mode of["export-hang","close-refusal"]){

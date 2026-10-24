@@ -47,7 +47,7 @@
   function table(rows,participants,{views={},print=false,wrapped=true,focusAthleteId="",referenceLabel="",referenceFocused=false}={}){
     if(!rows?.length)return "";rows=contextLabels(rows);
     const hasBenchmark=rows.some(r=>r.benchmark),groups=participants.length?chunks(participants.map((p,i)=>({p,i})),print?3:participants.length):[[]];
-    const html=groups.map(group=>`<div class="table-wrap"><table class="longitudinal-results horizontal-results"${print?"":` style="min-width:${190+group.length*160+(hasBenchmark?180:0)}px"`}><colgroup><col class="horizontal-metric-column">${group.map(()=>'<col class="horizontal-person-column">').join("")}${hasBenchmark?'<col class="horizontal-reference-column">':""}</colgroup><thead><tr><th scope="col">指标</th>${group.map(({p})=>`<th scope="col"${p.athleteId===focusAthleteId?' class="horizontal-focus"':""}>${personHeader(p)}</th>`).join("")}${hasBenchmark?`<th scope="col" class="horizontal-reference${referenceFocused?" horizontal-focus":""}">${E(referenceLabel)}<small>群体结果</small></th>`:""}</tr></thead><tbody>${rows.map(row=>`<tr data-horizontal-metric="${E(row.id)}"><th scope="row">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}${row.contextLabel?`<small>${E(row.contextLabel)}</small>`:""}</th>${group.map(({p,i})=>`<td data-record-id="${E(p.recordId||p.id)}"${p.athleteId===focusAthleteId?' class="horizontal-focus"':""}>${cellHTML(row.cells?.[i],row,row.differences?.[i])}</td>`).join("")}${hasBenchmark?`<td class="horizontal-reference${referenceFocused?" horizontal-focus":""}">${benchmarkHTML(row)}</td>`:""}</tr>`).join("")}</tbody></table></div>`).join("");
+    const html=groups.map(group=>`<div class="table-wrap"><table class="longitudinal-results horizontal-results"${print?"":` style="min-width:${140+group.length*160+(hasBenchmark?180:0)}px"`}><colgroup><col class="horizontal-metric-column">${group.map(()=>'<col class="horizontal-person-column">').join("")}${hasBenchmark?'<col class="horizontal-reference-column">':""}</colgroup><thead><tr><th scope="col">指标</th>${group.map(({p})=>`<th scope="col"${p.athleteId===focusAthleteId?' class="horizontal-focus"':""}>${personHeader(p)}</th>`).join("")}${hasBenchmark?`<th scope="col" class="horizontal-reference${referenceFocused?" horizontal-focus":""}">${E(referenceLabel)}<small>群体结果</small></th>`:""}</tr></thead><tbody>${rows.map(row=>`<tr data-horizontal-metric="${E(row.id)}"><th scope="row">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}${row.contextLabel?`<small>${E(row.contextLabel)}</small>`:""}</th>${group.map(({p,i})=>`<td data-record-id="${E(p.recordId||p.id)}"${p.athleteId===focusAthleteId?' class="horizontal-focus"':""}>${cellHTML(row.cells?.[i],row,row.differences?.[i])}</td>`).join("")}${hasBenchmark?`<td class="horizontal-reference${referenceFocused?" horizontal-focus":""}">${benchmarkHTML(row)}</td>`:""}</tr>`).join("")}</tbody></table></div>`).join("");
     if(!wrapped)return html;
     const compactRows=rows.map(row=>({...Object.fromEntries(["id","metricId","name","unit","measurementScale","meaning","aggregation","digits","contextLabel"].filter(key=>row[key]!==undefined).map(key=>[key,row[key]])),cells:(row.cells||[]).map(cell=>cell?Object.fromEntries(["value","label","display","statistics","assessment","notes","displayNotes","diagnosticNotes","pain"].filter(key=>cell[key]!==undefined).map(key=>[key,cell[key]])):null),...(row.benchmark?{benchmark:Object.fromEntries(["n","mean","best","distribution","sampling","samplingLabel","display","assessment","difference"].filter(key=>row.benchmark[key]!==undefined).map(key=>[key,row.benchmark[key]]))}:{}),differences:row.differences})),compactPeople=participants.map(p=>({...Object.fromEntries(["id","recordId","athleteId","label","date","color"].map(key=>[key,p[key]])),athlete:{name:personName(p)}}));
     return `<div class="horizontal-table" data-horizontal-table="${E(JSON.stringify({rows:compactRows,participants:compactPeople,options:{focusAthleteId,referenceLabel,referenceFocused}}))}">${html}</div>`;
@@ -62,7 +62,7 @@
     return model.participants.map(p=>{const report=root.RingsideReport.build(copy(p.record),{catalog:model.catalog});return {...p,id:p.recordId||p.id,date:p.date,label:label(p),record:report.record,report,stats:report.stats,rawHTML:root.RingsideReport.render(report)+root.RingsideReport.renderCapabilityAnalysis(report,{print:true})};});
   }
   function curvePanel(spec,model,views){
-    const config=views.charts?.[spec.chartId]||{},ids=model.participants.map(p=>p.recordId),saved=(config.recordIds||ids).filter(id=>ids.includes(id)),selected=new Set(saved.length?saved:ids),hidden=new Set(views.hiddenParticipantIds||[]),allowed=new Set(model.participants.filter(p=>selected.has(p.recordId)&&!hidden.has(p.athleteId)).map(p=>p.recordId));
+    const config=views.charts?.[spec.chartId]||{},ids=model.participants.map(p=>p.recordId),saved=(config.recordIds||ids).filter(id=>ids.includes(id)),selected=new Set(saved.length?saved:ids),allowed=new Set(model.participants.filter(p=>selected.has(p.recordId)).map(p=>p.recordId));
     const keep=id=>!id||allowed.has(id)||model.participants.some(p=>allowed.has(p.recordId)&&String(id).startsWith(p.recordId+":")),data={...spec,subjectKind:"athlete",...(spec.series?{series:spec.series.filter(s=>s.reference||keep(s.recordId||s.id))}:{}),...(spec.horizontalMarkers?{horizontalMarkers:spec.horizontalMarkers.filter(s=>keep(s.recordId))}:{}),...(spec.markers?{markers:spec.markers.filter(s=>keep(s.recordId))}:{})};
     if(spec.periods){const indexes=spec.periods.map((p,i)=>p.kind==="reference"||allowed.has(p.id)?i:-1).filter(i=>i>=0);data.periods=indexes.map(i=>spec.periods[i]);data.values=indexes.map(i=>spec.values[i]);}
     if(spec.scaleValues)data.scaleValues=spec.scaleValues.filter(v=>keep(v?.recordId));
@@ -77,7 +77,7 @@
     if(["columns","bars"].includes(spec.kind)){
       const first=spec.values?.find(value=>value?.heightRowId||value?.rsiRowId),value=spec.metricRowId?benchmark(spec.metricRowId):first?benchmark(first.heightRowId):null,rsi=first?benchmark(first.rsiRowId):null;
       if(N(value)===null&&N(rsi)===null)return spec;
-      const entry={value,rsi,reference:true},period={id:reference.id,kind:"reference",label:reference.label+" · 群体均值",date:"",color:"#65717c"};
+      const entry={value,rsi,reference:true},period={id:reference.id,kind:"reference",label:reference.label+" · 群体均值",date:"",color:root.RingsideReportAppearance.theme.reference};
       return {...spec,periods:[...spec.periods,period],values:[...spec.values,entry],...(spec.scaleValues?{scaleValues:[...spec.scaleValues,entry]}:{})};
     }
     if(spec.kind==="radar"){
@@ -89,15 +89,16 @@
   }
   function individualFigures(project,model,views,periods,reference){
     if(!root.RingsideLongitudinalView?.projectFigures)return "";
-    const hidden=new Set(views.hiddenParticipantIds||[]),chosen=periods.filter(p=>!hidden.has(p.athleteId));if(!chosen.length)return "";
+    const chosen=periods;if(!chosen.length)return "";
     const original=chosen.flatMap(p=>p.report.projects).find(p=>p.id===project.id),renderer=project.renderer||original?.renderer;
     const indexes=chosen.map(p=>model.participants.findIndex(q=>q.recordId===p.recordId)),metrics=(project.metrics||[]).map(r=>({...r,cells:indexes.map(i=>r.cells?.[i]?{...r.cells[i],comparableToPrevious:false}:null)}));
     const specs=root.RingsideLongitudinalView.projectFigures({...original,...project,renderer,metrics},{...model,periods:chosen,displayRecord:model.displayRecord,projects:[{...original,...project,renderer,metrics}],capability:{cards:[],analyses:[]}},{specsOnly:true,views:{charts:views.charts||{}}});
     return specs.filter(s=>s.kind!=="notice").map(s=>curvePanel(withReference(s,project,reference,model),model,views)).join("");
   }
   function aggregateFigures(project,reference,model){
-    const supplied=reference.aggregateFigures?.[project.id];if(supplied?.length)return supplied;
-    const rows=project.metrics||[],value=row=>N(row?.benchmark?.mean),period={id:reference.id,label:reference.label,date:"",color:"#7895ad",kind:"reference"};
+    const supplied=reference.aggregateFigures?.[project.id],color=root.RingsideReportAppearance.theme.reference;
+    if(supplied?.length)return supplied.map(spec=>({...spec,subjectKind:"athlete",...Object.fromEntries(["series","periods","markers","horizontalMarkers"].filter(key=>Array.isArray(spec[key])).map(key=>[key,spec[key].map(item=>({...item,color,reference:true,...(key==="periods"?{kind:"reference"}:{})}))]))}));
+    const rows=project.metrics||[],value=row=>N(row?.benchmark?.mean),period={id:reference.id,label:reference.label,date:"",color,kind:"reference"};
     const scalar=(row,kind)=>({kind,subjectKind:"athlete",chartId:"aggregate:"+row.id,title:row.name,unit:row.unit,periods:[period],values:[{value:value(row)}]});
     if(project.renderer==="jumps"){
       const height=rows.find(row=>row.metricId===project.id+"_height"),rsi=rows.find(row=>row.metricId===project.id+"_rsi");
@@ -139,15 +140,15 @@
   }
   function overview(data,title,views,participants,risk=false){
     if(!data?.axes?.length)return '<p class="longitudinal-empty">尚无已测维度</p>';
-    const hidden=new Set(views.hiddenParticipantIds||[]),byId=new Map(participants.map(p=>[p.recordId||p.id,p])),series=(data.series||[]).filter(s=>!hidden.has(byId.get(s.recordId||s.id)?.athleteId)).map(s=>({...s,label:byId.has(s.recordId||s.id)?label(byId.get(s.recordId||s.id)):s.label}));
-    const mean=data.mean||data.benchmark?.values;if(Array.isArray(mean)&&mean.some(v=>N(v)!==null))series.push({id:"cohort-mean",label:data.benchmark?.label||"群体结果评价",color:"#65717c",dash:"6 4",values:mean});
+    const byId=new Map(participants.map(p=>[p.recordId||p.id,p])),series=(data.series||[]).map(s=>({...s,label:byId.has(s.recordId||s.id)?label(byId.get(s.recordId||s.id)):s.label}));
+    const mean=data.mean||data.benchmark?.values;if(Array.isArray(mean)&&mean.some(v=>N(v)!==null))series.push({id:"cohort-mean",label:data.benchmark?.label||"群体结果评价",color:root.RingsideReportAppearance.theme.reference,reference:true,dash:"6 4",values:mean});
     return `<div class="horizontal-curve" data-horizontal-curve="${E(JSON.stringify({kind:"radar",subjectKind:"athlete",title,showTitle:false,axes:data.axes,series,max:risk?3:100,risk,overview:!risk}))}"></div>`;
   }
   function presentationControls(model,views,ref){
     const people=model.participants||[],refs=model.references||[],p=model.presentation||{},focus=p.focus||views.focus||{kind:"all"},baseline=p.baseline||views.baseline||{kind:"none"};
     const select=(key,title,items,value)=>`<label><span>${E(title)}</span><select data-horizontal-view="${key}" aria-label="${E(title)}">${items.map(([id,name])=>`<option value="${E(id)}"${id===value?" selected":""}>${E(name)}</option>`).join("")}</select></label>`;
     const focusOptions=people.length?[["all","全部对象"],...people.map(person=>["athlete:"+person.athleteId,personName(person)])]:[["reference:"+ref.id,ref.label]],baselineOptions=[["none","无"],...people.map(person=>["athlete:"+person.athleteId,personName(person)+" · "+person.date]),...(refs.length?[["reference:mean","当前群体均值"],["reference:best","当前群体最佳"]]:[])];
-    return `<div class="horizontal-controls no-print">${select("focus","报告重点",focusOptions,focus.kind==="all"?"all":focus.kind+":"+focus.id)}${select("baseline","比较基准",baselineOptions,baseline.kind==="reference"?"reference:"+(baseline.statistic||"mean"):baseline.kind==="athlete"?"athlete:"+baseline.id:"none")}${refs.length>1?select("activeReferenceId","当前群体",refs.map(reference=>[reference.id,reference.label]),ref.id):""}${people.length?`<details><summary>图中运动员</summary>${people.map(person=>`<label><input type="checkbox" data-horizontal-person="${E(person.athleteId)}"${!(views.hiddenParticipantIds||[]).includes(person.athleteId)?" checked":""}>${E(label(person))}</label>`).join("")}</details>`:""}</div>`;
+    return `<div class="horizontal-controls no-print">${select("focus","报告重点",focusOptions,focus.kind==="all"?"all":focus.kind+":"+focus.id)}${select("baseline","比较基准",baselineOptions,baseline.kind==="reference"?"reference:"+(baseline.statistic||"mean"):baseline.kind==="athlete"?"athlete:"+baseline.id:"none")}${refs.length>1?select("activeReferenceId","当前群体",refs.map(reference=>[reference.id,reference.label]),ref.id):""}</div>`;
   }
   function summaryCards(model,ref){
     const presentation=model.presentation||{},focus=presentation.focus||{kind:"all"},baseline=presentation.baseline||{kind:"none"},summary=model.summary||{},people=model.participants||[],selected=focus.kind==="athlete"?people.filter(person=>person.athleteId===focus.id):focus.kind==="reference"?[]:people,group=focus.kind==="reference"?references(model).find(item=>item.id===focus.id)||ref:!people.length?ref:null;
@@ -172,7 +173,7 @@
     return `<details id="${E(id)}" class="horizontal-sample-details" data-horizontal-samples="${E(reference.id)}"${views.detailOpen?.[id]?" open":""}><summary>查看参照样本</summary><label class="field no-print"><span>指标</span><select data-horizontal-sample-metric>${metrics.map(row=>`<option value="${E(row.id)}"${row===selected?" selected":""}>${E(row.projectName+" · "+row.name+(row.contextLabel?" · "+row.contextLabel:""))}</option>`).join("")}</select></label><div data-horizontal-sample-data>${sampleData(selected,reference.id,views)}</div></details>`;
   }
   function render(input,{views={},print=false}={}){
-    const model={...(root.RingsideHorizontal?.present?root.RingsideHorizontal.present(input,views):input),displayRecord:input.participants?.at(-1)?.record};
+    const styled=root.RingsideReportAppearance.project(input),model={...(root.RingsideHorizontal?.present?root.RingsideHorizontal.present(styled,views):styled),displayRecord:styled.participants?.at(-1)?.record};
     const ref=activeReference(model,{...views,activeReferenceId:model.presentation?.activeReferenceId||views.activeReferenceId}),people=model.participants||[],periods=reconstructed(model),controls=print?"":presentationControls(model,views,ref);
     const content=`<section class="horizontal-reference-section" data-horizontal-reference="${E(ref.id)}">${ref.id!=="direct"?`<div class="horizontal-reference-heading"><h3>${E(ref.label)}</h3><p>${E(conditions(ref,model))}</p></div>`:""}${details(model,ref,views,{print,periods})}${ref.id!=="direct"?samples(ref,views):""}</section>`;
     const tools=print?"":`<div class="horizontal-report-tools no-print"><span role="status" data-horizontal-progress hidden></span>${model.references?.length?'<button type="button" class="btn small" data-horizontal-refresh>更新群体数据</button>':""}</div>`;
@@ -180,9 +181,11 @@
     return {layout:people.length?"comparison":"group",controls,summary:summaryCards(model,ref),body:!people.length&&ref.aggregateRiskRegions?root.RingsideViz.body(ref.aggregateRiskRegions,root.RingsideBodyImage):overview(ref.risk||model.risk,"损伤风险筛查",views,people,true),screenItems,screenPill:people.length?"运动员对照":"群体结果评价",overview:!people.length&&ref.aggregateOverviewAxes?root.RingsideViz.radar(ref.aggregateOverviewAxes):overview(ref.overview||model.overview,"运动表现概览",views,people),referenceLabel:model.profile?.name||"统一评价方案",legend:"",details:tools+content};
   }
   function layout(container,{print=false}={}){
+    container.dataset.reportAppearance=root.RingsideReportAppearance.theme.id;
     container.querySelectorAll("[data-horizontal-table]").forEach(node=>{if(print&&!node.dataset.horizontalPrint){const data=JSON.parse(node.dataset.horizontalTable);node.innerHTML=table(data.rows,data.participants,{...data.options,print:true,wrapped:false});node.dataset.horizontalPrint="true";}});
     container.querySelectorAll("[data-horizontal-bars]").forEach(node=>{const w=Math.max(280,Math.round(node.getBoundingClientRect().width||560));node.innerHTML=bars(JSON.parse(node.dataset.horizontalBars),w);});
     container.querySelectorAll("[data-horizontal-curve]").forEach(node=>{const w=Math.max(250,Math.round(node.getBoundingClientRect().width||450));node.innerHTML=root.RingsideLongitudinalView.draw(JSON.parse(node.dataset.horizontalCurve),w,print);});
+    root.RingsideReportAppearance.apply(container);
   }
   const handlers=new WeakMap();let observer;
   function mount(container,model,{onChange}={}){
@@ -200,8 +203,7 @@
         else if(key==="baseline")onChange?.({baseline:kind==="none"?{kind}:kind==="reference"?{kind,id:reference.id,statistic:value}:{kind,id:value}});
         else if(key==="activeReferenceId"){const delta={activeReferenceId:t.value};if(current.baseline?.kind==="reference")delta.baseline={...current.baseline,id:t.value};if(current.focus?.kind==="reference")delta.focus={...current.focus,id:t.value};onChange?.(delta);}
         else onChange?.({[key]:t.value});
-      }else if(t.dataset.horizontalPerson){const hidden=[...container.querySelectorAll("[data-horizontal-person]:not(:checked)")].map(n=>n.dataset.horizontalPerson);if(hidden.length===model.participants.length){t.checked=true;return;}onChange?.({hiddenParticipantIds:hidden});}
-      else if(t.hasAttribute("data-horizontal-sample-metric")){const referenceId=t.closest("[data-horizontal-samples]").dataset.horizontalSamples;onChange?.({sampleMetrics:{...current.sampleMetrics,[referenceId]:t.value}});}
+      }else if(t.hasAttribute("data-horizontal-sample-metric")){const referenceId=t.closest("[data-horizontal-samples]").dataset.horizontalSamples;onChange?.({sampleMetrics:{...current.sampleMetrics,[referenceId]:t.value}});}
     };
     container.addEventListener("change",change);handlers.set(container,change);layout(container);
     if(typeof root.ResizeObserver!=="undefined"){let scheduled=false;observer=new root.ResizeObserver(()=>{if(!scheduled){scheduled=true;root.requestAnimationFrame(()=>{scheduled=false;if(container.isConnected)layout(container);});}});observer.observe(container);}

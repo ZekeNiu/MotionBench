@@ -2,17 +2,19 @@
 
 运动表现评估与训练报告工作台，用于组织测试、录入测量、管理运动员、分析能力结构并输出教练报告。支持 Windows 桌面程序和离线单文件 HTML，两版共用计算、评价和报告界面。
 
-**当前版本：Windows `2.26.1-desktop.1` · HTML `2.26.1`。**
+**当前版本：Windows `2.26.2-desktop.1` · HTML `2.26.2`。**
+
+2.26.2 统一三种报告的墨青配色：历史日期由青经蓝至靛区分，最近测试日突出；横向比较收窄指标列，并将报告重点与比较基准移至标题上方。
 
 2.25.0 新增横向比较报告、专项细分和年龄段管理。[2.24.13 回退版本](https://github.com/ZekeNiu/MotionBench/releases/tag/v2.24.13-desktop.1)继续保留。回退时同时恢复升级前的资料备份。
 
 2.25.2 调整报告雷达图的大小与留白：比较报告的风险与能力图使用一致高度，多维图形收紧半径；等长力量有 10 个部位时保留完整雷达图。
 
-[在线 Demo](https://zekeniu.github.io/MotionBench/) · [安装版 2.26.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.26.1-desktop.1/MotionBench-2.26.1-desktop.1-Setup-x64.exe) · [便携版 2.26.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.26.1-desktop.1/MotionBench-2.26.1-desktop.1-Portable-x64.exe) · [离线 HTML 2.26.1](https://github.com/ZekeNiu/MotionBench/releases/download/v2.26.1-desktop.1/MotionBench.html)
+[在线 Demo](https://zekeniu.github.io/MotionBench/) · [安装版 2.26.2](https://github.com/ZekeNiu/MotionBench/releases/download/v2.26.2-desktop.1/MotionBench-2.26.2-desktop.1-Setup-x64.exe) · [便携版 2.26.2](https://github.com/ZekeNiu/MotionBench/releases/download/v2.26.2-desktop.1/MotionBench-2.26.2-desktop.1-Portable-x64.exe) · [离线 HTML 2.26.2](https://github.com/ZekeNiu/MotionBench/releases/download/v2.26.2-desktop.1/MotionBench.html)
 
 同一运动员的纵向比较直接从首页开始：勾选多条测试记录，每张图可独立选择展示日期；结果表统一显示一列“变化趋势”，mini 图展示全部所选日期，并带纵轴刻度与单位。悬停、键盘或触屏可查看具体读数与相邻变化。损伤风险筛查使用部位雷达，运动表现概览少于3维用表格、3维及以上用雷达。
 
-首页采用“选择运动员 → 测试记录 → 查看报告”的紧凑折叠流程，选好后统一应用；群体参照位于运动员选择内，通过独立弹窗配置，支持最近可比测试、期间最佳和期间均值，群体先汇总数值再评价。专项分类与年龄分组进入独立管理页。已保存报告位于“测试记录”页面。详见 [2.26.1 使用说明](docs/motionbench-2.26.1.md)。构建、桌面安装与资料保护的验证见 [2.26.1 验收记录](docs/acceptance-2.26.1.md)。
+首页采用“选择运动员 → 测试记录 → 查看报告”的紧凑折叠流程，选好后统一应用；群体参照位于运动员选择内，通过独立弹窗配置，支持最近可比测试、期间最佳和期间均值，群体先汇总数值再评价。专项分类与年龄分组进入独立管理页。已保存报告位于“测试记录”页面。详见 [2.26.2 使用说明](docs/motionbench-2.26.2.md)。构建、桌面安装与资料保护的验证见 [2.26.2 验收记录](docs/acceptance-2.26.2.md)。
 
 ![MotionBench 在线演示，全部资料为模拟数据](assets/motionbench-demo.png)
 

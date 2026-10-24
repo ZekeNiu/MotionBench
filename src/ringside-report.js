@@ -233,6 +233,7 @@
     return cards.join("");
   }
   function render(report) {
+    global.RingsideReportAppearance?.apply(global.document?.getElementById?.("reportView"));
     const { record: state, stats: s, projects } = report,
       r = s.raw,
       v = s.values;
@@ -664,8 +665,11 @@
                   `<p class="metric-note"><b>${E(d.name)}</b>：${E(state.customValues[d.id].notes)}</p>`,
               )
               .join("");
-        const model = global.RingsideGenericReport?.buildChart(report, test),
-          content = !model || model.kind === "none" ? data :
+        const model = global.RingsideGenericReport?.buildChart(report, test);
+        // Display-only identity context includes metrics with missing results.
+        // It is captured with the chart args, never written back to the record.
+        if (model) model.categoryIds = state.definitions.filter(d => d.testId === test.id).map(d => d.id);
+        const content = !model || model.kind === "none" ? data :
             pair(V.generic(model), data, "generic-detail", { kind: "generic", args: [model] });
         return block(tests, test.name, state.protocol[test.id] || "", content);
       },
@@ -1346,6 +1350,7 @@
     });
   }
   function layoutCharts(container, { print = false } = {}) {
+    global.RingsideReportAppearance?.apply(container);
     // A wrapped mean/SD must not push the right-side statistics below the
     // corresponding right-side result and evaluation in neighboring columns.
     alignCapabilityCards(container);

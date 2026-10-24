@@ -6,20 +6,26 @@
   const statusStyle = global.document?.documentElement && typeof global.getComputedStyle === "function"
     ? global.getComputedStyle(global.document.documentElement) : null;
   const statusColor = (name, fallback) => statusStyle?.getPropertyValue("--" + name).trim() || fallback;
+  // The appearance module owns measurement/identity colors. Status colors below
+  // remain owned by evaluation. Standalone legacy consumers may omit the module.
+  const appearance = global.RingsideReportAppearance;
+  const theme = appearance?.tokens();
+  const role = (name, fallback) => theme?.[name] || fallback;
   const C = {
-    ink: "#262a30",
-    muted: "#636b76",
-    grid: "#e5e8ec",
-    blue: "#365b7a",
+    ink: role("ink", "#262a30"),
+    muted: role("muted", "#636b76"),
+    grid: role("grid", "#e5e8ec"),
+    blue: role("accent", "#365b7a"),
     green: statusColor("green", "#187459"),
     amber: statusColor("amber", "#8a5a12"),
     red: statusColor("red", "#b23f3d"),
     gray: statusColor("gray", "#66707b"),
-    paper: "#f8f9fb",
-    neutral: "#365b7a",
+    paper: role("paper", "#f8f9fb"),
+    neutral: role("accent", "#365b7a"),
   };
   const FONT = "Segoe UI, 'Microsoft YaHei', 'PingFang SC', Arial, sans-serif";
   const SERIES = ["#365b7a", "#71849f", "#786aa8", "#a37e46"];
+  const lvpColors = appearance?.colors(["bench", "landmineR", "landmineL", "squat", "deadlift"]);
   let serial = 0;
   const esc = (v) =>
     String(v == null ? "" : v).replace(
@@ -126,7 +132,7 @@
     markup = markup.replace(/<title(?:\s[^>]*)?>([\s\S]*?)<\/title>/g, "<desc>$1</desc>")
       .replace(/<([a-z][\w:-]*)(\s[^<>]*data-tooltip="([^"]*)"[^<>]*)>/gi, (match, tag, attrs, label) =>
         /\baria-label=/.test(attrs) ? match : `<${tag}${attrs} aria-label="${label}">`);
-    return `<svg id="${id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(title)}" aria-describedby="${id}-desc" style="display:block;width:100%;height:auto"><desc id="${id}-desc">${esc(description || title)}</desc><style>.viz-point,.viz-region,.lvp-hit{outline:none}.viz-point:focus>circle,.viz-point:focus>polygon,.viz-point:focus>rect,.viz-region:focus .viz-hotspot{stroke:#365b7a;stroke-width:3}.viz-region{cursor:pointer}.lvp-hit{cursor:crosshair}.lvp-hit:focus{stroke:#365b7a;stroke-opacity:.15}${pixelLayout ? "" : `@media screen and (max-width:600px){#${id} text{font-size:18px}#${id} text[font-size="9"],#${id} text[font-size="10"]{font-size:15px}}`}</style>${markup}</svg>`;
+    return `<svg id="${id}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(title)}" aria-describedby="${id}-desc" style="display:block;width:100%;height:auto"><desc id="${id}-desc">${esc(description || title)}</desc><style>.viz-point,.viz-region,.lvp-hit{outline:none}.viz-point:focus>circle,.viz-point:focus>polygon,.viz-point:focus>rect,.viz-region:focus .viz-hotspot{stroke:${C.neutral};stroke-width:3}.viz-region{cursor:pointer}.lvp-hit{cursor:crosshair}.lvp-hit:focus{stroke:${C.neutral};stroke-opacity:.15}${pixelLayout ? "" : `@media screen and (max-width:600px){#${id} text{font-size:18px}#${id} text[font-size="9"],#${id} text[font-size="10"]{font-size:15px}}`}</style>${markup}</svg>`;
   }
   function layoutSVG(w, h, title, markup, description, layout = {}) {
     const scale = layout.print ? 0.86 : 1;
@@ -560,13 +566,13 @@
       {
         key: "strength",
         name: "力量水平",
-        color: C.blue,
+        color: role("force", C.blue),
         source: "strengthSources",
       },
       {
         key: "symmetry",
         name: "对称性",
-        color: "#956a43",
+        color: role("power", "#956a43"),
         source: "symmetrySources",
       },
     ];
@@ -634,7 +640,7 @@
     const axes = data.axes || [], w = layout.width || 470,
       h = Math.max(layout.height || 360, 118 + axes.length * 45), left = 78, right = w - 35,
       max = data.max || 100, top = 37, rowHeight = axes.length ? Math.min(45, (h - 112) / axes.length) : 45,
-      x = value => left + value / max * (right - left), colors = { strength: C.blue, symmetry: "#956a43" };
+      x = value => left + value / max * (right - left), colors = { strength: role("force", C.blue), symmetry: role("power", "#956a43") };
     if (!axes.length) return empty("等长力量等待数据", "选择本次方向并录入结果后显示", w, h);
     let out = "";
     [0, 50, 100, ...(max > 100 ? [max] : [])].forEach(value => {
@@ -660,7 +666,9 @@
   function jumpBars(items, layout = {}) {
     items = items.filter(item => num(item.height ?? item.value) !== null || num(item.rsi) !== null);
     if (!items.length) return empty("跳跃表现", "录入垂直跳跃高度或 RSI 后显示结果");
-    const w=Math.max(240,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?38:62,right=w-(small?38:62),top=58,bottom=h-98,barColor="#7895ad",dotColor="#176b68";
+    const w=Math.max(240,layout.width||740),small=w<480,h=layout.height||(small?350:390),left=small?38:62,right=w-(small?38:62),top=58,bottom=h-98,dotColor=role("rsi","#176b68");
+    const labels={cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"};
+    const testColor=item=>appearance?.testColor(item.id)||"#7895ad";
     const heightMax=Math.max(10,...items.map(item=>num(item.height??item.value)||0))*1.22;
     const hasRSI=items.some(item=>num(item.rsi)!==null),rsiMax=Math.max(1,...items.map(item=>num(item.rsi)||0))*1.22;
     const heightY=value=>bottom-value/heightMax*(bottom-top),rsiY=value=>bottom-value/rsiMax*(bottom-top);
@@ -670,16 +678,29 @@
     out+=line(left,bottom,right,bottom,`stroke="${C.gray}"`);
     items.forEach((item,i)=>{
       const x=left+(i+.5)*(right-left)/items.length,height=num(item.height??item.value),rsi=num(item.rsi),width=Math.min(56,(right-left)/items.length*.4);
-      const defaultHeightLabel=height!==null?heightY(height)-11:null;
-      const heightLabelY=rsi===null||height===null?defaultHeightLabel:[defaultHeightLabel,heightY(height)+20,rsiY(rsi)-18,rsiY(rsi)+42].find(y=>y>top&&y<bottom-4&&Math.abs(y-rsiY(rsi))>=17&&Math.abs(y-(rsiY(rsi)+20))>=18)??defaultHeightLabel;
-      if(height!==null){const tip=`${item.label} · 垂直跳跃高度 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${barColor}"/>${text(x,heightLabelY,fmt(height,1),`text-anchor="middle" font-size="15" font-weight="600" fill="${C.ink}"`)}</g>`;}
-      if(rsi!==null){const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,rsiY(rsi),7,dotColor,'stroke="white" stroke-width="2.5"')}${text(x,rsiY(rsi)+20,fmt(rsi,2),`text-anchor="middle" font-size="${small?11:13}" font-weight="600" fill="${dotColor}"`)}</g>`;}
-      const label={cmj:"CMJ",sj:"SJ",dj:"DJ",hop:"Hop",cmrj:"CMRJ"}[item.id]||item.label;
+      // Dark identity bars must never become the background of their values.
+      // On narrow plots the RSI label sits below its dot with a white halo;
+      // wider plots place it beside the bar, clear of the separate right axis.
+      const halo='stroke="white" stroke-width="3" paint-order="stroke" stroke-linejoin="round"';
+      let heightLabelY=height===null?null:heightY(height)-11;
+      if(rsi!==null&&height!==null&&heightLabelY+4>rsiY(rsi)-9&&heightLabelY-(small?12:15)<rsiY(rsi)+9)heightLabelY=Math.min(heightLabelY,rsiY(rsi)-16);
+      if(height!==null){const tip=`${item.label} · 垂直跳跃高度 ${fmt(height,2)} cm`;out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="height" data-tooltip="${esc(tip)}" tabindex="0"><rect x="${fmt(x-width/2)}" y="${fmt(heightY(height))}" width="${fmt(width)}" height="${fmt(bottom-heightY(height))}" rx="4" fill="${testColor(item)}"/>${text(x,heightLabelY,fmt(height,1),`data-jump-value="height" text-anchor="middle" font-size="${small?12:15}" font-weight="600" fill="${C.ink}" ${halo}`)}</g>`;}
+      if(rsi!==null){
+        const tip=`${item.label} · RSI ${fmt(rsi,2)} m/s`,labelWidth=fmt(rsi,2).length*(small?6.3:7),labelX=x+width/2+6;
+        const beside=labelX+labelWidth<Math.min(right-1,x+(right-left)/items.length/2+4),ry=rsiY(rsi);
+        let labelY=beside?ry+4:ry+21;
+        if(!beside&&height!==null&&Math.abs(labelY-heightLabelY)<18)labelY=ry-14;
+        out+=`<g class="viz-point" data-jump-test="${esc(item.id||item.label)}" data-jump-series="rsi" data-tooltip="${esc(tip)}" tabindex="0">${circle(x,ry,7,dotColor,'stroke="white" stroke-width="2.5"')}${text(beside?labelX:x,labelY,fmt(rsi,2),`data-jump-value="rsi" text-anchor="${beside?"start":"middle"}" font-size="${small?11:12}" font-weight="600" fill="${dotColor}" ${halo}`)}</g>`;
+      }
+      const label=labels[item.id]||item.label;
       out+=`<g data-jump-label="${esc(item.id||item.label)}" aria-label="${esc(item.label)}">${text(x,bottom+31,label,`text-anchor="middle" font-size="${small?11:14}" font-weight="600" fill="${C.ink}"`)}</g>`;
     });
-    out+=`<rect x="${left}" y="${h-(small?47:37)}" width="17" height="12" rx="2" fill="${barColor}"/>`+text(left+26,h-(small?36:26),"垂直跳跃高度（左轴）",'font-size="12"');
-    if(hasRSI)out+=circle(left+(small?8:201),h-(small?16:31),5,dotColor)+text(left+(small?26:215),h-(small?11:26),"RSI（右轴）",'font-size="12"');
-    return layoutSVG(w,h,"跳跃表现：垂直跳跃高度与反应力量指数",out,"柱形读取左侧垂直跳跃高度 cm 坐标，圆点读取右侧 RSI m/s 坐标；不同单位分别解读。",layout);
+    // Shape identifies the measured variable; bar color identifies the test.
+    const legendSize=small?9:11,legendY=bottom+51,legendStep=(right-left)/items.length;
+    items.forEach((item,i)=>{const lx=left+i*legendStep;out+=`<g data-jump-legend="${esc(item.id||item.label)}"><rect x="${fmt(lx)}" y="${legendY-8}" width="9" height="9" rx="2" fill="${testColor(item)}"/>`+text(lx+12,legendY,labels[item.id]||item.label,`font-size="${legendSize}"`)+'</g>';});
+    out+=`<rect x="${left}" y="${h-28}" width="12" height="10" rx="2" fill="${C.muted}"/>`+text(left+18,h-19,small?"高度 · 左轴":"柱高：高度（左轴） · 柱色：测试项目",`font-size="${legendSize}"`);
+    if(hasRSI){const lx=small?right-65:Math.min(right-95,left+260);out+=circle(lx,h-24,4,dotColor)+text(lx+10,h-19,"RSI · 右轴",`font-size="${legendSize}"`);}
+    return layoutSVG(w,h,"跳跃表现：垂直跳跃高度与反应力量指数",out,"柱高读取左侧垂直跳跃高度 cm 坐标，柱色区分测试项目；圆点读取右侧 RSI m/s 坐标。不同单位分别解读。",layout);
   }
   function asymInline(value, weakSide, rules = {}) {
     value = num(value);
@@ -1344,6 +1365,7 @@
           fit,
           color:
             item.color ||
+            lvpColors?.[item.id] ||
             {
               bench: "#365b7a",
               landmineR: "#956a43",
@@ -1467,14 +1489,14 @@
             y(fit.a),
             x(supportMin),
             y(model(supportMin)),
-            `stroke="${item.color}" stroke-width="2"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
+            `stroke="${item.color}" stroke-width="${num(item.strokeWidth) ?? 2}"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
           );
         out += line(
           x(supportMin),
           y(model(supportMin)),
           x(supportMax),
           y(model(supportMax)),
-          `stroke="${item.color}" stroke-width="2.5"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
+          `stroke="${item.color}" stroke-width="${num(item.strokeWidth) ?? 2.5}"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
         );
         if (hasIntercept)
           out += line(
@@ -1482,7 +1504,7 @@
             y(model(supportMax)),
             x(end),
             y(0),
-            `stroke="${item.color}" stroke-width="2"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
+            `stroke="${item.color}" stroke-width="${num(item.strokeWidth) ?? 2}"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""} pointer-events="none"`,
           );
         const start = hasIntercept ? 0 : supportMin;
         const tooltip = `${item.label || item.id} · ${item.metric || "速度"}：沿拟合线查看负荷与速度`;
@@ -1558,13 +1580,13 @@
           yLegend - 2,
           xLegend + 34,
           yLegend - 2,
-          `stroke="${item.color}" stroke-width="2"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""}`,
+          `stroke="${item.color}" stroke-width="${num(item.strokeWidth) ?? 2}"${item.dash ? ' stroke-dasharray="' + esc(item.dash) + '"' : ""}`,
         );
       out += text(
         xLegend + 43,
         yLegend + 2,
         `${item.label || item.id}${item.metric ? " · " + item.metric : ""}`,
-        `font-size="12" fill="${item.color}"`,
+        `font-size="12" fill="${item.color}"${item.latest ? ' font-weight="600"' : ""}`,
       );
     });
     return layoutSVG(
@@ -1625,6 +1647,7 @@
 
   function lactate(rows, opts, layout = {}) {
     opts = opts || {};
+    const heartRateColor = role("power", C.red);
     rows = (Array.isArray(rows) ? rows : [])
       .map((row) => ({
         ...row,
@@ -1746,23 +1769,23 @@
           right + 11,
           yh(value) + 4,
           fmt(value, 0),
-          `font-size="12" fill="${C.red}"`,
+          `font-size="12" fill="${heartRateColor}"`,
         );
       });
       out += text(
         right,
         top - 13,
         "心率 / bpm",
-        `text-anchor="end" fill="${C.red}"`,
+        `text-anchor="end" fill="${heartRateColor}"`,
       );
       if (validHr.length > 1)
-        out += `<polyline points="${polygonPoints(validHr.map((row) => [x(row.speed), yh(row.hr)]))}" fill="none" stroke="${C.red}" stroke-width="1.8" stroke-dasharray="5 4"/>`;
+        out += `<polyline data-measurement-role="heart-rate" points="${polygonPoints(validHr.map((row) => [x(row.speed), yh(row.hr)]))}" fill="none" stroke="${heartRateColor}" stroke-width="1.8" stroke-dasharray="5 4"/>`;
       validHr.forEach((row) => {
         out += point(
           x(row.speed),
           yh(row.hr),
           3.3,
-          C.red,
+          heartRateColor,
           `速度 ${fmt(row.speed)} ${opts.speedUnit || "m/s"} · 心率 ${fmt(row.hr, 0)} bpm`,
         );
       });
@@ -1777,14 +1800,14 @@
           h - 19,
           180,
           h - 19,
-          `stroke="${C.red}" stroke-dasharray="4 3" stroke-width="2"`,
+          `stroke="${heartRateColor}" stroke-dasharray="4 3" stroke-width="2"`,
         ) + text(190, h - 15, "心率（右轴）", 'font-size="12"');
     return layoutSVG(
       w,
       h,
       opts.title || "递增负荷测试：乳酸与心率",
       out,
-      "横轴为阶段速度；蓝色实线为血乳酸，红色虚线为心率及独立右轴；固定浓度参考线与已录入个体阈值分别显示。",
+      "横轴为阶段速度；实线为血乳酸，虚线为心率及独立右轴；固定浓度参考线与已录入个体阈值分别显示。",
       layout,
     );
   }
@@ -1856,7 +1879,7 @@
     if (!data?.valid) return layoutSVG(w, h, title, text(w / 2, h / 2 - 12, "等待有效剖面", 'text-anchor="middle" font-size="16"') + text(w / 2, h / 2 + 16, "在右侧核对测试数据", 'text-anchor="middle" font-size="12"'), data?.reason || "尚无有效剖面", layout);
     const fv = options.fv !== false, pv = options.pv !== false;
     if (!fv && !pv) return layoutSVG(w, h, sprint ? title : "跳跃力–速度剖面", text(w / 2, h / 2, "勾选 F–V 或 P–V 查看曲线", 'text-anchor="middle" font-size="13"'), "当前未选择显示曲线", layout);
-    const forceColor = C.blue, powerColor = C.green, small = w < 400;
+    const forceColor = role("force", C.blue), powerColor = role("power", C.green), small = w < 400;
     const profiles = (data.profiles || []).filter(profile => profile.kind === "current" || profile.kind === "optimum" && options.optimum !== false || profile.kind === "comparison" && options.comparison === true);
     const points = (data.points || []).filter(p => num(p.velocity) !== null);
     const band = options.confidence !== false ? (data.band || []) : [];
@@ -1885,10 +1908,10 @@
     }
     profiles.forEach(profile => {
       const dash = profile.kind === "optimum" ? ' stroke-dasharray="7 5"' : profile.kind === "comparison" ? ' stroke-dasharray="2 5"' : "";
-      const opacity = profile.kind === "current" ? 1 : .66;
+      const opacity = theme ? 1 : profile.kind === "current" ? 1 : .66;
       const samples = Array.from({length:81},(_,index)=>{const velocity=profile.V0*index/80, force=profile.F0*(1-velocity/profile.V0);return{velocity,force,power:force*velocity};});
-      if (fv) out += `<polyline points="${polygonPoints(samples.map(p=>[x(p.velocity),yf(p.force)]))}" fill="none" stroke="${forceColor}" stroke-width="${profile.kind==='current'?2.6:1.8}" opacity="${opacity}"${dash} pointer-events="none"/>`;
-      if (pv) out += `<polyline points="${polygonPoints(samples.map(p=>[x(p.velocity),yp(p.power)]))}" fill="none" stroke="${powerColor}" stroke-width="${profile.kind==='current'?2.6:1.8}" opacity="${opacity}"${dash} pointer-events="none"/>`;
+      if (fv) out += `<polyline data-fvp-model="${esc(profile.kind)}" data-measurement-role="force" points="${polygonPoints(samples.map(p=>[x(p.velocity),yf(p.force)]))}" fill="none" stroke="${forceColor}" stroke-width="${profile.kind==='current'?2.6:1.8}" opacity="${opacity}"${dash} pointer-events="none"/>`;
+      if (pv) out += `<polyline data-fvp-model="${esc(profile.kind)}" data-measurement-role="power" points="${polygonPoints(samples.map(p=>[x(p.velocity),yp(p.power)]))}" fill="none" stroke="${powerColor}" stroke-width="${profile.kind==='current'?2.6:1.8}" opacity="${opacity}"${dash} pointer-events="none"/>`;
       if(pv&&profile.kind==="current"&&profile.V0/2>=vMin&&profile.V0/2<=vMax){const peakX=x(profile.V0/2),peakY=yp(profile.Pmax);out+=line(peakX,yp(0),peakX,peakY,`stroke="${powerColor}" stroke-opacity=".45" stroke-dasharray="3 4"`)+circle(peakX,peakY,3.6,powerColor)+text(clamp(peakX,left+62,right-62),Math.max(top+14,peakY-10),"Pmax · V₀/2",`text-anchor="middle" font-size="10" fill="${powerColor}"`);}
     });
     if (options.points !== false) {
@@ -1920,9 +1943,9 @@
     const sprint=data?.kind==="sprint",title=sprint?"参数改变与预测冲刺时间响应":"参数改变与预测跳跃高度响应",outcome=sprint?"预测冲刺时间改善":"预测跳跃高度改变";
     const valid=points=>(points||[]).filter(p=>p.valid!==false&&num(p.deltaPct)!==null);
     const series=[
-      {key:"force",view:"responseForce",color:C.blue,label:"仅 F₀ 改变",shape:"circle"},
-      {key:"velocity",view:"responseVelocity",color:C.green,label:"仅 V₀ 改变",shape:"diamond"},
-      {key:"both",view:"responseBoth",color:"#73548c",label:"F₀ 与 V₀ 各改变",shape:"triangle"},
+      {key:"force",view:"responseForce",color:role("force",C.blue),label:"仅 F₀ 改变",shape:"circle"},
+      {key:"velocity",view:"responseVelocity",color:role("power",C.green),label:"仅 V₀ 改变",shape:"diamond"},
+      {key:"both",view:"responseBoth",color:role("elasticityCombined","#73548c"),label:"F₀ 与 V₀ 各改变",shape:"triangle"},
     ].map(item=>({...item,points:valid(data[item.key]),curve:valid(data[item.key+"Curve"]||data[item.key])}));
     const all=series.flatMap(item=>item.curve),visible=series.filter(item=>data[item.view]!==false);
     if(!all.length)return layoutSVG(w,h,title,text(w/2,h/2,"完成有效剖面后显示敏感度",'text-anchor="middle" font-size="13"'),"尚无有效敏感度",layout);
@@ -1948,7 +1971,7 @@
     const xMax=Math.max(1,...points.map(p=>p.ER))*1.06,yMin=Math.max(0,Math.min(...points.map(p=>p.EN))*.9),yMax=Math.max(.1,...points.map(p=>p.EN))*1.08;
     const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin:0,xMax,yMin,yMax,xLabel:"弹性比 ER",yLabel:"弹性范数 EN",solidGrid:true});
     let out=grid+`<polyline data-elasticity-constraint-curve points="${polygonPoints([...points].sort((a,b)=>a.ER-b.ER).map(p=>[x(p.ER),y(p.EN)]))}" fill="none" stroke="${C.blue}" stroke-width="2.5"/>`;
-    const landmarks=[{key:"current",label:"当前剖面",color:C.blue,shape:"circle"},{key:"valley",label:"EN 最低点",color:C.green,shape:"diamond"},{key:"balance",label:"ER = 1",color:"#73548c",shape:"triangle"}];
+    const landmarks=[{key:"current",label:"当前剖面",color:role("force",C.blue),shape:"circle"},{key:"valley",label:"EN 最低点",color:role("power",C.green),shape:"diamond"},{key:"balance",label:"ER = 1",color:role("elasticityCombined","#73548c"),shape:"triangle"}];
     landmarks.forEach(({key,label,color,shape},i)=>{const p=data[key];if(num(p?.ER)===null||num(p?.EN)===null)return;out+=point(x(p.ER),y(p.EN),5,color,`${label} · ER ${fmt(p.ER,3)} · EN ${fmt(p.EN,3)}`,`data-elasticity-landmark="${key}"`,shape);const ly=h-54+i*18;out+=marker(left+5,ly,4,color,shape)+text(left+18,ly+4,label,'font-size="11"');});
     return layoutSVG(w,h,title,out,`固定模型预测垂直跳跃高度 ${fmt(data.heightCm,2)} cm 与蹬伸距离，改变剖面分配并重新计算 ER 与 EN。EN 最低点与 ER = 1 的平衡点分别标记；采样范围不表示生理阈值。`,layout);
   }
@@ -1959,10 +1982,10 @@
     const landmarks=[data.current,data.valley,data.balance].filter(p=>p?.valid!==false&&num(p?.distanceM)!==null&&[p.Fe,p.ve,p.EN,p.ER].every(value=>num(value)!==null)),all=points.concat(landmarks);
     const small=w<400,left=small?44:54,right=w-(small?45:54),top=48,bottom=h-125,xMax=Math.max(1,...all.map(p=>p.distanceM))*1.04,yMax=Math.max(.1,...all.flatMap(p=>[p.Fe,p.ve,p.EN]))*1.12,erMax=Math.max(1,...all.map(p=>p.ER))*1.1;
     const {out:grid,x,y}=axisGrid({left,right,top,bottom,xMin:0,xMax,yMin:0,yMax,xLabel:"目标距离 · m",yLabel:"Fₑ / vₑ / EN",solidGrid:true});
-    const yER=value=>bottom-value/erMax*(bottom-top),erColor=C.neutral,purple="#73548c";
+    const yER=value=>bottom-value/erMax*(bottom-top),erColor=role("er",C.neutral),purple=role("elasticityCombined","#73548c");
     let out=grid+line(right,top,right,bottom,`stroke="${erColor}"`)+text(right,top-14,"ER · 右轴",`text-anchor="end" font-size="11" fill="${erColor}"`);
     ticks(0,erMax).forEach(value=>{out+=text(right+7,yER(value)+4,fmt(value,1),`font-size="11" fill="${erColor}"`);});
-    const series=[{key:"Fe",label:"Fₑ · 左轴",color:C.blue},{key:"ve",label:"vₑ · 左轴",color:C.green},{key:"EN",label:"EN · 左轴",color:purple},{key:"ER",label:"ER · 右轴",color:erColor,dash:true}];
+    const series=[{key:"Fe",label:"Fₑ · 左轴",color:role("force",C.blue)},{key:"ve",label:"vₑ · 左轴",color:role("power",C.green)},{key:"EN",label:"EN · 左轴",color:purple},{key:"ER",label:"ER · 右轴",color:erColor,dash:true}];
     series.forEach(({key,label,color,dash},i)=>{const scale=key==="ER"?yER:y;out+=`<polyline data-distance-series="${key}" data-distance-axis="${key==="ER"?"right":"left"}" points="${polygonPoints([...points].sort((a,b)=>a.distanceM-b.distanceM).map(p=>[x(p.distanceM),scale(p[key])]))}" fill="none" stroke="${color}" stroke-width="${dash?1.7:2.4}"${dash?' stroke-dasharray="5 4"':""}/>`;const ly=h-73+Math.floor(i/2)*20,lx=left+(i%2?Math.min(112,(right-left)*.54):0);out+=line(lx,ly,lx+18,ly,`stroke="${color}" stroke-width="${dash?1.7:2.4}"${dash?' stroke-dasharray="5 4"':""}`)+text(lx+24,ly+4,label,'font-size="10"');});
     const current=data.current;if(num(current?.distanceM)!==null){out+=line(x(current.distanceM),top,x(current.distanceM),bottom,'stroke="#9aa4ae" stroke-dasharray="3 4"');for(const{key,color}of series)if(num(current[key])!==null)out+=point(x(current.distanceM),(key==="ER"?yER:y)(current[key]),4.3,color,`当前目标 ${fmt(current.distanceM,1)} m · ${key} ${fmt(current[key],3)}`,`data-distance-current="${key}"`);}
     for(const[key,label,color,shape]of[["valley","EN 最低点",purple,"diamond"],["balance","ER = 1",erColor,"triangle"]]){const p=data[key],metric=key==="valley"?"EN":"ER";if(p?.valid!==false&&num(p?.distanceM)!==null&&num(p?.[metric])!==null)out+=point(x(p.distanceM),(metric==="ER"?yER:y)(p[metric]),5,color,`${label} · ${fmt(p.distanceM,2)} m`, `data-elasticity-landmark="${key}"`,shape);}
@@ -2044,7 +2067,7 @@
     visibleIndices.forEach(index => { out += text(grid.x(index), bottom + 22, index, 'text-anchor="middle" font-size="11"'); });
     let legendY = bottom + 68;
     series.forEach((item, index) => {
-      const tone = SERIES[index % SERIES.length], shape = ["circle", "square", "diamond", "triangle"][Math.floor(index / SERIES.length) % 4];
+      const tone = panel.categoryColors?.[item.id] || SERIES[index % SERIES.length], shape = ["circle", "square", "diamond", "triangle"][Math.floor(index / SERIES.length) % 4];
       for (const attempt of item.points || []) out += point(grid.x(attempt.index), grid.y(attempt.value), 4.5, tone, `第 ${attempt.index} 次 · ${item.label}：${fmt(attempt.value)}${panel.unit ? " " + panel.unit : ""}`, `data-generic-trial="${esc(attempt.id)}"`, shape);
       out += marker(16, legendY - 4, 4, tone, shape) + genericLines(28, legendY, labels[index], 'font-size="12"');
       legendY += labels[index].length * 16 + 8;
@@ -2091,7 +2114,12 @@
     if (!data.available) return `<p class="note generic-chart-unavailable">${esc(data.reason || "当前图表缺少有效数据。")}</p>`;
     const kind = data.kind, draw = { bar: genericBars, target: genericBars, column: genericColumns, trials: genericTrialPlot, scatter: genericScatter, radar: genericRadar }[kind];
     if (!draw) return "";
-    const panels = data.panels.flatMap(panel => {
+    // Assign identity before pagination or missing-value filtering. A metric
+    // keeps its color when another metric disappears or moves to a new image.
+    const categoryIds = data.categoryIds || data.panels.flatMap(panel => (panel.series || []).map(item => item.id));
+    const categoryColors = appearance?.colors(categoryIds);
+    const panels = data.panels.flatMap(source => {
+      const panel = categoryColors ? { ...source, categoryColors } : source;
       // Keep each image compact enough to paginate while preserving one common
       // scale within the original unit group; no metrics or rows are duplicated.
       const field = kind === "bar" || kind === "target" || kind === "column" ? "items" : kind === "trials" ? "series" : null,

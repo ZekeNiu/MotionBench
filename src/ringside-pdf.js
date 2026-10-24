@@ -14,9 +14,10 @@
   const FONT =
     '"Segoe UI", "Microsoft YaHei", "PingFang SC", Arial, sans-serif';
   let lastDiagnostics = null;
+  const PDF_COLORS = root.RingsideReportAppearance?.theme || { ink: "#262a30", muted: "#636b76", border: "#e1e5e9", accent: "#365b7a", paper: "#f7f9fc" };
   const CSS = `
     .ringside-pdf-stage{position:fixed!important;left:-20000px!important;top:0!important;width:210mm!important;z-index:-100!important;pointer-events:none!important;background:#fff!important;}
-    .ringside-pdf-document{--ink:#262a30;--muted:#636b76;--line:#e1e5e9;font:13.333px/1.65 ${FONT}!important;color:#262a30!important;background:#fff!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;}
+    .ringside-pdf-document{--ink:${PDF_COLORS.ink};--muted:${PDF_COLORS.muted};--line:${PDF_COLORS.border};font:13.333px/1.65 ${FONT}!important;color:${PDF_COLORS.ink}!important;background:#fff!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;}
     .ringside-pdf-document *{box-sizing:border-box;}
     .ringside-pdf-source{width:186mm!important;padding:0!important;margin:0!important;max-width:none!important;display:block!important;}
     .ringside-pdf-source .details-group,.ringside-pdf-source .quality-group,.ringside-pdf-source .test-block,.ringside-pdf-source .lvp-card{padding:0!important;margin:0!important;border:0!important;}
@@ -27,29 +28,29 @@
     .ringside-pdf-document p{margin:0 0 9px!important;}
     .ringside-pdf-document .hero{display:block!important;margin:0!important;padding:0 0 8px!important;}
     .ringside-pdf-document .hero-sub{display:flex!important;flex-wrap:wrap!important;gap:11px!important;font-size:12px!important;line-height:1.7!important;margin-top:7px!important;}
-    .ringside-pdf-document .hero-sub span+span:before{content:'·'!important;margin-right:11px!important;color:#bac2cf!important;}
-    .ringside-pdf-document .section-heading{padding:8px 0!important;margin:0!important;border-bottom:1px solid #e1e5e9!important;display:block!important;background:none!important;}
+    .ringside-pdf-document .hero-sub span+span:before{content:'·'!important;margin-right:11px!important;color:${PDF_COLORS.border}!important;}
+    .ringside-pdf-document .section-heading{padding:8px 0!important;margin:0!important;border-bottom:1px solid ${PDF_COLORS.border}!important;display:block!important;background:none!important;}
     .ringside-pdf-document .section-title{display:flex!important;align-items:flex-start!important;gap:10px!important;}
     .ringside-pdf-document .section-title>div{min-width:0!important;}
-    .ringside-pdf-document .section-number{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:12px!important;line-height:1!important;color:#365b7a!important;background:#e8eef3!important;border-radius:7px!important;margin-top:2px!important;}
-    .ringside-pdf-document .section-heading p,.ringside-pdf-document .test-title p{font-size:12px!important;line-height:1.65!important;margin:4px 0 0!important;color:#636b76!important;}
-    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border:0!important;background:#f7f9fc!important;color:#45546a!important;font-size:16px!important;font-weight:600!important;}
-    .ringside-pdf-document .quality-heading h3{margin:0!important;font-size:16px!important;font-weight:600!important;line-height:1.5!important;color:#45546a!important;}
-    .ringside-pdf-document .quality-heading p,.ringside-pdf-document .pdf-group-heading span{font-size:12px!important;color:#636b76!important;font-weight:400!important;}
+    .ringside-pdf-document .section-number{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 28px!important;width:28px!important;height:28px!important;font-size:12px!important;line-height:1!important;color:${PDF_COLORS.accent}!important;background:${PDF_COLORS.paper}!important;border-radius:7px!important;margin-top:2px!important;}
+    .ringside-pdf-document .section-heading p,.ringside-pdf-document .test-title p{font-size:12px!important;line-height:1.65!important;margin:4px 0 0!important;color:${PDF_COLORS.muted}!important;}
+    .ringside-pdf-document .quality-heading,.ringside-pdf-document .pdf-group-heading{display:block!important;padding:8px 10px!important;margin:0!important;border:0!important;background:${PDF_COLORS.paper}!important;color:${PDF_COLORS.ink}!important;font-size:16px!important;font-weight:600!important;}
+    .ringside-pdf-document .quality-heading h3{margin:0!important;font-size:16px!important;font-weight:600!important;line-height:1.5!important;color:${PDF_COLORS.ink}!important;}
+    .ringside-pdf-document .quality-heading p,.ringside-pdf-document .pdf-group-heading span{font-size:12px!important;color:${PDF_COLORS.muted}!important;font-weight:400!important;}
     .ringside-pdf-document .pdf-group-heading span{display:block!important;margin-top:4px!important;}
     .ringside-pdf-document .test-title{display:block!important;padding:4px 0!important;margin:0!important;}
     .ringside-pdf-document .test-title h4{font-size:15px!important;font-weight:600!important;margin:0!important;}
-    .ringside-pdf-document .card{background:#fff!important;border:1px solid #e1e5e9!important;box-shadow:none!important;border-radius:8px!important;overflow:visible!important;}
+    .ringside-pdf-document .card{background:#fff!important;border:1px solid ${PDF_COLORS.border}!important;box-shadow:none!important;border-radius:8px!important;overflow:visible!important;}
     .ringside-pdf-document .micro-cards{display:flex!important;gap:9px!important;margin:0!important;}
-    .ringside-pdf-document .micro-card{border:1px solid #e1e5e9!important;flex:1!important;min-width:0!important;min-height:102px!important;padding:11px!important;border-radius:8px!important;background:#f8f9fb!important;box-shadow:none!important;}
+    .ringside-pdf-document .micro-card{border:1px solid ${PDF_COLORS.border}!important;flex:1!important;min-width:0!important;min-height:102px!important;padding:11px!important;border-radius:8px!important;background:${PDF_COLORS.paper}!important;box-shadow:none!important;}
     .ringside-pdf-document .micro-head{display:block!important;margin:0 0 6px!important;}
     .ringside-pdf-document .micro-head h3{font-size:12px!important;}
     .ringside-pdf-document .micro-value{font-size:26px!important;line-height:1.35!important;}
     .ringside-pdf-document .micro-value.text{font-size:14px!important;}
-    .ringside-pdf-document .micro-card p,.ringside-pdf-document .micro-card a{font-size:11px!important;line-height:1.65!important;color:#636b76!important;}
+    .ringside-pdf-document .micro-card p,.ringside-pdf-document .micro-card a{font-size:11px!important;line-height:1.65!important;color:${PDF_COLORS.muted}!important;}
     .ringside-pdf-document .athlete-summary .micro-value{font-size:16px!important;line-height:1.4!important;overflow-wrap:anywhere!important;}
     .ringside-pdf-document .athlete-summary dl{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px 7px!important;margin:7px 0 0!important;}
-    .ringside-pdf-document .athlete-summary dt{font-size:9px!important;color:#636b76!important;line-height:1.4!important;}
+    .ringside-pdf-document .athlete-summary dt{font-size:9px!important;color:${PDF_COLORS.muted}!important;line-height:1.4!important;}
     .ringside-pdf-document .athlete-summary dd{font-size:11px!important;line-height:1.45!important;margin:0!important;overflow-wrap:anywhere!important;}
     .ringside-pdf-document .stat-side,.ringside-pdf-document .stat-load{min-height:32px;}
     .ringside-pdf-document .with-repeat-columns td{padding-block:6px!important;}
@@ -101,7 +102,7 @@
     .ringside-pdf-document .fvp-load-table,.ringside-pdf-document .fvp-raw-trials table{min-width:0!important;width:100%!important;font-size:10px!important;}
     .ringside-pdf-document .jump-detail table{table-layout:auto!important;}
     .ringside-pdf-document .capability-row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:stretch!important;}
-    .ringside-pdf-document .capability-card{width:100%!important;min-width:0!important;padding:16px!important;border:1px solid #e1e5e9!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important;}
+    .ringside-pdf-document .capability-card{width:100%!important;min-width:0!important;padding:16px!important;border:1px solid ${PDF_COLORS.border}!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important;}
     .ringside-pdf-document .capability-title{font-size:15px!important;margin:0 0 15px!important;line-height:1.5!important;}
     .ringside-pdf-document .capability-metric{margin:0!important;padding:11px 0!important;}
     .ringside-pdf-document .capability-metric:first-child{padding-top:0!important;}
@@ -158,34 +159,34 @@
     .ringside-pdf-document .fms-detail table th:nth-child(4){width:24%!important;}
     .ringside-pdf-document .fms-detail table th:nth-child(5){width:18%!important;}
     .ringside-pdf-document .detail-data .subheading{margin:10px 0 5px!important;}
-    .ringside-pdf-document .metric-meta{display:block!important;font-size:11px!important;color:#636b76!important;}
+    .ringside-pdf-document .metric-meta{display:block!important;font-size:11px!important;color:${PDF_COLORS.muted}!important;}
     .ringside-pdf-document .inline-asym{width:100%!important;min-width:0!important;max-width:100%!important;}
     .ringside-pdf-document .inline-asym img{width:100%!important;max-width:100%!important;height:auto!important;}
     .ringside-pdf-document .iso-charts>img+img{margin-top:10px!important;}
     .ringside-pdf-document table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:12px!important;text-align:left!important;margin:0!important;}
-    .ringside-pdf-document th,.ringside-pdf-document td{font-size:12px!important;line-height:1.55!important;padding:7px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:top!important;border-bottom:1px solid #e1e5e9!important;}
-    .ringside-pdf-document th{font-weight:600!important;color:#636b76!important;background:#f3f5f7!important;}
+    .ringside-pdf-document th,.ringside-pdf-document td{font-size:12px!important;line-height:1.55!important;padding:7px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:top!important;border-bottom:1px solid ${PDF_COLORS.border}!important;}
+    .ringside-pdf-document th{font-weight:600!important;color:${PDF_COLORS.muted}!important;background:#f3f5f7!important;}
     .ringside-pdf-document .table-wrap{overflow:visible!important;max-width:100%!important;}
     .ringside-pdf-document tbody tr,.ringside-pdf-document tbody td,.ringside-pdf-document .selected-result{background:#fff!important;}
     .ringside-pdf-document .stat-row{display:flex!important;gap:8px!important;flex-wrap:wrap!important;margin:0!important;}
-    .ringside-pdf-document .stat-chip{font-size:12px!important;padding:5px 8px!important;background:#f8f9fb!important;}
-    .ringside-pdf-document .note{font-size:11px!important;line-height:1.75!important;color:#636b76!important;margin:0!important;}
+    .ringside-pdf-document .stat-chip{font-size:12px!important;padding:5px 8px!important;background:${PDF_COLORS.paper}!important;}
+    .ringside-pdf-document .note{font-size:11px!important;line-height:1.75!important;color:${PDF_COLORS.muted}!important;margin:0!important;}
     .ringside-pdf-document .empty{font-size:12px!important;padding:16px!important;}
     .ringside-pdf-document .editor,.ringside-pdf-document .narrative-view,.ringside-pdf-document .narrative{font-size:13.333px!important;line-height:1.85!important;border:0!important;padding:0!important;min-height:0!important;background:#fff!important;}
     .ringside-pdf-document ul,.ringside-pdf-document ol{padding-left:22px!important;margin:0!important;}
     .ringside-pdf-document li{margin:0!important;padding:0!important;line-height:1.8!important;}
     .ringside-pdf-page{width:210mm!important;height:297mm!important;padding:13mm 12mm!important;margin:0!important;position:relative!important;overflow:hidden!important;background:#fff!important;}
-    .ringside-pdf-page-head{height:9mm!important;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;font-size:11px!important;color:#636b76!important;line-height:1.5!important;border-bottom:1px solid #e1e5e9!important;padding-bottom:5px!important;}
+    .ringside-pdf-page-head{height:9mm!important;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;font-size:11px!important;color:${PDF_COLORS.muted}!important;line-height:1.5!important;border-bottom:1px solid ${PDF_COLORS.border}!important;padding-bottom:5px!important;}
     .ringside-pdf-page-head>span:last-child{max-width:100mm!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
     .ringside-pdf-content{height:254mm!important;padding-top:8px!important;overflow:hidden!important;display:flow-root!important;}
-    .ringside-pdf-page-foot{position:absolute!important;left:12mm!important;right:12mm!important;bottom:10mm!important;display:flex!important;justify-content:space-between!important;font-size:10px!important;color:#636b76!important;border-top:1px solid #e1e5e9!important;padding-top:5px!important;line-height:1.5!important;}
+    .ringside-pdf-page-foot{position:absolute!important;left:12mm!important;right:12mm!important;bottom:10mm!important;display:flex!important;justify-content:space-between!important;font-size:10px!important;color:${PDF_COLORS.muted}!important;border-top:1px solid ${PDF_COLORS.border}!important;padding-top:5px!important;line-height:1.5!important;}
     .ringside-pdf-content>.ringside-pdf-block{margin:0 0 12px!important;max-width:100%!important;}
     .ringside-pdf-test-group{display:flow-root!important;max-width:100%!important;}
     .ringside-pdf-test-group>.ringside-pdf-block{margin:0 0 10px!important;max-width:100%!important;}
     .ringside-pdf-test-group>.ringside-pdf-block:last-child{margin-bottom:0!important;}
     .ringside-pdf-content>table.ringside-pdf-block{margin-bottom:12px!important;}
     .ringside-pdf-document a{color:inherit!important;text-decoration:none!important;}
-    .ringside-pdf-document [data-pdf-continuation]{border-top:1px dashed #cbd4de!important;}
+    .ringside-pdf-document [data-pdf-continuation]{border-top:1px dashed ${PDF_COLORS.border}!important;}
     .ringside-pdf-document .longitudinal-pair{display:block!important;}
     .ringside-pdf-document .longitudinal-figures{width:100%!important;max-width:none!important;}
     .ringside-pdf-document .longitudinal-results{table-layout:fixed!important;width:100%!important;}
@@ -205,6 +206,7 @@
   function element(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
+    if (/\bringside-pdf-(?:stage|document)\b/.test(className || "")) root.RingsideReportAppearance?.apply(node);
     if (text != null) node.textContent = text;
     return node;
   }
@@ -222,6 +224,7 @@
     }
     clone.className = "ringside-pdf-document ringside-pdf-source";
     clone.removeAttribute("style");
+    root.RingsideReportAppearance?.apply(clone);
     clone.removeAttribute("hidden");
     // The live application listens for toggles inside #reportView. Its id
     // must never reach the document on the export clone, or opening cloned

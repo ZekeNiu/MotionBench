@@ -112,7 +112,8 @@
           <button id="aiSettingsButton" class="btn small" onclick="App.openSettings('ai')" hidden>检查 AI 设置</button>
         </div>
       </div>
-      <main id="reportView" class="wrap report-view">
+      <main id="reportView" class="wrap report-view" data-report-appearance="ink-teal-history-v1">
+        <div id="horizontalReportControls" class="no-print" hidden></div>
         <div class="hero">
           <div>
             <h1 id="reportTitle">运动表现与损伤风险筛查报告</h1>
@@ -124,7 +125,6 @@
             ><span id="pdfProgress" role="status" hidden></span>
           </div>
         </div>
-        <div id="horizontalReportControls" class="no-print" hidden></div>
         <section id="summary">
           <div class="section-heading">
             <div class="section-title">

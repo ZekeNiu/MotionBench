@@ -1,4 +1,24 @@
 /* Report content follows the selected test snapshot. */
+/* Appearance is local to report/print containers, including detached PDF pages.
+   Evaluation and pain colors deliberately retain the application status tokens. */
+[data-report-appearance="ink-teal-history-v1"] {
+  --ink:var(--report-appearance-ink);
+  --muted:var(--report-appearance-muted);
+  --blue:var(--report-appearance-accent);
+  --blue-hover:var(--report-appearance-accent);
+  --blue-soft:var(--report-appearance-paper);
+  --line:var(--report-appearance-border);
+  --bg:var(--report-appearance-paper);
+  --surface:var(--report-appearance-surface);
+  --surface-soft:var(--report-appearance-paper);
+  --soft:var(--report-appearance-paper);
+  color:var(--ink);
+}
+#reportView[data-report-appearance="ink-teal-history-v1"] { background:var(--bg); }
+[data-report-appearance="ink-teal-history-v1"] .quality-heading { background:var(--surface-soft); }
+[data-report-appearance="ink-teal-history-v1"] .quality-heading h3 { color:var(--ink); }
+[data-report-appearance="ink-teal-history-v1"] :is(.chart-wrap,.radar,.body-art) { background:var(--surface); }
+[data-report-appearance="ink-teal-history-v1"] :is(.hero,.section-heading) { border-color:var(--line); }
 .capability-plot-region { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); margin:24px 0; overflow:hidden; }
 .capability-plot-region > .quality-group { border-top:0; }
 .ringside-pdf-source .capability-plot-region { border:0!important; margin:0!important; box-shadow:none!important; overflow:visible!important; }

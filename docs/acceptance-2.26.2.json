@@ -1,0 +1,155 @@
+{
+  "pass": true,
+  "version": "2.26.2",
+  "scope": [
+    "Approved ink-teal report appearance, stable date and athlete colors, and comparison layout",
+    "Final HTML calculation, Chrome and Edge selection, storage and dated-copy workflows",
+    "Rendered PDF and native packaged report export, reopen and desktop checks"
+  ],
+  "artifact": {
+    "file": "MotionBench.html",
+    "sha256": "0181a3b3d408ee4246d32b172af688c187508ccb207c6c39d4ad375060429313",
+    "bytes": 5231521
+  },
+  "unitSuites": 80,
+  "unitChecks": 1211,
+  "evidence": [
+    {
+      "file": "output/release/2.26.2-local/acceptance/unit-final/unit-results.json",
+      "sha256": "d072d591a947f030e6245157c94d930bb51dbbc5757a1be90b1c9e24f61c5901",
+      "checks": 80
+    },
+    {
+      "file": "output/release/2.26.2-local/acceptance/desktop-unit/results.json",
+      "sha256": "4e834dcb2450b8da40709516e12ae61be166d2f1f7933d9b84cf0efcc5a0f68b",
+      "checks": 5
+    },
+    {
+      "file": "output/playwright/horizontal-appearance/chrome/results.json",
+      "sha256": "26f6241327eca42d267f390fb72d7b4f14c9c83bed778110d40e2398054830c8",
+      "checks": 7
+    },
+    {
+      "file": "output/playwright/report-appearance/chrome/results.json",
+      "sha256": "da5d13ac2342e470161f197b9cc4ea8f2a3d4a58bb2dbfe4f0446dc2cb7f8a44",
+      "checks": 6
+    },
+    {
+      "file": "output/playwright/personal-appearance/chrome/results.json",
+      "sha256": "f98829a71db7ed795c3e53236ba89ed3af9b8b1baa6f9d38e054c98a277ae958",
+      "checks": 36,
+      "scope": "Native component SVG geometry and scoped export containers; module hashes bound to rebuilt HTML"
+    },
+    {
+      "file": "output/playwright/horizontal-appearance/msedge/results.json",
+      "sha256": "ce41bad44ba2233829b261ec7e8ca8fbffbb1f711066e75023add1badb769183",
+      "checks": 7
+    },
+    {
+      "file": "output/playwright/report-appearance/msedge/results.json",
+      "sha256": "fa53d562b6442edde38dda441602fbed402a2a9bb6f88d97273143541e19511f",
+      "checks": 6
+    },
+    {
+      "file": "output/playwright/personal-appearance/msedge/results.json",
+      "sha256": "d9db761d7980f4885a692697811079ae78bfbe0a04e0ceab64edc2ccaef15ff1",
+      "checks": 36,
+      "scope": "Native component SVG geometry and scoped export containers; module hashes bound to rebuilt HTML"
+    },
+    {
+      "file": "output/playwright/horizontal-refinement/chrome/result.json",
+      "sha256": "189c166e6d6f4dc0a90120c9ba72a08d6b0752a0f40bf8675d0eae7a324fba5a",
+      "checks": 16
+    },
+    {
+      "file": "output/playwright/horizontal-refinement-copy/chrome/result.json",
+      "sha256": "75bd6f524fa186e6cb65f9556537d848b6a8efb154fd629b4d1b1fcef3362525",
+      "checks": 8
+    },
+    {
+      "file": "output/playwright/horizontal-classification-ui/result-chrome.json",
+      "sha256": "7dce5ab34ceb13651f0de0ea5f988b48d7aa9bd2c94d226ed73518012c79c48f",
+      "checks": 10
+    },
+    {
+      "file": "output/playwright/horizontal-refinement/msedge/result.json",
+      "sha256": "af5edaead71b6470e9e10dd3bd9792ca6fafa33924ea61ddaf2de194fe4a9927",
+      "checks": 16
+    },
+    {
+      "file": "output/playwright/horizontal-refinement-copy/msedge/result.json",
+      "sha256": "a7d2a269cdc19b8534565545f5c4bc9641bebda9a33a6d51461c4e55b64da9c6",
+      "checks": 8
+    },
+    {
+      "file": "output/playwright/horizontal-classification-ui/result-msedge.json",
+      "sha256": "9d8926fbfdfa6fb18bd06a145409867b742e6d14b24f3eeae36f326e86a04ddd",
+      "checks": 10
+    },
+    {
+      "file": "output/playwright/horizontal-storage/result-chrome.json",
+      "sha256": "78ae62c4fe3ee08798b3f4ec7e7cf32d5f4e65ee9307f1ef21e368c1c2f0ffdf",
+      "checks": 19
+    },
+    {
+      "file": "output/playwright/horizontal-storage/result-msedge.json",
+      "sha256": "276feb7475579886c08687575765644f8a3227903065b5c8a6d890a9602ce55f",
+      "checks": 19
+    },
+    {
+      "file": "output/playwright/report-selection-edge-cases/result-chrome.json",
+      "sha256": "99e1f10641508812c7a7bf379bec11dc8cd68adec817375acbf44bd26de750c4",
+      "checks": 9
+    },
+    {
+      "file": "output/playwright/report-selection-edge-cases/result-msedge.json",
+      "sha256": "ff31c4b67feace836b894232d5eb4158d0be9db8e88b38179983ca5615f72c62",
+      "checks": 9
+    },
+    {
+      "file": "output/playwright/horizontal-scale/result-chrome.json",
+      "sha256": "1acc19c2f7c31bd1a1831c8bd092179d4f60c2c2c244e4fc256e1d8e107e532a",
+      "checks": 10
+    },
+    {
+      "file": "output/release/2.26.2-local/native-failure-tests/results.json",
+      "sha256": "5db6f10dc5e01b917e158b72b6aa18293996391c62803f9c9b2ffb1db430baea",
+      "checks": 2
+    },
+    {
+      "file": "output/horizontal-refinement/native-2.26.2/results.json",
+      "sha256": "848fd3d8645c274928c4da590c6a56d4708450736c6dce6d77a23f69b4f0989c",
+      "checks": 11
+    },
+    {
+      "file": "output/release/2.26.2-local/native-smoke/results.json",
+      "sha256": "d4e6c6c6c1001fa59eca3c14e99b92673cd7e193108cf4c2c4531b03e0bed3e0",
+      "checks": 16
+    },
+    {
+      "file": "output/playwright/horizontal-refinement/multiperson/results.json",
+      "sha256": "b7e88713e17f9756b2af54f82ac3e52087b0baff3c8737a76ea047b890b4ea15",
+      "checks": 7
+    },
+    {
+      "file": "output/playwright/horizontal-refinement/presentation/results.json",
+      "sha256": "b321d4a8dc10989b752db2ea6b1b594400cf0471f2066053055354a924387919",
+      "checks": 4
+    },
+    {
+      "file": "output/release/2.26.2-local/acceptance/visual-review.json",
+      "sha256": "50283045689aea568a3649b6a1a7f7193a9cd8ae4c421fb3c717293b7c59cc53"
+    }
+  ],
+  "desktopVersion": "2.26.2-desktop.1",
+  "package": {
+    "archiveSha256": "895cdf818b452b43539a415940add94aca33f620b26cbf98f13aeb4271dd6a5b",
+    "assets": 271,
+    "installerSha256": "e9de455ac0a0048cad3f3a97f89fa36ebfcf9da27848c224bfe2db60f113afe0",
+    "portableSha256": "293c62cd10afa9f95d3efa1a6706216926c71feee26d342641c8cc6d1ab1d198"
+  },
+  "boundaries": [
+    "Synthetic desktop profiles and isolated dated-data copies; real installation verification is retained locally.",
+    "No external AI-provider or physical-printer acceptance is claimed."
+  ]
+}

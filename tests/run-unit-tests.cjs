@@ -18,6 +18,9 @@ const summary = { sourceHash: digest(path.join(root, 'MotionBench.html')), runne
   modules: Object.fromEntries(moduleFiles.map(name => [name, digest(path.join(root, 'src', name))])), suites: [] };
 for (const name of [
   "native-runner-limits-tests.cjs",
+  "report-appearance-model-tests.cjs",
+  "personal-report-appearance-tests.cjs",
+  "horizontal-appearance-model-tests.cjs",
   "report-selection-model-tests.cjs",
   "horizontal-representative-model-tests.cjs",
   "horizontal-difference-display-tests.cjs",

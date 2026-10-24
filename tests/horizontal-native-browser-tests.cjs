@@ -85,11 +85,11 @@ async function main(){
       result.benchmarks=data;await invariant();const file=path.join(OUT,"desktop-report.png");await page.screenshot({path:file,fullPage:true});artifact(file);
     });
     await check("display choices preserve frozen samples and save independently from original records",async()=>{
-      const before=await page.evaluate(projection);await page.locator(".horizontal-controls details summary").click();await page.locator("[data-horizontal-person]").nth(1).uncheck();
+      const before=await page.evaluate(projection);const chart=page.locator('[data-horizontal-chart="jumps"]');await chart.locator("details > summary").click();await chart.locator("[data-horizontal-chart-person]").nth(1).uncheck();
       await page.locator('[data-horizontal-view="activeReferenceId"]').selectOption(before.references[1].id);assert.equal(await page.evaluate(()=>App.saveNow()),true);
-      assert.deepEqual(await page.evaluate(projection),before);assert.equal(await page.evaluate(()=>App.getHorizontalDocument().views.hiddenParticipantIds.length),1);
-      if(!await page.locator("[data-horizontal-person]").nth(1).isVisible())await page.locator(".horizontal-controls details summary").click();
-      await page.locator("[data-horizontal-person]").nth(1).check();await page.locator('[data-horizontal-view="pdfReferences"]').selectOption("all");assert.equal(await page.evaluate(()=>App.saveNow()),true);await invariant();
+      assert.deepEqual(await page.evaluate(projection),before);assert.equal(await page.evaluate(()=>App.getHorizontalDocument().views.charts.jumps.recordIds.length),1);
+      if(!await chart.locator("[data-horizontal-chart-person]").nth(1).isVisible())await chart.locator("details > summary").click();
+      await chart.locator("[data-horizontal-chart-person]").nth(1).check();await page.locator('[data-horizontal-view="pdfReferences"]').selectOption("all");assert.equal(await page.evaluate(()=>App.saveNow()),true);await invariant();
     });
     await check("independent horizontal narrative persists without replacing any personal narrative",async()=>{
       await page.evaluate(()=>App.openEntry("narrative"));await page.locator("#interpEditor").fill("桌面横向独立正文：最近测试与阶段个人纪录分别比较，三个合成人员各贡献一次。");

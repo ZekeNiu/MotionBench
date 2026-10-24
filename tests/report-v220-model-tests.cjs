@@ -42,10 +42,10 @@ test("each independent parameter fold remains record-controlled in both web and 
   const { r, p } = fixture(); r.views.capabilityExpanded.strength = true;
   for (const print of [false, true]) { const html = R.renderCapabilityAnalysis(R.build(E.resolve(r, p)), { print }); assert.match(html, /data-capability-parameters="strength" open/); assert.doesNotMatch(html, /data-capability-parameters="reactive" open/); }
 });
-test("source and PDF headings keep the agreed common color and normal sixteen-pixel type", () => {
+test("source and PDF headings keep the common theme roles and normal sixteen-pixel type", () => {
   const css = fs.readFileSync(path.join(root, "src/ringside-report-refinement.css"), "utf8"), pdf = fs.readFileSync(path.join(root, "src/ringside-pdf.js"), "utf8");
   assert.match(css, /\.quality-heading \{[^}]*background:#f7f9fc/); assert.match(css, /\.quality-heading h3 \{[^}]*font-size:16px[^}]*color:#45546a/);
-  assert.match(pdf, /\.quality-heading h3\{[^}]*font-size:16px!important[^}]*color:#45546a!important/);
+  assert.match(pdf, /\.quality-heading h3\{[^}]*font-size:16px!important[^}]*color:\$\{PDF_COLORS\.ink\}!important/);
   assert.doesNotMatch(css, /ability-score-details|abilityScoreDetails/);
 });
 test("report scoring and heading rendering do not change the raw data stable IDs or manual narrative", () => {

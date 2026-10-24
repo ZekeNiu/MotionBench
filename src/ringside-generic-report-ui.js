@@ -98,7 +98,7 @@
       });
       panels = [...units.values()].map(panel => state.kind === "trials" ? {title:panel.title,unit:panel.unit,series:panel.series} : {title:panel.title,unit:panel.unit,items:panel.items});
     }
-    return {kind:state.kind,available:true,reason:"",panels};
+    return {kind:state.kind,available:true,reason:"",categoryIds:state.metrics.map(metric=>metric.id),panels};
   }
   function updateMetrics(metrics) {
     if (!state) return;
