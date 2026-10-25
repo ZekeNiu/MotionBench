@@ -1,0 +1,47 @@
+{
+  "pass": true,
+  "version": "2.26.4",
+  "desktopVersion": "2.26.4-desktop.1",
+  "scope": [
+    "按用户要求仅执行本次尺寸恢复的必要专项验收。",
+    "恢复原有125×39px绘图区，按报告共同刻度留白扩展外框，保留底色和透明度。",
+    "Chrome中2及17日期、1440及390像素、屏幕及打印布局、键盘及克隆上下文通过；不声称本轮实际PDF或全量验收通过。",
+    "桌面包核验通过；本机备份、安装、资料保护和服务器核验另记最终交付回执。"
+  ],
+  "unitSuites": 1,
+  "unitChecks": 26,
+  "browserChecks": 12,
+  "fullAcceptanceRun": false,
+  "actualPdfExportRun": false,
+  "artifact": {
+    "file": "MotionBench.html",
+    "bytes": 5234345,
+    "sha256": "f128f20d5e34623707bdc227e89d3082b7a7830cf5f18a90c0490549a8a596dc"
+  },
+  "package": {
+    "archiveSha256": "0f5019a7d90de430842cba086c01998e032733cf04b30e3629fb18c8cf57caff",
+    "assets": 271,
+    "installerSha256": "11c490cb0b678965ab5c3071b5e1507645060517b00f8d276c7ad59e413bea7d",
+    "portableSha256": "2474c9f21cc520b4e17459cc1bbe4c797d993321682f0dd24d37928912d208b2"
+  },
+  "evidence": [
+    {
+      "file": "output/hotfix/mini-original-size-20261025/targeted/comparison-trend-final.log",
+      "sha256": "3edfc2331218fb7be811b225793e1e401d85d4b407157076be9048e1b6fe8ca9",
+      "checks": 26
+    },
+    {
+      "file": "output/hotfix/mini-original-size-20261025/browser-chrome-attempt1/results.json",
+      "sha256": "292001ceb3c5ad74aa35f42b0361cf088829ececdb017c789ca9c1ef8a6a7ba4",
+      "checks": 12
+    },
+    {
+      "file": "output/hotfix/mini-original-size-20261025/package-check.json",
+      "sha256": "6d404a49e617da381dabbd0eb39d8cee2fc730411e7d05aac65509bc08c00850"
+    },
+    {
+      "file": "output/hotfix/mini-original-size-20261025/packaging-evidence.json",
+      "sha256": "2a4c25a71c11f5c1e6f8f497c26cf21a67b1de195eaf3f827301f0a3d33d53e2"
+    }
+  ]
+}

@@ -118,39 +118,39 @@ test('each mini chart has a readable unit and numeric vertical axis including or
  const f=createFixture(c,3),m=L.build(f.records,f);for(const id of['cmj_height','long_pct','long_time','long_unknown','fms:0']){const row=metric(m,id),html=D.draw(projection(row,m.periods)),axis=html.match(/<g data-trend-axis="y"[\s\S]*?<\/g>/)[0];assert.match(axis,new RegExp('纵坐标 '+row.unit));assert.ok((axis.match(/<text /g)||[]).length>=4);}
 });
 test('shared mini geometry remains canonical across requested widths and selected point counts',()=>{
- assert.equal(D.trendSize.width,160);assert.equal(D.trendSize.height,72);assert.equal(D.trendSize.minWidth,160);assert.equal(D.trendSize.columnWidth,172);assert.equal(Object.isFrozen(D.trendSize),true);
+ assert.equal(D.trendSize.width,160);assert.equal(D.trendSize.height,72);assert.equal(D.trendSize.minWidth,160);assert.equal(D.trendSize.plotWidth,125);assert.equal(D.trendSize.columnWidth,172);assert.equal(Object.isFrozen(D.trendSize),true);
  const f=createFixture(c,3),m=L.build(f.records,f),base=projection(metric(m,'fms:0'),m.periods);
  for(const count of[2,3,8,24])for(const requested of[120,160,420]){
   const spec={...base,points:Array.from({length:count},(_,i)=>({...base.points[i%3],id:'synthetic-point-'+i,change:i?{available:true,delta:0,kind:'ordinal',improvement:null}:null}))},html=D.draw(spec,requested),width=160;
   assert.match(html,new RegExp('viewBox="0 0 '+width+' 72" width="'+width+'" height="72"'));assert.equal((html.match(/data-trend-point=/g)||[]).length,count);
   const axis=html.match(/<g data-trend-axis="y"[\s\S]*?<\/g>/)[0],labels=[...axis.matchAll(/<text [^>]*font-size="(\d+)"[^>]*>([^<]*)<\/text>/g)];assert.deepEqual(labels.map(m=>m[2]),['分','0','1','2','3']);assert.ok(labels.every(m=>m[1]==='9'));
  }
- const html=V.table([metric(m,'fms:0')],m.periods,{wrapped:false});assert.match(html,/col style="width:172px"/);
+ const html=V.table([metric(m,'fms:0')],m.periods,{wrapped:false});assert.match(html,/col style="width:var\(--result-trend-column-width,172px\)"/);assert.match(html,/min-width:calc\(500px \+ var\(--result-trend-column-width,172px\)\)/);
 });
 
 const miniSpec=(values,extra={})=>({name:'合成尺寸测量',unit:'N',digits:4,points:values.map((value,i)=>({id:'period-'+i,label:'2026-0'+(i+1)+'-20',value,unit:'N',change:i?{available:true,delta:value-values[i-1],kind:'absolute',improvement:null}:null})),...extra});
 function miniFrame(spec,{saved={},html=''}={}){
- let markup=html;return{dataset:{resultTrend:JSON.stringify(spec),...saved},writes:0,getBoundingClientRect(){throw Error('Canonical mini layout must not measure its container');},querySelector(){const m=markup.match(/data-trend-axis-left="([^"]+)"/);return m?{getAttribute:()=>m[1]}:null;},get innerHTML(){return markup;},set innerHTML(value){markup=value;this.writes++;}};
+ let markup=html;return{dataset:{resultTrend:JSON.stringify(spec),...saved},style:{values:{},setProperty(name,value){this.values[name]=value;}},writes:0,getBoundingClientRect(){throw Error('Canonical mini layout must not measure its container');},querySelector(){const m=markup.match(/data-trend-axis-left="([^"]+)"/);return m?{getAttribute:()=>m[1]}:null;},get innerHTML(){return markup;},set innerHTML(value){markup=value;this.writes++;}};
 }
 test('pure geometry preserves scales units and references while accepting a shared readable axis gutter',()=>{
  const spec=miniSpec([-.826,-.82585,-.8257],{unit:'(N/kg)/(m/s)',references:[null,{kind:'target',target:-.8259},null]}),before=JSON.stringify(spec),g=D.geometry(spec),shared=D.geometry(spec,{axisLeft:80});
- assert.equal(g.width,160);assert.equal(g.height,72);assert.equal(g.requiredLeft,66);assert.equal(g.left,66);assert.equal(shared.left,80);
- for(const key of['low','high','ticks','tickLabels','unit','top','bottom','right'])assert.deepEqual(copy(shared[key]),copy(g[key]));
+ assert.equal(g.width,201);assert.equal(g.height,72);assert.equal(g.requiredLeft,66);assert.equal(g.left,66);assert.equal(shared.left,80);assert.equal(shared.width,215);assert.equal(g.right-g.left,125);assert.equal(shared.right-shared.left,125);assert.equal(g.bottom-g.top,39);
+ for(const key of['low','high','ticks','tickLabels','unit','top','bottom'])assert.deepEqual(copy(shared[key]),copy(g[key]));
  assert.equal(D.geometry(spec,{axisLeft:1}).left,g.requiredLeft);assert.equal(D.geometry(spec,{axisLeft:Infinity}).left,g.requiredLeft);
- const html=D.draw(spec,120,true,{axisLeft:80});assert.match(html,/viewBox="0 0 160 72"/);assert.match(html,/data-trend-axis-left="80"/);assert.match(html,/M80 57H150/);assert.equal((html.match(/data-trend-point=/g)||[]).length,3);assert.match(html,/data-trend-reference="target"/);assert.equal(JSON.stringify(spec),before);
+ const html=D.draw(spec,120,true,{axisLeft:80});assert.match(html,/viewBox="0 0 215 72"/);assert.match(html,/data-trend-axis-left="80"/);assert.match(html,/M80 57H205/);assert.equal((html.match(/data-trend-point=/g)||[]).length,3);assert.match(html,/data-trend-reference="target"/);assert.equal(JSON.stringify(spec),before);
  assert.equal(D.geometry(miniSpec([null,null])),null);assert.equal(D.draw(miniSpec([null,null]),120),'');
 });
 test('report layout merges required gutters without measuring frames or mutating projected specs',()=>{
  const narrow=miniSpec([1,3,2],{fms:true,unit:'分'}),wide=miniSpec([-.826,-.82585,-.8257]),a=miniFrame(narrow),b=miniFrame(wide),nodes=[a],container={querySelectorAll:()=>nodes},before=[a.dataset.resultTrend,b.dataset.resultTrend];
  D.layout(container);assert.equal(a.dataset.trendAxisLeft,'25');assert.equal(a.writes,1);
- nodes.push(b);D.layout(container);for(const node of nodes){assert.equal(node.dataset.trendAxisLeft,'66');assert.match(node.innerHTML,/data-trend-axis-left="66"/);assert.match(node.innerHTML,/M66 57H150/);assert.match(node.innerHTML,/viewBox="0 0 160 72"/);}
+ nodes.push(b);D.layout(container);for(const node of nodes){assert.equal(node.dataset.trendAxisLeft,'66');assert.match(node.innerHTML,/data-trend-axis-left="66"/);assert.match(node.innerHTML,/M66 57H191/);assert.match(node.innerHTML,/viewBox="0 0 201 72"/);assert.equal(node.style.values['--result-trend-width'],'201px');}
  assert.equal(a.writes,2);assert.equal(b.writes,1);D.layout(container);assert.equal(a.writes,2);assert.equal(b.writes,1);
- D.layout(container,{print:true});assert.equal(a.writes,3);assert.equal(b.writes,2);assert.equal(a.dataset.trendLayout,'160:66:true');assert.deepEqual(nodes.map(n=>n.dataset.resultTrend),before);
+ D.layout(container,{print:true});assert.equal(a.writes,3);assert.equal(b.writes,2);assert.equal(a.dataset.trendLayout,'201:66:true');assert.deepEqual(nodes.map(n=>n.dataset.resultTrend),before);
  const rendered=D.render(narrow);assert.match(rendered,/--result-trend-width:160px;--result-trend-height:72px/);assert.doesNotMatch(rendered,/--result-trend-min-width/);assert.match(rendered,/data-trend-axis-left="25"/);
 });
 test('a cloned page inherits the full report gutter while a fresh report starts from its own specs',()=>{
  const narrow=miniSpec([1,3,2],{fms:true}),wide=miniSpec([-.826,-.82585,-.8257]),a=miniFrame(narrow),b=miniFrame(wide);D.layout({querySelectorAll:()=>[a,b]});
- const clone=miniFrame(narrow,{saved:{...a.dataset},html:a.innerHTML});D.layout({querySelectorAll:()=>[clone]},{print:true});assert.equal(clone.dataset.trendAxisLeft,'66');assert.match(clone.innerHTML,/M66 57H150/);assert.equal(clone.dataset.trendLayout,'160:66:true');
+ const clone=miniFrame(narrow,{saved:{...a.dataset},html:a.innerHTML});D.layout({querySelectorAll:()=>[clone]},{print:true});assert.equal(clone.dataset.trendAxisLeft,'66');assert.match(clone.innerHTML,/M66 57H191/);assert.equal(clone.dataset.trendLayout,'201:66:true');
  const svgOnly=miniFrame(narrow,{html:a.innerHTML});D.layout({querySelectorAll:()=>[svgOnly]});assert.equal(svgOnly.dataset.trendAxisLeft,'66');
  const fresh=miniFrame(narrow);D.layout({querySelectorAll:()=>[fresh]});assert.equal(fresh.dataset.trendAxisLeft,'25');D.layout({querySelectorAll:()=>[fresh]},{axisLeft:80});assert.equal(fresh.dataset.trendAxisLeft,'80');
 });

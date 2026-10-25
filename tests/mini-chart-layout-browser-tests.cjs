@@ -3,7 +3,7 @@ const fs = require("node:fs"), path = require("node:path"), assert = require("no
 const { createHash } = require("node:crypto"), { pathToFileURL } = require("node:url");
 const { chromium } = require("./helpers/playwright.cjs"), { createFixture } = require("./helpers/longitudinal-fixture.cjs");
 const root = path.resolve(__dirname, ".."), source = path.join(root, "MotionBench.html");
-const channel = process.argv.includes("--edge") ? "msedge" : "chrome", skipPDF = process.argv.includes("--skip-pdf");
+const channel = process.argv.includes("--edge") ? "msedge" : "chrome", skipPDF = process.argv.includes("--skip-pdf"), quick = process.argv.includes("--quick");
 const index = process.argv.indexOf("--artifact-dir"), equals = process.argv.find(arg => arg.startsWith("--artifact-dir="));
 const out = path.resolve(root, equals ? equals.slice(15) : index >= 0 ? process.argv[index + 1] : `output/release/2.26.3-local/mini-layout/${channel}`);
 const relative = path.relative(path.join(root, "output"), out);
@@ -12,7 +12,7 @@ if (fs.existsSync(out) && fs.readdirSync(out).length) throw Error("Preserve the 
 fs.mkdirSync(out, { recursive: true });
 const sha = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex"), hashText = value => createHash("sha256").update(value).digest("hex");
 const modules = ["src/ringside-result-display.js", "src/ringside-longitudinal.css", "src/ringside-longitudinal-view.js", "src/ringside-pdf.js"];
-const receipt = { channel, synthetic: true, sourceHash: sha(source), runnerSha256: sha(__filename), moduleHashes: Object.fromEntries(modules.map(file => [file, sha(path.join(root, file))])), skipPDF, checks: [], matrix: [], screenshots: [], errors: [], pass: false };
+const receipt = { channel, synthetic: true, sourceHash: sha(source), runnerSha256: sha(__filename), moduleHashes: Object.fromEntries(modules.map(file => [file, sha(path.join(root, file))])), skipPDF, quick, checks: [], matrix: [], screenshots: [], errors: [], pass: false };
 function near(actual, expected, message) { assert.ok(Math.abs(actual - expected) <= .5, `${message}: ${actual} != ${expected}`); }
 function verify(evidence, count, expectedLeft) {
   assert.ok(evidence.rows.length > 0);
@@ -22,12 +22,15 @@ function verify(evidence, count, expectedLeft) {
   for (const row of evidence.rows) {
     assert.equal(row.inputUnchanged, true, row.id + " input JSON mutated");
     if (row.empty) { near(row.frame.height, 0, row.id + " empty frame height"); continue; }
-    for (const [kind, box] of [["frame", row.frame], ["svg", row.svg]]) { near(box.width, 160, row.id + " " + kind + " width"); near(box.height, 72, row.id + " " + kind + " height"); }
-    assert.deepEqual(row.viewBox, [0, 0, 160, 72]); assert.equal(row.left, row.svgLeft);
+    const restoredWidth = row.left + 125 + 10;
+    for (const [kind, box] of [["frame", row.frame], ["svg", row.svg]]) { near(box.width, restoredWidth, row.id + " " + kind + " width"); near(box.height, 72, row.id + " " + kind + " height"); }
+    assert.deepEqual(row.viewBox, [0, 0, restoredWidth, 72]); assert.equal(row.left, row.svgLeft);
+    near(row.expectedWidth, restoredWidth, row.id + " geometry width"); near(row.plotHeight, 39, row.id + " restored plot height");
+    if (row.cellInnerWidth !== null) assert.ok(row.cellInnerWidth + .75 >= row.frame.width, row.id + " chart overflows its result column");
     assert.equal(row.pointCount, count, row.id + " retains every date slot");
     assert.deepEqual(row.tickLabels, row.expectedTicks, row.id + " retains exact numeric ticks");
     assert.deepEqual(row.clippedText, [], row.id + " text clipping"); assert.deepEqual(row.textCollisions, [], row.id + " text collisions");
-    near(row.gridLeft, row.left, row.id + " plot left"); near(row.gridRight, 150, row.id + " plot right");
+    near(row.gridLeft, row.left, row.id + " plot left"); near(row.gridRight - row.gridLeft, 125, row.id + " restored plot width");
     assert.ok(row.bandOpacity.every(value => value === "0.075"), row.id + " reference band opacity");
   }
   assert.ok(plotted.some(row => row.bandOpacity.length), "evaluation bands must remain present");
@@ -61,8 +64,9 @@ function inspect(selector) {
     }).filter(item => item.width && item.height);
     const grids = [...svg.querySelectorAll('[data-trend-axis="y"] path')].map(node => node.getAttribute("d")).filter(d => /H/.test(d));
     const match = grids[0]?.match(/^M([\d.]+) [\d.]+H([\d.]+)$/);
-    const ticks = [...svg.querySelectorAll('[data-trend-axis="y"] text')].slice(1).map(node => node.textContent);
-    return { ...base, svg: box(svg), left: Number(host.dataset.trendAxisLeft), svgLeft: Number(svg.dataset.trendAxisLeft), gridLeft: Number(match?.[1]), gridRight: Number(match?.[2]), viewBox: svg.getAttribute("viewBox").split(/\s+/).map(Number), pointCount: svg.querySelectorAll("[data-trend-point]").length, tickLabels: ticks, expectedTicks: geometry.tickLabels, unitInkEvidence, clippedText: labels.filter(b => b.x < -.75 || b.y < -.75 || b.x + b.width > 160.75 || b.y + b.height > 72.75), textCollisions: labels.flatMap((label, i) => labels.slice(i + 1).filter(other => overlap(label, other)).map(other => ({ label, other }))), bandOpacity: [...svg.querySelectorAll("[data-trend-band]")].map(node => getComputedStyle(node).fillOpacity) };
+    const ticks = [...svg.querySelectorAll('[data-trend-axis="y"] text')].slice(1).map(node => node.textContent), cell = host.closest("td"), cellStyle = cell ? getComputedStyle(cell) : null;
+    const cellInnerWidth = cell ? cell.getBoundingClientRect().width - parseFloat(cellStyle.paddingLeft) - parseFloat(cellStyle.paddingRight) - parseFloat(cellStyle.borderLeftWidth) - parseFloat(cellStyle.borderRightWidth) : null;
+    return { ...base, svg: box(svg), left: Number(host.dataset.trendAxisLeft), svgLeft: Number(svg.dataset.trendAxisLeft), gridLeft: Number(match?.[1]), gridRight: Number(match?.[2]), expectedWidth: geometry.width, plotHeight: geometry.bottom - geometry.top, cellInnerWidth, viewBox: svg.getAttribute("viewBox").split(/\s+/).map(Number), pointCount: svg.querySelectorAll("[data-trend-point]").length, tickLabels: ticks, expectedTicks: geometry.tickLabels, unitInkEvidence, clippedText: labels.filter(b => b.x < -.75 || b.y < -.75 || b.x + b.width > geometry.width + .75 || b.y + b.height > 72.75), textCollisions: labels.flatMap((label, i) => labels.slice(i + 1).filter(other => overlap(label, other)).map(other => ({ label, other }))), bandOpacity: [...svg.querySelectorAll("[data-trend-band]")].map(node => getComputedStyle(node).fillOpacity) };
   });
   return { rows, documentOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1 };
 }
@@ -116,7 +120,7 @@ async function main() {
         await App.importPayload(lib, "replace-library"); await App.showReport(false); if (!await App.saveNow()) throw Error("Synthetic import did not save"); return f.records.map(r => r.recordId);
       }, createFixture.toString());
     });
-    for (const count of [2, 3, 8, 17]) {
+    for (const count of (quick ? [2, 17] : [2, 3, 8, 17])) {
       assert.equal(await page.evaluate(ids => App.selectRecords(ids), ids.slice(0, count)), true);
       await page.locator("#reportNarrativeButton").click(); await page.locator("#interpEditor").fill("迷你图合成人工正文：保留全部测试日期、测量值和评价。"); await page.locator("#workspaceBack").click(); assert.equal(await page.evaluate(() => App.saveNow()), true);
       const before = await invariant();
@@ -154,10 +158,10 @@ async function main() {
         if (!table) throw Error("Fixture needs a smaller-gutter module than the full report");
         const clone = table.cloneNode(true), host = document.createElement("div"); host.id = "miniSubtreeAudit"; host.className = "ringside-pdf-document"; host.style.cssText = "position:absolute;left:-20000px;top:0;width:703px"; host.append(clone); document.body.append(host); RingsideLongitudinalView.layout(host, { print: true }); return { full, natural: Math.max(...[...table.querySelectorAll('[data-result-trend]')].map(node => RingsideResultDisplay.geometry(JSON.parse(node.dataset.resultTrend))?.requiredLeft || 0)) };
       });
-      try { const view = await page.evaluate(inspect, "#miniSubtreeAudit"); for (const row of view.rows.filter(row => !row.empty)) { near(row.left, selection.full, "subtree inherited gutter"); near(row.svg.width, 160, "subtree width"); near(row.svg.height, 72, "subtree height"); } receipt.subtree = { ...selection, rows: view.rows }; }
+      try { const view = await page.evaluate(inspect, "#miniSubtreeAudit"); for (const row of view.rows.filter(row => !row.empty)) { near(row.left, selection.full, "subtree inherited gutter"); near(row.svg.width, selection.full + 125 + 10, "subtree width"); near(row.svg.height, 72, "subtree height"); near(row.gridRight-row.gridLeft, 125, "subtree restored plot width"); } receipt.subtree = { ...selection, rows: view.rows }; }
       finally { await page.evaluate(() => document.querySelector("#miniSubtreeAudit")?.remove()); }
     });
-    if (!skipPDF) await check("actual 17-date PDF final pages keep every mini at 160x72 with no missing rows or charts", async () => {
+    if (!skipPDF) await check("actual 17-date PDF final pages preserve restored mini plot sizes with no missing rows or charts", async () => {
       await page.setViewportSize({ width: 1440, height: 1000 }); await settle(); const before = await invariant();
       await page.evaluate(() => { window.__miniPDFPages = []; const original = window.html2canvas; window.html2canvas = async function(node, ...args) { if (node.classList?.contains("ringside-pdf-page")) window.__miniPDFPages.push([...node.querySelectorAll("[data-result-trend]")].map(host => { const image = host.querySelector("img"), b = host.getBoundingClientRect(), r = image?.getBoundingClientRect(); return { id: host.closest("[data-metric-id]")?.dataset.metricId, empty: !image, frame: { width: b.width, height: b.height }, image: r ? { width: r.width, height: r.height } : null, left: Number(host.dataset.trendAxisLeft) }; })); return original.call(this, node, ...args); }; });
       const awaited = page.waitForEvent("download", { timeout: 240000 }); awaited.catch(() => {}); let timer;
@@ -167,7 +171,7 @@ async function main() {
       assert.equal(d.status, "complete"); assert.equal(d.pageCount, actual.pages.length); assert.equal(d.chartCount, d.sourceChartCount); assert.equal(d.renderedRowCount, d.rowCount);
       for (const key of ["missingRows", "duplicateRows", "changedRows", "missingCharts", "duplicateCharts"]) assert.deepEqual(d[key], [], key);
       const images = actual.pages.flat().filter(row => !row.empty); assert.ok(images.length > 0); const expected = receipt.matrix.find(row => row.count === 17 && row.media === "screen").axisLeft;
-      for (const row of actual.pages.flat()) { if (row.empty) { near(row.frame.height, 0, "empty PDF mini height"); continue; } near(row.frame.width, 160, "PDF frame width"); near(row.frame.height, 72, "PDF frame height"); near(row.image.width, 160, "PDF image width"); near(row.image.height, 72, "PDF image height"); near(row.left, expected, "PDF inherited report gutter"); }
+      for (const row of actual.pages.flat()) { if (row.empty) { near(row.frame.height, 0, "empty PDF mini height"); continue; } const restoredWidth = expected + 125 + 10; near(row.frame.width, restoredWidth, "PDF frame width"); near(row.frame.height, 72, "PDF frame height"); near(row.image.width, restoredWidth, "PDF image width"); near(row.image.height, 72, "PDF image height"); near(row.left, expected, "PDF inherited report gutter"); }
       await unchanged(before, "PDF data and narrative"); receipt.pdf = { ...actual, file: path.relative(root, path.join(out, "seventeen-date-minis.pdf")).replaceAll("\\", "/"), sha256: sha(path.join(out, "seventeen-date-minis.pdf")) };
     });
     assert.deepEqual(receipt.errors, []); receipt.pass = true;
