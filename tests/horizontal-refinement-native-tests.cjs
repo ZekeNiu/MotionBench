@@ -4,12 +4,12 @@
 const fs=require("node:fs"),path=require("node:path"),os=require("node:os"),assert=require("node:assert/strict"),{createHash}=require("node:crypto"),{pathToFileURL}=require("node:url"),{execFileSync}=require("node:child_process");
 const {_electron,chromium}=require("./helpers/playwright.cjs"),{createFixture}=require("./helpers/longitudinal-fixture.cjs"),{desktopArtifactIdentity}=require("./helpers/desktop-artifact-identity.cjs");
 const {selectionUI}=require("./helpers/report-selection-ui.cjs"),{withDeadline,waitForNativeDownload,finishNativeRun,terminateOwnedTemporaryProcess}=require("./helpers/native-runner-limits.cjs");
-const ROOT=path.resolve(__dirname,".."),SOURCE=path.join(ROOT,"MotionBench.html"),OUT=path.join(ROOT,"output/horizontal-refinement/native-2.26.2"),TITLE="2.26.2 桌面横向验收",GROUP="桌面期间均值组",OTHER="桌面最近可比组";
+const ROOT=path.resolve(__dirname,".."),SOURCE=path.join(ROOT,"MotionBench.html"),OUT=path.join(ROOT,"output/horizontal-refinement/native-2.26.3"),TITLE="2.26.3 桌面横向验收",GROUP="桌面期间均值组",OTHER="桌面最近可比组";
 const hash=file=>createHash("sha256").update(fs.readFileSync(file)).digest("hex"),objectHash=value=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const projection=()=>{const m=App.getHorizontal(),d=App.getHorizontalDocument(),v=d.views;return {fingerprint:m.fingerprint,participants:m.participants.map(p=>[p.athleteId,p.recordId]),references:m.references.map(r=>({id:r.id,rows:r.projects.flatMap(p=>p.metrics).map(row=>({id:row.id,cells:row.cells.map(c=>c?.value??null),benchmark:row.benchmark}))})),narrative:d.narrative,previousNarrative:d.previousNarrative||null,views:{focus:v.focus,baseline:v.baseline,activeReferenceId:v.activeReferenceId,detailOpen:v.detailOpen,charts:v.charts,hiddenParticipantIds:v.hiddenParticipantIds}};};
 async function main(){
   fs.mkdirSync(OUT,{recursive:true});const receiptPath=path.join(OUT,"results.json");if(fs.existsSync(receiptPath))fs.copyFileSync(receiptPath,path.join(OUT,"results-before-"+Date.now()+".json"));
-  const temporary=fs.mkdtempSync(path.join(os.tmpdir(),"motionbench-refinement-native-")),downloads=path.join(temporary,"downloads"),executable=path.resolve(process.env.MOTIONBENCH_EXECUTABLE||path.join(ROOT,"output/release/2.26.2-local/desktop/win-unpacked/MotionBench.exe"));
+  const temporary=fs.mkdtempSync(path.join(os.tmpdir(),"motionbench-refinement-native-")),downloads=path.join(temporary,"downloads"),executable=path.resolve(process.env.MOTIONBENCH_EXECUTABLE||path.join(ROOT,"output/release/2.26.3-local/desktop/win-unpacked/MotionBench.exe"));
   process.env.MOTIONBENCH_EXECUTABLE=executable;
   const result={synthetic:true,packaged:true,userData:temporary,sourceHash:hash(SOURCE),runnerSha256:hash(__filename),checks:[],errors:[],artifacts:[],pass:false,startedAt:new Date().toISOString()};
   result.supportingHelpers=Object.fromEntries(["native-runner-limits.cjs","report-selection-ui.cjs"].map(name=>[name,hash(path.join(__dirname,"helpers",name))]));
@@ -26,7 +26,7 @@ async function main(){
     assert.equal(path.resolve(await electron.evaluate(({app})=>app.getPath("userData"))),path.resolve(temporary));
     await electron.evaluate(({BrowserWindow})=>{const w=BrowserWindow.getAllWindows()[0];w.setMinimumSize(320,320);w.setContentSize(1440,1000);globalThis.__refinementDownloads=[];w.webContents.session.on("will-download",(_event,item)=>item.once("done",(_done,state)=>globalThis.__refinementDownloads.push({state,path:item.getSavePath(),name:item.getFilename(),bytes:item.getReceivedBytes()})));});
     const identity=desktopArtifactIdentity(ROOT,executable,__filename);assert.equal(identity.runtimeMatchesSourceHtml,true);assert.match(identity.archiveSha256,/^[a-f0-9]{64}$/);if(result.identity)assert.deepEqual(identity,result.identity);else result.identity=identity;
-    result.versions=await page.evaluate(()=>({web:RingsideBuild.version,desktop:MotionBenchDesktop.version}));assert.equal(result.versions.web,"2.26.2");assert.equal(result.versions.desktop,"2.26.2-desktop.1");
+    result.versions=await page.evaluate(()=>({web:RingsideBuild.version,desktop:MotionBenchDesktop.version}));assert.equal(result.versions.web,"2.26.3");assert.equal(result.versions.desktop,"2.26.3-desktop.1");
   };
   const close=async()=>{assert.equal((await page.evaluate(()=>App.prepareDesktopClose())).ok,true);const closed=electron.waitForEvent("close",{timeout:60000});await electron.evaluate(({BrowserWindow})=>setImmediate(()=>BrowserWindow.getAllWindows()[0].close()));await closed;electron=null;};
   const records=()=>page.evaluate(async list=>Promise.all(list.flat().map(id=>App.getRepository().loadRecord(id))),ids.records);

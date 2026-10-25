@@ -43,7 +43,7 @@ jobs:
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/tests/horizontal-2.26.2/final
+          node tests/run-unit-tests.cjs --artifact-dir output/tests/horizontal-2.26.3/final
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           npm run test:desktop-unit
       - name: Verify shared classification and frozen report storage
@@ -80,6 +80,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/report-appearance-browser-tests.cjs --edge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify shared mini chart geometry in Chrome and Edge
+        run: |
+          node tests/mini-chart-layout-browser-tests.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/mini-chart-layout-browser-tests.cjs --edge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify report presentation and complete multiperson PDFs
         run: |
           node tests/horizontal-presentation-browser-tests.cjs
@@ -96,7 +102,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/horizontal-refinement-native-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/desktop-smoke/horizontal-2.26.2'
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/desktop-smoke/horizontal-2.26.3'
           node tests/desktop-smoke.cjs
       - name: Preserve synthetic verification artifacts
         if: always()
@@ -104,7 +110,7 @@ jobs:
         with:
           name: MotionBench-Horizontal-Windows-${{ github.run_number }}
           path: |
-            output/tests/horizontal-2.26.2/
+            output/tests/horizontal-2.26.3/
             output/playwright/horizontal-refinement/chrome/
             output/playwright/horizontal-refinement/msedge/
             output/playwright/horizontal-refinement/presentation/
@@ -116,9 +122,10 @@ jobs:
             output/playwright/personal-appearance/
             output/playwright/horizontal-appearance/
             output/playwright/report-appearance/
-            output/horizontal-refinement/native-2.26.2/
-            output/release/2.26.2-local/native-failure-tests/
+            output/horizontal-refinement/native-2.26.3/
+            output/release/2.26.3-local/native-failure-tests/
+            output/release/2.26.3-local/mini-layout/
             output/desktop-package/
-            output/desktop-smoke/horizontal-2.26.2/
+            output/desktop-smoke/horizontal-2.26.3/
           if-no-files-found: warn
           retention-days: 14

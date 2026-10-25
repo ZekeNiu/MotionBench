@@ -442,6 +442,8 @@
   }
   function layout(container,{print=false}={}) {
     root.RingsideReportAppearance?.apply(container);
+    // Date-table rebuilding must retain the report's existing shared plot area.
+    const axisLeft=print?Math.max(0,...[...container.querySelectorAll("[data-result-trend]")].map(node=>N(node.dataset.trendAxisLeft)||0)):undefined;
     if(print)container.querySelectorAll("[data-longitudinal-table]").forEach(node=>{if(node.dataset.longitudinalPrintTable)return;const data=JSON.parse(node.dataset.longitudinalTable);node.innerHTML=table(data.rows,data.periods,{print:true,wrapped:false});node.dataset.longitudinalPrintTable="true";});
     if(print)container.querySelectorAll("[data-longitudinal-grid]").forEach(grid=>{
       if(grid.dataset.longitudinalPrintGrid)return;const items=[...grid.children],speed=grid.dataset.longitudinalGrid==="speed",columns=speed?Math.min(2,items.length):items.length===3?3:Math.min(2,items.length);
@@ -449,7 +451,7 @@
       const groups=speed?Array.from({length:Math.max(0,...segmented.map(parts=>parts.length))},(_,index)=>segmented.map(parts=>parts[index]).filter(Boolean)).flatMap(segment=>chunks(segment,Math.max(1,columns))):chunks(items,Math.max(1,columns));
       grid.innerHTML="";for(const group of groups){const row=grid.ownerDocument.createElement("div");row.className="longitudinal-print-grid-row";row.dataset.pdfAtomic="";row.style.setProperty("--longitudinal-columns",String(columns));for(const item of group)row.append(item);grid.append(row);}grid.dataset.longitudinalPrintGrid="true";
     });
-    root.RingsideResultDisplay.layout(container,{print});
+    root.RingsideResultDisplay.layout(container,{print,axisLeft});
     container.querySelectorAll("[data-longitudinal-chart]").forEach(node=>{const width=Math.max(250,Math.round(node.getBoundingClientRect().width || 450)),key=width+":"+print;if(node.dataset.longitudinalLayout===key)return;node.innerHTML=draw(JSON.parse(node.dataset.longitudinalChart),width,print);node.dataset.longitudinalLayout=key;});
   }
   let observer;

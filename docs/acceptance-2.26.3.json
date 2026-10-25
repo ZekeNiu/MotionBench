@@ -1,0 +1,59 @@
+{
+  "pass": true,
+  "version": "2.26.3",
+  "desktopVersion": "2.26.3-desktop.1",
+  "scope": [
+    "本机报告布局专项验收：统一 mini 外框与报告内绘图区，保留原雷达及 mini 底色。",
+    "屏幕、窄屏、打印和实际 PDF 覆盖 2/3/8/17 日期、跨模块单位、缺测、键盘及冻结分页。",
+    "完整 Windows CI、真实资料保护、本机升级和服务器资产在最终交付记录中单独核验。"
+  ],
+  "unitSuites": 5,
+  "unitChecks": 99,
+  "browserChecks": 42,
+  "nativeHorizontalChecks": 11,
+  "nativeFailureChecks": 2,
+  "artifact": {
+    "file": "MotionBench.html",
+    "bytes": 5233746,
+    "sha256": "05704e4adba07014626c4e3310114dd9e2f49f60b51ecd0accf66e3c6e1dfe3b"
+  },
+  "package": {
+    "archiveSha256": "07cafb6d04ce1d4811b27c2a3c939706fe00f4034d1cb209261614375b5f50c8",
+    "assets": 271,
+    "installerSha256": "a4dc2febc11b5abbd147ed2c18e466e28470ecf553d7e8d178dcaf99c7814f1a",
+    "portableSha256": "2e9ea9b9976be4e77926f4cd18f6ed456fe3f645b9315f22fbcdc155319367a7"
+  },
+  "evidence": [
+    {
+      "file": "output/release/2.26.3-local/acceptance/unit-targeted/results.json",
+      "sha256": "c91b1c713d7652d452dda82091f43de3b656704c77f3ebf003acda54fd31d0ff",
+      "checks": 99
+    },
+    {
+      "file": "output/release/2.26.3-local/mini-layout/chrome/results.json",
+      "sha256": "522fc21518634f2760a154f67ea916f3d5ae211a93d9e0d8a057a2421432aebe",
+      "checks": 21
+    },
+    {
+      "file": "output/release/2.26.3-local/mini-layout/msedge/results.json",
+      "sha256": "7e12839c0c718cbbbb12615e24bd9bc0e7db853c54aa7944eff117f93dbc6919",
+      "checks": 21
+    },
+    {
+      "file": "output/horizontal-refinement/native-2.26.3/results.json",
+      "sha256": "ef46ccca4c7f6a86085875479a6e1aaa1f2e9b17cd6fbba370caf87d6a1cd8ef"
+    },
+    {
+      "file": "output/release/2.26.3-local/native-failure-tests/results.json",
+      "sha256": "0295e2abf2d4656a16bc5fd486a289785a8bef18e6bcee2348baa020444616a0"
+    },
+    {
+      "file": "output/release/2.26.3-local/packaging-evidence.json",
+      "sha256": "55a23648c3580d0ae5dd57dd9ee17649213a4982f88c660f637a4348ec6b9446"
+    },
+    {
+      "file": "output/release/2.26.3-local/package-check.json",
+      "sha256": "7cbb8ec8f913d48577ddce79294e70ef8c465144b124158070e7a2c4bb8acc13"
+    }
+  ]
+}

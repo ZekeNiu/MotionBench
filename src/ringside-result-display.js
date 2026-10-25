@@ -4,7 +4,7 @@
   const colors = { improved: "#187459", declined: "#b23f3d", neutral: "#708699", red: "#b23f3d", amber: "#ac7a21", green: "#187459", gray: "#708699" };
   const statusOf = value => Object.hasOwn(colors, value) ? value : "gray";
   const trafficLabel = (status, fallback = "") => root.Def.trafficLabel(status, fallback);
-  const trendSize = Object.freeze({ width: 160, height: 72, minWidth: 120, columnWidth: 172, top: 18, bottom: 57, dateY: 68, unitY: 9 });
+  const trendSize = Object.freeze({ width: 160, height: 72, minWidth: 160, columnWidth: 172, top: 18, bottom: 57, dateY: 68, unitY: 9 });
   const asymmetry = cell => cell.assessmentKind === "asymmetry" || cell.section === "asymmetry";
   // Partition only at declared or algebraically inverted boundaries. The
   // established evaluator decides each open interval and its exact endpoints;
@@ -140,11 +140,10 @@
       : "；本期评价：" + (reference.kind === "ordinal" ? "固定等级" : reference.kind === "ranges" ? "配置的等级区间" : "参考目标 " + number(reference.target, spec.digits) + " " + reference.unit);
     return point.label + "：" + number(point.value, spec.digits) + (point.value !== null ? " " + point.unit : "（缺测）") + (point.pain ? "；疼痛记录：预警" : "") + referenceText + comparison;
   }
-  function draw(spec, width = trendSize.width, print = false) {
+  function geometry(spec, { axisLeft } = {}) {
     const measured = spec.points.filter(p => p.value !== null);
-    if (!measured.length || spec.points.length < 2) return "";
-    width = Math.max(trendSize.minWidth, Math.min(trendSize.width, width));
-    const { height, top, bottom } = trendSize, right = width - 10, color = colors.neutral;
+    if (!measured.length || spec.points.length < 2) return null;
+    const { width, height, top, bottom } = trendSize, right = width - 10;
     const values = measured.map(p => p.value), min = Math.min(...values), max = Math.max(...values), pad = Math.abs(min) * .05 || 1;
     const extent = max === min ? [min-pad, max+pad] : [min, max], span = extent[1]-extent[0];
     const base = 10 ** Math.floor(Math.log10(span)), step = base * (span/base < 2 ? .2 : span/base < 5 ? .5 : 1);
@@ -161,7 +160,15 @@
     const tickLabels = ticks.map(axisNumber), unit = spec.unit || "", textWidth = label => [...label].reduce((sum,c)=>sum+(/[\u3400-\u9fff]/.test(c)?9:7),0);
     // Units have their own full-width heading. A long unit must not squeeze
     // the plotting area toward the right edge.
-    const left = Math.max(25, Math.min(width*.5, Math.max(...tickLabels.map(textWidth))+10));
+    const requiredLeft = Math.max(25, Math.min(width*.5, Math.max(...tickLabels.map(textWidth))+10));
+    const left = Math.max(requiredLeft, Math.min(width*.5, N(axisLeft) ?? requiredLeft));
+    return { width, height, top, bottom, right, requiredLeft, left, low, high, ticks, tickLabels, unit };
+  }
+  function draw(spec, width = trendSize.width, print = false, options = {}) {
+    const measured = geometry(spec, options);
+    if (!measured) return "";
+    const { height, top, bottom, right, left, low, high, ticks, tickLabels, unit } = measured, color = colors.neutral;
+    width = measured.width;
     const x = i => left + (right - left) * i / (spec.points.length - 1), y = value => bottom - (value - low) / (high - low) * (bottom - top), coord = n => Number(n.toFixed(2));
     const text = (x, y, label, anchor = "middle") => `<text x="${coord(x)}" y="${coord(y)}" text-anchor="${anchor}" font-family="Microsoft YaHei,Segoe UI,sans-serif" font-size="9" fill="#667684">${escape(label)}</text>`;
     const referenceSlots = spec.reference ? [{ reference: spec.reference, start: left, end: right, scope: "shared" }] : (spec.references || []).map((reference, index) => ({ reference, index, scope: "period",
@@ -204,14 +211,17 @@
     const room = (right-left)/(spec.points.length-1), allDates = room >= 45, shortDate = point => point.label.replace(/^\d{4}-/, "");
     spec.points.forEach((point, i) => { if (allDates || i === 0 || i === spec.points.length-1) body += text(x(i), trendSize.dateY, shortDate(point), i===0?"start":i===spec.points.length-1?"end":"middle"); });
     const title = spec.name + " · 变化趋势（按测试次序，点距不代表时间间隔）" + (spec.fms ? "；FMS 0–3 分，0 为疼痛" : "") + (spec.reference ? "；含所测日期共同适用的参考" : spec.references ? "；各日期使用各自评价标准" : "") + "；" + spec.points.map((_, i) => pointLabel(spec, i)).join("；");
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="group" aria-label="${escape(title)}" data-pixel-layout="true"${spec.fms?' data-score-scale="0-3"':""}><title>${escape(title)}</title>${body}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="group" aria-label="${escape(title)}" data-pixel-layout="true" data-trend-axis-left="${left}"${spec.fms?' data-score-scale="0-3"':""}><title>${escape(title)}</title>${body}</svg>`;
   }
-  function render(spec, print = false) { return `<div class="result-trend" style="--result-trend-width:${trendSize.width}px;--result-trend-min-width:${trendSize.minWidth}px" data-result-trend="${escape(JSON.stringify(spec))}">${draw(spec, trendSize.width, print)}</div>`; }
-  function layout(container, { print = false } = {}) {
-    container.querySelectorAll("[data-result-trend]").forEach(node => {
-      const width = Math.max(trendSize.minWidth, Math.min(trendSize.width, Math.floor(node.getBoundingClientRect().width || trendSize.width))), key = width + ":" + print;
-      if (node.dataset.trendLayout === key) return;
-      node.innerHTML = draw(JSON.parse(node.dataset.resultTrend), width, print); node.dataset.trendLayout = key;
+  function render(spec, print = false) { return `<div class="result-trend" style="--result-trend-width:${trendSize.width}px;--result-trend-height:${trendSize.height}px" data-result-trend="${escape(JSON.stringify(spec))}" data-trend-axis-left="${geometry(spec)?.left ?? 25}">${draw(spec, trendSize.width, print)}</div>`; }
+  function layout(container, { print = false, axisLeft } = {}) {
+    const frames = [...container.querySelectorAll("[data-result-trend]")].map(node => ({ node, spec: JSON.parse(node.dataset.resultTrend) }));
+    const left = Math.min(trendSize.width*.5, Math.max(25, N(axisLeft) ?? 0, ...frames.flatMap(({ node, spec }) => [geometry(spec)?.requiredLeft ?? 0, N(node.dataset.trendAxisLeft) ?? 0, N(node.querySelector?.("svg[data-trend-axis-left]")?.getAttribute("data-trend-axis-left")) ?? 0])));
+    frames.forEach(({ node, spec }) => {
+      const key = trendSize.width + ":" + left + ":" + print;
+      node.dataset.trendAxisLeft = String(left);
+      if (node.dataset.trendLayout === key && node.dataset.trendDrawnSpec === node.dataset.resultTrend) return;
+      node.innerHTML = draw(spec, trendSize.width, print, { axisLeft: left }); node.dataset.trendLayout = key; node.dataset.trendDrawnSpec = node.dataset.resultTrend;
     });
   }
   const mounts = new WeakSet();
@@ -241,5 +251,5 @@
       if(next !== undefined){event.preventDefault();nodes[Math.max(0,Math.min(nodes.length-1,next))].focus();}
     });
   }
-  root.RingsideResultDisplay = { assessment, trend, draw, render, layout, mount, number, changeLabel, trendSize, trafficLabel };
+  root.RingsideResultDisplay = { assessment, trend, geometry, draw, render, layout, mount, number, changeLabel, trendSize, trafficLabel };
 })(typeof window !== "undefined" ? window : globalThis);

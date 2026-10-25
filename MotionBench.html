@@ -3697,6 +3697,7 @@ body.sidebar-collapsed .workspace {
 .longitudinal-direction-date i{display:block;width:8px;height:8px;border-radius:50%;}
 .longitudinal-capability .capability-direction-value{font-size:20px;}
 .longitudinal-table>.table-wrap{overflow-x:auto;}
+.longitudinal-table>.table-wrap>.longitudinal-results{table-layout:fixed;}
 [data-longitudinal="true"] .summary-grid>.card{min-width:0;}
 @media(max-width:950px){.longitudinal-pair{grid-template-columns:minmax(0,1fr);gap:14px;}.longitudinal-figures{width:100%;}}
 @media(max-width:520px){.longitudinal-results th,.longitudinal-results td{padding:7px 4px!important;font-size:10px;}.longitudinal-results strong{font-size:11px;}.longitudinal-results th:first-child,.longitudinal-results td:first-child{width:26%;}.longitudinal-results small{font-size:9px;}.longitudinal-legend{gap:5px 10px;}}
@@ -3785,8 +3786,11 @@ body.sidebar-collapsed .workspace {
 /* The mini chart is shared; table sizing stays within comparison reports. */
 .longitudinal-results th,.longitudinal-results td{width:auto!important;}
 .longitudinal-results td[data-label="变化趋势"]{padding-top:5px!important;padding-bottom:5px!important;vertical-align:middle;}
-.result-trend{width:var(--result-trend-width,160px);min-width:var(--result-trend-min-width,120px);max-width:100%;margin-inline:0 auto;line-height:0;text-align:left;}
-.result-trend svg,.result-trend img{display:block;width:100%;height:auto;max-height:none!important;}
+.result-trend{width:var(--result-trend-width,160px);min-width:var(--result-trend-width,160px);max-width:var(--result-trend-width,160px);height:var(--result-trend-height,72px);min-height:var(--result-trend-height,72px);max-height:var(--result-trend-height,72px);margin-inline:0 auto;line-height:0;text-align:left;}
+.result-trend>svg,.result-trend>img{display:block;width:var(--result-trend-width,160px);min-width:var(--result-trend-width,160px);max-width:var(--result-trend-width,160px);height:var(--result-trend-height,72px);min-height:var(--result-trend-height,72px);max-height:var(--result-trend-height,72px);}
+/* The export's general SVG scaling must not resize the canonical mini chart. */
+.ringside-pdf-document .result-trend>svg,.ringside-pdf-document .result-trend>img{width:var(--result-trend-width,160px)!important;max-width:var(--result-trend-width,160px)!important;height:var(--result-trend-height,72px)!important;max-height:var(--result-trend-height,72px)!important;}
+.result-trend:empty{height:0;min-height:0;max-height:0;}
 .result-trend [data-trend-point]{cursor:crosshair;outline:none;}
 .result-trend [data-trend-point]:focus circle{stroke-width:3;}
 .result-trend [data-trend-point]:focus rect{fill:#355e86;fill-opacity:.08;}
@@ -4416,7 +4420,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.26.2"});
+window.RingsideBuild=Object.freeze({"version": "2.26.3"});
 </script>
 <script>
 (function (root) {
@@ -23236,7 +23240,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const colors = { improved: "#187459", declined: "#b23f3d", neutral: "#708699", red: "#b23f3d", amber: "#ac7a21", green: "#187459", gray: "#708699" };
   const statusOf = value => Object.hasOwn(colors, value) ? value : "gray";
   const trafficLabel = (status, fallback = "") => root.Def.trafficLabel(status, fallback);
-  const trendSize = Object.freeze({ width: 160, height: 72, minWidth: 120, columnWidth: 172, top: 18, bottom: 57, dateY: 68, unitY: 9 });
+  const trendSize = Object.freeze({ width: 160, height: 72, minWidth: 160, columnWidth: 172, top: 18, bottom: 57, dateY: 68, unitY: 9 });
   const asymmetry = cell => cell.assessmentKind === "asymmetry" || cell.section === "asymmetry";
   // Partition only at declared or algebraically inverted boundaries. The
   // established evaluator decides each open interval and its exact endpoints;
@@ -23372,11 +23376,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       : "；本期评价：" + (reference.kind === "ordinal" ? "固定等级" : reference.kind === "ranges" ? "配置的等级区间" : "参考目标 " + number(reference.target, spec.digits) + " " + reference.unit);
     return point.label + "：" + number(point.value, spec.digits) + (point.value !== null ? " " + point.unit : "（缺测）") + (point.pain ? "；疼痛记录：预警" : "") + referenceText + comparison;
   }
-  function draw(spec, width = trendSize.width, print = false) {
+  function geometry(spec, { axisLeft } = {}) {
     const measured = spec.points.filter(p => p.value !== null);
-    if (!measured.length || spec.points.length < 2) return "";
-    width = Math.max(trendSize.minWidth, Math.min(trendSize.width, width));
-    const { height, top, bottom } = trendSize, right = width - 10, color = colors.neutral;
+    if (!measured.length || spec.points.length < 2) return null;
+    const { width, height, top, bottom } = trendSize, right = width - 10;
     const values = measured.map(p => p.value), min = Math.min(...values), max = Math.max(...values), pad = Math.abs(min) * .05 || 1;
     const extent = max === min ? [min-pad, max+pad] : [min, max], span = extent[1]-extent[0];
     const base = 10 ** Math.floor(Math.log10(span)), step = base * (span/base < 2 ? .2 : span/base < 5 ? .5 : 1);
@@ -23393,7 +23396,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const tickLabels = ticks.map(axisNumber), unit = spec.unit || "", textWidth = label => [...label].reduce((sum,c)=>sum+(/[\u3400-\u9fff]/.test(c)?9:7),0);
     // Units have their own full-width heading. A long unit must not squeeze
     // the plotting area toward the right edge.
-    const left = Math.max(25, Math.min(width*.5, Math.max(...tickLabels.map(textWidth))+10));
+    const requiredLeft = Math.max(25, Math.min(width*.5, Math.max(...tickLabels.map(textWidth))+10));
+    const left = Math.max(requiredLeft, Math.min(width*.5, N(axisLeft) ?? requiredLeft));
+    return { width, height, top, bottom, right, requiredLeft, left, low, high, ticks, tickLabels, unit };
+  }
+  function draw(spec, width = trendSize.width, print = false, options = {}) {
+    const measured = geometry(spec, options);
+    if (!measured) return "";
+    const { height, top, bottom, right, left, low, high, ticks, tickLabels, unit } = measured, color = colors.neutral;
+    width = measured.width;
     const x = i => left + (right - left) * i / (spec.points.length - 1), y = value => bottom - (value - low) / (high - low) * (bottom - top), coord = n => Number(n.toFixed(2));
     const text = (x, y, label, anchor = "middle") => `<text x="${coord(x)}" y="${coord(y)}" text-anchor="${anchor}" font-family="Microsoft YaHei,Segoe UI,sans-serif" font-size="9" fill="#667684">${escape(label)}</text>`;
     const referenceSlots = spec.reference ? [{ reference: spec.reference, start: left, end: right, scope: "shared" }] : (spec.references || []).map((reference, index) => ({ reference, index, scope: "period",
@@ -23436,14 +23447,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const room = (right-left)/(spec.points.length-1), allDates = room >= 45, shortDate = point => point.label.replace(/^\d{4}-/, "");
     spec.points.forEach((point, i) => { if (allDates || i === 0 || i === spec.points.length-1) body += text(x(i), trendSize.dateY, shortDate(point), i===0?"start":i===spec.points.length-1?"end":"middle"); });
     const title = spec.name + " · 变化趋势（按测试次序，点距不代表时间间隔）" + (spec.fms ? "；FMS 0–3 分，0 为疼痛" : "") + (spec.reference ? "；含所测日期共同适用的参考" : spec.references ? "；各日期使用各自评价标准" : "") + "；" + spec.points.map((_, i) => pointLabel(spec, i)).join("；");
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="group" aria-label="${escape(title)}" data-pixel-layout="true"${spec.fms?' data-score-scale="0-3"':""}><title>${escape(title)}</title>${body}</svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="group" aria-label="${escape(title)}" data-pixel-layout="true" data-trend-axis-left="${left}"${spec.fms?' data-score-scale="0-3"':""}><title>${escape(title)}</title>${body}</svg>`;
   }
-  function render(spec, print = false) { return `<div class="result-trend" style="--result-trend-width:${trendSize.width}px;--result-trend-min-width:${trendSize.minWidth}px" data-result-trend="${escape(JSON.stringify(spec))}">${draw(spec, trendSize.width, print)}</div>`; }
-  function layout(container, { print = false } = {}) {
-    container.querySelectorAll("[data-result-trend]").forEach(node => {
-      const width = Math.max(trendSize.minWidth, Math.min(trendSize.width, Math.floor(node.getBoundingClientRect().width || trendSize.width))), key = width + ":" + print;
-      if (node.dataset.trendLayout === key) return;
-      node.innerHTML = draw(JSON.parse(node.dataset.resultTrend), width, print); node.dataset.trendLayout = key;
+  function render(spec, print = false) { return `<div class="result-trend" style="--result-trend-width:${trendSize.width}px;--result-trend-height:${trendSize.height}px" data-result-trend="${escape(JSON.stringify(spec))}" data-trend-axis-left="${geometry(spec)?.left ?? 25}">${draw(spec, trendSize.width, print)}</div>`; }
+  function layout(container, { print = false, axisLeft } = {}) {
+    const frames = [...container.querySelectorAll("[data-result-trend]")].map(node => ({ node, spec: JSON.parse(node.dataset.resultTrend) }));
+    const left = Math.min(trendSize.width*.5, Math.max(25, N(axisLeft) ?? 0, ...frames.flatMap(({ node, spec }) => [geometry(spec)?.requiredLeft ?? 0, N(node.dataset.trendAxisLeft) ?? 0, N(node.querySelector?.("svg[data-trend-axis-left]")?.getAttribute("data-trend-axis-left")) ?? 0])));
+    frames.forEach(({ node, spec }) => {
+      const key = trendSize.width + ":" + left + ":" + print;
+      node.dataset.trendAxisLeft = String(left);
+      if (node.dataset.trendLayout === key && node.dataset.trendDrawnSpec === node.dataset.resultTrend) return;
+      node.innerHTML = draw(spec, trendSize.width, print, { axisLeft: left }); node.dataset.trendLayout = key; node.dataset.trendDrawnSpec = node.dataset.resultTrend;
     });
   }
   const mounts = new WeakSet();
@@ -23473,7 +23487,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(next !== undefined){event.preventDefault();nodes[Math.max(0,Math.min(nodes.length-1,next))].focus();}
     });
   }
-  root.RingsideResultDisplay = { assessment, trend, draw, render, layout, mount, number, changeLabel, trendSize, trafficLabel };
+  root.RingsideResultDisplay = { assessment, trend, geometry, draw, render, layout, mount, number, changeLabel, trendSize, trafficLabel };
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -24961,6 +24975,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function layout(container,{print=false}={}) {
     root.RingsideReportAppearance?.apply(container);
+    // Date-table rebuilding must retain the report's existing shared plot area.
+    const axisLeft=print?Math.max(0,...[...container.querySelectorAll("[data-result-trend]")].map(node=>N(node.dataset.trendAxisLeft)||0)):undefined;
     if(print)container.querySelectorAll("[data-longitudinal-table]").forEach(node=>{if(node.dataset.longitudinalPrintTable)return;const data=JSON.parse(node.dataset.longitudinalTable);node.innerHTML=table(data.rows,data.periods,{print:true,wrapped:false});node.dataset.longitudinalPrintTable="true";});
     if(print)container.querySelectorAll("[data-longitudinal-grid]").forEach(grid=>{
       if(grid.dataset.longitudinalPrintGrid)return;const items=[...grid.children],speed=grid.dataset.longitudinalGrid==="speed",columns=speed?Math.min(2,items.length):items.length===3?3:Math.min(2,items.length);
@@ -24968,7 +24984,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const groups=speed?Array.from({length:Math.max(0,...segmented.map(parts=>parts.length))},(_,index)=>segmented.map(parts=>parts[index]).filter(Boolean)).flatMap(segment=>chunks(segment,Math.max(1,columns))):chunks(items,Math.max(1,columns));
       grid.innerHTML="";for(const group of groups){const row=grid.ownerDocument.createElement("div");row.className="longitudinal-print-grid-row";row.dataset.pdfAtomic="";row.style.setProperty("--longitudinal-columns",String(columns));for(const item of group)row.append(item);grid.append(row);}grid.dataset.longitudinalPrintGrid="true";
     });
-    root.RingsideResultDisplay.layout(container,{print});
+    root.RingsideResultDisplay.layout(container,{print,axisLeft});
     container.querySelectorAll("[data-longitudinal-chart]").forEach(node=>{const width=Math.max(250,Math.round(node.getBoundingClientRect().width || 450)),key=width+":"+print;if(node.dataset.longitudinalLayout===key)return;node.innerHTML=draw(JSON.parse(node.dataset.longitudinalChart),width,print);node.dataset.longitudinalLayout=key;});
   }
   let observer;
