@@ -19,6 +19,8 @@ const summary = { sourceHash: digest(path.join(root, 'MotionBench.html')), runne
 for (const name of [
   "calculation-model-tests.cjs",
   "calculation-excel-tests.cjs",
+  "cod-report-model-tests.cjs",
+  "none-evaluation-plan-model-tests.cjs",
   "method-compatibility-model-tests.cjs",
   "native-runner-limits-tests.cjs",
   "report-appearance-model-tests.cjs",
