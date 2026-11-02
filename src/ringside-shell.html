@@ -214,7 +214,7 @@
       </main>
       <section
         id="entryView"
-        class="wrap workspace-view"
+        class="wrap workspace-view operation-ui"
         aria-label="编辑本次测试"
         hidden
       >
@@ -333,7 +333,7 @@
       </section>
       <section
         id="settingsView"
-        class="wrap workspace-view"
+        class="wrap workspace-view operation-ui"
         aria-label="测试与应用设置"
         hidden
       >
@@ -347,8 +347,8 @@
           class="form-card settings-content"
         ></article>
       </section>
-      <section id="managementView" class="wrap workspace-view management-view" hidden aria-label="管理中心"><div id="managementContent"></div></section>
-    <section id="creationView" class="wrap workspace-view" hidden aria-labelledby="newAthleteTitle"><div id="newAthleteModal">
+      <section id="managementView" class="wrap workspace-view management-view operation-ui" hidden aria-label="管理中心"><div id="managementContent"></div></section>
+    <section id="creationView" class="wrap workspace-view operation-ui" hidden aria-labelledby="newAthleteTitle"><div id="newAthleteModal">
       <div class="form-card creation-page">
         <header class="modal-head">
           <h1 id="newAthleteTitle">数据录入</h1>
@@ -402,10 +402,10 @@
       </div>
     </div></section>
     </div>
-    <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
-    <div id="excelModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">导入 Excel 文件</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
+    <div id="managementModal" class="modal-backdrop operation-ui" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
+    <div id="excelModal" class="modal-backdrop operation-ui" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">导入 Excel 文件</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
     <datalist id="sportOptions"><option value="田径"></option><option value="篮球"></option><option value="足球"></option><option value="排球"></option><option value="游泳"></option><option value="网球"></option><option value="羽毛球"></option><option value="举重"></option><option value="拳击"></option><option value="散打"></option><option value="跆拳道"></option></datalist>
-    <div class="modal-backdrop" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
+    <div class="modal-backdrop operation-ui" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
       <div class="modal">
         <header class="modal-head"><h2 id="catalogTitle">新建测试项目</h2><button class="close" type="button" aria-label="关闭项目设置" onclick="App.close('catalogModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <form id="catalogForm" class="modal-form" onsubmit="event.preventDefault();App.submitCatalogItem()">
@@ -414,14 +414,14 @@
         </form>
       </div>
     </div>
-    <div class="modal-backdrop" id="unitModal" role="dialog" aria-modal="true" aria-labelledby="unitChangeTitle">
+    <div class="modal-backdrop operation-ui" id="unitModal" role="dialog" aria-modal="true" aria-labelledby="unitChangeTitle">
       <div class="modal compact">
         <header class="modal-head"><h2 id="unitChangeTitle">更改测量单位</h2><button class="close" type="button" aria-label="取消更改单位" onclick="App.close('unitModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <div class="settings-content"><p id="unitChangeMessage"></p></div>
         <footer class="modal-foot unit-change-actions"><button class="btn" type="button" onclick="App.close('unitModal')">取消</button><button id="unitClearButton" class="btn" type="button" onclick="App.confirmUnitChange('clear')">清空后重新录入</button><button id="unitConvertButton" class="btn primary" type="button" onclick="App.confirmUnitChange('convert')">换算已有数据</button></footer>
       </div>
     </div>
-    <div class="modal-backdrop" id="recoveryModal" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
+    <div class="modal-backdrop operation-ui" id="recoveryModal" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
       <div class="modal">
         <header class="modal-head"><h2 id="recoveryTitle">核对导入数据</h2><button class="close" type="button" aria-label="关闭数据核对" onclick="App.close('recoveryModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <form id="recoveryForm" class="modal-form" onsubmit="event.preventDefault();App.recoverData()">
@@ -431,7 +431,7 @@
       </div>
     </div>
     <div
-      class="modal-backdrop"
+      class="modal-backdrop operation-ui"
       id="saveModal"
       role="dialog"
       aria-modal="true"
@@ -473,7 +473,7 @@
       </div>
     </div>
     <div
-      class="modal-backdrop"
+      class="modal-backdrop operation-ui"
       id="previewModal"
       role="dialog"
       aria-modal="true"
@@ -506,7 +506,7 @@
         </footer>
       </div>
     </div>
-    <div id="longitudinalEditModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="longitudinalEditTitle"><div class="modal"><header class="modal-head"><h2 id="longitudinalEditTitle">选择要编辑的测试记录</h2><button class="close" aria-label="关闭" onclick="App.close('longitudinalEditModal')">×</button></header><div id="longitudinalEditChoices" class="settings-content longitudinal-edit-choices"></div></div></div>
+    <div id="longitudinalEditModal" class="modal-backdrop operation-ui" role="dialog" aria-modal="true" aria-labelledby="longitudinalEditTitle"><div class="modal"><header class="modal-head"><h2 id="longitudinalEditTitle">选择要编辑的测试记录</h2><button class="close" aria-label="关闭" onclick="App.close('longitudinalEditModal')">×</button></header><div id="longitudinalEditChoices" class="settings-content longitudinal-edit-choices"></div></div></div>
     <input
       type="file"
       id="importFile"

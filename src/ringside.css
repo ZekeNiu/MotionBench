@@ -159,7 +159,7 @@ svg text {
   background: var(--surface);
   color: var(--ink);
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   white-space: nowrap;
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
@@ -178,7 +178,7 @@ svg text {
 }
 .btn.small {
   min-height: 34px;
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   padding: 6px 12px;
 }
 .btn.active {
@@ -1107,7 +1107,7 @@ td .pill {
   font-size: 12px;
 }
 .note {
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   line-height: 1.8;
   color: var(--muted);
   margin-top: 9px;
@@ -1311,7 +1311,7 @@ td .pill {
 }
 .workspace-heading > p:last-child {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   margin-top: 9px;
 }
 .form-card {
@@ -1326,11 +1326,11 @@ td .pill {
   min-height: 300px;
 }
 .entry-content > h3 {
-  font-size: 20px;
-  margin-bottom: 17px;
+  font-size: var(--ui-font-section, 20px);
+  margin-bottom: 16px;
 }
 .intro {
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   color: var(--muted);
   margin: 0 0 18px;
   line-height: 1.8;
@@ -1345,7 +1345,7 @@ td .pill {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: #607086;
+  color: var(--ui-label, #607086);
   font-size: 14px;
   min-width: 0;
 }
@@ -1362,7 +1362,7 @@ td .pill {
   display: block;
   margin-top: 5px;
   color: var(--red);
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   line-height: 1.5;
 }
 [aria-invalid="true"] {
@@ -1432,7 +1432,7 @@ td .pill {
 .supplement > summary {
   cursor: pointer;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
 }
 .supplement textarea {
   width: 100%;
@@ -1612,7 +1612,7 @@ td .pill {
   overflow: auto;
 }
 .settings-content > h3 {
-  font-size: 20px;
+  font-size: var(--ui-font-section, 20px);
   margin-bottom: 18px;
 }
 .reference-row {
@@ -1621,7 +1621,7 @@ td .pill {
   gap: 12px;
   padding: 14px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 12px;
+  font-size: var(--ui-font-body, 12px);
 }
 .reference-row b {
   min-width: 115px;
@@ -1630,7 +1630,7 @@ td .pill {
   font-size: 14px;
 }
 .settings-content > p {
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   color: var(--muted);
   margin-bottom: 10px;
 }
@@ -1780,7 +1780,7 @@ td .pill {
   margin: 18px 0 4px;
 }
 .creation-project-heading h3 {
-  font-size: 17px;
+  font-size: var(--ui-font-group, 17px);
 }
 .creation-content .check-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1798,7 +1798,7 @@ td .pill {
   border-bottom: 1px solid var(--line);
 }
 .modal-head h2 {
-  font-size: 20px;
+  font-size: var(--ui-font-section, 20px);
 }
 .close {
   border: 0;
@@ -1885,7 +1885,7 @@ body.sidebar-collapsed .workspace {
 .close { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; color: var(--muted); border-radius: 8px; }
 .close:hover { background: var(--blue-soft); }
 .modal-head, .modal-foot { padding: 20px 24px; }
-.modal-head h2 { font-size: 20px; }
+.modal-head h2 { font-size: var(--ui-font-section, 20px); }
 .modal-foot { background: var(--surface-soft); }
 .catalog-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 24px; row-gap: 12px; margin: 0; padding: 24px 0; border-bottom: 1px solid var(--line); }
 .catalog-item:last-child { border-bottom: 0; }
@@ -2494,7 +2494,7 @@ body.sidebar-collapsed .workspace {
     padding: 16px 18px;
   }
   .modal-head h2 {
-    font-size: 18px;
+    font-size: var(--ui-font-section, 18px);
   }
   .modal-foot {
     padding: 14px 18px;
@@ -2801,8 +2801,8 @@ body.sidebar-collapsed .workspace {
 .report-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 .management-mode .record-context, .management-mode .context-divider { display: none; }
 .management-view { max-width: 1560px; }
-.management-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:12px 0 28px; }
-.management-heading h1 { margin:0; font-size:28px; }
+.management-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:0 0 24px; }
+.management-heading h1 { margin:0; font-size:var(--ui-font-page,28px); }
 .eyebrow { margin:0 0 6px; color:var(--muted); font-size:12px; letter-spacing:.08em; }
 .management-filters { display:grid; grid-template-columns:minmax(180px,2fr) repeat(4,minmax(110px,1fr)); gap:12px; margin-bottom:20px; }
 .management-filters .field { margin:0; min-width:0; }
@@ -2810,11 +2810,11 @@ body.sidebar-collapsed .workspace {
 .management-batch,.management-pagination { display:flex; align-items:center; flex-wrap:wrap; gap:14px; margin:16px 0; }
 .management-batch > .row,.management-pagination > .row { margin-left:auto; }
 .management-table-wrap { width:100%; overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:#fff; }
-.management-table { width:100%; margin:0; }
-.management-table th { background:#edf0f3; font-size:12px; white-space:nowrap; }
-.management-table td { background:#fff; vertical-align:middle; padding:14px 12px; }
+.management-table { width:100%; margin:0; font-size:var(--ui-font-body,13px); }
+.management-table th { background:var(--surface-soft); color:var(--muted); font-size:var(--ui-font-note,12px); font-weight:500; white-space:nowrap; }
+.management-table td { background:#fff; color:var(--ink); vertical-align:middle; padding:14px 12px; }
 .management-table th:first-child,.management-table td:first-child { width:50px; }
-.management-table small { display:block; margin-top:5px; max-width:340px; color:var(--muted); overflow-wrap:anywhere; line-height:1.5; }
+.management-table small { display:block; margin-top:6px; max-width:340px; color:var(--muted); font-size:var(--ui-font-note,12px); overflow-wrap:anywhere; line-height:1.7; }
 .management-table .row { gap:6px; }
 .management-table button { white-space:nowrap; }
 .management-catalog-item { background:#fff; border:1px solid var(--line); border-radius:12px; padding:22px; margin:16px 0; display:flex; justify-content:space-between; gap:20px; align-items:center; }
@@ -2856,7 +2856,7 @@ body.sidebar-collapsed .workspace {
   .topbar { flex-wrap:wrap; gap:8px; }
   .report-actions { order:3; width:100%; max-width:none; }
   .management-heading { align-items:flex-start; flex-direction:column; }
-  .management-heading h1 { font-size:25px; }
+  .management-heading h1 { font-size:var(--ui-font-page,25px); }
   .management-filters { grid-template-columns:1fr 1fr; }
   .management-filters .field:first-child { grid-column:1 / -1; }
   .management-table-wrap { border:0; background:transparent; }
