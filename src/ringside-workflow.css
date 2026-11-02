@@ -8,7 +8,7 @@
 .global-nav button.active,.sidebar-bottom .active{background:#e4ebf1;color:#284d6d;font-weight:650;box-shadow:none}
 .global-nav button:focus-visible{outline:2px solid #486c88;outline-offset:2px}
 /* Operation surfaces share one type and spacing scale; reports and navigation retain their own styles. */
-.operation-ui {
+:where(.operation-ui) {
   --ui-font-page:24px;
   --ui-font-section:20px;
   --ui-font-group:16px;
@@ -39,7 +39,7 @@
 .operation-ui :is(.plan-group>h4,.plan-group-heading) { color:var(--ink); }
 .operation-ui .entry-identity { background:var(--surface-soft); color:var(--ink); font-size:var(--ui-font-note); }
 .operation-ui .settings-content>.row { margin-block:16px; }
-.operation-ui .settings-content>.note { margin-block:12px 0; }
+.operation-ui .settings-content>.note,.settings-content>.note.operation-ui { margin-block:12px 0; }
 .operation-ui .entry-table { font-size:var(--ui-font-body); }
 .operation-ui .entry-table th { font-size:var(--ui-font-note); color:var(--muted); }
 .operation-ui .entry-table td { color:var(--ink); }

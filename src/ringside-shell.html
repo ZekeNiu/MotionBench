@@ -214,11 +214,11 @@
       </main>
       <section
         id="entryView"
-        class="wrap workspace-view operation-ui"
+        class="wrap workspace-view"
         aria-label="编辑本次测试"
         hidden
       >
-        <div class="workspace-heading">
+        <div class="workspace-heading operation-ui">
           <h1>本次数据录入</h1>
           <div id="entrySteps" class="workflow-steps" aria-label="录入步骤"></div>
           <p>按本次所选项目依次录入，有效修改自动保留。</p>
@@ -232,17 +232,18 @@
           <div id="entryIdentity" class="entry-identity"></div>
           <h2 id="entryProjectTitle" class="entry-project-title"></h2>
         </div>
-        <nav id="entryNav" class="entry-nav entry-project-nav" aria-label="本次项目"></nav>
+        <nav id="entryNav" class="entry-nav entry-project-nav operation-ui" aria-label="本次项目"></nav>
         <div
           id="entryProblemSummary"
-          class="entry-problem-summary"
+          class="entry-problem-summary operation-ui"
           role="status"
           aria-live="polite"
           hidden
         ></div>
         <article class="form-card">
-          <div id="entryContent" class="entry-content" role="region" aria-labelledby="entryProjectTitle"></div>
+          <div id="entryContent" class="entry-content operation-ui" role="region" aria-labelledby="entryProjectTitle"></div>
           <div id="narrativeEditorPanel" class="entry-content" hidden>
+            <div class="operation-ui">
             <div class="editor-heading">
               <div>
                 <p class="intro">写下主要发现、训练优先级与具体执行方式。</p>
@@ -300,6 +301,7 @@
                 清除格式
               </button>
             </div>
+            </div>
             <div
               id="interpEditor"
               class="editor"
@@ -309,11 +311,13 @@
               aria-multiline="true"
               data-placeholder="连接测试结果与训练决策，写清要先处理什么、怎么练、如何保证执行质量。"
             ></div>
+            <div class="operation-ui">
             <div class="editor-meta">
               <span id="editorState"></span><span id="interpUpdated"></span>
             </div>
+            </div>
           </div>
-          <footer class="entry-footer">
+          <footer class="entry-footer operation-ui">
             <div class="entry-save-feedback">
               <span id="entrySave" role="status" aria-live="polite">修改自动保留</span>
               <button
@@ -473,14 +477,14 @@
       </div>
     </div>
     <div
-      class="modal-backdrop operation-ui"
+      class="modal-backdrop"
       id="previewModal"
       role="dialog"
       aria-modal="true"
       aria-labelledby="previewTitle"
     >
       <div class="modal">
-        <header class="modal-head">
+        <header class="modal-head operation-ui">
           <h2 id="previewTitle">草稿预览</h2>
           <button
             class="close"
@@ -492,9 +496,9 @@
         </header>
         <div class="settings-content">
           <div id="aiPreview" class="ai-preview"></div>
-          <p id="aiPreviewNote" class="note"></p>
+          <p id="aiPreviewNote" class="note operation-ui"></p>
         </div>
-        <footer class="modal-foot">
+        <footer class="modal-foot operation-ui">
           <span>应用后可继续编辑</span
           ><button
             id="applyDraftButton"

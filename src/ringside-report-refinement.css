@@ -1,23 +1,6 @@
 /* Report content follows the selected test snapshot. */
-/* Appearance is local to report/print containers, including detached PDF pages.
-   Evaluation and pain colors deliberately retain the application status tokens. */
-[data-report-appearance="ink-teal-history-v1"] {
-  --ink:var(--report-appearance-ink);
-  --muted:var(--report-appearance-muted);
-  --blue:var(--report-appearance-accent);
-  --blue-hover:var(--report-appearance-accent);
-  --blue-soft:var(--report-appearance-paper);
-  --line:var(--report-appearance-border);
-  --bg:var(--report-appearance-paper);
-  --surface:var(--report-appearance-surface);
-  --surface-soft:var(--report-appearance-paper);
-  --soft:var(--report-appearance-paper);
-  color:var(--ink);
-}
-#reportView[data-report-appearance="ink-teal-history-v1"] { background:var(--bg); }
-[data-report-appearance="ink-teal-history-v1"] .quality-heading { background:var(--surface-soft); }
-[data-report-appearance="ink-teal-history-v1"] .quality-heading h3 { color:var(--ink); }
-[data-report-appearance="ink-teal-history-v1"] :is(.hero,.section-heading) { border-color:var(--line); }
+/* Chart identity colors do not redefine report text or page surfaces. */
+[data-report-appearance="ink-teal-history-v1"] { --report-chart-accent:var(--report-appearance-accent,#066c64); }
 .capability-plot-region { border:1px solid var(--line); border-radius:var(--radius-panel); background:var(--surface); box-shadow:var(--shadow-panel); margin:24px 0; overflow:hidden; }
 .capability-plot-region > .quality-group { border-top:0; }
 .ringside-pdf-source .capability-plot-region { border:0!important; margin:0!important; box-shadow:none!important; overflow:visible!important; }
@@ -88,7 +71,7 @@
 .capability-progress { margin-top:8px; color:var(--muted); font-size:11px; line-height:1.6; }
 .capability-progress-label { display:flex; justify-content:space-between; flex-wrap:wrap; gap:3px 12px; font-variant-numeric:tabular-nums; }
 .capability-progress-track { height:4px; margin-top:6px; overflow:hidden; border-radius:2px; background:var(--surface-soft); }
-.capability-progress-track > span { display:block; height:100%; background:var(--blue); border-radius:inherit; }
+.capability-progress-track > span { display:block; height:100%; background:var(--report-chart-accent,var(--blue)); border-radius:inherit; }
 .capability-structure-pair { grid-template-columns:minmax(0,44fr) minmax(0,56fr); gap:22px; align-items:start; container-type:inline-size; }
 .capability-directions,.capability-parameter-column,.capability-parameter-groups { min-width:0; }
 .capability-parameter-column { container-type:inline-size; }
@@ -247,7 +230,7 @@
 .generic-chart-panel + .generic-chart-panel { margin-top:18px; }
 .generic-chart-heading { margin:0 0 5px; color:var(--muted); font-size:12px; font-weight:600; line-height:1.6; overflow-wrap:anywhere; }
 .generic-chart-key { display:flex; gap:16px; margin:0 0 6px; color:var(--muted); font-size:11px; }
-.generic-chart-key span:first-child::before { content:""; display:inline-block; width:12px; height:7px; margin-right:5px; border-radius:2px; background:var(--blue); }
+.generic-chart-key span:first-child::before { content:""; display:inline-block; width:12px; height:7px; margin-right:5px; border-radius:2px; background:var(--report-chart-accent,var(--blue)); }
 .generic-chart-unavailable { margin:0; padding:14px 16px; border:1px solid var(--line); border-radius:8px; background:var(--surface); line-height:1.8; }
 /* Existing report controls, with an independent dated record selection. */
 .record-choice-menu{position:relative;min-width:190px;font-size:13px}

@@ -71,7 +71,7 @@ async function main(){
    await reopened.goto(pathToFileURL(file).href);await ready(reopened);
    const actual=await reopened.evaluate(()=>{const v=RingsideReportAppearance.project(App.getLongitudinal());return{colors:v.periods.map(p=>p.color),basis:v.basis,narrative:App.getLongitudinalDocument().narrative};});assert.deepEqual(actual,expected);await reopened.close();
   });
-  await check("actual PDF redraw carries theme to each captured page without mutating report facts",async()=>{
+  await check("actual PDF redraw retains chart theme while restoring original text and surfaces without mutating facts",async()=>{
    const before=await page.evaluate(()=>JSON.stringify({model:RingsideLongitudinal.facts(App.getLongitudinal()),doc:App.getLongitudinalDocument()}));
    const raw=await page.evaluate(async()=>Promise.all(App.getLibrary().athletes.flatMap(a=>a.records.map(r=>App.getRepository().loadRecord(r.recordId)))));
    await page.evaluate(()=>{window.__appearancePDFPages=[];const original=window.html2canvas;window.html2canvas=async function(node,...args){if(node.classList?.contains('ringside-pdf-page')){const style=getComputedStyle(node);window.__appearancePDFPages.push({theme:node.dataset.reportAppearance,ink:style.getPropertyValue('--report-appearance-ink').trim(),foreground:style.color,headings:[...node.querySelectorAll('.quality-heading,.pdf-group-heading')].map(heading=>({background:getComputedStyle(heading).backgroundColor,ink:getComputedStyle(heading.querySelector('h3')||heading).color})),numbers:[...node.querySelectorAll('.section-number')].map(number=>({foreground:getComputedStyle(number).color,background:getComputedStyle(number).backgroundColor}))});}return original.call(this,node,...args);};});
@@ -79,10 +79,10 @@ async function main(){
    assert.equal(diagnostics.status,"complete");assert.ok(pages.length>0);assert.ok(pages.every(p=>p.theme==="ink-teal-history-v1"&&p.ink==="#213836"));
    assert.equal(diagnostics.pageCount,pages.length);assert.ok(diagnostics.sourceChartCount>0);assert.equal(diagnostics.chartCount,diagnostics.sourceChartCount);assert.equal(diagnostics.renderedRowCount,diagnostics.rowCount);
    for(const key of["missingRows","duplicateRows","changedRows","missingCharts","duplicateCharts"])assert.deepEqual(diagnostics[key],[],key);
-   assert.ok(pages.every(p=>p.foreground==="rgb(33, 56, 54)"));
+   assert.ok(pages.every(p=>p.foreground==="rgb(38, 42, 48)"));
    const headings=pages.flatMap(p=>p.headings),numbers=pages.flatMap(p=>p.numbers);assert.ok(headings.length>0);assert.ok(numbers.length>0);
-   assert.ok(headings.every(heading=>heading.background==="rgb(246, 249, 248)"&&heading.ink==="rgb(33, 56, 54)"));
-   assert.ok(numbers.every(number=>number.foreground==="rgb(6, 108, 100)"&&number.background==="rgb(246, 249, 248)"));
+   assert.ok(headings.every(heading=>heading.background==="rgb(247, 249, 252)"&&heading.ink==="rgb(69, 84, 106)"));
+   assert.ok(numbers.every(number=>number.foreground==="rgb(54, 91, 122)"&&number.background==="rgb(232, 238, 243)"));
    assert.equal(await page.evaluate(()=>JSON.stringify({model:RingsideLongitudinal.facts(App.getLongitudinal()),doc:App.getLongitudinalDocument()})),before);
    assert.deepEqual(await page.evaluate(async()=>Promise.all(App.getLibrary().athletes.flatMap(a=>a.records.map(r=>App.getRepository().loadRecord(r.recordId))))),raw);
    receipt.pdf={file:path.relative(ROOT,file),sha256:sha(file),pages:pages.length,themePages:pages,diagnostics};
