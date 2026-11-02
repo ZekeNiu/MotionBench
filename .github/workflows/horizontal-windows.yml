@@ -2,8 +2,8 @@ name: MotionBench Horizontal Windows
 
 on:
   push:
-    branches: [main, 'codex/motionbench-horizontal-*']
-    tags: ['v2.25.*-desktop.*', 'v2.26.*-desktop.*']
+    branches: [main, 'codex/motionbench-horizontal-*', 'codex/motionbench-2.27.*']
+    tags: ['v2.25.*-desktop.*', 'v2.26.*-desktop.*', 'v2.27.*-desktop.*']
   workflow_dispatch:
 
 permissions:
