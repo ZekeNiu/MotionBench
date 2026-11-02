@@ -1,0 +1,108 @@
+{
+  "pass": true,
+  "version": "2.27.1",
+  "desktopVersion": "2.27.1-desktop.1",
+  "scope": [
+    "Original report page and heading colors restored while preserving chart palettes, opacity and geometry",
+    "Operation typography isolated from report text editing and shared draft previews; specialty detail padding scoped to its own card",
+    "Editable authored plan descriptions, optional evaluation, and COD calculations verified through existing report layouts"
+  ],
+  "artifact": {
+    "file": "MotionBench.html",
+    "sha256": "5e871094fc0766f423dc4e236939618f841bef79e30fe3dfa8b6fff6122fe811",
+    "bytes": 5262861
+  },
+  "unitSuites": 85,
+  "unitChecks": 1249,
+  "browserSuites": 10,
+  "browserChecks": 116,
+  "browserPDFDocuments": 14,
+  "browserPDFPages": 56,
+  "nativeChecks": 16,
+  "evidence": [
+    {
+      "file": "output/release/2.27.1-local/acceptance/unit-final/unit-results.json",
+      "sha256": "6bab7443c1ed5103b98c6e7887b2af290ccd65f632269c859c05857bb1e9e8c0",
+      "checks": 85
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/desktop-unit/results.json",
+      "sha256": "ee5aac5e030333686010e949393f53ad15ca8d2fcad689049c479bd63c542fd2",
+      "checks": 5
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/methods-chrome/chrome-results.json",
+      "sha256": "bc1168dd177692391432f10829b11efe72ee8b9336c58b336c79c6a7d9fc82e7",
+      "checks": 3
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/operation-chrome/chrome-results.json",
+      "sha256": "67d1f3613b8fe613742d3d0f68b067174f24af1a6cdd5e54fb2b92984b4b1668",
+      "checks": 21
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/calculations-chrome/results.json",
+      "sha256": "b6948404694753d297f08c17b3bb66c1c954b8637db0e9ffe51047793ad0044b",
+      "checks": 11
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/none-chrome/results.json",
+      "sha256": "6b8b9f9389d538c27eb27c1ad6e6fbdccebb294d378ffe88f7aa11dda4251601",
+      "checks": 13
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/surface-chrome/results.json",
+      "sha256": "816a22528b8b055031589518600f2b547a0855083f57bb0924a34721ea2bbef8",
+      "checks": 10
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/methods-msedge/msedge-results.json",
+      "sha256": "4d173cb0fcd6e26e9f806fb678358b6247226f106b432142a048c03f288357a8",
+      "checks": 3
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/operation-msedge/msedge-results.json",
+      "sha256": "4814df7c1f692ba73ee81cfa138aff55bf3cc0e226e8be7ec8f2abc785f53b9f",
+      "checks": 21
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/calculations-msedge/results.json",
+      "sha256": "f4f7c8960953056de572f67210ec458e49b7342b91ae19f4516185fdc9ca6cfb",
+      "checks": 11
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/none-msedge/results.json",
+      "sha256": "307b95f902240b5acc1cc17a31de9b9429e5ab39077955ae0c86dc5ce1a40de0",
+      "checks": 13
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/surface-msedge/results.json",
+      "sha256": "56c189246e6ae6105ec5cd99de7734c5dc20fbe8c85ed60d6bbcac51f8a0c251",
+      "checks": 10
+    },
+    {
+      "file": "output/release/2.27.1-local/acceptance/browser-final-review.json",
+      "sha256": "7f513381cd9553a1778fa723b7fdb9da3bc705a05135aad6a9d3dfd4c8a18cd5"
+    },
+    {
+      "file": "output/release/2.27.1-local/native-smoke/results.json",
+      "sha256": "2e034b3df62f58cfc2fa19c506ff549bd2bc9e0bbd28657e7286a6e050f53f90",
+      "checks": 16
+    },
+    {
+      "file": "output/release/2.27.1-local/package-check.json",
+      "sha256": "f9a4ceddb48c41d0960061fb3c1a2748b94176e9e177399f130f73193674a52d"
+    },
+    {
+      "file": "output/release/2.27.1-local/packaging-evidence.json",
+      "sha256": "b264ae9398123209c8fe15eb3011e4b81af3ff6a6116decc0e98e24200922287"
+    }
+  ],
+  "package": {
+    "archiveSha256": "f3b747fecc9b5bc4ac45e35d105a5ecce4ce4f9260ed8ba48a6f5d313727e7a4",
+    "assets": 271,
+    "installerSha256": "7a2d86ce74be84c478e8a004c74509d0fb136beb463e0d72ee5737bb763382a5",
+    "portableSha256": "2f9ee855213217d8e524dd21a240a81194673ae202bda669f797b3c3159ffe58"
+  },
+  "validationContext": "Synthetic data and isolated packaged runtime."
+}

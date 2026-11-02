@@ -155,7 +155,7 @@ def verify(require_ci=False):
         record(OUT / ('methods-' + channel) / (channel + '-results.json'), 'tests/method-compatibility-browser-tests.cjs', 3, channel=channel)
         record(OUT / ('operation-' + channel) / (channel + '-results.json'), 'tests/operation-ui-browser-tests.cjs', 21, channel=channel)
         calc_directory = OUT / ('calculations-' + channel)
-        calc = record(calc_directory / 'results.json', 'tests/calculation-browser-tests.cjs', 9, channel=channel)
+        calc = record(calc_directory / 'results.json', 'tests/calculation-browser-tests.cjs', 11, channel=channel)
         assert calc['fixtureSha256'] == digest(ROOT / 'tests/helpers/calculation-fixture.cjs')
         assert calc.get('pdfRequested') is True and len(calc.get('pdf', [])) >= 3
         pdf_series(calc, calc_directory)
