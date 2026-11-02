@@ -17,6 +17,13 @@
 
   function read() {
     if (!state || !state.enabled) return {kind:"none"};
+    if (state.cod) {
+      const prior=state.originalView,metrics=new Map(state.metrics.map(metric=>[metric.id,metric]));
+      const retained=prior&&prior.kind!=="none"&&prior.metricIds.every(id=>metrics.has(id))&&
+        (!["trials","scatter"].includes(prior.kind)||prior.metricIds.every(id=>attempt(metrics.get(id))));
+      return retained ? {kind:prior.kind,metricIds:prior.metricIds.slice(),...(prior.kind==="scatter"?{xMetricId:prior.xMetricId,yMetricId:prior.yMetricId}:{})} :
+        {kind:"bar",metricIds:state.metrics.filter(metric=>metric.calculation?.kind==="cod-deficit").map(metric=>metric.id)};
+    }
     if (state.kind === "scatter") return {kind:state.kind,metricIds:[state.xMetricId,state.yMetricId].filter(Boolean),xMetricId:state.xMetricId,yMetricId:state.yMetricId};
     return {kind:state.kind,metricIds:state.metricIds.slice()};
   }
@@ -25,6 +32,7 @@
   }
   function validate() {
     if (!state || !state.enabled) return {ok:true,error:""};
+    if (state.cod) return {ok:true,error:""};
     if (!kinds.some(([kind]) => kind === state.kind)) return {ok:false,error:"请选择报告图表类型。"};
     if (state.kind === "scatter") {
       const x = state.metrics.find(metric => metric.id === state.xMetricId), y = state.metrics.find(metric => metric.id === state.yMetricId);
@@ -48,6 +56,7 @@
   function renderMetrics() {
     if (!state) return;
     const list = state.section.querySelector("[data-generic-metric-list]"), eligible = eligibleMetrics();
+    if(state.cod){list.innerHTML="";return;}
     const sorted = [...eligible.filter(metric => state.metricIds.includes(metric.id)).sort((a,b) => state.metricIds.indexOf(a.id)-state.metricIds.indexOf(b.id)),...eligible.filter(metric => !state.metricIds.includes(metric.id))];
     const chosen = state.metricIds.filter(id => eligible.some(metric => metric.id === id));
     list.innerHTML = sorted.map(metric => {
@@ -65,11 +74,14 @@
     section.querySelector("#genericReportEnabled").checked = state.enabled;
     section.querySelector("[data-generic-options]").hidden = !state.enabled;
     section.querySelector("#genericReportKind").value = state.kind;
-    section.querySelector("[data-generic-kind-note]").textContent = kinds.find(([kind]) => kind === state.kind)?.[2] || "";
-    section.querySelector("[data-generic-metrics]").hidden = state.kind === "scatter";
-    section.querySelector("[data-generic-scatter]").hidden = state.kind !== "scatter";
-    section.querySelector("[data-generic-radar-note]").hidden = state.kind !== "radar";
-    section.querySelector("[data-generic-target-note]").hidden = state.kind !== "target";
+    section.querySelector("#genericReportKind").closest(".form-grid").hidden = state.cod;
+    section.querySelector("[data-generic-cod]").hidden = !state.cod;
+    section.querySelector("[data-generic-layout-note]").textContent = state.cod ? "个人报告左图右表，横向和纵向比较上图下表；关闭后只保留结果表。" : "图表在左侧展示，右侧保留完整结果表。关闭后只展示表格。";
+    section.querySelector("[data-generic-kind-note]").textContent = state.cod ? "仅绘制变向赤字；个人与横向比较使用柱图，纵向比较按日期连线。缺测保留空值，其他指标继续显示在结果表中。" : kinds.find(([kind]) => kind === state.kind)?.[2] || "";
+    section.querySelector("[data-generic-metrics]").hidden = state.cod || state.kind === "scatter";
+    section.querySelector("[data-generic-scatter]").hidden = state.cod || state.kind !== "scatter";
+    section.querySelector("[data-generic-radar-note]").hidden = state.cod || state.kind !== "radar";
+    section.querySelector("[data-generic-target-note]").hidden = state.cod || state.kind !== "target";
     const validation = validate(), error = section.querySelector("[data-generic-validation]");
     error.hidden = validation.ok;error.textContent = validation.error;
     renderPreview();
@@ -84,6 +96,7 @@
   }
   function previewChart() {
     // All values are fixed style examples; this editor never reads measurements.
+    if(state.cod)return {kind:"bar",available:true,reason:"",panels:[{title:"变向赤字",unit:"s",items:state.metrics.filter(metric=>metric.calculation?.kind==="cod-deficit").map((metric,index)=>({id:metric.id,label:metric.name,value:.4+index*.2,status:"gray"}))}]};
     const metrics = state.kind === "scatter" ? [state.xMetricId,state.yMetricId].map(id => state.metrics.find(metric => metric.id === id)) : selectedMetrics();
     let panels;
     if (state.kind === "scatter") panels = [{title:"试次配对示例",unit:"",xAxis:{id:metrics[0].id,label:metrics[0].name,unit:metrics[0].unit},yAxis:{id:metrics[1].id,label:metrics[1].name,unit:metrics[1].unit},points:[{id:"example_1",index:1,x:10,y:100},{id:"example_2",index:2,x:20,y:50},{id:"example_3",index:3,x:15,y:75}]}];
@@ -103,6 +116,7 @@
   function updateMetrics(metrics) {
     if (!state) return;
     state.metrics = (metrics || []).filter(metric => metric && metric.id).map(metric => ({...metric}));
+    state.cod = state.metrics.some(metric=>metric.calculation?.kind==="cod-deficit");
     const ids = new Set(state.metrics.map(metric => metric.id));
     state.metricIds = state.metricIds.filter(id => ids.has(id));
     if (!state.metricIds.length && !state.userSelectedMetrics) state.metricIds = state.metrics.map(metric => metric.id);
@@ -121,9 +135,9 @@
     destroy();
     const view = catalog?.reportViews?.[testId], enabled = !!view && view.kind !== "none";
     const section = document.createElement("fieldset");section.className = "catalog-edit-section generic-report-editor";
-    section.innerHTML = `<legend>报告图表</legend><label class="generic-report-enable"><input id="genericReportEnabled" type="checkbox" ${enabled?"checked":""}>在报告中显示可视化图</label><p class="note">图表在左侧展示，右侧保留完整结果表。关闭后只展示表格。</p><div data-generic-options ${enabled?"":"hidden"}><div class="form-grid"><label class="field wide"><span>图表类型</span><select id="genericReportKind" aria-label="报告图表类型">${kinds.map(([kind,label]) => `<option value="${kind}">${label}</option>`).join("")}</select></label></div><p class="note" data-generic-kind-note></p><div data-generic-metrics><h3>展示指标与顺序</h3><ul class="generic-report-metrics" data-generic-metric-list aria-label="报告展示指标"></ul></div><div class="form-grid" data-generic-scatter hidden><label class="field"><span>X 轴指标</span><select id="genericReportX" aria-label="散点图 X 轴指标"></select></label><label class="field"><span>Y 轴指标</span><select id="genericReportY" aria-label="散点图 Y 轴指标"></select></label></div><p class="note" data-generic-radar-note hidden>实际报告要求每项都有适用的评分规则和有效测量；缺少任一项时保留表格并说明原因，不补零。</p><p class="note" data-generic-target-note hidden>目标来自各记录采用的评价方案；没有适用目标的指标仍保留实测结果。</p><p class="field-error" role="status" data-generic-validation hidden></p><div class="generic-report-preview"><h3>图样预览 <span>示例数据 · 仅用于预览样式</span></h3><div id="genericReportPreview" aria-label="报告图样示例"></div></div></div>`;
+    section.innerHTML = `<legend>报告图表</legend><label class="generic-report-enable"><input id="genericReportEnabled" type="checkbox" ${enabled?"checked":""}>在报告中显示可视化图</label><p class="note" data-generic-layout-note>图表在左侧展示，右侧保留完整结果表。关闭后只展示表格。</p><div data-generic-options ${enabled?"":"hidden"}><h3 data-generic-cod hidden>变向赤字专用图</h3><div class="form-grid"><label class="field wide"><span>图表类型</span><select id="genericReportKind" aria-label="报告图表类型">${kinds.map(([kind,label]) => `<option value="${kind}">${label}</option>`).join("")}</select></label></div><p class="note" data-generic-kind-note></p><div data-generic-metrics><h3>展示指标与顺序</h3><ul class="generic-report-metrics" data-generic-metric-list aria-label="报告展示指标"></ul></div><div class="form-grid" data-generic-scatter hidden><label class="field"><span>X 轴指标</span><select id="genericReportX" aria-label="散点图 X 轴指标"></select></label><label class="field"><span>Y 轴指标</span><select id="genericReportY" aria-label="散点图 Y 轴指标"></select></label></div><p class="note" data-generic-radar-note hidden>实际报告要求每项都有适用的评分规则和有效测量；缺少任一项时保留表格并说明原因，不补零。</p><p class="note" data-generic-target-note hidden>目标来自各记录采用的评价方案；没有适用目标的指标仍保留实测结果。</p><p class="field-error" role="status" data-generic-validation hidden></p><div class="generic-report-preview"><h3>图样预览 <span>示例数据 · 仅用于预览样式</span></h3><div id="genericReportPreview" aria-label="报告图样示例"></div></div></div>`;
     const preview = host.querySelector("#catalogChangePreview");if (preview) host.insertBefore(section,preview);else host.append(section);
-    state = {section,catalog,testId,isNew,onChange,enabled,kind:enabled?view.kind:"bar",metricIds:(view?.metricIds || []).slice(),xMetricId:view?.xMetricId || "",yMetricId:view?.yMetricId || "",metrics:[],userSelectedMetrics:!!view};
+    state = {section,catalog,testId,isNew,onChange,enabled,originalView:view?JSON.parse(JSON.stringify(view)):null,cod:false,kind:enabled?view.kind:"bar",metricIds:(view?.metricIds || []).slice(),xMetricId:view?.xMetricId || "",yMetricId:view?.yMetricId || "",metrics:[],userSelectedMetrics:!!view};
     state.change = event => {
       const control = event.target;
       if (control.id === "genericReportEnabled") state.enabled = control.checked;

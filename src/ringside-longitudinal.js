@@ -89,13 +89,13 @@
       const statistic = group?.statistics.find(item => item.id === d.id);
       const rows = group?.attempts || [];
       add(d.id, { metricId: d.id, subjectId: "metric:" + d.id, testId: project.id, name: T.metricName(d), unit: d.unit, value: d.value,
-        preserveMissing:d.calculation?.kind==="cod-deficit",calculation:d.calculation?clone(d.calculation):undefined,
+        preserveMissing:d.calculation?.kind==="cod-deficit" && root.RingsideGenericReport.hasCODContent(project,[record]),calculation:d.calculation?clone(d.calculation):undefined,
         measurementScale: E.measurementScale(d), context: metricContext(record, d, stats), definition: d,
         statistics: statistic ? clone(statistic) : null, rawTrials: clone(rows), evaluation: evaluation || { grade: d.evaluation },
-        direction: comparisonDirection(record, d, evaluation), notes: [stats.calculationResults?.[d.id]?.reason,...rows.map(row => row.notes)].filter(Boolean).join("；") });
-      if(d.calculation?.kind==="cod-deficit"){
+        direction: comparisonDirection(record, d, evaluation), notes: rows.map(row => row.notes).filter(Boolean).join("；") });
+      if(d.calculation?.kind==="cod-deficit" && root.RingsideGenericReport.hasCODContent(project,[record])){
         const calculated=stats.calculationResults?.[d.id];
-        add(d.id+"_reference",{metricId:d.id+"_reference",testId:project.id,name:d.name+" · 直线参照",unit:"s",value:calculated?.reference,preserveMissing:true,measurementScale:"ratio",context:{...metricContext(record,d,stats),role:"reference"},canonicalDefinition:canonicalDefinition("lower"),notes:calculated?.reason||""});
+        add(d.id+"_reference",{metricId:d.id+"_reference",testId:project.id,name:d.name+" · 直线参照",unit:"s",value:calculated?.reference,preserveMissing:root.RingsideGenericReport.hasCODContent(project,[record]),measurementScale:"ratio",context:{...metricContext(record,d,stats),role:"reference"},canonicalDefinition:canonicalDefinition("lower"),notes:""});
       }
     }
     for (const item of evaluations) {

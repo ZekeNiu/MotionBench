@@ -17,6 +17,8 @@ function fixture(c=globalThis){
   r.data.calc_turn=[{id:"turn_a",metrics:{calc_turn_time:5}},{id:"turn_b",metrics:{calc_turn_time:4}}];
   r.calculationBindings={calc_deficit:{testId:"calc_run",metricId:"calc_total",distanceM:20}};
   r.testPlanSnapshot={id:"synthetic_calculation_plan",name:"合成计算方案",testIds:["calc_run","calc_turn"],calculationBindings:JSON.parse(JSON.stringify(r.calculationBindings))};
+  r.views.genericReports ||= {};
+  r.views.genericReports.calc_turn=c.RingsideGenericReport.createView(r,"calc_turn",{kind:"bar",metricIds:["calc_deficit"]});
   return M.normalizeRecord(r);
 }
 module.exports={context,fixture};

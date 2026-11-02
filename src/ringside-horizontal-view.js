@@ -45,7 +45,8 @@
     return `${cellHTML({value:b.mean,display:b.display,assessment:b.assessment},row,b.difference)}<small>${N(b.best)!==null?`${E(b.sampling==="period-mean"?"最佳个人期均":"最佳")} ${F(b.best,precision(row))} · `:""}n = ${F(b.n,0)}</small>${b.samplingLabel?`<small>${E(b.samplingLabel)}</small>`:""}`;
   }
   function table(rows,participants,{views={},print=false,wrapped=true,focusAthleteId="",referenceLabel="",referenceFocused=false}={}){
-    if(!rows?.length)return "";rows=contextLabels(rows);
+    if(!rows?.length)return "";
+    rows=contextLabels(rows.map(row=>({...row,cells:(row.cells||[]).map((cell,i)=>root.RingsideGenericReport.displayCODCell(cell,row,participants[i]?.record))})));
     const hasBenchmark=rows.some(r=>r.benchmark),groups=participants.length?chunks(participants.map((p,i)=>({p,i})),print?3:participants.length):[[]];
     const html=groups.map(group=>`<div class="table-wrap"><table class="longitudinal-results horizontal-results"${print?"":` style="min-width:${140+group.length*160+(hasBenchmark?180:0)}px"`}><colgroup><col class="horizontal-metric-column">${group.map(()=>'<col class="horizontal-person-column">').join("")}${hasBenchmark?'<col class="horizontal-reference-column">':""}</colgroup><thead><tr><th scope="col">指标</th>${group.map(({p})=>`<th scope="col"${p.athleteId===focusAthleteId?' class="horizontal-focus"':""}>${personHeader(p)}</th>`).join("")}${hasBenchmark?`<th scope="col" class="horizontal-reference${referenceFocused?" horizontal-focus":""}">${E(referenceLabel)}<small>群体结果</small></th>`:""}</tr></thead><tbody>${rows.map(row=>`<tr data-horizontal-metric="${E(row.id)}"><th scope="row">${E(row.name)}${row.unit?`<small>${E(row.unit)}</small>`:""}${row.contextLabel?`<small>${E(row.contextLabel)}</small>`:""}</th>${group.map(({p,i})=>`<td data-record-id="${E(p.recordId||p.id)}"${p.athleteId===focusAthleteId?' class="horizontal-focus"':""}>${cellHTML(row.cells?.[i],row,row.differences?.[i])}</td>`).join("")}${hasBenchmark?`<td class="horizontal-reference${referenceFocused?" horizontal-focus":""}">${benchmarkHTML(row)}</td>`:""}</tr>`).join("")}</tbody></table></div>`).join("");
     if(!wrapped)return html;
@@ -92,11 +93,17 @@
     const chosen=periods;if(!chosen.length)return "";
     const original=chosen.flatMap(p=>p.report.projects).find(p=>p.id===project.id),renderer=project.renderer||original?.renderer;
     const indexes=chosen.map(p=>model.participants.findIndex(q=>q.recordId===p.recordId)),metrics=(project.metrics||[]).map(r=>({...r,cells:indexes.map(i=>r.cells?.[i]?{...r.cells[i],comparableToPrevious:false}:null)}));
-    const specs=root.RingsideLongitudinalView.projectFigures({...original,...project,renderer,metrics},{...model,periods:chosen,displayRecord:model.displayRecord,projects:[{...original,...project,renderer,metrics}],capability:{cards:[],analyses:[]}},{specsOnly:true,views:{charts:views.charts||{}}});
+    const specs=root.RingsideLongitudinalView.projectFigures({...original,...project,renderer,metrics},{...model,periods:chosen,displayRecord:model.displayRecord,projects:[{...original,...project,renderer,metrics}],capability:{cards:[],analyses:[]}},{specsOnly:true,views:{charts:views.charts||{}},subjectKind:"athlete"});
     return specs.filter(s=>s.kind!=="notice").map(s=>curvePanel(withReference(s,project,reference,model),model,views)).join("");
   }
   function aggregateFigures(project,reference,model){
-    const supplied=reference.aggregateFigures?.[project.id],color=root.RingsideReportAppearance.theme.reference;
+    const color=root.RingsideReportAppearance.theme.reference,deficits=(project.metrics||[]).filter(row=>root.RingsideGenericReport.codRow(row)&&!root.RingsideGenericReport.codReference(row));
+    if(deficits.length){
+      const view=project.reportView||model.catalog?.reportViews?.[project.id];
+      if(view?.kind==="none")return [];
+      return deficits.map(row=>({kind:"bars",cod:true,subjectKind:"athlete",chartId:"aggregate:"+row.id,title:row.name,unit:row.unit,periods:[{id:reference.id,label:reference.label,date:"",color,kind:"reference"}],values:[{value:N(row.benchmark?.mean)}]}));
+    }
+    const supplied=reference.aggregateFigures?.[project.id];
     if(supplied?.length)return supplied.map(spec=>({...spec,subjectKind:"athlete",...Object.fromEntries(["series","periods","markers","horizontalMarkers"].filter(key=>Array.isArray(spec[key])).map(key=>[key,spec[key].map(item=>({...item,color,reference:true,...(key==="periods"?{kind:"reference"}:{})}))]))}));
     const rows=project.metrics||[],value=row=>N(row?.benchmark?.mean),period={id:reference.id,label:reference.label,date:"",color,kind:"reference"};
     const scalar=(row,kind)=>({kind,subjectKind:"athlete",chartId:"aggregate:"+row.id,title:row.name,unit:row.unit,periods:[period],values:[{value:value(row)}]});
@@ -107,8 +114,6 @@
     if(project.renderer==="speed")return rows.filter(row=>["mas_speed","mss_speed","ift_speed","ift_shuttle","ift_treadmill"].includes(row.metricId)&&value(row)!==null).map(row=>scalar(row,"bars"));
     if(project.renderer==="ball")return rows.filter(row=>value(row)!==null).map(row=>scalar(row,"bars"));
     if(project.renderer==="scalar"){
-      const deficits=rows.filter(row=>row.context?.calculation?.kind==="cod-deficit"&&row.context?.role!=="reference");
-      if(deficits.length)return deficits.filter(row=>value(row)!==null).map(row=>scalar(row,"bars"));
       const view=project.reportView||model.catalog?.reportViews?.[project.id];
       if(["bar","target","column"].includes(view?.kind))return rows.filter(row=>view.metricIds.includes(row.metricId)&&value(row)!==null&&meaning(row)==="numeric").map(row=>scalar(row,view.kind==="column"?"columns":"bars"));
       if(view?.kind==="radar"){
@@ -131,6 +136,7 @@
     const focus=model.presentation?.focus||views.focus||{},projects=reference.projects||model.projects||[],participantOptions={views,print,focusAthleteId:focus.kind==="athlete"?focus.id:"",referenceFocused:focus.kind==="reference"&&focus.id===reference.id,referenceLabel:reference.id==="direct"?"":reference.label};
     const renderer=project=>project.renderer||periods.flatMap(p=>p.report.projects).find(p=>p.id===project.id)?.renderer,isAnalysis=project=>["fvp","sprint-fvp"].includes(renderer(project));
     const section=category=>projects.filter(p=>category==="screen"?p.category==="screen":category==="capability"?isAnalysis(p):p.category!=="screen"&&!isAnalysis(p)).map(project=>{
+      if((project.metrics||[]).some(root.RingsideGenericReport.codRow)&&!root.RingsideGenericReport.hasCODContent(project,model.participants.map(person=>person.record)))return "";
       const figureSpecs=aggregateFigures({...project,renderer:renderer(project)},reference,model),charts=model.participants.length?individualFigures(project,model,views,periods,reference):figureSpecs.map(spec=>`<div class="horizontal-curve" data-horizontal-curve="${E(JSON.stringify(spec))}"></div>`).join("");
       const tables=root.RingsideLongitudinalView.projectTableSections({...project,renderer:renderer(project)}).map(part=>part.id?`<section class="longitudinal-iso-section" data-iso-section="${E(part.id)}"><h5 class="longitudinal-table-caption">${E(part.title)}</h5>${table(part.rows,model.participants,participantOptions)}</section>`:table(part.rows,model.participants,participantOptions)).join("");
       const codProject=(model.catalog?.definitions||model.displayRecord?.definitions||[]).some(d=>d.testId===project.id&&d.calculation?.kind==="cod-deficit");

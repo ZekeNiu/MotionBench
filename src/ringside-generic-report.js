@@ -92,11 +92,38 @@
     record.views.genericReports = views;
     return record;
   }
+  const codMetrics = (source, testId) => (source?.definitions || []).filter(d => d.testId === testId && d.calculation?.kind === "cod-deficit");
+  const codContext = row => row?.context || (row?.cells || []).find(cell => cell?.context?.calculation?.kind === "cod-deficit")?.context;
+  const codRow = row => (codContext(row)?.calculation || row?.calculation || row?.definition?.calculation)?.kind === "cod-deficit";
+  const codReference = row => codContext(row)?.role === "reference";
+  const automaticCODNotes = new Set(["缺少有效变向总时间", "尚未绑定直线参照", "本次记录未包含直线参照项目", "缺少有效直线参照时间"]);
+  const noteParts = value => (Array.isArray(value) ? value : String(value || "").split("；")).map(value => String(value).trim()).filter(Boolean);
+  function displayCODCell(cell, row, record) {
+    if (!cell || !codRow(row)) return cell;
+    const raw = record?.data?.[row.testId], trials = Array.isArray(raw) ? raw : raw?.trials || [];
+    const manual = new Set([...(cell.rawTrials || []), ...trials].flatMap(trial => noteParts(trial.notes)).concat(noteParts(record?.customValues?.[row.metricId || row.id]?.notes)));
+    const clean = value => noteParts(value).filter(note => !automaticCODNotes.has(note) || manual.has(note));
+    // Older frozen cells mixed calculation diagnostics into notes. Project only
+    // their display, recovering genuine notes from the unchanged source record.
+    const next = { ...cell, notes: [...new Set(clean(cell.notes).concat(noteParts(record?.customValues?.[row.metricId || row.id]?.notes)))].join("；") };
+    for (const key of ["displayNotes", "diagnosticNotes"]) if (Array.isArray(cell[key])) next[key] = clean(cell[key]);
+    for (const key of ["assessment", "display"]) if (cell[key]?.reason) next[key] = { ...cell[key], reason: clean(cell[key].reason).join("；") };
+    return next;
+  }
+  function hasCODContent(project, records = []) {
+    return (project.metrics || []).filter(row => !codReference(row)).some(row => num(row.value) !== null || num(row.benchmark?.mean) !== null || (row.cells || []).some((cell, i) => num(cell?.value) !== null || noteParts(displayCODCell(cell, row, records[i])?.notes).length)) ||
+      records.some(record => {
+        const raw = record?.data?.[project.id], trials = Array.isArray(raw) ? raw : raw?.trials || [];
+        return trials.some(trial => noteParts(trial.notes).length) || (record?.definitions || []).filter(d => d.testId === project.id).some(d => noteParts(record.customValues?.[d.id]?.notes).length);
+      });
+  }
   function buildChart(report, project) {
-    const deficits=report.record.definitions.filter(d=>d.testId===project.id&&d.calculation?.kind==="cod-deficit");
-    if(deficits.length){
-      const items=deficits.filter(d=>num(report.stats.values[d.id])!==null).map(d=>({id:d.id,label:d.name,value:report.stats.values[d.id],status:"gray"}));
-      return {kind:"bar",available:items.length>0,reason:deficits.map(d=>report.stats.calculationResults?.[d.id]?.reason).filter(Boolean).join("；"),panels:items.length?[{title:"变向差值",unit:"s",items}]:[]};
+    const deficits = codMetrics(report.record, project.id);
+    if (deficits.length) {
+      const view = project.reportView || resolveView(report.record, project.id);
+      if (view.kind === "none") return { kind:"none", available:false, reason:"", panels:[] };
+      const items = deficits.filter(d => num(report.stats.values[d.id]) !== null).map(d => ({ id:d.id, label:d.name, value:report.stats.values[d.id], status:"gray" }));
+      return { kind:"bar", available:items.length > 0, reason:"", panels:items.length ? [{title:"变向赤字",unit:"s",items}] : [] };
     }
     const record = report.record, computed = report.stats, view = project.reportView || resolveView(record, project.id);
     const result = { kind: view.kind, available: false, reason: "", panels: [] };
@@ -155,5 +182,5 @@
     if (!result.available && !result.reason) result.reason = view.kind === "scatter" ? "没有同一试次的有效 X、Y 配对" : view.kind === "trials" ? "选定指标没有有效试次数据" : "选定指标缺少有效结果";
     return result;
   }
-  root.RingsideGenericReport = { kinds: Object.freeze(kinds), validateViews, normalizeViews, createView, compatible, resolveView, freezeViews, buildChart };
+  root.RingsideGenericReport = { kinds: Object.freeze(kinds), validateViews, normalizeViews, createView, compatible, resolveView, freezeViews, buildChart, codMetrics, codRow, codReference, displayCODCell, hasCODContent };
 })(typeof window !== "undefined" ? window : globalThis);

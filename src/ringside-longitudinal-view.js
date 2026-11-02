@@ -111,8 +111,31 @@
       if(v!==null){out+=`<rect x="${Math.min(x(0),x(v))}" y="${y-11}" width="${Math.abs(x(v)-x(0))}" height="20" rx="3" fill="${E(p.color||C.blue)}"${p.latest?' data-latest-test-day="true"':""}/><title>${E(periodLabel(p)+" · "+(cell?.groupLabel||spec.title)+" "+F(v))}</title>`+text(right+4,y+4,F(v));if(!horizontal&&i&&cell?.groupId===spec.values[i-1]?.groupId&&cell.comparableToPrevious!==false&&N(spec.values[i-1]?.value)!==null)out+=line(x(spec.values[i-1].value),y-row,x(v),y,`stroke="${C.muted}" stroke-width="${p.strokeWidth||1.8}" data-observed-change="result"`);}else out+=text(left+8,y+4,"—");if(N(cell?.target)!==null)out+=line(x(cell.target),y-15,x(cell.target),y+15,`stroke="${C.muted}" stroke-dasharray="4 3"`);if(N(cell?.asrEnd)!==null&&v!==null&&cell.asrEnd>=v)out+=`<rect x="${x(v)}" y="${y-11}" width="${x(cell.asrEnd)-x(v)}" height="20" fill="none" stroke="${C.muted}" stroke-dasharray="4 3"/>`+text(x(v),y+28,"ASR "+F(cell.asrEnd-v)+" m/s",'font-size="9"');});
     return svg(w,h,spec.title,out)+(horizontal?"":recordLegend(spec.periods))+`<p class="longitudinal-chart-note">${E(spec.title+" · "+(spec.unit||""))}${horizontal?"":" · 连线为相邻实测变化"}</p>`;
   }
+  function codTrend(spec, width, print) {
+    const periods=spec.periods || [], values=spec.values || [], valid=values.some(cell=>N(cell?.value)!==null);
+    if (!valid) return empty();
+    const w=Math.max(250,Math.round(width)),h=print?290:330,left=56,right=w-20,top=43,bottom=h-65;
+    const dates=periods.map(period=>Date.parse(period.date+"T00:00:00Z")),lo=Math.min(...dates),hi=Math.max(...dates),span=hi-lo || 86400000;
+    const x=i=>hi===lo?(left+right)/2:left+(dates[i]-lo)/span*(right-left),yr=range(values.map(cell=>cell?.value),true),y=v=>bottom-(v-yr.min)/(yr.max-yr.min)*(bottom-top);
+    let out=text(left,20,spec.title+" · "+(spec.unit||"s"));
+    for(let i=0;i<=4;i++){const value=yr.min+(yr.max-yr.min)*i/4;out+=line(left,y(value),right,y(value))+text(left-8,y(value)+4,F(value,2),'text-anchor="end"');}
+    out+=line(left,bottom,right,bottom,`stroke="${C.muted}"`);
+    const ticks=[];
+    periods.forEach((period,i)=>{if(!ticks.length||x(i)-x(ticks.at(-1))>=52)ticks.push(i);});
+    if(periods.length&&ticks.at(-1)!==periods.length-1){if(ticks.length>1&&x(periods.length-1)-x(ticks.at(-1))<52)ticks.pop();ticks.push(periods.length-1);}
+    for(const i of ticks){const date=periods[i].date;out+=text(x(i),bottom+20,date.slice(0,4),'text-anchor="middle" font-size="10"')+text(x(i),bottom+36,date.slice(5),'text-anchor="middle" font-size="11"');}
+    values.forEach((cell,i)=>{const value=N(cell?.value),previous=N(values[i-1]?.value);
+      if(value===null)return;
+      if(i&&previous!==null&&cell.comparableToPrevious!==false)out+=line(x(i-1),y(previous),x(i),y(value),`stroke="${C.muted}" stroke-width="1.8" data-observed-change="result"`);
+      const period=periods[i],color=period.color||C.blue;
+      out+=dot(x(i),y(value),color,periodLabel(period)+" · "+F(value,2)+" "+(spec.unit||"s"),period.latest?4.5:4,'data-cod-point="'+i+'"')+text(x(i),y(value)-10,F(value,2),'text-anchor="middle"');
+    });
+    return svg(w,h,spec.title,out)+recordLegend(periods);
+  }
   function draw(spec,width=450,print=false) {
     const title=spec.showTitle===false?"":`<p class="longitudinal-chart-title">${E(spec.title)}</p>`;
+    if(spec.kind==="cod-trend")return title+codTrend(spec,width,print);
+    if(spec.cod&&!spec.values?.some(cell=>N(cell?.value)!==null))return empty();
     if(spec.kind==="radar")return title+(print?chunks(spec.series,4,spec.subjectKind!=="athlete"):[spec.series]).map(series=>printPanel(radar({...spec,series},width,print),print)).join("");
     if(["columns","bars"].includes(spec.kind)){
       const subjectWidth=spec.subjectKind==="athlete"?100:56,capacity=spec.kind==="columns"?Math.max(2,Math.floor((width-(spec.rsi?96:68))/subjectWidth)):5,items=spec.periods.map((p,i)=>({p,v:spec.values[i]})),groups=print?chunks(items,capacity,spec.subjectKind!=="athlete"):[items];
@@ -164,6 +187,7 @@
   }
   function table(rows,periods,{print=false,wrapped=true}={}) {
     if(!rows.length)return "";
+    rows=rows.map(row=>({...row,cells:row.cells.map((cell,i)=>root.RingsideGenericReport.displayCODCell(cell,row,periods[i]?.record))}));
     rows=rows.flatMap(row=>{
       const keys=[...new Set(row.cells.filter(Boolean).map(cell=>cell.contextKey).filter(Boolean))];if(keys.length<2)return[row];
       const flatten=(object,prefix="",result={})=>{for(const [key,value]of Object.entries(object||{})){const field=prefix?prefix+"."+key:key;if(value&&typeof value==="object"&&!Array.isArray(value))flatten(value,field,result);else result[field]=Array.isArray(value)?JSON.stringify(value):String(value??"");}return result;};
@@ -336,7 +360,7 @@
       else for(const [key,label,dash]of[["force","F₀ 改变",""],["velocity","V₀ 改变","5 3"],["both","F₀ 与 V₀ 同时改变","2 3"]]){if(view[{force:"responseForce",velocity:"responseVelocity",both:"responseBoth"}[key]]===false)continue;series.push(xySeries(p,label,(solved.sensitivity?.[key]||[]).map(q=>q.valid===false?null:{x:q.changePct,y:sprint?(q.timeGainPct??-q.deltaPct):q.deltaPct}),{dash,pointsVisible:false}));}}
     return{kind:"xy",section:"elasticity",chartId:id+":elasticity",sprint,displayOptions:override,rich:true,title:sprint?"冲刺FVP弹性框架":"跳跃FVP弹性框架 · "+(id==="fvp_cmj"?"CMJ":"SJ"),xLabel:kind==="distance"?"目标距离 · m":kind==="constraint"?"弹性比 ER":"参数改变 · %",yLabel:kind==="distance"?"Fₑ / vₑ / EN":kind==="constraint"?"弹性范数 EN":sprint?"预测冲刺时间改善 · %":"预测跳跃高度改变 · %",rightLabel:"ER",series};
   }
-  function projectFigures(project,model,{specsOnly=false,views={}}={}) {
+  function projectFigures(project,model,{specsOnly=false,views={},subjectKind="date"}={}) {
     model=displayModel(model);
     const periods=model.periods,rows=project.metrics || [],id=project.id,kind=project.renderer,specs=[];
     if(kind==="fms"){specs.push({kind:"radar",chartId:"fms",title:"FMS 动作表现",max:3,fms:true,axes:root.RingsideTests.fmsAbilities.map((label,i)=>({key:String(i),label})),series:periods.map(p=>({id:p.id,label:periodLabel(p),color:p.color,values:p.record.enabled.fms?p.stats.raw.fms?.scores || []:Array(7).fill(null)}))});}
@@ -368,7 +392,11 @@
     else if(kind==="lvp"){const options=displayOptions(project,model,null,views),actions=periods.flatMap(p=>(p.stats.lvpSeries||[]).filter(s=>(project.testIds||[id]).includes(s.testId)&&s.points.length)),actionChoices=[...new Map(actions.map(s=>[s.id,[s.id,s.label]])).values()],selected=new Set(options.selected||actionChoices.map(([key])=>key)),series=periods.flatMap(p=>(p.stats.lvpSeries||[]).filter(s=>(project.testIds||[id]).includes(s.testId)&&s.points.length&&selected.has(s.id)).map(s=>({...s,recordId:p.id,id:p.id+":"+s.id,estimate:s.est,label:periodLabel(p)+" · "+s.label,color:p.color,shape:({landmineR:"diamond",landmineL:"triangle",deadlift:"square"})[s.id]||"circle",dash:({landmineR:"5 3",landmineL:"2 3",deadlift:"6 3"})[s.id]||""})));specs.push({kind:"lvp",chartId:options.id,title:project.name+" · 负荷速度曲线",series,actionChoices,options,displayOptions:options});}
     else if(kind==="fvp"||kind==="sprint-fvp"){specs.push(fvpSpec(periods,id,displayOptions(project,model,"profile",views)),elasticitySpec(periods,id,displayOptions(project,model,"elasticity",views)));}
     else if(kind==="scalar"){
-      const models=periods.map(p=>{const test=p.report.projects.find(t=>t.id===id);return test?root.RingsideGenericReport?.buildChart(p.report,test):null;}),latest=models.filter(Boolean).at(-1);if(latest?.kind&&latest.kind!=="none"){
+      const models=periods.map(p=>{const test=p.report.projects.find(t=>t.id===id);return test?root.RingsideGenericReport?.buildChart(p.report,test):null;}),latest=models.filter(Boolean).at(-1);
+      const deficits=rows.filter(row=>root.RingsideGenericReport.codRow(row)&&!root.RingsideGenericReport.codReference(row));
+      if(deficits.length){
+        if(models.some(model=>model&&model.kind!=="none"))for(const row of deficits){const cells=row.cells.map((cell,i)=>models[i]&&models[i].kind!=="none"?cell:null);specs.push(rowSpec({...row,cells},periods,subjectKind==="athlete"?"bars":"cod-trend",{cod:true}));}
+      }else if(latest?.kind&&latest.kind!=="none"){
         const valid=models.map(m=>m?.available&&m.kind===latest.kind?m:null);
         if(["bar","target","column"].includes(latest.kind)){
           const chosen=new Set(valid.flatMap(m=>m?.panels?.flatMap(panel=>(panel.items||[]).map(item=>item.id))||[]));
@@ -404,6 +432,7 @@
     const nativeHTML=new Map(periods.map(p=>[p.id,root.RingsideReport.renderCapabilityAnalysis(displayReport(p),{print:true,showFvpMethod:true})]));
     const merge=(peers,id,name)=>{const metrics=peers.flatMap(p=>p.metrics);if(peers[0].renderer==="speed")for(const row of model.capability?.cards.find(card=>card.id==="speed")?.metrics || [])if(["asr","srr"].includes(row.metricId)&&!metrics.some(item=>item.metricId===row.metricId))metrics.push(row.metricId==="srr"?{...row,cells:row.cells.map((cell,index)=>cell?{...cell,notes:[cell.notes,periods[index].report.speedReference?.athleteType].filter(Boolean).join("；")}:null)}:row);return{...peers[0],id,name,peers,testIds:peers.flatMap(p=>p.testIds||[p.id]),metrics};};
     const projectHTML=project=>{
+      if((project.metrics||[]).some(root.RingsideGenericReport.codRow)&&!root.RingsideGenericReport.hasCODContent(project,periods.map(period=>period.record)))return "";
       const specifications=projectFigures(project,model,{specsOnly:true,views}),raw=periods.map(p=>project.renderer==="fms"?fmsRaw(p):extractDetails(project.renderer==="fvp"?nativeHTML.get(p.id):sourceHTML.get(p.id),project.testIds || [project.id],p)).join("");
       const pair=(charts,data)=>charts?`<div class="detail-pair longitudinal-pair" data-pdf-pair><div class="longitudinal-figures">${charts}</div><div class="detail-data">${data}</div></div>`:data;
       const figures=items=>project.renderer==="speed"?`<div class="longitudinal-speed-grid" data-longitudinal-grid="speed" data-period-count="${items.length}">${items.map(spec=>chartPanel(spec,model,views)).join("")}</div>`:items.map(spec=>chartPanel(spec,model,views)).join("");
