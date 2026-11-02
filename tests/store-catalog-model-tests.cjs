@@ -27,10 +27,8 @@ test("old shipped VIFT descriptions merge with neutral defaults without a false 
     assert.deepEqual(copy(local.definitions.find(d => d.id === "ift_treadmill")), localDefinition);
   }
 });
-test("VIFT catalog comparison preserves measurement differences", () => {
+test("VIFT catalog comparison preserves unit and naming conflicts but ignores method descriptions", () => {
   const mutations = [
-    c => c.definitions.find(d => d.id === "ift_treadmill").protocol += " 自定义条件",
-    c => c.protocol.ift = "实际测试条件不同",
     c => c.definitions.find(d => d.id === "ift_treadmill").unit = "m/min",
     c => c.definitions.find(d => d.id === "ift_treadmill").name = "自定义终末速度",
     c => c.tests.find(t => t.id === "ift").name = "自定义测试名称",

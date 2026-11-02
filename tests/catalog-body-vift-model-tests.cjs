@@ -132,14 +132,14 @@ test("exact old built-in VIFT descriptions match the neutral description in both
     assert.equal(effective.referenceEnabled, true); near(effective.target, 23.5 / 3.6);
   }
 });
-test("VIFT standard matching preserves unit and protocol identities while text is editable", () => {
+test("VIFT standard matching retains units and stable metric IDs while ignoring old method metadata", () => {
   const r=record("ift");r.data.ift.speed=6;r.data.ift.protocol="treadmill";r.definitions.find(d=>d.id==="ift_treadmill").referenceEnabled=true;
   const profile=E.create(r);
-  for(const mutate of [rule=>rule.context.unit="km/h",rule=>rule.context.protocolIdentity.version++,rule=>rule.context.metricProtocolIdentity.version++]){
+  for(const mutate of [rule=>rule.context.unit="km/h"]){
     const p=E.normalizeProfile(copy(profile)),rule=p.standards.find(d=>d.metricId==="ift_treadmill");mutate(rule);
     assert.equal(E.resolve(r,p).definitions.find(d=>d.id==="ift_treadmill").referenceEnabled,false);
   }
-  const prose=E.normalizeProfile(copy(profile)),rule=prose.standards.find(d=>d.metricId==="ift_treadmill");rule.context.protocol="说明修订";rule.context.metricProtocol="措辞修订";
+  const prose=E.normalizeProfile(copy(profile)),rule=prose.standards.find(d=>d.metricId==="ift_treadmill");rule.context.protocol="说明修订";rule.context.metricProtocol="措辞修订";rule.context.protocolIdentity={id:"old_project",version:5};rule.context.metricProtocolIdentity={id:"old_metric",version:8};
   assert.equal(E.resolve(r,prose).definitions.find(d=>d.id==="ift_treadmill").referenceEnabled,true);
   const onlyShuttle=E.normalizeProfile(copy(profile));onlyShuttle.standards=onlyShuttle.standards.filter(d=>d.metricId!=="ift_treadmill");
   assert.equal(E.resolve(r,onlyShuttle).definitions.find(d=>d.id==="ift_treadmill").target,null);

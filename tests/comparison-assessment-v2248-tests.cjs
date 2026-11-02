@@ -98,7 +98,7 @@ function run() {
     for (const kind of ["disabled", "mismatched", "missing", "unconfigured"]) {
       const fixture = assessmentFixture(env, createFixture), standard = fixture.profile.standards.find(item => item.metricId === "cmj_height");
       if (kind === "disabled") standard.enabled = false;
-      if (kind === "mismatched") fixture.records.forEach(record => record.protocolIdentities.cmj.version++);
+      if (kind === "mismatched") standard.context.unit = "incompatible";
       if (kind === "missing") fixture.records.forEach(record => record.data.cmj = []);
       if (kind === "unconfigured") Object.assign(standard, { targetEnabled: false, rangesEnabled: false, ranges: [], target: null });
       const changed = L.build(fixture.records, fixture), metric = row(changed, "cmj_height"); if (!metric) continue;

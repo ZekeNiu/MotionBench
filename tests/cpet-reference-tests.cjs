@@ -49,11 +49,11 @@ test("old empty factory RSI upgrades while user-edited standards survive",()=>{
  const r=fixture(),old={id:"legacy_factory",name:"旧工厂方案",revision:1,criteria:E.capture(r),isoReferencesVersion:1},d=old.criteria.definitions.find(d=>d.id==="dj_rsi"),custom=old.criteria.definitions.find(d=>d.id==="hop_rsi");Object.assign(d,{target:null,ranges:[],referenceEnabled:false,source:"用户配置评价标准",protocol:"使用实际测试协议与匹配评价标准"});custom.target=7;custom.source="我的标准";
  old.criteria.definitions=old.criteria.definitions.filter(d=>d.testId!=="cpet");const lib={evaluationProfiles:[old]};assert.equal(E.upgradeLibraryProfiles(lib),true);const p=lib.evaluationProfiles[0];assert.equal(p.formatVersion,2);assert.equal(p.standards.find(d=>d.id==="metric:dj_rsi").enabled,true);assert.equal(p.standards.find(d=>d.id==="metric:hop_rsi").target,7);assert.equal(p.standards.find(d=>d.id==="metric:hop_rsi").source,"我的标准");assert.equal(p.standards.find(d=>d.id==="metric:cpet_vo2_relative").referenceGroups.length,28);assert.equal(p.previous.standards.find(d=>d.id==="metric:dj_rsi").enabled,false);const rev=p.revision;assert.equal(E.upgradeLibraryProfiles(lib),false);assert.equal(p.revision,rev);E.validateProfile(p);p.standards=[];assert.equal(E.upgradeLibraryProfiles(lib),false);assert.equal(p.standards.length,0);
 });
-test("paired DJ/Hop standards require both measurement protocols to match",()=>{
+test("paired DJ/Hop standards survive description and legacy identity changes",()=>{
  const r=fixture();r.enabled.dj=true;r.enabled.hop=true;r.protocol.dj="45 cm three-trial mean";r.protocol.hop="ten jumps best five FT/CT";
  const d=r.definitions.find(d=>d.id==="rqr");assert.ok(d);d.referenceEnabled=true;d.ranges=[{min:1,max:null,label:"自定义标准",status:"green"}];const p=E.create(r);
- assert.equal(E.resolve(r,p).definitions.find(d=>d.id==="rqr").referenceEnabled,true);assert.equal(E.template(p).protocol.hop,r.protocol.hop);
- r.protocol.hop="five-jump mean";r.protocolIdentities.hop.version++;const resolved=E.resolve(r,p).definitions.find(d=>d.id==="rqr");assert.equal(resolved.referenceEnabled,false);assert.equal(resolved.ranges.length,0);
+ assert.equal(E.resolve(r,p).definitions.find(d=>d.id==="rqr").referenceEnabled,true);assert.deepEqual(json(E.template(p).definitions.find(d=>d.id==="rqr").ranges),json(d.ranges));
+ r.protocol.hop="five-jump mean";M.stampProtocolIdentities(r);r.protocolIdentities.hop.version++;const resolved=E.resolve(r,p).definitions.find(d=>d.id==="rqr");assert.equal(resolved.referenceEnabled,true);assert.ok(resolved.ranges.length>0);
 });
 test("precise factory aliases migrate independently of grades and preserve custom and rollback text",()=>{
  const r=fixture(),p={id:"legacy_alias",name:"旧方案",revision:1,criteria:E.capture(r),isoReferencesVersion:1,builtinStandardsVersion:1};

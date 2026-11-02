@@ -12,6 +12,20 @@ function context(revision) {
   return c;
 }
 const c = context(), old = context(baselineRevision), M = c.RingsideModel, E = c.RingsideEvaluation;
+function historicalResolved(record, profile) {
+  const legacyRecord = copy(record); old.RingsideModel.stampProtocolIdentities(legacyRecord);
+  const legacyProfile = copy(profile), contexts = old.RingsideEvaluation.create(legacyRecord);
+  for (const rule of legacyProfile.standards) {
+    const original = contexts.standards.find(item => item.id === rule.id);
+    if (original) rule.context = copy(original.context);
+  }
+  for (const [id, setting] of Object.entries(legacyProfile.settings.lvp)) {
+    const original = contexts.settings.lvp[id];
+    if (original) Object.assign(setting, { protocol: original.protocol, protocolIdentity: original.protocolIdentity });
+  }
+  return old.RingsideEvaluation.resolve(legacyRecord, legacyProfile);
+}
+const historicalBasis = (record, profile) => old.RingsideModel.fingerprint(historicalResolved(record, profile));
 let passed = 0;
 function test(name, run) { run(); passed++; console.log("PASS " + name); }
 function near(actual, expected) { assert.ok(Number.isFinite(actual) && Math.abs(actual - expected) < 1e-8, actual + " != " + expected); }
@@ -70,7 +84,7 @@ test("mean still uses fixed members, equal weights and only its own explicit gra
   r.data.sj = []; assert.equal(axis(r, p), undefined);
 });
 test("missing disabled inapplicable or incompatible primary results never select another measured metric", () => {
-  for (const fail of [(r, p) => r.data.cmj = [], (r, p) => rule(p, "cmj_height").enabled = false, (r, p) => rule(p, "cmj_height").conditions = { sex: "female" }, (r, p) => r.protocolIdentities.cmj.version++]) {
+  for (const fail of [(r, p) => r.data.cmj = [], (r, p) => rule(p, "cmj_height").enabled = false, (r, p) => rule(p, "cmj_height").conditions = { sex: "female" }, (r, p) => rule(p, "cmj_height").context.unit = "incompatible"]) {
     const { r, p } = fixture(); primary(p); fail(r, p); assert.equal(axis(r, p), undefined);
   }
 });
@@ -114,12 +128,12 @@ test("demographic ages use inclusive lower exclusive upper and retain true unmat
   for (const [age, matched] of [[20, true], [29, true], [30, false]]) { r.athlete.age = age; const resolved = E.resolve(r, p).definitions.find(item => item.id === "cmj_height"); assert.equal(resolved.referenceMatch.eligible, matched); }
 });
 test("valid implicit old primary and explicit equivalent ratio retain the historical narrative fingerprint", () => {
-  const { r, p } = fixture(); primary(p); const baseline = old.RingsideModel.fingerprint(old.RingsideEvaluation.resolve(copy(r), copy(p)));
+  const { r, p } = fixture(); primary(p); const baseline = historicalBasis(r, p);
   assert.equal(M.fingerprint(E.resolve(r, p)), baseline); p.aggregations["ability:下肢爆发力"].scoringVersion = 1; p.aggregations["ability:下肢爆发力"].transforms = { "metric:cmj_height": higher }; assert.equal(M.fingerprint(E.resolve(r, p)), baseline);
 });
 test("old primary ignores leftover mean transforms until its scoring version is explicitly enabled", () => {
   const { r, p } = fixture(); primary(p); p.aggregations["ability:下肢爆发力"].transforms = { "metric:cmj_height": { kind: "anchors", shape: "higher", points: [{ value: 0, score: 0 }, { value: 80, score: 100 }] } };
-  near(axis(r, p).value, 80); const baseline = old.RingsideModel.fingerprint(old.RingsideEvaluation.resolve(copy(r), copy(p))); assert.equal(M.fingerprint(E.resolve(r, p)), baseline);
+  near(axis(r, p).value, 80); const baseline = historicalBasis(r, p); assert.equal(M.fingerprint(E.resolve(r, p)), baseline);
   p.aggregations["ability:下肢爆发力"].scoringVersion = 1; near(axis(r, p).value, 50); assert.notEqual(M.fingerprint(E.resolve(r, p)), baseline);
 });
 test("primary anchor and table changes are never erased as default representative settings", () => {
@@ -129,7 +143,7 @@ test("primary anchor and table changes are never erased as default representativ
   primary(p, "cmj_height", { kind: "table", ranges: [{ min: 0, max: null, score: 70 }] }); assert.notEqual(M.fingerprint(E.resolve(r, p)), anchors);
 });
 test("removing a previously implicit v2 ability changes the stale narrative basis", () => {
-  const { r, p } = fixture(); const baseline = old.RingsideModel.fingerprint(old.RingsideEvaluation.resolve(copy(r), copy(p))); assert.notEqual(M.fingerprint(E.resolve(r, p)), baseline);
+  const { r, p } = fixture(); const baseline = historicalBasis(r, p); assert.notEqual(M.fingerprint(E.resolve(r, p)), baseline);
 });
 test("names report folds and manual narrative remain outside the scoring basis", () => {
   const { r, p } = fixture(); primary(p); const before = M.fingerprint(E.resolve(r, p)), raw = JSON.stringify(r.data);
@@ -139,8 +153,8 @@ test("names report folds and manual narrative remain outside the scoring basis",
 test("ISO literature references targets grades ratios and directions remain byte-equivalent to the baseline", () => {
   const r = M.defaults(); r.enabled.iso = true; r.athlete.age = 25; r.athlete.sex = "男"; r.athlete.mass = 80; r.athlete.dominantHand = "右";
   const p = E.create(r); const iso = p.standards.find(item => item.kind === "iso" && item.reference), row = r.data.iso.find(item => item.id === iso.directionId); row.left = 10; row.right = 10;
-  const current = M.stats(E.resolve(r, p)), prior = old.RingsideModel.stats(old.RingsideEvaluation.resolve(copy(r), copy(p)));
-  assert.deepEqual(copy(current.isoAnalyses), copy(prior.isoAnalyses)); assert.deepEqual(copy(current.balanceResults), copy(prior.balanceResults)); assert.deepEqual(copy(current.evaluationResults.filter(item => item.kind === "iso" || item.kind === "balance")), copy(prior.evaluationResults.filter(item => item.kind === "iso" || item.kind === "balance")));
+  const current = M.stats(E.resolve(r, p)), prior = old.RingsideModel.stats(historicalResolved(r, p));
+  assert.deepEqual(M.measurementCompatibility(copy(current.isoAnalyses)), M.measurementCompatibility(copy(prior.isoAnalyses))); assert.deepEqual(M.measurementCompatibility(copy(current.balanceResults)), M.measurementCompatibility(copy(prior.balanceResults))); assert.deepEqual(copy(current.evaluationResults.filter(item => item.kind === "iso" || item.kind === "balance")), copy(prior.evaluationResults.filter(item => item.kind === "iso" || item.kind === "balance")));
 });
 test("primary transforms shared rules releases IDs and raw measurements survive standalone export and import", () => {
   const { r, p } = fixture(); primary(p, "cmj_height", { kind: "anchors", shape: "higher", points: [{ value: 0, score: 0 }, { value: 80, score: 100 }] });

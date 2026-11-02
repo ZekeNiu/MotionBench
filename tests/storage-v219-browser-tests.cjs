@@ -1,7 +1,7 @@
 "use strict";
 const fs=require("node:fs"),path=require("node:path"),assert=require("node:assert/strict"),vm=require("node:vm"),crypto=require("node:crypto");
 const {execFileSync}=require("node:child_process"),{pathToFileURL}=require("node:url"),{chromium}=require("./helpers/playwright.cjs");
-const root=path.resolve(__dirname,".."),source=path.join(root,"MotionBench.html"),channel=process.argv.includes("--edge")?"msedge":"chrome";
+const root=path.resolve(__dirname,".."),source=path.resolve(root,process.argv.includes("--source")?process.argv[process.argv.indexOf("--source")+1]:"MotionBench.html"),channel=process.argv.includes("--edge")?"msedge":"chrome";
 const artifactOption=process.argv.indexOf("--artifact-dir"),artifactArg=process.argv.find(arg=>arg.startsWith("--artifact-dir="))?.slice(15) || (artifactOption>=0?process.argv[artifactOption+1]:undefined);
 if(artifactOption>=0&&(!artifactArg||artifactArg.startsWith("--")))throw Error("--artifact-dir requires a directory");
 const out=path.resolve(root,artifactArg||"output/playwright/v2.19.0/storage"),relativeOut=path.relative(path.join(root,"output"),out);
@@ -75,7 +75,7 @@ function legacyLibrary(){
       },old);
       assert.equal(value.changed,true);assert.equal(value.idempotent,null);assert.equal(value.retained,true);assert.equal(value.restored,true);assert.deepEqual(value.rawRecord,old.athletes[0].records[0]);assert.deepEqual(value.rawProfiles,old.evaluationProfiles);
       assert.equal(value.first.narrative.text,old.athletes[0].records[0].narrative.text);
-      const measurements=structuredClone(value.first.data);for(const row of measurements.iso){assert.equal(row.protocolIdentity.version,1);delete row.protocolIdentity;}
+      const measurements=structuredClone(value.first.data);for(const row of measurements.iso){assert.equal(row.protocolIdentity,undefined);}
       assert.deepEqual(measurements,old.athletes[0].records[0].data);
       const rows=value.backup.trim().split("\n").map(JSON.parse);assert.deepEqual(rows.find(r=>r.type==="record").value,old.athletes[0].records[0]);assert.deepEqual(rows.find(r=>r.type==="profile").value,old.evaluationProfiles[0]);
       fs.writeFileSync(path.join(out,channel+"-migration-report.json"),JSON.stringify(value.report,null,2));fs.writeFileSync(path.join(out,channel+"-raw-upgrade-backup.jsonl"),value.backup);

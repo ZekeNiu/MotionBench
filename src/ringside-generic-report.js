@@ -8,18 +8,15 @@
   const none = () => ({ version: 1, kind: "none", metricIds: [] });
   const scope = definition => definition.entryScope === "attempt" ? "attempt" : "record";
   const identity = value => plain(value) && safe(value.id) && Number.isSafeInteger(value.version) && value.version >= 1 && Object.keys(value).every(key => ["id", "version"].includes(key));
-  const sameIdentity = (left, right) => identity(left) && identity(right) && left.id === right.id && left.version === right.version;
   const projects = source => root.RingsideTests.describe(source);
   const generic = (source, id) => projects(source).find(project => project.id === id && project.renderer === "scalar");
   function signature(source, testId, metricIds) {
-    const M = root.RingsideModel;
     return {
       testId,
-      projectProtocol: clone(source.protocolIdentities?.[testId] || M.protocolIdentity("test:" + testId, source.protocol?.[testId] || "")),
       metrics: metricIds.map(id => {
         const d = source.definitions.find(definition => definition.id === id && definition.testId === testId);
         if (!d) throw Error("报告图表包含未知指标：" + id);
-        return { id, unit: d.unit || "", entryScope: scope(d), protocolIdentity: clone(d.protocolIdentity || M.protocolIdentity("metric:" + id, d.protocol || "")) };
+        return { id, unit: d.unit || "", entryScope: scope(d) };
       }),
     };
   }
@@ -35,12 +32,12 @@
           !view.metricIds.includes(view.xMetricId) || !view.metricIds.includes(view.yMetricId)) throw Error("散点图须选择两个不同的试次指标");
     } else if (view.xMetricId !== undefined || view.yMetricId !== undefined) throw Error("只有散点图可以配置 X、Y 指标");
     const b = view.binding;
-    if (!plain(b) || b.testId !== testId || !identity(b.projectProtocol) ||
+    if (!plain(b) || b.testId !== testId || b.projectProtocol !== undefined && !identity(b.projectProtocol) ||
         Object.keys(b).some(key => !["testId", "projectProtocol", "metrics"].includes(key)) ||
         !Array.isArray(b.metrics) || b.metrics.length !== view.metricIds.length) throw Error("报告图表测量匹配信息无效");
     b.metrics.forEach((d, index) => {
       if (!plain(d) || d.id !== view.metricIds[index] || typeof d.unit !== "string" || !["record", "attempt"].includes(d.entryScope) ||
-          !identity(d.protocolIdentity) || Object.keys(d).some(key => !["id", "unit", "entryScope", "protocolIdentity"].includes(key))) throw Error("报告图表指标匹配信息无效");
+          d.protocolIdentity !== undefined && !identity(d.protocolIdentity) || Object.keys(d).some(key => !["id", "unit", "entryScope", "protocolIdentity"].includes(key))) throw Error("报告图表指标匹配信息无效");
       if (source && !source.definitions.some(definition => definition.id === d.id && definition.testId === testId)) throw Error("报告图表包含未知指标：" + d.id);
       if (["trials", "scatter"].includes(view.kind) && d.entryScope !== "attempt") throw Error("试次图表只能选择试次指标");
     });
@@ -69,9 +66,9 @@
     try {
       validateView(view, testId, source);
       const actual = signature(source, testId, view.metricIds), b = view.binding;
-      return sameIdentity(b.projectProtocol, actual.projectProtocol) && b.metrics.every((d, i) => {
+      return b.metrics.every((d, i) => {
         const match = actual.metrics[i];
-        return d.id === match.id && d.unit === match.unit && d.entryScope === match.entryScope && sameIdentity(d.protocolIdentity, match.protocolIdentity);
+        return d.id === match.id && d.unit === match.unit && d.entryScope === match.entryScope;
       });
     } catch (_) { return false; }
   }
@@ -104,7 +101,7 @@
     const record = report.record, computed = report.stats, view = project.reportView || resolveView(record, project.id);
     const result = { kind: view.kind, available: false, reason: "", panels: [] };
     if (view.kind === "none") return result;
-    if (!compatible(view, record, project.id)) return { ...result, reason: "图表设置与本次测量协议或指标定义不匹配" };
+    if (!compatible(view, record, project.id)) return { ...result, reason: "图表设置与本次指标或单位不匹配" };
     const definitions = view.metricIds.map(id => record.definitions.find(d => d.id === id && d.testId === project.id));
     const evaluation = id => (computed.evaluationResults || []).find(item => item.subjectId === "metric:" + id);
     const label = d => root.RingsideTests.metricName(d);

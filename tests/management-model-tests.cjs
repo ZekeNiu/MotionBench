@@ -9,11 +9,11 @@ test("migrated sample preserves calculation and analysis basis",()=>{
  const r=M.normalizeRecord(M.sampleRecord()),l=E.migrate(M.recordEnvelope(r)),p=l.evaluationProfiles[0],resolved=E.resolve(l.athletes[0].records[0],p);
  assert.deepEqual(calculations(resolved),calculations(r));assert.equal(M.fingerprint(resolved),M.fingerprint(r));E.validateProfile(p);
 });
-test("identical criteria merge while different targets and protocols stay distinct",()=>{
+test("identical criteria merge across method descriptions while different targets stay distinct",()=>{
  const r=M.normalizeRecord(M.sampleRecord()),s=json(r),t=json(r);s.recordId="second";t.recordId="third";t.definitions[0].target=123;
  const lib={...M.libraryDefaults(),athletes:[{id:r.athleteId,name:"A",records:[r,s,t]}],activeAthleteId:r.athleteId,activeRecordId:r.recordId};
  const migrated=E.migrate(lib);assert.equal(migrated.evaluationProfiles.length,2);assert.equal(migrated.athletes[0].records[0].evaluationProfileId,migrated.athletes[0].records[1].evaluationProfileId);
- const altered=json(r);altered.protocol.cmj+=" other";assert.notEqual(E.signature(E.capture(r)),E.signature(E.capture(altered)));
+ const altered=json(r);altered.protocol.cmj+=" other";assert.equal(E.signature(E.capture(r)),E.signature(E.capture(altered)));
 });
 test("updating a shared scheme changes only linked evaluation and never raw input",()=>{
  const r=M.normalizeRecord(M.sampleRecord()),before=json(r),p=E.create(r);p.criteria.definitions.find(d=>d.id==="cmj_height").target=100;
@@ -24,13 +24,13 @@ test("names and revisions alone do not stale narrative",()=>{
  assert.equal(M.fingerprint(E.resolve(r,p)),basis);
 });
 test("force, unit and protocol incompatibility disables grading without relabelling measurements",()=>{
- const r=M.normalizeRecord(M.sampleRecord()),p=E.create(r);r.cmjConfig.definition="net";r.protocolIdentities.mas.version++;
- const v=E.resolve(r,p);assert.equal(v.cmjConfig.definition,"net");assert.equal(v.definitions.find(d=>d.id==="cmj_height").referenceEnabled,true);assert.equal(v.definitions.find(d=>d.id==="cmj_peak_force").referenceEnabled,false);assert.equal(v.definitions.find(d=>d.testId==="mas").target,null);
+ const r=M.normalizeRecord(M.sampleRecord()),p=E.create(r);r.cmjConfig.definition="net";M.stampProtocolIdentities(r);r.protocolIdentities.mas.version++;
+ const v=E.resolve(r,p);assert.equal(v.cmjConfig.definition,"net");assert.equal(v.definitions.find(d=>d.id==="cmj_height").referenceEnabled,true);assert.equal(v.definitions.find(d=>d.id==="cmj_peak_force").referenceEnabled,false);assert.equal(v.definitions.find(d=>d.testId==="mas").target,p.criteria.definitions.find(d=>d.testId==="mas").target);
 });
-test("isometric targets follow schemes but protocol changes never reuse old targets",()=>{
- const r=M.normalizeRecord(M.sampleRecord()),p=E.create(r);p.criteria.iso[0].target=999;const id=p.criteria.iso[0].id;
+test("isometric targets follow schemes across legacy method versions",()=>{
+ const r=M.normalizeRecord(M.sampleRecord()),p=E.create(r);M.stampProtocolIdentities(r);p.criteria.iso[0].target=999;const id=p.criteria.iso[0].id;
  assert.equal(E.resolve(r,p).data.iso.find(x=>x.id===id).target,999);r.protocolIdentities.iso.version++;
- assert.equal(E.resolve(r,p).data.iso.find(x=>x.id===id).target,"");
+ assert.equal(E.resolve(r,p).data.iso.find(x=>x.id===id).target,999);
 });
 test("LVP parameters never change recorded velocity definitions",()=>{
  const r=M.normalizeRecord(M.sampleRecord()),p=E.create(r);p.criteria.lvp.bench.mvt=.2;p.criteria.lvp.bench.metric="PV";

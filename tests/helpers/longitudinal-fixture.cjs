@@ -31,6 +31,8 @@ function createFixture(root = globalThis, count = 3) {
     for (const [id, name, unit, scale] of [["long_time", "完成用时", "s", "ratio"], ["long_pct", "比例", "%", "ratio"], ["long_unknown", "自定义读数", "自定", "unknown"]]) record.definitions.push({ id, testId: "long_generic", name, unit, measurementScale: scale, entryScope: "attempt", cvEligible: scale === "ratio", direction: id === "long_time" ? "lower" : "higher", category: "performance", ability: "冲刺速度", protocol: "固定合成协议", ranges: [], target: id === "long_time" ? 8 : 100, referenceEnabled: true });
     record.data.long_generic = [0, 1, 2].map(i => ({ id: "generic" + i, metrics: { long_time: 12 - index + i * .1, long_pct: 10 + index * 5, long_unknown: 50 + index }, notes: i === 0 ? "通用试次备注" : "" }));
     const normalized = M.normalizeRecord(record);
+    // Explicit old-format fixture: production no longer creates method identities.
+    M.stampProtocolIdentities(normalized);
     normalized.views.genericReports = { long_generic: G.createView(normalized, "long_generic", { kind: "column", metricIds: ["long_time"] }) };
     records.push(normalized);
   }

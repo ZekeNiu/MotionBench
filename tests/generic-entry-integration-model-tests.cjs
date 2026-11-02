@@ -21,19 +21,21 @@ function fixture() {
   const record = M.recordFromCatalog(catalogue, { name: "Synthetic entry record" }, { [id]: true });
   record.data[id] = [{ id: "trial1", metrics: { [metricId]: 100 } }, { id: "trial2", metrics: { [metricId]: 120 } }];
   record.narrative.text = "人工正文";
+  // Preserve an explicit historical identity fixture, never a production default.
+  M.stampProtocolIdentities(record);
   return { catalogue, record, id, metricId };
 }
 function expose(record, catalogue) {
   c.state = record; c.library = { catalog: catalogue, athletes: [{ records: [copy(record)] }] };
   vm.runInContext("blocked=false;scopeConflict=false;", c);
 }
-test("first inclusion copies generated project protocol identity and produces a compatible current chart", () => {
+test("first inclusion needs no project protocol identity and produces a compatible current chart", () => {
   const { catalogue, record, id } = fixture(); record.catalogAppliedTests = []; delete record.protocolIdentities[id]; delete record.views.genericReports[id];
   expose(record, catalogue); assert.equal(c.installProject(id), true);
-  assert.deepEqual(copy(record.protocolIdentities[id]), copy(catalogue.protocolIdentities[id]));
+  assert.equal(record.protocolIdentities[id], undefined);
   assert.equal(G.resolveView(record, id, catalogue).kind, "bar");
   assert.equal(record.views.genericReports[id].kind, "bar"); assert.equal(G.resolveView(record, id).kind, "bar");
-  assert.equal(M.normalizeRecord(record).protocolIdentities[id].id, "protocol_project_entry_generic");
+  assert.equal(M.normalizeRecord(record).protocolIdentities[id], undefined);
 });
 test("explicit current-record update copies changed measurement identity without rewriting other records", () => {
   const { catalogue, record, id, metricId } = fixture(), raw = copy(record.data), frozenHistory = copy(record);
@@ -42,7 +44,7 @@ test("explicit current-record update copies changed measurement identity without
   catalogue.reportViews[id] = G.createView(catalogue, id, { kind: "column", metricIds: [metricId] });
   expose(record, catalogue); const historyBefore = JSON.stringify(c.library.athletes);
   assert.equal(c.installProject(id, true), true);
-  assert.equal(record.protocolIdentities[id].version, 2); assert.equal(record.definitions.find(d => d.id === metricId).protocolIdentity.version, 2);
+  assert.equal(record.protocolIdentities[id].version, 1); assert.equal(record.definitions.find(d => d.id === metricId).protocolIdentity.version, 2);
   assert.equal(G.resolveView(record, id, catalogue).kind, "column"); assert.deepEqual(copy(record.data), raw);
   assert.equal(G.resolveView(record, id).kind, "column");
   assert.equal(record.narrative.text, "人工正文"); assert.equal(JSON.stringify(c.library.athletes), historyBefore);
@@ -81,7 +83,7 @@ test("re-entering an already-installed project preserves historical definitions 
   expose(record, catalogue); assert.equal(c.installProject(id), true);
   assert.deepEqual(copy(record.protocolIdentities[id]), before.identity); assert.equal(record.protocol[id], before.protocol);
   assert.deepEqual(copy(record.definitions.find(d => d.id === metricId)), before.definition); assert.deepEqual(copy(record.data), before.raw); assert.deepEqual(copy(record.views), before.views);
-  assert.equal(G.resolveView(record, id, catalogue).kind, "bar");
+  assert.equal(G.resolveView(record, id, catalogue).kind, "column");
 });
 test("blocked first inclusion and incompatible entry-level updates fail before touching the record", () => {
   for (const guard of ["blocked", "scopeConflict"]) {

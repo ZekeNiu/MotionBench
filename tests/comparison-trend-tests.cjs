@@ -35,7 +35,7 @@ test('capability parameters retain the original range provenance instead of gues
 test('disabled mismatched missing and ambiguous evaluations never acquire a display grade',()=>{
  for(const setup of [f=>f.profile.standards.find(r=>r.metricId==='cmj_height').enabled=false,
   f=>f.records.forEach(r=>r.data.cmj=[]),
-  f=>f.records.forEach(r=>r.protocolIdentities.cmj.version++),
+  f=>f.profile.standards.find(r=>r.metricId==='cmj_height').context.unit='incompatible',
   f=>{const rule=f.profile.standards.find(r=>r.metricId==='cmj_height');rule.ranges=[{min:0,max:42,includeMax:true,label:'A',status:'amber'},{min:42,max:100,includeMin:true,label:'B',status:'green'}];f.records.forEach(r=>r.data.cmj.forEach(t=>t.height=42));}]){
   const f=createFixture(c,3);setup(f);const m=L.build(f.records,f),row=metric(m,'cmj_height');if(row)assert.ok(row.cells.filter(Boolean).every(cell=>!cell.display.visible));
  }
@@ -86,8 +86,8 @@ test('all selected periods survive one shared trend in screen and print projecti
   for(const out of[html,V.table(data.rows,data.periods,{print:true,wrapped:false})]){assert.equal((out.match(/>变化趋势<\/th>/g)||[]).length,1);assert.equal((out.match(/data-trend-point=/g)||[]).length,count);assert.doesNotMatch(out,/首末变化|近期变化|起点|终点/);}assert.equal(JSON.stringify(row),before);
  }
 });
-test('gaps and incompatible protocols break segments without skipping selected dates',()=>{
- const f=createFixture(c,8);f.records[2].data.cmj=[];f.records[5].protocolIdentities.cmj.version++;
+test('gaps and incompatible units break segments without skipping selected dates',()=>{
+ const f=createFixture(c,8);f.records[2].data.cmj=[];f.records[5].definitions.find(d=>d.id==='cmj_height').unit='incompatible';
  const m=L.build(f.records,f),row=metric(m,'cmj_height'),spec=projection(row,m.periods);assert.equal(spec.points.length,8);assert.equal(spec.points[2].value,null);
  const html=D.draw(spec);for(const i of[2,3,5,6])assert.ok(!html.includes('data-trend-segment="'+i+'"'));for(const i of[1,4,7])assert.ok(html.includes('data-trend-segment="'+i+'"'));
 });

@@ -51,11 +51,11 @@ test("explicit none wins over frozen graphs even after protocol or unit drift", 
   const { record, catalog } = fixture();
   record.views.genericReports = { generic_pair: G.createView(record, "generic_pair", { kind: "bar", metricIds: ["x"] }) };
   catalog.reportViews = { generic_pair: G.createView(catalog, "generic_pair", { kind: "none" }) };
-  catalog.reportViews.generic_pair.binding.projectProtocol.version++;
+  catalog.reportViews.generic_pair.binding.projectProtocol = {id:"old_project",version:9};
   assert.equal(G.resolveView(record, "generic_pair", catalog).kind, "none");
 });
-test("unit entry scope project identity and metric protocol changes fall back to the record snapshot", () => {
-  for (const mutate of [view => view.binding.metrics[0].unit = "m", view => view.binding.metrics[0].entryScope = "record", view => view.binding.metrics[0].protocolIdentity.version++, view => view.binding.projectProtocol.version++]) {
+test("unit and entry-scope changes fall back to the record snapshot", () => {
+  for (const mutate of [view => view.binding.metrics[0].unit = "m", view => view.binding.metrics[0].entryScope = "record"]) {
     const { record, catalog } = fixture();
     record.views.genericReports = { generic_pair: G.createView(record, "generic_pair", { kind: "bar", metricIds: ["x"] }) };
     catalog.reportViews = { generic_pair: G.createView(catalog, "generic_pair", { kind: "column", metricIds: ["x"] }) };
@@ -64,7 +64,7 @@ test("unit entry scope project identity and metric protocol changes fall back to
   }
 });
 test("unknown IDs malformed shape and undeclared fields are rejected during import validation and normalization", () => {
-  for (const mutate of [view => view.kind = "unknown", view => view.future = true, view => view.binding.metrics[0].future = 1, view => view.metricIds.push("unknown"), view => view.binding.projectProtocol.version = 0]) {
+  for (const mutate of [view => view.kind = "unknown", view => view.future = true, view => view.binding.metrics[0].future = 1, view => view.metricIds.push("unknown"), view => view.binding.projectProtocol = {id:"old",version:0}]) {
     const { record, catalog } = fixture(); catalog.reportViews = { generic_pair: G.createView(catalog, "generic_pair", { kind: "bar", metricIds: ["x"] }) };
     mutate(catalog.reportViews.generic_pair); assert.throws(() => M.validateCatalog(catalog)); assert.throws(() => M.normalizeCatalog(catalog));
     record.views.genericReports = copy(catalog.reportViews); assert.throws(() => M.validateRecord(record)); assert.throws(() => M.normalizeRecord(record));
@@ -73,7 +73,7 @@ test("unknown IDs malformed shape and undeclared fields are rejected during impo
 test("graph import rejects unsafe keys identifiers and prototype pollution before merging", () => {
   const { record, catalog } = fixture(), view = G.createView(record, "generic_pair", { kind: "bar", metricIds: ["x"] });
   for (const id of ["__proto__", "constructor", "prototype", "unsafe id", "metric:x", "<svg>"]) {
-    const invalid = copy(view); invalid.binding.projectProtocol.id = id;
+    const invalid = copy(view); invalid.binding.projectProtocol = {id,version:1};
     assert.throws(() => G.validateViews({ generic_pair: invalid }, record));
   }
   const polluted = JSON.parse('{"__proto__":{"polluted":true}}'); assert.throws(() => G.validateViews(polluted, record));

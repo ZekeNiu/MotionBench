@@ -12,33 +12,19 @@
     const forceMetric = /(?:force|impulse|^imtp_(?:f|rfd)\d)/.test(d.id);
     const config = !forceMetric ? null : d.testId === "cmj" ? { definition: record.cmjConfig?.definition || "gross" } : d.testId === "imtp" ? { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } : null;
     if (config && /impulse/.test(d.id)) config.impulseDefinition = (d.testId === "cmj" ? record.cmjConfig : record.imtpConfig)?.impulseDefinition || "gross";
-    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", protocolIdentity: record.protocolIdentities?.[d.testId] || M.protocolIdentity("test:" + d.testId, record.protocol?.[d.testId]), metricProtocol: d.protocol || "", metricProtocolIdentity: d.protocolIdentity || M.protocolIdentity("metric:" + d.id,d.protocol), ...(config ? { force: clone(config) } : {}), ...(d.id === "rqr" ? { pairedProtocol: record.protocol?.hop || "", pairedProtocolIdentity: record.protocolIdentities?.hop || M.protocolIdentity("test:hop",record.protocol?.hop) } : {}) };
+    return { unit: d.unit || "", ...(config ? { force: clone(config) } : {}) };
   }
   function isoContext(row, record) {
-    return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit, protocol: row.protocol || record.protocol?.iso || "", protocolIdentity: row.protocolIdentity || M.protocolIdentity("iso:" + row.id,row.protocol || record.protocol?.iso), projectProtocolIdentity: record.protocolIdentities?.iso || M.protocolIdentity("test:iso",record.protocol?.iso) };
+    return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit };
   }
   function contextSignature(context) {
-    if (Array.isArray(context)) return canonical(context.map(value => JSON.parse(contextSignature(value))));
-    if (!context) return canonical(context);
-    const out = clone(context);
-    if (out.protocolIdentity) delete out.protocol;
-    if (out.metricProtocolIdentity) delete out.metricProtocol;
-    if (out.pairedProtocolIdentity) delete out.pairedProtocol;
-    return canonical(out);
+    return canonical(M.measurementCompatibility(context));
   }
   const factoryText = (id, field, value) => root.Def.factoryText ? root.Def.factoryText(id, field, value) : value;
   function compatibleContext(d, context) {
     if (!context) return context;
-    const out = { ...context, metricProtocol: root.Def.viftProtocol(d.id, context.metricProtocol) };
+    const out = M.measurementCompatibility(context, { protocolText: true });
     if (!/(?:force|impulse|^imtp_(?:f|rfd)\d)/.test(d.id)) delete out.force;
-    if (!d.legacyManual) {
-      out.protocol = factoryText(d.testId, "testProtocol", out.protocol);
-      out.metricProtocol = factoryText(d.id, "protocol", out.metricProtocol);
-      if (d.id === "rqr" && out.pairedProtocol !== undefined) out.pairedProtocol = factoryText("hop", "testProtocol", out.pairedProtocol);
-    }
-    out.protocolIdentity ||= M.protocolIdentity("test:" + d.testId,out.protocol);
-    out.metricProtocolIdentity ||= M.protocolIdentity("metric:" + d.id,out.metricProtocol);
-    if (d.id === "rqr") out.pairedProtocolIdentity ||= M.protocolIdentity("test:hop",out.pairedProtocol);
     return out;
   }
   function normalizeFactoryText(definition) {
@@ -50,21 +36,21 @@
     return before !== textFields();
   }
   const imtpTimeContext = record => clone(M.imtpTimeContext(record));
-  const imtpTimeMatches = (record, rule) => contextSignature({ ...rule.context, protocolIdentity: rule.context.protocolIdentity || M.protocolIdentity("test:imtp",rule.context.protocol) }) === contextSignature(imtpTimeContext(record));
+  const imtpTimeMatches = (record, rule) => contextSignature(M.measurementCompatibility(rule.context, { protocolText: true })) === contextSignature(imtpTimeContext(record));
   const timeStandards = record => (record.imtpTimeStandards || []).map(({ matched, ...rule }) => clone(rule)).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind));
   function capture(record) {
     return {
-      definitions: record.definitions.map(d => { const definition = { ...clone(d), context: measurementContext(record, d) }; normalizeFactoryText(definition); return definition; }).sort((a,b) => a.id.localeCompare(b.id)),
+      definitions: record.definitions.map(d => { const definition = { ...M.measurementCompatibility(d), context: measurementContext(record, d) }; normalizeFactoryText(definition); return definition; }).sort((a,b) => a.id.localeCompare(b.id)),
       rules: clone(record.rules), axes: clone(record.axes),
       iso: record.data.iso.map(row => ({ id: row.id, direction: row.direction, ...isoContext(row, record), target: row.target ?? "", ...(row.reference !== undefined ? {reference:clone(row.reference)} : {}) })).sort((a,b) => a.id.localeCompare(b.id)),
       balance: record.balancePairs.map(pair => ({ ...clone(pair), contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; }) })).sort((a,b) => a.id.localeCompare(b.id)),
-      lvp: Object.fromEntries(Object.entries(record.lvp).map(([id, p]) => {const testId=id.startsWith("landmine") ? "landmine" : id;return [id, { ...clone(p), protocol: record.protocol?.[testId] || "", protocolIdentity: record.protocolIdentities?.[testId] || M.protocolIdentity("test:"+testId,record.protocol?.[testId]) }];})),
+      lvp: M.measurementCompatibility(record.lvp, { protocolText: true }),
       imtpTimeStandards: timeStandards(record),
     };
   }
   function signature(criteria) {
     // Names and descriptive grouping are retained for editing but cannot merge incompatible measurement conditions.
-    return canonical({ ...criteria, imtpTimeStandards: criteria.imtpTimeStandards || [] });
+    return canonical(M.measurementCompatibility({ ...criteria, imtpTimeStandards: criteria.imtpTimeStandards || [] }, { protocolText: true }));
   }
   function create(record, name = "评价方案") {
     const profile = { id: "evaluation_" + uid(), name, revision: 1, updated: now(), disabled: false, criteria: capture(record) };
@@ -114,7 +100,7 @@
     out.rules = clone(c.rules); out.axes = clone(c.axes);
     for (const row of out.data.iso) {
       const rule = c.iso.find(v => v.id === row.id);
-      const matches = rule && contextSignature(isoContext(row, record)) === contextSignature({region:rule.region,directionCode:rule.directionCode,paired:rule.paired,unit:rule.unit,protocol:rule.protocol,protocolIdentity:rule.protocolIdentity || M.protocolIdentity("iso:"+row.id,rule.protocol),projectProtocolIdentity:rule.projectProtocolIdentity || record.protocolIdentities?.iso});
+      const matches = rule && contextSignature(isoContext(row, record)) === contextSignature(isoContext(rule, record));
       row.target = matches ? rule.target : "";
       if (matches && rule.reference !== undefined) row.reference = clone(rule.reference);
       else delete row.reference;
@@ -123,7 +109,7 @@
     for (const pair of out.balancePairs) {
       const rule = c.balance.find(p => p.id === pair.id);
       const contexts = [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; });
-      if (rule && contextSignature(contexts) === contextSignature(rule.contexts)) {
+      if (rule && contextSignature(contexts) === contextSignature(M.measurementCompatibility(rule.contexts, { protocolText: true }))) {
         for (const key of ["ranges", "referenceEnabled", "source", "reference", "ratioMigrationIssue", "ratioMigrationOriginal"]) {
           if (rule[key] !== undefined) pair[key] = clone(rule[key]);
           else if (["reference", "ratioMigrationIssue", "ratioMigrationOriginal"].includes(key)) delete pair[key];
@@ -132,8 +118,7 @@
     }
     for (const [id, p] of Object.entries(out.lvp)) {
       const rule = c.lvp[id];
-      const testId = id.startsWith("landmine") ? "landmine" : id;
-      if (rule && rule.metric === p.metric && canonical(rule.protocolIdentity || M.protocolIdentity("test:"+testId,rule.protocol)) === canonical(record.protocolIdentities?.[testId] || M.protocolIdentity("test:"+testId,record.protocol?.[testId]))) {
+      if (rule && rule.metric === p.metric) {
         p.mvt = rule.mvt; p.zones = clone(rule.zones); if (rule.source !== undefined) p.source = rule.source; else delete p.source;
       } else { p.mvt = ""; p.zones = []; }
     }
@@ -148,11 +133,11 @@
     r.balancePairs = clone(c.balance); r.lvp = clone(c.lvp);
     r.imtpTimeStandards = clone(c.imtpTimeStandards || []);
     for (const d of r.definitions) {
-      r.protocol[d.testId] = d.context.protocol;
+      if (typeof d.context.protocol === "string") r.protocol[d.testId] = d.context.protocol;
       if (d.id === "rqr" && d.context.pairedProtocol !== undefined) r.protocol.hop = d.context.pairedProtocol;
       if (d.context.force) r[d.testId === "cmj" ? "cmjConfig" : "imtpConfig"] = clone(d.context.force);
     }
-    for (const [id,p] of Object.entries(c.lvp)) r.protocol[id.startsWith("landmine") ? "landmine" : id] = p.protocol;
+    for (const [id,p] of Object.entries(c.lvp)) if (typeof p.protocol === "string") r.protocol[id.startsWith("landmine") ? "landmine" : id] = p.protocol;
     return r;
   }
   function fromTemplate(draft, original) {
@@ -303,7 +288,7 @@
     remember({ definitions: c.definitions });
     let standards = (c.definitions || []).map(d => ruleFromDefinition({ ...d, context: d.context || E.measurementContext(record, d) }));
     for (const rule of c.imtpTimeStandards || []) standards.push({ id: "imtp-time:" + rule.kind + ":" + rule.timeMs,
-      kind: "imtp-time", testId: "imtp", timeMs: rule.timeMs, measureKind: rule.kind, context: { ...clone(rule.context), protocolIdentity: rule.context.protocolIdentity || M.protocolIdentity("test:imtp",rule.context.protocol) },
+      kind: "imtp-time", testId: "imtp", timeMs: rule.timeMs, measureKind: rule.kind, context: M.measurementCompatibility(rule.context, { protocolText: true }),
       enabled: !!rule.referenceEnabled, targetEnabled: number(rule.target) !== null, rangesEnabled: !!rule.ranges?.length,
       target: number(rule.target), direction: rule.direction || "higher", ranges: clone(rule.ranges || []), source: rule.source || "",
       legacyRangesSignature: E.canonical(rule.ranges || []) });
@@ -311,15 +296,15 @@
     for (const rule of standards.filter(rule=>rule.kind === "metric" && /^imtp_rfd\d+(?:\.\d+)?$/.test(rule.metricId) && !c.definitions.find(d=>d.id===rule.metricId)?.legacyManual)) {
       const timeMs = Number(rule.metricId.slice(8)), id = "imtp-time:rfd:" + timeMs;
       aliases.set(rule.id,id);
-      if (!standards.some(item=>item.id===id) && (rule.enabled || rule.target != null || rule.ranges.length)) standards.push({ ...rule, id, kind:"imtp-time", timeMs, measureKind:"rfd", context:{protocol:rule.context.protocol,protocolIdentity:rule.context.protocolIdentity,force:rule.context.force || E.imtpTimeContext(record).force} });
+      if (!standards.some(item=>item.id===id) && (rule.enabled || rule.target != null || rule.ranges.length)) standards.push({ ...rule, id, kind:"imtp-time", timeMs, measureKind:"rfd", context:{force:rule.context.force || E.imtpTimeContext(record).force} });
       standards = standards.filter(item=>item!==rule);
     }
     for (const row of c.iso || []) standards.push({ id: "iso:" + row.id, kind: "iso", testId: "iso", directionId: row.id,
-      context: { region: row.region, directionCode: row.directionCode, paired: row.paired, unit: row.unit, protocol: row.protocol || "", protocolIdentity: row.protocolIdentity || M.protocolIdentity("iso:"+row.id,row.protocol), projectProtocolIdentity: row.projectProtocolIdentity || record.protocolIdentities?.iso || M.protocolIdentity("test:iso",record.protocol?.iso) },
+      context: E.isoContext(row, record),
       enabled: true, targetEnabled: number(row.target) !== null, rangesEnabled: false, target: number(row.target), direction: "higher", ranges: [], source: "",
       ...(row.reference !== undefined ? { reference: clone(row.reference) } : {}) });
     for (const pair of c.balance || []) standards.push({ id: "balance:" + pair.id, kind: "balance", testId: "iso", pairId: pair.id,
-      context: { numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, contexts: (pair.contexts || []).map((context,index)=>context ? {...clone(context),protocolIdentity:context.protocolIdentity || M.protocolIdentity("iso:"+[pair.numeratorId,pair.denominatorId][index],context.protocol),projectProtocolIdentity:context.projectProtocolIdentity || record.protocolIdentities?.iso || M.protocolIdentity("test:iso",record.protocol?.iso)} : null) },
+      context: { numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, contexts: (pair.contexts || []).map(context => M.measurementCompatibility(context, { protocolText: true })) },
       enabled: true, targetEnabled: false, rangesEnabled: !!pair.referenceEnabled, target: null, direction: "higher", ranges: clone(pair.ranges || []), source: pair.source || "",
       ...(pair.reference !== undefined ? { reference: clone(pair.reference) } : {}), legacyRangesSignature: E.canonical(pair.ranges || []),
       ...(pair.ratioMigrationIssue ? { migrationIssue: pair.ratioMigrationIssue, legacy: clone(pair.ratioMigrationOriginal) } : {}) });
@@ -369,7 +354,7 @@
     });
     return c;
   }
-  function coreSignature(p) { return E.canonical({ standards: p.standards, aggregations: p.aggregations, settings: p.settings }); }
+  function coreSignature(p) { return E.canonical(M.measurementCompatibility({ standards: p.standards, aggregations: p.aggregations, settings: p.settings }, { protocolText: true })); }
   function sync(profile) {
     const state = metadata.get(profile);
     if (state?.criteria && E.canonical(state.criteria) !== state.baseline) {
@@ -582,13 +567,13 @@
       }
       if (rule.kind === "iso") {
         const row = out.data.iso.find(row => row.id === rule.directionId);
-        matched = !!row && E.contextSignature(rule.context) === E.contextSignature(E.isoContext(row, record));
+        matched = !!row && E.contextSignature(M.measurementCompatibility(rule.context, { protocolText: true })) === E.contextSignature(E.isoContext(row, record));
         if (row) { if (!targetMatch.eligible) row.target = ""; if (!common.eligible) delete row.reference; }
       }
       if (rule.kind === "balance") {
         const pair = out.balancePairs.find(pair => pair.id === rule.pairId);
         const contexts = pair && [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(row => row.id === id); return row ? E.isoContext(row, record) : null; });
-        matched = !!pair && pair.numeratorId === rule.context.numeratorId && pair.denominatorId === rule.context.denominatorId && E.contextSignature(contexts) === E.contextSignature(rule.context.contexts);
+        matched = !!pair && pair.numeratorId === rule.context.numeratorId && pair.denominatorId === rule.context.denominatorId && E.contextSignature(contexts) === E.contextSignature(M.measurementCompatibility(rule.context.contexts, { protocolText: true }));
         if (pair && !common.eligible) delete pair.reference;
         if (pair && !rangeMatch.eligible) { pair.referenceEnabled = false; pair.ranges = []; }
       }

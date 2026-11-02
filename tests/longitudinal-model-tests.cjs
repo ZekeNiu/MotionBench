@@ -42,9 +42,9 @@ test("percentage points ordinal transitions unknown scales and zero baselines us
   const zero = metric(L.build(f.records, f), "pushup_reps"); near(zero.changes.overall.delta, 5); assert.ok(!("percent" in zero.changes.overall));
   assert.equal(metric(model, "long_time").changes.overall.improvement, "improved");
 });
-test("protocol and incompatible unit identities suppress changes without hiding observations", () => {
+test("legacy method identities do not suppress changes while incompatible units still do", () => {
   const f = createFixture(c); f.records[2].protocolIdentities.cmj.version++;
-  let row = metric(L.build(f.records, f), "cmj_height"); assert.equal(row.changes.overall.available, false); assert.equal(row.cells[2].value, 44); assert.equal(row.cells[2].comparableToPrevious, false);
+  let row = metric(L.build(f.records, f), "cmj_height"); assert.equal(row.changes.overall.available, true); assert.equal(row.cells[2].value, 44); assert.equal(row.cells[2].comparableToPrevious, true);
   f.records[2].definitions.find(d => d.id === "long_time").unit = "ms";
   row = metric(L.build(f.records, f), "long_time"); assert.equal(row.changes.overall.available, false); assert.equal(row.cells[0].unit, "s"); assert.equal(row.cells[2].unit, "ms");
 });
@@ -100,7 +100,7 @@ test("seven periods preserve chronology fixed endpoints and gaps without countin
   const f = createFixture(c, 7); f.records[2].data.cmj = []; f.records[4].protocolIdentities.cmj.version++;
   const shuffled = [f.records[4], f.records[0], f.records[6], f.records[2], f.records[5], f.records[1], f.records[3]], model = L.build(shuffled, f), row = metric(model, "cmj_height");
   assert.deepEqual(copy(model.recordIds), f.records.map(record => record.recordId));
-  assert.deepEqual(copy(row.cells.map(cell => cell?.comparableToPrevious ?? null)), [false, true, null, false, false, false, true]);
+  assert.deepEqual(copy(row.cells.map(cell => cell?.comparableToPrevious ?? null)), [false, true, null, false, true, true, true]);
   near(row.changes.overall.delta, 12); near(row.changes.recent.delta, 2);
   assert.equal(row.changes.recent.from.recordId, f.records[5].recordId);
   f.records[0].data.cmj = []; const missing = metric(L.build(f.records, f), "cmj_height");
@@ -158,10 +158,10 @@ test("nonmonotonic assessment intervals do not inherit a residual higher-is-bett
   const model = L.build(f.records, f); assert.equal(metric(model, "cmj_height").changes.overall.improvement, null);
   assert.ok(!model.changeSummary.improved.concat(model.changeSummary.declined).some(item => item.id === "cmj_height"));
 });
-test("derived capability context follows every contributing test protocol", () => {
+test("derived capability context ignores legacy contributing method versions", () => {
   const f = createFixture(c); f.records[2].protocolIdentities.hop.version++;
   const row = L.build(f.records, f).capability.cards.flatMap(card => card.metrics).find(row => row.id === "rqr");
-  assert.ok(row); assert.equal(row.changes.overall.available, false);
+  assert.ok(row); assert.equal(row.changes.overall.available, true);
 });
 test("force DSI distinguishes IMTP from a separately entered isometric test", () => {
   const f = createFixture(c); for (const record of f.records) for (const trial of record.data.cmj) trial.force = 1500;
@@ -169,14 +169,14 @@ test("force DSI distinguishes IMTP from a separately entered isometric test", ()
   const row = L.build(f.records, f).capability.cards.flatMap(card => card.metrics).find(row => row.id === "fdsi");
   assert.ok(row); assert.ok(row.cells[0].value > 0 && row.cells[2].value > 0); assert.equal(row.changes.overall.available, false);
 });
-test("Hop uses selected complete-test input mode and speed tests retain the recorded method", () => {
+test("Hop input selection remains mathematical while speed descriptions no longer split comparisons", () => {
   const f = createFixture(c), last = f.records[2];
   last.data.hop.trials[0].inputMode = "summary";
   last.data.hop.trials[0].summary = { height: 35, contactTimeMs: 150, flightTimeMs: 520, rsi: 2.33, flightTimeRatio: 3.47, selectionBasis: "flight_ratio", suppliedCount: 10, validCount: 10, selectedCount: 5 };
   for (const id of ["mas", "mss", "ift"]) last.data[id].method = "改变了测试方法或测量距离";
   const model = L.build(f.records, f);
   for (const id of ["hop_rsi", "mas_speed", "mss_speed", "ift_treadmill"]) {
-    const row = metric(model, id); assert.ok(row, id); assert.equal(row.changes.overall.available, false, id); assert.ok(row.cells[2].value > 0, id);
+    const row = metric(model, id); assert.ok(row, id); assert.equal(row.changes.overall.available, id !== "hop_rsi", id); assert.ok(row.cells[2].value > 0, id);
   }
 });
 test("force-only configuration does not change the identity of CMJ height or RSI-modified", () => {
@@ -225,7 +225,7 @@ test("change summary uses first and last values with explicit direction and read
 });
 test("change summary omits missing endpoints changed protocols unchanged values and inactive evaluation", () => {
   const f = createFixture(c); f.records[0].data.cmj = [];
-  f.records[2].protocolIdentities.sj.version++;
+  f.records[2].definitions.find(d => d.id === "sj_height").unit = "incompatible";
   f.records[2].data.long_generic.forEach(row => row.metrics.long_pct = 10);
   f.profile.standards.find(rule => rule.metricId === "long_unknown").enabled = false;
   const summary = L.build(f.records, f).changeSummary, ids = summary.improved.concat(summary.declined).map(item => item.id);
@@ -261,7 +261,7 @@ test("FMS changes require the same fixed movement protocol and side aggregation 
   f.records[0].data.fms[0].name = last[0].name;
   model = L.build(f.records, f); assert.equal(metric(model, "fms:0").changes.overall.available, true); assert.equal(metric(model, "fms:0").changes.overall.improvement, null);
   f.records[2].protocolIdentities.fms = { ...M.protocolIdentity("test:fms", ""), version: 2 };
-  model = L.build(f.records, f); assert.equal(metric(model, "fms:0").changes.overall.available, false);
+  model = L.build(f.records, f); assert.equal(metric(model, "fms:0").changes.overall.available, true);
 });
 test("isometric comparison retains force asymmetry and joint balance with original judgments and missing-side reasons", () => {
   const f = createFixture(c);

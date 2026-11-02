@@ -113,7 +113,7 @@ test("ungraded joint balance identifies missing intervals while configured range
  const r=athlete(),p=r.balancePairs.find(v=>v.id==="shoulder_IR_ER");p.reference=I.defaultBalanceReference(p);const ir=row(r,"shoulder","internalRotation"),er=row(r,"shoulder","externalRotation");ir.left=200;er.left=160;
  const before=JSON.stringify(r),basis=M.fingerprint(r);let s=M.stats(r),q=s.balanceResults.find(v=>v.id===p.id).results[0],body=s.signals.regions.shoulder_l.tests.find(t=>t.id==="balance_"+p.id+"_L");assert.equal(q.value,.8);assert.equal(q.status,"gray");assert.equal(q.evaluationReason,"尚未设置关节平衡分级区间");assert.match(body.notes,/尚未设置(?:关节平衡)?分级区间/);assert.equal(JSON.stringify(r),before);assert.equal(M.fingerprint(r),basis);
  p.referenceEnabled=true;p.ranges=[{min:.7,max:.9,includeMin:true,includeMax:true,status:"green",label:"原方案范围"}];s=M.stats(r);q=s.balanceResults.find(v=>v.id===p.id).results[0];assert.equal(q.status,"green");assert.equal(q.label,"原方案范围");assert.equal(q.evaluationReason,"");assert.equal(s.signals.regions.shoulder_l.status,"green");assert.equal(s.signals.regions.shoulder_l.label,"达标");assert.equal(p.ranges[0].label,"原方案范围");
- p.referenceEnabled=false;ir.protocol="A";er.protocol="B";s=M.stats(r);q=s.balanceResults.find(v=>v.id===p.id).results[0];assert.equal(q.value,null);assert.equal(q.status,"gray");assert.equal(q.reason,"测量协议不同");assert.equal(q.evaluationReason,"");
+ p.referenceEnabled=false;ir.unit="kgf";er.unit="N";s=M.stats(r);q=s.balanceResults.find(v=>v.id===p.id).results[0];assert.equal(q.value,null);assert.equal(q.status,"gray");assert.equal(q.reason,"测量单位不同");assert.equal(q.evaluationReason,"");
 });
 test("a one-time shared scheme seed fills only blanks and excludes demo-only profiles",()=>{
  const r=athlete(),p={id:"p",name:"现方案",revision:1,updated:"old",criteria:E.capture(r),builtinStandardsVersion:1},demo=copy(p);demo.id="demo";demo.name="示例";
@@ -128,7 +128,7 @@ test("capture editor roundtrip shared resolution and exports preserve reference 
  const envelope=M.recordEnvelope(resolved,p);assert.equal(envelope.evaluationProfile.standards.find(v=>v.kind==="iso"&&v.directionId===x.id).reference.groups[0].values.DOM,3);const imported=E.migrate({schema:3,kind:"athlete-library",evaluationProfiles:[p],athletes:[{id:r.athleteId,records:[{...r,evaluationProfileId:p.id}]}]});assert.equal(imported.evaluationProfiles[0].criteria.iso.find(v=>v.id===x.id).reference.groups[0].values.DOM,3);
 });
 test("measurement condition mismatches disable reference targets as well as manual targets",()=>{
- const r=athlete(),p=E.create(r),x=row(r,"shoulder","abduction");x.protocolIdentity.version++;const out=E.resolve(r,p),value=row(out,"shoulder","abduction");assert.equal(value.reference,undefined);assert.equal(M.effectiveIsoTarget(out,value,"L").target,null);
+ const r=athlete(),p=E.create(r),x=row(r,"shoulder","abduction");x.unit="kgf";const out=E.resolve(r,p),value=row(out,"shoulder","abduction");assert.equal(value.reference,undefined);assert.equal(M.effectiveIsoTarget(out,value,"L").target,null);
 });
 test("standalone materialization and real import preserve deliberately blank shared targets",()=>{
  const r=M.normalizeRecord(athlete()),p=E.create(r),rule=p.criteria.iso.find(v=>v.id==="iso_shoulder_abduction");rule.target="";delete rule.reference;

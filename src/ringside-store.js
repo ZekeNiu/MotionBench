@@ -41,7 +41,7 @@
       result.definitions=result.definitions.map(d=>({...d,name:root.RingsideTests.metricName(d),protocol:root.Def.viftProtocol(d.id,d.protocol)}));
       if(id==="ift"&&result.test.name==="30–15 IFT")result.test.name="30-15VIFT";
       if(["fms","iso"].includes(id)&&!result.test.primaryAbility)result.test.primaryAbility=id==="fms"?"动作筛查":"等长力量";
-      return result;
+      return M.measurementCompatibility(result, { protocolText: true });
     };
     const same=(a,b)=>E.canonical(comparable(a))===E.canonical(comparable(b));
     for(const t of incoming.tests){
@@ -542,7 +542,7 @@
             config=v;
           }
           if(row.type==="profile"){
-            const old=profiles.get(v.id);if(old&&E.canonical(E.serializeProfile(old))!==E.canonical(E.serializeProfile(v))){const next="evaluation_"+uid();profileMap.set(v.id,next);v.id=next;v.name+="（导入）";}
+            const old=profiles.get(v.id);if(old&&E.canonical(M.measurementCompatibility(E.serializeProfile(old),{protocolText:true}))!==E.canonical(M.measurementCompatibility(E.serializeProfile(v),{protocolText:true}))){const next="evaluation_"+uid();profileMap.set(v.id,next);v.id=next;v.name+="（导入）";}
             else if(old)continue;
             profiles.set(v.id,v);
           }

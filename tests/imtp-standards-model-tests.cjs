@@ -72,11 +72,11 @@ test("legacy absolute standards remain until a new time rule explicitly takes ov
   const resolved = E.resolve(r, p); assert.equal(resolved.definitions.find(x => x.id === "imtp_f100").target, null);
   assert.equal(M.stats(resolved).axes.length, 0);
 });
-test("unit, protocol and force-basis mismatches disable replacement without legacy fallback", () => {
+test("unit and force-basis mismatches disable replacement without legacy fallback", () => {
   const r = record(); r.data.imtp = [trial("a", 1000, 900, 1000, 100)];
   const p = profile(r, [rule(r, "force_pct_peak", 100)]), legacy = p.criteria.definitions.find(x => x.id === "imtp_f100");
   Object.assign(legacy, { referenceEnabled: true, target: 500, ranges: [] });
-  for (const mutate of [x => x.protocolIdentities.imtp.version++, x => x.imtpConfig.definition = "net", x => x.imtpConfig.unit = "kgf"]) {
+  for (const mutate of [x => x.imtpConfig.definition = "net", x => x.imtpConfig.unit = "kgf"]) {
     const altered = copy(r); mutate(altered); const resolved = E.resolve(altered, p), row = point(altered, p, 100);
     assert.equal(row.forceStandard.matched, false); assert.equal(row.forceEvaluation.status, "gray");
     assert.equal(resolved.definitions.find(x => x.id === "imtp_f100").referenceEnabled, false);
@@ -103,8 +103,8 @@ test("an existing time metric keeps its explicit ability role using percent unit
   p.criteria.axes["ability:早期发力"].method = "min"; axis = M.stats(E.resolve(r, p)).axes.find(a => a.label === "早期发力"); assert.equal(axis,undefined);
   p.criteria.axes["ability:早期发力"].method = "primary";
   p.criteria.imtpTimeStandards[0].referenceEnabled = false; assert.equal(M.stats(E.resolve(r, p)).axes.some(a => a.label === "早期发力"), false);
-  p.criteria.imtpTimeStandards[0].referenceEnabled = true; r.protocolIdentities.imtp.version++;
-  assert.equal(M.stats(E.resolve(r, p)).axes.some(a => a.label === "早期发力"), false);
+  p.criteria.imtpTimeStandards[0].referenceEnabled = true; M.stampProtocolIdentities(r); r.protocolIdentities.imtp.version++;
+  assert.equal(M.stats(E.resolve(r, p)).axes.some(a => a.label === "早期发力"), true);
 });
 test("new arbitrary times do not become default axis representatives or alter PF and DSI", () => {
   const r = M.sampleRecord(); r.data.imtp = [trial("a", 1000, 900)];
@@ -117,7 +117,7 @@ test("profile templates, snapshots, copies and restoration preserve time standar
   const r = record(); r.data.imtp = [trial("a", 1000, 900)]; const p = profile(r, [rule(r)]), draft = E.template(p);
   draft.imtpTimeStandards[0].target = 95; draft.imtpTimeStandards[0].context.protocol = "must not rewrite conditions";
   const next = { ...copy(p), criteria: E.fromTemplate(draft, p) }; E.validateProfile(next);
-  assert.equal(next.criteria.imtpTimeStandards[0].target, 95); assert.equal(next.criteria.imtpTimeStandards[0].context.protocol, r.protocol.imtp);
+  assert.equal(next.criteria.imtpTimeStandards[0].target, 95); assert.equal(next.criteria.imtpTimeStandards[0].context.protocol, undefined); assert.deepEqual(copy(next.criteria.imtpTimeStandards[0].context.force), copy(p.criteria.imtpTimeStandards[0].context.force));
   next.previous = { criteria: copy(p.criteria), revision: 1, name: p.name }; E.validateProfile(next);
   const frozen = M.normalizeRecord(copy(E.resolve(r, next))); M.validateRecord(frozen);
   assert.equal(point(frozen).forceStandard.target, 95); assert.deepEqual(copy(M.stats(frozen).imtpTimeResults), copy(M.stats(E.resolve(r, next)).imtpTimeResults));

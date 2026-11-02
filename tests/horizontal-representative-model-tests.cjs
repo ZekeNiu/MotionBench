@@ -95,14 +95,14 @@ test("derived ratios are computed on each real record before within-person means
   const model = build(fixture.records, { profile: fixture.profile, catalog: fixture.catalog, references: [{ id: "all", scope: "all", sampling: "period-mean", window: { kind: "all" } }] });
   const eur = model.references[0].capability.cards.flatMap(card => card.metrics).find(item => item.metricId === "eur"); near(eur.benchmark.mean, 2.75); assert.equal(eur.benchmark.contributors[0].sources.length, 2);
 });
-test("group ISO never merges a direction from incompatible protocols into one radar value", () => {
+test("group ISO description and legacy identity differences do not split the same mathematical result", () => {
   const records = [sample("a", "a", "2026-01-01", 40), sample("b", "b", "2026-01-01", 80)];
   records.forEach((record, index) => { record.enabled.cmj = false; record.enabled.iso = true; record.isoDirectionIds = ["iso_knee_extension"];
     const direction = record.data.iso.find(item => item.id === "iso_knee_extension"); direction.left = 50 + index * 25; direction.right = 100; direction.target = 20; direction.reference = null;
     direction.protocol = "不同关节角度 " + index; direction.protocolIdentity = M.protocolIdentity("iso:" + direction.id, direction.protocol);
   });
   const model = build(records, { profile: null }), group = model.references[0], forces = group.projects.find(project => project.id === "iso").metrics.filter(item => item.section === "force");
-  assert.equal(forces.length, 4); assert.ok(forces.every(item => item.benchmark.n === 1)); assert.equal(group.aggregateFigures.iso, undefined);
+  assert.equal(forces.length, 2); assert.ok(forces.every(item => item.benchmark.n === 2)); assert.ok(group.aggregateFigures.iso);
 });
 test("focus presentation never resamples and explicit best is the same baseline in facts", () => {
   const records = [sample("a", "a", "2026-01-01", 40), sample("b", "b", "2026-01-01", 80)], model = build(records, { participants: records.map(record => ({ athleteId: record.athleteId, recordId: record.recordId })) }), before = JSON.stringify(model);

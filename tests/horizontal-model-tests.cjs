@@ -78,13 +78,13 @@ test("recycle-bin records and profiles cannot contribute", () => {
   assert.equal(metric(build(records, { participants: [{ athleteId: "a", recordId: "a1" }], athletes: [{ id: "a", profile: { sex: "男" } }, { id: "b", deletedAt: "2026-02-02", profile: { sex: "男" } }] }), "value").benchmark.n, 1);
   assert.throws(() => build(records, { participants: [{ athleteId: "b", recordId: "b2" }] }));
 });
-test("protocol filtering precedes latest selection and direct mismatches remain separate", () => {
+test("method descriptions do not filter latest selection or split direct comparisons", () => {
   const records = [record("a", "a1", "2026-01-01", [10]), record("a", "a2", "2026-02-01", [100]), record("b", "b1", "2026-01-01", [30])];
-  records[1].protocol.arbitrary = "另一套协议"; delete records[1].protocolIdentities.arbitrary;
-  near(metric(build(records), "value").benchmark.mean, 20);
+  records[1].protocol.arbitrary = "另一套协议"; delete records[1].protocolIdentities?.arbitrary;
+  near(metric(build(records), "value").benchmark.mean, 65);
   const model = build(records, { participants: [{ athleteId: "a", recordId: "a2" }, { athleteId: "b", recordId: "b1" }] });
   const rows = model.projects.flatMap(p => p.metrics).filter(row => row.metricId === "value");
-  assert.equal(rows.length, 2); assert.ok(rows.every(row => row.cells.filter(Boolean).length === 1));
+  assert.equal(rows.length, 1); assert.equal(rows[0].cells.filter(Boolean).length, 2);
 });
 test("current classifications use stable IDs while contributor ages retain measurement dates", () => {
   const records = [record("a", "a1", "2026-01-01", [10]), record("b", "b1", "2026-01-01", [30])];

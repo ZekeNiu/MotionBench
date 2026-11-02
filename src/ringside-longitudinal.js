@@ -30,11 +30,11 @@
   }
   const signature = context => E.contextSignature(context);
   function testContext(record, id, stats) {
-    const base = { protocolIdentity: record.protocolIdentities?.[id] || M.protocolIdentity("test:" + id, record.protocol?.[id] || "") };
-    if (["fvp_sj", "fvp_cmj"].includes(id)) base.settings = { ...record.fvpConfig[id], angle: record.fvpAnalysis?.[id]?.angle || 90 };
-    if (id === "sprint_fvp") base.settings = Object.fromEntries(["device", "methodVersion", "startConvention", "timingStart", "inputTimeMode", "timeCorrectionS", "positionStartM", "samplingWindow", "rfAfterS"].map(key => [key, record.sprintFvpConfig?.[key] ?? null]));
-    if (id === "cpet") base.settings = { modality: record.data.cpet?.modality, protocol: record.data.cpet?.protocol, oxygenLabel: record.data.cpet?.oxygenLabel };
-    if (["ift", "mas", "mss"].includes(id)) base.settings = { protocol: record.data[id]?.protocol || "", method: record.data[id]?.method || "" };
+    const base = {};
+    if (["fvp_sj", "fvp_cmj"].includes(id)) base.settings = { distanceCm: record.fvpConfig[id]?.distanceCm ?? "", angle: record.fvpAnalysis?.[id]?.angle || 90 };
+    if (id === "sprint_fvp") base.settings = Object.fromEntries(["methodVersion", "startConvention", "timingStart", "inputTimeMode", "timeCorrectionS", "positionStartM", "samplingWindow", "rfAfterS"].map(key => [key, record.sprintFvpConfig?.[key] ?? null]));
+    if (id === "cpet") base.settings = { modality: record.data.cpet?.modality, oxygenLabel: record.data.cpet?.oxygenLabel };
+    if (id === "ift") base.settings = { variant: record.data.ift?.protocol || "" };
     if (id === "imtp") base.settings = clone(record.imtpConfig || {});
     if (id === "cmj") base.settings = clone(record.cmjConfig || {});
     if (id === "dj" && stats) base.settings = { dropHeights: [...new Set((stats.representativeData.dj || []).map(row => N(row.dropHeightCm)))].sort((a, b) => a - b) };
@@ -48,7 +48,7 @@
   function derivedContext(record, metricId, stats) {
     const definition = T.derivedDefinitions().find(item => item.id === metricId), dependencies = definition?.dependencies || [];
     return { ...(dependencies.length ? { protocols: dependencies.map(id => ({ testId: id, ...testContext(record, id, stats) })) } : {}),
-      ...(/^(?:f?dsi|idsi)/.test(metricId) ? { forceDefinitions: Object.fromEntries(["source", "cmjUnit", "unit", "definition", "protocol"].map(key => [key, record.dsi?.[key] ?? null])) } : {}) };
+      ...(/^(?:f?dsi|idsi)/.test(metricId) ? { forceDefinitions: Object.fromEntries(["source", "cmjUnit", "unit", "definition"].map(key => [key, record.dsi?.[key] ?? null])) } : {}) };
   }
   function metricContext(record, definition, stats) {
     const context = { ...E.measurementContext(record, definition), entryScope: definition.entryScope || "record", testSettings: ["cmj", "imtp"].includes(definition.testId) ? null : testContext(record, definition.testId, stats).settings || null, ...derivedContext(record, definition.id, stats), ...(root.RingsideCalculations?.context(definition)||{}) };

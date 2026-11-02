@@ -456,7 +456,6 @@
   function convertDefinition(input, legacy = false) {
     const d = clone(input);
     if (!d.legacyManual) ["name","protocol"].forEach(key => { d[key] = Def.factoryText(d.id,key,d[key]); });
-    d.protocolIdentity ||= protocolIdentity("metric:" + d.id, d.protocol);
     if (!d.legacyManual && d.measurementScale === undefined && d.ratioEligible === undefined) {
       const factory = extraDefs().find(value=>value.id===d.id && value.testId===d.testId);
       if (factory?.measurementScale) d.measurementScale = factory.measurementScale;
@@ -686,10 +685,18 @@
         revision: 0,
       },
     };
-    stampProtocolIdentities(record);
     return record;
   }
 
+  // Legacy identities remain readable, but never participate in active matching.
+  // Description stripping is explicit: some domain fields named protocol are enums.
+  function measurementCompatibility(value, { protocolText = false } = {}) {
+    if (Array.isArray(value)) return value.map(item => measurementCompatibility(item, { protocolText }));
+    if (!value || typeof value !== "object") return value;
+    const ignored = new Set(["protocolIdentity", "metricProtocolIdentity", "pairedProtocolIdentity", "projectProtocolIdentity", "protocolIdentities", "protocolVersions", "projectProtocol"]);
+    if (protocolText) for (const key of ["protocol", "metricProtocol", "pairedProtocol"]) ignored.add(key);
+    return Object.fromEntries(Object.entries(value).filter(([key]) => !ignored.has(key)).map(([key, item]) => [key, measurementCompatibility(item, { protocolText })]));
+  }
   function protocolIdentity(scope, description) {
     const text = scope + "\n" + canonicalProtocolText(scope.replace(/^test:/,""),description);
     let first = 2166136261, second = 2246822519;
@@ -1122,7 +1129,6 @@
       )
       .forEach((x) => out.definitions.push(x));
     out.protocolIdentities = clone(s.protocolIdentities || {});
-    stampProtocolIdentities(out);
     if (s.measurementPolicyVersion !== 1) migrateMeasurementPolicy(out, s);
     out.projectSnapshots = T.snapshots(out);
     if (s.views?.genericReports !== undefined && root.RingsideGenericReport)
@@ -1332,15 +1338,13 @@
     return row;
   }
   function imtpTimeContext(record) {
-    return { protocol: record.protocol?.imtp || "", protocolIdentity: record.protocolIdentities?.imtp || protocolIdentity("test:imtp",record.protocol?.imtp), force: { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } };
+    return { force: { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } };
   }
   function imtpTimeStandard(record, timeMs, kind) {
     const rule = (record.imtpTimeStandards || []).find(r => r.timeMs === timeMs && r.kind === kind);
     if (rule) {
       const current = imtpTimeContext(record), context = rule.context;
-      const identity = context?.protocolIdentity || protocolIdentity("test:imtp",context?.protocol);
-      const matched = rule.matched !== false && canonicalJSON(identity) === canonicalJSON(current.protocolIdentity) &&
-        context.force?.unit === current.force.unit && context.force?.definition === current.force.definition;
+      const matched = context.force?.unit === current.force.unit && context.force?.definition === current.force.definition;
       return { ...clone(rule), unit: kind === "force_pct_peak" ? "%PF" : "N/s", matched,
         referenceEnabled: matched && rule.referenceEnabled, target: matched ? rule.target : null,
         ranges: matched ? clone(rule.ranges) : [] };
@@ -2124,11 +2128,6 @@
       else if (numerator.unit !== denominator.unit) reason = "测量单位不同";
       else if (numerator.paired !== denominator.paired)
         reason = "配对方向的侧别口径不同";
-      else if (
-        (numerator.protocol || record.protocol.iso || "") !==
-        (denominator.protocol || record.protocol.iso || "")
-      )
-        reason = "测量协议不同";
       const result = {
         ...pair,
         left: null,
@@ -3601,7 +3600,7 @@
     // Real measurements, changed protocols/standards and explicit switches remain inputs.
     const data = clone(record.data), enabled = { ...record.enabled }, protocol = { ...record.protocol };
     if (T.isNative(record, "sprint_fvp")) for (const trial of data.sprint_fvp || []) for (const split of trial.splits || []) delete split.id;
-    for (const row of data.iso || []) { if (row.reference === null) delete row.reference; if (row.protocolIdentity?.version === 1) delete row.protocolIdentity; }
+    for (const row of data.iso || []) { if (row.reference === null) delete row.reference; delete row.protocolIdentity; }
     // Factory display-name cleanup alone keeps the original serialized narrative basis.
     for (const row of data.iso || []) if (["neck","trunk"].includes(row.region) && ["lateralFlexion","rotation"].includes(row.directionCode)) {
       const label = row.directionCode === "lateralFlexion" ? "侧屈" : "旋转";
@@ -3671,7 +3670,6 @@
     Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
     const projection = definition => {
       const { referenceMatch, referenceGroups, targetEnabled, rangesEnabled, protocolIdentity, resultMeaning, directionStatus, ...result } = definition;
-      if (protocolIdentity?.version > 1) result.protocolIdentity = protocolIdentity;
       if (!T.isManualMetric(result) && result.measurementScale === "ratio") delete result.measurementScale;
       if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
       return result;
@@ -3727,7 +3725,7 @@
     delete athlete.sportId; delete athlete.subdivisionId;
     if (empty(athlete.injuryHistory)) delete athlete.injuryHistory;
     for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (empty(trainingContext[key])) delete trainingContext[key];
-    return JSON.stringify({
+    return JSON.stringify(measurementCompatibility({
       athlete,
       trainingContext,
       enabled,
@@ -3740,7 +3738,6 @@
       definitions,
       custom: record.customValues,
       projects: fingerprintProjects,
-      ...(Object.values(record.protocolIdentities || {}).some(identity=>identity.version>1) ? { protocolVersions: record.protocolIdentities } : {}),
       rules: record.rules,
       lvp: record.lvp,
       thresholds: record.thresholds,
@@ -3758,7 +3755,7 @@
       protocol,
       ...(record.calculationBindings?{calculationBindings:record.calculationBindings}:{}),
       ...(record.testPlanSnapshot?.calculationBindings?{calculationBindingsSnapshot:record.testPlanSnapshot.calculationBindings}:{}),
-    });
+    }));
   }
   function fingerprintWithoutAge(record) {
     const value = JSON.parse(fingerprint(record));
@@ -3779,7 +3776,7 @@
       delete value.athlete.birthDate;
       if (["", null, undefined].includes(value.athlete.injuryHistory)) delete value.athlete.injuryHistory;
       for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (["", null, undefined].includes(value.trainingContext?.[key])) delete value.trainingContext?.[key];
-      return canonicalJSON(value) === fingerprintWithoutAge(comparison);
+      return canonicalJSON(measurementCompatibility(value)) === fingerprintWithoutAge(comparison);
     } catch (_) { return false; }
   }
   function recordEnvelope(record, profile, catalog, classifications) {
@@ -3834,7 +3831,7 @@
       abilityGroups: T.abilityGroups(record),
       abilityGroupConflicts: [],
       protocol: record.protocol,
-      protocolIdentities: clone(record.protocolIdentities),
+      protocolIdentities: clone(record.protocolIdentities || {}),
       conflicts: [],
       derivedEnabled: T.derivedDefaults(),
     };
@@ -3893,6 +3890,7 @@
     catalog.conflicts = Array.isArray(catalog.conflicts)
       ? catalog.conflicts
       : [];
+    catalog.protocolIdentities ||= {};
     catalog.conflicts.forEach((conflict) => {
       conflict.variants = (conflict.variants || []).map((variant) => ({
         ...variant,
@@ -3901,7 +3899,9 @@
       }));
     });
     catalog.definitions = catalog.definitions.map(catalogMetric);
-    stampProtocolIdentities(catalog);
+    for (const conflict of catalog.conflicts) {
+      if (!conflict.resolved && conflict.variants.length && conflict.variants.every(variant => sameVariant(conflict.variants[0], variant))) conflict.resolved = true;
+    }
     catalog.measurementPolicyVersion = 1;
     if (catalog.reportViews !== undefined && root.RingsideGenericReport)
       catalog.reportViews = root.RingsideGenericReport.normalizeViews(catalog.reportViews, catalog);
@@ -3928,25 +3928,13 @@
         catalog.definitions.filter((d) => d.testId === testId),
       ).sort((a, b) => a.id.localeCompare(b.id)),
       protocol: catalog.protocol[testId] || "",
-      protocolIdentity: clone(catalog.protocolIdentities?.[testId] || protocolIdentity("test:"+testId,catalog.protocol[testId])),
+      ...(catalog.protocolIdentities?.[testId] ? { protocolIdentity: clone(catalog.protocolIdentities[testId]) } : {}),
       source,
     };
   }
   function sameVariant(a, b) {
-    return (
-      canonicalJSON({
-        test: a.test,
-        definitions: a.definitions,
-        protocol: canonicalProtocolText(a.test.id,a.protocol),
-        protocolIdentity: a.protocolIdentity,
-      }) ===
-      canonicalJSON({
-        test: b.test,
-        definitions: b.definitions,
-        protocol: canonicalProtocolText(b.test.id,b.protocol),
-        protocolIdentity: b.protocolIdentity,
-      })
-    );
+    const comparable = value => measurementCompatibility({ test: value.test, definitions: value.definitions }, { protocolText: true });
+    return canonicalJSON(comparable(a)) === canonicalJSON(comparable(b));
   }
   function mergeCatalog(input, record, source = record.recordId) {
     const catalog = normalizeCatalog(input),
@@ -3977,14 +3965,14 @@
           normalized.definitions.filter((d) => d.testId === test.id).map(catalogMetric),
         ).sort((a, b) => a.id.localeCompare(b.id)),
         protocol: normalized.protocol[test.id] || "",
-        protocolIdentity: clone(normalized.protocolIdentities[test.id] || protocolIdentity("test:"+test.id,normalized.protocol[test.id])),
+        ...(normalized.protocolIdentities?.[test.id] ? { protocolIdentity: clone(normalized.protocolIdentities[test.id]) } : {}),
         source,
       };
       if (!catalog.tests.some((t) => t.id === test.id)) {
         catalog.tests.push(clone(candidate.test));
         catalog.definitions.push(...clone(candidate.definitions));
         catalog.protocol[test.id] = candidate.protocol;
-        catalog.protocolIdentities[test.id] = clone(normalized.protocolIdentities[test.id] || protocolIdentity("test:"+test.id,candidate.protocol));
+        if (normalized.protocolIdentities?.[test.id]) catalog.protocolIdentities[test.id] = clone(normalized.protocolIdentities[test.id]);
       } else if (!sameVariant(catalogVariant(catalog, test.id, ""), candidate))
         addConflict(test, candidate);
     });
@@ -3998,7 +3986,7 @@
           (d) => d.id === definition.id,
         );
         if (!existing) catalog.definitions.push(clone(definition));
-        else if (canonicalJSON(existing) !== canonicalJSON(definition)) {
+        else if (canonicalJSON(measurementCompatibility(existing, { protocolText: true })) !== canonicalJSON(measurementCompatibility(definition, { protocolText: true }))) {
           const candidate = catalogVariant(catalog, definition.testId, source);
           candidate.definitions = candidate.definitions.map((d) =>
             d.id === definition.id ? clone(definition) : d,
@@ -4013,7 +4001,6 @@
         catalog.abilityGroupConflicts.push({ key: group.key, localName: existing.name, incomingName: group.name });
     }
     catalog.abilityGroups = T.abilityGroups(catalog);
-    stampProtocolIdentities(catalog);
     return catalog;
   }
   function recordFromCatalog(input, profile, enabled = {}, testDate = date()) {
@@ -4038,7 +4025,7 @@
     record.trainingContext.experienceYears = profileFromRecord(profile).experienceYears;
     applyAge(record);
     record.projectSnapshots = T.snapshots(catalog);
-    record.protocolIdentities = clone(catalog.protocolIdentities);
+    record.protocolIdentities = {};
     record.abilityGroupSnapshot = clone(T.abilityGroups(catalog));
     // This legacy value selects an existing metric ID, not a test method.
     // Normalize still uses the historical shuttle fallback for old records.
@@ -4058,6 +4045,7 @@
     selected.forEach((id) => {
       record.protocol[id] = catalog.protocol[id] || "";
     });
+    record.definitions.forEach(definition => { delete definition.protocolIdentity; });
     record.catalogAppliedTests = [...selected];
     const normalized = normalizeRecord(record);
     root.RingsideGenericReport?.freezeViews(normalized, catalog);
@@ -4641,7 +4629,7 @@
       if (!plainObject(rule) || typeof rule.timeMs !== "number" || !Number.isFinite(rule.timeMs) || rule.timeMs <= 0 ||
           !["force_pct_peak", "rfd"].includes(rule.kind) || !["higher", "lower"].includes(rule.direction) ||
           typeof rule.referenceEnabled !== "boolean" || typeof rule.source !== "string" || !Array.isArray(rule.ranges) ||
-          !plainObject(rule.context) || typeof rule.context.protocol !== "string" || !plainObject(rule.context.force) ||
+          !plainObject(rule.context) || rule.context.protocol !== undefined && typeof rule.context.protocol !== "string" || !plainObject(rule.context.force) ||
           rule.context.force.unit !== "N" || !["gross", "net"].includes(rule.context.force.definition) ||
           (rule.matched !== undefined && typeof rule.matched !== "boolean")) throw new Error("IMTP 时点标准字段无效");
       const key = rule.timeMs + ":" + rule.kind;
@@ -5341,6 +5329,7 @@
     cpetDefaults,
     cpetSummary,
     normalizeRecord,
+    measurementCompatibility,
     protocolIdentity,
     canonicalProtocolText,
     stampProtocolIdentities,

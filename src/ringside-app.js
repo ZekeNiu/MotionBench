@@ -710,7 +710,6 @@
       state.protocol[id] = library.catalog.protocol[id];
     if (force || first || projectIndex < 0) {
       state.protocolIdentities ||= {};
-      if (library.catalog.protocolIdentities?.[id]) state.protocolIdentities[id] = copy(library.catalog.protocolIdentities[id]);
       if (T.describe(state).find(test => test.id === id)?.renderer === "scalar") {
         state.views.genericReports ||= {};
         const view = window.RingsideGenericReport.resolveView(state, id, library.catalog);
@@ -3633,8 +3632,6 @@
       `<textarea id="catalogProtocol" rows="3" aria-label="项目测试协议／设备">${E(initialProtocol)}</textarea>`,
       true,
     );
-    if(!metricOnly && mode!=="new-metric") fields+=label("测量方法版本",`<input id="catalogProtocolVersion" type="number" min="1" step="1" readonly value="${catalog.protocolIdentities?.[test?.id]?.version||1}"><label class="row"><input id="catalogProjectMethodChanged" type="checkbox">测试方法发生改变</label><small>只修订说明时保留版本；方法改变会增加版本，用于匹配后续测试的评价标准。</small>`);
-    if(!projectOnly) fields+=label("指标测量版本",`<input id="catalogMetricProtocolVersion" type="number" min="1" step="1" readonly value="${definition?.protocolIdentity?.version||1}"><label class="row"><input id="catalogMetricMethodChanged" type="checkbox">此指标的测量方法发生改变</label>`);
     if(!projectOnly) fields+=window.RingsideCalculations?.editor(catalog,(test||selectedTest)?.id||"",definition)||"";
     fields +=
       '</div><p class="note">速度统一使用 m/s。保存后可在本次测试计划中选择该项目。</p>';
@@ -3701,8 +3698,6 @@
       renderCatalogChangePreview();
     };
     $("catalogForm").onchange = event => {
-      for (const [toggle, version, original] of [["catalogProjectMethodChanged","catalogProtocolVersion",catalog.protocolIdentities?.[test?.id]?.version||1],["catalogMetricMethodChanged","catalogMetricProtocolVersion",definition?.protocolIdentity?.version||1]])
-        if (event.target.id === toggle) $(version).value = original + (event.target.checked ? 1 : 0);
       if (catalogEdit?.genericViewEditor && !event.target.closest("#catalogGenericReport")) window.RingsideGenericReportUI.updateMetrics(catalogGenericMetrics());
       renderCatalogChangePreview();
     };
@@ -3720,7 +3715,6 @@
   function catalogFormValues() {
     const values = Object.fromEntries([...$("catalogForm").querySelectorAll("input[id],select[id],textarea[id]")]
       .filter(node => !node.closest("#catalogGenericReport"))
-      .filter(node => !node.id.includes("MethodChanged"))
       .map(node => [node.id,node.type === "checkbox" ? node.checked : node.value]));
     if (catalogEdit?.genericViewEditor) values.__genericReportView = window.RingsideGenericReportUI.snapshot();
     return values;
@@ -3740,7 +3734,7 @@
     const host = $("catalogFields");
     for (const [title, ids] of [
       ["基础资料",["catalogTestId","catalogTestName","catalogMetricName","catalogUnit","catalogCategory","catalogAbility","catalogPrimaryAbility"]],
-      ["录入与选值",["catalogEntryScope","catalogPrimaryMetric","catalogSelectionDirection","catalogProtocol","catalogProtocolVersion","catalogMetricProtocolVersion"]],
+      ["录入与选值",["catalogEntryScope","catalogPrimaryMetric","catalogSelectionDirection","catalogProtocol"]],
       ["统计与换算",["catalogRatioEligible","catalogCVEligible"]]
     ]) {
       const fields = [...new Set(ids.map(id => $(id)?.closest(".field")).filter(node => node && !node.hidden))];
@@ -3772,9 +3766,7 @@
     }
     const chartChanged = current.__genericReportView !== prior.__genericReportView;
     if (chartChanged) changes.push("<li><b>报告图表</b>：更新图样或展示指标</li>");
-    const methodChanged=$("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
-    const linked=methodChanged ? library.evaluationProfiles.filter(profile=>profile.standards?.some(rule=>rule.testId===catalogEdit.testId)).map(profile=>profile.name) : [];
-    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">测量设置用于后续测试，已有记录保留测量快照。${catalogEdit.genericViewEditor ? "报告图样同步用于测量定义兼容的已有报告。" : ""}</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">测量设置用于后续测试，已有记录保留测量快照。${catalogEdit.genericViewEditor ? "报告图样同步用于测量定义兼容的已有报告。" : ""}</p>`;
   }
   async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
@@ -3872,9 +3864,6 @@
               : protocol,
         };
         window.RingsideCalculations?.readEditor(definition);
-        const metricVersion=Number(value("catalogMetricProtocolVersion")||1);
-        if(!Number.isSafeInteger(metricVersion)||metricVersion<1)throw Error("指标协议版本须为正整数");
-        definition.protocolIdentity={id:existing?.protocolIdentity?.id||"protocol_metric_"+definition.id,version:metricVersion};
         const index = catalog.definitions.findIndex(
           (d) => d.id === definition.id,
         );
@@ -3892,11 +3881,6 @@
       if (edit.mode === "new-test" || edit.projectOnly) {
         catalog.definitions.filter(d => d.testId === testId).forEach(d => d.category = test.category);
         catalog.protocol[testId] = protocol;
-      }
-      if($("catalogProtocolVersion")){
-        const version=Number(value("catalogProtocolVersion"));
-        if(!Number.isSafeInteger(version)||version<1)throw Error("测试协议版本须为正整数");
-        catalog.protocolIdentities||={};catalog.protocolIdentities[testId]={id:catalog.protocolIdentities[testId]?.id||"protocol_project_"+testId,version};
       }
       if (edit.genericViewEditor) {
         const validation = window.RingsideGenericReportUI.validate();
