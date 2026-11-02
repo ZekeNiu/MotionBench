@@ -244,7 +244,7 @@
     }
     if (!profiles.length && input?.defaultEvaluationProfileId !== "" && !legacy.athletes.some(a=>a.records.some(r=>r.evaluationProfileId===""))) profiles.push(create(M.defaults(), "默认评价方案"));
     const defaultProfile = [...profiles].sort((a,b) => (counts.get(b.id)||0)-(counts.get(a.id)||0) || a.id.localeCompare(b.id))[0];
-    return { ...legacy, schema: 3, groups: [], evaluationProfiles: profiles, defaultEvaluationProfileId: defaultProfile?.id || "",
+    return { ...legacy, schema: 3, groups: [], evaluationProfiles: profiles, defaultEvaluationProfileId: input?.defaultEvaluationProfileId === "" ? "" : defaultProfile?.id || "",
       athletes: legacy.athletes.map(a => ({...a, groupId:"", archived:false, deletedAt:null, records:a.records.map(r=>({...r,archived:false,deletedAt:null}))})) };
   }
   root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate, imtpTimeContext, imtpTimeMatches, upgradeLibraryProfiles, upgradeIsoCriteria, materialize, hasInstalledStandard, measurementContext, isoContext, compatibleContext, contextSignature };
