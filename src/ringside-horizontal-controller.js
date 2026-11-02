@@ -104,15 +104,16 @@
         host.saveEditor?.();if(!await host.save()||!current())return false;
         const windows=(configuration.references||[]).map(ref=>ref.window||configuration.window||{kind:"all"}),bounded=windows.length&&windows.every(w=>w.kind!=="all"&&w.from&&w.to),window=bounded?{from:windows.map(w=>w.from).sort()[0],to:windows.map(w=>w.to).sort().at(-1)}:{};
         const source=await host.repository().loadHorizontalSources({window,recordIds:configuration.participants.map(p=>p.recordId)});if(!current())return false;
-        const lib=source.library,profile=lib.evaluationProfiles.find(p=>p.id===configuration.profileId)||configuration.profileSnapshot;if(!profile)throw Error("请选择可用的评价方案");
-        const frozen=copy(configuration);frozen.profileSnapshot=copy(profile);
+        const lib=source.library,profileId=Object.hasOwn(configuration,"profileId")?configuration.profileId:lib.defaultEvaluationProfileId;
+        const profile=profileId===""?null:lib.evaluationProfiles.find(p=>p.id===profileId);if(typeof profileId!=="string"||profileId&&!profile)throw Error("请选择可用的评价方案");
+        const frozen=copy(configuration);frozen.profileId=profileId;frozen.profileSnapshot=copy(profile);
         frozen.references=root.RingsideHorizontalSetup.resolveReferences(frozen.references||[],{perspective:frozen.perspective,focus:frozen.participants.find(p=>p.athleteId===frozen.focusAthleteId)||frozen.participants[0],athletes:lib.athletes,classifications:root.RingsideClassifications.normalize(lib.classifications||{}),groups:lib.groups});
         frozen.window=root.RingsideHorizontal.normalizeWindow(frozen.window||{kind:"all"});frozen.references.forEach(reference=>{reference.window=root.RingsideHorizontal.normalizeWindow(reference.window||frozen.window);});
         const priorViews=compatibleViews(prior),modelOptions={...frozen,profile,catalog:lib.catalog,athletes:lib.athletes,groups:lib.groups,classifications:lib.classifications,views:priorViews},snapshot=root.RingsideHorizontal.buildAsync?await root.RingsideHorizontal.buildAsync(source.records,modelOptions,{isCancelled:()=>!current(),onProgress:({prepared})=>{if(current())progress(prepared);}}):root.RingsideHorizontal.build(source.records,modelOptions);if(!snapshot||!current())return false;
         if(snapshot.evaluationConflicts?.length){host.evaluationConflicts?.(snapshot.evaluationConflicts);if(!host.evaluationConflicts)error(Error("群体存在不同评价标准，请先指定统一标准"));return false;}
         snapshot.sourceRevision=source.revision;snapshot.sourceGeneration=source.generation;snapshot.classifications=copy(lib.classifications||{});snapshot.groups=copy(lib.groups||[]);snapshot.libraryVersion=lib.version;
         snapshot.participants.forEach(p=>{p.groupId=lib.athletes.find(a=>a.id===p.athleteId)?.groupId||"";});
-        const neededProfiles=new Set(snapshot.participants.map(p=>p.record.evaluationProfileId).concat(profile.id));snapshot.evaluationProfiles=lib.evaluationProfiles.filter(p=>neededProfiles.has(p.id)).map(p=>root.RingsideEvaluation.serializeProfile(p));
+        const neededProfiles=new Set(snapshot.participants.map(p=>p.record.evaluationProfileId).concat(profile?.id).filter(Boolean));snapshot.evaluationProfiles=lib.evaluationProfiles.filter(p=>neededProfiles.has(p.id)).map(p=>root.RingsideEvaluation.serializeProfile(p));
         const now=stamp(),next=root.RingsideHorizontalStore.normalize({version:1,id:prior?.id||id(),title:configuration.title||prior?.title||"横向比较报告",configuration:frozen,snapshot,narrative:prior?.narrative||{text:"",html:"",revision:0,basis:"",origin:"manual"},...(prior?.previousNarrative?{previousNarrative:prior.previousNarrative}:{}),views:priorViews,basis:snapshot.fingerprint||snapshot.basis,created:prior?.created||now,updated:now,revision:prior?.revision||0});
         if(!current())return false;return await activate(next,{persist:true,flush:false,guard:current});
       }catch(e){error(e);return false;}finally{if(sequence===ticket)loading=false;}

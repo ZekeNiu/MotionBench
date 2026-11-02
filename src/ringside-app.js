@@ -217,7 +217,7 @@
   });
   function effectiveRecord(record = state) {
     if (!record) return null;
-    return window.RingsideEvaluation.resolve(record, library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
+    return window.RingsideEvaluation.resolve(record, record.evaluationProfileId === "" ? null : library?.evaluationProfiles.find(p => p.id === record.evaluationProfileId));
   }
   function recordBasis() { return reports.active() ? reports.basis() : state ? M.fingerprint(effectiveRecord()) : ""; }
   function capabilityDirectionsBasis() { return reports.active() ? reports.basis() : state ? M.capabilityDirectionsBasis(effectiveRecord()) : ""; }
@@ -449,11 +449,11 @@
       if(person&&!athlete)throw Error("所选运动员已不存在");
       if(!isCurrent())return false;
       horizontal.clear();
-      if(ids.length>1)return longitudinal.select(ids,{athleteId:person.athleteId});
+      if(ids.length>1)return longitudinal.select(ids,{athleteId:person.athleteId,...(Object.hasOwn(value,"profileId")?{evaluationProfileId:value.profileId}:{})});
       return switchRecord(athlete||null,ids.length?athlete.records.find(r=>r.recordId===ids[0]):null);
     }
     const config={participants:people.map(p=>({athleteId:p.athleteId,recordId:p.recordIds[0]})),references,
-      mode:value.mode||state?.mode||"best",profileId:value.profileId||library.defaultEvaluationProfileId,
+      mode:value.mode||state?.mode||"best",profileId:Object.hasOwn(value,"profileId")?value.profileId:library.defaultEvaluationProfileId,
       title:value.title||"",titleAuto:!value.title,window:{kind:"all",from:"",to:""},perspective:people.length===1?"focus":"peers",focusAthleteId:people.length===1?people[0].athleteId:""};
     if(!isCurrent())return false;
     // A changed object selection owns a new narrative; editing the same saved
@@ -1783,7 +1783,7 @@
     draft.profile=copy(owner.profile);draft.loadedOwnerId=id;draft.testPlanId="";
     draft.isoDirectionIds=latest?M.selectedIsoRows(latest).map(r=>r.id):[];
     draft.isoCatalog=latest?M.isoDirectionCatalog(latest):M.isoRows();
-    draft.evaluationProfileId=library.evaluationProfiles.find(p=>p.id===latest?.evaluationProfileId&&!p.disabled)?.id||library.defaultEvaluationProfileId;
+    draft.evaluationProfileId=latest&&Object.hasOwn(latest,"evaluationProfileId")?latest.evaluationProfileId:library.defaultEvaluationProfileId;
     draft.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,!!latest?.enabled[t.id]&&!t.disabled&&!projectBlocked(t.id)]));
     $("creationSource").textContent=latest?`${owner.name} · 已带入上次所选项目；本次测量重新录入。`:`${owner.name} · 首次测试，请选择方案或项目。`;
     renderCreationSetup();
@@ -1792,7 +1792,7 @@
   function renderCreationSetup() {
     if(!creation)return;
     $("creationTestPlan").innerHTML='<option value="">临时选择项目</option>'+(library.testPlans||[]).filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.testPlanId?"selected":""}>${E(p.name)}</option>`).join("");
-    $("creationEvaluationProfile").innerHTML=library.evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("");
+    $("creationEvaluationProfile").innerHTML=`<option value="" ${creation.evaluationProfileId===""?"selected":""}>不使用评价方案</option>`+(creation.evaluationProfileId&&!library.evaluationProfiles.some(p=>p.id===creation.evaluationProfileId&&!p.disabled)?`<option value="${E(creation.evaluationProfileId)}" selected disabled>评价方案已不可用</option>`:"")+library.evaluationProfiles.filter(p=>!p.disabled).map(p=>`<option value="${E(p.id)}" ${p.id===creation.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("");
     $("creationProjects").innerHTML=projectPicker(creation.enabled,true);bindProjectPicker($("creationProjects"),true);refreshCreationCount();
     renderCreationContext();
   }
@@ -1858,13 +1858,15 @@
       creation.isoCatalog=M.isoRows();
       creation.enabled=Object.fromEntries(library.catalog.tests.map(t=>[t.id,plan.testIds.includes(t.id)&&!t.disabled&&!projectBlocked(t.id)]));
       const profile=library.evaluationProfiles.find(p=>p.id===plan.defaultEvaluationProfileId&&!p.disabled);
-      if(profile)creation.evaluationProfileId=profile.id;
+      if(plan.defaultEvaluationProfileId==="")creation.evaluationProfileId="";
+      else if(profile)creation.evaluationProfileId=profile.id;
+      else creation.evaluationProfileId=plan.defaultEvaluationProfileId;
       const unavailable=plan.testIds.filter(id=>!library.catalog.tests.some(t=>t.id===id&&!t.disabled)||projectBlocked(id));
-      $("creationSource").textContent=plan.name+(unavailable.length?` · ${unavailable.length} 个项目已停用或定义待确认，请核对本次选择。`:" · 可调整本次项目，原方案保持不变。")+(!profile?" 推荐评价方案不可用，请确认当前选择。":"");
+      $("creationSource").textContent=plan.name+(unavailable.length?` · ${unavailable.length} 个项目已停用或定义待确认，请核对本次选择。`:" · 可调整本次项目，原方案保持不变。")+(!profile&&plan.defaultEvaluationProfileId!==""?" 推荐评价方案不可用，请确认当前选择。":"");
     }else{
       creation.evaluationProfileId=library.defaultEvaluationProfileId;
       const owner=library.athletes.find(a=>a.id===creation.ownerId),latest=owner&&M.latestRecord({records:owner.records.filter(r=>!r.deletedAt)});
-      if(library.evaluationProfiles.some(p=>p.id===latest?.evaluationProfileId&&!p.disabled))creation.evaluationProfileId=latest.evaluationProfileId;
+      if(latest&&Object.hasOwn(latest,"evaluationProfileId"))creation.evaluationProfileId=latest.evaluationProfileId;
       $("creationSource").textContent="临时选择本次项目与评价方案。";
     }
     renderCreationSetup();
@@ -1930,7 +1932,7 @@
       const context=creation.contexts[owner.id];context.athlete.date=$("creationDate").value;M.applyAge(context,owner.profile.birthDate||"");M.validateAthleteContext(context);
       for(const key of ["age","mass","height"]){const error=M.validateField(context,"athlete."+key,context.athlete[key]);if(error)throw Error(owner.name+"："+error);}
     }}catch(error){return creationError(error.message);}
-    if(!library.evaluationProfiles.some(p=>p.id===$("creationEvaluationProfile").value&&!p.disabled))return creationError("请选择在用评价方案");
+    if($("creationEvaluationProfile").value!==""&&!library.evaluationProfiles.some(p=>p.id===$("creationEvaluationProfile").value&&!p.disabled))return creationError("请选择在用评价方案");
     creation.submitting=true;refreshCreationCount();lockCreation(true);
     try {
       captureReportUI();saveEditor();if(!await persist())throw Error("当前修改尚未保存");
@@ -1941,7 +1943,7 @@
       base.evaluationProfileId=$("creationEvaluationProfile").value;
       installIsoSelection(base,creation.isoDirectionIds||[],creation.isoCatalog);
       const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
-      if(plan)base.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...base.isoDirectionIds],...(plan.calculationBindings?{calculationBindings:copy(plan.calculationBindings)}:{})};
+      if(plan)base.testPlanSnapshot={id:plan.id,name:plan.name,...(plan.description?{description:plan.description}:{}),testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...base.isoDirectionIds],...(plan.calculationBindings?{calculationBindings:copy(plan.calculationBindings)}:{})};
       if(plan?.calculationBindings)base.calculationBindings=copy(plan.calculationBindings);
       const records=[];
       for(const owner of owners){
@@ -1992,7 +1994,7 @@
       for(const record of result.records){
         const owner=next.athletes.find(a=>a.id===record.athleteId&&!a.deletedAt&&!a.archived);
         if(!owner)throw Error("运动员已不存在或已归档，请重新预览");
-        if(!next.evaluationProfiles.some(p=>p.id===record.evaluationProfileId))throw Error("评价方案已不存在，请重新预览");
+        if(record.evaluationProfileId!==""&&!next.evaluationProfiles.some(p=>p.id===record.evaluationProfileId))throw Error("评价方案已不存在，请重新预览");
         M.validateRecord(record);record.updated=now();
         const index=owner.records.findIndex(r=>r.recordId===record.recordId),summary=window.RingsideStore.summary(record);
         if(index<0)owner.records.push(summary);else owner.records[index]=summary;
@@ -2023,7 +2025,7 @@
   }
   function entryReview() {
     const computed=M.stats(effectiveRecord()),projects=orderedEntryProjects();
-    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","计算准备","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed),issues=window.RingsideAcquisition?.readiness(state,t.id)||[];return[E(t.name),E(progress?.detail||"未录入"),issues.length?issues.map(issue=>`<p class="note">${E(issue.message)}</p>`).join(""):"—",`<button class="btn small" onclick="App.entry('${E(t.id)}')">${issues.length?"补充参数":"继续录入"}</button>`];}))+`<p class="note">评价方案：${E(library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次${E(T.analysisLabel)}</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
+    return `<p class="intro">${E(state.athlete.name)} · ${E(state.athlete.date)} · ${projects.length} 个项目。缺测项目保持未测，可稍后继续。</p>`+table(["项目","本次状态","计算准备","操作"],projects.map(t=>{const progress=M.recordProgressDetail(state,t.id,computed),issues=window.RingsideAcquisition?.readiness(state,t.id)||[];return[E(t.name),E(progress?.detail||"未录入"),issues.length?issues.map(issue=>`<p class="note">${E(issue.message)}</p>`).join(""):"—",`<button class="btn small" onclick="App.entry('${E(t.id)}')">${issues.length?"补充参数":"继续录入"}</button>`];}))+`<p class="note">评价方案：${E(state.evaluationProfileId===""?"不使用评价方案":library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)?.name||"未关联")}</p><details class="supplement"><summary>本次${E(T.analysisLabel)}</summary><div class="form-grid">${T.derivedDefinitions().map(d=>check("derivedEnabled."+d.id,state.derivedEnabled[d.id]!==false,d.name)).join("")}</div></details>`;
   }
   async function finishEntry() {
     if(!state)return;
@@ -2606,7 +2608,7 @@
       return;
     }
     let h = "";
-    if (entryTab === "athlete" || entryTab === "plan") h += `<div class="record-evaluation"><label class="field"><span>共用评价方案</span><select id="recordEvaluationSelect" onchange="App.assignRecordProfile(this.value)">${library.evaluationProfiles.filter(p=>!p.disabled||p.id===state.evaluationProfileId).map(p=>`<option value="${E(p.id)}" ${p.id===state.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("")}</select></label><button class="btn small" onclick="App.viewEvaluation()">查看生效标准</button></div>`;
+    if (entryTab === "athlete" || entryTab === "plan") h += `<div class="record-evaluation"><label class="field"><span>共用评价方案</span><select id="recordEvaluationSelect" onchange="App.assignRecordProfile(this.value)">${`<option value="" ${state.evaluationProfileId===""?"selected":""}>不使用评价方案</option>`+(state.evaluationProfileId&&!library.evaluationProfiles.some(p=>p.id===state.evaluationProfileId)?`<option value="${E(state.evaluationProfileId)}" selected disabled>评价方案已不可用</option>`:"")+library.evaluationProfiles.filter(p=>!p.disabled||p.id===state.evaluationProfileId).map(p=>`<option value="${E(p.id)}" ${p.id===state.evaluationProfileId?"selected":""}>${E(p.name)}</option>`).join("")}</select></label><button class="btn small" onclick="App.viewEvaluation()" ${state.evaluationProfileId===""?"disabled":""}>查看生效标准</button></div>`;
     if (entryTab === "athlete") {
       const profile = activeAthlete()?.profile || state.athlete;
       h += `<div class="record-evaluation"><div><b>${E(profile.name || state.athlete.name)}</b><p class="note">${[currentSport(profile), profile.sex, profile.birthDate ? "出生日期 " + profile.birthDate : "", profile.sportLevel].filter(Boolean).map(E).join(" · ")}</p>${profile.injuryHistory ? `<p class="note">相关既往伤病：${E(profile.injuryHistory)}</p>` : ""}${profile.experienceYears !== "" && profile.experienceYears != null ? `<p class="note">抗阻训练年限：${E(profile.experienceYears)} 年</p>` : ""}</div><button type="button" class="btn small" onclick="App.editCurrentAthlete()">编辑运动员档案</button></div>`;
@@ -3726,6 +3728,7 @@
     if (name) {
       const id = catalogEdit.definitionId || "__pending_metric__", index = metrics.findIndex(d => d.id === id);
       const metric = { ...(index >= 0 ? metrics[index] : {}), id, name: name.value.trim() || "新指标", unit: $("catalogUnit")?.value.trim() || "", entryScope: $("catalogEntryScope")?.value || "record" };
+      window.RingsideCalculations?.readEditor(metric);
       if (index < 0) metrics.push(metric); else metrics[index] = metric;
     }
     return metrics;
@@ -4600,10 +4603,10 @@
     return {
       schema: 2,
       kind: "report",
-      record: { ...record, evaluationProfileId: undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
+      record: { ...record, evaluationProfileId: state.evaluationProfileId===""?"":undefined, evaluationSnapshot:profile ? {name:profile.name,revision:profile.revision} : {} },
       profile: copy(activeAthlete().profile),
       classifications: copy(library.classifications || {}),
-      ...(profile ? {evaluationProfile:window.RingsideEvaluation.serializeProfile(profile)} : {}),
+      ...(profile ? {evaluationProfile:window.RingsideEvaluation.serializeProfile(profile)} : state.evaluationProfileId===""?{evaluationProfile:null}:{}),
     };
   }
   async function libraryPayload() {
@@ -4804,8 +4807,8 @@
   async function downloadLegacyLibrary() {
     try {
       const all = await libraryPayload(), profiles = new Map(all.evaluationProfiles.map(p=>[p.id,p]));
-      all.athletes = all.athletes.filter(a=>!a.deletedAt).map(a=>({...a,records:a.records.filter(r=>!r.deletedAt).map(r=>{const out=window.RingsideEvaluation.materialize(r,profiles.get(r.evaluationProfileId));delete out.evaluationProfileId;return out;})})).filter(a=>a.records.length);
-      all.schema=2;delete all.evaluationProfiles;delete all.groups;delete all.defaultEvaluationProfileId;delete all.testPlans;
+      all.athletes = all.athletes.filter(a=>!a.deletedAt).map(a=>({...a,records:a.records.filter(r=>!r.deletedAt).map(r=>{const out=window.RingsideEvaluation.materialize(r,r.evaluationProfileId===""?null:profiles.get(r.evaluationProfileId));if(r.evaluationProfileId!=="")delete out.evaluationProfileId;return out;})})).filter(a=>a.records.length);
+      all.schema=2;delete all.evaluationProfiles;delete all.groups;if(all.defaultEvaluationProfileId!=="")delete all.defaultEvaluationProfileId;delete all.testPlans;
       // Older applications use the visible ability text as identity. Materialize
       // the export snapshot, disambiguating equal names without merging axes.
       const legacyAbilities = source => {
@@ -5102,7 +5105,7 @@
     saveLibraryChanges, commitLibraryChange, updateAthleteProfile, updateRecordDate, loadDirectory, renderSelectors, downloadLegacyLibrary, downloadUpgradeBackup, downloadMigrationReport, downloadRollbackRecoveryBackup, prepareVersionRollback, importBackup,
     getAthlete(id) { return library?.athletes.find(athlete=>athlete.id===id)||entrySession?.pendingAthletes.find(athlete=>athlete.id===id); },
     getRepository: () => repository,
-    async assignRecordProfile(id) { if (!state || !library.evaluationProfiles.some(p=>p.id===id)) return; state.evaluationProfileId=id;cancelJob();await persist();renderReport();renderEntry(); },
+    async assignRecordProfile(id) { if (!state || id!==""&&!library.evaluationProfiles.some(p=>p.id===id)) return; state.evaluationProfileId=id;cancelJob();await persist();renderReport();renderEntry(); },
     viewEvaluation() { if(state) window.RingsideManagement.showEffective(effectiveRecord(),library.evaluationProfiles.find(p=>p.id===state.evaluationProfileId)); },
     async restorePreviousLibrary() {
       if (Object.keys(draftsFor()).some(path => resolveDraftPath(path))) throw Error("请先修正当前标红输入，再恢复资料库");

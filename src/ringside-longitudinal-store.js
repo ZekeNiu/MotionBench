@@ -32,18 +32,19 @@
     if (recordIds.length < 2 || recordIds.length > 1000 || recordIds.length !== input.recordIds.length) throw Error("纵向报告需要至少两条不同的测试记录");
     if (input.key !== undefined && input.key !== documentKey) throw Error("纵向报告编号与所选记录不一致");
     if (input.mode !== undefined && !["best", "mean"].includes(input.mode)) throw Error("纵向报告汇总方式无效");
-    if (input.evaluationProfileId && !safeId(input.evaluationProfileId)) throw Error("纵向报告评价方案编号无效");
+    if (input.evaluationProfileId !== undefined && input.evaluationProfileId !== "" && !safeId(input.evaluationProfileId)) throw Error("纵向报告评价方案编号无效");
     if (input.views !== undefined && !plain(input.views)) throw Error("纵向报告显示设置无效");
     for (const name of ["basis", "created", "updated"]) if (input[name] !== undefined && typeof input[name] !== "string") throw Error("纵向报告元数据无效");
     if (input.revision !== undefined && (!Number.isSafeInteger(input.revision) || input.revision < 0)) throw Error("纵向报告版本无效");
     if (input.importedVersions !== undefined && (archive || !Array.isArray(input.importedVersions) || input.importedVersions.length > 1000)) throw Error("纵向报告导入历史格式无效");
     const importedVersions=input.importedVersions?.map(value=>normalize(value,{archive:true}));
     if(importedVersions?.some(value=>value.key!==documentKey))throw Error("纵向报告导入历史与所选记录不一致");
-    const profileSnapshot = input.profileSnapshot ? root.RingsideEvaluation.serializeProfile(input.profileSnapshot) : null;
+    const profileId = Object.hasOwn(input,"evaluationProfileId") ? input.evaluationProfileId : input.profileSnapshot?.id || "";
+    const profileSnapshot = profileId !== "" && input.profileSnapshot ? root.RingsideEvaluation.serializeProfile(input.profileSnapshot) : null;
     if (profileSnapshot) root.RingsideEvaluation.validateProfile(profileSnapshot);
     if(profileSnapshot && input.evaluationProfileId && profileSnapshot.id!==input.evaluationProfileId)throw Error("纵向报告评价方案与快照不一致");
     return { version: 1, key: documentKey, athleteId: input.athleteId, recordIds, mode: input.mode || "best",
-      evaluationProfileId: input.evaluationProfileId || profileSnapshot?.id || "", profileSnapshot,
+      evaluationProfileId: profileId, profileSnapshot,
       views: root.RingsideLongitudinalViews ? root.RingsideLongitudinalViews.normalize(input.views || {}, recordIds) : clone(input.views || {}), narrative: narrative(input.narrative),
       ...(input.previousNarrative ? { previousNarrative: narrative(input.previousNarrative) } : {}),
       ...(importedVersions?.length ? { importedVersions } : {}),
@@ -128,7 +129,7 @@
     const output = { schema: 3, kind: "athlete-library", version: library.version, catalog: clone(library.catalog), testPlans: [],
       ...(library.classifications !== undefined ? { classifications: clone(library.classifications) } : {}),
       groups: clone((library.groups || []).filter(group => group.id === owner.groupId)), evaluationProfiles: profiles,
-      defaultEvaluationProfileId: document.evaluationProfileId || profiles[0]?.id || "", athletes: [owner],
+      defaultEvaluationProfileId: document.evaluationProfileId, athletes: [owner],
       activeAthleteId: owner.id, activeRecordId: selected.slice().sort((a, b) => a.athlete.date.localeCompare(b.athlete.date) || String(a.created || "").localeCompare(String(b.created || "")) || a.recordId.localeCompare(b.recordId)).at(-1).recordId,
       longitudinalReports: [document], updated: library.updated || "" };
     validateReferences(document, output, { active: true });

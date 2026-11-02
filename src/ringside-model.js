@@ -1131,6 +1131,7 @@
     out.protocolIdentities = clone(s.protocolIdentities || {});
     if (s.measurementPolicyVersion !== 1) migrateMeasurementPolicy(out, s);
     out.projectSnapshots = T.snapshots(out);
+    if (out.testPlanSnapshot) out.testPlanSnapshot = normalizeTestPlan(out.testPlanSnapshot);
     if (s.views?.genericReports !== undefined && root.RingsideGenericReport)
       out.views.genericReports = root.RingsideGenericReport.normalizeViews(s.views.genericReports, out);
     T.describe(out).forEach((test) => {
@@ -3779,6 +3780,19 @@
       return canonicalJSON(measurementCompatibility(value)) === fingerprintWithoutAge(comparison);
     } catch (_) { return false; }
   }
+  const TEST_PLAN_DESCRIPTION_MAX = 2000;
+  function normalizeTestPlanDescription(value) {
+    if (value === undefined) return "";
+    if (typeof value !== "string") throw Error("测试方案说明须为文本");
+    const description = value.replace(/\r\n?/g, "\n").trim();
+    if (description.length > TEST_PLAN_DESCRIPTION_MAX) throw Error("测试方案说明最多 " + TEST_PLAN_DESCRIPTION_MAX + " 字符");
+    return description;
+  }
+  function normalizeTestPlan(input) {
+    const plan = clone(input), description = normalizeTestPlanDescription(plan.description);
+    if (description) plan.description = description; else delete plan.description;
+    return plan;
+  }
   function recordEnvelope(record, profile, catalog, classifications) {
     const evaluation = profile && (profile.formatVersion === 2 || profile.criteria);
     return {
@@ -3786,6 +3800,7 @@
       kind: "assessment-record",
       record: clone(record),
       ...(profile ? evaluation ? { evaluationProfile: root.RingsideEvaluation?.serializeProfile(profile) || clone(profile) } : { profile: clone(profile) } : {}),
+      ...(record.evaluationProfileId === "" && !evaluation ? { evaluationProfile: null } : {}),
       ...(catalog ? { catalog: clone(catalog) } : {}),
       ...(classifications !== undefined ? { classifications: clone(classifications) } : {}),
     };
@@ -4730,6 +4745,7 @@
     root.RingsideCalculations?.validateBindings(input.calculationBindings,input);
     if (input.testPlanSnapshot !== undefined) {
       const plan = input.testPlanSnapshot;
+      normalizeTestPlanDescription(plan?.description);
       root.RingsideCalculations?.validateBindings(plan.calculationBindings,input);
       if (!plainObject(plan) || !safeId(plan.id) || typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 ||
           !Array.isArray(plan.testIds) || plan.testIds.length > 75 || plan.testIds.some(id => !safeId(id)) ||
@@ -5393,6 +5409,9 @@
     libraryDefaults,
     normalizeLibrary,
     recordEnvelope,
+    TEST_PLAN_DESCRIPTION_MAX,
+    normalizeTestPlanDescription,
+    normalizeTestPlan,
     validateRecord,
     validateIMTPTimeStandards,
     validateLibrary,

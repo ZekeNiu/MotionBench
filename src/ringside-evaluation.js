@@ -236,14 +236,15 @@
     }
     const legacy = M.normalizeLibrary(input), profiles = [], seen = new Map(), counts = new Map();
     for (const a of legacy.athletes) for (const r of a.records) {
+      if (r.evaluationProfileId === "") continue;
       const c = capture(r), sig = signature(c);
       let profile = seen.get(sig);
       if (!profile) { profile = create(r, r.evaluationSnapshot?.name || "原有评价方案 " + (profiles.length + 1)); if(Number.isSafeInteger(r.evaluationSnapshot?.revision)&&r.evaluationSnapshot.revision>0)profile.revision=r.evaluationSnapshot.revision; profiles.push(profile); seen.set(sig, profile); }
       r.evaluationProfileId = profile.id; counts.set(profile.id, (counts.get(profile.id) || 0) + 1);
     }
-    if (!profiles.length) profiles.push(create(M.defaults(), "默认评价方案"));
+    if (!profiles.length && input?.defaultEvaluationProfileId !== "" && !legacy.athletes.some(a=>a.records.some(r=>r.evaluationProfileId===""))) profiles.push(create(M.defaults(), "默认评价方案"));
     const defaultProfile = [...profiles].sort((a,b) => (counts.get(b.id)||0)-(counts.get(a.id)||0) || a.id.localeCompare(b.id))[0];
-    return { ...legacy, schema: 3, groups: [], evaluationProfiles: profiles, defaultEvaluationProfileId: defaultProfile.id,
+    return { ...legacy, schema: 3, groups: [], evaluationProfiles: profiles, defaultEvaluationProfileId: defaultProfile?.id || "",
       athletes: legacy.athletes.map(a => ({...a, groupId:"", archived:false, deletedAt:null, records:a.records.map(r=>({...r,archived:false,deletedAt:null}))})) };
   }
   root.RingsideEvaluation = { canonical, capture, signature, create, resolve, template, fromTemplate, validateProfile, migrate, imtpTimeContext, imtpTimeMatches, upgradeLibraryProfiles, upgradeIsoCriteria, materialize, hasInstalledStandard, measurementContext, isoContext, compatibleContext, contextSignature };
@@ -528,7 +529,7 @@
     if (!input) {
       const out = legacy.resolve(record, { criteria: { definitions: [], iso: [], balance: [], imtpTimeStandards: [], rules: clone(defaults().rules), axes: {}, lvp: {} } });
       out.evaluationProfileFormat = 2; out.evaluationStandards = [];
-      out.evaluationIssues = [{ id: "profile", reason: "未关联有效评价方案" }]; return out;
+      out.evaluationIssues = input === null ? [] : [{ id: "profile", reason: "未关联有效评价方案" }]; return out;
     }
     const p = normalizeProfile(input, record); sync(p);
     const c = criteriaOf(p, record), unitFactors = new Map();
@@ -656,11 +657,17 @@
     template(input, source) { const p = normalizeProfile(input, source); sync(p); return legacy.template({ criteria: criteriaOf(p, source) }); },
     fromTemplate(record, original) { const p = normalizeProfile(original, record); return legacy.fromTemplate(record, { criteria: criteriaOf(p, record) }); },
     signature(value) { return value?.formatVersion === 2 || value?.criteria ? coreSignature(normalizeProfile(value)) : legacy.signature(value); },
-    materialize(record, profile) { const resolved = profile ? resolve(record, profile) : clone(record); const out = legacy.materialize(resolved); delete out.evaluationStandards; delete out.evaluationProfileRevision; delete out.evaluationProfileFormat; return out; },
+    materialize(record, profile) { const resolved = profile || profile === null ? resolve(record, profile) : clone(record); const out = legacy.materialize(resolved); delete out.evaluationStandards; delete out.evaluationProfileRevision; delete out.evaluationProfileFormat; return out; },
     migrate(input) {
       if (input?.schema === 3 && input.kind === "athlete-library") {
         const library = clone(input); library.athletes.forEach(athlete => athlete.records = (athlete.records || []).map(M.normalizeRecord));
         upgradeLibraryProfiles(library); library.catalog = M.normalizeCatalog(library.catalog); library.evaluationProfiles.forEach(validateProfile); return library;
+      }
+      if (input?.record && input.evaluationProfile === null && input.record.evaluationProfileId === "") {
+        const library = M.normalizeLibrary(input); library.catalog = M.normalizeCatalog(library.catalog);
+        return { ...library, schema: 3, groups: [], evaluationProfiles: [], defaultEvaluationProfileId: "",
+          athletes: library.athletes.map(athlete => ({ ...athlete, groupId: "", archived: false, deletedAt: null,
+            records: athlete.records.map(record => ({ ...record, evaluationProfileId: "", archived: false, deletedAt: null })) })) };
       }
       const exportedProfile = input?.evaluationProfile || (input?.profile?.formatVersion === 2 || input?.profile?.criteria ? input.profile : null);
       if (input?.record && exportedProfile) {

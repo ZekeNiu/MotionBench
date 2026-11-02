@@ -75,7 +75,8 @@
       ids.add(plan.id);
       if (typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 || !Array.isArray(plan.testIds) || !plan.testIds.length || plan.testIds.length > 1000 || new Set(plan.testIds).size !== plan.testIds.length || plan.testIds.some(id=>!tests.has(id))) throw Error("测试方案名称或项目无效");
       root.RingsideCalculations?.validateBindings(plan.calculationBindings,catalog,plan.testIds);
-      if (typeof plan.defaultEvaluationProfileId !== "string" || !plan.defaultEvaluationProfileId) throw Error("测试方案缺少推荐评价方案");
+      M.normalizeTestPlanDescription(plan.description);
+      if (typeof plan.defaultEvaluationProfileId !== "string") throw Error("测试方案的推荐评价方案无效");
       if (plan.disabled !== undefined && typeof plan.disabled !== "boolean") throw Error("测试方案状态无效");
       M.validateIsoDirectionIds(plan.isoDirectionIds, M.isoRows(), !plan.testIds.includes("iso"));
     }
@@ -85,19 +86,19 @@
     // Producer identity is separate from data schemas and calculation methods.
     // Source-only consumers retain the existing producer, including future versions.
     const version = root.RingsideBuild?.version || lib.version;
-    return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:clone(lib.testPlans||[]),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
+    return {schema:3,kind:"athlete-library",catalog:clone(lib.catalog),testPlans:(lib.testPlans||[]).map(M.normalizeTestPlan),defaultEvaluationProfileId:lib.defaultEvaluationProfileId,
       activeAthleteId:lib.activeAthleteId||"",activeRecordId:lib.activeRecordId||"",updated:lib.updated,version,
       ...(lib.classifications !== undefined ? {classifications:root.RingsideClassifications.normalize(lib.classifications)} : {}),
       ...(lib.longitudinalReports !== undefined ? {longitudinalReports:longitudinalReports(lib.longitudinalReports)} : {})};
   }
   function validateEntity(type, value) {
     const safe = id => typeof id === "string" && id.length > 0 && id.length < 250 && !["__proto__","prototype","constructor"].includes(id);
-    if (type === "record") { M.validateRecord(value); if (!safe(value.evaluationProfileId)) throw Error("测试缺少评价方案关联"); }
+    if (type === "record") { M.validateRecord(value); if (value.evaluationProfileId !== "" && !safe(value.evaluationProfileId)) throw Error("测试的评价方案关联无效"); }
     else if (type === "profile") E.validateProfile(value);
     else if (type === "athlete") {
       if (!safe(value.id) || typeof value.name !== "string" || !value.profile || typeof value.profile !== "object" || Array.isArray(value.profile)) throw Error("运动员资料无效");
     } else if (type === "group") { if (!safe(value.id) || typeof value.name !== "string" || !value.name.trim()) throw Error("队伍信息无效"); }
-    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); longitudinalReports(value.longitudinalReports); if(value.classifications!==undefined)root.RingsideClassifications.normalize(value.classifications); if (!safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
+    else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); longitudinalReports(value.longitudinalReports); if(value.classifications!==undefined)root.RingsideClassifications.normalize(value.classifications); if (value.defaultEvaluationProfileId !== "" && !safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
     else if (type === "horizontal-report") root.RingsideHorizontalStore.normalize(value,{metadata:true});
     else if (type === "horizontal-snapshot") root.RingsideHorizontalStore.validateChunk(value);
     else throw Error("备份包含未知资料类型");
@@ -275,7 +276,7 @@
             if(!owner || owner.deletedAt)throw Error("运动员已不存在，请重新打开后保存");
             if(!stored && owner.archived)throw Error("运动员已在其他页面归档，请恢复档案后再创建测试");
             if((owner.profile?.birthDate||"")!==(record.athlete.birthDate||""))throw Error("运动员生日已更新，请重新打开本次记录后保存");
-            if(!await request(tx.objectStore("profiles").get([generation,record.evaluationProfileId])))throw Error("测试的评价方案已不存在，请重新选择");
+            if(record.evaluationProfileId && !await request(tx.objectStore("profiles").get([generation,record.evaluationProfileId])))throw Error("测试的评价方案已不存在，请重新选择");
           }
           const nextConfig={...storedConfig};
           if(reports){
@@ -323,7 +324,7 @@
       const owners=new Set(lib.athletes.map(a=>a.id)),profileIds=new Set(lib.evaluationProfiles.map(p=>p.id)),groupIds=new Set(lib.groups.map(g=>g.id));
       if(lib.athletes.some(a=>a.groupId&&!groupIds.has(a.groupId)))throw Error("运动员所属队伍不存在");
       if(config.classifications)lib.athletes.forEach(owner=>root.RingsideClassifications.validateProfile(owner.profile,config.classifications));
-      if(!profileIds.has(lib.defaultEvaluationProfileId)||records.some(r=>!owners.has(r.athleteId)||!profileIds.has(r.evaluationProfileId)))throw Error("测试关联的运动员或评价方案不存在");
+      if(lib.defaultEvaluationProfileId && !profileIds.has(lib.defaultEvaluationProfileId)||records.some(r=>!owners.has(r.athleteId)||r.evaluationProfileId && !profileIds.has(r.evaluationProfileId))||(lib.testPlans||[]).some(p=>p.defaultEvaluationProfileId&&!profileIds.has(p.defaultEvaluationProfileId)))throw Error("测试关联的运动员或评价方案不存在");
       const snapshots=records.map(r=>{validateEntity("record",r);return clone(r);}),deletions=clone(removals),expected=clone(checks);
       // Capture caller values now, but compare metadata only after preceding writes commit.
       return this.enqueue(async()=>{
@@ -489,9 +490,9 @@
       let incomingPlans=[],incomingReports=[],plansMerged=false;const planMap=new Map();
       const mergePlans=()=>{
         if(plansMerged)return;plansMerged=true;
-        const merged=seeded?clone(config.testPlans||[]):[];
+        const merged=seeded?(config.testPlans||[]).map(M.normalizeTestPlan):[];
         for(const item of incomingPlans){
-          const plan=clone(item);plan.defaultEvaluationProfileId=profileMap.get(plan.defaultEvaluationProfileId)||plan.defaultEvaluationProfileId;
+          const plan=M.normalizeTestPlan(item);plan.defaultEvaluationProfileId=profileMap.get(plan.defaultEvaluationProfileId)||plan.defaultEvaluationProfileId;
           const existing=merged.find(p=>p.id===plan.id);
           if(existing&&E.canonical(existing)===E.canonical(plan))continue;
           if(existing){const id="plan_"+uid();planMap.set(plan.id,id);plan.id=id;plan.name=plan.name.slice(0,116)+"（导入）";}
@@ -584,11 +585,11 @@
         if(!header||!ended||counts.config!==1)throw Error("备份不完整，原资料库保持不变");
         if(root.RingsideClassifications){const normalized=root.RingsideClassifications.migrate({classifications:config.classifications,athletes:[...owners.values()]});config.classifications=normalized.classifications;for(const owner of normalized.athletes){if(E.canonical(owner)!==E.canonical(owners.get(owner.id)))pending.push({type:"athlete",value:owner});owners.set(owner.id,owner);}}
         mergePlans(); validateTestPlans(config.testPlans,config.catalog);
-        for(const plan of config.testPlans)if(!profiles.has(plan.defaultEvaluationProfileId))throw Error("测试方案的推荐评价方案不存在");
-        for(const [athleteId,profileId] of references)if(!owners.has(athleteId)||!profiles.has(profileId))throw Error("测试的运动员或评价方案不存在");
+        for(const plan of config.testPlans)if(plan.defaultEvaluationProfileId && !profiles.has(plan.defaultEvaluationProfileId))throw Error("测试方案的推荐评价方案不存在");
+        for(const [athleteId,profileId] of references)if(!owners.has(athleteId)||profileId && !profiles.has(profileId))throw Error("测试的运动员或评价方案不存在");
         for(const a of owners.values())if(a.groupId&&!groups.has(a.groupId))throw Error("运动员所属队伍不存在");
         if(!seeded)config.defaultEvaluationProfileId=profileMap.get(config.defaultEvaluationProfileId)||config.defaultEvaluationProfileId;
-        if(!profiles.has(config.defaultEvaluationProfileId))throw Error("默认评价方案不存在");
+        if(config.defaultEvaluationProfileId && !profiles.has(config.defaultEvaluationProfileId))throw Error("默认评价方案不存在");
         if(incomingReports.length || config.longitudinalReports !== undefined){
           config.longitudinalReports=root.RingsideLongitudinalStore.merge(seeded?config.longitudinalReports:[],incomingReports,{recordMap,profileMap});
           await flush();

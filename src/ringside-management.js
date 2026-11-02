@@ -21,8 +21,8 @@
   const option=(value,label,selected)=>`<option value="${esc(value)}" ${value===selected?"selected":""}>${esc(label)}</option>`;
   const field=(label,html)=>`<label class="field"><span>${label}</span>${html}</label>`;
   function groupOptions(selected="") {return option("","未分组",selected)+lib().groups.map(g=>option(g.id,g.name,selected)).join("");}
-  function profileOptions(selected="") {return lib().evaluationProfiles.filter(p=>!p.disabled||p.id===selected).map(p=>option(p.id,p.name,selected)).join("");}
-  const profileName=id=>lib().evaluationProfiles.find(p=>p.id===id)?.name||"未关联";
+  function profileOptions(selected="",allowNone=false) {return (allowNone?option("","不使用评价方案",selected):"")+(allowNone&&selected&&!lib().evaluationProfiles.some(p=>p.id===selected)?`<option value="${esc(selected)}" selected disabled>评价方案已不可用</option>`:"")+lib().evaluationProfiles.filter(p=>!p.disabled||p.id===selected).map(p=>option(p.id,p.name,selected)).join("");}
+  const profileName=id=>id===""?"不使用评价方案":lib().evaluationProfiles.find(p=>p.id===id)?.name||"未关联";
   const sportInfo=profile=>root.RingsideClassifications?.resolve(profile,lib().classifications)||{sportId:"",sportName:profile?.sport||""};
   const sportKey=profile=>{const value=sportInfo(profile);return value.sportId||value.sportName;};
   function navigation(){return sections.map(([id,label])=>`<button data-manager-action="section" data-id="${id}" class="${current===id?"active":""}" ${current===id?'aria-current="page"':""}>${label}</button>`).join("");}
@@ -104,10 +104,10 @@
   }
   function testPlans() {
     if(planDraft){
-      return `<div class="test-plan-editor"><div class="form-grid">${field("方案名称",`<input id="testPlanName" maxlength="100" value="${esc(planDraft.name)}">`)}${field("推荐评价方案",`<select id="testPlanProfile">${profileOptions(planDraft.defaultEvaluationProfileId)}</select>`)}</div><h2>选择测试项目</h2><div id="testPlanPicker">${root.RingsidePicker.render(planPickerOptions())}</div><div class="form-grid" id="testPlanCalculationBindings">${root.RingsideCalculations?.bindingEditor(lib().catalog,planDraft)||""}</div><p id="testPlanError" class="field-error" role="alert"></p><div class="row">${button("保存测试方案","plan-save")}${button("取消","plan-close")}</div></div>`;
+      return `<div class="test-plan-editor"><div class="form-grid">${field("方案名称",`<input id="testPlanName" maxlength="100" value="${esc(planDraft.name)}">`)}${field("推荐评价方案",`<select id="testPlanProfile">${profileOptions(planDraft.defaultEvaluationProfileId,true)}</select>`)}</div>${field("方案说明（可选）",`<textarea id="testPlanDescription" maxlength="${M.TEST_PLAN_DESCRIPTION_MAX}" rows="3">${esc(planDraft.description||"")}</textarea>`)}<h2>选择测试项目</h2><div id="testPlanPicker">${root.RingsidePicker.render(planPickerOptions())}</div><div class="form-grid" id="testPlanCalculationBindings">${root.RingsideCalculations?.bindingEditor(lib().catalog,planDraft)||""}</div><p id="testPlanError" class="field-error" role="alert"></p><div class="row">${button("保存测试方案","plan-save")}${button("取消","plan-close")}</div></div>`;
     }
     const q=filter().q.trim().toLocaleLowerCase(),plans=(lib().testPlans||[]).filter(p=>!q||p.name.toLocaleLowerCase().includes(q));
-    return field("搜索测试方案",`<input type="search" data-manager-filter="q" value="${esc(filter().q)}" placeholder="方案名称">`)+(plans.map(p=>`<article class="management-catalog-item" data-test-plan="${esc(p.id)}"><div><h3>${esc(p.name)} ${p.disabled?'<span class="pill">已停用</span>':""}</h3><p>${p.testIds.map(id=>esc(lib().catalog.tests.find(t=>t.id===id)?.name||"已移除项目")).join(" → ")}</p><p class="note">默认评价：${esc(profileName(p.defaultEvaluationProfileId))}</p></div><div class="row">${button("编辑","plan-edit",p.id)}${button("复制","plan-copy",p.id)}${button(p.disabled?"启用":"停用","plan-toggle",p.id)}${button("删除","plan-delete",p.id)}</div></article>`).join("")||'<p class="empty">暂无测试方案。保存常用项目组合，录入时即可复用。</p>');
+    return field("搜索测试方案",`<input type="search" data-manager-filter="q" value="${esc(filter().q)}" placeholder="方案名称">`)+(plans.map(p=>`<article class="management-catalog-item" data-test-plan="${esc(p.id)}"><div><h3>${esc(p.name)} ${p.disabled?'<span class="pill">已停用</span>':""}</h3>${p.description?`<p class="note" data-test-plan-description>${esc(p.description).replace(/\n/g,"<br>")}</p>`:""}<p class="note">默认评价：${esc(profileName(p.defaultEvaluationProfileId))}</p></div><div class="row">${button("编辑","plan-edit",p.id)}${button("复制","plan-copy",p.id)}${button(p.disabled?"启用":"停用","plan-toggle",p.id)}${button("删除","plan-delete",p.id)}</div></article>`).join("")||'<p class="empty">暂无测试方案。保存常用项目组合，录入时即可复用。</p>');
   }
   function catalogNotices() {
     const conflicts=lib().catalog.conflicts.map((c,i)=>c.resolved?"":`<section class="notice" data-catalog-conflict="${esc(c.testId)}"><h3>${esc(c.name)} · 待确认目录版本</h3><p>已有记录保留测量定义。请选择供后续新测试使用的版本。</p>${c.variants.map((v,j)=>`<div class="reference-row"><span>${esc(v.source||"导入版本")} · ${esc(v.test.name)}<small>${esc(v.protocol)} · ${esc(v.definitions.map(d=>T.metricName(d)+" ("+d.unit+")").join("、"))}</small></span>${button("采用此版本","catalog-resolve",i+":"+j)}</div>`).join("")}</section>`).join("");
@@ -546,12 +546,13 @@
     if(["plan-new","plan-edit","plan-copy"].includes(name)){
       const existing=(lib().testPlans||[]).find(p=>p.id===id);planDraft=existing?clone(existing):{id:"plan_"+uid(),name:"",testIds:[],isoDirectionIds:[],defaultEvaluationProfileId:lib().defaultEvaluationProfileId,disabled:false};
       if(!Array.isArray(planDraft.isoDirectionIds))planDraft.isoDirectionIds=planDraft.testIds.includes("iso")?M.legacyIsoDirectionIds():[];
+      planDraft=M.normalizeTestPlan(planDraft);
       planBaseline=Eval.canonical(planDraft);
       if(name==="plan-copy"){planDraft.id="plan_"+uid();planDraft.name+=" 副本";planDraft.disabled=false;}return render();
     }
     if(name==="plan-close"){if(planDraft&&Eval.canonical(planDraft)!==planBaseline&&!confirm("测试方案有未保存修改，放弃这些修改？"))return;planDraft=null;planBaseline="";return render();}
     if(name==="plan-save"){
-      const draft=clone(planDraft);draft.name=draft.name.trim();if(!draft.name)throw Error("请填写测试方案名称");
+      const draft=M.normalizeTestPlan(planDraft);draft.name=draft.name.trim();if(!draft.name)throw Error("请填写测试方案名称");
       if(!draft.testIds.length)throw Error("请至少添加一个测试项目");if(draft.testIds.some(id=>!lib().catalog.tests.some(t=>t.id===id)))throw Error("请移除已不存在的项目");
       if(draft.testIds.includes("iso")&&!draft.isoDirectionIds.length)throw Error("请至少选择一个等长力量测试方向");
       await commit(candidate=>{candidate.testPlans||=[];if(candidate.testPlans.some(p=>p.id!==draft.id&&p.name===draft.name))throw Error("测试方案名称已存在");const i=candidate.testPlans.findIndex(p=>p.id===draft.id);if(i<0)candidate.testPlans.push(draft);else candidate.testPlans[i]=draft;});planDraft=null;planBaseline="";return render();
@@ -560,7 +561,7 @@
     if(name==="plan-delete"){if(!confirm("删除这个测试方案？已经创建的测试记录继续保留。"))return;await commit(candidate=>{candidate.testPlans=candidate.testPlans.filter(p=>p.id!==id);});return render();}
     if(["batch-group","batch-profile","record-profile"].includes(name)){
       const ids=name==="record-profile"?[id]:[...selected],isGroup=name==="batch-group";if(!ids.length)throw Error("请先选择资料");
-      return showForm(isGroup?"调整队伍":"更换评价方案",`<p>已选择 ${ids.length} 项。</p>`+field(isGroup?"队伍":"评价方案",`<select name="value">${isGroup?groupOptions():profileOptions(lib().defaultEvaluationProfileId)}</select>`),async form=>{
+      return showForm(isGroup?"调整队伍":"更换评价方案",`<p>已选择 ${ids.length} 项。</p>`+field(isGroup?"队伍":"评价方案",`<select name="value">${isGroup?groupOptions():profileOptions(lib().defaultEvaluationProfileId,true)}</select>`),async form=>{
         const value=new FormData(form).get("value");await commit(async(candidate,{loadRecord})=>{const records=[];
           if(isGroup)candidate.athletes.filter(a=>ids.includes(a.id)).forEach(a=>a.groupId=value);
           else for(const recordId of ids){const r=clone(await loadRecord(recordId));r.evaluationProfileId=value;r.updated=now();records.push(r);}
@@ -687,6 +688,7 @@
       const t=event.target;
       if(t.id==="teamMemberSearch"){const q=t.value.trim().toLocaleLowerCase();$("managementFields").querySelectorAll("[data-team-candidate]").forEach(el=>el.hidden=!!q&&!el.dataset.teamCandidate.includes(q));}
       if(t.id==="testPlanName"&&planDraft)planDraft.name=t.value;
+      if(t.id==="testPlanDescription"&&planDraft){if(t.value.trim())planDraft.description=t.value;else delete planDraft.description;}
       if(t.dataset.managerFilter&&t.tagName!=="SELECT"){filter()[t.dataset.managerFilter]=t.value;filter().page=1;selected.clear();revealCatalogFilterResults();clearTimeout(filterTimer);const tab=current;filterTimer=setTimeout(()=>{if(current===tab&&App.getUIState().mode==="management")render({preserveFilters:true});},140);}
       if(t.id==="profileName"&&editor)editor.profile.name=t.value;
       profileInput(t);

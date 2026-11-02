@@ -51,14 +51,16 @@
         const latest = records.at(-1), store = root.RingsideLongitudinalStore;
         const saved = store.get(lib, athleteId, ids);
         const mode = options.mode || saved?.mode || latest.mode;
-        const profile = lib.evaluationProfiles.find(p => p.id === latest.evaluationProfileId);
+        const profileId = Object.hasOwn(options,"evaluationProfileId") ? options.evaluationProfileId : Object.hasOwn(latest,"evaluationProfileId") ? latest.evaluationProfileId : lib.defaultEvaluationProfileId;
+        const profile = profileId === "" ? null : lib.evaluationProfiles.find(p => p.id === profileId);
+        if (typeof profileId !== "string" || profileId && !profile) throw Error("请选择可用的评价方案");
         const built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog, views:saved?.views || {}});
         if (ticket !== sequence) return false;
         host.cancelAI();
         const stamp = new Date().toISOString();
         const nextSelection = {athleteId, recordIds:records.map(r => r.recordId), mode};
         const nextDocument = store.normalize({...saved, version:1, key:store.key(athleteId,ids), athleteId, recordIds:nextSelection.recordIds, mode,
-          evaluationProfileId:latest.evaluationProfileId, profileSnapshot:profile ? clone(profile) : null, views:saved?.views || {},
+          evaluationProfileId:profileId, profileSnapshot:profile ? clone(profile) : null, views:saved?.views || {},
           narrative:saved?.narrative || {text:'',html:'',revision:0,basis:'',origin:'manual'}, basis:built.fingerprint || built.basis,
           created:saved?.created || stamp, updated:stamp, revision:saved?.revision || 0});
         store.put(lib, nextDocument);
