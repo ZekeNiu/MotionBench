@@ -182,11 +182,11 @@
       ...(id === "cpet_vo2_relative" ? { referenceEnabled: true, referenceMode: "grouped", referenceGroups: global.RingsideReferences?.cpetReferenceGroups?.() || [], source: "FRIEND 2022 · 实测摄氧量参考百分位", protocol: "CPET 实测摄氧量" } : {}),
     }));
   const isManualMetric = (definition) =>
-    !!definition && (definition.legacyManual === true || !computedIds.has(definition.id));
+    !!definition && !definition.calculation && (definition.legacyManual === true || !computedIds.has(definition.id));
   const supportsAttemptMetrics = (testId) =>
     ["jumps", "imtp", "speed", "scalar"].includes(registry.get(testId)?.renderer || "scalar");
   const isAttemptMetric = (definition) =>
-    isManualMetric(definition) &&
+    (isManualMetric(definition) || definition?.calculation?.kind === "sum") &&
     definition.entryScope === "attempt" &&
     (definition.legacyManual === true || supportsAttemptMetrics(definition.testId));
   function repeatPolicy(source, testId) {
@@ -195,7 +195,7 @@
     const test = (source.tests || []).find((t) => t.id === testId)
       || (source.projectSnapshots || []).find((t) => t.id === testId)
       || (source.customTests || []).find((t) => t.id === testId);
-    const primary = fields.find((d) => d.id === test?.primaryMetricId) || fields[0];
+    const primary = fields.find((d) => d.id === test?.primaryMetricId) || fields.find(d=>!d.calculation) || fields[0];
     return {
       kind: ["fms", "lactate", "cpet", "fvp", "sprint-fvp"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
       primaryMetricId: primary?.id || null,

@@ -949,6 +949,11 @@
     };
   }
   function normalizeRecord(input) {
+    if(input?.definitions){
+      root.RingsideCalculations?.validateDefinitions(input);
+      root.RingsideCalculations?.validateBindings(input.calculationBindings,input);
+      root.RingsideCalculations?.validateBindings(input.testPlanSnapshot?.calculationBindings,input);
+    }
     if (!input || typeof input !== "object") return defaults();
     const s = clone(input),
       d = defaults(),
@@ -2248,7 +2253,10 @@
     });
     const extra = (testId) => T.repeatPolicy(record, testId).fields.map((d) => field(d.id, "metrics." + d.id, d.name, d.unit,
       { cvEligible: d.cvEligible === true, minimum: null, direction: d.direction }));
-    const rawValue = (row, f) => f.read ? f.read(row) : f.key.startsWith("metrics.") ? row.metrics?.[f.id] : row[f.key];
+    const rawValue = (row, f) => {
+      const definition=record.definitions.find(d=>d.id===f.id);
+      return definition?.calculation?.kind==="sum" ? root.RingsideCalculations?.attemptValue(record,definition,row) : f.read ? f.read(row) : f.key.startsWith("metrics.") ? row.metrics?.[f.id] : row[f.key];
+    };
     const validValue = (value, f) => {
       const v = N(value);
       return v === null || (f.minimum !== null && v < f.minimum) || (f.positive && v <= 0) || (f.integer && !Number.isInteger(v)) ? null : v;
@@ -2898,6 +2906,7 @@
       const value = group?.representatives[d.id];
       if (N(value) !== null) { values[d.id] = value; validTests.add(d.testId); }
     });
+    const calculationResults=root.RingsideCalculations?.evaluate(state,values)||{};
     raw.eur =
       positive(values.cmj_height) !== null &&
       positive(values.sj_height) !== null
@@ -3318,6 +3327,7 @@
     const cards = capabilityCards(state, values, raw, derived, {fvp,sprintElasticity});
     const result = {
       values,
+      calculationResults,
       fvp,
       sprintFvp,
       sprintElasticity,
@@ -3746,6 +3756,8 @@
       balancePairs: fingerprintPairs,
       axes: fingerprintAxes,
       protocol,
+      ...(record.calculationBindings?{calculationBindings:record.calculationBindings}:{}),
+      ...(record.testPlanSnapshot?.calculationBindings?{calculationBindingsSnapshot:record.testPlanSnapshot.calculationBindings}:{}),
     });
   }
   function fingerprintWithoutAge(record) {
@@ -4499,6 +4511,7 @@
     input.data.iso.forEach((row) => { if (row.trials !== undefined) validateRows(row.trials); });
     (input.customTests || []).forEach((test) => { if (input.data[test.id] !== undefined) validateRows(input.data[test.id]); });
     validatePrimaryMetrics(input);
+    root.RingsideCalculations?.validateDefinitions(input);
   }
   function validateDerivedOptions(source) {
     if (source.derivedEnabled !== undefined && (!plainObject(source.derivedEnabled) || Object.entries(source.derivedEnabled).some(([id,v]) => !safeId(id) || typeof v !== "boolean"))) throw new Error("训练方向指标开关无效");
@@ -4568,6 +4581,7 @@
       });
     validateDefinitions(catalog.definitions, testIds);
     validatePrimaryMetrics(catalog);
+    root.RingsideCalculations?.validateDefinitions(catalog);
     catalog.definitions.forEach((definition) => {
       if (definitionIds.has(definition.id)) throw new Error("目录指标 ID 重复");
       definitionIds.add(definition.id);
@@ -4725,8 +4739,10 @@
     if (input.mode !== undefined && !["best", "mean"].includes(input.mode))
       throw new Error("汇总模式无效");
     validateIMTPTimeStandards(input.imtpTimeStandards);
+    root.RingsideCalculations?.validateBindings(input.calculationBindings,input);
     if (input.testPlanSnapshot !== undefined) {
       const plan = input.testPlanSnapshot;
+      root.RingsideCalculations?.validateBindings(plan.calculationBindings,input);
       if (!plainObject(plan) || !safeId(plan.id) || typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 ||
           !Array.isArray(plan.testIds) || plan.testIds.length > 75 || plan.testIds.some(id => !safeId(id)) ||
           new Set(plan.testIds).size !== plan.testIds.length) throw new Error("测试方案快照结构无效");

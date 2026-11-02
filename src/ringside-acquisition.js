@@ -4,7 +4,7 @@
   const get=(object,path)=>path.split(".").reduce((value,key)=>value?.[key],object);
   const field=(key,label,type="number",choices)=>({key,label,type,...(choices?{choices}:{})});
   const canonical=value=>JSON.stringify(value,(_,item)=>item&&typeof item==="object"&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
-  function attemptMetrics(record,id){return root.RingsideTests.repeatPolicy(record,id).fields.map(d=>({...field("metrics."+d.id,d.name+(d.unit?" "+d.unit:"")),id:d.id,unit:d.unit,scope:"attempt",role:"measurement"}));}
+  function attemptMetrics(record,id){return root.RingsideTests.repeatPolicy(record,id).fields.filter(d=>!d.calculation).map(d=>({...field("metrics."+d.id,d.name+(d.unit?" "+d.unit:"")),id:d.id,unit:d.unit,scope:"attempt",role:"measurement"}));}
   function hopSets(record){return root.RingsideModel.repeatRows(record,"hop");}
   const historicalHopSets=record=>hopSets(record).filter(set=>set.inputMode==="jumps");
   const hopEditableSets=record=>hopSets(record).filter(set=>set.inputMode!=="jumps");

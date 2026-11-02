@@ -74,6 +74,7 @@
       if (!plan || typeof plan.id !== "string" || !plan.id || plan.id.length > 249 || ["__proto__","constructor","prototype"].includes(plan.id) || ids.has(plan.id)) throw Error("测试方案编号无效或重复");
       ids.add(plan.id);
       if (typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 || !Array.isArray(plan.testIds) || !plan.testIds.length || plan.testIds.length > 1000 || new Set(plan.testIds).size !== plan.testIds.length || plan.testIds.some(id=>!tests.has(id))) throw Error("测试方案名称或项目无效");
+      root.RingsideCalculations?.validateBindings(plan.calculationBindings,catalog,plan.testIds);
       if (typeof plan.defaultEvaluationProfileId !== "string" || !plan.defaultEvaluationProfileId) throw Error("测试方案缺少推荐评价方案");
       if (plan.disabled !== undefined && typeof plan.disabled !== "boolean") throw Error("测试方案状态无效");
       M.validateIsoDirectionIds(plan.isoDirectionIds, M.isoRows(), !plan.testIds.includes("iso"));

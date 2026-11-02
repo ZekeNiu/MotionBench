@@ -51,7 +51,7 @@
       ...(/^(?:f?dsi|idsi)/.test(metricId) ? { forceDefinitions: Object.fromEntries(["source", "cmjUnit", "unit", "definition", "protocol"].map(key => [key, record.dsi?.[key] ?? null])) } : {}) };
   }
   function metricContext(record, definition, stats) {
-    const context = { ...E.measurementContext(record, definition), entryScope: definition.entryScope || "record", testSettings: ["cmj", "imtp"].includes(definition.testId) ? null : testContext(record, definition.testId, stats).settings || null, ...derivedContext(record, definition.id, stats) };
+    const context = { ...E.measurementContext(record, definition), entryScope: definition.entryScope || "record", testSettings: ["cmj", "imtp"].includes(definition.testId) ? null : testContext(record, definition.testId, stats).settings || null, ...derivedContext(record, definition.id, stats), ...(root.RingsideCalculations?.context(definition)||{}) };
     if (["lt1", "lt2"].includes(definition.id)) context.thresholdMethod = record.thresholds.method;
     if (/1rm/i.test(definition.id)) context.minimumVelocity = record.lvp[definition.testId]?.mvt ?? null;
     if (definition.id === "sprint_fvp_imbalance") context.targetDistanceM = record.sprintFvpAnalysis?.targetDistanceM;
@@ -89,9 +89,14 @@
       const statistic = group?.statistics.find(item => item.id === d.id);
       const rows = group?.attempts || [];
       add(d.id, { metricId: d.id, subjectId: "metric:" + d.id, testId: project.id, name: T.metricName(d), unit: d.unit, value: d.value,
+        preserveMissing:d.calculation?.kind==="cod-deficit",calculation:d.calculation?clone(d.calculation):undefined,
         measurementScale: E.measurementScale(d), context: metricContext(record, d, stats), definition: d,
         statistics: statistic ? clone(statistic) : null, rawTrials: clone(rows), evaluation: evaluation || { grade: d.evaluation },
-        direction: comparisonDirection(record, d, evaluation), notes: rows.map(row => row.notes).filter(Boolean).join("；") });
+        direction: comparisonDirection(record, d, evaluation), notes: [stats.calculationResults?.[d.id]?.reason,...rows.map(row => row.notes)].filter(Boolean).join("；") });
+      if(d.calculation?.kind==="cod-deficit"){
+        const calculated=stats.calculationResults?.[d.id];
+        add(d.id+"_reference",{metricId:d.id+"_reference",testId:project.id,name:d.name+" · 直线参照",unit:"s",value:calculated?.reference,preserveMissing:true,measurementScale:"ratio",context:{...metricContext(record,d,stats),role:"reference"},canonicalDefinition:canonicalDefinition("lower"),notes:calculated?.reason||""});
+      }
     }
     for (const item of evaluations) {
       if (item.kind === "metric" && result.has(item.metricId)) continue;

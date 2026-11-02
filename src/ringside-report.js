@@ -127,7 +127,7 @@
       ...test,
       ...(test.renderer === "scalar" ? { reportView: global.RingsideGenericReport?.resolveView(snapshot, test.id, catalog) || { version: 1, kind: "none", metricIds: [] } } : {}),
       metrics: test.definitions
-        .filter((d) => N(stats.values[d.id]) !== null)
+        .filter((d) => N(stats.values[d.id]) !== null || d.calculation?.kind==="cod-deficit")
         .map((d) => ({
           ...d,
           unit:
@@ -657,7 +657,13 @@
         return block(tests, tests[0].name, meta, metricTable(metrics, true));
       },
       scalar: (tests) => {
-        const test = tests[0], data = metricTable(test.metrics, true) +
+        const test=tests[0],deficits=state.definitions.filter(d=>d.testId===test.id&&d.calculation?.kind==="cod-deficit");
+        if(deficits.length){const displayed=new Set(deficits.flatMap(d=>[d.id,d.calculation.timeMetricId]));consume(test.metrics.filter(d=>displayed.has(d.id)));}
+        const additional=deficits.length?test.metrics.filter(d=>!deficits.some(c=>d.id===c.id||d.id===c.calculation.timeMetricId)):[];
+        const data=(deficits.length?table(["指标","结果","单位"],deficits.flatMap(d=>{
+          const value=report.stats.calculationResults[d.id],time=state.definitions.find(input=>input.id===d.calculation.timeMetricId);
+          return [[E(time?.name||"变向总时间"),F(value?.time,2),"s"],[E(d.calculation.referenceDistanceM+" m 直线参照"),F(value?.reference,2),"s"],[E(d.name)+(value?.reason?'<small class="metric-meta">'+E(value.reason)+'</small>':""),F(value?.value,2),"s"]];
+        }),deficits.flatMap(d=>[d.id+"_time",d.id+"_reference",d.id]),"cod-results"):metricTable(test.metrics,true)) + (additional.length?metricTable(additional,true):"") +
             test.metrics
               .filter((d) => state.customValues[d.id]?.notes)
               .map(
@@ -821,7 +827,7 @@
     };
     const consumed = new Set(),
       grouped = new Map(),
-      measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t));
+      measured = projects.filter((t) => s.validTests.has(t.id) || t.metrics.some(d=>d.calculation?.kind==="cod-deficit") || repeatPanel(t));
     for (const test of measured.filter((t) => !["lvp","fvp","sprint-fvp"].includes(t.renderer))) {
       if (consumed.has(test.id)) continue;
       const peers =

@@ -439,6 +439,7 @@
     return subjects;
   }
   function measurementScale(d) {
+    if(d.calculation?.kind==="cod-deficit")return "interval";
     if (d.ratioEligible === true) return "ratio";
     if (d.ratioEligible === false) return d.measurementScale === "ordinal" ? "ordinal" : "unknown";
     if (/(?:slope|drf|imbalance)/i.test(d.id)) return "unknown";

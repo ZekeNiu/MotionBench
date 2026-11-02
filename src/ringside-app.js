@@ -1942,7 +1942,8 @@
       base.evaluationProfileId=$("creationEvaluationProfile").value;
       installIsoSelection(base,creation.isoDirectionIds||[],creation.isoCatalog);
       const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
-      if(plan)base.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...base.isoDirectionIds]};
+      if(plan)base.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...base.isoDirectionIds],...(plan.calculationBindings?{calculationBindings:copy(plan.calculationBindings)}:{})};
+      if(plan?.calculationBindings)base.calculationBindings=copy(plan.calculationBindings);
       const records=[];
       for(const owner of owners){
         const draft=copy(base);draft.athleteId=owner.id;draft.recordId=uid();
@@ -2541,7 +2542,7 @@
     const fields = direction ? (direction.paired ? [["left", M.isoSideLabels(direction).left + " " + direction.unit], ["right", M.isoSideLabels(direction).right + " " + direction.unit]] : [["center", "力量 " + direction.unit]])
       : t === "pushup" ? [["reps", "60秒有效次数"]]
       : ["mas", "mss", "ift"].includes(t) ? [["speed", (t === "ift" ? "VIFT" : "速度") + " m/s"], ...(t === "ift" ? [["partial", "末级未完成秒数"]] : [])] : [];
-    if (!direction) T.repeatPolicy(state, t).fields.forEach((d) => fields.push(["metrics." + d.id, d.name + " " + d.unit]));
+    if (!direction) T.repeatPolicy(state, t).fields.filter(d=>!d.calculation).forEach((d) => fields.push(["metrics." + d.id, d.name + " " + d.unit]));
     return `<div class="repeat-entry" data-repeat-entry="${E(t)}">` + table(["试次", ...fields.map((f) => f[1]), ...(direction ? ["疼痛"] : []), "备注", ""], rows.map((row, i) => [
       i + 1,
       ...fields.map(([key, label]) => input(base + "." + i + "." + key, key.startsWith("metrics.") ? row.metrics?.[key.slice(8)] ?? "" : row[key] ?? "", { label: "试次 " + (i + 1) + " " + label, ...(key.startsWith("metrics.") ? { allowNegative: true } : {}) })),
@@ -2864,9 +2865,11 @@
     }
     else if (!T.isNative(state,entryTab) && T.repeatPolicy(state, entryTab).fields.length) h += repeatEditor(entryTab);
     if (["pushup", "mas", "mss", "ift"].includes(entryTab) && !Array.isArray(state.data[entryTab].trials)) {
-      h += T.repeatPolicy(state, entryTab).fields.map((d) => field(d.name + " " + d.unit, input(`data.${entryTab}.metrics.${d.id}`, state.data[entryTab].metrics?.[d.id] ?? "", { allowNegative: true }))).join("");
+      h += T.repeatPolicy(state, entryTab).fields.filter(d=>!d.calculation).map((d) => field(d.name + " " + d.unit, input(`data.${entryTab}.metrics.${d.id}`, state.data[entryTab].metrics?.[d.id] ?? "", { allowNegative: true }))).join("");
       h += `<button type="button" class="btn small" onclick="App.addRepeat('${entryTab}')">＋ 新增试次</button>`;
     }
+    const calculated=state.definitions.filter(d=>d.testId===entryTab&&d.calculation);
+    if(calculated.length){const computed=M.stats(state);h+='<div class="form-grid calculation-readonly">'+calculated.map(d=>'<div class="field"><span>'+E(d.name)+'（计算结果）</span><output data-calculation-output="'+E(d.id)+'">'+F(computed.values[d.id],2)+' '+E(d.unit)+'</output><small data-calculation-reason="'+E(d.id)+'">'+E(computed.calculationResults?.[d.id]?.reason||'')+'</small></div>').join('')+'</div>';}
     const extras = state.definitions.filter(
       (d) =>
         T.isManualMetric(d) && !T.isAttemptMetric(d) && d.testId === entryTab,
@@ -3553,7 +3556,7 @@
       initialDisplayName: test ? T.displayName(test, catalog) : "",
     };
     const category = definition?.category || test?.category || "performance";
-    const builtIn = !!definition && !T.isManualMetric(definition);
+    const builtIn = !!definition && !definition.calculation && !T.isManualMetric(definition);
     const label = (name, control, wide = false) =>
       `<label class="field${wide ? " wide" : ""}"><span>${name}</span>${control}</label>`;
     let fields = '<div class="form-grid">';
@@ -3632,6 +3635,7 @@
     );
     if(!metricOnly && mode!=="new-metric") fields+=label("测量方法版本",`<input id="catalogProtocolVersion" type="number" min="1" step="1" readonly value="${catalog.protocolIdentities?.[test?.id]?.version||1}"><label class="row"><input id="catalogProjectMethodChanged" type="checkbox">测试方法发生改变</label><small>只修订说明时保留版本；方法改变会增加版本，用于匹配后续测试的评价标准。</small>`);
     if(!projectOnly) fields+=label("指标测量版本",`<input id="catalogMetricProtocolVersion" type="number" min="1" step="1" readonly value="${definition?.protocolIdentity?.version||1}"><label class="row"><input id="catalogMetricMethodChanged" type="checkbox">此指标的测量方法发生改变</label>`);
+    if(!projectOnly) fields+=window.RingsideCalculations?.editor(catalog,(test||selectedTest)?.id||"",definition)||"";
     fields +=
       '</div><p class="note">速度统一使用 m/s。保存后可在本次测试计划中选择该项目。</p>';
     $("catalogFields").innerHTML = fields;
@@ -3867,6 +3871,7 @@
               ? existing.protocol || ""
               : protocol,
         };
+        window.RingsideCalculations?.readEditor(definition);
         const metricVersion=Number(value("catalogMetricProtocolVersion")||1);
         if(!Number.isSafeInteger(metricVersion)||metricVersion<1)throw Error("指标协议版本须为正整数");
         definition.protocolIdentity={id:existing?.protocolIdentity?.id||"protocol_metric_"+definition.id,version:metricVersion};

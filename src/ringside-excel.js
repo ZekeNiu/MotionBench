@@ -58,7 +58,7 @@
   };
   const stiffness = () => [field("activeStiffness", "设备 Active Stiffness"), text("activeStiffnessInputUnit", "刚度单位", ["kN/m", "N/m"])];
   function attemptFields(record, id) {
-    const extra = T.repeatPolicy(record, id).fields.map(d => field("metrics." + d.id, d.name + " " + d.unit));
+    const extra = T.repeatPolicy(record, id).fields.filter(d=>!d.calculation).map(d => field("metrics." + d.id, d.name + " " + d.unit));
     let fields;
     if (!T.isNative(record, id)) fields = extra;
     else if (["cmj", "sj", "dj", "cmrj"].includes(id)) fields = T.attemptFields(record, id).filter(f => !f.computed && f.key !== "activeStiffness").map(f => field(f.key || "metrics." + f.id, f.label + " " + f.unit)).concat(["dj", "cmrj"].includes(id) ? stiffness() : []);

@@ -96,6 +96,11 @@
     return record;
   }
   function buildChart(report, project) {
+    const deficits=report.record.definitions.filter(d=>d.testId===project.id&&d.calculation?.kind==="cod-deficit");
+    if(deficits.length){
+      const items=deficits.filter(d=>num(report.stats.values[d.id])!==null).map(d=>({id:d.id,label:d.name,value:report.stats.values[d.id],status:"gray"}));
+      return {kind:"bar",available:items.length>0,reason:deficits.map(d=>report.stats.calculationResults?.[d.id]?.reason).filter(Boolean).join("；"),panels:items.length?[{title:"变向差值",unit:"s",items}]:[]};
+    }
     const record = report.record, computed = report.stats, view = project.reportView || resolveView(record, project.id);
     const result = { kind: view.kind, available: false, reason: "", panels: [] };
     if (view.kind === "none") return result;

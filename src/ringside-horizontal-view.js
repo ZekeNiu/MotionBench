@@ -107,6 +107,8 @@
     if(project.renderer==="speed")return rows.filter(row=>["mas_speed","mss_speed","ift_speed","ift_shuttle","ift_treadmill"].includes(row.metricId)&&value(row)!==null).map(row=>scalar(row,"bars"));
     if(project.renderer==="ball")return rows.filter(row=>value(row)!==null).map(row=>scalar(row,"bars"));
     if(project.renderer==="scalar"){
+      const deficits=rows.filter(row=>row.context?.calculation?.kind==="cod-deficit"&&row.context?.role!=="reference");
+      if(deficits.length)return deficits.filter(row=>value(row)!==null).map(row=>scalar(row,"bars"));
       const view=project.reportView||model.catalog?.reportViews?.[project.id];
       if(["bar","target","column"].includes(view?.kind))return rows.filter(row=>view.metricIds.includes(row.metricId)&&value(row)!==null&&meaning(row)==="numeric").map(row=>scalar(row,view.kind==="column"?"columns":"bars"));
       if(view?.kind==="radar"){
@@ -131,7 +133,8 @@
     const section=category=>projects.filter(p=>category==="screen"?p.category==="screen":category==="capability"?isAnalysis(p):p.category!=="screen"&&!isAnalysis(p)).map(project=>{
       const figureSpecs=aggregateFigures({...project,renderer:renderer(project)},reference,model),charts=model.participants.length?individualFigures(project,model,views,periods,reference):figureSpecs.map(spec=>`<div class="horizontal-curve" data-horizontal-curve="${E(JSON.stringify(spec))}"></div>`).join("");
       const tables=root.RingsideLongitudinalView.projectTableSections({...project,renderer:renderer(project)}).map(part=>part.id?`<section class="longitudinal-iso-section" data-iso-section="${E(part.id)}"><h5 class="longitudinal-table-caption">${E(part.title)}</h5>${table(part.rows,model.participants,participantOptions)}</section>`:table(part.rows,model.participants,participantOptions)).join("");
-      const content=!model.participants.length&&charts?`<div class="detail-pair" data-pdf-pair><div class="chart-wrap">${charts}</div><div class="detail-data">${tables}</div></div>`:`${charts?`<div class="horizontal-figures">${charts}</div>`:""}${tables}`;
+      const codProject=(model.catalog?.definitions||model.displayRecord?.definitions||[]).some(d=>d.testId===project.id&&d.calculation?.kind==="cod-deficit");
+      const content=!model.participants.length&&charts&&!codProject?`<div class="detail-pair" data-pdf-pair><div class="chart-wrap">${charts}</div><div class="detail-data">${tables}</div></div>`:`${charts?`<div class="horizontal-figures">${charts}</div>`:""}${tables}`;
       return `<article class="test-block horizontal-test" id="horizontal-${E(reference.id)}-${E(project.id)}"><div class="test-title"><h4>${E(project.name)}</h4></div>${content}${rawTrials(project,model.participants,periods,views)}</article>`;
     }).join("");
     const screen=section("screen"),performance=section("performance"),capability=(reference.capability?.cards||[]).filter(card=>card.metrics?.length).map(card=>`<article class="test-block"><div class="test-title"><h4>${E(card.title)}</h4></div>${table(card.metrics,model.participants,participantOptions)}</article>`).join("")+section("capability");

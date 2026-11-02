@@ -51,6 +51,14 @@
       }
       ws.views=[{state:"frozen",xSplit:1,ySplit:sheet.blocks[0]?.start||1}];out.sheets.push(sheet);
     }
+    if(sources.some(record=>record.definitions.some(d=>d.calculation&&record.enabled[d.testId]))){
+      const summary=book.addWorksheet("计算结果");summary.columns=[{width:30},{width:26},{width:30},{width:16},{width:10},{width:40}];
+      summary.addRow(["计算结果（只读快照）","原始分段在项目页录入；导入后重新计算，结果页不参与导入。"]);
+      summary.addRow(["运动员 / 测试","项目","指标","结果","单位","说明"]);
+      for(const record of sources){const stats=M.stats(record);for(const d of record.definitions.filter(d=>d.calculation&&record.enabled[d.testId]))summary.addRow([refs.find(ref=>ref.recordId===record.recordId).label,root.RingsideTests.describe(record).find(t=>t.id===d.testId)?.name||d.testId,d.name,prefill?stats.values[d.id]??null:null,d.unit,prefill?stats.calculationResults?.[d.id]?.reason||"":""]);}
+      summary.eachRow(row=>{row.alignment={wrapText:true,vertical:"middle"};row.eachCell(cell=>{cell.protection={locked:true};});});
+      await summary.protect("",{selectLockedCells:true,selectUnlockedCells:true});
+    }
     writeManifest(book,out);return {bytes:await book.xlsx.writeBuffer(),templateId:out.templateId,fileName:"MotionBench_测试录入_"+sources[0].athlete.date+"_"+sources.length+"人.xlsx"};
   }
   function error(errors,ws,row,column,message){errors.push({sheet:ws?.name||"",row:row||0,column:column||0,address:ws&&row&&column?ws.getCell(row,column).address:"",message});}

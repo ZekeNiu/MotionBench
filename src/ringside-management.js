@@ -104,7 +104,7 @@
   }
   function testPlans() {
     if(planDraft){
-      return `<div class="test-plan-editor"><div class="form-grid">${field("方案名称",`<input id="testPlanName" maxlength="100" value="${esc(planDraft.name)}">`)}${field("推荐评价方案",`<select id="testPlanProfile">${profileOptions(planDraft.defaultEvaluationProfileId)}</select>`)}</div><h2>选择测试项目</h2><div id="testPlanPicker">${root.RingsidePicker.render(planPickerOptions())}</div><p id="testPlanError" class="field-error" role="alert"></p><div class="row">${button("保存测试方案","plan-save")}${button("取消","plan-close")}</div></div>`;
+      return `<div class="test-plan-editor"><div class="form-grid">${field("方案名称",`<input id="testPlanName" maxlength="100" value="${esc(planDraft.name)}">`)}${field("推荐评价方案",`<select id="testPlanProfile">${profileOptions(planDraft.defaultEvaluationProfileId)}</select>`)}</div><h2>选择测试项目</h2><div id="testPlanPicker">${root.RingsidePicker.render(planPickerOptions())}</div><div class="form-grid" id="testPlanCalculationBindings">${root.RingsideCalculations?.bindingEditor(lib().catalog,planDraft)||""}</div><p id="testPlanError" class="field-error" role="alert"></p><div class="row">${button("保存测试方案","plan-save")}${button("取消","plan-close")}</div></div>`;
     }
     const q=filter().q.trim().toLocaleLowerCase(),plans=(lib().testPlans||[]).filter(p=>!q||p.name.toLocaleLowerCase().includes(q));
     return field("搜索测试方案",`<input type="search" data-manager-filter="q" value="${esc(filter().q)}" placeholder="方案名称">`)+(plans.map(p=>`<article class="management-catalog-item" data-test-plan="${esc(p.id)}"><div><h3>${esc(p.name)} ${p.disabled?'<span class="pill">已停用</span>':""}</h3><p>${p.testIds.map(id=>esc(lib().catalog.tests.find(t=>t.id===id)?.name||"已移除项目")).join(" → ")}</p><p class="note">默认评价：${esc(profileName(p.defaultEvaluationProfileId))}</p></div><div class="row">${button("编辑","plan-edit",p.id)}${button("复制","plan-copy",p.id)}${button(p.disabled?"启用":"停用","plan-toggle",p.id)}${button("删除","plan-delete",p.id)}</div></article>`).join("")||'<p class="empty">暂无测试方案。保存常用项目组合，录入时即可复用。</p>');
@@ -148,6 +148,7 @@
   }
   function catalogMetricResult(project,definition,catalog) {
     const d=definition,id=project.id;
+    if(d.calculation)return {source:"计算结果（只读）",detail:d.calculation.kind==="sum"?"同一次完整有效试次的分段时间相加；分段缺测不参与代表成绩":"本次变向代表时间减方案绑定的同距离直线代表时间；缺少参照时保留空值"};
     if(T.isManualMetric(d))return {source:d.entryScope==="attempt"?"逐试次录入":"本次测试汇总",detail:d.entryScope==="attempt"?"随项目选定的试次汇总；均值模式取有效值平均":"直接采用本次录入结果"};
     const field=T.attemptFields(catalog,id).find(f=>f.id===d.id);
     if(field&&["cmj","sj","dj","cmrj"].includes(id)){
@@ -191,7 +192,7 @@
     return catalogNotices()+search+`<div class="catalog-workspace ${project?"has-project":""}"><nav class="catalog-index" aria-label="测试项目">${index}</nav><div class="catalog-detail">${detail}</div></div>`;
   }
   function planPickerOptions() {
-    return {source:lib().catalog,selection:planDraft,isoRows:M.isoRows(),context:"plan",showOrder:true,blockedIds:lib().catalog.conflicts.filter(conflict=>!conflict.resolved).map(conflict=>conflict.testId),onChange(next){planDraft.testIds=next.testIds;planDraft.isoDirectionIds=next.isoDirectionIds;const error=$("testPlanError");if(error)error.textContent="";}};
+    return {source:lib().catalog,selection:planDraft,isoRows:M.isoRows(),context:"plan",showOrder:true,blockedIds:lib().catalog.conflicts.filter(conflict=>!conflict.resolved).map(conflict=>conflict.testId),onChange(next){planDraft.testIds=next.testIds;planDraft.isoDirectionIds=next.isoDirectionIds;if(planDraft.calculationBindings)for(const [key,binding]of Object.entries(planDraft.calculationBindings)){const d=lib().catalog.definitions.find(d=>d.id===key);if(!next.testIds.includes(d?.testId)||!next.testIds.includes(binding.testId))delete planDraft.calculationBindings[key];}const bindings=$("testPlanCalculationBindings");if(bindings)bindings.innerHTML=root.RingsideCalculations?.bindingEditor(lib().catalog,planDraft)||"";const error=$("testPlanError");if(error)error.textContent="";}};
   }
   function derivedLibrary(q="") {
     const definitions=(T.derivedDefinitions?.()||[]).filter(d=>!q||[T.analysisLabel,d.name,d.id,d.formula].join(" ").toLocaleLowerCase().includes(q));
@@ -696,6 +697,7 @@
       if(t.id==="profilePreviewRecord")loadPreview(t.value);
       if(t.id==="profilePreviewProject"){editor.previewProject=t.value;render();}
       if(t.id==="testPlanProfile"&&planDraft)planDraft.defaultEvaluationProfileId=t.value;
+      if(t.dataset.calculationBinding&&planDraft){const d=lib().catalog.definitions.find(d=>d.id===t.value);planDraft.calculationBindings||={};if(d)planDraft.calculationBindings[t.dataset.calculationBinding]={testId:d.testId,metricId:d.id,distanceM:d.distanceM};else delete planDraft.calculationBindings[t.dataset.calculationBinding];}
       if(t.dataset.profilePath&&t.tagName==="SELECT"){profileInput(t);if(/\.(method|kind|shape|primary)$/.test(t.dataset.profilePath))render();}
       if(t.dataset.aggregationMember&&editor){
         const axis=t.dataset.aggregationAxis,id=t.dataset.aggregationMember,cfg=editor.profile.aggregations[axis];cfg.members||=[];cfg.transforms||={};
