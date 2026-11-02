@@ -174,7 +174,7 @@ svg text {
   background: var(--surface);
   color: var(--ink);
   font-weight: 600;
-  font-size: 13px;
+  font-size: var(--ui-font-body, 13px);
   white-space: nowrap;
   transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
@@ -193,7 +193,7 @@ svg text {
 }
 .btn.small {
   min-height: 34px;
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   padding: 6px 12px;
 }
 .btn.active {
@@ -1122,7 +1122,7 @@ td .pill {
   font-size: 12px;
 }
 .note {
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   line-height: 1.8;
   color: var(--muted);
   margin-top: 9px;
@@ -1326,7 +1326,7 @@ td .pill {
 }
 .workspace-heading > p:last-child {
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   margin-top: 9px;
 }
 .form-card {
@@ -1341,11 +1341,11 @@ td .pill {
   min-height: 300px;
 }
 .entry-content > h3 {
-  font-size: 20px;
-  margin-bottom: 17px;
+  font-size: var(--ui-font-section, 20px);
+  margin-bottom: 16px;
 }
 .intro {
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   color: var(--muted);
   margin: 0 0 18px;
   line-height: 1.8;
@@ -1360,7 +1360,7 @@ td .pill {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  color: #607086;
+  color: var(--ui-label, #607086);
   font-size: 14px;
   min-width: 0;
 }
@@ -1377,7 +1377,7 @@ td .pill {
   display: block;
   margin-top: 5px;
   color: var(--red);
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   line-height: 1.5;
 }
 [aria-invalid="true"] {
@@ -1447,7 +1447,7 @@ td .pill {
 .supplement > summary {
   cursor: pointer;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
 }
 .supplement textarea {
   width: 100%;
@@ -1627,7 +1627,7 @@ td .pill {
   overflow: auto;
 }
 .settings-content > h3 {
-  font-size: 20px;
+  font-size: var(--ui-font-section, 20px);
   margin-bottom: 18px;
 }
 .reference-row {
@@ -1636,7 +1636,7 @@ td .pill {
   gap: 12px;
   padding: 14px 0;
   border-bottom: 1px solid var(--line);
-  font-size: 12px;
+  font-size: var(--ui-font-body, 12px);
 }
 .reference-row b {
   min-width: 115px;
@@ -1645,7 +1645,7 @@ td .pill {
   font-size: 14px;
 }
 .settings-content > p {
-  font-size: 12px;
+  font-size: var(--ui-font-note, 12px);
   color: var(--muted);
   margin-bottom: 10px;
 }
@@ -1795,7 +1795,7 @@ td .pill {
   margin: 18px 0 4px;
 }
 .creation-project-heading h3 {
-  font-size: 17px;
+  font-size: var(--ui-font-group, 17px);
 }
 .creation-content .check-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1813,7 +1813,7 @@ td .pill {
   border-bottom: 1px solid var(--line);
 }
 .modal-head h2 {
-  font-size: 20px;
+  font-size: var(--ui-font-section, 20px);
 }
 .close {
   border: 0;
@@ -1900,7 +1900,7 @@ body.sidebar-collapsed .workspace {
 .close { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; color: var(--muted); border-radius: 8px; }
 .close:hover { background: var(--blue-soft); }
 .modal-head, .modal-foot { padding: 20px 24px; }
-.modal-head h2 { font-size: 20px; }
+.modal-head h2 { font-size: var(--ui-font-section, 20px); }
 .modal-foot { background: var(--surface-soft); }
 .catalog-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 24px; row-gap: 12px; margin: 0; padding: 24px 0; border-bottom: 1px solid var(--line); }
 .catalog-item:last-child { border-bottom: 0; }
@@ -2509,7 +2509,7 @@ body.sidebar-collapsed .workspace {
     padding: 16px 18px;
   }
   .modal-head h2 {
-    font-size: 18px;
+    font-size: var(--ui-font-section, 18px);
   }
   .modal-foot {
     padding: 14px 18px;
@@ -2816,8 +2816,8 @@ body.sidebar-collapsed .workspace {
 .report-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 .management-mode .record-context, .management-mode .context-divider { display: none; }
 .management-view { max-width: 1560px; }
-.management-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:12px 0 28px; }
-.management-heading h1 { margin:0; font-size:28px; }
+.management-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:0 0 24px; }
+.management-heading h1 { margin:0; font-size:var(--ui-font-page,28px); }
 .eyebrow { margin:0 0 6px; color:var(--muted); font-size:12px; letter-spacing:.08em; }
 .management-filters { display:grid; grid-template-columns:minmax(180px,2fr) repeat(4,minmax(110px,1fr)); gap:12px; margin-bottom:20px; }
 .management-filters .field { margin:0; min-width:0; }
@@ -2825,11 +2825,11 @@ body.sidebar-collapsed .workspace {
 .management-batch,.management-pagination { display:flex; align-items:center; flex-wrap:wrap; gap:14px; margin:16px 0; }
 .management-batch > .row,.management-pagination > .row { margin-left:auto; }
 .management-table-wrap { width:100%; overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:#fff; }
-.management-table { width:100%; margin:0; }
-.management-table th { background:#edf0f3; font-size:12px; white-space:nowrap; }
-.management-table td { background:#fff; vertical-align:middle; padding:14px 12px; }
+.management-table { width:100%; margin:0; font-size:var(--ui-font-body,13px); }
+.management-table th { background:var(--surface-soft); color:var(--muted); font-size:var(--ui-font-note,12px); font-weight:500; white-space:nowrap; }
+.management-table td { background:#fff; color:var(--ink); vertical-align:middle; padding:14px 12px; }
 .management-table th:first-child,.management-table td:first-child { width:50px; }
-.management-table small { display:block; margin-top:5px; max-width:340px; color:var(--muted); overflow-wrap:anywhere; line-height:1.5; }
+.management-table small { display:block; margin-top:6px; max-width:340px; color:var(--muted); font-size:var(--ui-font-note,12px); overflow-wrap:anywhere; line-height:1.7; }
 .management-table .row { gap:6px; }
 .management-table button { white-space:nowrap; }
 .management-catalog-item { background:#fff; border:1px solid var(--line); border-radius:12px; padding:22px; margin:16px 0; display:flex; justify-content:space-between; gap:20px; align-items:center; }
@@ -2871,7 +2871,7 @@ body.sidebar-collapsed .workspace {
   .topbar { flex-wrap:wrap; gap:8px; }
   .report-actions { order:3; width:100%; max-width:none; }
   .management-heading { align-items:flex-start; flex-direction:column; }
-  .management-heading h1 { font-size:25px; }
+  .management-heading h1 { font-size:var(--ui-font-page,25px); }
   .management-filters { grid-template-columns:1fr 1fr; }
   .management-filters .field:first-child { grid-column:1 / -1; }
   .management-table-wrap { border:0; background:transparent; }
@@ -2897,18 +2897,57 @@ body.sidebar-collapsed .workspace {
 .global-nav button:hover{background:#edf1f5;color:#243b51}
 .global-nav button.active,.sidebar-bottom .active{background:#e4ebf1;color:#284d6d;font-weight:650;box-shadow:none}
 .global-nav button:focus-visible{outline:2px solid #486c88;outline-offset:2px}
+/* Operation surfaces share one type and spacing scale; reports and navigation retain their own styles. */
+.operation-ui {
+  --ui-font-page:24px;
+  --ui-font-section:20px;
+  --ui-font-group:16px;
+  --ui-font-body:14px;
+  --ui-font-note:13px;
+  --ui-label:#6b7280;
+  --ink:#30363d;
+  --muted:#6b7280;
+  --surface-soft:#f6f7f8;
+  color:var(--ink);
+  font-size:var(--ui-font-body);
+  line-height:1.65;
+}
+.operation-ui h1 { font-size:var(--ui-font-page); font-weight:600; letter-spacing:0; line-height:1.4; }
+.operation-ui h2 { font-size:var(--ui-font-section); font-weight:600; letter-spacing:0; line-height:1.4; }
+.operation-ui h3 { font-size:var(--ui-font-group); font-weight:600; line-height:1.5; }
+.operation-ui h4 { font-size:var(--ui-font-body); font-weight:600; line-height:1.5; }
+.operation-ui .field { color:var(--ui-label); font-size:var(--ui-font-note); }
+.operation-ui :is(input,select,textarea) { color:var(--ink); }
+.operation-ui input:is([type="checkbox"],[type="radio"]) { width:16px; min-width:16px; height:16px; min-height:16px; flex:0 0 16px; padding:0; vertical-align:middle; }
+.operation-ui .field output { font-size:var(--ui-font-body); color:var(--ink); font-variant-numeric:tabular-nums; }
+.operation-ui .check-line { display:flex; align-items:center; gap:8px; min-height:32px; font-size:var(--ui-font-body); }
+.operation-ui .form-grid { gap:16px; margin-block:16px; }
+.operation-ui .notice { font-size:var(--ui-font-note); line-height:1.7; }
+.operation-ui .subheading { font-size:var(--ui-font-group); color:var(--ink); margin-block:24px 12px; }
+.operation-ui .check-tile { color:var(--ink); font-size:var(--ui-font-body); }
+.operation-ui .check-tile:has(input:checked) { color:var(--blue); }
+.operation-ui :is(.plan-group>h4,.plan-group-heading) { color:var(--ink); }
+.operation-ui .entry-identity { background:var(--surface-soft); color:var(--ink); font-size:var(--ui-font-note); }
+.operation-ui .settings-content>.row { margin-block:16px; }
+.operation-ui .settings-content>.note { margin-block:12px 0; }
+.operation-ui .entry-table { font-size:var(--ui-font-body); }
+.operation-ui .entry-table th { font-size:var(--ui-font-note); color:var(--muted); }
+.operation-ui .entry-table td { color:var(--ink); }
+.operation-ui .catalog-edit-section { margin-block:24px; }
+.operation-ui .catalog-edit-section legend { color:var(--ink); font-size:var(--ui-font-group); }
+
 .references-page{max-width:1060px;margin-inline:auto;min-width:0}
 .source-reference{padding:24px 0;border-bottom:1px solid #dce4eb;min-width:0}
 .source-reference:first-of-type{padding-top:10px}.source-reference:last-child{border-bottom:0}
-.source-reference h3{font-size:17px;line-height:1.55;margin:0 0 8px;overflow-wrap:anywhere}
+.source-reference h3{font-size:var(--ui-font-group,17px);line-height:1.55;margin:0 0 8px;overflow-wrap:anywhere}
 .source-reference h3 a{text-decoration:none}.source-reference h3 a:hover{text-decoration:underline}
-.source-reference p{margin:7px 0;font-size:13px;overflow-wrap:anywhere}
+.source-reference p{margin:10px 0;font-size:var(--ui-font-body,13px);overflow-wrap:anywhere}
 .source-reference details{margin-top:14px;padding:13px 16px;background:#f5f8fa;border:1px solid #e0e7ed;border-radius:9px}
-.source-reference summary{cursor:pointer;color:#3b586e;font-size:13px;font-weight:600}
+.source-reference summary{cursor:pointer;color:var(--ink);font-size:var(--ui-font-note,13px);font-weight:600}
 .source-reference dl{display:grid;grid-template-columns:130px minmax(0,1fr);gap:12px 20px;margin:16px 0 3px}
-.source-reference dt{font-size:12px;font-weight:600;color:#466176}.source-reference dd{margin:0;font-size:13px;overflow-wrap:anywhere;min-width:0}
+.source-reference dt{font-size:var(--ui-font-note,12px);font-weight:600;color:var(--muted)}.source-reference dd{margin:0;font-size:var(--ui-font-body,13px);overflow-wrap:anywhere;min-width:0}
 .source-data .table-scroll{overflow-x:auto;max-width:100%;margin-top:14px}.source-data table{width:100%;min-width:570px;border-collapse:collapse;text-align:left;font-size:12px}
-.source-data th,.source-data td{padding:10px 12px;border-bottom:1px solid #dce4eb;vertical-align:top}.source-data th{color:#466176;background:#eaf0f4}
+.source-data th,.source-data td{padding:10px 12px;border-bottom:1px solid #dce4eb;vertical-align:top}.source-data th{color:var(--muted);background:var(--surface-soft)}
 .source-data th:nth-child(1){width:28%}.source-data th:nth-child(2){width:18%}
 @media(max-width:600px){.source-reference{padding:20px 0}.source-reference h3{font-size:15px}.source-reference details{padding:12px}.source-reference dl{grid-template-columns:minmax(0,1fr);gap:5px}.source-reference dd{margin-bottom:10px}}
 .body-region-tooltip{position:fixed;z-index:500;width:min(380px,calc(100vw - 24px));max-height:min(460px,calc(100dvh - 24px));overflow:auto;overscroll-behavior:contain;background:#fff;color:#263b4b;border:1px solid #d4dee7;border-radius:12px;box-shadow:0 12px 38px #24394a30;padding:16px;font-size:13px;line-height:1.65;box-sizing:border-box}
@@ -2942,26 +2981,26 @@ body.sidebar-collapsed .workspace {
 .export-options{position:absolute;right:0;top:calc(100% + 8px);padding:8px;min-width:245px;background:white;border:1px solid #d9e1e9;border-radius:10px;box-shadow:0 10px 30px #24394a22;display:grid;gap:4px;z-index:30}
 .export-options button{text-align:left;justify-content:start}
 .workflow-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 22px}
-.workflow-step{display:flex;align-items:center;gap:8px;color:#748292;border-bottom:2px solid #e1e6ec;padding:8px 0 13px;font-size:12px}
+.workflow-step{display:flex;align-items:center;gap:8px;color:var(--muted);border-bottom:2px solid #e1e6ec;padding:8px 0 13px;font-size:12px}
 .workflow-step b{display:grid;place-items:center;width:24px;height:24px;flex-shrink:0;border-radius:50%;background:#e9edf2;color:#617388;font-size:11px}
-.workflow-step.active{color:#294d69;border-color:#486c88;font-weight:650}.workflow-step.active b{background:#486c88;color:white}.workflow-step.done{color:#526a7d}
-.creation-page{max-width:1100px;margin:auto}.creation-page>.modal-head{position:static;padding:24px 26px 0;border:0}.creation-page>.modal-head h1{font-size:25px;margin:0}
+.workflow-step.active{color:#294d69;border-color:#486c88;font-weight:650}.workflow-step.active b{background:#486c88;color:white}.workflow-step.done{color:var(--muted)}
+.creation-page{max-width:1100px;margin:auto}.creation-page>.modal-head{position:static;padding:24px 26px 0;border:0}.creation-page>.modal-head h1{font-size:var(--ui-font-page,25px);margin:0}
 .creation-page .creation-content{padding:0 26px 24px}.creation-page .modal-foot{border-top:1px solid #e2e7ed;padding:18px 26px}
 .creation-choice{display:flex;gap:26px;margin:18px 0}.creation-choice label{display:flex;align-items:center;gap:8px;font-size:14px}.creation-choice input{width:auto}
 .creation-page #creationTestStep>.field{margin-bottom:15px}.creation-page .creation-date{margin:16px 0}.creation-page .creation-profile-grid{margin-top:16px}
 .entry-project-nav{display:flex;flex-direction:row;align-content:start;flex-wrap:wrap;gap:8px;margin:0 0 20px;padding:0;max-height:none;overflow:visible}
-.entry-project-nav button{width:auto;flex:0 1 auto;border:1px solid #dce3ea;background:#fff;border-radius:7px;padding:9px 12px;font-size:12px;display:flex;gap:8px;align-items:center}
-.entry-project-nav button.active{background:#e8eef4;border-color:#7f98ad;color:#234c6b}.entry-project-nav .ability-tags{display:none}.entry-project-nav .entry-status-pill{font-size:10px}
-#entryView>.workspace-heading .workflow-steps{max-width:900px}#entryView .entry-project-title{margin-top:18px}
+.entry-project-nav button{width:auto;flex:0 1 auto;border:1px solid #dce3ea;background:#fff;border-radius:8px;padding:10px 12px;font-size:var(--ui-font-note,12px);display:flex;gap:8px;align-items:center}
+.entry-project-nav button.active{background:#e8eef4;border-color:#7f98ad;color:#234c6b}.entry-project-nav .ability-tags{display:none}.entry-project-nav .entry-status-pill{font-size:var(--ui-font-note,10px)}
+#entryView>.workspace-heading .workflow-steps{max-width:900px}#entryView .entry-project-title{margin-top:24px;font-size:var(--ui-font-section,20px)}
 #settingsView>#settingsTabs{margin-bottom:16px}
 .desktop-settings-action{position:relative;gap:8px}.sidebar-action .desktop-update-badge{width:auto;flex-shrink:0;margin-left:auto;padding:2px 6px;border-radius:5px;background:var(--blue-soft);color:var(--blue);font-size:10px;line-height:1.5;white-space:nowrap}
-.desktop-app-settings{max-width:880px;margin-inline:auto}.desktop-app-settings>h2{margin:0 0 6px;font-size:18px;font-weight:600}.desktop-settings-section{margin:0;padding:24px 0;border-bottom:1px solid var(--line)}.desktop-settings-section:last-child{border-bottom:0;padding-bottom:0}.desktop-settings-section h3{margin:0;font-size:14px;font-weight:600;line-height:1.6}.desktop-settings-section p{margin:5px 0 0;color:var(--muted);font-size:12px;line-height:1.7}.desktop-version-section,.desktop-startup-section{display:flex;align-items:center;justify-content:space-between;gap:24px}.desktop-version{font-size:22px;font-weight:600;line-height:1.4;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.desktop-preference-switch{display:block;position:relative;width:44px;height:26px;flex-shrink:0;cursor:pointer}.desktop-preference-switch input{position:absolute;inset:0;margin:0;opacity:0;width:100%;height:100%;cursor:pointer}.desktop-preference-switch>span{display:block;width:44px;height:26px;border:1px solid #cbd2db;border-radius:15px;background:#e5e9ee;pointer-events:none}.desktop-preference-switch>span:after{content:"";display:block;width:20px;height:20px;margin:2px;border-radius:50%;background:white;box-shadow:0 1px 3px #1f2c3c26;transition:transform .12s}.desktop-preference-switch input:checked+span{background:var(--blue);border-color:var(--blue)}.desktop-preference-switch input:checked+span:after{transform:translateX(18px)}.desktop-preference-switch input:focus-visible+span{outline:2px solid var(--blue);outline-offset:4px}.desktop-preference-switch input:disabled+span{opacity:.55}.desktop-update-section{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px 24px}.desktop-update-status{flex:1;min-width:220px}.desktop-update-status h3>span{display:block;margin-top:5px;color:var(--blue);font-size:14px;font-weight:500;overflow-wrap:anywhere}.desktop-update-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.desktop-update-error,.desktop-settings-section p.desktop-update-error{color:var(--red);overflow-wrap:anywhere}.desktop-download-progress{width:100%;display:flex;gap:12px;align-items:center;color:var(--muted);font-size:12px}.desktop-download-progress progress{flex:1;min-width:0;height:8px;appearance:none;border:0;border-radius:5px;overflow:hidden;background:var(--surface-soft)}.desktop-download-progress progress::-webkit-progress-bar{background:#e8edf2}.desktop-download-progress progress::-webkit-progress-value{background:var(--blue);border-radius:5px}.desktop-release-notes{width:100%;margin-top:3px}.desktop-release-notes>summary{cursor:pointer;color:var(--ink);font-size:12px}.desktop-release-notes>p{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px 14px;background:var(--surface-soft);border-radius:8px}
+.desktop-app-settings{max-width:880px;margin-inline:auto}.desktop-app-settings>h2{margin:0 0 8px;font-size:var(--ui-font-section,18px);font-weight:600}.desktop-settings-section{margin:0;padding:24px 0;border-bottom:1px solid var(--line)}.desktop-settings-section:last-child{border-bottom:0;padding-bottom:0}.desktop-settings-section h3{margin:0;font-size:var(--ui-font-group,14px);font-weight:600;line-height:1.6}.desktop-settings-section p{margin:8px 0 0;color:var(--muted);font-size:var(--ui-font-note,12px);line-height:1.7}.desktop-version-section,.desktop-startup-section{display:flex;align-items:center;justify-content:space-between;gap:24px}.desktop-version{font-size:var(--ui-font-section,22px);font-weight:600;line-height:1.4;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.desktop-preference-switch{display:block;position:relative;width:44px;height:26px;flex-shrink:0;cursor:pointer}.desktop-preference-switch input{position:absolute;inset:0;margin:0;opacity:0;width:100%;height:100%;cursor:pointer}.desktop-preference-switch>span{display:block;width:44px;height:26px;border:1px solid #cbd2db;border-radius:15px;background:#e5e9ee;pointer-events:none}.desktop-preference-switch>span:after{content:"";display:block;width:20px;height:20px;margin:2px;border-radius:50%;background:white;box-shadow:0 1px 3px #1f2c3c26;transition:transform .12s}.desktop-preference-switch input:checked+span{background:var(--blue);border-color:var(--blue)}.desktop-preference-switch input:checked+span:after{transform:translateX(18px)}.desktop-preference-switch input:focus-visible+span{outline:2px solid var(--blue);outline-offset:4px}.desktop-preference-switch input:disabled+span{opacity:.55}.desktop-update-section{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px 24px}.desktop-update-status{flex:1;min-width:220px}.desktop-update-status h3>span{display:block;margin-top:5px;color:var(--blue);font-size:14px;font-weight:500;overflow-wrap:anywhere}.desktop-update-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.desktop-update-error,.desktop-settings-section p.desktop-update-error{color:var(--red);overflow-wrap:anywhere}.desktop-download-progress{width:100%;display:flex;gap:12px;align-items:center;color:var(--muted);font-size:12px}.desktop-download-progress progress{flex:1;min-width:0;height:8px;appearance:none;border:0;border-radius:5px;overflow:hidden;background:var(--surface-soft)}.desktop-download-progress progress::-webkit-progress-bar{background:#e8edf2}.desktop-download-progress progress::-webkit-progress-value{background:var(--blue);border-radius:5px}.desktop-release-notes{width:100%;margin-top:3px}.desktop-release-notes>summary{cursor:pointer;color:var(--ink);font-size:var(--ui-font-note,12px)}.desktop-release-notes>p{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px 14px;background:var(--surface-soft);border-radius:8px}
 @media(max-width:600px){.desktop-version-section{align-items:flex-start;flex-direction:column;gap:10px}.desktop-settings-section{padding:20px 0}.desktop-update-status{min-width:0;flex-basis:100%}.desktop-update-actions{width:100%}.desktop-update-actions .btn{flex:1;min-width:120px}.desktop-preference-switch{height:44px;display:flex;align-items:center}.desktop-version{font-size:20px}}
 @media(max-width:1300px){.report-toolbar{grid-template-columns:minmax(0,1fr);padding:16px 22px;gap:12px}.report-actions{justify-content:flex-end}.report-selection{grid-template-columns:minmax(115px,.7fr) minmax(190px,1.2fr) minmax(200px,1.4fr)}}
 @media(max-width:700px){.report-toolbar{padding:14px 16px}.report-selection{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:12px}.report-record{grid-column:1/-1}.report-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.report-actions>.btn,.report-actions .export-menu>summary{width:100%}.export-options{right:0;min-width:min(245px,calc(100vw - 32px))}.workflow-steps{gap:6px;margin:14px 0}.workflow-step{font-size:10px;display:block;line-height:1.5}.workflow-step b{margin-bottom:6px}.creation-page>.modal-head{padding:18px 16px 0}.creation-page .creation-content{padding:0 16px 18px}.creation-page .modal-foot{padding:14px 16px;flex-wrap:wrap}.creation-choice{gap:16px;flex-wrap:wrap}.entry-project-nav{max-height:164px;overflow:auto}.entry-project-nav button{padding:8px 10px}.entry-project-nav .entry-status-pill{display:none}}
 
 .metric-ability-group { margin:28px 0 36px; }
-.metric-ability-group h2 { margin:0 0 12px; font-size:19px; letter-spacing:.02em; }
+.metric-ability-group h2 { margin:0 0 12px; font-size:var(--ui-font-section,19px); letter-spacing:.02em; }
 .metric-ability-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin:0 0 12px; padding-bottom:12px; border-bottom:2px solid #d4dee7; }
 .metric-ability-heading h2 { margin:0; }
 .metric-ability-heading > .row { gap:6px; }
@@ -2977,18 +3016,18 @@ body.sidebar-collapsed .workspace {
 .metric-library-table th:nth-child(6) { width:20%; }
 .metric-library-table td { vertical-align:top; overflow-wrap:anywhere; }
 .metric-library-table small { white-space:pre-line; }
-.metric-library-table .metric-project-heading th { padding:14px 16px; background:#e8edf2; color:#33475a; text-align:left; }
+.metric-library-table .metric-project-heading th { padding:14px 16px; background:#e8edf2; color:var(--ink); text-align:left; }
 .metric-library-table .metric-project-heading th:first-child { width:auto; }
-.metric-project-heading th > span { font-size:14px; }
+.metric-project-heading th > span { font-size:var(--ui-font-body,14px); }
 .metric-project-heading small { display:inline; margin-left:12px; font-weight:400; color:var(--muted); }
-.metric-project-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
+.metric-project-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; }
 .metric-project-header > div:first-child { flex:1; min-width:180px; }
-.metric-project-header h3 { margin:0; font-size:15px; font-weight:650; }
-.metric-project-header h3 .pill { margin-left:8px; font-size:11px; vertical-align:middle; }
-.metric-project-header .note { margin:5px 0 0; font-size:12px; font-weight:400; }
+.metric-project-header h3 { margin:0; font-size:var(--ui-font-group,15px); font-weight:650; }
+.metric-project-header h3 .pill { margin-left:8px; font-size:var(--ui-font-note,11px); vertical-align:middle; }
+.metric-project-header .note { margin:5px 0 0; font-size:var(--ui-font-note,12px); font-weight:400; }
 .metric-project-header > .row { gap:7px; }
 .metric-project-heading .btn { margin:0; font-weight:500; }
-.metric-project-protocol { margin:10px 0 0; color:#52667a; font-size:12px; line-height:1.6; font-weight:400; white-space:pre-line; overflow-wrap:anywhere; }
+.metric-project-protocol { margin:0; color:var(--muted); font-size:var(--ui-font-note,12px); line-height:1.6; font-weight:400; white-space:pre-line; overflow-wrap:anywhere; }
 .standard-mismatch { color:#946422!important; }
 .management-team-heading { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; margin:0 0 20px; }
 .management-team-heading h2 { margin:0; }
@@ -2997,8 +3036,8 @@ body.sidebar-collapsed .workspace {
 .team-member-picker .check-line { padding:12px; border:1px solid var(--line); border-radius:8px; align-items:flex-start; }
 .team-member-picker .check-line[hidden] { display:none; }
 .team-member-picker small { display:block; margin-top:4px; color:var(--muted); }
-.test-plan-editor { padding:24px; background:#fff; border:1px solid var(--line); border-radius:14px; }
-.test-plan-editor h2 { font-size:18px; margin-top:28px; }
+.test-plan-editor { padding:24px; background:#fff; border:1px solid var(--line); border-radius:10px; }
+.test-plan-editor h2 { font-size:var(--ui-font-group,18px); margin-top:28px; }
 .test-plan-order { margin:16px 0; padding:0; list-style:none; counter-reset:plan; }
 .test-plan-order li { counter-increment:plan; display:flex; align-items:center; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
 .test-plan-order li::before { content:counter(plan); color:var(--muted); width:24px; font-variant-numeric:tabular-nums; }
@@ -3013,28 +3052,28 @@ body.sidebar-collapsed .workspace {
 .project-picker .check-tile:has(input:disabled) { opacity:.62; cursor:default; }
 .project-picker .plan-state:empty { display:none; }
 .picker-order { margin:24px 0 18px; border:1px solid var(--line); border-radius:10px; background:#f8fafc; }
-.picker-order > summary { padding:15px 18px; font-size:13px; font-weight:650; color:#385469; cursor:pointer; }
+.picker-order > summary { padding:15px 18px; font-size:var(--ui-font-note,13px); font-weight:650; color:var(--ink); cursor:pointer; }
 .picker-order > summary > span:last-child { float:right; font-weight:400; color:var(--muted); }
 .picker-order .test-plan-order { margin:0; padding:0 18px 10px; }
-.picker-order .test-plan-order li { gap:12px; padding:12px 0; font-size:13px; }
+.picker-order .test-plan-order li { gap:12px; padding:12px 0; font-size:var(--ui-font-body,13px); }
 .picker-order .test-plan-order li:last-child { border-bottom:0; }
 .picker-order .text-btn { padding:6px 8px; white-space:nowrap; }
 .picker-order .text-btn:disabled { opacity:.4; cursor:default; }
 .picker-iso-panel { grid-column:1/-1; padding:20px; margin:4px 0 12px; border:1px solid #d5e0e9; border-radius:12px; background:#f7f9fb; }
 .picker-iso-panel[hidden] { display:none; }
 .picker-iso-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; padding-bottom:14px; }
-.picker-iso-heading h4 { font-size:15px; margin:0 0 5px; }
-.picker-iso-heading p { font-size:12px; color:var(--muted); margin:0; }
-.picker-iso-heading > span { flex-shrink:0; font-size:12px; color:#45627a; }
+.picker-iso-heading h4 { font-size:var(--ui-font-group,15px); margin:0 0 5px; }
+.picker-iso-heading p { font-size:var(--ui-font-note,12px); color:var(--muted); margin:0; }
+.picker-iso-heading > span { flex-shrink:0; font-size:var(--ui-font-note,12px); color:var(--muted); }
 .picker-iso-region + .picker-iso-region { margin-top:18px; }
 .picker-iso-region .plan-group-heading { margin-bottom:9px; }
-.picker-iso-region h5 { flex:1; margin:0; font-size:13px; color:#3b556a; }
+.picker-iso-region h5 { flex:1; margin:0; font-size:var(--ui-font-note,13px); color:var(--ink); }
 .picker-direction-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:8px; }
-.picker-direction { display:flex; gap:8px; align-items:flex-start; padding:10px; border:1px solid #dce4eb; border-radius:7px; background:#fff; font-size:13px; cursor:pointer; }
+.picker-direction { display:flex; gap:8px; align-items:flex-start; padding:10px; border:1px solid #dce4eb; border-radius:7px; background:#fff; font-size:var(--ui-font-note,13px); cursor:pointer; }
 .picker-direction:has(input:checked) { border-color:#829fb6; background:#eaf1f6; }
 .picker-direction input[type=checkbox] { flex-shrink:0; width:16px; height:16px; margin:2px 0 0; accent-color:#486c88; }
 .picker-direction span { min-width:0; }
-.picker-direction small { display:block; margin-top:3px; color:var(--muted); font-size:10px; }
+.picker-direction small { display:block; margin-top:3px; color:var(--muted); font-size:var(--ui-font-note,10px); }
 @media (max-width:1100px) and (min-width:701px) {
   .metric-library-table td .row { flex-direction:column; align-items:stretch; }
   .metric-library-table td { padding:12px 8px; }
@@ -3049,7 +3088,7 @@ body.sidebar-collapsed .workspace {
   .metric-project-header > .row { margin-top:12px; }
   .metric-project-heading .btn { margin:0; }
   .metric-ability-heading { gap:10px; }
-  .metric-ability-heading h2 { font-size:18px; }
+  .metric-ability-heading h2 { font-size:var(--ui-font-group,18px); }
   .metric-library-table td:first-child,.team-members-table td:first-child { width:auto; }
   .metric-library-table td .row { min-width:0; }
   .test-plan-editor { padding:18px 14px; }
@@ -3058,7 +3097,7 @@ body.sidebar-collapsed .workspace {
   .picker-iso-panel { padding:14px; }
   .picker-iso-heading { flex-wrap:wrap; gap:6px; }
   .picker-direction-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .picker-direction { padding:9px 7px; font-size:12px; }
+  .picker-direction { padding:9px 7px; font-size:var(--ui-font-note,12px); }
   .picker-order > summary { padding:13px; }
   .picker-order > summary > span:last-child { float:none; margin-left:14px; }
 }
@@ -3066,21 +3105,21 @@ body.sidebar-collapsed .workspace {
 .manager-filter-shell{margin-bottom:22px;padding:18px 20px;background:#fff;border:1px solid var(--line);border-radius:12px}
 .management-primary-filters{grid-template-columns:minmax(200px,2fr) minmax(140px,1fr) minmax(130px,1fr);margin:0}
 .management-advanced{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
-.management-advanced>summary{cursor:pointer;font-size:13px;color:#425d73;font-weight:600}
+.management-advanced>summary{cursor:pointer;font-size:var(--ui-font-note,13px);color:var(--ink);font-weight:600}
 .management-advanced>.management-filters{margin:16px 0;grid-template-columns:repeat(auto-fit,minmax(155px,1fr))}
-.management-scope{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 18px;color:#365168}
-.management-scope>span{font-size:17px;font-weight:650;margin-right:auto}
+.management-scope{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:0 0 18px;color:var(--ink)}
+.management-scope>span{font-size:var(--ui-font-group,17px);font-weight:650;margin-right:auto}
 .management-more{display:inline-block;position:relative;vertical-align:middle}
-.management-more>summary{cursor:pointer;list-style:none;border:1px solid #cbd6df;border-radius:7px;padding:7px 11px;font-size:12px;font-weight:550;color:#456078;background:#fff;white-space:nowrap}
+.management-more>summary{cursor:pointer;list-style:none;border:1px solid #cbd6df;border-radius:8px;padding:7px 11px;font-size:var(--ui-font-note,12px);font-weight:550;color:var(--ink);background:#fff;white-space:nowrap}
 .management-more>summary::-webkit-details-marker{display:none}
-.management-more>summary::after{content:' ▾';font-size:10px;margin-left:5px}
+.management-more>summary::after{content:' ▾';font-size:var(--ui-font-note,10px);margin-left:5px}
 .management-more[open]>summary{background:#eaf1f7;border-color:#8da8be}
 .management-more-menu{position:fixed;z-index:200;display:grid;gap:4px;padding:8px;min-width:170px;max-width:min(290px,calc(100vw - 24px));border:1px solid #cbd7e1;border-radius:10px;background:#fff;box-shadow:0 10px 34px #243c5522}
 .management-more-menu>.btn{text-align:left;white-space:normal!important;border:0;justify-content:flex-start;padding:10px 12px;background:transparent}
 .management-more-menu>.btn:hover{background:#eff4f8}
 .management-more-menu>[data-manager-action=purge],.management-more-menu>[data-manager-action=trash],.management-more-menu>[data-manager-action=group-delete]{color:#9b4141}
 .management-batch{background:#eaf2f8;border:1px solid #c8d9e6;border-radius:10px;padding:13px 16px}
-.management-select-all{display:flex;align-items:center;gap:5px;white-space:nowrap;font-size:11px}
+.management-select-all{display:flex;align-items:center;gap:5px;white-space:nowrap;font-size:var(--ui-font-note,11px)}
 .management-table th:first-child,.management-table td:first-child{width:65px}
 .management-table [data-manager-action=athlete-records]{border:0;background:none;color:#245779;font-weight:650;padding:0;text-align:left}
 .management-table td:last-child .row{min-width:185px;align-items:center}
@@ -3088,30 +3127,36 @@ body.sidebar-collapsed .workspace {
 .catalog-filters{grid-template-columns:minmax(200px,2fr) minmax(180px,1fr)}
 .catalog-project-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:13px}
 .catalog-project-card{border:1px solid #d9e2ea;border-radius:12px;padding:20px;background:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:10px}
-.catalog-project-card h3{font-size:15px;line-height:1.5;margin:0}
-.catalog-project-card p{font-size:12px;color:var(--muted);margin:0 0 6px}
+.catalog-project-card h3{font-size:var(--ui-font-group,15px);line-height:1.5;margin:0}
+.catalog-project-card p{font-size:var(--ui-font-note,12px);color:var(--muted);margin:0 0 6px}
 .catalog-project-card>.btn{margin-top:auto}
-.catalog-project-detail{padding:26px;background:#fff;border:1px solid var(--line);border-radius:14px}
-.catalog-project-detail h2{font-size:22px;margin:0}
-.catalog-definition-block{border-top:1px solid var(--line);padding-top:19px;margin-top:23px}
-.catalog-definition-block h3{font-size:15px;margin:0 0 13px}
-.catalog-input-list{display:flex;flex-wrap:wrap;gap:8px}
-.catalog-input-list>span{padding:7px 10px;background:#f1f5f8;border:1px solid #e0e7ed;border-radius:6px;font-size:12px}
+.catalog-project-detail{padding:24px;background:#fff;border:1px solid var(--line);border-radius:10px}
+.catalog-project-detail h2{font-size:var(--ui-font-section,22px);margin:0}
+.catalog-definition-block{display:grid;row-gap:16px;border-top:1px solid var(--line);padding-top:24px;margin-top:24px}
+.catalog-definition-block h3{font-size:var(--ui-font-group,16px);margin:0}
+.catalog-selection-rules{display:grid;gap:12px}
+.catalog-selection-rules p{margin:0;color:var(--ink);font-size:var(--ui-font-body,14px);line-height:1.75}
+.catalog-selection-rules strong{font-weight:600}
+.catalog-parameter-group{display:grid;gap:12px;margin-top:8px}
+.catalog-parameter-group h4{margin:0;font-size:var(--ui-font-body,14px);font-weight:600;line-height:1.5;color:var(--ink)}
+.catalog-definition-block>.note{margin:0;line-height:1.7}
+.catalog-input-list{display:flex;flex-wrap:wrap;gap:8px 10px}
+.catalog-input-list>span{padding:8px 10px;background:var(--surface-soft);border:1px solid var(--line);border-radius:6px;font-size:var(--ui-font-note,13px);line-height:1.6;color:#525a64}
 .catalog-results th:first-child,.catalog-results td:first-child{width:40%}
 .catalog-results td:last-child{width:auto}
 .profile-workspace-nav{display:flex;flex-wrap:wrap;gap:10px;padding:20px 0;border-bottom:1px solid var(--line);margin-bottom:20px}
 .profile-workspace-nav [aria-current=page]{background:var(--blue);color:#fff;border-color:var(--blue)}
 .profile-project-select{max-width:580px;margin-bottom:18px}
 .profile-project-workspace{display:grid;grid-template-columns:minmax(190px,245px) minmax(0,1fr);gap:24px;align-items:start}
-.profile-result-list{display:flex;flex-direction:column;gap:5px;max-height:72vh;overflow-y:auto;padding:8px;background:#eef3f7;border:1px solid #dce5ed;border-radius:10px;position:sticky;top:18px}
-.profile-result-list>.btn{display:block;width:100%;text-align:left;white-space:normal;padding:12px 13px;background:transparent;border-color:transparent;color:#385269;line-height:1.45}
-.profile-result-list>.btn small{display:block;margin-top:4px;font-size:10px;opacity:.75;font-weight:400}
+.profile-result-list{display:flex;flex-direction:column;gap:5px;max-height:72vh;overflow-y:auto;padding:8px;background:var(--surface-soft);border:1px solid #dce5ed;border-radius:10px;position:sticky;top:18px}
+.profile-result-list>.btn{display:block;width:100%;text-align:left;white-space:normal;padding:12px 13px;background:transparent;border-color:transparent;color:var(--ink);line-height:1.45}
+.profile-result-list>.btn small{display:block;margin-top:4px;font-size:var(--ui-font-note,10px);opacity:.75;font-weight:400}
 .profile-result-list>[aria-current=true]{background:#fff;border-color:#c1d2df;box-shadow:0 2px 5px #28435a0b;color:#1e4d70}
 .profile-standard-detail{min-width:0;border:1px solid #dbe4eb;background:#fff;border-radius:12px;padding:24px}
 .rule-section-heading{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:12px}
-.rule-section-heading h3,.rule-section-heading h4{margin:0;font-size:17px}
+.rule-section-heading h3,.rule-section-heading h4{margin:0;font-size:var(--ui-font-group,17px)}
 .rule-component{margin:20px 0 24px;padding-top:16px;border-top:1px solid #e3e9ee}
-.rule-component>h4{font-size:14px;margin:0 0 12px}
+.rule-component>h4{font-size:var(--ui-font-body,14px);margin:0 0 12px}
 .rule-component>.check-line{margin-bottom:14px}
 .profile-standard-detail>.check-line{margin:16px 0}
 .profile-standard-detail .form-grid,.project-analysis-settings .form-grid{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px}
@@ -3121,83 +3166,83 @@ body.sidebar-collapsed .workspace {
 .structured-ranges .management-table{table-layout:fixed;min-width:500px}
 .structured-ranges .management-table th,.structured-ranges .management-table td{width:auto;padding:10px 6px}
 .structured-ranges .management-table th:nth-child(2),.structured-ranges .management-table th:nth-child(4){width:62px}
-.structured-ranges input[type=number],.structured-ranges input[type=text],.structured-ranges select{padding:8px 6px;font-size:12px;min-width:0}
-.structured-ranges .check-line{font-size:11px;gap:4px}
+.structured-ranges input[type=number],.structured-ranges input[type=text],.structured-ranges select{padding:8px 6px;font-size:var(--ui-font-note,12px);min-width:0}
+.structured-ranges .check-line{font-size:var(--ui-font-note,11px);gap:4px}
 .rule-range-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:12px 0}
-.rule-range-footer>small{color:var(--muted);font-size:11px}
+.rule-range-footer>small{color:var(--muted);font-size:var(--ui-font-note,11px)}
 .rule-conditions,.project-analysis-settings,.ability-aggregation{padding:15px 18px;border:1px solid #dae4ec;background:#f8fafc;border-radius:10px;margin:18px 0}
-.rule-conditions>summary,.project-analysis-settings>summary,.ability-aggregation>summary{cursor:pointer;color:#3e5b71;font-size:13px;font-weight:650}
+.rule-conditions>summary,.project-analysis-settings>summary,.ability-aggregation>summary{cursor:pointer;color:var(--ink);font-size:var(--ui-font-note,13px);font-weight:650}
 .rule-conditions[open]>summary,.project-analysis-settings[open]>summary,.ability-aggregation[open]>summary{margin-bottom:17px}
 .rule-conditions .profile-rule-block{margin:16px 0;padding:16px 0;border-bottom:1px solid #dce6ed}
 .reference-condition-row{padding:15px 0;border-top:1px solid #e2e8ee}
 .profile-aggregations>.form-grid{max-width:660px}
 .aggregation-members{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:15px 0 22px}
-.aggregation-members .check-line{padding:10px;border:1px solid #d8e1e9;border-radius:8px;background:#fff;font-size:12px}
+.aggregation-members .check-line{padding:10px;border:1px solid #d8e1e9;border-radius:8px;background:#fff;font-size:var(--ui-font-body,12px)}
 .score-transform{padding:19px;border:1px solid #d3e0e9;border-radius:10px;background:#fff;margin:14px 0}
-.score-transform h4{margin:0 0 14px;font-size:14px}
+.score-transform h4{margin:0 0 14px;font-size:var(--ui-font-body,14px)}
 .score-transform>.field{max-width:400px}
 .score-anchor-list>.row{display:flex;align-items:end;gap:12px;margin:12px 0}
 .score-anchor-list .field{flex:1;min-width:100px}
-.score-preview{display:flex;flex-wrap:wrap;align-items:center;gap:18px;padding:14px 16px;background:#edf4f8;border-radius:8px;margin-top:18px}
+.score-preview{display:flex;flex-wrap:wrap;align-items:center;gap:18px;padding:14px 16px;background:var(--surface-soft);border-radius:8px;margin-top:18px}
 .score-preview .field{max-width:190px;margin:0}
-.score-preview output{font-size:13px;color:#34536c}
+.score-preview output{font-size:var(--ui-font-note,13px);color:var(--ink)}
 .profile-editor-header{position:sticky;top:var(--management-topbar-height,64px);z-index:5;background:var(--bg);padding:14px 0;flex-wrap:wrap;border-bottom:1px solid var(--line)}
 .profile-editor-header>.field{margin:0;min-width:180px;max-width:380px}
-.profile-edit-status{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.profile-edit-status{display:flex;flex-direction:column;gap:3px;font-size:var(--ui-font-note,12px);color:var(--muted)}
 .profile-edit-status b{color:var(--blue);font-weight:600}
 .profile-editor-header>.row{gap:8px;flex-wrap:wrap}
 .profile-workspace-nav [aria-current=page]:hover:not(:disabled),.profile-workspace-nav [aria-current=page]:focus-visible{background:var(--blue-hover);color:#fff;border-color:var(--blue-hover)}
 .ability-config-workspace{display:grid;grid-template-columns:minmax(170px,220px) minmax(0,1fr);gap:22px;align-items:start}
-.ability-index{position:sticky;top:calc(var(--management-topbar-height,64px) + var(--management-editor-height,100px) + 12px);max-height:calc(100vh - var(--management-topbar-height,64px) - var(--management-editor-height,100px) - 32px);overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px;background:#eef3f7}
+.ability-index{position:sticky;top:calc(var(--management-topbar-height,64px) + var(--management-editor-height,100px) + 12px);max-height:calc(100vh - var(--management-topbar-height,64px) - var(--management-editor-height,100px) - 32px);overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--surface-soft)}
 .ability-index>.btn{display:block;flex-shrink:0;white-space:normal;text-align:left;padding:13px 12px;background:transparent;border-color:transparent}
 .profile-result-list{top:calc(var(--management-topbar-height,64px) + var(--management-editor-height,100px) + 12px)}
 .profile-result-list>.btn{flex-shrink:0}
-.ability-index small{display:block;margin-top:5px;color:var(--muted);font-size:11px;font-weight:400}
+.ability-index small{display:block;margin-top:5px;color:var(--muted);font-size:var(--ui-font-note,11px);font-weight:400}
 .ability-index>[aria-current=true],.ability-index>[aria-current=true]:hover:not(:disabled){background:#fff;border-color:#c1d2df;color:#1e4d70}
 .ability-mobile-select{display:none}
 .ability-config{min-width:0;padding:24px;background:#fff;border:1px solid var(--line);border-radius:12px}
-.ability-config>h2{font-size:20px;margin:0 0 20px}
+.ability-config>h2{font-size:var(--ui-font-section,20px);margin:0 0 20px}
 .ability-config>.field{max-width:500px}
 .aggregation-members{max-height:300px;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
 .score-member-index{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0 8px}
 .score-member-index [aria-current=true],.score-member-index [aria-current=true]:hover:not(:disabled){background:var(--blue-soft);border-color:#a6bdce;color:var(--blue)}
 .ability-grade{margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
-.ability-grade>h3{font-size:15px;margin:0}
+.ability-grade>h3{font-size:var(--ui-font-group,15px);margin:0}
 .record-preview>.field{max-width:700px}
 .preview-radar{max-width:560px;margin:20px auto}
 .preview-comparison{min-width:0}
-.preview-comparison>h3{margin:26px 0 14px;font-size:17px}
+.preview-comparison>h3{margin:26px 0 14px;font-size:var(--ui-font-group,17px)}
 .preview-table{table-layout:fixed}
 .preview-table th:first-child,.preview-table td:first-child{width:auto}
 .preview-table td{overflow-wrap:anywhere}
 .catalog-filters{grid-template-columns:minmax(200px,2fr) minmax(160px,1fr) minmax(130px,.8fr)}
-.catalog-workspace{display:grid;grid-template-columns:minmax(220px,290px) minmax(0,1fr);gap:22px;align-items:start}
+.catalog-workspace{display:grid;grid-template-columns:232px minmax(0,1fr);gap:24px;align-items:start}
 .catalog-index{max-height:calc(100vh - var(--management-topbar-height,64px) - 32px);overflow-y:auto;overscroll-behavior:contain;padding:5px 8px 18px 0;position:sticky;top:calc(var(--management-topbar-height,64px) + 12px)}
 .catalog-index-group{margin:0 0 22px}
 .catalog-index-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--line)}
-.catalog-index-heading h2{font-size:14px;margin:0;font-weight:650}
-.catalog-index-heading summary{font-size:11px}
+.catalog-index-heading h2{font-size:var(--ui-font-note,13px);margin:0;font-weight:600;color:var(--muted)}
+.catalog-index-heading summary{font-size:var(--ui-font-note,11px)}
 .catalog-index-item{margin:8px 0}
-.catalog-index-item>.btn{display:block;width:100%;text-align:left;white-space:normal;padding:12px 13px;background:#fff;border-color:#dde5eb}
-.catalog-index-item small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:5px}
+.catalog-index-item>.btn{display:block;width:100%;text-align:left;white-space:normal;padding:11px 12px;background:#fff;border-color:var(--line);color:var(--ink);font-weight:500}
+.catalog-index-item small{display:block;font-size:var(--ui-font-note,11px);color:var(--muted);font-weight:400;margin-top:5px}
 .catalog-index-item>[aria-current=true],.catalog-index-item>[aria-current=true]:hover:not(:disabled){background:var(--blue-soft);color:var(--blue);border-color:#a6bdce}
 .catalog-search-hits{display:grid;gap:5px;margin:5px 0 12px 10px}
-.catalog-search-hits>.btn{white-space:normal;text-align:left;font-size:11px;background:var(--surface-soft);padding:7px 9px}
+.catalog-search-hits>.btn{white-space:normal;text-align:left;font-size:var(--ui-font-note,11px);background:var(--surface-soft);padding:7px 9px}
 .catalog-search-hits>[aria-current=true]{border-color:var(--blue)}
 .catalog-detail{min-width:0}
 .catalog-detail-empty{border:1px dashed #cbd7e1;border-radius:12px;background:#fff;padding:40px 28px;color:var(--muted)}
-.catalog-detail-empty h2{font-size:20px;color:var(--ink);margin-top:0}
+.catalog-detail-empty h2{font-size:var(--ui-font-section,20px);color:var(--ink);margin-top:0}
 .catalog-detail-back{display:none}
 .catalog-metric-selected td{background:#edf4f9!important}
 .catalog-project-detail .catalog-results{table-layout:fixed}
 .catalog-project-detail .catalog-results th:first-child,.catalog-project-detail .catalog-results td:first-child{width:29%}
 .catalog-project-detail .catalog-results td{overflow-wrap:anywhere}
 .catalog-project-detail .catalog-results td:last-child .btn{margin:3px 0}
-.catalog-project-detail .catalog-results td small{font-size:11px}
+.catalog-project-detail .catalog-results td small{font-size:var(--ui-font-note,11px)}
 @media(max-width:1100px) and (min-width:701px){.catalog-workspace{grid-template-columns:230px minmax(0,1fr);gap:14px}.catalog-project-detail{padding:20px 17px}.ability-config-workspace{grid-template-columns:185px minmax(0,1fr);gap:14px}.ability-config{padding:19px}}
 @media(max-width:700px){
  .profile-editor-header{gap:12px;padding:12px 0}.profile-editor-header>.field{flex-basis:100%;max-width:none}.profile-edit-status{flex-direction:row;flex-wrap:wrap;gap:5px 12px}.profile-editor-header>.row{width:100%}
- .profile-workspace-nav{gap:6px;padding:14px 0}.profile-workspace-nav>.btn{flex:1;font-size:12px;padding:9px 6px}
+ .profile-workspace-nav{gap:6px;padding:14px 0}.profile-workspace-nav>.btn{flex:1;font-size:var(--ui-font-note,12px);padding:9px 6px}
  .ability-mobile-select{display:block}.ability-index{display:none}.ability-config-workspace{grid-template-columns:1fr}.ability-config{padding:18px 14px}.score-member-index>.btn{white-space:normal}.aggregation-members{grid-template-columns:1fr;max-height:260px}
  .catalog-filters{grid-template-columns:1fr 1fr}.catalog-filters>.field:first-child{grid-column:1/-1}.catalog-workspace{grid-template-columns:1fr}.catalog-index{position:static;max-height:none;padding:0}.catalog-detail-empty{display:none}.catalog-workspace.has-project>.catalog-index{display:none}.catalog-detail-back{display:block;margin-bottom:15px}
  .catalog-project-detail .catalog-results,.preview-table{table-layout:auto}.catalog-project-detail .catalog-results td:first-child{width:auto}.preview-table td{grid-template-columns:86px minmax(0,1fr)}
@@ -3491,19 +3536,19 @@ body.sidebar-collapsed .workspace {
 .generic-report-editor { min-width:0; }
 .generic-report-editor .generic-report-enable { display:flex; align-items:center; gap:9px; font-weight:600; line-height:1.5; }
 .generic-report-editor input[type="checkbox"] { width:16px; height:16px; flex:none; accent-color:var(--blue,#365b7a); }
-.generic-report-editor h3 { margin:16px 0 10px; font-size:13px; font-weight:600; }
+.generic-report-editor h3 { margin:16px 0 10px; font-size:var(--ui-font-note,13px); font-weight:600; }
 .generic-report-editor .generic-report-metrics { margin:0; padding:0; list-style:none; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
 .generic-report-editor .generic-report-metric { display:flex; align-items:center; gap:12px; padding:10px 12px; }
 .generic-report-editor .generic-report-metric + .generic-report-metric { border-top:1px solid var(--line); }
 .generic-report-editor .generic-report-metric > label { display:flex; flex:1; align-items:center; gap:10px; min-width:0; cursor:pointer; }
-.generic-report-editor .generic-report-metric > label > span { min-width:0; overflow-wrap:anywhere; font-size:13px; line-height:1.5; }
-.generic-report-editor .generic-report-metric small { display:block; color:var(--muted); font-size:11px; font-weight:400; margin-top:2px; }
+.generic-report-editor .generic-report-metric > label > span { min-width:0; overflow-wrap:anywhere; font-size:var(--ui-font-note,13px); line-height:1.5; }
+.generic-report-editor .generic-report-metric small { display:block; color:var(--muted); font-size:var(--ui-font-note,11px); font-weight:400; margin-top:2px; }
 .generic-report-editor .generic-report-order { display:flex; gap:5px; flex:none; }
 .generic-report-editor .generic-report-order .btn { min-width:30px; padding:4px 8px; }
 .generic-report-editor .generic-report-metrics > .note { padding:12px; margin:0; }
 .generic-report-editor .generic-report-preview { margin-top:16px; padding:12px 14px; border:1px solid var(--line); border-radius:8px; background:var(--surface-soft); }
 .generic-report-editor .generic-report-preview h3 { display:flex; flex-wrap:wrap; gap:5px 12px; align-items:baseline; margin:0 0 10px; }
-.generic-report-editor .generic-report-preview h3 > span { color:var(--muted); font-size:11px; font-weight:400; }
+.generic-report-editor .generic-report-preview h3 > span { color:var(--muted); font-size:var(--ui-font-note,11px); font-weight:400; }
 .generic-report-editor #genericReportPreview { max-height:420px; overflow-y:auto; overflow-x:hidden; }
 .generic-report-editor #genericReportPreview svg { display:block; width:100%; height:auto; }
 .generic-report-editor [data-generic-options] > .form-grid { margin:14px 0 0; }
@@ -3515,14 +3560,14 @@ body.sidebar-collapsed .workspace {
 }
 
 .excel-modal{width:min(1080px,calc(100vw - 32px));max-width:none}
-.creation-people-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:13px}
+.creation-people-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;color:var(--muted);font-size:var(--ui-font-note,13px)}
 .creation-athletes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;max-height:320px;overflow:auto;margin:12px 0 20px;padding:2px}
 .creation-athletes .check-line{display:flex;align-items:flex-start;gap:10px;margin:0;padding:12px;border:1px solid var(--line);border-radius:8px;min-width:0;cursor:pointer}
 .creation-athletes .check-line:has(input:checked){border-color:var(--primary);background:var(--primary-soft,#f2f6fa)}
 .creation-athletes .check-line input{flex:none;margin-top:3px}
 .creation-athletes .check-line span{min-width:0;overflow-wrap:anywhere}
-.creation-athletes small,.excel-result small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
-.creation-people-summary{color:var(--muted);font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+.creation-athletes small,.excel-result small{display:block;color:var(--muted);font-size:var(--ui-font-note,11px);margin-top:4px}
+.creation-people-summary{color:var(--muted);font-size:var(--ui-font-note,13px);line-height:1.7;overflow-wrap:anywhere}
 .entry-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:18px 0}
 #entryAthleteControls{flex:1;min-width:220px;max-width:440px}
 #entryAthleteControls:empty{display:none}
@@ -3532,7 +3577,7 @@ body.sidebar-collapsed .workspace {
 .excel-import-summary{display:grid;gap:12px;max-height:380px;overflow:auto;margin:16px 0}
 .excel-import-summary section{padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .excel-import-summary h3{margin:0 0 8px;font-size:14px;line-height:1.6;overflow-wrap:anywhere}
-.excel-import-summary p{margin:6px 0;font-size:13px;line-height:1.7;overflow-wrap:anywhere}
+.excel-import-summary p{margin:6px 0;font-size:var(--ui-font-note,13px);line-height:1.7;overflow-wrap:anywhere}
 .excel-file{position:relative;overflow:hidden;cursor:pointer}
 .excel-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
 .excel-file:focus-within{outline:2px solid var(--primary);outline-offset:3px}
@@ -3547,7 +3592,7 @@ body.sidebar-collapsed .workspace {
 .excel-result{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 0;border-bottom:1px solid var(--line)}
 #excelError{margin:0;padding:12px 28px}
 #excelModal[aria-busy=true] .excel-file{opacity:.6;pointer-events:none}
-@media(max-width:700px){.excel-modal{width:calc(100vw - 16px)}.excel-modal .settings-content{padding:18px 14px}.excel-preview-record{padding:12px 8px}.excel-preview-record table{font-size:11px}.excel-preview-record th,.excel-preview-record td{padding:8px 5px}.excel-preview-record th:first-child{width:28%}.excel-preview-record select{font-size:11px;padding:7px 3px}.excel-modal .modal-foot{flex-wrap:wrap;gap:12px;padding:14px}.excel-modal .modal-foot>.row{flex:1;justify-content:flex-end}.excel-result{align-items:flex-start}}
+@media(max-width:700px){.excel-modal{width:calc(100vw - 16px)}.excel-modal .settings-content{padding:18px 14px}.excel-preview-record{padding:12px 8px}.excel-preview-record table{font-size:var(--ui-font-note,11px)}.excel-preview-record th,.excel-preview-record td{padding:8px 5px}.excel-preview-record th:first-child{width:28%}.excel-preview-record select{font-size:var(--ui-font-note,11px);padding:7px 3px}.excel-modal .modal-foot{flex-wrap:wrap;gap:12px;padding:14px}.excel-modal .modal-foot>.row{flex:1;justify-content:flex-end}.excel-result{align-items:flex-start}}
 
 @media(max-width:600px){
  .creation-athletes{grid-template-columns:1fr;max-height:300px}
@@ -3556,16 +3601,16 @@ body.sidebar-collapsed .workspace {
  .entry-toolbar{gap:14px;margin:16px 0}
  #entryAthleteControls{width:100%;max-width:none;min-width:0;flex-basis:100%}
  .entry-excel-actions{width:100%;margin-left:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
- .entry-excel-actions .btn{padding:9px 8px;font-size:12px}
+ .entry-excel-actions .btn{padding:9px 8px;font-size:var(--ui-font-note,12px)}
  .excel-import-summary section{padding:12px}
  .excel-preview-record table,.excel-preview-record tbody{display:block;width:100%}
  .excel-preview-record thead{display:none}
  .excel-preview-record tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;padding:14px 0;border-bottom:1px solid var(--line)}
- .excel-preview-record td{display:block;border:0!important;padding:0;font-size:13px;min-width:0}
+ .excel-preview-record td{display:block;border:0!important;padding:0;font-size:var(--ui-font-note,13px);min-width:0}
  .excel-preview-record td:first-child{grid-column:1/-1;font-weight:600}
  .excel-preview-record td:last-child{grid-column:1/-1}
- .excel-preview-record td:not(:first-child)::before{content:attr(data-label);display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
- .excel-preview-record select{font-size:13px;padding:9px 11px;width:100%;height:40px}
+ .excel-preview-record td:not(:first-child)::before{content:attr(data-label);display:block;font-size:var(--ui-font-note,11px);color:var(--muted);margin-bottom:5px}
+ .excel-preview-record select{font-size:var(--ui-font-note,13px);padding:9px 11px;width:100%;height:40px}
  .excel-preview-record h3{font-size:14px;line-height:1.65;overflow-wrap:anywhere}
  .excel-preview-record h3 .pill{display:inline-block;margin-left:0}
 }
@@ -4114,7 +4159,7 @@ body.sidebar-collapsed .workspace {
       </main>
       <section
         id="entryView"
-        class="wrap workspace-view"
+        class="wrap workspace-view operation-ui"
         aria-label="编辑本次测试"
         hidden
       >
@@ -4233,7 +4278,7 @@ body.sidebar-collapsed .workspace {
       </section>
       <section
         id="settingsView"
-        class="wrap workspace-view"
+        class="wrap workspace-view operation-ui"
         aria-label="测试与应用设置"
         hidden
       >
@@ -4247,8 +4292,8 @@ body.sidebar-collapsed .workspace {
           class="form-card settings-content"
         ></article>
       </section>
-      <section id="managementView" class="wrap workspace-view management-view" hidden aria-label="管理中心"><div id="managementContent"></div></section>
-    <section id="creationView" class="wrap workspace-view" hidden aria-labelledby="newAthleteTitle"><div id="newAthleteModal">
+      <section id="managementView" class="wrap workspace-view management-view operation-ui" hidden aria-label="管理中心"><div id="managementContent"></div></section>
+    <section id="creationView" class="wrap workspace-view operation-ui" hidden aria-labelledby="newAthleteTitle"><div id="newAthleteModal">
       <div class="form-card creation-page">
         <header class="modal-head">
           <h1 id="newAthleteTitle">数据录入</h1>
@@ -4302,10 +4347,10 @@ body.sidebar-collapsed .workspace {
       </div>
     </div></section>
     </div>
-    <div id="managementModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
-    <div id="excelModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">导入 Excel 文件</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
+    <div id="managementModal" class="modal-backdrop operation-ui" role="dialog" aria-modal="true" aria-labelledby="managementModalTitle"><div class="modal"><header class="modal-head"><h2 id="managementModalTitle"></h2><button class="close" aria-label="关闭" onclick="App.close('managementModal')">×</button></header><form id="managementForm" class="modal-form"><div id="managementFields" class="settings-content"></div><p id="managementError" class="field-error" role="alert" hidden></p><footer class="modal-foot"><button type="button" class="btn" onclick="App.close('managementModal')">取消</button><button type="submit" class="btn primary">保存</button></footer></form></div></div>
+    <div id="excelModal" class="modal-backdrop operation-ui" role="dialog" aria-modal="true" aria-labelledby="excelTitle"><div class="modal excel-modal"><header class="modal-head"><h2 id="excelTitle">导入 Excel 文件</h2><button type="button" class="close" aria-label="关闭 Excel 导入" onclick="App.close('excelModal')">×</button></header><div id="excelContent" class="settings-content"></div><p id="excelError" class="field-error" role="alert" hidden></p><footer id="excelFooter" class="modal-foot"></footer></div></div>
     <datalist id="sportOptions"><option value="田径"></option><option value="篮球"></option><option value="足球"></option><option value="排球"></option><option value="游泳"></option><option value="网球"></option><option value="羽毛球"></option><option value="举重"></option><option value="拳击"></option><option value="散打"></option><option value="跆拳道"></option></datalist>
-    <div class="modal-backdrop" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
+    <div class="modal-backdrop operation-ui" id="catalogModal" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
       <div class="modal">
         <header class="modal-head"><h2 id="catalogTitle">新建测试项目</h2><button class="close" type="button" aria-label="关闭项目设置" onclick="App.close('catalogModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <form id="catalogForm" class="modal-form" onsubmit="event.preventDefault();App.submitCatalogItem()">
@@ -4314,14 +4359,14 @@ body.sidebar-collapsed .workspace {
         </form>
       </div>
     </div>
-    <div class="modal-backdrop" id="unitModal" role="dialog" aria-modal="true" aria-labelledby="unitChangeTitle">
+    <div class="modal-backdrop operation-ui" id="unitModal" role="dialog" aria-modal="true" aria-labelledby="unitChangeTitle">
       <div class="modal compact">
         <header class="modal-head"><h2 id="unitChangeTitle">更改测量单位</h2><button class="close" type="button" aria-label="取消更改单位" onclick="App.close('unitModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <div class="settings-content"><p id="unitChangeMessage"></p></div>
         <footer class="modal-foot unit-change-actions"><button class="btn" type="button" onclick="App.close('unitModal')">取消</button><button id="unitClearButton" class="btn" type="button" onclick="App.confirmUnitChange('clear')">清空后重新录入</button><button id="unitConvertButton" class="btn primary" type="button" onclick="App.confirmUnitChange('convert')">换算已有数据</button></footer>
       </div>
     </div>
-    <div class="modal-backdrop" id="recoveryModal" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
+    <div class="modal-backdrop operation-ui" id="recoveryModal" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
       <div class="modal">
         <header class="modal-head"><h2 id="recoveryTitle">核对导入数据</h2><button class="close" type="button" aria-label="关闭数据核对" onclick="App.close('recoveryModal')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header>
         <form id="recoveryForm" class="modal-form" onsubmit="event.preventDefault();App.recoverData()">
@@ -4331,7 +4376,7 @@ body.sidebar-collapsed .workspace {
       </div>
     </div>
     <div
-      class="modal-backdrop"
+      class="modal-backdrop operation-ui"
       id="saveModal"
       role="dialog"
       aria-modal="true"
@@ -4373,7 +4418,7 @@ body.sidebar-collapsed .workspace {
       </div>
     </div>
     <div
-      class="modal-backdrop"
+      class="modal-backdrop operation-ui"
       id="previewModal"
       role="dialog"
       aria-modal="true"
@@ -4406,7 +4451,7 @@ body.sidebar-collapsed .workspace {
         </footer>
       </div>
     </div>
-    <div id="longitudinalEditModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="longitudinalEditTitle"><div class="modal"><header class="modal-head"><h2 id="longitudinalEditTitle">选择要编辑的测试记录</h2><button class="close" aria-label="关闭" onclick="App.close('longitudinalEditModal')">×</button></header><div id="longitudinalEditChoices" class="settings-content longitudinal-edit-choices"></div></div></div>
+    <div id="longitudinalEditModal" class="modal-backdrop operation-ui" role="dialog" aria-modal="true" aria-labelledby="longitudinalEditTitle"><div class="modal"><header class="modal-head"><h2 id="longitudinalEditTitle">选择要编辑的测试记录</h2><button class="close" aria-label="关闭" onclick="App.close('longitudinalEditModal')">×</button></header><div id="longitudinalEditChoices" class="settings-content longitudinal-edit-choices"></div></div></div>
     <input
       type="file"
       id="importFile"
@@ -4420,7 +4465,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.26.4"});
+window.RingsideBuild=Object.freeze({"version": "2.27.0"});
 </script>
 <script>
 (function (root) {
@@ -6718,6 +6763,104 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 //# sourceMappingURL=exceljs.min.js.map
 </script>
 <script>
+(function(root){
+  "use strict";
+  const number=value=>root.Calc.num(value),clone=value=>JSON.parse(JSON.stringify(value));
+  const plain=value=>!!value&&Object.getPrototypeOf(value)!==null&&Object.prototype.toString.call(value)==="[object Object]";
+  const safe=value=>typeof value==="string"&&/^[A-Za-z0-9_-]{1,249}$/.test(value)&&!["__proto__","constructor","prototype"].includes(value);
+  const keys=(value,allowed)=>Object.keys(value).every(key=>allowed.includes(key));
+  const calculated=d=>!!d?.calculation;
+  const deficit=d=>d?.calculation?.kind==="cod-deficit";
+  const defs=source=>source.definitions||[];
+  function validateDefinitions(source){
+    for(const d of defs(source)){
+      if(d.distanceM!==undefined&&(!(number(d.distanceM)>0)||typeof d.distanceM!=="number"||d.unit!=="s"))throw Error("计时距离须为正数，单位须为 s");
+      if(!calculated(d))continue;
+      const c=d.calculation;
+      if(!plain(c)||c.version!==1||d.unit!=="s"||!keys(c,c.kind==="sum"?["version","kind","inputMetricIds"]:["version","kind","timeMetricId","referenceDistanceM"]))throw Error("计算指标格式无效");
+      if(c.kind==="sum"){
+        if(d.entryScope!=="attempt"||!Array.isArray(c.inputMetricIds)||c.inputMetricIds.length<2||c.inputMetricIds.length>16||new Set(c.inputMetricIds).size!==c.inputMetricIds.length||c.inputMetricIds.some(id=>!safe(id)||!defs(source).some(input=>input.id===id&&input.testId===d.testId&&input.unit==="s"&&input.entryScope==="attempt"&&!calculated(input))))throw Error("合计时间须选择同项目的至少两个原始试次计时指标");
+      }else if(c.kind==="cod-deficit"){
+        if(d.entryScope!=="record"||!safe(c.timeMetricId)||!(c.referenceDistanceM>0)||!Number.isFinite(c.referenceDistanceM)||!defs(source).some(input=>input.id===c.timeMetricId&&input.testId===d.testId&&input.unit==="s"&&!deficit(input)))throw Error("变向差值须指定本项目时间和有效参照距离");
+      }else throw Error("不支持的计算方式");
+      if(root.RingsideTests&&root.RingsideTests.isNative(source,d.testId))throw Error("计算指标仅用于通用测试项目");
+    }
+  }
+  function validateBindings(bindings,source,testIds){
+    if(bindings===undefined)return;
+    if(!plain(bindings)||Object.keys(bindings).length>300)throw Error("直线参照配置无效");
+    for(const [id,b]of Object.entries(bindings)){
+      const d=defs(source).find(d=>d.id===id),ref=defs(source).find(d=>d.id===b?.metricId&&d.testId===b?.testId);
+      if(!deficit(d)||!plain(b)||!keys(b,["testId","metricId","distanceM"])||!safe(b.testId)||!safe(b.metricId)||!ref||ref.unit!=="s"||defs(source).some(other=>deficit(other)&&other.testId===b.testId)||b.testId===d.testId||b.distanceM!==d.calculation.referenceDistanceM||ref.distanceM!==b.distanceM||testIds&&(!testIds.includes(d.testId)||!testIds.includes(b.testId)))throw Error("直线参照须来自方案内另一非变向项目的同距离计时指标");
+    }
+  }
+  function attemptValue(record,definition,row){
+    const c=definition.calculation;
+    if(c?.kind!=="sum")return number(row.metrics?.[definition.id]);
+    const values=c.inputMetricIds.map(id=>number(row.metrics?.[id]));
+    const sum=values.every(value=>value!==null&&value>0)?values.reduce((a,b)=>a+b,0):null;
+    return Number.isFinite(sum)?sum:null;
+  }
+  function evaluate(record,values){
+    const results={};
+    for(const d of defs(record).filter(d=>d.calculation?.kind==="sum"&&record.enabled[d.testId]))results[d.id]={kind:"sum",value:number(values[d.id]),reason:number(values[d.id])===null?"缺少完整有效分段试次":""};
+    const bindings=record.testPlanSnapshot?.calculationBindings||record.calculationBindings||{};
+    for(const d of defs(record).filter(d=>deficit(d)&&record.enabled[d.testId])){
+      const c=d.calculation,b=bindings[d.id],time=number(values[c.timeMetricId]);
+      const ref=b&&record.enabled[b.testId]?number(values[b.metricId]):null;
+      const reason=!(time>0)?"缺少有效变向总时间":!b?"尚未绑定直线参照":!record.enabled[b.testId]?"本次记录未包含直线参照项目":!(ref>0)?"缺少有效直线参照时间":"";
+      const value=reason?null:time-ref;
+      results[d.id]={kind:"cod-deficit",value,time,reference:ref,referenceDistanceM:c.referenceDistanceM,referenceTestId:b?.testId||"",referenceMetricId:b?.metricId||"",reason};
+      values[d.id]=value;
+    }
+    return results;
+  }
+  function context(d){
+    const distance=d.distanceM!==undefined?{distanceM:d.distanceM}:{};
+    if(!calculated(d))return distance;
+    return deficit(d)?{...distance,calculation:{version:1,kind:"cod-deficit",referenceDistanceM:d.calculation.referenceDistanceM}}:{...distance,calculation:clone(d.calculation)};
+  }
+  const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function editor(source,testId,d){
+    if(root.RingsideTests.isNative(source,testId))return "";
+    const c=d?.calculation||{},inputs=defs(source).filter(x=>x.testId===testId&&x.id!==d?.id&&x.unit==="s"&&!deficit(x));
+    return `<div class="field wide" data-calculation-editor><label>结果方式<select id="calculationKind"><option value="">直接录入</option><option value="sum"${c.kind==="sum"?" selected":""}>同试次分段时间相加</option><option value="cod-deficit"${c.kind==="cod-deficit"?" selected":""}>变向时间减直线参照时间</option></select></label><div data-calculation-sum${c.kind!=="sum"?" hidden":""}><p>只有各段完整且大于零的试次参与合计和代表成绩。</p>${inputs.filter(x=>!calculated(x)&&x.entryScope==="attempt").map(x=>`<label class="check-line"><input type="checkbox" data-calculation-input value="${esc(x.id)}"${c.inputMetricIds?.includes(x.id)?" checked":""}>${esc(x.name)}</label>`).join("")}</div><div data-calculation-cod${c.kind!=="cod-deficit"?" hidden":""}><label>本项目变向时间<select id="calculationTime">${inputs.map(x=>`<option value="${esc(x.id)}"${c.timeMetricId===x.id?" selected":""}>${esc(x.name)}</option>`).join("")}</select></label><label>直线参照距离 m<input id="calculationReferenceDistance" type="number" min="0" step="any" value="${esc(c.referenceDistanceM||"")}"></label><p>直线参照在测试方案中选择，使用本次记录已有代表成绩。</p></div><label>该计时指标距离 m（可留空）<input id="calculationDistance" type="number" min="0" step="any" value="${esc(d?.distanceM||"")}"></label></div>`;
+  }
+  function readEditor(d){
+    const get=id=>root.document.getElementById(id),kind=get("calculationKind")?.value;
+    if(!get("calculationKind"))return d;
+    delete d.calculation;delete d.distanceM;
+    if(get("calculationDistance").value!=="")d.distanceM=Number(get("calculationDistance").value);
+    if(kind){d.unit="s";d.scoring=false;d.target=null;d.ranges=[];d.referenceEnabled=false;
+      d.entryScope=kind==="sum"?"attempt":"record";
+      d.direction="lower";d.directionStatus="confirmed";d.resultMeaning="numeric";
+      d.calculation=kind==="sum"?{version:1,kind,inputMetricIds:[...root.document.querySelectorAll("[data-calculation-input]:checked")].map(el=>el.value)}:{version:1,kind,timeMetricId:get("calculationTime").value,referenceDistanceM:Number(get("calculationReferenceDistance").value)};
+      if(kind==="cod-deficit"){d.measurementScale="interval";d.ratioEligible=false;d.cvEligible=false;}
+    }
+    return d;
+  }
+  function bindingEditor(source,plan){
+    return defs(source).filter(d=>deficit(d)&&plan.testIds.includes(d.testId)).map(d=>{
+      const candidates=defs(source).filter(ref=>plan.testIds.includes(ref.testId)&&ref.testId!==d.testId&&ref.unit==="s"&&!defs(source).some(other=>deficit(other)&&other.testId===ref.testId)&&ref.distanceM===d.calculation.referenceDistanceM),b=plan.calculationBindings?.[d.id];
+      return `<label class="field"><span>${esc(d.name)} · ${d.calculation.referenceDistanceM} m 直线参照</span><select data-calculation-binding="${esc(d.id)}"><option value="">暂不绑定</option>${candidates.map(ref=>`<option value="${esc(ref.id)}"${b?.metricId===ref.id?" selected":""}>${esc(source.tests.find(t=>t.id===ref.testId)?.name)} · ${esc(ref.name)}</option>`).join("")}</select></label>`;
+    }).join("");
+  }
+  if(root.document)root.document.addEventListener("change",event=>{
+    if(event.target.id!=="calculationKind")return;
+    const kind=event.target.value,host=event.target.closest("[data-calculation-editor]");
+    host.querySelector("[data-calculation-sum]").hidden=kind!=="sum";host.querySelector("[data-calculation-cod]").hidden=kind!=="cod-deficit";
+    if(kind){const scope=root.document.getElementById("catalogEntryScope"),unit=root.document.getElementById("catalogUnit");if(scope)scope.value=kind==="sum"?"attempt":"record";if(unit)unit.value="s";}
+  });
+  if(root.document){
+    let pending=false;
+    const refresh=event=>{if(!event.target.closest?.("#entryContent")||!root.document.querySelector("[data-calculation-output]")||pending)return;pending=true;root.setTimeout(()=>{pending=false;const record=root.App?.getState();if(!record)return;const computed=root.RingsideModel.stats(record);for(const output of root.document.querySelectorAll("[data-calculation-output]")){const id=output.dataset.calculationOutput,d=record.definitions.find(d=>d.id===id),value=number(computed.values[id]);output.textContent=(value===null?"—":value.toFixed(2))+" "+(d?.unit||"");}for(const reason of root.document.querySelectorAll("[data-calculation-reason]"))reason.textContent=computed.calculationResults?.[reason.dataset.calculationReason]?.reason||"";},0);};
+    root.document.addEventListener("input",refresh);root.document.addEventListener("change",refresh);
+  }
+  root.RingsideCalculations={calculated,deficit,validateDefinitions,validateBindings,attemptValue,evaluate,context,editor,readEditor,bindingEditor};
+})(typeof window!=="undefined"?window:globalThis);
+
+</script>
+<script>
 (function (global) {
   "use strict";
   const analysisLabel = "能力结构分析";
@@ -6902,11 +7045,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       ...(id === "cpet_vo2_relative" ? { referenceEnabled: true, referenceMode: "grouped", referenceGroups: global.RingsideReferences?.cpetReferenceGroups?.() || [], source: "FRIEND 2022 · 实测摄氧量参考百分位", protocol: "CPET 实测摄氧量" } : {}),
     }));
   const isManualMetric = (definition) =>
-    !!definition && (definition.legacyManual === true || !computedIds.has(definition.id));
+    !!definition && !definition.calculation && (definition.legacyManual === true || !computedIds.has(definition.id));
   const supportsAttemptMetrics = (testId) =>
     ["jumps", "imtp", "speed", "scalar"].includes(registry.get(testId)?.renderer || "scalar");
   const isAttemptMetric = (definition) =>
-    isManualMetric(definition) &&
+    (isManualMetric(definition) || definition?.calculation?.kind === "sum") &&
     definition.entryScope === "attempt" &&
     (definition.legacyManual === true || supportsAttemptMetrics(definition.testId));
   function repeatPolicy(source, testId) {
@@ -6915,7 +7058,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const test = (source.tests || []).find((t) => t.id === testId)
       || (source.projectSnapshots || []).find((t) => t.id === testId)
       || (source.customTests || []).find((t) => t.id === testId);
-    const primary = fields.find((d) => d.id === test?.primaryMetricId) || fields[0];
+    const primary = fields.find((d) => d.id === test?.primaryMetricId) || fields.find(d=>!d.calculation) || fields[0];
     return {
       kind: ["fms", "lactate", "cpet", "fvp", "sprint-fvp"].includes(renderer) ? "none" : renderer === "iso" ? "direction-side" : renderer === "lvp" ? "load-side" : renderer === "ball" ? "side" : "attempt",
       primaryMetricId: primary?.id || null,
@@ -7393,18 +7536,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   const none = () => ({ version: 1, kind: "none", metricIds: [] });
   const scope = definition => definition.entryScope === "attempt" ? "attempt" : "record";
   const identity = value => plain(value) && safe(value.id) && Number.isSafeInteger(value.version) && value.version >= 1 && Object.keys(value).every(key => ["id", "version"].includes(key));
-  const sameIdentity = (left, right) => identity(left) && identity(right) && left.id === right.id && left.version === right.version;
   const projects = source => root.RingsideTests.describe(source);
   const generic = (source, id) => projects(source).find(project => project.id === id && project.renderer === "scalar");
   function signature(source, testId, metricIds) {
-    const M = root.RingsideModel;
     return {
       testId,
-      projectProtocol: clone(source.protocolIdentities?.[testId] || M.protocolIdentity("test:" + testId, source.protocol?.[testId] || "")),
       metrics: metricIds.map(id => {
         const d = source.definitions.find(definition => definition.id === id && definition.testId === testId);
         if (!d) throw Error("报告图表包含未知指标：" + id);
-        return { id, unit: d.unit || "", entryScope: scope(d), protocolIdentity: clone(d.protocolIdentity || M.protocolIdentity("metric:" + id, d.protocol || "")) };
+        return { id, unit: d.unit || "", entryScope: scope(d) };
       }),
     };
   }
@@ -7420,12 +7560,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           !view.metricIds.includes(view.xMetricId) || !view.metricIds.includes(view.yMetricId)) throw Error("散点图须选择两个不同的试次指标");
     } else if (view.xMetricId !== undefined || view.yMetricId !== undefined) throw Error("只有散点图可以配置 X、Y 指标");
     const b = view.binding;
-    if (!plain(b) || b.testId !== testId || !identity(b.projectProtocol) ||
+    if (!plain(b) || b.testId !== testId || b.projectProtocol !== undefined && !identity(b.projectProtocol) ||
         Object.keys(b).some(key => !["testId", "projectProtocol", "metrics"].includes(key)) ||
         !Array.isArray(b.metrics) || b.metrics.length !== view.metricIds.length) throw Error("报告图表测量匹配信息无效");
     b.metrics.forEach((d, index) => {
       if (!plain(d) || d.id !== view.metricIds[index] || typeof d.unit !== "string" || !["record", "attempt"].includes(d.entryScope) ||
-          !identity(d.protocolIdentity) || Object.keys(d).some(key => !["id", "unit", "entryScope", "protocolIdentity"].includes(key))) throw Error("报告图表指标匹配信息无效");
+          d.protocolIdentity !== undefined && !identity(d.protocolIdentity) || Object.keys(d).some(key => !["id", "unit", "entryScope", "protocolIdentity"].includes(key))) throw Error("报告图表指标匹配信息无效");
       if (source && !source.definitions.some(definition => definition.id === d.id && definition.testId === testId)) throw Error("报告图表包含未知指标：" + d.id);
       if (["trials", "scatter"].includes(view.kind) && d.entryScope !== "attempt") throw Error("试次图表只能选择试次指标");
     });
@@ -7454,9 +7594,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     try {
       validateView(view, testId, source);
       const actual = signature(source, testId, view.metricIds), b = view.binding;
-      return sameIdentity(b.projectProtocol, actual.projectProtocol) && b.metrics.every((d, i) => {
+      return b.metrics.every((d, i) => {
         const match = actual.metrics[i];
-        return d.id === match.id && d.unit === match.unit && d.entryScope === match.entryScope && sameIdentity(d.protocolIdentity, match.protocolIdentity);
+        return d.id === match.id && d.unit === match.unit && d.entryScope === match.entryScope;
       });
     } catch (_) { return false; }
   }
@@ -7481,10 +7621,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return record;
   }
   function buildChart(report, project) {
+    const deficits=report.record.definitions.filter(d=>d.testId===project.id&&d.calculation?.kind==="cod-deficit");
+    if(deficits.length){
+      const items=deficits.filter(d=>num(report.stats.values[d.id])!==null).map(d=>({id:d.id,label:d.name,value:report.stats.values[d.id],status:"gray"}));
+      return {kind:"bar",available:items.length>0,reason:deficits.map(d=>report.stats.calculationResults?.[d.id]?.reason).filter(Boolean).join("；"),panels:items.length?[{title:"变向差值",unit:"s",items}]:[]};
+    }
     const record = report.record, computed = report.stats, view = project.reportView || resolveView(record, project.id);
     const result = { kind: view.kind, available: false, reason: "", panels: [] };
     if (view.kind === "none") return result;
-    if (!compatible(view, record, project.id)) return { ...result, reason: "图表设置与本次测量协议或指标定义不匹配" };
+    if (!compatible(view, record, project.id)) return { ...result, reason: "图表设置与本次指标或单位不匹配" };
     const definitions = view.metricIds.map(id => record.definitions.find(d => d.id === id && d.testId === project.id));
     const evaluation = id => (computed.evaluationResults || []).find(item => item.subjectId === "metric:" + id);
     const label = d => root.RingsideTests.metricName(d);
@@ -8001,7 +8146,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   function convertDefinition(input, legacy = false) {
     const d = clone(input);
     if (!d.legacyManual) ["name","protocol"].forEach(key => { d[key] = Def.factoryText(d.id,key,d[key]); });
-    d.protocolIdentity ||= protocolIdentity("metric:" + d.id, d.protocol);
     if (!d.legacyManual && d.measurementScale === undefined && d.ratioEligible === undefined) {
       const factory = extraDefs().find(value=>value.id===d.id && value.testId===d.testId);
       if (factory?.measurementScale) d.measurementScale = factory.measurementScale;
@@ -8231,10 +8375,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         revision: 0,
       },
     };
-    stampProtocolIdentities(record);
     return record;
   }
 
+  // Legacy identities remain readable, but never participate in active matching.
+  // Description stripping is explicit: some domain fields named protocol are enums.
+  function measurementCompatibility(value, { protocolText = false } = {}) {
+    if (Array.isArray(value)) return value.map(item => measurementCompatibility(item, { protocolText }));
+    if (!value || typeof value !== "object") return value;
+    const ignored = new Set(["protocolIdentity", "metricProtocolIdentity", "pairedProtocolIdentity", "projectProtocolIdentity", "protocolIdentities", "protocolVersions", "projectProtocol"]);
+    if (protocolText) for (const key of ["protocol", "metricProtocol", "pairedProtocol"]) ignored.add(key);
+    return Object.fromEntries(Object.entries(value).filter(([key]) => !ignored.has(key)).map(([key, item]) => [key, measurementCompatibility(item, { protocolText })]));
+  }
   function protocolIdentity(scope, description) {
     const text = scope + "\n" + canonicalProtocolText(scope.replace(/^test:/,""),description);
     let first = 2166136261, second = 2246822519;
@@ -8494,6 +8646,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     };
   }
   function normalizeRecord(input) {
+    if(input?.definitions){
+      root.RingsideCalculations?.validateDefinitions(input);
+      root.RingsideCalculations?.validateBindings(input.calculationBindings,input);
+      root.RingsideCalculations?.validateBindings(input.testPlanSnapshot?.calculationBindings,input);
+    }
     if (!input || typeof input !== "object") return defaults();
     const s = clone(input),
       d = defaults(),
@@ -8662,7 +8819,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       )
       .forEach((x) => out.definitions.push(x));
     out.protocolIdentities = clone(s.protocolIdentities || {});
-    stampProtocolIdentities(out);
     if (s.measurementPolicyVersion !== 1) migrateMeasurementPolicy(out, s);
     out.projectSnapshots = T.snapshots(out);
     if (s.views?.genericReports !== undefined && root.RingsideGenericReport)
@@ -8872,15 +9028,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return row;
   }
   function imtpTimeContext(record) {
-    return { protocol: record.protocol?.imtp || "", protocolIdentity: record.protocolIdentities?.imtp || protocolIdentity("test:imtp",record.protocol?.imtp), force: { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } };
+    return { force: { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } };
   }
   function imtpTimeStandard(record, timeMs, kind) {
     const rule = (record.imtpTimeStandards || []).find(r => r.timeMs === timeMs && r.kind === kind);
     if (rule) {
       const current = imtpTimeContext(record), context = rule.context;
-      const identity = context?.protocolIdentity || protocolIdentity("test:imtp",context?.protocol);
-      const matched = rule.matched !== false && canonicalJSON(identity) === canonicalJSON(current.protocolIdentity) &&
-        context.force?.unit === current.force.unit && context.force?.definition === current.force.definition;
+      const matched = context.force?.unit === current.force.unit && context.force?.definition === current.force.definition;
       return { ...clone(rule), unit: kind === "force_pct_peak" ? "%PF" : "N/s", matched,
         referenceEnabled: matched && rule.referenceEnabled, target: matched ? rule.target : null,
         ranges: matched ? clone(rule.ranges) : [] };
@@ -9664,11 +9818,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       else if (numerator.unit !== denominator.unit) reason = "测量单位不同";
       else if (numerator.paired !== denominator.paired)
         reason = "配对方向的侧别口径不同";
-      else if (
-        (numerator.protocol || record.protocol.iso || "") !==
-        (denominator.protocol || record.protocol.iso || "")
-      )
-        reason = "测量协议不同";
       const result = {
         ...pair,
         left: null,
@@ -9793,7 +9942,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     });
     const extra = (testId) => T.repeatPolicy(record, testId).fields.map((d) => field(d.id, "metrics." + d.id, d.name, d.unit,
       { cvEligible: d.cvEligible === true, minimum: null, direction: d.direction }));
-    const rawValue = (row, f) => f.read ? f.read(row) : f.key.startsWith("metrics.") ? row.metrics?.[f.id] : row[f.key];
+    const rawValue = (row, f) => {
+      const definition=record.definitions.find(d=>d.id===f.id);
+      return definition?.calculation?.kind==="sum" ? root.RingsideCalculations?.attemptValue(record,definition,row) : f.read ? f.read(row) : f.key.startsWith("metrics.") ? row.metrics?.[f.id] : row[f.key];
+    };
     const validValue = (value, f) => {
       const v = N(value);
       return v === null || (f.minimum !== null && v < f.minimum) || (f.positive && v <= 0) || (f.integer && !Number.isInteger(v)) ? null : v;
@@ -10443,6 +10595,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const value = group?.representatives[d.id];
       if (N(value) !== null) { values[d.id] = value; validTests.add(d.testId); }
     });
+    const calculationResults=root.RingsideCalculations?.evaluate(state,values)||{};
     raw.eur =
       positive(values.cmj_height) !== null &&
       positive(values.sj_height) !== null
@@ -10863,6 +11016,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const cards = capabilityCards(state, values, raw, derived, {fvp,sprintElasticity});
     const result = {
       values,
+      ...(Object.keys(calculationResults).length ? { calculationResults } : {}),
       fvp,
       sprintFvp,
       sprintElasticity,
@@ -11136,7 +11290,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     // Real measurements, changed protocols/standards and explicit switches remain inputs.
     const data = clone(record.data), enabled = { ...record.enabled }, protocol = { ...record.protocol };
     if (T.isNative(record, "sprint_fvp")) for (const trial of data.sprint_fvp || []) for (const split of trial.splits || []) delete split.id;
-    for (const row of data.iso || []) { if (row.reference === null) delete row.reference; if (row.protocolIdentity?.version === 1) delete row.protocolIdentity; }
+    for (const row of data.iso || []) { if (row.reference === null) delete row.reference; delete row.protocolIdentity; }
     // Factory display-name cleanup alone keeps the original serialized narrative basis.
     for (const row of data.iso || []) if (["neck","trunk"].includes(row.region) && ["lateralFlexion","rotation"].includes(row.directionCode)) {
       const label = row.directionCode === "lateralFlexion" ? "侧屈" : "旋转";
@@ -11206,7 +11360,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     Object.keys(protocol).forEach(id => { if (T.isNative(record,id)) protocol[id] = Def.factoryText(id,"testProtocol",protocol[id],true); });
     const projection = definition => {
       const { referenceMatch, referenceGroups, targetEnabled, rangesEnabled, protocolIdentity, resultMeaning, directionStatus, ...result } = definition;
-      if (protocolIdentity?.version > 1) result.protocolIdentity = protocolIdentity;
       if (!T.isManualMetric(result) && result.measurementScale === "ratio") delete result.measurementScale;
       if (!result.legacyManual) ["name","protocol"].forEach(key => { if (Object.hasOwn(result,key)) result[key] = Def.factoryText(result.id,key,result[key],true); });
       return result;
@@ -11262,7 +11415,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     delete athlete.sportId; delete athlete.subdivisionId;
     if (empty(athlete.injuryHistory)) delete athlete.injuryHistory;
     for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (empty(trainingContext[key])) delete trainingContext[key];
-    return JSON.stringify({
+    return JSON.stringify(measurementCompatibility({
       athlete,
       trainingContext,
       enabled,
@@ -11275,7 +11428,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       definitions,
       custom: record.customValues,
       projects: fingerprintProjects,
-      ...(Object.values(record.protocolIdentities || {}).some(identity=>identity.version>1) ? { protocolVersions: record.protocolIdentities } : {}),
       rules: record.rules,
       lvp: record.lvp,
       thresholds: record.thresholds,
@@ -11291,7 +11443,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       balancePairs: fingerprintPairs,
       axes: fingerprintAxes,
       protocol,
-    });
+      ...(record.calculationBindings?{calculationBindings:record.calculationBindings}:{}),
+      ...(record.testPlanSnapshot?.calculationBindings?{calculationBindingsSnapshot:record.testPlanSnapshot.calculationBindings}:{}),
+    }));
   }
   function fingerprintWithoutAge(record) {
     const value = JSON.parse(fingerprint(record));
@@ -11312,7 +11466,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       delete value.athlete.birthDate;
       if (["", null, undefined].includes(value.athlete.injuryHistory)) delete value.athlete.injuryHistory;
       for (const key of ["previousCompetitionDate", "nextCompetitionDate"]) if (["", null, undefined].includes(value.trainingContext?.[key])) delete value.trainingContext?.[key];
-      return canonicalJSON(value) === fingerprintWithoutAge(comparison);
+      return canonicalJSON(measurementCompatibility(value)) === fingerprintWithoutAge(comparison);
     } catch (_) { return false; }
   }
   function recordEnvelope(record, profile, catalog, classifications) {
@@ -11367,7 +11521,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       abilityGroups: T.abilityGroups(record),
       abilityGroupConflicts: [],
       protocol: record.protocol,
-      protocolIdentities: clone(record.protocolIdentities),
+      protocolIdentities: clone(record.protocolIdentities || {}),
       conflicts: [],
       derivedEnabled: T.derivedDefaults(),
     };
@@ -11426,6 +11580,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     catalog.conflicts = Array.isArray(catalog.conflicts)
       ? catalog.conflicts
       : [];
+    catalog.protocolIdentities ||= {};
     catalog.conflicts.forEach((conflict) => {
       conflict.variants = (conflict.variants || []).map((variant) => ({
         ...variant,
@@ -11434,7 +11589,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       }));
     });
     catalog.definitions = catalog.definitions.map(catalogMetric);
-    stampProtocolIdentities(catalog);
+    for (const conflict of catalog.conflicts) {
+      if (!conflict.resolved && conflict.variants.length && conflict.variants.every(variant => sameVariant(conflict.variants[0], variant))) conflict.resolved = true;
+    }
     catalog.measurementPolicyVersion = 1;
     if (catalog.reportViews !== undefined && root.RingsideGenericReport)
       catalog.reportViews = root.RingsideGenericReport.normalizeViews(catalog.reportViews, catalog);
@@ -11461,25 +11618,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         catalog.definitions.filter((d) => d.testId === testId),
       ).sort((a, b) => a.id.localeCompare(b.id)),
       protocol: catalog.protocol[testId] || "",
-      protocolIdentity: clone(catalog.protocolIdentities?.[testId] || protocolIdentity("test:"+testId,catalog.protocol[testId])),
+      ...(catalog.protocolIdentities?.[testId] ? { protocolIdentity: clone(catalog.protocolIdentities[testId]) } : {}),
       source,
     };
   }
   function sameVariant(a, b) {
-    return (
-      canonicalJSON({
-        test: a.test,
-        definitions: a.definitions,
-        protocol: canonicalProtocolText(a.test.id,a.protocol),
-        protocolIdentity: a.protocolIdentity,
-      }) ===
-      canonicalJSON({
-        test: b.test,
-        definitions: b.definitions,
-        protocol: canonicalProtocolText(b.test.id,b.protocol),
-        protocolIdentity: b.protocolIdentity,
-      })
-    );
+    const comparable = value => measurementCompatibility({ test: value.test, definitions: value.definitions }, { protocolText: true });
+    return canonicalJSON(comparable(a)) === canonicalJSON(comparable(b));
   }
   function mergeCatalog(input, record, source = record.recordId) {
     const catalog = normalizeCatalog(input),
@@ -11510,14 +11655,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           normalized.definitions.filter((d) => d.testId === test.id).map(catalogMetric),
         ).sort((a, b) => a.id.localeCompare(b.id)),
         protocol: normalized.protocol[test.id] || "",
-        protocolIdentity: clone(normalized.protocolIdentities[test.id] || protocolIdentity("test:"+test.id,normalized.protocol[test.id])),
+        ...(normalized.protocolIdentities?.[test.id] ? { protocolIdentity: clone(normalized.protocolIdentities[test.id]) } : {}),
         source,
       };
       if (!catalog.tests.some((t) => t.id === test.id)) {
         catalog.tests.push(clone(candidate.test));
         catalog.definitions.push(...clone(candidate.definitions));
         catalog.protocol[test.id] = candidate.protocol;
-        catalog.protocolIdentities[test.id] = clone(normalized.protocolIdentities[test.id] || protocolIdentity("test:"+test.id,candidate.protocol));
+        if (normalized.protocolIdentities?.[test.id]) catalog.protocolIdentities[test.id] = clone(normalized.protocolIdentities[test.id]);
       } else if (!sameVariant(catalogVariant(catalog, test.id, ""), candidate))
         addConflict(test, candidate);
     });
@@ -11531,7 +11676,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           (d) => d.id === definition.id,
         );
         if (!existing) catalog.definitions.push(clone(definition));
-        else if (canonicalJSON(existing) !== canonicalJSON(definition)) {
+        else if (canonicalJSON(measurementCompatibility(existing, { protocolText: true })) !== canonicalJSON(measurementCompatibility(definition, { protocolText: true }))) {
           const candidate = catalogVariant(catalog, definition.testId, source);
           candidate.definitions = candidate.definitions.map((d) =>
             d.id === definition.id ? clone(definition) : d,
@@ -11546,7 +11691,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         catalog.abilityGroupConflicts.push({ key: group.key, localName: existing.name, incomingName: group.name });
     }
     catalog.abilityGroups = T.abilityGroups(catalog);
-    stampProtocolIdentities(catalog);
     return catalog;
   }
   function recordFromCatalog(input, profile, enabled = {}, testDate = date()) {
@@ -11571,7 +11715,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     record.trainingContext.experienceYears = profileFromRecord(profile).experienceYears;
     applyAge(record);
     record.projectSnapshots = T.snapshots(catalog);
-    record.protocolIdentities = clone(catalog.protocolIdentities);
+    record.protocolIdentities = {};
     record.abilityGroupSnapshot = clone(T.abilityGroups(catalog));
     // This legacy value selects an existing metric ID, not a test method.
     // Normalize still uses the historical shuttle fallback for old records.
@@ -11591,6 +11735,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     selected.forEach((id) => {
       record.protocol[id] = catalog.protocol[id] || "";
     });
+    record.definitions.forEach(definition => { delete definition.protocolIdentity; });
     record.catalogAppliedTests = [...selected];
     const normalized = normalizeRecord(record);
     root.RingsideGenericReport?.freezeViews(normalized, catalog);
@@ -12044,6 +12189,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     input.data.iso.forEach((row) => { if (row.trials !== undefined) validateRows(row.trials); });
     (input.customTests || []).forEach((test) => { if (input.data[test.id] !== undefined) validateRows(input.data[test.id]); });
     validatePrimaryMetrics(input);
+    root.RingsideCalculations?.validateDefinitions(input);
   }
   function validateDerivedOptions(source) {
     if (source.derivedEnabled !== undefined && (!plainObject(source.derivedEnabled) || Object.entries(source.derivedEnabled).some(([id,v]) => !safeId(id) || typeof v !== "boolean"))) throw new Error("训练方向指标开关无效");
@@ -12113,6 +12259,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       });
     validateDefinitions(catalog.definitions, testIds);
     validatePrimaryMetrics(catalog);
+    root.RingsideCalculations?.validateDefinitions(catalog);
     catalog.definitions.forEach((definition) => {
       if (definitionIds.has(definition.id)) throw new Error("目录指标 ID 重复");
       definitionIds.add(definition.id);
@@ -12172,7 +12319,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (!plainObject(rule) || typeof rule.timeMs !== "number" || !Number.isFinite(rule.timeMs) || rule.timeMs <= 0 ||
           !["force_pct_peak", "rfd"].includes(rule.kind) || !["higher", "lower"].includes(rule.direction) ||
           typeof rule.referenceEnabled !== "boolean" || typeof rule.source !== "string" || !Array.isArray(rule.ranges) ||
-          !plainObject(rule.context) || typeof rule.context.protocol !== "string" || !plainObject(rule.context.force) ||
+          !plainObject(rule.context) || rule.context.protocol !== undefined && typeof rule.context.protocol !== "string" || !plainObject(rule.context.force) ||
           rule.context.force.unit !== "N" || !["gross", "net"].includes(rule.context.force.definition) ||
           (rule.matched !== undefined && typeof rule.matched !== "boolean")) throw new Error("IMTP 时点标准字段无效");
       const key = rule.timeMs + ":" + rule.kind;
@@ -12270,8 +12417,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     if (input.mode !== undefined && !["best", "mean"].includes(input.mode))
       throw new Error("汇总模式无效");
     validateIMTPTimeStandards(input.imtpTimeStandards);
+    root.RingsideCalculations?.validateBindings(input.calculationBindings,input);
     if (input.testPlanSnapshot !== undefined) {
       const plan = input.testPlanSnapshot;
+      root.RingsideCalculations?.validateBindings(plan.calculationBindings,input);
       if (!plainObject(plan) || !safeId(plan.id) || typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 ||
           !Array.isArray(plan.testIds) || plan.testIds.length > 75 || plan.testIds.some(id => !safeId(id)) ||
           new Set(plan.testIds).size !== plan.testIds.length) throw new Error("测试方案快照结构无效");
@@ -12870,6 +13019,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     cpetDefaults,
     cpetSummary,
     normalizeRecord,
+    measurementCompatibility,
     protocolIdentity,
     canonicalProtocolText,
     stampProtocolIdentities,
@@ -12967,7 +13117,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   const get=(object,path)=>path.split(".").reduce((value,key)=>value?.[key],object);
   const field=(key,label,type="number",choices)=>({key,label,type,...(choices?{choices}:{})});
   const canonical=value=>JSON.stringify(value,(_,item)=>item&&typeof item==="object"&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
-  function attemptMetrics(record,id){return root.RingsideTests.repeatPolicy(record,id).fields.map(d=>({...field("metrics."+d.id,d.name+(d.unit?" "+d.unit:"")),id:d.id,unit:d.unit,scope:"attempt",role:"measurement"}));}
+  function attemptMetrics(record,id){return root.RingsideTests.repeatPolicy(record,id).fields.filter(d=>!d.calculation).map(d=>({...field("metrics."+d.id,d.name+(d.unit?" "+d.unit:"")),id:d.id,unit:d.unit,scope:"attempt",role:"measurement"}));}
   function hopSets(record){return root.RingsideModel.repeatRows(record,"hop");}
   const historicalHopSets=record=>hopSets(record).filter(set=>set.inputMode==="jumps");
   const hopEditableSets=record=>hopSets(record).filter(set=>set.inputMode!=="jumps");
@@ -13055,33 +13205,19 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     const forceMetric = /(?:force|impulse|^imtp_(?:f|rfd)\d)/.test(d.id);
     const config = !forceMetric ? null : d.testId === "cmj" ? { definition: record.cmjConfig?.definition || "gross" } : d.testId === "imtp" ? { unit: record.imtpConfig?.unit || "N", definition: record.imtpConfig?.definition || "gross" } : null;
     if (config && /impulse/.test(d.id)) config.impulseDefinition = (d.testId === "cmj" ? record.cmjConfig : record.imtpConfig)?.impulseDefinition || "gross";
-    return { unit: d.unit || "", protocol: record.protocol?.[d.testId] || "", protocolIdentity: record.protocolIdentities?.[d.testId] || M.protocolIdentity("test:" + d.testId, record.protocol?.[d.testId]), metricProtocol: d.protocol || "", metricProtocolIdentity: d.protocolIdentity || M.protocolIdentity("metric:" + d.id,d.protocol), ...(config ? { force: clone(config) } : {}), ...(d.id === "rqr" ? { pairedProtocol: record.protocol?.hop || "", pairedProtocolIdentity: record.protocolIdentities?.hop || M.protocolIdentity("test:hop",record.protocol?.hop) } : {}) };
+    return { unit: d.unit || "", ...(config ? { force: clone(config) } : {}) };
   }
   function isoContext(row, record) {
-    return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit, protocol: row.protocol || record.protocol?.iso || "", protocolIdentity: row.protocolIdentity || M.protocolIdentity("iso:" + row.id,row.protocol || record.protocol?.iso), projectProtocolIdentity: record.protocolIdentities?.iso || M.protocolIdentity("test:iso",record.protocol?.iso) };
+    return { region: row.region, directionCode: row.directionCode || "custom_" + row.id, paired: row.paired, unit: row.unit };
   }
   function contextSignature(context) {
-    if (Array.isArray(context)) return canonical(context.map(value => JSON.parse(contextSignature(value))));
-    if (!context) return canonical(context);
-    const out = clone(context);
-    if (out.protocolIdentity) delete out.protocol;
-    if (out.metricProtocolIdentity) delete out.metricProtocol;
-    if (out.pairedProtocolIdentity) delete out.pairedProtocol;
-    return canonical(out);
+    return canonical(M.measurementCompatibility(context));
   }
   const factoryText = (id, field, value) => root.Def.factoryText ? root.Def.factoryText(id, field, value) : value;
   function compatibleContext(d, context) {
     if (!context) return context;
-    const out = { ...context, metricProtocol: root.Def.viftProtocol(d.id, context.metricProtocol) };
+    const out = M.measurementCompatibility(context, { protocolText: true });
     if (!/(?:force|impulse|^imtp_(?:f|rfd)\d)/.test(d.id)) delete out.force;
-    if (!d.legacyManual) {
-      out.protocol = factoryText(d.testId, "testProtocol", out.protocol);
-      out.metricProtocol = factoryText(d.id, "protocol", out.metricProtocol);
-      if (d.id === "rqr" && out.pairedProtocol !== undefined) out.pairedProtocol = factoryText("hop", "testProtocol", out.pairedProtocol);
-    }
-    out.protocolIdentity ||= M.protocolIdentity("test:" + d.testId,out.protocol);
-    out.metricProtocolIdentity ||= M.protocolIdentity("metric:" + d.id,out.metricProtocol);
-    if (d.id === "rqr") out.pairedProtocolIdentity ||= M.protocolIdentity("test:hop",out.pairedProtocol);
     return out;
   }
   function normalizeFactoryText(definition) {
@@ -13093,21 +13229,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return before !== textFields();
   }
   const imtpTimeContext = record => clone(M.imtpTimeContext(record));
-  const imtpTimeMatches = (record, rule) => contextSignature({ ...rule.context, protocolIdentity: rule.context.protocolIdentity || M.protocolIdentity("test:imtp",rule.context.protocol) }) === contextSignature(imtpTimeContext(record));
+  const imtpTimeMatches = (record, rule) => contextSignature(M.measurementCompatibility(rule.context, { protocolText: true })) === contextSignature(imtpTimeContext(record));
   const timeStandards = record => (record.imtpTimeStandards || []).map(({ matched, ...rule }) => clone(rule)).sort((a,b) => a.timeMs-b.timeMs || a.kind.localeCompare(b.kind));
   function capture(record) {
     return {
-      definitions: record.definitions.map(d => { const definition = { ...clone(d), context: measurementContext(record, d) }; normalizeFactoryText(definition); return definition; }).sort((a,b) => a.id.localeCompare(b.id)),
+      definitions: record.definitions.map(d => { const definition = { ...M.measurementCompatibility(d), context: measurementContext(record, d) }; normalizeFactoryText(definition); return definition; }).sort((a,b) => a.id.localeCompare(b.id)),
       rules: clone(record.rules), axes: clone(record.axes),
       iso: record.data.iso.map(row => ({ id: row.id, direction: row.direction, ...isoContext(row, record), target: row.target ?? "", ...(row.reference !== undefined ? {reference:clone(row.reference)} : {}) })).sort((a,b) => a.id.localeCompare(b.id)),
       balance: record.balancePairs.map(pair => ({ ...clone(pair), contexts: [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; }) })).sort((a,b) => a.id.localeCompare(b.id)),
-      lvp: Object.fromEntries(Object.entries(record.lvp).map(([id, p]) => {const testId=id.startsWith("landmine") ? "landmine" : id;return [id, { ...clone(p), protocol: record.protocol?.[testId] || "", protocolIdentity: record.protocolIdentities?.[testId] || M.protocolIdentity("test:"+testId,record.protocol?.[testId]) }];})),
+      lvp: M.measurementCompatibility(record.lvp, { protocolText: true }),
       imtpTimeStandards: timeStandards(record),
     };
   }
   function signature(criteria) {
     // Names and descriptive grouping are retained for editing but cannot merge incompatible measurement conditions.
-    return canonical({ ...criteria, imtpTimeStandards: criteria.imtpTimeStandards || [] });
+    return canonical(M.measurementCompatibility({ ...criteria, imtpTimeStandards: criteria.imtpTimeStandards || [] }, { protocolText: true }));
   }
   function create(record, name = "评价方案") {
     const profile = { id: "evaluation_" + uid(), name, revision: 1, updated: now(), disabled: false, criteria: capture(record) };
@@ -13157,7 +13293,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     out.rules = clone(c.rules); out.axes = clone(c.axes);
     for (const row of out.data.iso) {
       const rule = c.iso.find(v => v.id === row.id);
-      const matches = rule && contextSignature(isoContext(row, record)) === contextSignature({region:rule.region,directionCode:rule.directionCode,paired:rule.paired,unit:rule.unit,protocol:rule.protocol,protocolIdentity:rule.protocolIdentity || M.protocolIdentity("iso:"+row.id,rule.protocol),projectProtocolIdentity:rule.projectProtocolIdentity || record.protocolIdentities?.iso});
+      const matches = rule && contextSignature(isoContext(row, record)) === contextSignature(isoContext(rule, record));
       row.target = matches ? rule.target : "";
       if (matches && rule.reference !== undefined) row.reference = clone(rule.reference);
       else delete row.reference;
@@ -13166,7 +13302,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     for (const pair of out.balancePairs) {
       const rule = c.balance.find(p => p.id === pair.id);
       const contexts = [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(r => r.id === id); return row ? isoContext(row, record) : null; });
-      if (rule && contextSignature(contexts) === contextSignature(rule.contexts)) {
+      if (rule && contextSignature(contexts) === contextSignature(M.measurementCompatibility(rule.contexts, { protocolText: true }))) {
         for (const key of ["ranges", "referenceEnabled", "source", "reference", "ratioMigrationIssue", "ratioMigrationOriginal"]) {
           if (rule[key] !== undefined) pair[key] = clone(rule[key]);
           else if (["reference", "ratioMigrationIssue", "ratioMigrationOriginal"].includes(key)) delete pair[key];
@@ -13175,8 +13311,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     }
     for (const [id, p] of Object.entries(out.lvp)) {
       const rule = c.lvp[id];
-      const testId = id.startsWith("landmine") ? "landmine" : id;
-      if (rule && rule.metric === p.metric && canonical(rule.protocolIdentity || M.protocolIdentity("test:"+testId,rule.protocol)) === canonical(record.protocolIdentities?.[testId] || M.protocolIdentity("test:"+testId,record.protocol?.[testId]))) {
+      if (rule && rule.metric === p.metric) {
         p.mvt = rule.mvt; p.zones = clone(rule.zones); if (rule.source !== undefined) p.source = rule.source; else delete p.source;
       } else { p.mvt = ""; p.zones = []; }
     }
@@ -13191,11 +13326,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     r.balancePairs = clone(c.balance); r.lvp = clone(c.lvp);
     r.imtpTimeStandards = clone(c.imtpTimeStandards || []);
     for (const d of r.definitions) {
-      r.protocol[d.testId] = d.context.protocol;
+      if (typeof d.context.protocol === "string") r.protocol[d.testId] = d.context.protocol;
       if (d.id === "rqr" && d.context.pairedProtocol !== undefined) r.protocol.hop = d.context.pairedProtocol;
       if (d.context.force) r[d.testId === "cmj" ? "cmjConfig" : "imtpConfig"] = clone(d.context.force);
     }
-    for (const [id,p] of Object.entries(c.lvp)) r.protocol[id.startsWith("landmine") ? "landmine" : id] = p.protocol;
+    for (const [id,p] of Object.entries(c.lvp)) if (typeof p.protocol === "string") r.protocol[id.startsWith("landmine") ? "landmine" : id] = p.protocol;
     return r;
   }
   function fromTemplate(draft, original) {
@@ -13346,7 +13481,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     remember({ definitions: c.definitions });
     let standards = (c.definitions || []).map(d => ruleFromDefinition({ ...d, context: d.context || E.measurementContext(record, d) }));
     for (const rule of c.imtpTimeStandards || []) standards.push({ id: "imtp-time:" + rule.kind + ":" + rule.timeMs,
-      kind: "imtp-time", testId: "imtp", timeMs: rule.timeMs, measureKind: rule.kind, context: { ...clone(rule.context), protocolIdentity: rule.context.protocolIdentity || M.protocolIdentity("test:imtp",rule.context.protocol) },
+      kind: "imtp-time", testId: "imtp", timeMs: rule.timeMs, measureKind: rule.kind, context: M.measurementCompatibility(rule.context, { protocolText: true }),
       enabled: !!rule.referenceEnabled, targetEnabled: number(rule.target) !== null, rangesEnabled: !!rule.ranges?.length,
       target: number(rule.target), direction: rule.direction || "higher", ranges: clone(rule.ranges || []), source: rule.source || "",
       legacyRangesSignature: E.canonical(rule.ranges || []) });
@@ -13354,15 +13489,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     for (const rule of standards.filter(rule=>rule.kind === "metric" && /^imtp_rfd\d+(?:\.\d+)?$/.test(rule.metricId) && !c.definitions.find(d=>d.id===rule.metricId)?.legacyManual)) {
       const timeMs = Number(rule.metricId.slice(8)), id = "imtp-time:rfd:" + timeMs;
       aliases.set(rule.id,id);
-      if (!standards.some(item=>item.id===id) && (rule.enabled || rule.target != null || rule.ranges.length)) standards.push({ ...rule, id, kind:"imtp-time", timeMs, measureKind:"rfd", context:{protocol:rule.context.protocol,protocolIdentity:rule.context.protocolIdentity,force:rule.context.force || E.imtpTimeContext(record).force} });
+      if (!standards.some(item=>item.id===id) && (rule.enabled || rule.target != null || rule.ranges.length)) standards.push({ ...rule, id, kind:"imtp-time", timeMs, measureKind:"rfd", context:{force:rule.context.force || E.imtpTimeContext(record).force} });
       standards = standards.filter(item=>item!==rule);
     }
     for (const row of c.iso || []) standards.push({ id: "iso:" + row.id, kind: "iso", testId: "iso", directionId: row.id,
-      context: { region: row.region, directionCode: row.directionCode, paired: row.paired, unit: row.unit, protocol: row.protocol || "", protocolIdentity: row.protocolIdentity || M.protocolIdentity("iso:"+row.id,row.protocol), projectProtocolIdentity: row.projectProtocolIdentity || record.protocolIdentities?.iso || M.protocolIdentity("test:iso",record.protocol?.iso) },
+      context: E.isoContext(row, record),
       enabled: true, targetEnabled: number(row.target) !== null, rangesEnabled: false, target: number(row.target), direction: "higher", ranges: [], source: "",
       ...(row.reference !== undefined ? { reference: clone(row.reference) } : {}) });
     for (const pair of c.balance || []) standards.push({ id: "balance:" + pair.id, kind: "balance", testId: "iso", pairId: pair.id,
-      context: { numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, contexts: (pair.contexts || []).map((context,index)=>context ? {...clone(context),protocolIdentity:context.protocolIdentity || M.protocolIdentity("iso:"+[pair.numeratorId,pair.denominatorId][index],context.protocol),projectProtocolIdentity:context.projectProtocolIdentity || record.protocolIdentities?.iso || M.protocolIdentity("test:iso",record.protocol?.iso)} : null) },
+      context: { numeratorId: pair.numeratorId, denominatorId: pair.denominatorId, contexts: (pair.contexts || []).map(context => M.measurementCompatibility(context, { protocolText: true })) },
       enabled: true, targetEnabled: false, rangesEnabled: !!pair.referenceEnabled, target: null, direction: "higher", ranges: clone(pair.ranges || []), source: pair.source || "",
       ...(pair.reference !== undefined ? { reference: clone(pair.reference) } : {}), legacyRangesSignature: E.canonical(pair.ranges || []),
       ...(pair.ratioMigrationIssue ? { migrationIssue: pair.ratioMigrationIssue, legacy: clone(pair.ratioMigrationOriginal) } : {}) });
@@ -13412,7 +13547,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     });
     return c;
   }
-  function coreSignature(p) { return E.canonical({ standards: p.standards, aggregations: p.aggregations, settings: p.settings }); }
+  function coreSignature(p) { return E.canonical(M.measurementCompatibility({ standards: p.standards, aggregations: p.aggregations, settings: p.settings }, { protocolText: true })); }
   function sync(profile) {
     const state = metadata.get(profile);
     if (state?.criteria && E.canonical(state.criteria) !== state.baseline) {
@@ -13482,6 +13617,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     return subjects;
   }
   function measurementScale(d) {
+    if(d.calculation?.kind==="cod-deficit")return "interval";
     if (d.ratioEligible === true) return "ratio";
     if (d.ratioEligible === false) return d.measurementScale === "ordinal" ? "ordinal" : "unknown";
     if (/(?:slope|drf|imbalance)/i.test(d.id)) return "unknown";
@@ -13624,13 +13760,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       }
       if (rule.kind === "iso") {
         const row = out.data.iso.find(row => row.id === rule.directionId);
-        matched = !!row && E.contextSignature(rule.context) === E.contextSignature(E.isoContext(row, record));
+        matched = !!row && E.contextSignature(M.measurementCompatibility(rule.context, { protocolText: true })) === E.contextSignature(E.isoContext(row, record));
         if (row) { if (!targetMatch.eligible) row.target = ""; if (!common.eligible) delete row.reference; }
       }
       if (rule.kind === "balance") {
         const pair = out.balancePairs.find(pair => pair.id === rule.pairId);
         const contexts = pair && [pair.numeratorId, pair.denominatorId].map(id => { const row = record.data.iso.find(row => row.id === id); return row ? E.isoContext(row, record) : null; });
-        matched = !!pair && pair.numeratorId === rule.context.numeratorId && pair.denominatorId === rule.context.denominatorId && E.contextSignature(contexts) === E.contextSignature(rule.context.contexts);
+        matched = !!pair && pair.numeratorId === rule.context.numeratorId && pair.denominatorId === rule.context.denominatorId && E.contextSignature(contexts) === E.contextSignature(M.measurementCompatibility(rule.context.contexts, { protocolText: true }));
         if (pair && !common.eligible) delete pair.reference;
         if (pair && !rangeMatch.eligible) { pair.referenceEnabled = false; pair.ranges = []; }
       }
@@ -14138,7 +14274,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       result.definitions=result.definitions.map(d=>({...d,name:root.RingsideTests.metricName(d),protocol:root.Def.viftProtocol(d.id,d.protocol)}));
       if(id==="ift"&&result.test.name==="30–15 IFT")result.test.name="30-15VIFT";
       if(["fms","iso"].includes(id)&&!result.test.primaryAbility)result.test.primaryAbility=id==="fms"?"动作筛查":"等长力量";
-      return result;
+      return M.measurementCompatibility(result, { protocolText: true });
     };
     const same=(a,b)=>E.canonical(comparable(a))===E.canonical(comparable(b));
     for(const t of incoming.tests){
@@ -14171,6 +14307,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       if (!plan || typeof plan.id !== "string" || !plan.id || plan.id.length > 249 || ["__proto__","constructor","prototype"].includes(plan.id) || ids.has(plan.id)) throw Error("测试方案编号无效或重复");
       ids.add(plan.id);
       if (typeof plan.name !== "string" || !plan.name.trim() || plan.name.length > 120 || !Array.isArray(plan.testIds) || !plan.testIds.length || plan.testIds.length > 1000 || new Set(plan.testIds).size !== plan.testIds.length || plan.testIds.some(id=>!tests.has(id))) throw Error("测试方案名称或项目无效");
+      root.RingsideCalculations?.validateBindings(plan.calculationBindings,catalog,plan.testIds);
       if (typeof plan.defaultEvaluationProfileId !== "string" || !plan.defaultEvaluationProfileId) throw Error("测试方案缺少推荐评价方案");
       if (plan.disabled !== undefined && typeof plan.disabled !== "boolean") throw Error("测试方案状态无效");
       M.validateIsoDirectionIds(plan.isoDirectionIds, M.isoRows(), !plan.testIds.includes("iso"));
@@ -14638,7 +14775,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             config=v;
           }
           if(row.type==="profile"){
-            const old=profiles.get(v.id);if(old&&E.canonical(E.serializeProfile(old))!==E.canonical(E.serializeProfile(v))){const next="evaluation_"+uid();profileMap.set(v.id,next);v.id=next;v.name+="（导入）";}
+            const old=profiles.get(v.id);if(old&&E.canonical(M.measurementCompatibility(E.serializeProfile(old),{protocolText:true}))!==E.canonical(M.measurementCompatibility(E.serializeProfile(v),{protocolText:true}))){const next="evaluation_"+uid();profileMap.set(v.id,next);v.id=next;v.name+="（导入）";}
             else if(old)continue;
             profiles.set(v.id,v);
           }
@@ -17866,7 +18003,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       ...test,
       ...(test.renderer === "scalar" ? { reportView: global.RingsideGenericReport?.resolveView(snapshot, test.id, catalog) || { version: 1, kind: "none", metricIds: [] } } : {}),
       metrics: test.definitions
-        .filter((d) => N(stats.values[d.id]) !== null)
+        .filter((d) => N(stats.values[d.id]) !== null || d.calculation?.kind==="cod-deficit")
         .map((d) => ({
           ...d,
           unit:
@@ -18396,7 +18533,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         return block(tests, tests[0].name, meta, metricTable(metrics, true));
       },
       scalar: (tests) => {
-        const test = tests[0], data = metricTable(test.metrics, true) +
+        const test=tests[0],deficits=state.definitions.filter(d=>d.testId===test.id&&d.calculation?.kind==="cod-deficit");
+        if(deficits.length){const displayed=new Set(deficits.flatMap(d=>[d.id,d.calculation.timeMetricId]));consume(test.metrics.filter(d=>displayed.has(d.id)));}
+        const additional=deficits.length?test.metrics.filter(d=>!deficits.some(c=>d.id===c.id||d.id===c.calculation.timeMetricId)):[];
+        const data=(deficits.length?table(["指标","结果","单位"],deficits.flatMap(d=>{
+          const value=report.stats.calculationResults[d.id],time=state.definitions.find(input=>input.id===d.calculation.timeMetricId);
+          return [[E(time?.name||"变向总时间"),F(value?.time,2),"s"],[E(d.calculation.referenceDistanceM+" m 直线参照"),F(value?.reference,2),"s"],[E(d.name)+(value?.reason?'<small class="metric-meta">'+E(value.reason)+'</small>':""),F(value?.value,2),"s"]];
+        }),deficits.flatMap(d=>[d.id+"_time",d.id+"_reference",d.id]),"cod-results"):metricTable(test.metrics,true)) + (additional.length?metricTable(additional,true):"") +
             test.metrics
               .filter((d) => state.customValues[d.id]?.notes)
               .map(
@@ -18560,7 +18703,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     };
     const consumed = new Set(),
       grouped = new Map(),
-      measured = projects.filter((t) => s.validTests.has(t.id) || repeatPanel(t));
+      measured = projects.filter((t) => s.validTests.has(t.id) || t.metrics.some(d=>d.calculation?.kind==="cod-deficit") || repeatPanel(t));
     for (const test of measured.filter((t) => !["lvp","fvp","sprint-fvp"].includes(t.renderer))) {
       if (consumed.has(test.id)) continue;
       const peers =
@@ -21163,7 +21306,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   };
   const stiffness = () => [field("activeStiffness", "设备 Active Stiffness"), text("activeStiffnessInputUnit", "刚度单位", ["kN/m", "N/m"])];
   function attemptFields(record, id) {
-    const extra = T.repeatPolicy(record, id).fields.map(d => field("metrics." + d.id, d.name + " " + d.unit));
+    const extra = T.repeatPolicy(record, id).fields.filter(d=>!d.calculation).map(d => field("metrics." + d.id, d.name + " " + d.unit));
     let fields;
     if (!T.isNative(record, id)) fields = extra;
     else if (["cmj", "sj", "dj", "cmrj"].includes(id)) fields = T.attemptFields(record, id).filter(f => !f.computed && f.key !== "activeStiffness").map(f => field(f.key || "metrics." + f.id, f.label + " " + f.unit)).concat(["dj", "cmrj"].includes(id) ? stiffness() : []);
@@ -21861,6 +22004,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
       ws.views=[{state:"frozen",xSplit:1,ySplit:sheet.blocks[0]?.start||1}];out.sheets.push(sheet);
     }
+    if(sources.some(record=>record.definitions.some(d=>d.calculation&&record.enabled[d.testId]))){
+      const summary=book.addWorksheet("计算结果");summary.columns=[{width:30},{width:26},{width:30},{width:16},{width:10},{width:40}];
+      summary.addRow(["计算结果（只读快照）","原始分段在项目页录入；导入后重新计算，结果页不参与导入。"]);
+      summary.addRow(["运动员 / 测试","项目","指标","结果","单位","说明"]);
+      for(const record of sources){const stats=M.stats(record);for(const d of record.definitions.filter(d=>d.calculation&&record.enabled[d.testId]))summary.addRow([refs.find(ref=>ref.recordId===record.recordId).label,root.RingsideTests.describe(record).find(t=>t.id===d.testId)?.name||d.testId,d.name,prefill?stats.values[d.id]??null:null,d.unit,prefill?stats.calculationResults?.[d.id]?.reason||"":""]);}
+      summary.eachRow(row=>{row.alignment={wrapText:true,vertical:"middle"};row.eachCell(cell=>{cell.protection={locked:true};});});
+      await summary.protect("",{selectLockedCells:true,selectUnlockedCells:true});
+    }
     writeManifest(book,out);return {bytes:await book.xlsx.writeBuffer(),templateId:out.templateId,fileName:"MotionBench_测试录入_"+sources[0].athlete.date+"_"+sources.length+"人.xlsx"};
   }
   function error(errors,ws,row,column,message){errors.push({sheet:ws?.name||"",row:row||0,column:column||0,address:ws&&row&&column?ws.getCell(row,column).address:"",message});}
@@ -22241,7 +22392,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function testPlans() {
     if(planDraft){
-      return `<div class="test-plan-editor"><div class="form-grid">${field("方案名称",`<input id="testPlanName" maxlength="100" value="${esc(planDraft.name)}">`)}${field("推荐评价方案",`<select id="testPlanProfile">${profileOptions(planDraft.defaultEvaluationProfileId)}</select>`)}</div><h2>选择测试项目</h2><div id="testPlanPicker">${root.RingsidePicker.render(planPickerOptions())}</div><p id="testPlanError" class="field-error" role="alert"></p><div class="row">${button("保存测试方案","plan-save")}${button("取消","plan-close")}</div></div>`;
+      return `<div class="test-plan-editor"><div class="form-grid">${field("方案名称",`<input id="testPlanName" maxlength="100" value="${esc(planDraft.name)}">`)}${field("推荐评价方案",`<select id="testPlanProfile">${profileOptions(planDraft.defaultEvaluationProfileId)}</select>`)}</div><h2>选择测试项目</h2><div id="testPlanPicker">${root.RingsidePicker.render(planPickerOptions())}</div><div class="form-grid" id="testPlanCalculationBindings">${root.RingsideCalculations?.bindingEditor(lib().catalog,planDraft)||""}</div><p id="testPlanError" class="field-error" role="alert"></p><div class="row">${button("保存测试方案","plan-save")}${button("取消","plan-close")}</div></div>`;
     }
     const q=filter().q.trim().toLocaleLowerCase(),plans=(lib().testPlans||[]).filter(p=>!q||p.name.toLocaleLowerCase().includes(q));
     return field("搜索测试方案",`<input type="search" data-manager-filter="q" value="${esc(filter().q)}" placeholder="方案名称">`)+(plans.map(p=>`<article class="management-catalog-item" data-test-plan="${esc(p.id)}"><div><h3>${esc(p.name)} ${p.disabled?'<span class="pill">已停用</span>':""}</h3><p>${p.testIds.map(id=>esc(lib().catalog.tests.find(t=>t.id===id)?.name||"已移除项目")).join(" → ")}</p><p class="note">默认评价：${esc(profileName(p.defaultEvaluationProfileId))}</p></div><div class="row">${button("编辑","plan-edit",p.id)}${button("复制","plan-copy",p.id)}${button(p.disabled?"启用":"停用","plan-toggle",p.id)}${button("删除","plan-delete",p.id)}</div></article>`).join("")||'<p class="empty">暂无测试方案。保存常用项目组合，录入时即可复用。</p>');
@@ -22254,37 +22405,44 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   // select trials, compute report values or create editable measurement rules.
   function catalogMeasurement(project,catalog) {
     const native=T.isNative(catalog,project.id),id=project.id;
-    if(!native){const primary=project.repeatPolicy.fields.find(d=>d.id===project.repeatPolicy.primaryMetricId);return {parameters:[],selection:primary?`最佳值：按${T.metricName(primary)}选取${project.selectionDirection==="lower"?"最小":"最大"}有效值所在试次，其他逐试次指标采用同一试次。均值：在主指标有效的试次中，各指标分别取有效值平均。`:"本次测试汇总指标直接采用录入结果；逐试次指标设置后按项目代表试次汇总。"};}
+    if(!native){const primary=project.repeatPolicy.fields.find(d=>d.id===project.repeatPolicy.primaryMetricId);return {parameters:[],selectionBlocks:primary?[`最佳值：按${T.metricName(primary)}选取${project.selectionDirection==="lower"?"最小":"最大"}有效值所在试次，其他逐试次指标采用同一试次。`,"均值：在主指标有效的试次中，各指标分别取有效值平均。"]:["本次测试汇总指标直接采用录入结果；逐试次指标设置后按项目代表试次汇总。"]};}
     const record=M.recordFromCatalog(catalog,{}, {[id]:true}),contract=root.RingsideAcquisition.project(record,id);
     const parameters=[...new Set(contract.parameters.map(p=>p.label).concat(["imtp","squat","bench","deadlift","cpet","fvp_sj","fvp_cmj","sprint_fvp"].includes(id)?["本次体重 kg"]:[],project.renderer==="lvp"?["MVT / 速度训练区间（评价方案分析设置）"]:[]))];
     const rules={
-      cmj:"最佳值：选垂直跳跃高度最高的有效试次，其他结果采用同一试次。均值：在高度有效的试次中，各指标分别取有效值平均。",
-      sj:"最佳值：选垂直跳跃高度最高的有效试次，其他结果采用同一试次。均值：在高度有效的试次中，各指标分别取有效值平均。",
-      dj:"先逐试次计算 RSI。最佳值：选 RSI 最高的有效试次，其他结果采用同一试次。均值：在 RSI 有效的试次中，各指标分别取有效值平均。",
-      cmrj:"反弹 RSI 用于选取试次。最佳值：选反弹 RSI 最高的有效试次；均值：在反弹 RSI 有效的试次中，各指标分别取有效值平均。首跳指标单独保留。",
-      hop:"一条结果代表一次完整测试。设备汇总直接保留设备给出的平均结果；历史逐跳记录按 RSI 选最高五跳（不足五跳采用全部有效跳）。最佳值选整组平均 RSI 最高的测试；均值取各有效测试组的结果平均。RQR 的 FT/CT 另按 FT/CT 选跳。",
-      imtp:"最佳值：选峰值力最高的有效试次，时点力、RFD 和冲量采用相应试次。均值：在峰值力有效的试次中，各时点与冲量分别取有效值平均。时点力优先使用实测值；只有 RFD 时，结合明确的基线力换算。",
-      iso:"按关节方向及侧别分别汇总。最佳值各取该方向、该侧的最大有效力量；均值各取有效力量平均。各侧可以来自不同试次；任一试次的疼痛标记都会保留。",
-      landmine:"左右侧分别按负荷分组。最佳值每个负荷取最高有效速度；均值每个负荷取有效速度平均。再用各负荷的代表点拟合负荷–速度关系。",
-      squat:"先按负荷分组。最佳值每个负荷取最高有效速度；均值每个负荷取有效速度平均。再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。",
-      bench:"先按负荷分组。最佳值每个负荷取最高有效速度；均值每个负荷取有效速度平均。再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。",
-      deadlift:"先按负荷分组。最佳值每个负荷取最高有效速度；均值每个负荷取有效速度平均。再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。",
-      mb:"优势侧与非优势侧分别汇总。最佳值各取最远有效距离；均值各取有效距离平均。",
-      pushup:"每次记录 60 秒内的有效次数。最佳值取最高有效次数；均值取有效次数平均，记录的 0 次保留。",
-      mas:"速度先统一为 m/s。最佳值取最高有效速度；均值取有效速度平均，保留本次测试方法。",
-      mss:"速度先统一为 m/s。最佳值取最高有效速度；均值取有效速度平均，保留本次测量与计时方法。",
-      ift:"速度先统一为 m/s。最佳值取最高有效 VIFT；均值取有效 VIFT 平均。跑台与折返协议分别匹配评价标准。",
-      lactate:"各阶段保留速度、乳酸和心率。第一、第二阈值采用评估者填写的阈值速度与识别方法；曲线按阶段展现，不按最佳值或均值选试次。",
-      cpet:"采用本次 CPET 原报告的 VO₂peak / VO₂max 及第一、第二阈值；保留原报告名称、测试方式和单位。按本次体重换算绝对与相对摄氧量，阈值占比使用同单位的阈值与峰值之比，不选取重复试次。",
-      fms:"七个动作按固定 0–3 分规则记录。双侧动作采用较低分；疼痛为 0 分；总分为七项相加，范围 0–21 分，不按最佳值或均值选试次。",
-      fvp_sj:"每个附加负荷选跳跃高度最高的完整有效试次，保留该试次的蹬伸距离；排除的试次不参与。结合本次体重计算力与速度，再拟合 F–V 剖面；始终按各负荷最佳完整试次计算，不随最佳值 / 均值切换。",
-      fvp_cmj:"每个附加负荷选跳跃高度最高的完整有效试次，保留该试次的蹬伸距离；排除的试次不参与。结合本次体重计算力与速度，再拟合 F–V 剖面；始终按各负荷最佳完整试次计算，不随最佳值 / 均值切换。",
-      sprint_fvp:"保留原始分段距离与时间，并按所填计时方式、时间修正和空间起点换算。排除的试次不参与；在最长完整末段距离内选最快有效试次，再结合本次体重、身高及环境参数拟合冲刺模型，不随最佳值 / 均值切换。",
+      cmj:["最佳值：选垂直跳跃高度最高的有效试次，其他结果采用同一试次。","均值：在高度有效的试次中，各指标分别取有效值平均。"],
+      sj:["最佳值：选垂直跳跃高度最高的有效试次，其他结果采用同一试次。","均值：在高度有效的试次中，各指标分别取有效值平均。"],
+      dj:["先逐试次计算 RSI。","最佳值：选 RSI 最高的有效试次，其他结果采用同一试次。","均值：在 RSI 有效的试次中，各指标分别取有效值平均。"],
+      cmrj:["反弹 RSI 用于选取试次。","最佳值：选反弹 RSI 最高的有效试次；","均值：在反弹 RSI 有效的试次中，各指标分别取有效值平均。","首跳指标单独保留。"],
+      hop:["一条结果代表一次完整测试。","设备汇总直接保留设备给出的平均结果；历史逐跳记录按 RSI 选最高五跳（不足五跳采用全部有效跳）。","最佳值选整组平均 RSI 最高的测试；","均值取各有效测试组的结果平均。","RQR 的 FT/CT 另按 FT/CT 选跳。"],
+      imtp:["最佳值：选峰值力最高的有效试次，时点力、RFD 和冲量采用相应试次。","均值：在峰值力有效的试次中，各时点与冲量分别取有效值平均。","时点力优先使用实测值；只有 RFD 时，结合明确的基线力换算。"],
+      iso:["按关节方向及侧别分别汇总。","最佳值各取该方向、该侧的最大有效力量；","均值各取有效力量平均。","各侧可以来自不同试次；任一试次的疼痛标记都会保留。"],
+      landmine:["左右侧分别按负荷分组。","最佳值每个负荷取最高有效速度；","均值每个负荷取有效速度平均。","再用各负荷的代表点拟合负荷–速度关系。"],
+      squat:["先按负荷分组。","最佳值每个负荷取最高有效速度；","均值每个负荷取有效速度平均。","再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。"],
+      bench:["先按负荷分组。","最佳值每个负荷取最高有效速度；","均值每个负荷取有效速度平均。","再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。"],
+      deadlift:["先按负荷分组。","最佳值每个负荷取最高有效速度；","均值每个负荷取有效速度平均。","再拟合负荷–速度关系，用方案指定的 MVT 估计负荷。"],
+      mb:["优势侧与非优势侧分别汇总。","最佳值各取最远有效距离；","均值各取有效距离平均。"],
+      pushup:["每次记录 60 秒内的有效次数。","最佳值取最高有效次数；","均值取有效次数平均，记录的 0 次保留。"],
+      mas:["速度先统一为 m/s。","最佳值取最高有效速度；","均值取有效速度平均，保留本次测试方法。"],
+      mss:["速度先统一为 m/s。","最佳值取最高有效速度；","均值取有效速度平均，保留本次测量与计时方法。"],
+      ift:["速度先统一为 m/s。","最佳值取最高有效 VIFT；","均值取有效 VIFT 平均。","跑台与折返协议分别匹配评价标准。"],
+      lactate:["各阶段保留速度、乳酸和心率。","第一、第二阈值采用评估者填写的阈值速度与识别方法；曲线按阶段展现，不按最佳值或均值选试次。"],
+      cpet:["采用本次 CPET 原报告的 VO₂peak / VO₂max 及第一、第二阈值；保留原报告名称、测试方式和单位。","按本次体重换算绝对与相对摄氧量，阈值占比使用同单位的阈值与峰值之比，不选取重复试次。"],
+      fms:["七个动作按固定 0–3 分规则记录。","双侧动作采用较低分；疼痛为 0 分；","总分为七项相加，范围 0–21 分，不按最佳值或均值选试次。"],
+      fvp_sj:["每个附加负荷选跳跃高度最高的完整有效试次，保留该试次的蹬伸距离；排除的试次不参与。","结合本次体重计算力与速度，再拟合 F–V 剖面；始终按各负荷最佳完整试次计算，不随最佳值 / 均值切换。"],
+      fvp_cmj:["每个附加负荷选跳跃高度最高的完整有效试次，保留该试次的蹬伸距离；排除的试次不参与。","结合本次体重计算力与速度，再拟合 F–V 剖面；始终按各负荷最佳完整试次计算，不随最佳值 / 均值切换。"],
+      sprint_fvp:["保留原始分段距离与时间，并按所填计时方式、时间修正和空间起点换算。","排除的试次不参与；在最长完整末段距离内选最快有效试次，再结合本次体重、身高及环境参数拟合冲刺模型，不随最佳值 / 均值切换。"],
     };
-    return {parameters,selection:rules[id]||"采用本项目的实测结果与测量协议。"};
+    return {parameters,selectionBlocks:rules[id]||["采用本项目的实测结果与测量协议。"]};
+  }
+  function catalogMeasurementRules(blocks) {
+    return `<div class="catalog-selection-rules">${blocks.map(text=>{
+      const label=["最佳值：","均值：","最佳值","均值"].find(prefix=>text.startsWith(prefix));
+      return `<p>${label?`<strong>${esc(label)}</strong>${esc(text.slice(label.length))}`:esc(text)}</p>`;
+    }).join("")}</div>`;
   }
   function catalogMetricResult(project,definition,catalog) {
     const d=definition,id=project.id;
+    if(d.calculation)return {source:"计算结果（只读）",detail:d.calculation.kind==="sum"?"同一次完整有效试次的分段时间相加；分段缺测不参与代表成绩":"本次变向代表时间减方案绑定的同距离直线代表时间；缺少参照时保留空值"};
     if(T.isManualMetric(d))return {source:d.entryScope==="attempt"?"逐试次录入":"本次测试汇总",detail:d.entryScope==="attempt"?"随项目选定的试次汇总；均值模式取有效值平均":"直接采用本次录入结果"};
     const field=T.attemptFields(catalog,id).find(f=>f.id===d.id);
     if(field&&["cmj","sj","dj","cmrj"].includes(id)){
@@ -22323,12 +22481,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const rows=definitions.map(d=>{const result=catalogMetricResult(project,d,lib().catalog);return `<tr data-library-metric="${esc(d.id)}" ${f.metricId===d.id?'class="catalog-metric-selected"':""}><td data-label="指标"><b>${esc(T.metricName(d))}</b><small>${esc(d.protocol||"")}</small></td><td data-label="单位">${esc(d.unit||"—")}</td><td data-label="数据与选值">${esc(result.source)}<small>${esc(result.detail)}</small></td><td data-label="操作"><div class="row">${button("编辑指标","metric-edit",d.id,conflicted?"disabled":"")}${button("评价标准","metric-standards",d.id,`data-project-id="${esc(project.id)}"`)}</div></td></tr>`;}).join("");
       const fixed=project.id==="fms"?'<p class="note">七项动作固定 0–3 分；疼痛计 0 分，双侧动作保留左右侧得分并取较低分，七项合计 0–21 分。动作、侧别、疼痛和备注属于原始记录。</p>':project.id==="iso"?'<p class="note">测量按部位、方向和侧别保存。目标、参考值和关节比值分级在评价方案中设置。</p>':"";
       const native=T.isNative(lib().catalog,project.id);
-      detail=`<article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="catalog-detail-back">${button("返回项目列表","catalog-back")}</div><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"} · ${native?"内置测量方法":"自定义项目"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量方法</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写测量方法")}</p><p class="note">协议版本 ${lib().catalog.protocolIdentities?.[project.id]?.version||1}</p></section><section class="catalog-definition-block" data-catalog-measurement><h3>结果来源与试次选取</h3><p>${esc(measurement.selection)}</p>${measurement.parameters.length?`<h4>本次测量与计算参数</h4><div class="catalog-input-list">${measurement.parameters.map(label=>`<span>${esc(label)}</span>`).join("")}</div>`:""}</section><section class="catalog-definition-block"><h3>录入内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据与选值</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
+      detail=`<article class="catalog-project-detail" data-metric-project="${esc(project.id)}"><div class="catalog-detail-back">${button("返回项目列表","catalog-back")}</div><div class="metric-project-header"><div><h2>${esc(project.name)}</h2><p class="note">${esc(T.abilityLabel(lib().catalog,project.primaryAbility))} · ${project.category==="screen"?"筛查":"运动表现"} · ${native?"内置测量方法":"自定义项目"}${project.disabled?" · 已停用":""}</p></div><div class="row">${button("编辑项目","catalog-edit",project.id,conflicted?"disabled":"")}${button("新增指标","new-metric",project.id,conflicted?"disabled":"")}${more(button(project.disabled?"启用":"停用","catalog-toggle",project.id))}</div></div><section class="catalog-definition-block"><h3>测量方法</h3><p class="metric-project-protocol">${esc(lib().catalog.protocol[project.id]||"尚未填写测量方法")}</p></section><section class="catalog-definition-block" data-catalog-measurement><h3>结果来源与试次选取</h3>${catalogMeasurementRules(measurement.selectionBlocks)}${measurement.parameters.length?`<div class="catalog-parameter-group"><h4>本次测量与计算参数</h4><div class="catalog-input-list">${measurement.parameters.map(label=>`<span>${esc(label)}</span>`).join("")}</div></div>`:""}</section><section class="catalog-definition-block"><h3>录入内容</h3>${fixed}<div class="catalog-input-list">${(project.dataContract?.fields||[]).map(([key,label])=>`<span>${esc(label)}</span>`).join("")}</div></section><section class="catalog-definition-block"><h3>结果指标</h3>${rows?`<div class="management-table-wrap"><table class="management-table catalog-results"><thead><tr><th>指标</th><th>单位</th><th>数据与选值</th><th>操作</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="note">本项目使用固定测量结构。</p>'}</section><p class="note">修改用于后续测试，已有记录保留测量快照。</p>${button("配置评价标准","project-standards",project.id)}</article>`;
     }
     return catalogNotices()+search+`<div class="catalog-workspace ${project?"has-project":""}"><nav class="catalog-index" aria-label="测试项目">${index}</nav><div class="catalog-detail">${detail}</div></div>`;
   }
   function planPickerOptions() {
-    return {source:lib().catalog,selection:planDraft,isoRows:M.isoRows(),context:"plan",showOrder:true,blockedIds:lib().catalog.conflicts.filter(conflict=>!conflict.resolved).map(conflict=>conflict.testId),onChange(next){planDraft.testIds=next.testIds;planDraft.isoDirectionIds=next.isoDirectionIds;const error=$("testPlanError");if(error)error.textContent="";}};
+    return {source:lib().catalog,selection:planDraft,isoRows:M.isoRows(),context:"plan",showOrder:true,blockedIds:lib().catalog.conflicts.filter(conflict=>!conflict.resolved).map(conflict=>conflict.testId),onChange(next){planDraft.testIds=next.testIds;planDraft.isoDirectionIds=next.isoDirectionIds;if(planDraft.calculationBindings)for(const [key,binding]of Object.entries(planDraft.calculationBindings)){const d=lib().catalog.definitions.find(d=>d.id===key);if(!next.testIds.includes(d?.testId)||!next.testIds.includes(binding.testId))delete planDraft.calculationBindings[key];}const bindings=$("testPlanCalculationBindings");if(bindings)bindings.innerHTML=root.RingsideCalculations?.bindingEditor(lib().catalog,planDraft)||"";const error=$("testPlanError");if(error)error.textContent="";}};
   }
   function derivedLibrary(q="") {
     const definitions=(T.derivedDefinitions?.()||[]).filter(d=>!q||[T.analysisLabel,d.name,d.id,d.formula].join(" ").toLocaleLowerCase().includes(q));
@@ -22833,6 +22991,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(t.id==="profilePreviewRecord")loadPreview(t.value);
       if(t.id==="profilePreviewProject"){editor.previewProject=t.value;render();}
       if(t.id==="testPlanProfile"&&planDraft)planDraft.defaultEvaluationProfileId=t.value;
+      if(t.dataset.calculationBinding&&planDraft){const d=lib().catalog.definitions.find(d=>d.id===t.value);planDraft.calculationBindings||={};if(d)planDraft.calculationBindings[t.dataset.calculationBinding]={testId:d.testId,metricId:d.id,distanceM:d.distanceM};else delete planDraft.calculationBindings[t.dataset.calculationBinding];}
       if(t.dataset.profilePath&&t.tagName==="SELECT"){profileInput(t);if(/\.(method|kind|shape|primary)$/.test(t.dataset.profilePath))render();}
       if(t.dataset.aggregationMember&&editor){
         const axis=t.dataset.aggregationAxis,id=t.dataset.aggregationMember,cfg=editor.profile.aggregations[axis];cfg.members||=[];cfg.transforms||={};
@@ -23529,11 +23688,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   const signature = context => E.contextSignature(context);
   function testContext(record, id, stats) {
-    const base = { protocolIdentity: record.protocolIdentities?.[id] || M.protocolIdentity("test:" + id, record.protocol?.[id] || "") };
-    if (["fvp_sj", "fvp_cmj"].includes(id)) base.settings = { ...record.fvpConfig[id], angle: record.fvpAnalysis?.[id]?.angle || 90 };
-    if (id === "sprint_fvp") base.settings = Object.fromEntries(["device", "methodVersion", "startConvention", "timingStart", "inputTimeMode", "timeCorrectionS", "positionStartM", "samplingWindow", "rfAfterS"].map(key => [key, record.sprintFvpConfig?.[key] ?? null]));
-    if (id === "cpet") base.settings = { modality: record.data.cpet?.modality, protocol: record.data.cpet?.protocol, oxygenLabel: record.data.cpet?.oxygenLabel };
-    if (["ift", "mas", "mss"].includes(id)) base.settings = { protocol: record.data[id]?.protocol || "", method: record.data[id]?.method || "" };
+    const base = {};
+    if (["fvp_sj", "fvp_cmj"].includes(id)) base.settings = { distanceCm: record.fvpConfig[id]?.distanceCm ?? "", angle: record.fvpAnalysis?.[id]?.angle || 90 };
+    if (id === "sprint_fvp") base.settings = Object.fromEntries(["methodVersion", "startConvention", "timingStart", "inputTimeMode", "timeCorrectionS", "positionStartM", "samplingWindow", "rfAfterS"].map(key => [key, record.sprintFvpConfig?.[key] ?? null]));
+    if (id === "cpet") base.settings = { modality: record.data.cpet?.modality, oxygenLabel: record.data.cpet?.oxygenLabel };
+    if (id === "ift") base.settings = { variant: record.data.ift?.protocol || "" };
     if (id === "imtp") base.settings = clone(record.imtpConfig || {});
     if (id === "cmj") base.settings = clone(record.cmjConfig || {});
     if (id === "dj" && stats) base.settings = { dropHeights: [...new Set((stats.representativeData.dj || []).map(row => N(row.dropHeightCm)))].sort((a, b) => a - b) };
@@ -23547,10 +23706,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function derivedContext(record, metricId, stats) {
     const definition = T.derivedDefinitions().find(item => item.id === metricId), dependencies = definition?.dependencies || [];
     return { ...(dependencies.length ? { protocols: dependencies.map(id => ({ testId: id, ...testContext(record, id, stats) })) } : {}),
-      ...(/^(?:f?dsi|idsi)/.test(metricId) ? { forceDefinitions: Object.fromEntries(["source", "cmjUnit", "unit", "definition", "protocol"].map(key => [key, record.dsi?.[key] ?? null])) } : {}) };
+      ...(/^(?:f?dsi|idsi)/.test(metricId) ? { forceDefinitions: Object.fromEntries(["source", "cmjUnit", "unit", "definition"].map(key => [key, record.dsi?.[key] ?? null])) } : {}) };
   }
   function metricContext(record, definition, stats) {
-    const context = { ...E.measurementContext(record, definition), entryScope: definition.entryScope || "record", testSettings: ["cmj", "imtp"].includes(definition.testId) ? null : testContext(record, definition.testId, stats).settings || null, ...derivedContext(record, definition.id, stats) };
+    const context = { ...E.measurementContext(record, definition), entryScope: definition.entryScope || "record", testSettings: ["cmj", "imtp"].includes(definition.testId) ? null : testContext(record, definition.testId, stats).settings || null, ...derivedContext(record, definition.id, stats), ...(root.RingsideCalculations?.context(definition)||{}) };
     if (["lt1", "lt2"].includes(definition.id)) context.thresholdMethod = record.thresholds.method;
     if (/1rm/i.test(definition.id)) context.minimumVelocity = record.lvp[definition.testId]?.mvt ?? null;
     if (definition.id === "sprint_fvp_imbalance") context.targetDistanceM = record.sprintFvpAnalysis?.targetDistanceM;
@@ -23588,9 +23747,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const statistic = group?.statistics.find(item => item.id === d.id);
       const rows = group?.attempts || [];
       add(d.id, { metricId: d.id, subjectId: "metric:" + d.id, testId: project.id, name: T.metricName(d), unit: d.unit, value: d.value,
+        preserveMissing:d.calculation?.kind==="cod-deficit",calculation:d.calculation?clone(d.calculation):undefined,
         measurementScale: E.measurementScale(d), context: metricContext(record, d, stats), definition: d,
         statistics: statistic ? clone(statistic) : null, rawTrials: clone(rows), evaluation: evaluation || { grade: d.evaluation },
-        direction: comparisonDirection(record, d, evaluation), notes: rows.map(row => row.notes).filter(Boolean).join("；") });
+        direction: comparisonDirection(record, d, evaluation), notes: [stats.calculationResults?.[d.id]?.reason,...rows.map(row => row.notes)].filter(Boolean).join("；") });
+      if(d.calculation?.kind==="cod-deficit"){
+        const calculated=stats.calculationResults?.[d.id];
+        add(d.id+"_reference",{metricId:d.id+"_reference",testId:project.id,name:d.name+" · 直线参照",unit:"s",value:calculated?.reference,preserveMissing:true,measurementScale:"ratio",context:{...metricContext(record,d,stats),role:"reference"},canonicalDefinition:canonicalDefinition("lower"),notes:calculated?.reason||""});
+      }
     }
     for (const item of evaluations) {
       if (item.kind === "metric" && result.has(item.metricId)) continue;
@@ -24705,9 +24869,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     rows=rows.flatMap(row=>{
       const keys=[...new Set(row.cells.filter(Boolean).map(cell=>cell.contextKey).filter(Boolean))];if(keys.length<2)return[row];
       const flatten=(object,prefix="",result={})=>{for(const [key,value]of Object.entries(object||{})){const field=prefix?prefix+"."+key:key;if(value&&typeof value==="object"&&!Array.isArray(value))flatten(value,field,result);else result[field]=Array.isArray(value)?JSON.stringify(value):String(value??"");}return result;};
-      const contexts=keys.map(key=>flatten(row.cells.find(cell=>cell?.contextKey===key)?.context||{})),fields=[...new Set(contexts.flatMap(c=>Object.keys(c)))].filter(field=>new Set(contexts.map(c=>c[field])).size>1&&!/(^|\.)id$/.test(field));
+      const contexts=keys.map(key=>flatten(root.RingsideModel.measurementCompatibility(row.cells.find(cell=>cell?.contextKey===key)?.context||{}))),fields=[...new Set(contexts.flatMap(c=>Object.keys(c)))].filter(field=>new Set(contexts.map(c=>c[field])).size>1&&!/(^|\.)id$/.test(field));
       const labels={protocol:"协议",method:"方法",metric:"速度口径",velocity:"速度口径",velocityMetrics:"速度口径",definition:"结果定义",unit:"单位",minimumVelocity:"MVT",thresholdMethod:"阈值方法",dropHeights:"落高",distanceCm:"蹬伸距离",angle:"角度",targetDistanceM:"目标距离",deltaForcePct:"F₀ 改变",deltaVelocityPct:"V₀ 改变",protocols:"测试流程",version:"协议版本"};
-      return keys.map((key,index)=>{const context=contexts[index],details=fields.map(field=>{const value=context[field];if(!value)return"";const name=field.split(".").at(-1);return(labels[name]||name)+" "+value.replace(/\"(?:id|metric|inputMode|selectionBasis)\":/g,"").replace(/[\[\]{}\"]/g,"");}).filter(Boolean);if(!details.length){const version=Object.entries(context).find(([field])=>/protocolIdentity\.version$/.test(field));if(version)details.push("协议版本 "+version[1]);}
+      return keys.map((key,index)=>{const context=contexts[index],details=fields.map(field=>{const value=context[field];if(!value)return"";const name=field.split(".").at(-1);return(labels[name]||name)+" "+value.replace(/\"(?:id|metric|inputMode|selectionBasis)\":/g,"").replace(/[\[\]{}\"]/g,"");}).filter(Boolean);
         const cells=row.cells.map(cell=>cell?.contextKey===key?cell:null),available=change=>change?.available&&cells[periods.findIndex(p=>p.id===change.from?.recordId)]&&cells[periods.findIndex(p=>p.id===change.to?.recordId)];
         return{...row,unit:cells.find(cell=>N(cell?.value)!==null)?.unit||row.unit,measurementScale:cells.find(cell=>N(cell?.value)!==null)?.measurementScale||row.measurementScale,id:row.id+":context:"+index,name:row.name+" · 口径 "+(index+1)+(details.length?"（"+details.join("；")+"）":""),cells,changes:{overall:available(row.changes?.overall)?row.changes.overall:{available:false},recent:available(row.changes?.recent)?row.changes.recent:{available:false}}};
       });
@@ -25287,7 +25451,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function contextLabels(rows){
     const flatten=(value,prefix="",result={})=>{for(const [key,item]of Object.entries(value||{})){const field=prefix?prefix+"."+key:key;if(item&&typeof item==="object"&&!Array.isArray(item))flatten(item,field,result);else if(!/(^|\.)(?:id|definitionId|testId)$/.test(field))result[field]=Array.isArray(item)?JSON.stringify(item):String(item??"");}return result;},labels={protocol:"协议",method:"方法",metric:"速度口径",velocity:"速度口径",velocityMetrics:"速度口径",definition:"结果定义",unit:"单位",minimumVelocity:"MVT",thresholdMethod:"阈值方法",dropHeights:"落高",angle:"角度",targetDistanceM:"目标距离",deltaForcePct:"F₀ 改变",deltaVelocityPct:"V₀ 改变",protocols:"测试流程",version:"协议版本",measurementScale:"量表",meaning:"数值含义"},groups=new Map();
     rows.forEach(row=>{const key=(row.testId||"")+":"+(row.metricId||row.id);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row);});
-    return rows.map(row=>{const peers=groups.get((row.testId||"")+":"+(row.metricId||row.id));if(peers.length<2||!row.context)return row;const contexts=peers.map(r=>flatten({...r.context,unit:r.unit,measurementScale:r.measurementScale,meaning:r.meaning})),fields=[...new Set(contexts.flatMap(c=>Object.keys(c)))].filter(key=>new Set(contexts.map(c=>c[key])).size>1),current=contexts[peers.indexOf(row)],details=fields.map(key=>current[key]?`${labels[key.split(".").at(-1)]||key.split(".").at(-1)} ${current[key].replace(/"(?:id|metric|inputMode|selectionBasis)":/g,"").replace(/[\[\]{}\"]/g,"")}`:"").filter(Boolean);return details.length?{...row,contextLabel:(row.contextLabel||"测量条件")+"（"+details.join("；")+"）"}:row;});
+    return rows.map(row=>{const peers=groups.get((row.testId||"")+":"+(row.metricId||row.id));if(peers.length<2||!row.context)return row;const contexts=peers.map(r=>flatten({...root.RingsideModel.measurementCompatibility(r.context),unit:r.unit,measurementScale:r.measurementScale,meaning:r.meaning})),fields=[...new Set(contexts.flatMap(c=>Object.keys(c)))].filter(key=>new Set(contexts.map(c=>c[key])).size>1),current=contexts[peers.indexOf(row)],details=fields.map(key=>current[key]?`${labels[key.split(".").at(-1)]||key.split(".").at(-1)} ${current[key].replace(/"(?:id|metric|inputMode|selectionBasis)":/g,"").replace(/[\[\]{}\"]/g,"")}`:"").filter(Boolean);return details.length?{...row,contextLabel:(row.contextLabel||"测量条件")+"（"+details.join("；")+"）"}:row;});
   }
   function benchmarkHTML(row){
     const b=row.benchmark;if(!b)return "";
@@ -25358,6 +25522,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(project.renderer==="speed")return rows.filter(row=>["mas_speed","mss_speed","ift_speed","ift_shuttle","ift_treadmill"].includes(row.metricId)&&value(row)!==null).map(row=>scalar(row,"bars"));
     if(project.renderer==="ball")return rows.filter(row=>value(row)!==null).map(row=>scalar(row,"bars"));
     if(project.renderer==="scalar"){
+      const deficits=rows.filter(row=>row.context?.calculation?.kind==="cod-deficit"&&row.context?.role!=="reference");
+      if(deficits.length)return deficits.filter(row=>value(row)!==null).map(row=>scalar(row,"bars"));
       const view=project.reportView||model.catalog?.reportViews?.[project.id];
       if(["bar","target","column"].includes(view?.kind))return rows.filter(row=>view.metricIds.includes(row.metricId)&&value(row)!==null&&meaning(row)==="numeric").map(row=>scalar(row,view.kind==="column"?"columns":"bars"));
       if(view?.kind==="radar"){
@@ -25382,7 +25548,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const section=category=>projects.filter(p=>category==="screen"?p.category==="screen":category==="capability"?isAnalysis(p):p.category!=="screen"&&!isAnalysis(p)).map(project=>{
       const figureSpecs=aggregateFigures({...project,renderer:renderer(project)},reference,model),charts=model.participants.length?individualFigures(project,model,views,periods,reference):figureSpecs.map(spec=>`<div class="horizontal-curve" data-horizontal-curve="${E(JSON.stringify(spec))}"></div>`).join("");
       const tables=root.RingsideLongitudinalView.projectTableSections({...project,renderer:renderer(project)}).map(part=>part.id?`<section class="longitudinal-iso-section" data-iso-section="${E(part.id)}"><h5 class="longitudinal-table-caption">${E(part.title)}</h5>${table(part.rows,model.participants,participantOptions)}</section>`:table(part.rows,model.participants,participantOptions)).join("");
-      const content=!model.participants.length&&charts?`<div class="detail-pair" data-pdf-pair><div class="chart-wrap">${charts}</div><div class="detail-data">${tables}</div></div>`:`${charts?`<div class="horizontal-figures">${charts}</div>`:""}${tables}`;
+      const codProject=(model.catalog?.definitions||model.displayRecord?.definitions||[]).some(d=>d.testId===project.id&&d.calculation?.kind==="cod-deficit");
+      const content=!model.participants.length&&charts&&!codProject?`<div class="detail-pair" data-pdf-pair><div class="chart-wrap">${charts}</div><div class="detail-data">${tables}</div></div>`:`${charts?`<div class="horizontal-figures">${charts}</div>`:""}${tables}`;
       return `<article class="test-block horizontal-test" id="horizontal-${E(reference.id)}-${E(project.id)}"><div class="test-title"><h4>${E(project.name)}</h4></div>${content}${rawTrials(project,model.participants,periods,views)}</article>`;
     }).join("");
     const screen=section("screen"),performance=section("performance"),capability=(reference.capability?.cards||[]).filter(card=>card.metrics?.length).map(card=>`<article class="test-block"><div class="test-title"><h4>${E(card.title)}</h4></div>${table(card.metrics,model.participants,participantOptions)}</article>`).join("")+section("capability");
@@ -26568,7 +26735,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       state.protocol[id] = library.catalog.protocol[id];
     if (force || first || projectIndex < 0) {
       state.protocolIdentities ||= {};
-      if (library.catalog.protocolIdentities?.[id]) state.protocolIdentities[id] = copy(library.catalog.protocolIdentities[id]);
       if (T.describe(state).find(test => test.id === id)?.renderer === "scalar") {
         state.views.genericReports ||= {};
         const view = window.RingsideGenericReport.resolveView(state, id, library.catalog);
@@ -27800,7 +27966,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       base.evaluationProfileId=$("creationEvaluationProfile").value;
       installIsoSelection(base,creation.isoDirectionIds||[],creation.isoCatalog);
       const plan=library.testPlans.find(p=>p.id===creation.testPlanId);
-      if(plan)base.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...base.isoDirectionIds]};
+      if(plan)base.testPlanSnapshot={id:plan.id,name:plan.name,testIds:[...plan.testIds.filter(id=>creation.enabled[id]),...Object.keys(creation.enabled).filter(id=>creation.enabled[id]&&!plan.testIds.includes(id))],isoDirectionIds:[...base.isoDirectionIds],...(plan.calculationBindings?{calculationBindings:copy(plan.calculationBindings)}:{})};
+      if(plan?.calculationBindings)base.calculationBindings=copy(plan.calculationBindings);
       const records=[];
       for(const owner of owners){
         const draft=copy(base);draft.athleteId=owner.id;draft.recordId=uid();
@@ -28399,7 +28566,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const fields = direction ? (direction.paired ? [["left", M.isoSideLabels(direction).left + " " + direction.unit], ["right", M.isoSideLabels(direction).right + " " + direction.unit]] : [["center", "力量 " + direction.unit]])
       : t === "pushup" ? [["reps", "60秒有效次数"]]
       : ["mas", "mss", "ift"].includes(t) ? [["speed", (t === "ift" ? "VIFT" : "速度") + " m/s"], ...(t === "ift" ? [["partial", "末级未完成秒数"]] : [])] : [];
-    if (!direction) T.repeatPolicy(state, t).fields.forEach((d) => fields.push(["metrics." + d.id, d.name + " " + d.unit]));
+    if (!direction) T.repeatPolicy(state, t).fields.filter(d=>!d.calculation).forEach((d) => fields.push(["metrics." + d.id, d.name + " " + d.unit]));
     return `<div class="repeat-entry" data-repeat-entry="${E(t)}">` + table(["试次", ...fields.map((f) => f[1]), ...(direction ? ["疼痛"] : []), "备注", ""], rows.map((row, i) => [
       i + 1,
       ...fields.map(([key, label]) => input(base + "." + i + "." + key, key.startsWith("metrics.") ? row.metrics?.[key.slice(8)] ?? "" : row[key] ?? "", { label: "试次 " + (i + 1) + " " + label, ...(key.startsWith("metrics.") ? { allowNegative: true } : {}) })),
@@ -28722,9 +28889,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     else if (!T.isNative(state,entryTab) && T.repeatPolicy(state, entryTab).fields.length) h += repeatEditor(entryTab);
     if (["pushup", "mas", "mss", "ift"].includes(entryTab) && !Array.isArray(state.data[entryTab].trials)) {
-      h += T.repeatPolicy(state, entryTab).fields.map((d) => field(d.name + " " + d.unit, input(`data.${entryTab}.metrics.${d.id}`, state.data[entryTab].metrics?.[d.id] ?? "", { allowNegative: true }))).join("");
+      h += T.repeatPolicy(state, entryTab).fields.filter(d=>!d.calculation).map((d) => field(d.name + " " + d.unit, input(`data.${entryTab}.metrics.${d.id}`, state.data[entryTab].metrics?.[d.id] ?? "", { allowNegative: true }))).join("");
       h += `<button type="button" class="btn small" onclick="App.addRepeat('${entryTab}')">＋ 新增试次</button>`;
     }
+    const calculated=state.definitions.filter(d=>d.testId===entryTab&&d.calculation);
+    if(calculated.length){const computed=M.stats(state);h+='<div class="form-grid calculation-readonly">'+calculated.map(d=>'<div class="field"><span>'+E(d.name)+'（计算结果）</span><output data-calculation-output="'+E(d.id)+'">'+F(computed.values[d.id],2)+' '+E(d.unit)+'</output><small data-calculation-reason="'+E(d.id)+'">'+E(computed.calculationResults?.[d.id]?.reason||'')+'</small></div>').join('')+'</div>';}
     const extras = state.definitions.filter(
       (d) =>
         T.isManualMetric(d) && !T.isAttemptMetric(d) && d.testId === entryTab,
@@ -29411,7 +29580,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       initialDisplayName: test ? T.displayName(test, catalog) : "",
     };
     const category = definition?.category || test?.category || "performance";
-    const builtIn = !!definition && !T.isManualMetric(definition);
+    const builtIn = !!definition && !definition.calculation && !T.isManualMetric(definition);
     const label = (name, control, wide = false) =>
       `<label class="field${wide ? " wide" : ""}"><span>${name}</span>${control}</label>`;
     let fields = '<div class="form-grid">';
@@ -29488,8 +29657,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       `<textarea id="catalogProtocol" rows="3" aria-label="项目测试协议／设备">${E(initialProtocol)}</textarea>`,
       true,
     );
-    if(!metricOnly && mode!=="new-metric") fields+=label("测量方法版本",`<input id="catalogProtocolVersion" type="number" min="1" step="1" readonly value="${catalog.protocolIdentities?.[test?.id]?.version||1}"><label class="row"><input id="catalogProjectMethodChanged" type="checkbox">测试方法发生改变</label><small>只修订说明时保留版本；方法改变会增加版本，用于匹配后续测试的评价标准。</small>`);
-    if(!projectOnly) fields+=label("指标测量版本",`<input id="catalogMetricProtocolVersion" type="number" min="1" step="1" readonly value="${definition?.protocolIdentity?.version||1}"><label class="row"><input id="catalogMetricMethodChanged" type="checkbox">此指标的测量方法发生改变</label>`);
+    if(!projectOnly) fields+=window.RingsideCalculations?.editor(catalog,(test||selectedTest)?.id||"",definition)||"";
     fields +=
       '</div><p class="note">速度统一使用 m/s。保存后可在本次测试计划中选择该项目。</p>';
     $("catalogFields").innerHTML = fields;
@@ -29555,8 +29723,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       renderCatalogChangePreview();
     };
     $("catalogForm").onchange = event => {
-      for (const [toggle, version, original] of [["catalogProjectMethodChanged","catalogProtocolVersion",catalog.protocolIdentities?.[test?.id]?.version||1],["catalogMetricMethodChanged","catalogMetricProtocolVersion",definition?.protocolIdentity?.version||1]])
-        if (event.target.id === toggle) $(version).value = original + (event.target.checked ? 1 : 0);
       if (catalogEdit?.genericViewEditor && !event.target.closest("#catalogGenericReport")) window.RingsideGenericReportUI.updateMetrics(catalogGenericMetrics());
       renderCatalogChangePreview();
     };
@@ -29574,7 +29740,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function catalogFormValues() {
     const values = Object.fromEntries([...$("catalogForm").querySelectorAll("input[id],select[id],textarea[id]")]
       .filter(node => !node.closest("#catalogGenericReport"))
-      .filter(node => !node.id.includes("MethodChanged"))
       .map(node => [node.id,node.type === "checkbox" ? node.checked : node.value]));
     if (catalogEdit?.genericViewEditor) values.__genericReportView = window.RingsideGenericReportUI.snapshot();
     return values;
@@ -29594,7 +29759,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const host = $("catalogFields");
     for (const [title, ids] of [
       ["基础资料",["catalogTestId","catalogTestName","catalogMetricName","catalogUnit","catalogCategory","catalogAbility","catalogPrimaryAbility"]],
-      ["录入与选值",["catalogEntryScope","catalogPrimaryMetric","catalogSelectionDirection","catalogProtocol","catalogProtocolVersion","catalogMetricProtocolVersion"]],
+      ["录入与选值",["catalogEntryScope","catalogPrimaryMetric","catalogSelectionDirection","catalogProtocol"]],
       ["统计与换算",["catalogRatioEligible","catalogCVEligible"]]
     ]) {
       const fields = [...new Set(ids.map(id => $(id)?.closest(".field")).filter(node => node && !node.hidden))];
@@ -29626,9 +29791,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     const chartChanged = current.__genericReportView !== prior.__genericReportView;
     if (chartChanged) changes.push("<li><b>报告图表</b>：更新图样或展示指标</li>");
-    const methodChanged=$("catalogProjectMethodChanged")?.checked || $("catalogMetricMethodChanged")?.checked;
-    const linked=methodChanged ? library.evaluationProfiles.filter(profile=>profile.standards?.some(rule=>rule.testId===catalogEdit.testId)).map(profile=>profile.name) : [];
-    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">测量设置用于后续测试，已有记录保留测量快照。${catalogEdit.genericViewEditor ? "报告图样同步用于测量定义兼容的已有报告。" : ""}</p>${methodChanged?`<p class="note">测量方法版本将更新。${linked.length?"后续测试需核对这些方案的协议匹配："+E(linked.join("、")):"后续测试的评价标准按新方法匹配。"}</p>`:""}`;
+    $("catalogChangePreview").innerHTML=`<h3>本次修改</h3>${changes.length?`<ul>${changes.join("")}</ul>`:'<p class="note">尚未修改设置。</p>'}<p class="note">测量设置用于后续测试，已有记录保留测量快照。${catalogEdit.genericViewEditor ? "报告图样同步用于测量定义兼容的已有报告。" : ""}</p>`;
   }
   async function submitCatalogItem() {
     if (!catalogEdit || catalogEdit.submitting) return false;
@@ -29725,9 +29888,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
               ? existing.protocol || ""
               : protocol,
         };
-        const metricVersion=Number(value("catalogMetricProtocolVersion")||1);
-        if(!Number.isSafeInteger(metricVersion)||metricVersion<1)throw Error("指标协议版本须为正整数");
-        definition.protocolIdentity={id:existing?.protocolIdentity?.id||"protocol_metric_"+definition.id,version:metricVersion};
+        window.RingsideCalculations?.readEditor(definition);
         const index = catalog.definitions.findIndex(
           (d) => d.id === definition.id,
         );
@@ -29745,11 +29906,6 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (edit.mode === "new-test" || edit.projectOnly) {
         catalog.definitions.filter(d => d.testId === testId).forEach(d => d.category = test.category);
         catalog.protocol[testId] = protocol;
-      }
-      if($("catalogProtocolVersion")){
-        const version=Number(value("catalogProtocolVersion"));
-        if(!Number.isSafeInteger(version)||version<1)throw Error("测试协议版本须为正整数");
-        catalog.protocolIdentities||={};catalog.protocolIdentities[testId]={id:catalog.protocolIdentities[testId]?.id||"protocol_project_"+testId,version};
       }
       if (edit.genericViewEditor) {
         const validation = window.RingsideGenericReportUI.validate();

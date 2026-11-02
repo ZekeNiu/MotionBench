@@ -3326,7 +3326,7 @@
     const cards = capabilityCards(state, values, raw, derived, {fvp,sprintElasticity});
     const result = {
       values,
-      calculationResults,
+      ...(Object.keys(calculationResults).length ? { calculationResults } : {}),
       fvp,
       sprintFvp,
       sprintElasticity,

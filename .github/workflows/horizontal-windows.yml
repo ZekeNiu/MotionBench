@@ -43,9 +43,23 @@ jobs:
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/tests/horizontal-2.26.3/final
+          node tests/run-unit-tests.cjs --artifact-dir output/release/2.27.0-local/acceptance/unit-final
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          npm run test:desktop-unit
+          node tests/run-desktop-unit-tests.cjs --artifact-dir output/release/2.27.0-local/acceptance/desktop-unit
+      - name: Verify method simplification, operation UI and computed report workflows
+        run: |
+          node tests/method-compatibility-browser-tests.cjs --artifact-dir output/release/2.27.0-local/acceptance/methods-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/operation-ui-browser-tests.cjs --artifact-dir output/release/2.27.0-local/acceptance/operation-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/calculation-browser-tests.cjs --pdf --artifact-dir output/release/2.27.0-local/acceptance/calculations-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/method-compatibility-browser-tests.cjs --edge --artifact-dir output/release/2.27.0-local/acceptance/methods-msedge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/operation-ui-browser-tests.cjs --edge --artifact-dir output/release/2.27.0-local/acceptance/operation-msedge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/calculation-browser-tests.cjs --edge --pdf --artifact-dir output/release/2.27.0-local/acceptance/calculations-msedge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Verify shared classification and frozen report storage
         run: |
           node tests/horizontal-storage-browser-tests.cjs
@@ -93,17 +107,20 @@ jobs:
           node tests/horizontal-multiperson-pdf-tests.cjs
       - name: Build and verify Windows delivery
         run: |
-          npm run dist:windows
+          npm run dist:windows -- --config.directories.output=output/release/2.27.0-local/desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node scripts/check-desktop-package.cjs
+          node scripts/check-desktop-package.cjs output/release/2.27.0-local/desktop/win-unpacked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'dist-desktop/win-unpacked/MotionBench.exe'
+          Copy-Item -LiteralPath 'output/desktop-package/package-check.json' -Destination 'output/release/2.27.0-local/package-check.json'
+          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'output/release/2.27.0-local/desktop/win-unpacked/MotionBench.exe'
           node tests/native-runner-failure-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/horizontal-refinement-native-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/desktop-smoke/horizontal-2.26.3'
           node tests/desktop-smoke.cjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/verify_v2270.py
       - name: Preserve synthetic verification artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -111,6 +128,9 @@ jobs:
           name: MotionBench-Horizontal-Windows-${{ github.run_number }}
           path: |
             output/tests/horizontal-2.26.3/
+            output/release/2.27.0-local/acceptance/
+            output/release/2.27.0-local/verification.json
+            output/release/2.27.0-local/package-check.json
             output/playwright/horizontal-refinement/chrome/
             output/playwright/horizontal-refinement/msedge/
             output/playwright/horizontal-refinement/presentation/

@@ -10,7 +10,8 @@ const source = path.resolve(root, arg("--source", "MotionBench.html"));
 const out = path.resolve(root, arg("--artifact-dir", "output/playwright/operation-ui-227"));
 const baseline = arg("--baseline", "");
 const channel = process.argv.includes("--edge") ? "msedge" : "chrome";
-const result = { channel, sourceSHA256: createHash("sha256").update(fs.readFileSync(source)).digest("hex"), baselineCompared: !!baseline, checks: [], screenshots: [], errors: [] };
+const hash = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+const result = { channel, sourceHash:hash(source), sourceSHA256:hash(source), runnerSha256:hash(__filename), baselineCompared:!!baseline, baselineHash:baseline?hash(path.resolve(root,baseline)):null, pass:false, checks:[], screenshots:[], artifacts:[], errors:[] };
 fs.mkdirSync(out, { recursive: true });
 let browser, fixture;
 async function open(file, width = 1440, height = 1000) {
@@ -43,6 +44,7 @@ async function shot(page, name) {
   const target = path.join(out, channel + "-" + name + ".png");
   await page.screenshot({ path: target, animations: "disabled" });
   result.screenshots.push(target);
+  result.artifacts.push({ path:path.relative(root,target).replaceAll("\\","/"), kind:"screenshot", sha256:hash(target), bytes:fs.statSync(target).size });
 }
 const catalogOpen = (page, id) => page.locator(`[data-manager-action="catalog-open"][data-id="${id}"]`).click();
 async function originalExplanations(page) {
@@ -87,7 +89,7 @@ async function fitsPage(page) {
   }
   const desktop = await open(source);
   try {
-    await check("all project measurement explanations preserve their original text and calculation parameters", async () => {
+    await check(expected?"all project measurement explanations preserve their original text and calculation parameters":"catalog measurement explanations render for every configured project", async () => {
       const actual = await originalExplanations(desktop.page);
       if (expected) {
         const compact = text => text.replace(/\s/g, "");
@@ -95,7 +97,7 @@ async function fitsPage(page) {
         for (const id of Object.keys(expected)) assert.equal(compact(actual[id]), compact(expected[id]), id);
       }
     });
-    await check("operation styling leaves the complete desktop report and sidebar appearance unchanged", async () => {
+    await check(appearance?"operation styling leaves the complete desktop report and sidebar appearance unchanged":"operation classes stay outside report and sidebar roots", async () => {
       if (appearance) assert.deepEqual(await stableReportAppearance(desktop.page), appearance);
       assert.equal(await desktop.page.locator("#reportView.operation-ui,#sidebar.operation-ui").count(), 0);
     });
@@ -113,7 +115,7 @@ async function fitsPage(page) {
       });
       assert.equal(layout.ruleGap, 12); assert.equal(layout.parameterGap, 24); assert.equal(layout.chipGap, 12);
       assert.equal(layout.body, "14px"); assert.equal(layout.note, "13px"); assert.equal(layout.color, "rgb(48, 54, 61)");
-      await shot(desktop.page, "catalog-1440");
+      await shot(desktop.page, "catalog-spacing-1440");
     });
   } finally { await desktop.context.close(); }
   for (const [width, height] of [[1440, 1000], [1024, 768], [390, 844]]) {
@@ -135,6 +137,10 @@ async function fitsPage(page) {
           if (await h1.count()) assert.equal(await h1.evaluate(e => getComputedStyle(e).fontSize), "24px");
           const control = page.locator(`#${rootId} .field input:not([type=checkbox]):visible,#${rootId} .field select:visible`).first();
           if (await control.count()) assert.ok(["14px", "16px"].includes(await control.evaluate(e => getComputedStyle(e).fontSize)));
+          if(name==="creation"){
+            const radio=await page.locator(`#${rootId} input[type="radio"]:visible`).evaluateAll(nodes=>nodes.map(node=>{const box=node.getBoundingClientRect();return{width:box.width,height:box.height};}));
+            assert.ok(radio.length>0&&radio.every(box=>box.width===16&&box.height===16),JSON.stringify(radio));
+          }
           await shot(page, `${name}-${width}`);
         });
       } finally { await context.close(); }
@@ -143,5 +149,7 @@ async function fitsPage(page) {
   assert.deepEqual(result.errors, []);
 })().catch(error => { result.failure = error.stack; console.error(error.stack); process.exitCode = 1; }).finally(async () => {
   if (browser) await browser.close();
+  result.pass=!result.failure&&!result.errors.length&&result.checks.length===21;
+  if(!result.pass)process.exitCode=1;
   fs.writeFileSync(path.join(out, channel + "-results.json"), JSON.stringify(result, null, 2));
 });

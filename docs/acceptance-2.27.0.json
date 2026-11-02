@@ -1,0 +1,90 @@
+{
+  "pass": true,
+  "version": "2.27.0",
+  "desktopVersion": "2.27.0-desktop.1",
+  "verifiedAt": "2026-11-02T14:08:46.020133+00:00",
+  "scope": [
+    "取消测量方法版本的编辑和比较限制，保留旧记录的兼容读取。",
+    "统一管理、录入、创建、设置与弹窗的字号、语义颜色和间距；测量说明分段并与计算参数分组。",
+    "支持同一试次完整分段求和、同记录直线参照的COD差值及测试方案来源绑定；计算结果只读，Excel模板仅接收原始输入。",
+    "个人桌面报告保持左图右表，COD横向、纵向与仅群体报告保持上图下表；保留零值、负值、缺参照状态和其他既有指标。",
+    "以合成资料完成浏览器、实际PDF、桌面运行与打包核验。"
+  ],
+  "unitSuites": 83,
+  "unitChecks": 1228,
+  "desktopUnitSuites": 5,
+  "browserSuites": 6,
+  "browserChecks": 66,
+  "nativeChecks": 16,
+  "actualPdfExportRun": true,
+  "pdfExports": 6,
+  "pdfPages": 24,
+  "browserArtifactsVerified": 102,
+  "sourceUnchanged": true,
+  "syntheticEvidence": true,
+  "privateDataIncluded": false,
+  "artifact": {
+    "file": "MotionBench.html",
+    "bytes": 5251570,
+    "sha256": "4b97cedbd8ddb0505e73bada272f19728901ed88e12909852e76204a60019ec1"
+  },
+  "package": {
+    "archiveSha256": "bd00c2bc804e619efd6644fa981f8ae8998e39519221ba6df7954add37cad7c3",
+    "assets": 271,
+    "installerSha256": "1c3cdcb71f06cf0b17341cbae2f5be93fa3abb4d4953bdbab897e3426d61bbd3",
+    "portableSha256": "912174533007d081d67be0db1b96cc44fbf8f4ba613248b63a74f15869b49afa",
+    "updaterSha256": "6e274ba7cdcfcd68192cac534c91a7519c895d61ad05e4a6ee0be1425c0d6d01"
+  },
+  "evidence": [
+    {
+      "file": "output/release/2.27.0-local/acceptance/unit-final/unit-results.json",
+      "sha256": "3693dfb4f1c2691cbc93e4a202b48b2514f13b8d8c4c42ad897e89977bba6f28",
+      "checks": 83
+    },
+    {
+      "file": "output/release/2.27.0-local/acceptance/desktop-unit/results.json",
+      "sha256": "bf4bebf477d67e768d20e99c4dbcd3dd0a61ca431a7b7b8a20cbb92f6c67d137",
+      "checks": 5
+    },
+    {
+      "file": "output/release/2.27.0-local/acceptance/methods-chrome/chrome-results.json",
+      "sha256": "e9d95b17ef4df934ee1f4e90c1e391c5dae80924857d3bd79b18ada150064913",
+      "checks": 3
+    },
+    {
+      "file": "output/release/2.27.0-local/acceptance/operation-chrome/chrome-results.json",
+      "sha256": "df9df51791238d5c40e9d887ed08fc7d7b7cb43001d84d00fffa8f4c7c9fa6f1",
+      "checks": 21
+    },
+    {
+      "file": "output/release/2.27.0-local/acceptance/calculations-chrome/results.json",
+      "sha256": "3de5850780766225506ce39789c002515a0ce9f9b8ff79f7a70dbd68b45e0436",
+      "checks": 9
+    },
+    {
+      "file": "output/release/2.27.0-local/acceptance/methods-msedge/msedge-results.json",
+      "sha256": "f02cf2721b745b5e48020d073c27c0791fb48adfa86bb2192968ad4c471fe54a",
+      "checks": 3
+    },
+    {
+      "file": "output/release/2.27.0-local/acceptance/operation-msedge/msedge-results.json",
+      "sha256": "c31c2286dca2fed3a95b17e4aeac0fc1533bb0f34ebdb671ba993fc1510a04c3",
+      "checks": 21
+    },
+    {
+      "file": "output/release/2.27.0-local/acceptance/calculations-msedge/results.json",
+      "sha256": "64c936a8991c975a8aa20ed19f6bc3f2934da4a7b1800e44c5557781c1ab30ed",
+      "checks": 9
+    },
+    {
+      "file": "output/release/2.27.0-local/native-smoke/results.json",
+      "sha256": "0f18981a2ab3261fa0b2b2bbdd11ab32a10bd538acd1631e811c9265306ca68e",
+      "checks": 16
+    },
+    {
+      "file": "output/release/2.27.0-local/package-check.json",
+      "sha256": "8a287961110efc5f3a011f3d93f82ced8c8396523b87ce4f0ec5de0266a43c11",
+      "checks": 271
+    }
+  ]
+}

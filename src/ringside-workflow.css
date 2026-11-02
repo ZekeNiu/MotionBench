@@ -28,7 +28,9 @@
 .operation-ui h4 { font-size:var(--ui-font-body); font-weight:600; line-height:1.5; }
 .operation-ui .field { color:var(--ui-label); font-size:var(--ui-font-note); }
 .operation-ui :is(input,select,textarea) { color:var(--ink); }
-.operation-ui .check-line { font-size:var(--ui-font-body); }
+.operation-ui input:is([type="checkbox"],[type="radio"]) { width:16px; min-width:16px; height:16px; min-height:16px; flex:0 0 16px; padding:0; vertical-align:middle; }
+.operation-ui .field output { font-size:var(--ui-font-body); color:var(--ink); font-variant-numeric:tabular-nums; }
+.operation-ui .check-line { display:flex; align-items:center; gap:8px; min-height:32px; font-size:var(--ui-font-body); }
 .operation-ui .form-grid { gap:16px; margin-block:16px; }
 .operation-ui .notice { font-size:var(--ui-font-note); line-height:1.7; }
 .operation-ui .subheading { font-size:var(--ui-font-group); color:var(--ink); margin-block:24px 12px; }
