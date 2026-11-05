@@ -7,6 +7,15 @@
 .global-nav button:hover{background:#edf1f5;color:#243b51}
 .global-nav button.active,.sidebar-bottom .active{background:#e4ebf1;color:#284d6d;font-weight:650;box-shadow:none}
 .global-nav button:focus-visible{outline:2px solid #486c88;outline-offset:2px}
+.report-setup-view{max-width:1180px;padding-top:24px;padding-bottom:28px}
+.report-setup-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}
+.report-setup-heading h1{margin:0 0 6px;font-size:24px;letter-spacing:0}
+.report-setup-heading p{margin:0;color:#71808e;font-size:13px;line-height:1.65}
+.report-setup-view>:is(.report-selection-unified,#teamReportSelection){padding:18px;background:#fff;border:1px solid #dce3e9;border-radius:10px}
+.report-reading-toolbar{display:flex!important;justify-content:flex-end;min-height:58px}
+.report-reading-toolbar[hidden],.report-setup-view[hidden]{display:none!important}
+@media(max-width:650px){.report-setup-view{padding:18px 12px}.report-setup-heading{gap:10px;flex-wrap:wrap}.report-setup-view>:is(.report-selection-unified,#teamReportSelection){padding:12px}.report-reading-toolbar{padding:10px 12px}.report-reading-toolbar .report-actions{flex-wrap:wrap;justify-content:flex-end}}
+@media print{.report-setup-view{display:none!important}}
 /* Operation surfaces share one type and spacing scale; reports and navigation retain their own styles. */
 :where(.operation-ui) {
   --ui-font-page:24px;

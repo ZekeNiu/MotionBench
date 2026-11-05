@@ -6,13 +6,23 @@
   const order = (a,b) => String(a.athlete.date).localeCompare(String(b.athlete.date)) || String(a.created || '').localeCompare(String(b.created || '')) || a.recordId.localeCompare(b.recordId);
   function create(host) {
     let selection = null, model = null, document = null, rawRecords = [], sequence = 0, suspended = false, loading = false, pendingIds = null;
-    let chartSequence = 0, chartPending = 0, chartSaveBarrier = null, savedCharts;
+    let chartSequence = 0, chartPending = 0, chartSaveBarrier = null, savedCharts, pendingDocument = null;
     root.document.addEventListener('pointerdown', event => { const menu=root.document.getElementById('recordChoiceMenu');if(menu?.open&&!menu.contains(event.target))menu.open=false; });
     root.document.addEventListener('keydown', event => { const menu=root.document.getElementById('recordChoiceMenu');if(event.key==='Escape'&&menu?.open){menu.open=false;root.document.getElementById('recordChoiceLabel').focus();event.preventDefault();} });
     const active = () => !!model && !!selection && selection.recordIds.length > 1 && !suspended && host.state()?.athleteId === selection.athleteId && selection.recordIds.includes(host.state()?.recordId);
     const currentSelection = () => selection ? clone(selection) : null;
-    function clear() { sequence++; chartSequence++; selection = model = document = null; rawRecords = []; pendingIds = null; savedCharts = undefined; suspended = loading = false; }
-    function cancelPending() { sequence++; pendingIds = null; loading = false; }
+    function revertDocument(transaction) {
+      if (!transaction || transaction.adopted || transaction.reverted) return;
+      transaction.reverted = true;
+      const store = root.RingsideLongitudinalStore, value = store.get(transaction.library, transaction.key);
+      // A later edit or another request owns its own value. Revert only this
+      // request's exact staged document, never an entire stale library snapshot.
+      if (JSON.stringify(value) !== transaction.serialized) return;
+      transaction.previous ? store.put(transaction.library, transaction.previous) : store.remove(transaction.library, transaction.key);
+    }
+    function discardPendingDocument() { const transaction = pendingDocument; pendingDocument = null; revertDocument(transaction); }
+    function clear() { sequence++; chartSequence++; discardPendingDocument(); selection = model = document = null; rawRecords = []; pendingIds = null; savedCharts = undefined; suspended = loading = false; }
+    function cancelPending() { sequence++; discardPendingDocument(); pendingIds = null; loading = false; }
     function recordIds() { return selection?.recordIds || (host.state() ? [host.state().recordId] : []); }
     function renderPicker() {
       const menu = root.document.getElementById('recordChoices'), summary = root.document.getElementById('recordChoiceLabel');
@@ -37,15 +47,26 @@
       if (summaries.some(r => !r)) throw Error('所选测试记录已不存在，请重新选择。');
       if (ids.length > 1 && summaries.some(r => !validDate(r.athlete.date))) throw Error('请先补齐所选记录的有效测试日期。');
       const ticket = ++sequence;
+      discardPendingDocument();
+      const current=()=>ticket===sequence&&(!options.isCurrent||options.isCurrent());
+      let transaction = null;
       pendingIds = ids; loading = true;
       try {
       host.saveEditor();
       if (ids.length > 1) host.prepareAnchor?.();
       if (!options.restoring && !await host.save()) { renderPicker(); return false; }
-      if (ticket !== sequence) return false;
-      if (ids.length < 2) { clear(); await host.switchRecord(a, summaries[0] || null); host.remember(); return true; }
+      if (!current()) return false;
+      if (ids.length < 2) {
+        const previousSelection = selection, previousDocument = document;
+        // Ordinary switching invalidates controller requests itself. Its guard
+        // must therefore belong to the caller, not this controller's sequence.
+        const ok = await host.switchRecord(a, summaries[0] || null, {isCurrent:options.isCurrent});
+        if (!ok || options.isCurrent && !options.isCurrent()) return false;
+        if (selection === previousSelection && document === previousDocument) clear();
+        host.remember(); return true;
+      }
         const records = await Promise.all(ids.map(id => host.repository().loadRecord(id)));
-        if (ticket !== sequence) return false;
+        if (!current()) return false;
         if (records.some(r => !r || r.deletedAt || r.archived || r.athleteId !== athleteId)) throw Error('所选测试记录已变化，请重新选择。');
         records.sort(order);
         const latest = records.at(-1), store = root.RingsideLongitudinalStore;
@@ -55,7 +76,7 @@
         const profile = profileId === "" ? null : lib.evaluationProfiles.find(p => p.id === profileId);
         if (typeof profileId !== "string" || profileId && !profile) throw Error("请选择可用的评价方案");
         const built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog, views:saved?.views || {}});
-        if (ticket !== sequence) return false;
+        if (!current()) return false;
         host.cancelAI();
         const stamp = new Date().toISOString();
         const nextSelection = {athleteId, recordIds:records.map(r => r.recordId), mode};
@@ -64,19 +85,30 @@
           narrative:saved?.narrative || {text:'',html:'',revision:0,basis:'',origin:'manual'}, basis:built.fingerprint || built.basis,
           created:saved?.created || stamp, updated:stamp, revision:saved?.revision || 0});
         store.put(lib, nextDocument);
-        if (!options.restoring && !await host.save()) {
-          if (ticket === sequence) { saved ? store.put(lib,saved) : store.remove(lib,nextDocument.key); }
-          return false;
-        }
-        if (ticket !== sequence) return false;
-        if (!options.restoring && host.state()?.recordId !== latest.recordId && !await host.switchRecord(a, latest, {longitudinal:true})) return false;
-        if (ticket !== sequence) return false;
+        transaction = {library:lib,key:nextDocument.key,previous:saved,serialized:JSON.stringify(store.get(lib,nextDocument.key)),saveAttempted:false,adopted:false,reverted:false};
+        pendingDocument = transaction;
+        if (!options.restoring) { transaction.saveAttempted = true; if (!await host.save()) return false; }
+        if (!current()) return false;
+        if (!options.restoring && host.state()?.recordId !== latest.recordId && !await host.switchRecord(a, latest, {longitudinal:true,isCurrent:current})) return false;
+        if (!current()) return false;
         selection = nextSelection; document = nextDocument; rawRecords = records; model = built; suspended = false;
+        transaction.adopted = true; if (pendingDocument === transaction) pendingDocument = null;
         savedCharts = document.views.charts === undefined ? undefined : clone(document.views.charts);
         host.prepareAnchor?.();
         host.restoreView?.(document.views);
-        host.render(); host.remember(); return true;
-      } finally { if (ticket === sequence) { loading = false; pendingIds = null; renderPicker(); } }
+        host.activate?.();host.render(); host.remember(); return true;
+      } finally {
+        try {
+          if (transaction && !transaction.adopted) {
+            revertDocument(transaction);
+            if (pendingDocument === transaction) pendingDocument = null;
+            // Cancellation can occur after the repository captured the staged
+            // document. Flush the current library after that save settles.
+            if (transaction.saveAttempted && host.library() === lib && !await host.save({readOnlyRecord:true}))
+              throw Error('原纵向报告已保留，但撤回未完成选择的保存失败，请重试保存。');
+          }
+        } finally { if (ticket === sequence) { loading = false; pendingIds = null; renderPicker(); } }
+      }
     }
     async function refresh() {
       if (!selection) return;

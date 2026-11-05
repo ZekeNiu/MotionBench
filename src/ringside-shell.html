@@ -38,6 +38,9 @@
           <span class="nav-label">日常使用</span>
           <button data-workspace-nav="entry" onclick="App.startDataEntry()">数据录入</button>
           <button data-workspace-nav="records" onclick="App.openManagement('records')">测试记录</button>
+          <span class="nav-label">测试报告</span>
+          <button data-report-family="personal" onclick="App.openReportSetup('personal')">个人报告</button>
+          <button data-report-family="team" onclick="App.openReportSetup('team')">团队报告</button>
           <span class="nav-label">人员管理</span>
           <button data-workspace-nav="teams" onclick="App.openManagement('teams')">队伍管理</button>
           <button data-workspace-nav="athletes" onclick="App.openManagement('athletes')">运动员管理</button>
@@ -80,7 +83,8 @@
             返回报告</button>
         </div>
       </header>
-      <section id="reportToolbar" class="report-toolbar no-print" aria-label="选择与导出本次测试">
+      <section id="reportSetupView" class="wrap workspace-view report-setup-view operation-ui" hidden aria-labelledby="reportSetupTitle">
+        <header class="report-setup-heading"><div><h1 id="reportSetupTitle">个人报告</h1><p id="reportSetupDescription">选择报告方式、运动员和测试记录。</p></div></header>
       <div id="reportControls" class="report-selection-unified"><div id="reportSelection"></div>
       <div hidden aria-hidden="true">
         <div class="report-field report-team"><label for="reportGroupFilter">队伍</label><select id="reportGroupFilter" onchange="App.selectReportGroup(this.value)"><option value="">全部队伍</option></select></div>
@@ -99,10 +103,13 @@
           <details id="recordChoiceMenu" class="record-choice-menu"><summary id="recordChoiceLabel">选择测试记录</summary><div id="recordChoices" class="record-choices" aria-label="选择测试记录"></div></details>
         </div>
       </div></div>
-        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">报告 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">报告数据 JSON</button></div></details></div>
+        <div id="teamReportSelection" hidden></div>
+      </section>
+      <section id="reportToolbar" class="report-toolbar report-reading-toolbar no-print" aria-label="报告操作">
+        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="adjustReportButton" type="button" class="btn small" data-adjust-report onclick="App.adjustCurrentReport()">调整当前报告</button><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">报告 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">报告数据 JSON</button></div></details></div>
       </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
-      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button></div></section>
+      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>从侧栏选择个人报告或团队报告，再选择人员与测试记录。</p><div class="row"><button class="btn primary" onclick="App.openReportSetup('personal')">选择报告</button><button class="btn" onclick="App.startDataEntry()">开始数据录入</button></div></section>
       <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
         <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
         <div class="row">

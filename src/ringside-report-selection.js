@@ -4,50 +4,75 @@
   const uid=()=>"reference-"+(root.crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2));
   const opt=(value,label,current)=>`<option value="${E(value)}"${value===current?" selected":""}>${E(label)}</option>`;
   const dates=[["","请选择日期范围"],["recent7","过去七天"],["recent14","过去十四天"],["recent30","过去三十天"],["recent90","过去九十天"],["recent12","过去一年"],["custom","自定日期"],["all","全部历史"]];
+  const analysisModes=[["single","单次报告"],["horizontal","横向比较"],["longitudinal","纵向比较"]];
+  const validAnalysisMode=value=>analysisModes.some(([key])=>key===value);
+  const inferAnalysisMode=draft=>draft.references?.length||draft.athletes?.length>1?"horizontal":draft.athletes?.[0]?.recordIds?.length>1?"longitudinal":"single";
   function state(initial={}) {
     let draft={athletes:[],references:[],mode:"best",profileId:"",...copy(initial)},history={};
-    const multiple=()=>draft.athletes.length>1||draft.references.length>0;
-    function remember(){if(!multiple())for(const person of draft.athletes)if(person.recordIds.length>1)history[person.athleteId]=[...person.recordIds];}
-    function restore(){if(!multiple()&&draft.athletes.length===1){const person=draft.athletes[0];if(history[person.athleteId])person.recordIds=[...history[person.athleteId]];}}
+    const explicit=()=>validAnalysisMode(draft.analysisMode),analysisMode=()=>explicit()?draft.analysisMode:inferAnalysisMode(draft),multiple=()=>analysisMode()==="horizontal";
+    function remember(){if(!explicit()&&!multiple())for(const person of draft.athletes)if(person.recordIds.length>1)history[person.athleteId]=[...person.recordIds];}
+    function restore(){if(!explicit()&&!multiple()&&draft.athletes.length===1){const person=draft.athletes[0];if(history[person.athleteId])person.recordIds=[...history[person.athleteId]];}}
     return {
       get:()=>copy(draft), multiple,
+      analysisMode(value){if(value===undefined)return analysisMode();if(!validAnalysisMode(value))return false;draft.analysisMode=value;history={};return true;},
       replace(value){draft={athletes:[],references:[],mode:"best",profileId:"",...copy(value)};history={};},
       athlete(id,selected){remember();if(selected&&!draft.athletes.some(p=>p.athleteId===id))draft.athletes.push({athleteId:id,recordIds:[]});if(!selected){draft.athletes=draft.athletes.filter(p=>p.athleteId!==id);restore();}},
-      record(athleteId,recordId,selected){const person=draft.athletes.find(p=>p.athleteId===athleteId);if(!person)return;if(multiple())person.recordIds=selected?[recordId]:[];else person.recordIds=selected?[...new Set([...person.recordIds,recordId])]:person.recordIds.filter(id=>id!==recordId);},
+      record(athleteId,recordId,selected){const person=draft.athletes.find(p=>p.athleteId===athleteId);if(!person)return;const chooseOne=explicit()?analysisMode()!=="longitudinal"&&person.recordIds.length<=1:multiple();if(chooseOne)person.recordIds=selected?[recordId]:[];else person.recordIds=selected?[...new Set([...person.recordIds,recordId])]:person.recordIds.filter(id=>id!==recordId);},
       reference(value){remember();draft.references.push(copy(value));},
       removeReference(id){draft.references=draft.references.filter(ref=>ref.id!==id);restore();},
       update(fn){fn(draft);},
-      status(){if(!draft.athletes.length&&!draft.references.length)return "empty";if(draft.athletes.some(p=>!p.recordIds.length))return "missing-record";if(multiple()&&draft.athletes.some(p=>p.recordIds.length!==1))return "choose-one";return "ready";}
+      status(){
+        if(explicit()){
+          const mode=analysisMode();
+          if(mode!=="horizontal"&&draft.references.length)return "references-not-supported";
+          if(!draft.athletes.length&&!draft.references.length)return "empty";
+          if(mode!=="horizontal"&&draft.athletes.length!==1)return "choose-athlete";
+          if(mode==="horizontal"&&!draft.references.length&&draft.athletes.length<2)return "missing-comparison";
+          if(draft.athletes.some(p=>!p.recordIds.length))return "missing-record";
+          if(mode==="longitudinal"&&draft.athletes[0].recordIds.length<2)return "choose-many";
+          if(mode!=="longitudinal"&&draft.athletes.some(p=>p.recordIds.length!==1))return "choose-one";
+          return "ready";
+        }
+        if(!draft.athletes.length&&!draft.references.length)return "empty";if(draft.athletes.some(p=>!p.recordIds.length))return "missing-record";if(multiple()&&draft.athletes.some(p=>p.recordIds.length!==1))return "choose-one";return "ready";
+      }
     };
   }
   function create(host){
     const selection=state(),field=(label,input)=>`<label class="field"><span>${E(label)}</span>${input}</label>`;
-    let initialized=false,dirty=false,applying=0,applyingSequence=0,sequence=0,query="",group="",error="",conflicts=[],panel="",settingsOpen=false,sourceIdentity="",editingReportId=null;
+    let initialized=false,dirty=false,applying=0,applyingSequence=0,sequence=0,query="",group="",error="",conflicts=[],panel="",settingsOpen=false,sourceIdentity="",editingReportId=null,baseline=null,sessionActive=false;
     let referenceDraft=null,referenceError="",referenceReturnId="";
     const library=()=>host.library(),identity=()=>host.identity?.()||"",dialog=()=>root.document.getElementById("reportReferenceDialog");
     const athleteName=id=>{const a=library().athletes.find(a=>a.id===id);return a?.name||a?.profile?.name||"运动员不可用";};
+    function fromConfiguration(config){
+      const athletes=config.athletes?copy(config.athletes):config.participants?(config.participants||[]).map(p=>({athleteId:p.athleteId,recordIds:p.recordIds?[...p.recordIds]:p.recordId?[p.recordId]:[]})):config.athleteId?[{athleteId:config.athleteId,recordIds:[...(config.recordIds||[])]}]:[];
+      const value={...copy(config),athletes,references:(config.references||[]).map(r=>({...copy(r),explicitConditions:true,window:copy(r.window||config.window||{kind:"",from:"",to:""})}))};
+      value.analysisMode=validAnalysisMode(value.analysisMode)?value.analysisMode:config.participants?"horizontal":inferAnalysisMode(value);return value;
+    }
     function fromCurrent(){
       const config=host.configuration?.(),single=host.current?.(),long=host.longitudinal?.();
-      return config?{...copy(config),athletes:(config.participants||[]).map(p=>({athleteId:p.athleteId,recordIds:[p.recordId]})),references:(config.references||[]).map(r=>({...copy(r),explicitConditions:true,window:copy(r.window||config.window||{kind:"",from:"",to:""})}))}:{athletes:long?[{athleteId:long.athleteId,recordIds:[...long.recordIds]}]:single?[{athleteId:single.athleteId,recordIds:[single.recordId]}]:[],references:[],mode:single?.mode||"best",profileId:single&&Object.hasOwn(single,"evaluationProfileId")?single.evaluationProfileId:library()?.defaultEvaluationProfileId||""};
+      const profileId=long&&Object.hasOwn(long,"profileId")?long.profileId:long&&Object.hasOwn(long,"evaluationProfileId")?long.evaluationProfileId:single&&Object.hasOwn(single,"evaluationProfileId")?single.evaluationProfileId:library()?.defaultEvaluationProfileId||"";
+      return config?fromConfiguration(config):fromConfiguration({athletes:long?[{athleteId:long.athleteId,recordIds:[...long.recordIds]}]:single?[{athleteId:single.athleteId,recordIds:[single.recordId]}]:[],references:[],mode:long?.mode||single?.mode||"best",profileId});
     }
     function sync(force=false){
       if(!library())return;
+      if(sessionActive)return;
       if(force||!initialized||!dirty&&!applying&&!referenceDraft&&sourceIdentity!==identity()){
-        selection.replace(fromCurrent());sourceIdentity=identity();editingReportId=host.configuration?.()?host.reportId?.():null;initialized=true;
+        selection.replace(fromCurrent());baseline=selection.get();sourceIdentity=identity();editingReportId=host.configuration?.()?host.reportId?.():null;initialized=true;
       }
     }
     function changed({preserveConflicts=false}={}){dirty=true;error="";if(!preserveConflicts)conflicts=[];sequence++;host.cancelPending?.();render();}
     function closePanel(restoreFocus=false){const previous=panel;panel="";render();if(restoreFocus&&previous)host.element?.()?.querySelector(`[data-selection-toggle="${previous}"]`)?.focus({preventScroll:true});}
     async function apply(){
       const status=selection.status();
-      if(applying&&applyingSequence===sequence||referenceDraft||status!=="ready"&&status!=="empty"){render();return false;}
+      if(applying&&applyingSequence===sequence||referenceDraft||status!=="ready"){render();return false;}
       const ticket=++sequence,value=selection.get();applying++;applyingSequence=ticket;error="";render();
       try{
         for(const ref of value.references){if(!ref.window?.kind)throw Error("请为群体选择日期范围");ref.window=root.RingsideHorizontalSetup.dateWindow(ref.window.kind,ref.window.from,ref.window.to,ref.window.to||undefined);}
         value.references=root.RingsideHorizontalSetup.resolveReferences(value.references,{athletes:library().athletes,classifications:root.RingsideClassifications.normalize(library().classifications||{}),groups:library().groups||[]});
-        const ok=await host.select(value,{isCurrent:()=>ticket===sequence,reportId:editingReportId});
+        const options={isCurrent:()=>ticket===sequence,reportId:editingReportId,analysisMode:value.analysisMode};
+        const ok=await host.select(value,options);
         if(ticket!==sequence)return false;
-        if(ok){dirty=false;error="";conflicts=[];panel="";sourceIdentity=identity();editingReportId=host.reportId?.()||null;selection.update(d=>{d.references=copy(value.references);});}
+        if(ok){dirty=false;error="";conflicts=[];panel="";sourceIdentity=identity();editingReportId=host.reportId?.()||null;selection.update(d=>{d.references=copy(value.references);});await host.onApplied?.(value,options);}
         else if(!conflicts.length)error="选择尚未应用，请检查提示后重试。";
         return ok;
       }catch(e){if(ticket===sequence)error=e.message||String(e);return false;}
@@ -55,7 +80,8 @@
     }
     function personHTML(person){
       const athlete=library().athletes.find(a=>a.id===person.athleteId),records=(athlete?.records||[]).filter(r=>!r.deletedAt&&!r.archived).sort((a,b)=>String(b.athlete?.date||"").localeCompare(a.athlete?.date||"")||a.recordId.localeCompare(b.recordId));
-      return `<section class="selection-person" data-person="${E(person.athleteId)}"><h3>${E(athleteName(person.athleteId))}<small>${selection.multiple()?"请选择一条测试记录":"可选择多条，查看纵向比较"}</small></h3><div class="selection-records">${selection.multiple()&&person.recordIds.length>1?'<p class="notice">已保留原纵向选择；请指定本次横向比较使用的一条记录。</p>':""}${records.map(r=>`<label><input type="${selection.multiple()?"radio":"checkbox"}" name="record-${E(person.athleteId)}" data-select-record="${E(r.recordId)}"${person.recordIds.includes(r.recordId)&&(!selection.multiple()||person.recordIds.length===1)?" checked":""}><span>${E(r.athlete?.date||"未填日期")}<small>${E(r.title||"测试记录")} · ${E(r.recordId.slice(-6))}</small></span></label>`).join("")||'<p class="empty">尚无测试记录，请先录入数据。</p>'}</div></section>`;
+      const longitudinal=selection.analysisMode()==="longitudinal",incompatible=!longitudinal&&person.recordIds.length>1;
+      return `<section class="selection-person" data-person="${E(person.athleteId)}"><h3>${E(athleteName(person.athleteId))}<small>${longitudinal?"请选择至少两条测试记录":"请选择一条测试记录"}</small></h3><div class="selection-records">${incompatible?'<p class="notice">已保留多条记录；请取消多余记录，保留本次使用的一条。</p>':""}${records.map(r=>`<label><input type="${longitudinal||incompatible?"checkbox":"radio"}" name="record-${E(person.athleteId)}" data-select-record="${E(r.recordId)}"${person.recordIds.includes(r.recordId)?" checked":""}><span>${E(r.athlete?.date||"未填日期")}<small>${E(r.title||"测试记录")} · ${E(r.recordId.slice(-6))}</small></span></label>`).join("")||'<p class="empty">尚无测试记录，请先录入数据。</p>'}</div></section>`;
     }
     function objectSummary(draft){
       const names=draft.athletes.map(p=>athleteName(p.athleteId)),people=names.length===1?names[0]:names.length?`${names.length} 名运动员`:"";
@@ -69,22 +95,23 @@
     }
     function render(){
       const node=host.element?.();if(!node||!library())return;sync();
-      const team=host.team?.();
-      if(team){
-        const config=team.configuration,window=config.window||{};
-        node.innerHTML=`<div class="selection-row"><button type="button" class="selection-trigger" data-edit-team><span>团队报告 · ${config.participants.length} 人</span><strong>${E(team.title)}</strong><i aria-hidden="true">⌄</i></button><button type="button" class="selection-trigger" data-edit-team><span>测试日期</span><strong>${E(window.from===window.to?window.from:window.from+' — '+window.to)}</strong><i aria-hidden="true">⌄</i></button><div class="selection-submit"><button type="button" class="btn small" data-create-team>新建团队报告</button><button type="button" class="btn small" data-leave-team>其他报告</button></div></div>`;
-        node.querySelectorAll('[data-edit-team]').forEach(el=>el.onclick=()=>host.editTeam?.());
-        node.querySelector('[data-create-team]').onclick=()=>host.openTeam?.();
-        node.querySelector('[data-leave-team]').onclick=()=>host.leaveTeam?.();return;
-      }
       const draft=selection.get(),q=query.trim().toLocaleLowerCase(),selected=new Set(draft.athletes.map(p=>p.athleteId)),classes=root.RingsideClassifications.normalize(library().classifications||{});
       const people=library().athletes.filter(a=>!a.deletedAt&&!a.archived&&(!group||a.groupId===group)&&(!q||[a.name,a.id,root.RingsideClassifications.resolve(a.profile||{},classes).sportName].join(" ").toLocaleLowerCase().includes(q)));
       const focused=root.document.activeElement,searchFocused=focused?.dataset?.selectionSearch!==undefined,position=focused?.selectionStart;
-      const status=selection.status(),currentApplying=!!applying&&applyingSequence===sequence,note=status==="choose-one"?"多人或群体比较中，每名运动员请选择一条真实测试记录。":status==="missing-record"?"请展开测试记录，为每名运动员选择测试日期。":dirty?"选择尚未应用，点击“查看报告”后更新。":"";
+      const status=selection.status(),currentApplying=!!applying&&applyingSequence===sequence,messages={
+        "empty":draft.analysisMode==="horizontal"?"请选择至少两名运动员，或添加群体参照。":"请选择一名运动员及其测试记录。",
+        "choose-athlete":"已保留所选运动员；当前分析方式只适用于一人，请移除其他运动员或切换为横向比较。",
+        "references-not-supported":"已保留群体参照；当前分析方式不使用群体参照，请移除参照或切换为横向比较。",
+        "missing-comparison":"横向比较需要至少两名运动员，或添加群体参照。",
+        "choose-one":"已保留多条测试记录；当前分析方式每人只使用一条，请取消多余记录。",
+        "choose-many":"纵向比较需要同一名运动员的至少两条测试记录。",
+        "missing-record":"请展开测试记录，为每名运动员选择测试日期。"
+      },note=messages[status]||(dirty?"选择尚未应用，点击“查看报告”后更新。":"");
       if(panel==="records"&&!draft.athletes.length)panel="";
       const button=(key,label,value,disabled=false)=>`<button type="button" class="selection-trigger" data-selection-toggle="${key}" aria-expanded="${panel===key}" aria-controls="reportSelection-${key}"${disabled?" disabled":""}><span>${label}</span><strong>${E(value)}</strong><i aria-hidden="true">⌄</i></button>`;
-      node.innerHTML=`<div class="selection-row">${button("athletes","选择运动员",objectSummary(draft))}${button("records","测试记录",recordSummary(draft),!draft.athletes.length)}<div class="selection-submit"><button type="button" class="btn primary small" data-apply-selection${currentApplying||!["ready","empty"].includes(status)?" disabled":""}>${currentApplying?"正在更新…":"查看报告"}</button><button type="button" class="btn small" data-revert-selection${!dirty?" disabled":""}>撤销选择</button>${selection.multiple()?`<button type="button" class="text-btn selection-settings-toggle" data-selection-settings-toggle aria-expanded="${settingsOpen}" aria-controls="reportSelection-settings">报告设置</button>`:""}</div></div><section id="reportSelection-athletes" class="selection-panel" data-selection-panel="athletes" aria-label="选择报告对象"${panel==="athletes"?"":" hidden"}><div class="selection-panel-head"><strong>选择报告对象</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-picked">${draft.athletes.map(p=>`<span class="selection-chip"><span>${E(athleteName(p.athleteId))}</span><button type="button" data-remove-athlete="${E(p.athleteId)}" aria-label="移除 ${E(athleteName(p.athleteId))}">×</button></span>`).join("")}${draft.references.map(ref=>`<span class="selection-chip selection-cohort"><button type="button" data-edit-reference="${E(ref.id)}">${E(ref.label||"群体参照")}</button><button type="button" data-remove-reference="${E(ref.id)}" aria-label="移除群体 ${E(ref.label||"群体参照")}">×</button></span>`).join("")}</div><button type="button" class="selection-reference-action" data-add-reference><span>群体参照</span><small>按成员条件与统计日期配置</small><b aria-hidden="true">＋</b></button><div class="selection-search"><input type="search" data-selection-search value="${E(query)}" placeholder="搜索姓名、专项或编号" aria-label="搜索运动员"><select data-selection-group aria-label="筛选队伍">${opt("","全部队伍",group)}${(library().groups||[]).map(g=>opt(g.id,g.name,group)).join("")}</select></div><div class="selection-athletes">${people.slice(0,80).map(a=>`<label><input type="checkbox" data-select-athlete="${E(a.id)}"${selected.has(a.id)?" checked":""}><span>${E(a.name||a.profile?.name)}<small>${E(library().groups?.find(g=>g.id===a.groupId)?.name||a.id.slice(-6))}</small></span></label>`).join("")||'<p class="empty">没有匹配的运动员</p>'}</div>${people.length>80?'<p class="muted">请搜索姓名或选择队伍以缩小范围。</p>':""}</section><section id="reportSelection-records" class="selection-panel" data-selection-panel="records" aria-label="选择测试记录"${panel==="records"?"":" hidden"}><div class="selection-panel-head"><strong>选择测试记录</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-people">${draft.athletes.map(personHTML).join("")}</div></section>${selection.multiple()?`<section id="reportSelection-settings" class="selection-options"${settingsOpen?"":" hidden"}>${field("统一评价方案",`<select data-profile>${opt("","不使用评价方案",draft.profileId)}${draft.profileId&&!(library().evaluationProfiles||[]).some(p=>p.id===draft.profileId)?`<option value="${E(draft.profileId)}" selected disabled>评价方案已不可用</option>`:""}${(library().evaluationProfiles||[]).filter(p=>!p.disabled||p.id===draft.profileId).map(p=>opt(p.id,p.name,draft.profileId)).join("")}</select>`)}${field("报告名称（可选）",`<input data-report-title value="${E(draft.title||"")}" placeholder="随报告重点生成">`)}</section>`:""}<p class="selection-status" role="status">${E(error||(currentApplying?"正在更新报告…":note))}</p>`;
-      if(host.openTeam){const button=root.document.createElement('button');button.type='button';button.className='btn small';button.dataset.createTeam='';button.textContent='团队报告';button.onclick=()=>host.openTeam();node.querySelector('.selection-submit').append(button);}
+      node.innerHTML=`<div class="selection-row"><label class="selection-analysis"><span>分析方式</span><select data-analysis-mode aria-label="分析方式">${analysisModes.map(([key,label])=>opt(key,label,draft.analysisMode)).join("")}</select></label>${button("athletes","选择运动员",objectSummary(draft))}${button("records","测试记录",recordSummary(draft),!draft.athletes.length)}<div class="selection-submit"><button type="button" class="btn primary small" data-apply-selection${currentApplying||status!=="ready"?" disabled":""}>${currentApplying?"正在更新…":"查看报告"}</button><button type="button" class="btn small" data-revert-selection${!dirty?" disabled":""}>撤销选择</button><button type="button" class="btn small" data-cancel-selection>取消</button>${draft.analysisMode!=="single"?`<button type="button" class="text-btn selection-settings-toggle" data-selection-settings-toggle aria-expanded="${settingsOpen}" aria-controls="reportSelection-settings">报告设置</button>`:""}</div></div><section id="reportSelection-athletes" class="selection-panel" data-selection-panel="athletes" aria-label="选择报告对象"${panel==="athletes"?"":" hidden"}><div class="selection-panel-head"><strong>选择报告对象</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-picked">${draft.athletes.map(p=>`<span class="selection-chip"><span>${E(athleteName(p.athleteId))}</span><button type="button" data-remove-athlete="${E(p.athleteId)}" aria-label="移除 ${E(athleteName(p.athleteId))}">×</button></span>`).join("")}${draft.references.map(ref=>`<span class="selection-chip selection-cohort"><button type="button" data-edit-reference="${E(ref.id)}">${E(ref.label||"群体参照")}</button><button type="button" data-remove-reference="${E(ref.id)}" aria-label="移除群体 ${E(ref.label||"群体参照")}">×</button></span>`).join("")}</div><button type="button" class="selection-reference-action" data-add-reference${draft.analysisMode!=="horizontal"?" hidden":""}><span>群体参照</span><small>按成员条件与统计日期配置</small><b aria-hidden="true">＋</b></button><div class="selection-search"><input type="search" data-selection-search value="${E(query)}" placeholder="搜索姓名、专项或编号" aria-label="搜索运动员"><select data-selection-group aria-label="筛选队伍">${opt("","全部队伍",group)}${(library().groups||[]).map(g=>opt(g.id,g.name,group)).join("")}</select></div><div class="selection-athletes">${people.slice(0,80).map(a=>`<label><input type="checkbox" data-select-athlete="${E(a.id)}"${selected.has(a.id)?" checked":""}><span>${E(a.name||a.profile?.name)}<small>${E(library().groups?.find(g=>g.id===a.groupId)?.name||a.id.slice(-6))}</small></span></label>`).join("")||'<p class="empty">没有匹配的运动员</p>'}</div>${people.length>80?'<p class="muted">请搜索姓名或选择队伍以缩小范围。</p>':""}</section><section id="reportSelection-records" class="selection-panel" data-selection-panel="records" aria-label="选择测试记录"${panel==="records"?"":" hidden"}><div class="selection-panel-head"><strong>选择测试记录</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-people">${draft.athletes.map(personHTML).join("")}</div></section>${draft.analysisMode!=="single"?`<section id="reportSelection-settings" class="selection-options"${settingsOpen?"":" hidden"}>${field("统一评价方案",`<select data-profile>${opt("","不使用评价方案",draft.profileId)}${draft.profileId&&!(library().evaluationProfiles||[]).some(p=>p.id===draft.profileId)?`<option value="${E(draft.profileId)}" selected disabled>评价方案已不可用</option>`:""}${(library().evaluationProfiles||[]).filter(p=>!p.disabled||p.id===draft.profileId).map(p=>opt(p.id,p.name,draft.profileId)).join("")}</select>`)}${field("报告名称（可选）",`<input data-report-title value="${E(draft.title||"")}" placeholder="随报告重点生成">`)}</section>`:""}<p class="selection-status" role="status">${E(error||(currentApplying?"正在更新报告…":note))}</p>`;
+      node.querySelector("[data-analysis-mode]").onchange=event=>{selection.analysisMode(event.target.value);changed();node.querySelector("[data-analysis-mode]")?.focus({preventScroll:true});};
+      node.querySelector("[data-cancel-selection]").onclick=()=>host.onCancel?.();
       node.querySelectorAll("[data-selection-toggle]").forEach(button=>button.onclick=()=>{const key=button.dataset.selectionToggle;panel=panel===key?"":key;settingsOpen=false;render();node.querySelector(`[data-selection-toggle="${key}"]`)?.focus({preventScroll:true});});
       node.querySelectorAll("[data-selection-close]").forEach(button=>button.onclick=()=>closePanel(true));
       node.querySelector("[data-selection-search]").oninput=e=>{query=e.target.value;render();};
@@ -151,12 +178,21 @@
         finishReference();changed({preserveConflicts:true});
       }catch(error){referenceError=error.message||String(error);dialog().querySelector("[data-reference-error]").textContent=referenceError;}
     }
-    function reset(){sequence++;host.cancelPending?.();dirty=false;initialized=false;conflicts=[];error="";panel="";settingsOpen=false;referenceDraft=null;referenceReturnId="";dialog()?.close();sync(true);render();}
+    function clearDraftUI(){dirty=false;conflicts=[];error="";panel="";settingsOpen=false;referenceDraft=null;referenceError="";referenceReturnId="";dialog()?.close();}
+    function begin({intent="new",configuration,analysisMode}={}){
+      sequence++;host.cancelPending?.();clearDraftUI();query="";group="";sessionActive=true;
+      const value=intent==="edit"?(configuration?fromConfiguration(configuration):fromCurrent()):{athletes:[],references:[],mode:"best",profileId:library()?.defaultEvaluationProfileId||"",analysisMode:"single"};
+      if(validAnalysisMode(analysisMode))value.analysisMode=analysisMode;
+      selection.replace(value);baseline=selection.get();sourceIdentity=identity();editingReportId=intent==="edit"?(configuration?.reportId||configuration?.id||host.reportId?.()||null):null;initialized=true;
+      render();return selection.get();
+    }
+    function cancel(){sequence++;clearDraftUI();sessionActive=false;initialized=false;baseline=null;editingReportId=null;sourceIdentity="";selection.replace({analysisMode:"single"});return true;}
+    function reset(){sequence++;host.cancelPending?.();clearDraftUI();if(sessionActive&&baseline)selection.replace(baseline);else{initialized=false;sync(true);}render();}
     root.document?.addEventListener("pointerdown",event=>{if(panel&&!host.element?.()?.contains(event.target))closePanel();});
     root.document?.addEventListener("keydown",event=>{if(event.key==="Escape"&&panel&&!dialog()?.open){event.preventDefault();closePanel(true);}});
-    return {render,apply,sync,state:()=>selection.get(),isPending:()=>!!applying,desktopCloseStatus:()=>({busy:!!applying,unsaved:dirty||!!referenceDraft}),
+    return {render,apply,sync,begin,cancel,state:()=>selection.get(),isPending:()=>!!applying,desktopCloseStatus:()=>({busy:!!applying,unsaved:dirty||!!referenceDraft}),
       showConflicts(value){conflicts=copy(value);error="以下指标适用多个评价标准，请明确选定群体统一标准。";render();if(conflicts.length)openReference(conflicts[0].referenceId);},
-      edit(configuration){sync(true);if(configuration)selection.replace({...copy(configuration),athletes:(configuration.participants||[]).map(p=>({athleteId:p.athleteId,recordIds:[p.recordId]})),references:(configuration.references||[]).map(r=>({...copy(r),explicitConditions:true,window:copy(r.window||configuration.window||{kind:""})}))});editingReportId=host.reportId?.()||null;dirty=true;panel="athletes";render();host.element?.()?.scrollIntoView({behavior:"smooth",block:"start"});},reset};
+      edit(configuration){return begin({intent:"edit",configuration});},reset};
   }
   root.RingsideReportSelection={state,create};
 })(typeof window!=="undefined"?window:globalThis);

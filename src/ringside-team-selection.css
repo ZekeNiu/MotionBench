@@ -1,14 +1,28 @@
-.team-selection-dialog{width:min(980px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:0;border:1px solid var(--line);border-radius:12px;color:var(--ink);background:var(--paper,#fff);box-shadow:0 20px 70px #26374733}
-.team-selection-dialog::backdrop{background:#172a3b66}
-.team-selection-dialog .modal-head,.team-selection-dialog .modal-foot{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:18px 24px;background:var(--paper,#fff)}
-.team-selection-dialog .modal-head{border-bottom:1px solid var(--line)}
-.team-selection-dialog .modal-foot{justify-content:flex-end;border-top:1px solid var(--line)}
-.team-selection-dialog h2{margin:0;font-size:19px}.team-selection-dialog h3{font-size:14px;margin:0 0 10px}.team-selection-dialog h3 small{font-weight:400;margin-left:8px;color:var(--muted)}
-.team-selection-body{padding:20px 24px;max-height:calc(100dvh - 210px);overflow:auto;overscroll-behavior:contain}
-.team-selection-body .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
-.team-selection-body .field{display:grid;gap:6px;min-width:0;font-size:12px}.team-selection-body input,.team-selection-body select{width:100%;min-width:0;box-sizing:border-box}
-.team-selection-members{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(250px,1.2fr);gap:24px;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
-.team-selection-members>section{min-width:0}.team-member-options{display:grid;gap:4px;max-height:360px;overflow:auto;margin-top:10px}
-.team-member-options label{display:flex;gap:9px;align-items:center;padding:7px 5px;font-size:12px}.team-member-options input{width:16px;height:16px;min-height:0;accent-color:var(--green)}
-.team-member-options small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.team-record-options{display:grid;gap:14px;max-height:410px;overflow:auto}.team-record-options .field>span small{font-size:10px;color:var(--muted)}
-@media(max-width:650px){.team-selection-body,.team-selection-dialog .modal-head,.team-selection-dialog .modal-foot{padding:16px}.team-selection-members{grid-template-columns:minmax(0,1fr)}.team-selection-body .form-grid{grid-template-columns:minmax(0,1fr)}.team-member-options{max-height:180px}}
+#teamReportSelection{width:100%;min-width:0}
+.team-selection-form{display:flex;flex-direction:column;min-width:0;min-height:0;margin:0;color:var(--ink)}
+.team-selection-actions{position:sticky;top:0;z-index:2;flex:none;padding:0 0 10px;background:var(--paper,#fff)}
+.team-selection-actions .selection-status{margin:8px 0 0;min-height:19px}
+.team-selection-content{max-height:min(660px,calc(100dvh - 270px));min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.team-selection-content>.selection-panel{margin-top:0;max-height:none;overflow:visible}
+.team-selection-content>.selection-panel[hidden]{display:none}
+.team-selection-form .field{display:grid;gap:6px;min-width:0;font-size:12px}
+.team-selection-form input,.team-selection-form select{width:100%;min-width:0;box-sizing:border-box}
+.team-selection-form input[type=checkbox]{width:16px;height:16px;flex:none;min-height:0;margin:0;accent-color:var(--green)}
+.team-selection-form button:focus-visible,.team-selection-form input:focus-visible,.team-selection-form select:focus-visible{outline:2px solid #7393ad;outline-offset:2px}
+.team-member-search,.team-selection-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px}
+.team-selection-settings>.field:last-child{grid-column:1/-1}
+.team-member-group{margin-top:16px;padding-top:12px;border-top:1px solid var(--line,#dfe3e8)}
+.team-member-group h3,.team-record-person h3{font-size:13px;font-weight:600;line-height:1.6;margin:0 0 7px;overflow-wrap:anywhere}
+.team-member-group h3 small{font-size:11px;font-weight:400;color:var(--muted);margin-left:6px}
+.team-member-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:2px 12px}
+.team-member-options label{display:flex;align-items:center;gap:9px;min-width:0;padding:9px 4px;font-size:13px;cursor:pointer}
+.team-member-options label>span{min-width:0;overflow-wrap:anywhere}
+.team-member-options small,.team-record-person h3 small{display:block;font-size:11px;font-weight:400;line-height:1.6;color:var(--muted)}
+.team-record-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px 20px}
+.team-record-person{min-width:0;border-top:1px solid var(--line,#dfe3e8);padding-top:12px}
+.team-record-heading{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.team-record-heading .text-btn{flex:none;font-size:11px;padding:2px 0}
+.team-record-label{font-size:11px;color:var(--muted)}
+.team-selection-form .note{font-size:12px;color:var(--muted);line-height:1.6;margin:10px 0}
+@media(max-width:650px){.team-member-search,.team-selection-settings{grid-template-columns:minmax(0,1fr)}.team-member-options,.team-record-options{grid-template-columns:minmax(0,1fr)}.team-selection-content{max-height:calc(100dvh - 300px)}.team-selection-actions .selection-submit{justify-content:flex-start}.team-selection-form .selection-trigger{min-height:54px}}
+@media print{#teamReportSelection{display:none!important}}

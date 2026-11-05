@@ -16,7 +16,9 @@ const digest = file => createHash('sha256').update(fs.readFileSync(file)).digest
 const moduleFiles = fs.readdirSync(path.join(root, 'src')).filter(name => name.endsWith('.js'));
 const summary = { sourceHash: digest(path.join(root, 'MotionBench.html')), runnerSha256: digest(__filename),
   modules: Object.fromEntries(moduleFiles.map(name => [name, digest(path.join(root, 'src', name))])), suites: [] };
-for (const name of [
+const availableSuites = [
+  "report-navigation-state-tests.cjs",
+  "longitudinal-navigation-state-tests.cjs",
   "team-selection-model-tests.cjs",
   "team-model-tests.cjs",
   "team-store-model-tests.cjs",
@@ -106,7 +108,12 @@ for (const name of [
   "store-catalog-model-tests.cjs",
   "report-v210-model-tests.cjs",
   "report-v211-model-tests.cjs",
-]) {
+];
+const suitesIndex = process.argv.indexOf('--suites');
+const requestedSuites = suitesIndex < 0 ? availableSuites : (process.argv[suitesIndex + 1] || '').split(',').filter(Boolean);
+if (!requestedSuites.length || requestedSuites.some(name => !availableSuites.includes(name))) throw Error('--suites must name existing unit suites');
+summary.scope = suitesIndex < 0 ? 'all' : 'focused';
+for (const name of [...new Set(requestedSuites)]) {
   const suiteSha256 = digest(path.join(__dirname, name));
   const result = spawnSync(process.execPath, [path.join(__dirname, name)], {
     encoding: "utf8",

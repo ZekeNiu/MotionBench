@@ -1,0 +1,85 @@
+{
+  "pass": true,
+  "version": "2.28.1",
+  "desktopVersion": "2.28.1-desktop.1",
+  "unitSuites": 10,
+  "unitChecks": 165,
+  "evidence": [
+    {
+      "file": "output/release/2.28.1-local/acceptance/unit-final/unit-results.json",
+      "sha256": "3209466cd95cc6e8d288dce0c57c527f302e08fcf4185656f75e35587e8a7a83",
+      "checks": 10
+    },
+    {
+      "file": "output/release/2.28.1-local/acceptance/desktop-unit/results.json",
+      "sha256": "390779166ecd0cf672fa9229d91fe7cf8823ac9fa80eae24c0e09fff83f5f31b",
+      "checks": 5
+    },
+    {
+      "file": "output/release/2.28.1-local/acceptance/navigation-chrome/results.json",
+      "sha256": "0b5acf36278056a99e96593dc12709121e1667934d170f1872c0d81de181137a",
+      "checks": 13
+    },
+    {
+      "file": "output/release/2.28.1-local/acceptance/navigation-msedge/results.json",
+      "sha256": "f97c4c07e6ade45f98e6898a0bdada99cb4652564c1c3de847ba3782f959bfb2",
+      "checks": 12
+    },
+    {
+      "file": "output/release/2.28.1-local/native-smoke/results.json",
+      "sha256": "2e790a856a7f05afdcfb53af46bf24b7ad8aec92ea1d7daa8fb97d105f88eae0",
+      "checks": 16
+    }
+  ],
+  "package": {
+    "archiveSha256": "bebf43dbd9b2ca2da2a707632e3b2ac2bf896523e82148292967151dfa31df4c",
+    "htmlSha256": "5e1af587852909b7e5fee7b5e044c4f4924700837310bd175ce38cd64ce2063d",
+    "assets": 271,
+    "installerSha256": "815adb7b0c598cd6d2461444823706d49603e90c1703cc86614655cc8aff74ed",
+    "portableSha256": "5e4d0667844e269378d842e1afbfb73b42ed2133725a0f70427849e035154b6e",
+    "updaterSha256": "e7c7136a6a295aa4a9074487eb3262eca70923ac2bf49ae4944d3a8171d1d80d",
+    "artifacts": [
+      {
+        "file": "MotionBench-2.28.1-desktop.1-Setup-x64.exe",
+        "bytes": 113764527,
+        "sha256": "815adb7b0c598cd6d2461444823706d49603e90c1703cc86614655cc8aff74ed",
+        "sha512": "ZX4t7T34mB6JfHx5rwirQQJtxyppAAf21Kt14sLMpwKpd35CbnlSHeBSr7u5Gkh3umihYLkv4rSP2SKlZhHwwQ=="
+      },
+      {
+        "file": "MotionBench-2.28.1-desktop.1-Setup-x64.exe.blockmap",
+        "bytes": 119850,
+        "sha256": "2277970b1230205b4fe50313d27e0ec2f08e23b5e69f24695a9e61febb136bf1",
+        "sha512": "8Rk5axDjnLwc0dYvXs44OO7ViymPqc8BidJiZfv5eHJ3B/v/7xeco8OE3NGcpmXV8Rrq3nY2dUg2hHqhGPU3Og=="
+      },
+      {
+        "file": "MotionBench-2.28.1-desktop.1-Portable-x64.exe",
+        "bytes": 113528052,
+        "sha256": "5e4d0667844e269378d842e1afbfb73b42ed2133725a0f70427849e035154b6e",
+        "sha512": "pX69SbT8rS8mn/R5NJfeZZHYQ11kJHPxQKdQ6jzMifwfPelmyOtAMJNJnKKI9C4YO/vMPK++fWo3jhYM/5YRTQ=="
+      },
+      {
+        "file": "desktop.yml",
+        "bytes": 392,
+        "sha256": "e7c7136a6a295aa4a9074487eb3262eca70923ac2bf49ae4944d3a8171d1d80d",
+        "sha512": "ztVK5M+/44qsPhg8oqvd8MjMWDywTvSUaXgobKINsUWEU8slWIWV0iBJ0Lvt8/kZ+uNkMk3844iA+VUWtmilRA=="
+      }
+    ]
+  },
+  "scope": [
+    "报告入口、三种个人报告方式、稳定团队分组、取消与异步选择",
+    "保存失败与当前报告归属保护，原有来源记录、正文与显示设置回归",
+    "Chrome/Edge 主区域流程、窄窗口、实际 PDF；隔离原生保存与重开",
+    "未修改生产模块与已交付 2.28.0 基线的逐文件一致性核验；GitHub完整回归另行核验"
+  ],
+  "artifact": {
+    "file": "MotionBench.html",
+    "bytes": 5419456,
+    "sha256": "5e1af587852909b7e5fee7b5e044c4f4924700837310bd175ce38cd64ce2063d"
+  },
+  "baseline": {
+    "commit": "3aa6020aca0ffdf5fbde7226d9f811ef6205b0f5",
+    "unchangedProductionModuleCount": 63
+  },
+  "userAcceptance": "pending",
+  "localInstallation": "pending"
+}

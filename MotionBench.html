@@ -2897,6 +2897,15 @@ body.sidebar-collapsed .workspace {
 .global-nav button:hover{background:#edf1f5;color:#243b51}
 .global-nav button.active,.sidebar-bottom .active{background:#e4ebf1;color:#284d6d;font-weight:650;box-shadow:none}
 .global-nav button:focus-visible{outline:2px solid #486c88;outline-offset:2px}
+.report-setup-view{max-width:1180px;padding-top:24px;padding-bottom:28px}
+.report-setup-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}
+.report-setup-heading h1{margin:0 0 6px;font-size:24px;letter-spacing:0}
+.report-setup-heading p{margin:0;color:#71808e;font-size:13px;line-height:1.65}
+.report-setup-view>:is(.report-selection-unified,#teamReportSelection){padding:18px;background:#fff;border:1px solid #dce3e9;border-radius:10px}
+.report-reading-toolbar{display:flex!important;justify-content:flex-end;min-height:58px}
+.report-reading-toolbar[hidden],.report-setup-view[hidden]{display:none!important}
+@media(max-width:650px){.report-setup-view{padding:18px 12px}.report-setup-heading{gap:10px;flex-wrap:wrap}.report-setup-view>:is(.report-selection-unified,#teamReportSelection){padding:12px}.report-reading-toolbar{padding:10px 12px}.report-reading-toolbar .report-actions{flex-wrap:wrap;justify-content:flex-end}}
+@media print{.report-setup-view{display:none!important}}
 /* Operation surfaces share one type and spacing scale; reports and navigation retain their own styles. */
 :where(.operation-ui) {
   --ui-font-page:24px;
@@ -3875,7 +3884,10 @@ body.sidebar-collapsed .workspace {
 .ringside-pdf-document[data-report-appearance="ink-teal-history-v1"] .horizontal-results tbody th[scope="row"],.horizontal-browser-print[data-report-appearance="ink-teal-history-v1"] .horizontal-results tbody th[scope="row"]{background:#fff!important;}
 
 .report-selection-unified{width:100%;min-width:0}
-.selection-row{display:grid;grid-template-columns:minmax(135px,1fr) minmax(135px,1fr) auto;gap:10px;align-items:center}
+.selection-row{display:grid;grid-template-columns:minmax(130px,.7fr) minmax(135px,1fr) minmax(135px,1fr) auto;gap:10px;align-items:center}
+.selection-analysis{display:grid;gap:2px;min-width:0;margin:0;font-size:11px;color:#647385}
+.selection-analysis select{width:100%;min-width:0;min-height:34px;font:inherit;font-size:13px;color:#263b4b}
+.selection-reference-action[hidden]{display:none}
 .selection-trigger{position:relative;display:grid;gap:2px;min-width:0;min-height:54px;margin:0;padding:8px 32px 8px 12px;text-align:left;border:1px solid #ccd7e1;border-radius:8px;background:#fff;color:#263b4b;cursor:pointer;font:inherit}
 .selection-trigger>span{font-size:11px;color:#647385;line-height:16px}
 .selection-trigger>strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;line-height:19px}
@@ -3969,20 +3981,34 @@ body.sidebar-collapsed .workspace {
 @media print{body.team-print-active #reportView{display:none!important;}.team-browser-print{position:static;visibility:visible;pointer-events:auto;width:auto;max-width:none;margin:0;}.team-chart-controls,.team-overlay-control,.team-tooltip{display:none!important;}[data-team="true"] .team-table-wrap,[data-team="true"] .team-chart-scroll{overflow:visible!important;}[data-team="true"] .team-results{min-width:0!important;}[data-team="true"] .team-results th:first-child{position:static;}[data-team="true"] .team-results thead{display:table-header-group;}[data-team="true"] .team-chart-panel{break-inside:avoid;}}
 @media print{[data-team="true"] .team-chart-panel>svg{width:100%;max-width:100%;height:auto;}}
 
-.team-selection-dialog{width:min(980px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:0;border:1px solid var(--line);border-radius:12px;color:var(--ink);background:var(--paper,#fff);box-shadow:0 20px 70px #26374733}
-.team-selection-dialog::backdrop{background:#172a3b66}
-.team-selection-dialog .modal-head,.team-selection-dialog .modal-foot{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:18px 24px;background:var(--paper,#fff)}
-.team-selection-dialog .modal-head{border-bottom:1px solid var(--line)}
-.team-selection-dialog .modal-foot{justify-content:flex-end;border-top:1px solid var(--line)}
-.team-selection-dialog h2{margin:0;font-size:19px}.team-selection-dialog h3{font-size:14px;margin:0 0 10px}.team-selection-dialog h3 small{font-weight:400;margin-left:8px;color:var(--muted)}
-.team-selection-body{padding:20px 24px;max-height:calc(100dvh - 210px);overflow:auto;overscroll-behavior:contain}
-.team-selection-body .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
-.team-selection-body .field{display:grid;gap:6px;min-width:0;font-size:12px}.team-selection-body input,.team-selection-body select{width:100%;min-width:0;box-sizing:border-box}
-.team-selection-members{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(250px,1.2fr);gap:24px;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
-.team-selection-members>section{min-width:0}.team-member-options{display:grid;gap:4px;max-height:360px;overflow:auto;margin-top:10px}
-.team-member-options label{display:flex;gap:9px;align-items:center;padding:7px 5px;font-size:12px}.team-member-options input{width:16px;height:16px;min-height:0;accent-color:var(--green)}
-.team-member-options small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.team-record-options{display:grid;gap:14px;max-height:410px;overflow:auto}.team-record-options .field>span small{font-size:10px;color:var(--muted)}
-@media(max-width:650px){.team-selection-body,.team-selection-dialog .modal-head,.team-selection-dialog .modal-foot{padding:16px}.team-selection-members{grid-template-columns:minmax(0,1fr)}.team-selection-body .form-grid{grid-template-columns:minmax(0,1fr)}.team-member-options{max-height:180px}}
+#teamReportSelection{width:100%;min-width:0}
+.team-selection-form{display:flex;flex-direction:column;min-width:0;min-height:0;margin:0;color:var(--ink)}
+.team-selection-actions{position:sticky;top:0;z-index:2;flex:none;padding:0 0 10px;background:var(--paper,#fff)}
+.team-selection-actions .selection-status{margin:8px 0 0;min-height:19px}
+.team-selection-content{max-height:min(660px,calc(100dvh - 270px));min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+.team-selection-content>.selection-panel{margin-top:0;max-height:none;overflow:visible}
+.team-selection-content>.selection-panel[hidden]{display:none}
+.team-selection-form .field{display:grid;gap:6px;min-width:0;font-size:12px}
+.team-selection-form input,.team-selection-form select{width:100%;min-width:0;box-sizing:border-box}
+.team-selection-form input[type=checkbox]{width:16px;height:16px;flex:none;min-height:0;margin:0;accent-color:var(--green)}
+.team-selection-form button:focus-visible,.team-selection-form input:focus-visible,.team-selection-form select:focus-visible{outline:2px solid #7393ad;outline-offset:2px}
+.team-member-search,.team-selection-settings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px}
+.team-selection-settings>.field:last-child{grid-column:1/-1}
+.team-member-group{margin-top:16px;padding-top:12px;border-top:1px solid var(--line,#dfe3e8)}
+.team-member-group h3,.team-record-person h3{font-size:13px;font-weight:600;line-height:1.6;margin:0 0 7px;overflow-wrap:anywhere}
+.team-member-group h3 small{font-size:11px;font-weight:400;color:var(--muted);margin-left:6px}
+.team-member-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:2px 12px}
+.team-member-options label{display:flex;align-items:center;gap:9px;min-width:0;padding:9px 4px;font-size:13px;cursor:pointer}
+.team-member-options label>span{min-width:0;overflow-wrap:anywhere}
+.team-member-options small,.team-record-person h3 small{display:block;font-size:11px;font-weight:400;line-height:1.6;color:var(--muted)}
+.team-record-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px 20px}
+.team-record-person{min-width:0;border-top:1px solid var(--line,#dfe3e8);padding-top:12px}
+.team-record-heading{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.team-record-heading .text-btn{flex:none;font-size:11px;padding:2px 0}
+.team-record-label{font-size:11px;color:var(--muted)}
+.team-selection-form .note{font-size:12px;color:var(--muted);line-height:1.6;margin:10px 0}
+@media(max-width:650px){.team-member-search,.team-selection-settings{grid-template-columns:minmax(0,1fr)}.team-member-options,.team-record-options{grid-template-columns:minmax(0,1fr)}.team-selection-content{max-height:calc(100dvh - 300px)}.team-selection-actions .selection-submit{justify-content:flex-start}.team-selection-form .selection-trigger{min-height:54px}}
+@media print{#teamReportSelection{display:none!important}}
 
 </style>
   </head>
@@ -4010,6 +4036,9 @@ body.sidebar-collapsed .workspace {
           <span class="nav-label">日常使用</span>
           <button data-workspace-nav="entry" onclick="App.startDataEntry()">数据录入</button>
           <button data-workspace-nav="records" onclick="App.openManagement('records')">测试记录</button>
+          <span class="nav-label">测试报告</span>
+          <button data-report-family="personal" onclick="App.openReportSetup('personal')">个人报告</button>
+          <button data-report-family="team" onclick="App.openReportSetup('team')">团队报告</button>
           <span class="nav-label">人员管理</span>
           <button data-workspace-nav="teams" onclick="App.openManagement('teams')">队伍管理</button>
           <button data-workspace-nav="athletes" onclick="App.openManagement('athletes')">运动员管理</button>
@@ -4052,7 +4081,8 @@ body.sidebar-collapsed .workspace {
             返回报告</button>
         </div>
       </header>
-      <section id="reportToolbar" class="report-toolbar no-print" aria-label="选择与导出本次测试">
+      <section id="reportSetupView" class="wrap workspace-view report-setup-view operation-ui" hidden aria-labelledby="reportSetupTitle">
+        <header class="report-setup-heading"><div><h1 id="reportSetupTitle">个人报告</h1><p id="reportSetupDescription">选择报告方式、运动员和测试记录。</p></div></header>
       <div id="reportControls" class="report-selection-unified"><div id="reportSelection"></div>
       <div hidden aria-hidden="true">
         <div class="report-field report-team"><label for="reportGroupFilter">队伍</label><select id="reportGroupFilter" onchange="App.selectReportGroup(this.value)"><option value="">全部队伍</option></select></div>
@@ -4071,10 +4101,13 @@ body.sidebar-collapsed .workspace {
           <details id="recordChoiceMenu" class="record-choice-menu"><summary id="recordChoiceLabel">选择测试记录</summary><div id="recordChoices" class="record-choices" aria-label="选择测试记录"></div></details>
         </div>
       </div></div>
-        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">报告 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">报告数据 JSON</button></div></details></div>
+        <div id="teamReportSelection" hidden></div>
+      </section>
+      <section id="reportToolbar" class="report-toolbar report-reading-toolbar no-print" aria-label="报告操作">
+        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="adjustReportButton" type="button" class="btn small" data-adjust-report onclick="App.adjustCurrentReport()">调整当前报告</button><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">报告 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">报告数据 JSON</button></div></details></div>
       </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
-      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择运动员和测试记录，查看本次测量与训练建议。</p><div class="row"><button class="btn primary" onclick="App.startDataEntry()">开始数据录入</button></div></section>
+      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>从侧栏选择个人报告或团队报告，再选择人员与测试记录。</p><div class="row"><button class="btn primary" onclick="App.openReportSetup('personal')">选择报告</button><button class="btn" onclick="App.startDataEntry()">开始数据录入</button></div></section>
       <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
         <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
         <div class="row">
@@ -4496,7 +4529,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.28.0"});
+window.RingsideBuild=Object.freeze({"version": "2.28.1"});
 </script>
 <script>
 (function (root) {
@@ -26148,13 +26181,23 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const order = (a,b) => String(a.athlete.date).localeCompare(String(b.athlete.date)) || String(a.created || '').localeCompare(String(b.created || '')) || a.recordId.localeCompare(b.recordId);
   function create(host) {
     let selection = null, model = null, document = null, rawRecords = [], sequence = 0, suspended = false, loading = false, pendingIds = null;
-    let chartSequence = 0, chartPending = 0, chartSaveBarrier = null, savedCharts;
+    let chartSequence = 0, chartPending = 0, chartSaveBarrier = null, savedCharts, pendingDocument = null;
     root.document.addEventListener('pointerdown', event => { const menu=root.document.getElementById('recordChoiceMenu');if(menu?.open&&!menu.contains(event.target))menu.open=false; });
     root.document.addEventListener('keydown', event => { const menu=root.document.getElementById('recordChoiceMenu');if(event.key==='Escape'&&menu?.open){menu.open=false;root.document.getElementById('recordChoiceLabel').focus();event.preventDefault();} });
     const active = () => !!model && !!selection && selection.recordIds.length > 1 && !suspended && host.state()?.athleteId === selection.athleteId && selection.recordIds.includes(host.state()?.recordId);
     const currentSelection = () => selection ? clone(selection) : null;
-    function clear() { sequence++; chartSequence++; selection = model = document = null; rawRecords = []; pendingIds = null; savedCharts = undefined; suspended = loading = false; }
-    function cancelPending() { sequence++; pendingIds = null; loading = false; }
+    function revertDocument(transaction) {
+      if (!transaction || transaction.adopted || transaction.reverted) return;
+      transaction.reverted = true;
+      const store = root.RingsideLongitudinalStore, value = store.get(transaction.library, transaction.key);
+      // A later edit or another request owns its own value. Revert only this
+      // request's exact staged document, never an entire stale library snapshot.
+      if (JSON.stringify(value) !== transaction.serialized) return;
+      transaction.previous ? store.put(transaction.library, transaction.previous) : store.remove(transaction.library, transaction.key);
+    }
+    function discardPendingDocument() { const transaction = pendingDocument; pendingDocument = null; revertDocument(transaction); }
+    function clear() { sequence++; chartSequence++; discardPendingDocument(); selection = model = document = null; rawRecords = []; pendingIds = null; savedCharts = undefined; suspended = loading = false; }
+    function cancelPending() { sequence++; discardPendingDocument(); pendingIds = null; loading = false; }
     function recordIds() { return selection?.recordIds || (host.state() ? [host.state().recordId] : []); }
     function renderPicker() {
       const menu = root.document.getElementById('recordChoices'), summary = root.document.getElementById('recordChoiceLabel');
@@ -26179,15 +26222,26 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if (summaries.some(r => !r)) throw Error('所选测试记录已不存在，请重新选择。');
       if (ids.length > 1 && summaries.some(r => !validDate(r.athlete.date))) throw Error('请先补齐所选记录的有效测试日期。');
       const ticket = ++sequence;
+      discardPendingDocument();
+      const current=()=>ticket===sequence&&(!options.isCurrent||options.isCurrent());
+      let transaction = null;
       pendingIds = ids; loading = true;
       try {
       host.saveEditor();
       if (ids.length > 1) host.prepareAnchor?.();
       if (!options.restoring && !await host.save()) { renderPicker(); return false; }
-      if (ticket !== sequence) return false;
-      if (ids.length < 2) { clear(); await host.switchRecord(a, summaries[0] || null); host.remember(); return true; }
+      if (!current()) return false;
+      if (ids.length < 2) {
+        const previousSelection = selection, previousDocument = document;
+        // Ordinary switching invalidates controller requests itself. Its guard
+        // must therefore belong to the caller, not this controller's sequence.
+        const ok = await host.switchRecord(a, summaries[0] || null, {isCurrent:options.isCurrent});
+        if (!ok || options.isCurrent && !options.isCurrent()) return false;
+        if (selection === previousSelection && document === previousDocument) clear();
+        host.remember(); return true;
+      }
         const records = await Promise.all(ids.map(id => host.repository().loadRecord(id)));
-        if (ticket !== sequence) return false;
+        if (!current()) return false;
         if (records.some(r => !r || r.deletedAt || r.archived || r.athleteId !== athleteId)) throw Error('所选测试记录已变化，请重新选择。');
         records.sort(order);
         const latest = records.at(-1), store = root.RingsideLongitudinalStore;
@@ -26197,7 +26251,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         const profile = profileId === "" ? null : lib.evaluationProfiles.find(p => p.id === profileId);
         if (typeof profileId !== "string" || profileId && !profile) throw Error("请选择可用的评价方案");
         const built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog, views:saved?.views || {}});
-        if (ticket !== sequence) return false;
+        if (!current()) return false;
         host.cancelAI();
         const stamp = new Date().toISOString();
         const nextSelection = {athleteId, recordIds:records.map(r => r.recordId), mode};
@@ -26206,19 +26260,30 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           narrative:saved?.narrative || {text:'',html:'',revision:0,basis:'',origin:'manual'}, basis:built.fingerprint || built.basis,
           created:saved?.created || stamp, updated:stamp, revision:saved?.revision || 0});
         store.put(lib, nextDocument);
-        if (!options.restoring && !await host.save()) {
-          if (ticket === sequence) { saved ? store.put(lib,saved) : store.remove(lib,nextDocument.key); }
-          return false;
-        }
-        if (ticket !== sequence) return false;
-        if (!options.restoring && host.state()?.recordId !== latest.recordId && !await host.switchRecord(a, latest, {longitudinal:true})) return false;
-        if (ticket !== sequence) return false;
+        transaction = {library:lib,key:nextDocument.key,previous:saved,serialized:JSON.stringify(store.get(lib,nextDocument.key)),saveAttempted:false,adopted:false,reverted:false};
+        pendingDocument = transaction;
+        if (!options.restoring) { transaction.saveAttempted = true; if (!await host.save()) return false; }
+        if (!current()) return false;
+        if (!options.restoring && host.state()?.recordId !== latest.recordId && !await host.switchRecord(a, latest, {longitudinal:true,isCurrent:current})) return false;
+        if (!current()) return false;
         selection = nextSelection; document = nextDocument; rawRecords = records; model = built; suspended = false;
+        transaction.adopted = true; if (pendingDocument === transaction) pendingDocument = null;
         savedCharts = document.views.charts === undefined ? undefined : clone(document.views.charts);
         host.prepareAnchor?.();
         host.restoreView?.(document.views);
-        host.render(); host.remember(); return true;
-      } finally { if (ticket === sequence) { loading = false; pendingIds = null; renderPicker(); } }
+        host.activate?.();host.render(); host.remember(); return true;
+      } finally {
+        try {
+          if (transaction && !transaction.adopted) {
+            revertDocument(transaction);
+            if (pendingDocument === transaction) pendingDocument = null;
+            // Cancellation can occur after the repository captured the staged
+            // document. Flush the current library after that save settles.
+            if (transaction.saveAttempted && host.library() === lib && !await host.save({readOnlyRecord:true}))
+              throw Error('原纵向报告已保留，但撤回未完成选择的保存失败，请重试保存。');
+          }
+        } finally { if (ticket === sequence) { loading = false; pendingIds = null; renderPicker(); } }
+      }
     }
     async function refresh() {
       if (!selection) return;
@@ -26629,50 +26694,75 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const uid=()=>"reference-"+(root.crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2));
   const opt=(value,label,current)=>`<option value="${E(value)}"${value===current?" selected":""}>${E(label)}</option>`;
   const dates=[["","请选择日期范围"],["recent7","过去七天"],["recent14","过去十四天"],["recent30","过去三十天"],["recent90","过去九十天"],["recent12","过去一年"],["custom","自定日期"],["all","全部历史"]];
+  const analysisModes=[["single","单次报告"],["horizontal","横向比较"],["longitudinal","纵向比较"]];
+  const validAnalysisMode=value=>analysisModes.some(([key])=>key===value);
+  const inferAnalysisMode=draft=>draft.references?.length||draft.athletes?.length>1?"horizontal":draft.athletes?.[0]?.recordIds?.length>1?"longitudinal":"single";
   function state(initial={}) {
     let draft={athletes:[],references:[],mode:"best",profileId:"",...copy(initial)},history={};
-    const multiple=()=>draft.athletes.length>1||draft.references.length>0;
-    function remember(){if(!multiple())for(const person of draft.athletes)if(person.recordIds.length>1)history[person.athleteId]=[...person.recordIds];}
-    function restore(){if(!multiple()&&draft.athletes.length===1){const person=draft.athletes[0];if(history[person.athleteId])person.recordIds=[...history[person.athleteId]];}}
+    const explicit=()=>validAnalysisMode(draft.analysisMode),analysisMode=()=>explicit()?draft.analysisMode:inferAnalysisMode(draft),multiple=()=>analysisMode()==="horizontal";
+    function remember(){if(!explicit()&&!multiple())for(const person of draft.athletes)if(person.recordIds.length>1)history[person.athleteId]=[...person.recordIds];}
+    function restore(){if(!explicit()&&!multiple()&&draft.athletes.length===1){const person=draft.athletes[0];if(history[person.athleteId])person.recordIds=[...history[person.athleteId]];}}
     return {
       get:()=>copy(draft), multiple,
+      analysisMode(value){if(value===undefined)return analysisMode();if(!validAnalysisMode(value))return false;draft.analysisMode=value;history={};return true;},
       replace(value){draft={athletes:[],references:[],mode:"best",profileId:"",...copy(value)};history={};},
       athlete(id,selected){remember();if(selected&&!draft.athletes.some(p=>p.athleteId===id))draft.athletes.push({athleteId:id,recordIds:[]});if(!selected){draft.athletes=draft.athletes.filter(p=>p.athleteId!==id);restore();}},
-      record(athleteId,recordId,selected){const person=draft.athletes.find(p=>p.athleteId===athleteId);if(!person)return;if(multiple())person.recordIds=selected?[recordId]:[];else person.recordIds=selected?[...new Set([...person.recordIds,recordId])]:person.recordIds.filter(id=>id!==recordId);},
+      record(athleteId,recordId,selected){const person=draft.athletes.find(p=>p.athleteId===athleteId);if(!person)return;const chooseOne=explicit()?analysisMode()!=="longitudinal"&&person.recordIds.length<=1:multiple();if(chooseOne)person.recordIds=selected?[recordId]:[];else person.recordIds=selected?[...new Set([...person.recordIds,recordId])]:person.recordIds.filter(id=>id!==recordId);},
       reference(value){remember();draft.references.push(copy(value));},
       removeReference(id){draft.references=draft.references.filter(ref=>ref.id!==id);restore();},
       update(fn){fn(draft);},
-      status(){if(!draft.athletes.length&&!draft.references.length)return "empty";if(draft.athletes.some(p=>!p.recordIds.length))return "missing-record";if(multiple()&&draft.athletes.some(p=>p.recordIds.length!==1))return "choose-one";return "ready";}
+      status(){
+        if(explicit()){
+          const mode=analysisMode();
+          if(mode!=="horizontal"&&draft.references.length)return "references-not-supported";
+          if(!draft.athletes.length&&!draft.references.length)return "empty";
+          if(mode!=="horizontal"&&draft.athletes.length!==1)return "choose-athlete";
+          if(mode==="horizontal"&&!draft.references.length&&draft.athletes.length<2)return "missing-comparison";
+          if(draft.athletes.some(p=>!p.recordIds.length))return "missing-record";
+          if(mode==="longitudinal"&&draft.athletes[0].recordIds.length<2)return "choose-many";
+          if(mode!=="longitudinal"&&draft.athletes.some(p=>p.recordIds.length!==1))return "choose-one";
+          return "ready";
+        }
+        if(!draft.athletes.length&&!draft.references.length)return "empty";if(draft.athletes.some(p=>!p.recordIds.length))return "missing-record";if(multiple()&&draft.athletes.some(p=>p.recordIds.length!==1))return "choose-one";return "ready";
+      }
     };
   }
   function create(host){
     const selection=state(),field=(label,input)=>`<label class="field"><span>${E(label)}</span>${input}</label>`;
-    let initialized=false,dirty=false,applying=0,applyingSequence=0,sequence=0,query="",group="",error="",conflicts=[],panel="",settingsOpen=false,sourceIdentity="",editingReportId=null;
+    let initialized=false,dirty=false,applying=0,applyingSequence=0,sequence=0,query="",group="",error="",conflicts=[],panel="",settingsOpen=false,sourceIdentity="",editingReportId=null,baseline=null,sessionActive=false;
     let referenceDraft=null,referenceError="",referenceReturnId="";
     const library=()=>host.library(),identity=()=>host.identity?.()||"",dialog=()=>root.document.getElementById("reportReferenceDialog");
     const athleteName=id=>{const a=library().athletes.find(a=>a.id===id);return a?.name||a?.profile?.name||"运动员不可用";};
+    function fromConfiguration(config){
+      const athletes=config.athletes?copy(config.athletes):config.participants?(config.participants||[]).map(p=>({athleteId:p.athleteId,recordIds:p.recordIds?[...p.recordIds]:p.recordId?[p.recordId]:[]})):config.athleteId?[{athleteId:config.athleteId,recordIds:[...(config.recordIds||[])]}]:[];
+      const value={...copy(config),athletes,references:(config.references||[]).map(r=>({...copy(r),explicitConditions:true,window:copy(r.window||config.window||{kind:"",from:"",to:""})}))};
+      value.analysisMode=validAnalysisMode(value.analysisMode)?value.analysisMode:config.participants?"horizontal":inferAnalysisMode(value);return value;
+    }
     function fromCurrent(){
       const config=host.configuration?.(),single=host.current?.(),long=host.longitudinal?.();
-      return config?{...copy(config),athletes:(config.participants||[]).map(p=>({athleteId:p.athleteId,recordIds:[p.recordId]})),references:(config.references||[]).map(r=>({...copy(r),explicitConditions:true,window:copy(r.window||config.window||{kind:"",from:"",to:""})}))}:{athletes:long?[{athleteId:long.athleteId,recordIds:[...long.recordIds]}]:single?[{athleteId:single.athleteId,recordIds:[single.recordId]}]:[],references:[],mode:single?.mode||"best",profileId:single&&Object.hasOwn(single,"evaluationProfileId")?single.evaluationProfileId:library()?.defaultEvaluationProfileId||""};
+      const profileId=long&&Object.hasOwn(long,"profileId")?long.profileId:long&&Object.hasOwn(long,"evaluationProfileId")?long.evaluationProfileId:single&&Object.hasOwn(single,"evaluationProfileId")?single.evaluationProfileId:library()?.defaultEvaluationProfileId||"";
+      return config?fromConfiguration(config):fromConfiguration({athletes:long?[{athleteId:long.athleteId,recordIds:[...long.recordIds]}]:single?[{athleteId:single.athleteId,recordIds:[single.recordId]}]:[],references:[],mode:long?.mode||single?.mode||"best",profileId});
     }
     function sync(force=false){
       if(!library())return;
+      if(sessionActive)return;
       if(force||!initialized||!dirty&&!applying&&!referenceDraft&&sourceIdentity!==identity()){
-        selection.replace(fromCurrent());sourceIdentity=identity();editingReportId=host.configuration?.()?host.reportId?.():null;initialized=true;
+        selection.replace(fromCurrent());baseline=selection.get();sourceIdentity=identity();editingReportId=host.configuration?.()?host.reportId?.():null;initialized=true;
       }
     }
     function changed({preserveConflicts=false}={}){dirty=true;error="";if(!preserveConflicts)conflicts=[];sequence++;host.cancelPending?.();render();}
     function closePanel(restoreFocus=false){const previous=panel;panel="";render();if(restoreFocus&&previous)host.element?.()?.querySelector(`[data-selection-toggle="${previous}"]`)?.focus({preventScroll:true});}
     async function apply(){
       const status=selection.status();
-      if(applying&&applyingSequence===sequence||referenceDraft||status!=="ready"&&status!=="empty"){render();return false;}
+      if(applying&&applyingSequence===sequence||referenceDraft||status!=="ready"){render();return false;}
       const ticket=++sequence,value=selection.get();applying++;applyingSequence=ticket;error="";render();
       try{
         for(const ref of value.references){if(!ref.window?.kind)throw Error("请为群体选择日期范围");ref.window=root.RingsideHorizontalSetup.dateWindow(ref.window.kind,ref.window.from,ref.window.to,ref.window.to||undefined);}
         value.references=root.RingsideHorizontalSetup.resolveReferences(value.references,{athletes:library().athletes,classifications:root.RingsideClassifications.normalize(library().classifications||{}),groups:library().groups||[]});
-        const ok=await host.select(value,{isCurrent:()=>ticket===sequence,reportId:editingReportId});
+        const options={isCurrent:()=>ticket===sequence,reportId:editingReportId,analysisMode:value.analysisMode};
+        const ok=await host.select(value,options);
         if(ticket!==sequence)return false;
-        if(ok){dirty=false;error="";conflicts=[];panel="";sourceIdentity=identity();editingReportId=host.reportId?.()||null;selection.update(d=>{d.references=copy(value.references);});}
+        if(ok){dirty=false;error="";conflicts=[];panel="";sourceIdentity=identity();editingReportId=host.reportId?.()||null;selection.update(d=>{d.references=copy(value.references);});await host.onApplied?.(value,options);}
         else if(!conflicts.length)error="选择尚未应用，请检查提示后重试。";
         return ok;
       }catch(e){if(ticket===sequence)error=e.message||String(e);return false;}
@@ -26680,7 +26770,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     function personHTML(person){
       const athlete=library().athletes.find(a=>a.id===person.athleteId),records=(athlete?.records||[]).filter(r=>!r.deletedAt&&!r.archived).sort((a,b)=>String(b.athlete?.date||"").localeCompare(a.athlete?.date||"")||a.recordId.localeCompare(b.recordId));
-      return `<section class="selection-person" data-person="${E(person.athleteId)}"><h3>${E(athleteName(person.athleteId))}<small>${selection.multiple()?"请选择一条测试记录":"可选择多条，查看纵向比较"}</small></h3><div class="selection-records">${selection.multiple()&&person.recordIds.length>1?'<p class="notice">已保留原纵向选择；请指定本次横向比较使用的一条记录。</p>':""}${records.map(r=>`<label><input type="${selection.multiple()?"radio":"checkbox"}" name="record-${E(person.athleteId)}" data-select-record="${E(r.recordId)}"${person.recordIds.includes(r.recordId)&&(!selection.multiple()||person.recordIds.length===1)?" checked":""}><span>${E(r.athlete?.date||"未填日期")}<small>${E(r.title||"测试记录")} · ${E(r.recordId.slice(-6))}</small></span></label>`).join("")||'<p class="empty">尚无测试记录，请先录入数据。</p>'}</div></section>`;
+      const longitudinal=selection.analysisMode()==="longitudinal",incompatible=!longitudinal&&person.recordIds.length>1;
+      return `<section class="selection-person" data-person="${E(person.athleteId)}"><h3>${E(athleteName(person.athleteId))}<small>${longitudinal?"请选择至少两条测试记录":"请选择一条测试记录"}</small></h3><div class="selection-records">${incompatible?'<p class="notice">已保留多条记录；请取消多余记录，保留本次使用的一条。</p>':""}${records.map(r=>`<label><input type="${longitudinal||incompatible?"checkbox":"radio"}" name="record-${E(person.athleteId)}" data-select-record="${E(r.recordId)}"${person.recordIds.includes(r.recordId)?" checked":""}><span>${E(r.athlete?.date||"未填日期")}<small>${E(r.title||"测试记录")} · ${E(r.recordId.slice(-6))}</small></span></label>`).join("")||'<p class="empty">尚无测试记录，请先录入数据。</p>'}</div></section>`;
     }
     function objectSummary(draft){
       const names=draft.athletes.map(p=>athleteName(p.athleteId)),people=names.length===1?names[0]:names.length?`${names.length} 名运动员`:"";
@@ -26694,22 +26785,23 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     function render(){
       const node=host.element?.();if(!node||!library())return;sync();
-      const team=host.team?.();
-      if(team){
-        const config=team.configuration,window=config.window||{};
-        node.innerHTML=`<div class="selection-row"><button type="button" class="selection-trigger" data-edit-team><span>团队报告 · ${config.participants.length} 人</span><strong>${E(team.title)}</strong><i aria-hidden="true">⌄</i></button><button type="button" class="selection-trigger" data-edit-team><span>测试日期</span><strong>${E(window.from===window.to?window.from:window.from+' — '+window.to)}</strong><i aria-hidden="true">⌄</i></button><div class="selection-submit"><button type="button" class="btn small" data-create-team>新建团队报告</button><button type="button" class="btn small" data-leave-team>其他报告</button></div></div>`;
-        node.querySelectorAll('[data-edit-team]').forEach(el=>el.onclick=()=>host.editTeam?.());
-        node.querySelector('[data-create-team]').onclick=()=>host.openTeam?.();
-        node.querySelector('[data-leave-team]').onclick=()=>host.leaveTeam?.();return;
-      }
       const draft=selection.get(),q=query.trim().toLocaleLowerCase(),selected=new Set(draft.athletes.map(p=>p.athleteId)),classes=root.RingsideClassifications.normalize(library().classifications||{});
       const people=library().athletes.filter(a=>!a.deletedAt&&!a.archived&&(!group||a.groupId===group)&&(!q||[a.name,a.id,root.RingsideClassifications.resolve(a.profile||{},classes).sportName].join(" ").toLocaleLowerCase().includes(q)));
       const focused=root.document.activeElement,searchFocused=focused?.dataset?.selectionSearch!==undefined,position=focused?.selectionStart;
-      const status=selection.status(),currentApplying=!!applying&&applyingSequence===sequence,note=status==="choose-one"?"多人或群体比较中，每名运动员请选择一条真实测试记录。":status==="missing-record"?"请展开测试记录，为每名运动员选择测试日期。":dirty?"选择尚未应用，点击“查看报告”后更新。":"";
+      const status=selection.status(),currentApplying=!!applying&&applyingSequence===sequence,messages={
+        "empty":draft.analysisMode==="horizontal"?"请选择至少两名运动员，或添加群体参照。":"请选择一名运动员及其测试记录。",
+        "choose-athlete":"已保留所选运动员；当前分析方式只适用于一人，请移除其他运动员或切换为横向比较。",
+        "references-not-supported":"已保留群体参照；当前分析方式不使用群体参照，请移除参照或切换为横向比较。",
+        "missing-comparison":"横向比较需要至少两名运动员，或添加群体参照。",
+        "choose-one":"已保留多条测试记录；当前分析方式每人只使用一条，请取消多余记录。",
+        "choose-many":"纵向比较需要同一名运动员的至少两条测试记录。",
+        "missing-record":"请展开测试记录，为每名运动员选择测试日期。"
+      },note=messages[status]||(dirty?"选择尚未应用，点击“查看报告”后更新。":"");
       if(panel==="records"&&!draft.athletes.length)panel="";
       const button=(key,label,value,disabled=false)=>`<button type="button" class="selection-trigger" data-selection-toggle="${key}" aria-expanded="${panel===key}" aria-controls="reportSelection-${key}"${disabled?" disabled":""}><span>${label}</span><strong>${E(value)}</strong><i aria-hidden="true">⌄</i></button>`;
-      node.innerHTML=`<div class="selection-row">${button("athletes","选择运动员",objectSummary(draft))}${button("records","测试记录",recordSummary(draft),!draft.athletes.length)}<div class="selection-submit"><button type="button" class="btn primary small" data-apply-selection${currentApplying||!["ready","empty"].includes(status)?" disabled":""}>${currentApplying?"正在更新…":"查看报告"}</button><button type="button" class="btn small" data-revert-selection${!dirty?" disabled":""}>撤销选择</button>${selection.multiple()?`<button type="button" class="text-btn selection-settings-toggle" data-selection-settings-toggle aria-expanded="${settingsOpen}" aria-controls="reportSelection-settings">报告设置</button>`:""}</div></div><section id="reportSelection-athletes" class="selection-panel" data-selection-panel="athletes" aria-label="选择报告对象"${panel==="athletes"?"":" hidden"}><div class="selection-panel-head"><strong>选择报告对象</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-picked">${draft.athletes.map(p=>`<span class="selection-chip"><span>${E(athleteName(p.athleteId))}</span><button type="button" data-remove-athlete="${E(p.athleteId)}" aria-label="移除 ${E(athleteName(p.athleteId))}">×</button></span>`).join("")}${draft.references.map(ref=>`<span class="selection-chip selection-cohort"><button type="button" data-edit-reference="${E(ref.id)}">${E(ref.label||"群体参照")}</button><button type="button" data-remove-reference="${E(ref.id)}" aria-label="移除群体 ${E(ref.label||"群体参照")}">×</button></span>`).join("")}</div><button type="button" class="selection-reference-action" data-add-reference><span>群体参照</span><small>按成员条件与统计日期配置</small><b aria-hidden="true">＋</b></button><div class="selection-search"><input type="search" data-selection-search value="${E(query)}" placeholder="搜索姓名、专项或编号" aria-label="搜索运动员"><select data-selection-group aria-label="筛选队伍">${opt("","全部队伍",group)}${(library().groups||[]).map(g=>opt(g.id,g.name,group)).join("")}</select></div><div class="selection-athletes">${people.slice(0,80).map(a=>`<label><input type="checkbox" data-select-athlete="${E(a.id)}"${selected.has(a.id)?" checked":""}><span>${E(a.name||a.profile?.name)}<small>${E(library().groups?.find(g=>g.id===a.groupId)?.name||a.id.slice(-6))}</small></span></label>`).join("")||'<p class="empty">没有匹配的运动员</p>'}</div>${people.length>80?'<p class="muted">请搜索姓名或选择队伍以缩小范围。</p>':""}</section><section id="reportSelection-records" class="selection-panel" data-selection-panel="records" aria-label="选择测试记录"${panel==="records"?"":" hidden"}><div class="selection-panel-head"><strong>选择测试记录</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-people">${draft.athletes.map(personHTML).join("")}</div></section>${selection.multiple()?`<section id="reportSelection-settings" class="selection-options"${settingsOpen?"":" hidden"}>${field("统一评价方案",`<select data-profile>${opt("","不使用评价方案",draft.profileId)}${draft.profileId&&!(library().evaluationProfiles||[]).some(p=>p.id===draft.profileId)?`<option value="${E(draft.profileId)}" selected disabled>评价方案已不可用</option>`:""}${(library().evaluationProfiles||[]).filter(p=>!p.disabled||p.id===draft.profileId).map(p=>opt(p.id,p.name,draft.profileId)).join("")}</select>`)}${field("报告名称（可选）",`<input data-report-title value="${E(draft.title||"")}" placeholder="随报告重点生成">`)}</section>`:""}<p class="selection-status" role="status">${E(error||(currentApplying?"正在更新报告…":note))}</p>`;
-      if(host.openTeam){const button=root.document.createElement('button');button.type='button';button.className='btn small';button.dataset.createTeam='';button.textContent='团队报告';button.onclick=()=>host.openTeam();node.querySelector('.selection-submit').append(button);}
+      node.innerHTML=`<div class="selection-row"><label class="selection-analysis"><span>分析方式</span><select data-analysis-mode aria-label="分析方式">${analysisModes.map(([key,label])=>opt(key,label,draft.analysisMode)).join("")}</select></label>${button("athletes","选择运动员",objectSummary(draft))}${button("records","测试记录",recordSummary(draft),!draft.athletes.length)}<div class="selection-submit"><button type="button" class="btn primary small" data-apply-selection${currentApplying||status!=="ready"?" disabled":""}>${currentApplying?"正在更新…":"查看报告"}</button><button type="button" class="btn small" data-revert-selection${!dirty?" disabled":""}>撤销选择</button><button type="button" class="btn small" data-cancel-selection>取消</button>${draft.analysisMode!=="single"?`<button type="button" class="text-btn selection-settings-toggle" data-selection-settings-toggle aria-expanded="${settingsOpen}" aria-controls="reportSelection-settings">报告设置</button>`:""}</div></div><section id="reportSelection-athletes" class="selection-panel" data-selection-panel="athletes" aria-label="选择报告对象"${panel==="athletes"?"":" hidden"}><div class="selection-panel-head"><strong>选择报告对象</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-picked">${draft.athletes.map(p=>`<span class="selection-chip"><span>${E(athleteName(p.athleteId))}</span><button type="button" data-remove-athlete="${E(p.athleteId)}" aria-label="移除 ${E(athleteName(p.athleteId))}">×</button></span>`).join("")}${draft.references.map(ref=>`<span class="selection-chip selection-cohort"><button type="button" data-edit-reference="${E(ref.id)}">${E(ref.label||"群体参照")}</button><button type="button" data-remove-reference="${E(ref.id)}" aria-label="移除群体 ${E(ref.label||"群体参照")}">×</button></span>`).join("")}</div><button type="button" class="selection-reference-action" data-add-reference${draft.analysisMode!=="horizontal"?" hidden":""}><span>群体参照</span><small>按成员条件与统计日期配置</small><b aria-hidden="true">＋</b></button><div class="selection-search"><input type="search" data-selection-search value="${E(query)}" placeholder="搜索姓名、专项或编号" aria-label="搜索运动员"><select data-selection-group aria-label="筛选队伍">${opt("","全部队伍",group)}${(library().groups||[]).map(g=>opt(g.id,g.name,group)).join("")}</select></div><div class="selection-athletes">${people.slice(0,80).map(a=>`<label><input type="checkbox" data-select-athlete="${E(a.id)}"${selected.has(a.id)?" checked":""}><span>${E(a.name||a.profile?.name)}<small>${E(library().groups?.find(g=>g.id===a.groupId)?.name||a.id.slice(-6))}</small></span></label>`).join("")||'<p class="empty">没有匹配的运动员</p>'}</div>${people.length>80?'<p class="muted">请搜索姓名或选择队伍以缩小范围。</p>':""}</section><section id="reportSelection-records" class="selection-panel" data-selection-panel="records" aria-label="选择测试记录"${panel==="records"?"":" hidden"}><div class="selection-panel-head"><strong>选择测试记录</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-people">${draft.athletes.map(personHTML).join("")}</div></section>${draft.analysisMode!=="single"?`<section id="reportSelection-settings" class="selection-options"${settingsOpen?"":" hidden"}>${field("统一评价方案",`<select data-profile>${opt("","不使用评价方案",draft.profileId)}${draft.profileId&&!(library().evaluationProfiles||[]).some(p=>p.id===draft.profileId)?`<option value="${E(draft.profileId)}" selected disabled>评价方案已不可用</option>`:""}${(library().evaluationProfiles||[]).filter(p=>!p.disabled||p.id===draft.profileId).map(p=>opt(p.id,p.name,draft.profileId)).join("")}</select>`)}${field("报告名称（可选）",`<input data-report-title value="${E(draft.title||"")}" placeholder="随报告重点生成">`)}</section>`:""}<p class="selection-status" role="status">${E(error||(currentApplying?"正在更新报告…":note))}</p>`;
+      node.querySelector("[data-analysis-mode]").onchange=event=>{selection.analysisMode(event.target.value);changed();node.querySelector("[data-analysis-mode]")?.focus({preventScroll:true});};
+      node.querySelector("[data-cancel-selection]").onclick=()=>host.onCancel?.();
       node.querySelectorAll("[data-selection-toggle]").forEach(button=>button.onclick=()=>{const key=button.dataset.selectionToggle;panel=panel===key?"":key;settingsOpen=false;render();node.querySelector(`[data-selection-toggle="${key}"]`)?.focus({preventScroll:true});});
       node.querySelectorAll("[data-selection-close]").forEach(button=>button.onclick=()=>closePanel(true));
       node.querySelector("[data-selection-search]").oninput=e=>{query=e.target.value;render();};
@@ -26776,12 +26868,21 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         finishReference();changed({preserveConflicts:true});
       }catch(error){referenceError=error.message||String(error);dialog().querySelector("[data-reference-error]").textContent=referenceError;}
     }
-    function reset(){sequence++;host.cancelPending?.();dirty=false;initialized=false;conflicts=[];error="";panel="";settingsOpen=false;referenceDraft=null;referenceReturnId="";dialog()?.close();sync(true);render();}
+    function clearDraftUI(){dirty=false;conflicts=[];error="";panel="";settingsOpen=false;referenceDraft=null;referenceError="";referenceReturnId="";dialog()?.close();}
+    function begin({intent="new",configuration,analysisMode}={}){
+      sequence++;host.cancelPending?.();clearDraftUI();query="";group="";sessionActive=true;
+      const value=intent==="edit"?(configuration?fromConfiguration(configuration):fromCurrent()):{athletes:[],references:[],mode:"best",profileId:library()?.defaultEvaluationProfileId||"",analysisMode:"single"};
+      if(validAnalysisMode(analysisMode))value.analysisMode=analysisMode;
+      selection.replace(value);baseline=selection.get();sourceIdentity=identity();editingReportId=intent==="edit"?(configuration?.reportId||configuration?.id||host.reportId?.()||null):null;initialized=true;
+      render();return selection.get();
+    }
+    function cancel(){sequence++;clearDraftUI();sessionActive=false;initialized=false;baseline=null;editingReportId=null;sourceIdentity="";selection.replace({analysisMode:"single"});return true;}
+    function reset(){sequence++;host.cancelPending?.();clearDraftUI();if(sessionActive&&baseline)selection.replace(baseline);else{initialized=false;sync(true);}render();}
     root.document?.addEventListener("pointerdown",event=>{if(panel&&!host.element?.()?.contains(event.target))closePanel();});
     root.document?.addEventListener("keydown",event=>{if(event.key==="Escape"&&panel&&!dialog()?.open){event.preventDefault();closePanel(true);}});
-    return {render,apply,sync,state:()=>selection.get(),isPending:()=>!!applying,desktopCloseStatus:()=>({busy:!!applying,unsaved:dirty||!!referenceDraft}),
+    return {render,apply,sync,begin,cancel,state:()=>selection.get(),isPending:()=>!!applying,desktopCloseStatus:()=>({busy:!!applying,unsaved:dirty||!!referenceDraft}),
       showConflicts(value){conflicts=copy(value);error="以下指标适用多个评价标准，请明确选定群体统一标准。";render();if(conflicts.length)openReference(conflicts[0].referenceId);},
-      edit(configuration){sync(true);if(configuration)selection.replace({...copy(configuration),athletes:(configuration.participants||[]).map(p=>({athleteId:p.athleteId,recordIds:[p.recordId]})),references:(configuration.references||[]).map(r=>({...copy(r),explicitConditions:true,window:copy(r.window||configuration.window||{kind:""})}))});editingReportId=host.reportId?.()||null;dirty=true;panel="athletes";render();host.element?.()?.scrollIntoView({behavior:"smooth",block:"start"});},reset};
+      edit(configuration){return begin({intent:"edit",configuration});},reset};
   }
   root.RingsideReportSelection={state,create};
 })(typeof window!=="undefined"?window:globalThis);
@@ -26944,9 +27045,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   "use strict";
   const copy=v=>JSON.parse(JSON.stringify(v)), E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
   const option=(value,label,current)=>`<option value="${E(value)}"${value===current?' selected':''}>${E(label)}</option>`;
+  const eligible=a=>!a.deletedAt&&!a.deleted&&!a.archived&&!a.demo&&!a.sample;
   function candidates(athlete,window){
     if(!window?.from||!window?.to||window.from>window.to)return [];
-    return (athlete?.records||[]).filter(r=>!r.deletedAt&&!r.deleted&&!r.archived&&!r.demo&&!r.sample&&r.athlete?.date>=window.from&&r.athlete.date<=window.to)
+    return (athlete?.records||[]).filter(r=>eligible(r)&&r.athlete?.date>=window.from&&r.athlete.date<=window.to)
       .sort((a,b)=>b.athlete.date.localeCompare(a.athlete.date)||String(a.recordId).localeCompare(String(b.recordId)));
   }
   function resolveSelection(athlete,window,recordId=""){
@@ -26955,52 +27057,102 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const latest=records.filter(r=>r.athlete.date===records[0]?.athlete.date);
     return {recordId:latest.length===1?latest[0].recordId:"",records,ambiguous:latest.length>1};
   }
+  function memberGroups(athletes,groups=[],groupId="",query=""){
+    const q=query.trim().toLocaleLowerCase(),known=new Set(groups.map(g=>g.id));
+    const people=athletes.filter(a=>eligible(a)&&(!q||[a.name||a.profile?.name,a.id].join(' ').toLocaleLowerCase().includes(q)));
+    const ordered=[...groups.filter(g=>g.id===groupId),...groups.filter(g=>g.id!==groupId),{id:'',name:'未分组'}];
+    return ordered.map(group=>({...group,own:!!groupId&&group.id===groupId,people:people.filter(a=>group.id?a.groupId===group.id:!known.has(a.groupId))})).filter(group=>group.people.length);
+  }
   function create(host){
-    let dialog=null,draft=null,editingId=null,busy=false,query="",error="",ticket=0;
-    const library=()=>host.library(),available=()=>library().athletes.filter(a=>!a.deletedAt&&!a.deleted&&!a.archived&&!a.demo&&!a.sample);
+    let node=null,draft=null,editingId=null,busy=false,query="",error="",ticket=0,panel="members";
+    const library=()=>host.library(),available=()=>(library().athletes||[]).filter(eligible);
+    const name=a=>a?.name||a?.profile?.name||'人员不可用';
+    function number(id,people){const short=id.slice(-6);return people.filter(a=>a.id.slice(-6)===short).length>1?id:short;}
     function syncRecords(reset=false){for(const p of draft.participants){const a=available().find(a=>a.id===p.athleteId);p.recordId=resolveSelection(a,draft.window,reset?"":p.recordId).recordId;}}
-    function close(){if(busy)return false;ticket++;dialog?.close();dialog?.remove();dialog=null;draft=null;host.onClose?.();return true;}
+    function cancel(){
+      ticket++;busy=false;draft=null;editingId=null;query='';error='';panel='members';
+      if(node)node.innerHTML='';node=null;return true;
+    }
+    async function userCancel(){if(!draft)return false;cancel();await host.onCancel?.();return true;}
+    function validation(value,people){
+      const valid=root.RingsideLongitudinalStore.validDate;
+      if(!valid(value.window.from)||!valid(value.window.to)||value.window.from>value.window.to)return {message:'请选择有效的起止日期。',panel:'records'};
+      if(!value.participants.length)return {message:'请至少选择一名运动员。',panel:'members'};
+      if(value.participants.some(p=>!people.some(a=>a.id===p.athleteId)))return {message:'部分成员已归档或移除，请调整报告名单。',panel:'members'};
+      if(value.participants.some(p=>candidates(people.find(a=>a.id===p.athleteId),value.window).length&&!p.recordId))return {message:'请为有多条记录的运动员指定一条测试记录。',panel:'records'};
+      return null;
+    }
+    async function apply(){
+      if(!draft||busy)return false;
+      const value=copy(draft),issue=validation(value,available());
+      if(issue){error=issue.message;panel=issue.panel;render();return false;}
+      const sequence=++ticket,reportId=editingId,current=()=>!!draft&&ticket===sequence;
+      busy=true;error='';render();
+      const group=(library().groups||[]).find(g=>g.id===value.groupId);
+      value.titleAuto=!value.title.trim();value.title=value.title.trim()||(group?.name||'团队')+' · 团队报告';
+      try{
+        const ok=await host.select(value,{reportId,isCurrent:current});
+        if(!current())return false;
+        if(!ok){error='报告尚未生成，请检查页面提示后重试。';return false;}
+        await host.onApplied?.();
+        if(current())cancel();
+        return true;
+      }catch(e){if(current())error=e.message||String(e);return false;}
+      finally{if(current()){busy=false;render();}}
+    }
     function render(){
-      if(!dialog||!draft)return;
-      const focused=root.document.activeElement,key=focused?.dataset?.teamField,search=focused?.hasAttribute('data-team-search'),position=focused?.selectionStart;
-      const people=available(),chosen=new Set(draft.participants.map(p=>p.athleteId)),q=query.trim().toLocaleLowerCase(),group=library().groups.find(g=>g.id===draft.groupId);
-      const field=(label,html)=>`<label class="field"><span>${label}</span>${html}</label>`;
-      dialog.innerHTML=`<form class="team-selection-form"><header class="modal-head"><h2>团队报告</h2><button type="button" class="close" data-team-cancel aria-label="关闭">×</button></header><section class="team-selection-body"><div class="form-grid">${field('队伍',`<select data-team-field="groupId">${option('','请选择队伍',draft.groupId)}${library().groups.map(g=>option(g.id,g.name,draft.groupId)).join('')}</select>`)}${field('报告名称',`<input data-team-field="title" value="${E(draft.title)}" placeholder="${E((group?.name||'团队')+' · 团队报告')}">`)}${field('开始日期',`<input type="date" required data-team-field="from" value="${E(draft.window.from)}">`)}${field('结束日期',`<input type="date" required data-team-field="to" value="${E(draft.window.to)}">`)}${field('代表结果',`<select data-team-field="mode">${option('best','最佳',draft.mode)}${option('mean','均值',draft.mode)}</select>`)}${field('评价方案',`<select data-team-field="profileId">${option('','不使用评价方案',draft.profileId)}${library().evaluationProfiles.map(p=>option(p.id,p.name,draft.profileId)).join('')}</select>`)}</div><div class="team-selection-members"><section><h3>报告成员 <small>${chosen.size} 人</small></h3><input type="search" data-team-search value="${E(query)}" placeholder="搜索姓名或编号，补选成员" aria-label="搜索团队报告成员"><div class="team-member-options">${people.filter(a=>!q||[a.name,a.id].join(' ').toLocaleLowerCase().includes(q)).map(a=>`<label><input type="checkbox" data-team-person="${E(a.id)}"${chosen.has(a.id)?' checked':''}><span>${E(a.name)}<small>${E(library().groups.find(g=>g.id===a.groupId)?.name||'未分组')} · ${E(a.id.slice(-6))}</small></span></label>`).join('')||'<p class="empty">没有匹配的运动员</p>'}</div></section><section><h3>所选测试记录</h3><p class="note">每人使用一条记录；缺少的指标保留为空。同日多条记录需手动选择。</p><div class="team-record-options">${draft.participants.map(p=>{const a=people.find(a=>a.id===p.athleteId)||library().athletes.find(a=>a.id===p.athleteId),resolved=resolveSelection(a,draft.window,p.recordId);return `<label class="field"><span>${E(a?.name||'人员不可用')} <small>${E(p.athleteId.slice(-6))}${people.some(a=>a.id===p.athleteId)?'':' · 已归档或移除'}</small><button type="button" class="text-btn" data-team-remove="${E(p.athleteId)}" aria-label="移除 ${E(a?.name||p.athleteId)}">移除</button></span>${resolved.records.length?`<select data-team-record="${E(p.athleteId)}">${option('',resolved.ambiguous?'同日有多条记录，请选择':'请选择记录',p.recordId)}${resolved.records.map(r=>option(r.recordId,`${r.athlete.date} · ${r.title||'测试记录'} · ${r.recordId.slice(-6)}`,p.recordId)).join('')}</select>`:`<span class="note">${draft.window.from&&draft.window.to?'日期范围内无测试记录':'请先选择日期范围'}</span>`}</label>`;}).join('')||'<p class="empty">选择队伍或勾选成员</p>'}</div></section></div><p class="field-error" role="alert" data-team-selection-error>${E(error)}</p></section><footer class="modal-foot"><button type="button" class="btn" data-team-cancel${busy?' disabled':''}>取消</button><button type="submit" class="btn primary"${busy?' disabled':''}>${busy?'正在生成…':editingId?'更新团队报告':'查看团队报告'}</button></footer></form>`;
-      dialog.querySelectorAll('[data-team-cancel]').forEach(el=>el.onclick=close);
-      dialog.querySelectorAll('[data-team-field]').forEach(el=>el.onchange=()=>{
-        const name=el.dataset.teamField;if(name==='from'||name==='to'){draft.window[name]=el.value;if(name==='from'&&!draft.window.to)draft.window.to=el.value;syncRecords(true);}
-        else if(name==='groupId'){draft.groupId=el.value;draft.participants=people.filter(a=>a.groupId===el.value&&el.value).map(a=>({athleteId:a.id,recordId:''}));syncRecords(true);}
-        else draft[name]=el.value;error='';render();
+      if(!node||!draft)return;
+      const focused=root.document.activeElement,focusKeys=['data-team-field','data-team-person','data-team-record','data-team-search','data-team-toggle','data-team-remove'];
+      const focusKey=node.contains?.(focused)?focusKeys.find(key=>focused.hasAttribute(key)):null,focusValue=focusKey?focused.getAttribute(focusKey):null,position=focused?.selectionStart;
+      const scroll=node.querySelector('.team-selection-content')?.scrollTop||0,people=available(),chosen=new Set(draft.participants.map(p=>p.athleteId)),groups=library().groups||[],group=groups.find(g=>g.id===draft.groupId);
+      const field=(label,html)=>`<label class="field"><span>${E(label)}</span>${html}</label>`,disabled=busy?' disabled':'';
+      const missing=draft.participants.filter(p=>!candidates(people.find(a=>a.id===p.athleteId),draft.window).length).length;
+      const issue=validation(draft,people),status=error||(busy?'正在生成团队报告…':issue?.message||`${chosen.size} 名成员${missing?'，'+missing+' 人在此日期范围内无记录，将保留缺测。':'，测试记录已选定。'}`);
+      const dates=draft.window.from&&draft.window.to?(draft.window.from===draft.window.to?draft.window.from:draft.window.from+' — '+draft.window.to):'请选择起止日期';
+      const trigger=(key,label,value)=>`<button type="button" class="selection-trigger" data-team-toggle="${key}" aria-expanded="${panel===key}" aria-controls="teamSelection-${key}"><span>${label}</span><strong>${E(value)}</strong><i aria-hidden="true">⌄</i></button>`;
+      const memberHTML=memberGroups(people,groups,draft.groupId,query).map(g=>`<section class="team-member-group" data-team-member-group="${E(g.id)}"${g.own?' data-team-own-group="true"':''}><h3>${E(g.name)} <small>${g.people.length} 人${g.own?' · 本队':''}</small></h3><div class="team-member-options">${g.people.map(a=>`<label><input type="checkbox" data-team-person="${E(a.id)}"${chosen.has(a.id)?' checked':''}${disabled}><span>${E(name(a))}<small>编号 ${E(number(a.id,people))}</small></span></label>`).join('')}</div></section>`).join('');
+      const recordHTML=draft.participants.map(p=>{
+        const a=people.find(a=>a.id===p.athleteId)||(library().athletes||[]).find(a=>a.id===p.athleteId),resolved=resolveSelection(a,draft.window,p.recordId);
+        return `<section class="team-record-person"><div class="team-record-heading"><h3>${E(name(a))}<small>编号 ${E(number(p.athleteId,people))}${people.some(a=>a.id===p.athleteId)?'':' · 已归档或移除'}</small></h3><button type="button" class="text-btn" data-team-remove="${E(p.athleteId)}" aria-label="移除 ${E(name(a))}，编号 ${E(number(p.athleteId,people))}"${disabled}>移除</button></div>${resolved.records.length?`<label class="field"><span class="team-record-label">测试记录</span><select data-team-record="${E(p.athleteId)}" aria-label="${E(name(a))}，编号 ${E(number(p.athleteId,people))}的测试记录"${disabled}>${option('',resolved.ambiguous?'同日有多条记录，请选择':'请选择记录',p.recordId)}${resolved.records.map(r=>option(r.recordId,`${r.athlete.date} · ${r.title||'测试记录'} · ${r.recordId.slice(-6)}`,p.recordId)).join('')}</select></label>`:`<p class="note">${draft.window.from&&draft.window.to?'日期范围内无测试记录，报告中保留缺测。':'请先选择日期范围。'}</p>`}</section>`;
+      }).join('');
+      node.innerHTML=`<form novalidate class="team-selection-form" aria-label="团队报告选择"><div class="team-selection-actions"><div class="selection-row">${trigger('members','队伍与成员',(group?.name||'选择报告成员')+' · '+chosen.size+' 人')}${trigger('records','测试记录',dates)}<div class="selection-submit"><button type="submit" class="btn primary small" data-team-apply${disabled}>${busy?'正在生成…':editingId?'更新团队报告':'查看团队报告'}</button><button type="button" class="btn small" data-team-cancel>取消</button></div></div><p class="selection-status${error?' field-error':''}" role="status" aria-live="polite" data-team-selection-error>${E(status)}</p></div><div class="team-selection-content"><section id="teamSelection-members" class="selection-panel" data-team-panel="members" aria-label="选择队伍与报告成员"${panel==='members'?'':' hidden'}><div class="selection-panel-head"><strong>队伍与成员</strong><button type="button" class="text-btn" data-team-collapse="members">收起</button></div><div class="team-member-search">${field('队伍',`<select data-team-field="groupId"${disabled}>${option('','请选择队伍',draft.groupId)}${groups.map(g=>option(g.id,g.name,draft.groupId)).join('')}</select>`)}${field('搜索成员',`<input type="search" data-team-search value="${E(query)}" placeholder="搜索姓名或编号" aria-label="搜索团队报告成员">`)}</div><p class="note">可增减本队成员，也可从其他队伍补选。</p>${memberHTML||'<p class="empty">没有匹配的运动员</p>'}</section><section id="teamSelection-records" class="selection-panel" data-team-panel="records" aria-label="选择团队测试记录"${panel==='records'?'':' hidden'}><div class="selection-panel-head"><strong>测试记录与报告设置</strong><button type="button" class="text-btn" data-team-collapse="records">收起</button></div><div class="team-selection-settings">${field('开始日期',`<input type="date" required data-team-field="from" value="${E(draft.window.from)}"${disabled}>`)}${field('结束日期',`<input type="date" required data-team-field="to" value="${E(draft.window.to)}"${disabled}>`)}${field('代表结果',`<select data-team-field="mode"${disabled}>${option('best','最佳',draft.mode)}${option('mean','均值',draft.mode)}</select>`)}${field('评价方案',`<select data-team-field="profileId"${disabled}>${option('','不使用评价方案',draft.profileId)}${(library().evaluationProfiles||[]).map(p=>option(p.id,p.name,draft.profileId)).join('')}</select>`)}${field('报告名称',`<input data-team-field="title" value="${E(draft.title)}" placeholder="${E((group?.name||'团队')+' · 团队报告')}"${disabled}>`)}</div><p class="note">每人使用一条记录；缺少的指标保留为空。同日多条记录需手动选择。</p><div class="team-record-options">${recordHTML||'<p class="empty">请先选择队伍或勾选成员。</p>'}</div></section></div></form>`;
+      node.querySelectorAll('[data-team-cancel]').forEach(el=>el.onclick=userCancel);
+      node.querySelectorAll('[data-team-toggle]').forEach(el=>el.onclick=()=>{panel=panel===el.dataset.teamToggle?'':el.dataset.teamToggle;render();});
+      node.querySelectorAll('[data-team-collapse]').forEach(el=>el.onclick=()=>{const previous=panel;panel='';render();node?.querySelector(`[data-team-toggle="${previous}"]`)?.focus({preventScroll:true});});
+      node.querySelectorAll('[data-team-field]').forEach(el=>el.onchange=()=>{
+        if(busy||!draft)return;
+        const key=el.dataset.teamField;
+        if(key==='from'||key==='to'){draft.window[key]=el.value;if(key==='from'&&!draft.window.to)draft.window.to=el.value;syncRecords(true);}
+        else if(key==='groupId'){draft.groupId=el.value;draft.participants=people.filter(a=>a.groupId===el.value&&el.value).map(a=>({athleteId:a.id,recordId:''}));syncRecords(true);}
+        else draft[key]=el.value;
+        error='';render();
       });
-      dialog.querySelector('[data-team-search]').oninput=event=>{query=event.target.value;render();};
-      dialog.querySelectorAll('[data-team-person]').forEach(el=>el.onchange=()=>{const id=el.dataset.teamPerson;if(el.checked&&!chosen.has(id))draft.participants.push({athleteId:id,recordId:resolveSelection(people.find(a=>a.id===id),draft.window).recordId});else if(!el.checked)draft.participants=draft.participants.filter(p=>p.athleteId!==id);error='';render();});
-      dialog.querySelectorAll('[data-team-remove]').forEach(el=>el.onclick=event=>{event.preventDefault();draft.participants=draft.participants.filter(p=>p.athleteId!==el.dataset.teamRemove);error='';render();});
-      dialog.querySelectorAll('[data-team-record]').forEach(el=>el.onchange=()=>{draft.participants.find(p=>p.athleteId===el.dataset.teamRecord).recordId=el.value;error='';});
-      dialog.querySelector('form').onsubmit=async event=>{
-        event.preventDefault();if(busy)return;
-        const value=copy(draft),valid=root.RingsideLongitudinalStore.validDate;
-        if(!valid(value.window.from)||!valid(value.window.to)||value.window.from>value.window.to)error='请选择有效的起止日期。';
-        else if(!value.participants.length)error='请至少选择一名运动员。';
-        else if(value.participants.some(p=>!people.some(a=>a.id===p.athleteId)))error='部分成员已归档或移除，请调整报告名单。';
-        else if(value.participants.some(p=>candidates(people.find(a=>a.id===p.athleteId),value.window).length&&!p.recordId))error='请为有多条记录的运动员指定一条测试记录。';
-        if(error){render();return;}
-        const sequence=++ticket;busy=true;render();
-        value.titleAuto=!value.title.trim();value.title=value.title.trim()||(group?.name||'团队')+' · 团队报告';
-        try{const ok=await host.select(value,{reportId:editingId,isCurrent:()=>ticket===sequence});if(ok){busy=false;close();}else error='报告尚未生成，请检查页面提示后重试。';}
-        catch(e){error=e.message||String(e);}finally{busy=false;render();}
-      };
-      if(search){const node=dialog.querySelector('[data-team-search]');node.focus({preventScroll:true});node.setSelectionRange(position,position);}else if(key)dialog.querySelector(`[data-team-field="${key}"]`)?.focus({preventScroll:true});
+      const search=node.querySelector('[data-team-search]');if(search)search.oninput=event=>{query=event.target.value;render();};
+      node.querySelectorAll('[data-team-person]').forEach(el=>el.onchange=()=>{
+        if(busy||!draft)return;
+        const id=el.dataset.teamPerson;
+        if(el.checked&&!chosen.has(id))draft.participants.push({athleteId:id,recordId:resolveSelection(people.find(a=>a.id===id),draft.window).recordId});
+        else if(!el.checked)draft.participants=draft.participants.filter(p=>p.athleteId!==id);
+        error='';render();
+      });
+      node.querySelectorAll('[data-team-remove]').forEach(el=>el.onclick=()=>{if(busy||!draft)return;draft.participants=draft.participants.filter(p=>p.athleteId!==el.dataset.teamRemove);error='';render();});
+      node.querySelectorAll('[data-team-record]').forEach(el=>el.onchange=()=>{if(busy||!draft)return;draft.participants.find(p=>p.athleteId===el.dataset.teamRecord).recordId=el.value;error='';render();});
+      const form=node.querySelector('form');if(form)form.onsubmit=event=>{event.preventDefault();return apply();};
+      const content=node.querySelector('.team-selection-content');if(content)content.scrollTop=scroll;
+      if(focusKey){
+        const escaped=String(focusValue).replace(/["\\]/g,'\\$&'),restored=node.querySelector(`[${focusKey}="${escaped}"]`);
+        restored?.focus({preventScroll:true});if(position!=null&&typeof restored?.setSelectionRange==='function'&&['search','text'].includes(restored.type))restored.setSelectionRange(position,position);
+      }
     }
     async function open(configuration=null,{reportId=null}={}){
-      if(busy)return false;if(host.beforeOpen&&!await host.beforeOpen())return false;
-      close();draft=configuration?copy(configuration):{groupId:'',participants:[],window:{kind:'custom',from:'',to:''},mode:'best',profileId:library().defaultEvaluationProfileId||'',title:''};
-      editingId=reportId;query='';error='';draft.window={kind:'custom',from:'',to:'',...draft.window};draft.participants||=[];
-      dialog=root.document.createElement('dialog');dialog.id='teamReportDialog';dialog.className='team-selection-dialog';dialog.setAttribute('aria-label','团队报告设置');root.document.body.append(dialog);
-      dialog.addEventListener('cancel',event=>{event.preventDefault();close();});render();dialog.showModal();return true;
+      cancel();const target=host.element?.();if(!target)return false;
+      node=target;draft=configuration?copy(configuration):{groupId:'',participants:[],window:{kind:'custom',from:'',to:''},mode:'best',profileId:library().defaultEvaluationProfileId||'',title:''};
+      editingId=reportId;draft.window={kind:'custom',from:'',to:'',...draft.window};draft.participants||=[];draft.title||='';
+      render();return true;
     }
-    return {open,close,isOpen:()=>!!dialog,desktopCloseStatus:()=>({busy,dirty:!!dialog})};
+    return {open,cancel,close:cancel,apply,render,state:()=>draft?copy(draft):null,isOpen:()=>!!draft,desktopCloseStatus:()=>({busy,dirty:!!draft})};
   }
-  root.RingsideTeamSelection={create,candidates,resolveSelection};
+  root.RingsideTeamSelection={create,candidates,resolveSelection,memberGroups};
 })(window);
 
 </script>
@@ -27272,6 +27424,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null, aiEditSequence = 0;
   let desktopUpdate = null, desktopUpdateLoad = null, desktopActionBusy = false, desktopPreferencesBusy = false, desktopUpdateUnsubscribe = null, desktopUpdateRevision = 0;
   let settingsReturn = null;
+  let reportSetup = null, reportSetupReturn = null, reportSetupSequence = 0;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -27387,7 +27540,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     error:message=>toast(message), render:()=>{renderReport(false);renderWorkspace();},
     captureView:captureReportUI, renderDisplay:()=>renderReport(),
     restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
-    prepareAnchor:()=>{if(state && recordBaselines.get(state.recordId)===recordContent(state)){M.applyAge(state);recordBaselines.set(state.recordId,recordContent(state));}}
+    prepareAnchor:()=>{if(state && recordBaselines.get(state.recordId)===recordContent(state)){M.applyAge(state);recordBaselines.set(state.recordId,recordContent(state));}},
+    activate:()=>{team.clear();horizontal.clear();ui.mode="report";reportDirty=true;}
   });
   const horizontal = window.RingsideHorizontalController.create({
     state:()=>state, library:()=>library, repository:()=>repository, save:persist, saveEditor,
@@ -27399,7 +27553,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
     commitLibraryChange,
     manageClassifications:(tab)=>openClassifications(tab),
-    editSelection:configuration=>reportSelection.edit(configuration),
+    editSelection:configuration=>openReportSetup("personal",{edit:!!configuration,configuration,analysisMode:"horizontal"}),
     listReports:()=>openManagement("records",{view:"reports"}),
     evaluationConflicts:conflicts=>reportSelection.showConflicts(conflicts),
   });
@@ -27411,23 +27565,23 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     error:message=>toast(message),render:()=>{renderReport(false);renderWorkspace();},
     captureView:captureReportUI,renderDisplay:()=>renderReport(),
     restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
-    editSelection:configuration=>teamSelection.open(configuration,{reportId:configuration?team.document()?.id:null}),
+    editSelection:configuration=>openReportSetup("team",{edit:!!configuration,configuration,reportId:configuration?team.document()?.id:null}),
     listReports:()=>openManagement("records",{view:"reports"}),
   });
   const reports = window.RingsideReportOwner.create({controllers:[team,horizontal,longitudinal],state:()=>state});
   const teamSelection = window.RingsideTeamSelection.create({
-    library:()=>library,beforeOpen:async()=>{if(managementNavigationBlocked())return false;saveEditor();return persist();},
-    select:(configuration,options)=>team.configure(configuration,{...options,prior:team.document()?.id===options.reportId?team.document():null}),
+    library:()=>library,element:()=>$("teamReportSelection"),
+    select:(configuration,options)=>team.configure(configuration,{...options,isCurrent:reportSetupGuard(options.isCurrent),prior:team.document()?.id===options.reportId?team.document():null}),
+    onApplied:finishReportSetup,onCancel:cancelReportSetup,
   });
   const reportSelection = window.RingsideReportSelection.create({
     library:()=>library,element:()=>$("reportSelection"),current:()=>state,
     configuration:()=>horizontal.active()?horizontal.document().configuration:null,
-    longitudinal:()=>longitudinal.active()?longitudinal.selection():null,
+    longitudinal:()=>longitudinal.active()?{...longitudinal.selection(),evaluationProfileId:longitudinal.document().evaluationProfileId}:null,
     identity:()=>reports.owner()||state?.recordId||"",reportId:()=>horizontal.active()?horizontal.document().id:null,
-    team:()=>team.active()?team.document():null,openTeam:()=>teamSelection.open(),editTeam:()=>team.edit(),
-    leaveTeam:async()=>{saveEditor();if(!await persist())return false;team.clear();reportSelection.reset();renderReport(false);renderWorkspace();rememberUI();return true;},
-    select:applyReportSelection,cancelPending:()=>{selectionSequence++;reports.cancelPending();},
-    manage:(tab,onReturn)=>openClassifications(tab,{onReturn:async()=>{await showReport(false);onReturn();},returnLabel:"返回报告选择"}),
+    select:(value,options)=>applyReportSelection(value,{...options,isCurrent:reportSetupGuard(options.isCurrent)}),cancelPending:()=>{selectionSequence++;reports.cancelPending();},
+    onApplied:finishReportSetup,onCancel:cancelReportSetup,
+    manage:(tab,onReturn)=>openClassifications(tab,{keepReportSetup:true,onReturn:()=>{if(reportSetup){ui.mode="report-setup";renderWorkspace();onReturn();}},returnLabel:"返回报告选择"}),
   });
   const narrativeOwner = () => reports.document();
   const positive = (x) => N(x) !== null && Number(x) > 0;
@@ -27658,6 +27812,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (tab === "catalog") tab = "metrics";
     if (creation?.submitting) return;
     if (!library) return;
+    if(reportSetup&&!options.keepReportSetup)discardReportSetup();
     if (ui.mode === "report") captureReportUI();
     saveEditor(); persist();
     if (ui.mode !== "management") ui.returnMode = ui.mode;
@@ -27666,6 +27821,58 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     renderWorkspace(); closeMobileSidebar();
   }
   function openClassifications(tab="sports",options={}) { return openManagement(tab==="ageBands"?"ageBands":"sports",options); }
+  function reportSetupGuard(guard=()=>true) {
+    const session=reportSetup,sequence=reportSetupSequence;
+    return ()=>sequence===reportSetupSequence&&session===reportSetup&&guard();
+  }
+  function discardReportSetup() {
+    reportSetupSequence++;selectionSequence++;reports.cancelPending();
+    reportSelection.cancel?.();teamSelection.cancel?.();
+    reportSetup=null;reportSetupReturn=null;
+    if(ui.mode==="report-setup")ui.mode="report";
+  }
+  async function openReportSetup(family,{edit=false,configuration,reportId,analysisMode}={}) {
+    if(!["personal","team"].includes(family)||!library||managementNavigationBlocked())return false;
+    if(window.RingsideManagement.beforeLeave?.("report")===false||creation?.submitting)return false;
+    const sequence=++reportSetupSequence;
+    selectionSequence++;reports.cancelPending();
+    const backTo=reportSetupReturn||{scroll:ui.mode==="report"?window.scrollY:ui.reportScroll,focus:document.activeElement};
+    captureReportUI();saveEditor();
+    if(!await persist()||sequence!==reportSetupSequence)return false;
+    await leaveEntrySession();
+    if(sequence!==reportSetupSequence)return false;
+    reportSelection.cancel?.();teamSelection.cancel?.();
+    creation=null;entryReturn=null;
+    reportSetupReturn=backTo;reportSetup={family,intent:edit?"edit":"new"};
+    ui.mode="report-setup";ui.returnMode="report";
+    if(family==="personal")reportSelection.begin({intent:reportSetup.intent,configuration,analysisMode});
+    else {
+      const current=edit?team.document():null;
+      await teamSelection.open(configuration===undefined?current?.configuration||null:configuration,{reportId:edit?(reportId||current?.id||null):null});
+      if(sequence!==reportSetupSequence)return false;
+    }
+    renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
+    $("reportSetupTitle").focus({preventScroll:true});
+    return true;
+  }
+  function adjustCurrentReport() {
+    return openReportSetup(team.active()?"team":"personal",{edit:true});
+  }
+  function cancelReportSetup() {
+    const backTo=reportSetupReturn;
+    discardReportSetup();ui.mode="report";
+    renderReport(false);renderWorkspace();
+    window.scrollTo({top:backTo?.scroll||0,behavior:"instant"});
+    if(backTo?.focus?.isConnected)backTo.focus.focus({preventScroll:true});
+    return true;
+  }
+  function finishReportSetup() {
+    if(!reportSetup)return;
+    reportSetup=null;reportSetupReturn=null;reportSetupSequence++;
+    ui.mode="report";ui.returnMode="report";
+    renderReport(false);renderWorkspace();
+    window.scrollTo({top:ui.reportScroll||0,behavior:"instant"});
+  }
   async function applyReportSelection(value,{isCurrent=()=>true,reportId=null}={}) {
     saveEditor();if(!await persist()||!isCurrent())return false;
     const people=value.athletes||[],references=value.references||[];
@@ -27673,9 +27880,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const person=people[0],athlete=library.athletes.find(a=>a.id===person?.athleteId&&!a.deletedAt),ids=person?.recordIds||[];
       if(person&&!athlete)throw Error("所选运动员已不存在");
       if(!isCurrent())return false;
-      team.clear();horizontal.clear();
-      if(ids.length>1)return longitudinal.select(ids,{athleteId:person.athleteId,...(Object.hasOwn(value,"profileId")?{evaluationProfileId:value.profileId}:{})});
-      return switchRecord(athlete||null,ids.length?athlete.records.find(r=>r.recordId===ids[0]):null);
+      if(ids.length>1)return longitudinal.select(ids,{athleteId:person.athleteId,isCurrent,...(Object.hasOwn(value,"profileId")?{evaluationProfileId:value.profileId}:{})});
+      return switchRecord(athlete||null,ids.length?athlete.records.find(r=>r.recordId===ids[0]):null,{isCurrent,reportSetup:true});
     }
     const config={participants:people.map(p=>({athleteId:p.athleteId,recordId:p.recordIds[0]})),references,
       mode:value.mode||state?.mode||"best",profileId:Object.hasOwn(value,"profileId")?value.profileId:library.defaultEvaluationProfileId,
@@ -28156,7 +28362,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         uiKey,
         JSON.stringify({
           recordId: state?.recordId || "",
-          mode: ui.mode,
+          mode: ui.mode==="report-setup"?"report":ui.mode,
           returnMode: ui.returnMode,
           entryTab,
           entryReturn,
@@ -28198,21 +28404,32 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     hideTooltip();
     if (ui.mode !== "management") window.RingsideManagement.cancelPending?.();
     const management = ui.mode === "management";
+    const selecting=!!reportSetup&&["report","report-setup"].includes(ui.mode);
+    const reading=ui.mode==="report"&&!selecting;
     $("managementView").hidden = !management;
     $("creationView").hidden = ui.mode !== "creation";
-    $("emptyReport").hidden = ui.mode !== "report" || reports.hasContent();
+    $("emptyReport").hidden = !reading || reports.hasContent();
+    $("reportSetupView").hidden=!selecting;
+    $("teamReportSelection").hidden=!selecting||reportSetup.family!=="team";
+    document.body.classList.toggle("report-setup-mode",selecting);
+    if(selecting){
+      $("reportSetupTitle").textContent=(reportSetup.intent==="edit"?"调整":"")+(reportSetup.family==="team"?"团队报告":"个人报告");
+      $("reportSetupTitle").setAttribute("tabindex","-1");
+      $("reportSetupDescription").textContent=reportSetup.family==="team"?"选择队伍与成员、测试日期及记录，查看团队报告。":"选择报告方式，再选择运动员和测试记录。";
+    }
     document.body.classList.toggle("management-mode", management);
-    $("reportToolbar").hidden = ui.mode !== "report";
-    $("reportControls").hidden = ui.mode !== "report";
-    $("reportActions").hidden = ui.mode !== "report" || !reports.hasContent();
-    $("reportView").hidden = ui.mode !== "report" || !reports.hasContent();
+    $("reportToolbar").hidden = !reading||!reports.hasContent();
+    $("reportControls").hidden = !selecting||reportSetup.family!=="personal";
+    $("reportActions").hidden = !reading || !reports.hasContent();
+    $("reportView").hidden = !reading || !reports.hasContent();
     $("entryView").hidden = ui.mode !== "entry";
     $("settingsView").hidden = ui.mode !== "settings";
     $("entryNav").hidden = ui.mode !== "entry";
-    $("editButton").hidden = !reports.hasContent();
+    $("editButton").hidden = !reports.hasContent()||reports.active();
     $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
     if (management || ui.mode === "creation" || ui.mode === "settings" && settingsTab === "app") $("recordContext").textContent = "";
-    $("workspaceBack").hidden = ui.mode === "report";
+    if(selecting)$("recordContext").textContent=(reportSetup.family==="team"?"团队报告":"个人报告")+" · 选择数据";
+    $("workspaceBack").hidden = reading||selecting;
     $("workspaceBack").textContent = ui.mode === "creation" ? "取消本次创建" : ui.mode === "entry" && entryReturn?.mode === "management" ? "返回原列表" : ui.mode === "settings" && settingsReturn?.mode === "management" ? "返回原管理页面" : ui.mode === "settings" && settingsReturn?.mode === "creation" ? "返回测试设置" : (ui.mode === "settings" || management) && ui.returnMode === "entry" ? "返回数据录入" : "返回报告首页";
     renderNavigation(); renderAIStatus(); rememberUI();
   }
@@ -28227,6 +28444,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     document.querySelectorAll("[data-settings-open]").forEach(button=>{
       const selected=ui.mode==="settings"&&button.dataset.settingsOpen===window.RingsideSettings.scopeFor(settingsTab);
       button.classList.toggle("sidebar-scope-active",selected);
+      if(selected)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
+    });
+    document.querySelectorAll("[data-report-family]").forEach(button=>{
+      const selected=["report","report-setup"].includes(ui.mode)&&button.dataset.reportFamily===(reportSetup?.family||(team.active()?"team":"personal"));
+      button.classList.toggle("active",selected);
       if(selected)button.setAttribute("aria-current","page");else button.removeAttribute("aria-current");
     });
     $("settingsTabs").hidden=ui.mode!=="settings";
@@ -28288,6 +28510,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (matchMedia("(max-width:1100px)").matches) toggleSidebar(false);
   }
   async function showReport(restoreScroll = true) {
+    if(reportSetup)return cancelReportSetup();
     if (managementNavigationBlocked()) return false;
     if (window.RingsideManagement.beforeLeave?.("report") === false) return false;
     if (creation?.submitting) return false;
@@ -28311,6 +28534,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return ui.mode;
   }
   async function back() {
+    if(reportSetup&&["report","report-setup"].includes(ui.mode))return cancelReportSetup();
     if (managementNavigationBlocked()) return false;
     if (ui.mode === "creation") return cancelCreation();
     if (ui.mode === "entry" && entryReturn?.mode === "management") {
@@ -28512,10 +28736,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         options.longitudinalReports = longitudinalDocuments;
       }
       await repository.saveRecords(writeRecord ? [snapshot] : [], checks, options);
-      if (!await horizontal.save()) throw Error("横向报告尚未保存，请重试");
-      if (!await team.save()) throw Error("团队报告尚未保存，请重试");
       longitudinalStoredJSON = serializedDocuments;
       if (writeRecord) rememberRecordBaseline(snapshot);
+      if (!await horizontal.save()) throw Error("横向报告尚未保存，请重试");
+      if (!await team.save()) throw Error("团队报告尚未保存，请重试");
     });
     const task = saving.then(() => {
       if (sequence === saveSequence) { storageFailed = false; $("saveStatus").textContent = "已保存到本机"; if (state) refreshEntryChrome(); }
@@ -28657,16 +28881,18 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     renderNarrativeStatus();
   }
   async function switchRecord(a, r, options = {}) {
+    if(reportSetup&&!options.reportSetup&&!options.longitudinal&&!options.horizontal&&!options.team)discardReportSetup();
+    const preparedSelection = !!(options.reportSetup || options.longitudinal || options.horizontal || options.team);
     const sequence = ++selectionSequence;
+    const current=()=>sequence===selectionSequence&&(!options.isCurrent||options.isCurrent());
     if (!options.longitudinal && !options.horizontal && !options.team) reports.cancelPending();
     if(reportEditInfo(document.activeElement))commitReportControl(document.activeElement);
     if (state) { captureReportUI(); saveEditor(); }
-    if (!await persist({duringTransfer:!!options.duringTransfer,readOnlyRecord:!!options.team})) return;
-    if (sequence !== selectionSequence) return;
-    if (!options.longitudinal && !options.horizontal && !options.team) reports.clear();
+    if (!await persist({duringTransfer:!!options.duringTransfer,readOnlyRecord:!!options.team})) return false;
+    if (!current()) return false;
     await leaveEntrySession();
     const stored = r ? await repository.loadRecord(r.recordId) : null;
-    if (sequence !== selectionSequence) return;
+    if (!current()) return false;
     const upgrade = stored && !((options.longitudinal || options.horizontal || options.team) && !options.edit) ? upgradeDemo(stored) : {changed:false};
     const loaded = stored ? M.normalizeRecord(upgrade.record || stored) : null;
     if (loaded && options.longitudinal && !options.edit) M.applyAge(loaded);
@@ -28675,7 +28901,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const index = a.records.findIndex(item => item.recordId === loaded.recordId);
       if (index >= 0) a.records[index] = window.RingsideStore.summary(loaded);
     }
-    if (sequence !== selectionSequence) return;
+    if (!current()) return false;
+    if(preparedSelection){
+      try{await repository.saveRecords([],{}, {selection:{activeAthleteId:a?.id||"",activeRecordId:loaded?.recordId||""}});}
+      catch(error){$("saveStatus").textContent="保存失败 · "+error.message;throw error;}
+      if(!current()){await persist({readOnlyRecord:true});return false;}
+    }
+    if (!options.longitudinal && !options.horizontal && !options.team) reports.clear();
     cancelJob();
     state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
     if (loaded) { rememberRecordBaseline(loaded, upgrade.changed ? loaded : stored); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
@@ -28683,7 +28915,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const saved = loaded && ui.records[loaded.recordId];
     ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
     ui.mode = options.edit && loaded ? "entry" : "report";
-    await persist({duringTransfer:!!options.duringTransfer,readOnlyRecord:!!options.team}); renderReport(false);
+    if(!preparedSelection&&!await persist({duringTransfer:!!options.duringTransfer,readOnlyRecord:!!options.team}))return false;
+    renderReport(false);
     if (ui.mode === "entry") renderEntry();
     renderWorkspace(); closeMobileSidebar(); window.scrollTo({top:ui.mode === "report" ? ui.reportScroll:0,behavior:"instant"});
     return true;
@@ -28925,6 +29158,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (window.RingsideManagement.beforeLeave?.("entry") === false) return false;
     if (creation?.submitting) return;
     if (!library) return;
+    if(reportSetup)discardReportSetup();
     if(longitudinal.selection()||horizontal.selection()||team.selection()){saveEditor();if(!await persist())return;reports.clear();cancelJob();}
     const wanted = requestedIds || (athleteId ? [athleteId] : []);
     if (wanted.some(id=>!library.athletes.some(a=>a.id===id&&!a.deletedAt&&!a.archived))) return toast("所选运动员已归档或移入回收站，请先恢复");
@@ -29814,6 +30048,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (managementNavigationBlocked()) return false;
     if (window.RingsideManagement.beforeLeave?.("entry") === false) return false;
     if (creation?.submitting) return;
+    if(reportSetup)discardReportSetup();
     if (!reports.hasContent()) return startDataEntry();
     if (reports.active() && tab !== "narrative") return reports.edit();
     if (ui.mode === "report") captureReportUI();
@@ -30539,6 +30774,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (managementNavigationBlocked()) return false;
     if (window.RingsideManagement.beforeLeave?.("settings") === false) return false;
     if (creation?.submitting) return;
+    if(reportSetup)discardReportSetup();
     if (tab === "catalog") return openManagement("catalog");
     if (tab === "app" && !window.MotionBenchDesktop) return;
     if (!["ai", "references", "app"].includes(tab)) return openManagement("profiles");
@@ -31867,7 +32103,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       "aiPreview",
       "aiPreviewNote",
       "microCards",
-      "reportSelection", "horizontalReportControls",
+      "reportSelection", "teamReportSelection", "horizontalReportControls",
       "bodyChart",
       "radarChart",
       "screenItems",
@@ -31917,6 +32153,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     clone.querySelector("#reportView").hidden = false;
     clone.querySelector("#entryView").hidden = true;
     clone.querySelector("#creationView").hidden = true;
+    clone.querySelector("#reportSetupView").hidden = true;
     clone.querySelector("#reportExportMenu").open = false;
     clone.querySelector("#settingsView").hidden = true;
     clone.querySelector("#desktopSettingsButton")?.setAttribute("hidden", "");
@@ -31927,7 +32164,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     clone.querySelector("#startupStatus").textContent = "正在打开本机资料库…";
     clone.querySelector("#reportAthleteSearch").value = "";
     clone.querySelector("#reportGroupFilter").replaceChildren();
-    clone.querySelector("body").classList.remove("management-mode");
+    clone.querySelector("body").classList.remove("management-mode","report-setup-mode");
     clone.querySelector("#sidebarScrim").hidden = true;
     clone.querySelector("#workspace").removeAttribute("inert");
     clone.querySelector("#sidebar").removeAttribute("inert");
@@ -32327,8 +32564,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return {ok:true};
   }
   window.App = {
-    selectRecords: async ids=>{if(team.active()){saveEditor();if(!await persist())return false;team.clear();}if(horizontal.active()){saveEditor();if(!await persist())return false;horizontal.clear();}return longitudinal.select(ids);},
-    openTeam: options=>teamSelection.open(options?.configuration||null,{reportId:options?.reportId||null}),
+    openReportSetup,adjustCurrentReport,cancelReportSetup,getReportSetup:()=>reportSetup?copy(reportSetup):null,
+    selectRecords: async ids=>{if(reportSetup)discardReportSetup();return longitudinal.select(ids);},
+    openTeam: options=>openReportSetup("team",{edit:!!options?.reportId,configuration:options?.configuration,reportId:options?.reportId}),
     selectTeam:configuration=>team.createReport(configuration),
     getTeam:()=>team.active()?team.model():null,
     getTeamDocument:()=>team.document()?copy(team.document()):null,
@@ -32340,11 +32578,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     getHorizontalDocument:()=>horizontal.document()?copy(horizontal.document()):null,
     refreshHorizontal:()=>horizontal.refresh(),
     openClassifications,
-    editReportSelection:configuration=>reportSelection.edit(configuration),
+    editReportSelection:configuration=>openReportSetup("personal",{edit:true,configuration}),
     getReportSelection:()=>reportSelection.state(),
     applyReportSelection:()=>reportSelection.apply(),
     listSavedReports:async()=> [...(await repository.listHorizontalReports()).map(row=>({...row,kind:row.participantCount?"horizontal":"cohort",subtitle:row.participantCount?`${row.participantCount} 人 · ${row.referenceCount} 个群体参照`:`${row.referenceCount} 个群体`})),...(await repository.listTeamReports()).map(row=>({...row,id:"team:"+row.id,kind:"team",subtitle:`团队报告 · ${row.participantCount} 人`}))],
-    restoreSavedReport:async id=>{if(window.RingsideManagement.beforeLeave?.("report")===false)return false;const ok=String(id).startsWith("team:")?await team.restore(id.slice(5)):await horizontal.restore(id);if(ok){ui.mode="report";reportSelection.reset();renderReport(false);renderWorkspace();}return ok;},
+    restoreSavedReport:async id=>{if(window.RingsideManagement.beforeLeave?.("report")===false)return false;if(reportSetup)discardReportSetup();const ok=String(id).startsWith("team:")?await team.restore(id.slice(5)):await horizontal.restore(id);if(ok){ui.mode="report";reportSelection.reset();renderReport(false);renderWorkspace();}return ok;},
     deleteSavedReport:id=>String(id).startsWith("team:")?team.deleteReport(id.slice(5)):horizontal.deleteReport(id),
     getLongitudinal:()=>longitudinal.active()?longitudinal.model():null,
     getLongitudinalDocument:()=>longitudinal.document()?copy(longitudinal.document()):null,

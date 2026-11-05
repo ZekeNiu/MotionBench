@@ -20,12 +20,12 @@ async function main(){
    },createFixture.toString());
    baseline=await page.evaluate(async ids=>Promise.all(ids.map(id=>App.getRepository().loadRecord(id))),ids.records);
   });
-  await check('team dialog selects entire team and one latest record per person',async()=>{
-   await page.locator('[data-create-team]').click();const dialog=page.locator('#teamReportDialog');await dialog.locator('[data-team-field="groupId"]').selectOption('team-fixture');
+  await check('team setup selects entire team and one latest record per person',async()=>{
+   await page.locator('[data-report-family="team"]').click();const dialog=page.locator('#teamReportSelection');await dialog.locator('[data-team-field="groupId"]').selectOption('team-fixture');await dialog.locator('[data-team-toggle="records"]').click();
    await dialog.locator('[data-team-field="from"]').fill('2026-11-04');await dialog.locator('[data-team-field="from"]').press('Tab');await dialog.locator('[data-team-field="to"]').fill('2026-11-05');await dialog.locator('[data-team-field="to"]').press('Tab');
    assert.equal(await dialog.locator('[data-team-person]:checked').count(),4);assert.equal(await dialog.locator('[data-team-record]').count(),3);
    const selected=await dialog.locator('[data-team-record]').evaluateAll(nodes=>nodes.map(n=>n.value));assert.deepEqual(selected,['team-record-0-1','team-record-1-1','team-record-2-1']);
-   await dialog.locator('button[type="submit"]').click();await page.waitForFunction(()=>App.getTeam()?.participants.length===4);await page.waitForFunction(()=>!document.querySelector('#teamReportDialog'));
+   await dialog.locator('button[type="submit"]').click();await page.waitForFunction(()=>App.getTeam()?.participants.length===4);await page.waitForFunction(()=>App.getReportSetup()===null);
    assert.equal(await page.locator('#reportView').getAttribute('data-team'),'true');assert.equal(await page.locator('#directionMetrics').isVisible(),false);
    assert.equal(await page.locator('#bodyChart img').count(),0);assert.ok(await page.locator('[data-team-project]').count()>0);
    assert.deepEqual(await page.evaluate(async ids=>Promise.all(ids.map(id=>App.getRepository().loadRecord(id))),ids.records),baseline);
@@ -51,7 +51,7 @@ async function main(){
   });
   await check('team report is listed, can reopen, and switching to personal removes team styling',async()=>{
    const docId=await page.evaluate(()=>App.getTeamDocument().id),row=await page.evaluate(async id=>(await App.listSavedReports()).find(r=>r.id==='team:'+id),docId);assert.equal(row.kind,'team');
-   await page.locator('[data-leave-team]').click();await page.waitForFunction(()=>!App.getTeam());assert.equal(await page.locator('#reportView').getAttribute('data-team'),null);
+   await page.locator('[data-report-family="personal"]').click();await page.locator('[data-analysis-mode]').selectOption('single');if(await page.locator('[data-selection-toggle="athletes"]').getAttribute('aria-expanded')!=='true')await page.locator('[data-selection-toggle="athletes"]').click();await page.locator('[data-select-athlete="team-person-0"]').check();if(await page.locator('[data-selection-toggle="records"]').getAttribute('aria-expanded')!=='true')await page.locator('[data-selection-toggle="records"]').click();await page.locator('[data-select-record="team-record-0-0"]').check();await page.locator('[data-apply-selection]').click();await page.waitForFunction(()=>!App.getTeam()&&App.getReportSetup()===null);assert.equal(await page.locator('#reportView').getAttribute('data-team'),null);
    assert.equal(await page.evaluate(id=>App.restoreSavedReport('team:'+id),docId),true);assert.equal(await page.locator('#reportView').getAttribute('data-team'),'true');
   });
   await check('desktop and narrow layouts preserve complete scrollable report without page overflow',async()=>{
