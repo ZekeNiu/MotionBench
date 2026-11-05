@@ -17,6 +17,9 @@ const moduleFiles = fs.readdirSync(path.join(root, 'src')).filter(name => name.e
 const summary = { sourceHash: digest(path.join(root, 'MotionBench.html')), runnerSha256: digest(__filename),
   modules: Object.fromEntries(moduleFiles.map(name => [name, digest(path.join(root, 'src', name))])), suites: [] };
 for (const name of [
+  "team-selection-model-tests.cjs",
+  "team-model-tests.cjs",
+  "team-store-model-tests.cjs",
   "calculation-model-tests.cjs",
   "calculation-excel-tests.cjs",
   "cod-report-model-tests.cjs",

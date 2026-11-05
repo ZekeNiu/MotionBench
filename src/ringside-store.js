@@ -2,7 +2,7 @@
   "use strict";
   const M = root.RingsideModel, E = root.RingsideEvaluation;
   const clone = v => JSON.parse(JSON.stringify(v)), uid = () => root.crypto.randomUUID();
-  const tables = ["athletes", "records", "recordIndex", "groups", "profiles", "config", "horizontalReports", "horizontalSnapshots"];
+  const tables = ["athletes", "records", "recordIndex", "groups", "profiles", "config", "horizontalReports", "horizontalSnapshots", "teamReports", "teamSnapshots"];
   const request = r => new Promise((resolve,reject) => { r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error); });
   const completed = tx => new Promise((resolve,reject) => { tx.oncomplete=resolve; tx.onabort=()=>reject(tx.error || Error("保存事务已取消")); tx.onerror=()=>{}; });
   const keyRange = generation => IDBKeyRange.bound([generation, ""], [generation, "\uffff"]);
@@ -101,13 +101,15 @@
     else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); longitudinalReports(value.longitudinalReports); if(value.classifications!==undefined)root.RingsideClassifications.normalize(value.classifications); if (value.defaultEvaluationProfileId !== "" && !safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
     else if (type === "horizontal-report") root.RingsideHorizontalStore.normalize(value,{metadata:true});
     else if (type === "horizontal-snapshot") root.RingsideHorizontalStore.validateChunk(value);
+    else if (type === "team-report") root.RingsideTeamStore.normalize(value,{metadata:true});
+    else if (type === "team-snapshot") root.RingsideTeamStore.validateChunk(value);
     else throw Error("备份包含未知资料类型");
-    if (!["record","config","horizontal-snapshot"].includes(type) && !safe(value.id)) throw Error("资料 ID 无效");
+    if (!["record","config","horizontal-snapshot","team-snapshot"].includes(type) && !safe(value.id)) throw Error("资料 ID 无效");
   }
   class Repository {
     constructor(db) { this.db=db; this.generation=""; this.queue=Promise.resolve(); this.metadataHashes=new Map(); }
     static async open(pathname=root.location.pathname) {
-      const r=indexedDB.open("motionbench-v3:"+pathname,2);
+      const r=indexedDB.open("motionbench-v3:"+pathname,3);
       r.onupgradeneeded=()=>{
         if(!r.result.objectStoreNames.contains("meta"))r.result.createObjectStore("meta",{keyPath:"id"});
         for(const name of tables) if(!r.result.objectStoreNames.contains(name))r.result.createObjectStore(name,{keyPath:["generation","id"]});
@@ -142,6 +144,8 @@
       const owners=new Map(athletes.map(a=>[a.id,{...a,records:[]} ]));
       for(const r of index) owners.get(r.athleteId)?.records.push(r);
       const lib={...config,testPlans:config.testPlans||[],athletes:[...owners.values()],groups,evaluationProfiles:profiles};
+      const teamDocuments=await this.values("teamReports",generation);
+      if(teamDocuments.length)lib.teamReports=teamDocuments.map(value=>({...root.RingsideTeamStore.summary(value),_summary:true}));
       if(generation===this.generation){
         this.metadataHashes.clear();
         for(const [table,items] of [["athletes",athletes],["groups",groups],["profiles",profiles],["config",[{...config,id:"library"}]]])
@@ -241,6 +245,81 @@
     getHorizontalDocument(id){return this.getHorizontalReport(id);}
     saveHorizontalDocument(document,checks){return this.saveHorizontalReport(document,checks);}
     deleteHorizontalDocument(id,checks){return this.deleteHorizontalReport(id,checks);}
+    loadTeamSources({window={},recordIds=[],athleteIds=[],onProgress=()=>{}}={}) {
+      return this.enqueue(()=>{
+        const generation=this.generation;
+        return this.stableRead(generation,async()=>{
+          const library=await this.directory(generation),state=await this.versionState(),selected=new Set(recordIds.filter(Boolean)),members=new Set(athleteIds);
+          const owners=library.athletes.filter(owner=>!owner.deletedAt&&!owner.sample&&(!members.size||members.has(owner.id)));
+          const candidates=owners.flatMap(owner=>owner.records.filter(record=>!record.deletedAt&&!record.demo&&(selected.has(record.recordId)||(!window.from||record.athlete.date>=window.from)&&(!window.to||record.athlete.date<=window.to))));
+          const records=[];
+          for(let offset=0;offset<candidates.length;offset+=40){
+            const tx=this.db.transaction("records"),batch=await Promise.all(candidates.slice(offset,offset+40).map(record=>request(tx.objectStore("records").get([generation,record.recordId]))));
+            if(batch.some(row=>!row))throw Error("团队记录在读取期间发生变化，请重新生成");
+            records.push(...batch.map(row=>row.value));await onProgress(records.length,candidates.length);
+          }
+          return {library,records,revision:state.revision,generation};
+        });
+      });
+    }
+    async listTeamReports() {
+      return this.enqueue(()=>{
+        const generation=this.generation;
+        return this.stableRead(generation,async()=> (await this.values("teamReports",generation)).map(root.RingsideTeamStore.summary).sort((a,b)=>b.updated.localeCompare(a.updated)||a.id.localeCompare(b.id)));
+      });
+    }
+    async readTeamReport(id,generation=this.generation) {
+      const tx=this.db.transaction(["teamReports","teamSnapshots"]),metadata=(await request(tx.objectStore("teamReports").get([generation,id])))?.value;
+      if(!metadata)return null;
+      const rows=await request(tx.objectStore("teamSnapshots").getAll(IDBKeyRange.bound([generation,id+":"],[generation,id+":\uffff"])));
+      return root.RingsideTeamStore.unpack(metadata,rows.map(row=>row.value).filter(value=>value.reportId===id));
+    }
+    getTeamReport(id) {return this.enqueue(()=>{const generation=this.generation;return this.stableRead(generation,()=>this.readTeamReport(id,generation));});}
+    saveTeamReport(input,{expectedRevision}={}) {
+      if(expectedRevision!==null&&(!Number.isSafeInteger(expectedRevision)||expectedRevision<1))throw Error("保存团队报告缺少原版本校验依据");
+      const generation=this.generation,document=root.RingsideTeamStore.normalize(input);
+      return this.enqueue(async()=>{
+        const packed=await root.RingsideTeamStore.pack(document),tx=this.db.transaction(["meta","teamReports","teamSnapshots"],"readwrite"),done=completed(tx);
+        try{
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开团队报告");
+          const old=(await request(tx.objectStore("teamReports").get([generation,document.id])))?.value;
+          if((old?.revision??null)!==expectedRevision)throw Error("团队报告已在其他页面修改或删除，请重新打开并核对后保存");
+          const stamp=new Date().toISOString();packed.metadata.created=old?.created||document.created||stamp;packed.metadata.updated=stamp;packed.metadata.revision=(old?.revision||0)+1;
+          if(old?.snapshotInfo.sha256!==packed.metadata.snapshotInfo.sha256){
+            const prior=await request(tx.objectStore("teamSnapshots").getAll(IDBKeyRange.bound([generation,document.id+":"],[generation,document.id+":\uffff"])));
+            for(const row of prior)if(row.value.reportId===document.id)tx.objectStore("teamSnapshots").delete([generation,row.id]);
+            for(const value of packed.chunks)tx.objectStore("teamSnapshots").put({generation,id:value.id,value});
+          }
+          tx.objectStore("teamReports").put({generation,id:document.id,value:packed.metadata});tx.objectStore("meta").put({id:"revision",value:uid()});await done;
+          const {snapshotInfo,...metadata}=packed.metadata;return root.RingsideTeamStore.normalize({...metadata,snapshot:document.snapshot});
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
+    deleteTeamReport(id,{expectedRevision}={}) {
+      if(!Number.isSafeInteger(expectedRevision)||expectedRevision<1)throw Error("删除团队报告缺少原版本校验依据");
+      const generation=this.generation;
+      return this.enqueue(async()=>{
+        const tx=this.db.transaction(["meta","teamReports","teamSnapshots"],"readwrite"),done=completed(tx);
+        try{
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开团队报告");
+          const old=(await request(tx.objectStore("teamReports").get([generation,id])))?.value;
+          if(old?.revision!==expectedRevision)throw Error("团队报告已在其他页面修改或删除，请重新打开后操作");
+          const chunks=await request(tx.objectStore("teamSnapshots").getAll(IDBKeyRange.bound([generation,id+":"],[generation,id+":\uffff"])));
+          for(const row of chunks)if(row.value.reportId===id)tx.objectStore("teamSnapshots").delete([generation,row.id]);
+          tx.objectStore("teamReports").delete([generation,id]);tx.objectStore("meta").put({id:"revision",value:uid()});await done;return true;
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
+    async importTeamReport(input,maps={}) {
+      let document=root.RingsideTeamStore.remapDocument(input,maps),old=await this.getTeamReport(document.id);
+      if(old&&E.canonical(old)===E.canonical(document))return old;
+      if(old)document={...document,id:"team_"+uid(),title:document.title+"（导入副本）",revision:0};
+      return this.saveTeamReport(document,{expectedRevision:null});
+    }
+    listTeamDocuments(){return this.listTeamReports();}
+    getTeamDocument(id){return this.getTeamReport(id);}
+    saveTeamDocument(document,checks){return this.saveTeamReport(document,checks);}
+    deleteTeamDocument(id,checks){return this.deleteTeamReport(id,checks);}
     enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
     flush() { return this.queue; }
     saveRecords(records=[],checks={},options={}) {
@@ -401,11 +480,12 @@
       }
     }
     async *rows(generation=this.generation) {
-      const hasHorizontal=(await this.values("horizontalReports",generation)).length>0;
-      yield {type:"header",format:"motionbench-backup",schema:hasHorizontal?4:3,created:new Date().toISOString()};
+      const hasHorizontal=(await this.values("horizontalReports",generation)).length>0,hasTeam=(await this.values("teamReports",generation)).length>0;
+      yield {type:"header",format:"motionbench-backup",schema:hasTeam?5:hasHorizontal?4:3,created:new Date().toISOString()};
       const counts={athlete:0,record:0,group:0,profile:0,config:0};
-      if(hasHorizontal){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}
-      for(const [table,type] of [["config","config"],["groups","group"],["profiles","profile"],["athletes","athlete"],["records","record"],...(hasHorizontal?[["horizontalReports","horizontal-report"],["horizontalSnapshots","horizontal-snapshot"]]:[])]) {
+      if(hasHorizontal||hasTeam){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}
+      if(hasTeam){counts["team-report"]=0;counts["team-snapshot"]=0;}
+      for(const [table,type] of [["config","config"],["groups","group"],["profiles","profile"],["athletes","athlete"],["records","record"],...(hasHorizontal?[["horizontalReports","horizontal-report"],["horizontalSnapshots","horizontal-snapshot"]]:[]),...(hasTeam?[["teamReports","team-report"],["teamSnapshots","team-snapshot"]]:[])]) {
         for await(const batch of this.batches(table,generation)) for(const value of batch){counts[type]++;yield {type,value};}
       }
       yield {type:"end",counts};
@@ -427,6 +507,8 @@
         }
         const documents=await this.values("horizontalReports",generation);
         if(documents.length){lib.horizontalReports=[];for(const document of documents)lib.horizontalReports.push(await this.readHorizontalReport(document.id,generation));}
+        const teams=await this.values("teamReports",generation);
+        if(teams.length){lib.teamReports=[];for(const document of teams)lib.teamReports.push(await this.readTeamReport(document.id,generation));}else delete lib.teamReports;
         return lib;
       });
     }
@@ -483,10 +565,10 @@
     async stageImport(iterable,{merge=false,onProgress=()=>{},upgradeCheckpoint=null,expectedRevision,expectedState}={}) {
       const generation="generation_"+uid(),oldGeneration=this.generation,initial=await this.versionState(),obsoleteGeneration=initial.previous,revision=initial.revision;
       if(initial.active!==oldGeneration || expectedState&&!this.sameVersion(initial,expectedState) || expectedRevision!==undefined&&revision!==expectedRevision)throw Error("资料已在其他页面修改，请重新打开后升级或导入");
-      const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config","horizontal-report":"horizontalReports","horizontal-snapshot":"horizontalSnapshots"};
+      const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config","horizontal-report":"horizontalReports","horizontal-snapshot":"horizontalSnapshots","team-report":"teamReports","team-snapshot":"teamSnapshots"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
       let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1,backupSchema=3;
-      let classificationMaps={};const horizontalMap=new Map(),horizontalIds=new Set();
+      let classificationMaps={};const horizontalMap=new Map(),horizontalIds=new Set(),teamMap=new Map(),teamIds=new Set();
       let incomingPlans=[],incomingReports=[],plansMerged=false;const planMap=new Map();
       const mergePlans=()=>{
         if(plansMerged)return;plansMerged=true;
@@ -522,13 +604,14 @@
         }
         for await(const raw of iterable){
           if(ended)throw Error("备份结束标记后仍有内容");
-          if(!header){if(raw.type!=="header"||raw.format!=="motionbench-backup"||![3,4].includes(raw.schema))throw Error("不是支持的 MotionBench 备份");backupSchema=raw.schema;if(backupSchema===4){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}header=true;continue;}
+          if(!header){if(raw.type!=="header"||raw.format!=="motionbench-backup"||![3,4,5].includes(raw.schema))throw Error("不是支持的 MotionBench 备份");backupSchema=raw.schema;if(backupSchema>=4){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}if(backupSchema>=5){counts["team-report"]=0;counts["team-snapshot"]=0;}header=true;continue;}
           if(raw.type==="end"){
             if(E.canonical(raw.counts)!==E.canonical(counts))throw Error("备份条数校验失败");ended=true;continue;
           }
           if(!mapTable[raw.type])throw Error("备份包含未知类型");
           if(backupSchema===3&&raw.type.startsWith("horizontal-"))throw Error("横向报告需要新版备份格式");
-          const order=["config","group","profile","athlete","record","horizontal-report","horizontal-snapshot"].indexOf(raw.type);
+          if(backupSchema<5&&raw.type.startsWith("team-"))throw Error("团队报告需要新版备份格式");
+          const order=["config","group","profile","athlete","record","horizontal-report","horizontal-snapshot","team-report","team-snapshot"].indexOf(raw.type);
           if(order<lastType)throw Error("备份资料顺序无效");lastType=order;
           const row={type:raw.type,value:raw.type==="profile"&&E.serializeProfile?E.serializeProfile(raw.value):clone(raw.value)},v=row.value;validateEntity(row.type,v);
           const incomingId=row.type==="record"?v.recordId:row.type==="config"?"library":v.id;
@@ -580,6 +663,20 @@
             if(!seen.get("horizontal-report").has(v.reportId))throw Error("横向报告快照缺少所属报告");
             v.reportId=horizontalMap.get(v.reportId)||v.reportId;v.id=root.RingsideHorizontalStore.chunkId(v.reportId,v.index);
           }
+          if(row.type==="team-report"){
+            const mapped=root.RingsideTeamStore.remapMetadata(v,{recordMap,profileMap,groupMap,...classificationMaps});
+            Object.assign(v,mapped);
+            const old=seeded?await this.get("teamReports",v.id,generation):null;
+            if(old&&E.canonical(old)===E.canonical(v)){
+              const tx=this.db.transaction("teamSnapshots","readwrite"),done=completed(tx),chunks=await request(tx.objectStore("teamSnapshots").getAll(IDBKeyRange.bound([generation,v.id+":"],[generation,v.id+":\uffff"])));
+              for(const chunk of chunks)if(chunk.value.reportId===v.id)tx.objectStore("teamSnapshots").delete([generation,chunk.id]);await done;
+            }else if(old){const next="team_"+uid();teamMap.set(v.id,next);v.id=next;v.title+="（导入副本）";}
+            teamIds.add(v.id);
+          }
+          if(row.type==="team-snapshot"){
+            if(!seen.get("team-report").has(v.reportId))throw Error("团队报告快照缺少所属报告");
+            v.reportId=teamMap.get(v.reportId)||v.reportId;v.id=root.RingsideTeamStore.chunkId(v.reportId,v.index);
+          }
           pending.push(row);if(pending.length>=40)await flush();
         }
         if(!header||!ended||counts.config!==1)throw Error("备份不完整，原资料库保持不变");
@@ -606,6 +703,9 @@
         for(const id of horizontalIds)await this.readHorizontalReport(id,generation);
         const reportIds=new Set((await this.values("horizontalReports",generation)).map(document=>document.id));
         for await(const batch of this.batches("horizontalSnapshots",generation))for(const chunk of batch)if(!reportIds.has(chunk.reportId))throw Error("横向报告快照归属缺失");
+        for(const id of teamIds)await this.readTeamReport(id,generation);
+        const teamReportIds=new Set((await this.values("teamReports",generation)).map(document=>document.id));
+        for await(const batch of this.batches("teamSnapshots",generation))for(const chunk of batch)if(!teamReportIds.has(chunk.reportId))throw Error("团队报告快照归属缺失");
         const actual=[await this.values("athletes",generation),await this.values("recordIndex",generation)];
         if(actual[0].length>2000||actual[1].length>10000)throw Error("合并后资料超过容量边界");
         const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
@@ -619,7 +719,7 @@
         tx.objectStore("meta").put({id:"previous",value:oldGeneration});await done;
         this.generation=generation;this.metadataHashes.clear();
         if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
-        return{added:imported,skipped:counts.record-imported,recordMap,profileMap:Object.fromEntries(profileMap),groupMap:Object.fromEntries(groupMap),...classificationMaps,horizontalMap:Object.fromEntries(horizontalMap),horizontalReportMap:Object.fromEntries(horizontalMap)};
+        return{added:imported,skipped:counts.record-imported,recordMap,profileMap:Object.fromEntries(profileMap),groupMap:Object.fromEntries(groupMap),...classificationMaps,horizontalMap:Object.fromEntries(horizontalMap),horizontalReportMap:Object.fromEntries(horizontalMap),teamMap:Object.fromEntries(teamMap),teamReportMap:Object.fromEntries(teamMap)};
       }catch(error){await this.discardGeneration(generation).catch(()=>{});throw error;}
     }
     async discardGeneration(generation) {
@@ -649,9 +749,10 @@
     close(){this.db.close();}
   }
   async function *libraryRows(lib){
-    const horizontal=lib.horizontalReports||[];
-    yield{type:"header",format:"motionbench-backup",schema:horizontal.length?4:3};
+    const horizontal=lib.horizontalReports||[],team=lib.teamReports||[];
+    yield{type:"header",format:"motionbench-backup",schema:team.length?5:horizontal.length?4:3};
     const counts={athlete:0,record:0,group:0,profile:0,config:1};
+    if(team.length){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;counts["team-report"]=0;counts["team-snapshot"]=0;}
     yield{type:"config",value:configuration(lib)};
     for(const value of lib.groups||[]){counts.group++;yield{type:"group",value};}
     for(const value of lib.evaluationProfiles){counts.profile++;yield{type:"profile",value:E.serializeProfile?E.serializeProfile(value):value};}
@@ -661,6 +762,11 @@
       counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;
       const packed=[];for(const document of horizontal){const value=await root.RingsideHorizontalStore.pack(document);packed.push(value);counts["horizontal-report"]++;yield{type:"horizontal-report",value:value.metadata};}
       for(const document of packed)for(const value of document.chunks){counts["horizontal-snapshot"]++;yield{type:"horizontal-snapshot",value};}
+    }
+    if(team.length){
+      counts["team-report"]=0;counts["team-snapshot"]=0;
+      const packed=[];for(const document of team){const value=await root.RingsideTeamStore.pack(document);packed.push(value);counts["team-report"]++;yield{type:"team-report",value:value.metadata};}
+      for(const document of packed)for(const value of document.chunks){counts["team-snapshot"]++;yield{type:"team-snapshot",value};}
     }
     yield{type:"end",counts};
   }

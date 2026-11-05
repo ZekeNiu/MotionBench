@@ -3942,6 +3942,48 @@ body.sidebar-collapsed .workspace {
 @media(max-width:600px){.selection-panel{padding:10px;max-height:55dvh}.selection-search{flex-wrap:wrap}.selection-search input{width:100%;flex-basis:100%}.selection-search select{max-width:100%;width:100%}.selection-athletes,.selection-people{grid-template-columns:minmax(0,1fr)}.selection-options{display:block}.selection-options>.field+.field{margin-top:10px}.selection-reference-dialog{width:calc(100vw - 20px);max-height:92dvh}.selection-reference-body{padding:0 16px 12px}.selection-reference-body>.form-grid{grid-template-columns:minmax(0,1fr)}.selection-standard-ranges>div{grid-template-columns:repeat(2,minmax(0,1fr))}.selection-reference-form>.modal-head,.selection-reference-form>.modal-foot{padding:16px}.selection-trigger{padding-left:9px;padding-right:24px}.selection-trigger>i{right:9px}.selection-submit .btn{min-height:40px}}
 @media print{.report-selection-unified,.selection-reference-dialog{display:none!important}}
 
+[data-team="true"] .screen-layout,[data-team="true"] .performance-layout{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;min-height:0;gap:0;padding-top:8px;}
+[data-team="true"] .body-art,[data-team="true"] .radar{width:100%;max-width:none;min-height:0;}
+[data-team="true"] .screen-layout+.card-foot,[data-team="true"] .performance-layout+.card-foot{display:none;}
+[data-team="true"] .micro-cards:has(>.micro-card:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr));}
+[data-team="true"] .team-summary{min-width:0;overflow-wrap:anywhere;}
+[data-team="true"] .team-date-range{font-size:17px!important;line-height:1.6!important;}
+.team-radar{min-width:0;width:100%;}.team-radar>svg{display:block;width:100%;height:auto;max-height:none!important;}
+.team-radar-legend{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;font-size:11px;margin:0 0 12px;color:var(--muted);}.team-radar-legend span{display:inline-flex;align-items:center;gap:6px;}.team-radar-legend i{display:inline-block;width:14px;height:3px;}
+.team-overview-values{padding:14px 8px;}.team-overview-values>div{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:13px;padding:12px 0;border-bottom:1px solid var(--line);}.team-overview-values small{font-size:11px;color:var(--muted);}
+.team-risk-lists section{margin:8px 0 0;padding:0;}
+.team-overlay-control>input[type="search"]{display:block;width:min(290px,100%);margin-top:10px;font-size:12px;}.team-overlay-control label[hidden]{display:none;}
+.team-overlay-control{font-size:12px;margin:0 0 8px;align-self:flex-start;max-width:100%;}.team-overlay-control summary{cursor:pointer;color:var(--ink);}.team-overlay-control>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;max-height:200px;overflow:auto;margin:12px 0;}.team-overlay-control label{display:flex;align-items:center;gap:6px;overflow-wrap:anywhere;}.team-overlay-control input{width:14px;height:14px;min-height:0;accent-color:var(--green);}.team-overlay-control label:has(input:disabled){opacity:.55;}
+.team-risk-key{display:flex;justify-content:center;gap:18px;font-size:11px;color:var(--muted);margin:0 0 12px;}.team-risk-key>span{display:inline-flex;align-items:center;gap:5px;}
+.team-risk-lists{font-size:12px;min-width:0;width:100%;}.team-risk-lists>summary{cursor:pointer;padding:8px 0;}.team-risk-lists section+section{border-top:1px solid var(--line);margin-top:12px;padding-top:12px;}.team-risk-lists h4{font-size:12px;margin:8px 0;line-height:1.6;}.team-risk-lists h4 small{font-size:11px;font-weight:400;color:var(--muted);}.team-risk-lists ul{list-style:none;margin:0;padding:0;}.team-risk-lists li{display:flex;flex-wrap:wrap;align-items:baseline;gap:5px 8px;margin:8px 0;overflow-wrap:anywhere;}.team-risk-lists li small{display:block;flex-basis:100%;line-height:1.6;color:var(--muted);}.team-risk-print{margin:0 0 20px;}.team-risk-print section{break-inside:avoid;}
+.team-test{min-width:0;}.team-chart-controls{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px 20px;margin:0 0 12px;}.team-chart-controls label{display:grid;gap:5px;font-size:12px;color:var(--muted);min-width:0;max-width:100%;}.team-chart-controls select{min-width:150px;max-width:min(560px,100%);font-size:12px;background:#fff;color:var(--ink);}.team-chart-controls select:disabled{opacity:.65;}.team-chart-caption{font-size:12px;color:var(--muted);margin:8px 0 12px;}.team-chart-scroll{width:100%;min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;margin-bottom:16px;}.team-chart-panel{min-width:0;}.team-chart-panel>svg{display:block;max-width:none;height:auto;}.team-chart-panel svg text{font-family:Segoe UI,Microsoft YaHei,sans-serif;}.team-chart-continuation{font-size:11px;color:var(--muted);margin:8px 0;}.team-chart-note{margin-top:-4px;margin-bottom:16px;}.team-empty{font-size:12px;line-height:1.7;color:var(--muted);padding:18px 0;}
+.team-chart-hit{outline:none;pointer-events:bounding-box;}.team-chart-hit:focus>circle,.team-chart-hit:focus>rect{stroke:var(--ink,#213836);stroke-width:2.5;}.team-chart-hit[role="button"]{cursor:pointer;}.team-chart-hit[role="button"]:focus>text{text-decoration:underline;}
+.team-report-tools{display:flex;justify-content:flex-end;gap:10px;margin:0 0 16px;}.team-chart-inspector{border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:0 0 16px;font-size:12px;}.team-chart-inspector[hidden]{display:none;}.team-inspector-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}.team-chart-inspector ul{list-style:none;padding:0;margin:8px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:6px 20px;}.team-chart-inspector li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}.team-chart-inspector button{font-size:12px;overflow-wrap:anywhere;}.team-chart-inspector li>span{white-space:nowrap;color:var(--muted);}.team-results tr.team-row-highlight>td,.team-results tr.team-row-highlight>th{background:color-mix(in srgb,var(--green,#066c64) 12%,white);}
+.team-chart-panel>svg{width:var(--team-chart-width);}
+.team-tooltip{position:fixed;z-index:10000;max-width:min(360px,calc(100vw - 24px));max-height:240px;overflow:auto;white-space:pre-line;overflow-wrap:anywhere;padding:10px 13px;background:#fff;color:var(--ink,#213836);border:1px solid var(--line,#cedcd6);border-radius:7px;box-shadow:0 5px 18px #21383620;font-size:12px;line-height:1.7;pointer-events:none;}.team-tooltip[hidden]{display:none;}
+.team-table-wrap{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;margin:12px 0 20px;}.team-results{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;}.team-results caption{text-align:left;font-size:11px;color:var(--muted);padding:0 0 7px;}.team-results .team-name-column{width:145px;}.team-results .team-rank-column{width:65px;}.team-results .team-metric-column{width:auto;}.team-results th,.team-results td{padding:10px 12px;text-align:left;vertical-align:top;overflow-wrap:anywhere;white-space:normal;border-bottom:1px solid var(--line,#dce6e2);}.team-results thead th{background:var(--soft,#f3f6f5);font-weight:600;}.team-results tbody th{font-weight:600;background:#fff;}.team-results th:first-child{position:sticky;left:0;z-index:1;}.team-results thead th:first-child{z-index:2;}.team-results td strong{font-weight:600;}.team-results td>.pill{display:inline-block;margin-left:6px;}.team-results small{display:block;font-weight:400;font-size:10px;color:var(--muted);line-height:1.6;margin-top:4px;}.team-results .team-selected-metric{background:color-mix(in srgb,var(--green,#066c64) 5%,white);}.team-results thead .team-selected-metric{background:color-mix(in srgb,var(--green,#066c64) 10%,white);}.team-missing{color:var(--muted);}.team-results .team-pain{color:var(--red,#b23f3d);}
+.team-browser-print{position:fixed;left:-20000px;top:0;visibility:hidden;pointer-events:none;width:186mm;max-width:none;background:#fff;}
+.ringside-pdf-document[data-team="true"] .screen-layout{flex-direction:column!important;align-items:stretch!important;}.ringside-pdf-document[data-team="true"] .body-art{width:100%!important;flex:0 0 auto!important;}.ringside-pdf-document[data-team="true"] .body-art svg,.ringside-pdf-document[data-team="true"] .body-art img{width:100%!important;height:auto!important;max-height:none!important;}.ringside-pdf-document[data-team="true"] .team-radar{width:100%!important;}
+.ringside-pdf-document[data-team="true"] .team-chart-scroll,.team-browser-print .team-chart-scroll{overflow:visible;}.ringside-pdf-document[data-team="true"] .team-chart-panel,.team-browser-print .team-chart-panel{break-inside:avoid;margin-bottom:15px;}.ringside-pdf-document[data-team="true"] .team-chart-panel>svg,.team-browser-print .team-chart-panel>svg{max-width:100%;width:100%;height:auto;}.ringside-pdf-document[data-team="true"] .team-table-wrap,.team-browser-print .team-table-wrap{overflow:visible;}.ringside-pdf-document[data-team="true"] .team-results,.team-browser-print .team-results{min-width:0!important;font-size:10px;}.ringside-pdf-document[data-team="true"] .team-results th:first-child,.team-browser-print .team-results th:first-child{position:static;}.ringside-pdf-document[data-team="true"] .team-results th,.ringside-pdf-document[data-team="true"] .team-results td,.team-browser-print .team-results th,.team-browser-print .team-results td{padding:7px 8px;}.ringside-pdf-document[data-team="true"] .team-results .team-name-column,.team-browser-print .team-results .team-name-column{width:112px;}.ringside-pdf-document[data-team="true"] .team-results .team-rank-column,.team-browser-print .team-results .team-rank-column{width:42px;}
+@media(max-width:650px){.team-chart-controls{display:grid;grid-template-columns:minmax(0,1fr);}.team-chart-controls select{width:100%;}.team-overlay-control>div{grid-template-columns:minmax(0,1fr);}[data-team="true"] .team-date-range{font-size:14px!important;}.team-results .team-name-column{width:115px;}.team-results .team-rank-column{width:55px;}}
+@media print{body.team-print-active #reportView{display:none!important;}.team-browser-print{position:static;visibility:visible;pointer-events:auto;width:auto;max-width:none;margin:0;}.team-chart-controls,.team-overlay-control,.team-tooltip{display:none!important;}[data-team="true"] .team-table-wrap,[data-team="true"] .team-chart-scroll{overflow:visible!important;}[data-team="true"] .team-results{min-width:0!important;}[data-team="true"] .team-results th:first-child{position:static;}[data-team="true"] .team-results thead{display:table-header-group;}[data-team="true"] .team-chart-panel{break-inside:avoid;}}
+@media print{[data-team="true"] .team-chart-panel>svg{width:100%;max-width:100%;height:auto;}}
+
+.team-selection-dialog{width:min(980px,calc(100vw - 32px));max-height:calc(100dvh - 40px);padding:0;border:1px solid var(--line);border-radius:12px;color:var(--ink);background:var(--paper,#fff);box-shadow:0 20px 70px #26374733}
+.team-selection-dialog::backdrop{background:#172a3b66}
+.team-selection-dialog .modal-head,.team-selection-dialog .modal-foot{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:18px 24px;background:var(--paper,#fff)}
+.team-selection-dialog .modal-head{border-bottom:1px solid var(--line)}
+.team-selection-dialog .modal-foot{justify-content:flex-end;border-top:1px solid var(--line)}
+.team-selection-dialog h2{margin:0;font-size:19px}.team-selection-dialog h3{font-size:14px;margin:0 0 10px}.team-selection-dialog h3 small{font-weight:400;margin-left:8px;color:var(--muted)}
+.team-selection-body{padding:20px 24px;max-height:calc(100dvh - 210px);overflow:auto;overscroll-behavior:contain}
+.team-selection-body .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px}
+.team-selection-body .field{display:grid;gap:6px;min-width:0;font-size:12px}.team-selection-body input,.team-selection-body select{width:100%;min-width:0;box-sizing:border-box}
+.team-selection-members{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(250px,1.2fr);gap:24px;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+.team-selection-members>section{min-width:0}.team-member-options{display:grid;gap:4px;max-height:360px;overflow:auto;margin-top:10px}
+.team-member-options label{display:flex;gap:9px;align-items:center;padding:7px 5px;font-size:12px}.team-member-options input{width:16px;height:16px;min-height:0;accent-color:var(--green)}
+.team-member-options small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.team-record-options{display:grid;gap:14px;max-height:410px;overflow:auto}.team-record-options .field>span small{font-size:10px;color:var(--muted)}
+@media(max-width:650px){.team-selection-body,.team-selection-dialog .modal-head,.team-selection-dialog .modal-foot{padding:16px}.team-selection-members{grid-template-columns:minmax(0,1fr)}.team-selection-body .form-grid{grid-template-columns:minmax(0,1fr)}.team-member-options{max-height:180px}}
+
 </style>
   </head>
   <body>
@@ -4454,7 +4496,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.27.1"});
+window.RingsideBuild=Object.freeze({"version": "2.28.0"});
 </script>
 <script>
 (function (root) {
@@ -14276,9 +14318,147 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 <script>
 (function (root) {
   "use strict";
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const plain = value => !!value && typeof value === "object" && !Array.isArray(value) && Object.prototype.toString.call(value) === "[object Object]";
+  const safeId = value => typeof value === "string" && /^[A-Za-z0-9_.:-]{1,249}$/.test(value) && !["__proto__", "prototype", "constructor"].includes(value);
+  const chunkSize = 256 * 1024;
+  function json(value, depth = 0) {
+    if (depth > 70 || typeof value === "number" && !Number.isFinite(value) || ["function", "symbol", "bigint"].includes(typeof value)) throw Error("团队报告包含无效数据");
+    if (!value || typeof value !== "object") return;
+    if (!Array.isArray(value) && !plain(value)) throw Error("团队报告包含无效对象");
+    for (const [key, item] of Object.entries(value)) { if (["__proto__", "prototype", "constructor"].includes(key)) throw Error("团队报告包含不安全字段"); json(item, depth + 1); }
+  }
+  function narrative(input = {}) {
+    if (!plain(input)) throw Error("团队报告正文无效");
+    for (const name of ["text", "html", "basis", "origin", "updated"]) if (input[name] !== undefined && typeof input[name] !== "string") throw Error("团队报告正文无效");
+    if (input.revision !== undefined && (!Number.isSafeInteger(input.revision) || input.revision < 0)) throw Error("团队报告正文版本无效");
+    const out = { text: "", html: "", basis: "", origin: "manual", updated: "", revision: 0, ...clone(input) };
+    out.html = root.RingsideModel.sanitizeHTML(out.html || root.RingsideModel.textToHTML(out.text)); out.text = root.RingsideModel.htmlToText(out.html);
+    return out;
+  }
+  function normalize(input, { metadata = false } = {}) {
+    json(input);
+    if (!plain(input) || input.version !== undefined && input.version !== 1 || !safeId(input.id) || !plain(input.configuration) || !plain(input.views || {})) throw Error("团队报告结构或编号无效");
+    for (const key of ["title", "basis", "created", "updated"]) if (input[key] !== undefined && typeof input[key] !== "string") throw Error("团队报告元数据无效");
+    if (input.revision !== undefined && (!Number.isSafeInteger(input.revision) || input.revision < 0)) throw Error("团队报告版本无效");
+    if (!metadata && !plain(input.snapshot)) throw Error("团队报告缺少冻结数据");
+    const out = { version: 1, id: input.id, title: input.title || "团队报告", configuration: clone(input.configuration), views: clone(input.views || {}), narrative: narrative(input.narrative), basis: input.basis || input.snapshot?.fingerprint || "", created: input.created || "", updated: input.updated || "", revision: input.revision || 0 };
+    if (input.previousNarrative) out.previousNarrative = narrative(input.previousNarrative);
+    if (input.sourceMappings) out.sourceMappings = clone(input.sourceMappings);
+    if (metadata) {
+      const info = input.snapshotInfo;
+      if (!plain(info) || !Number.isSafeInteger(info.count) || info.count < 1 || info.count > 65536 || !Number.isSafeInteger(info.length) || info.length < 2 || !/^[a-f0-9]{64}$/.test(info.sha256 || "")) throw Error("团队报告快照索引无效");
+      if (info.encoding !== undefined && (info.encoding !== "object-pool-v1" || !Number.isSafeInteger(info.logicalLength) || info.logicalLength < 2 || !/^[a-f0-9]{64}$/.test(info.logicalSha256 || ""))) throw Error("不支持的团队报告快照编码");
+      out.snapshotInfo = clone(info);
+    } else out.snapshot = clone(input.snapshot);
+    return out;
+  }
+  const digest = async text => Array.from(new Uint8Array(await root.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))), value => value.toString(16).padStart(2, "0")).join("");
+  const chunkId = (reportId, index) => reportId + ":" + String(index).padStart(6, "0");
+  function validateChunk(value) {
+    json(value);
+    if (!plain(value) || !safeId(value.reportId) || !Number.isSafeInteger(value.index) || value.index < 0 || value.id !== chunkId(value.reportId, value.index) || typeof value.text !== "string" || value.text.length > chunkSize) throw Error("团队报告快照片段无效");
+    return true;
+  }
+  function poolSnapshot(snapshot) {
+    const nodes = [], known = new Map();
+    const encode = value => {
+      if (!value || typeof value !== "object") return value;
+      const node = Array.isArray(value) ? ["array", value.map(encode)] : ["object", Object.entries(value).map(([key, item]) => [key, encode(item)])];
+      const key = JSON.stringify(node);
+      let index = known.get(key);
+      if (index === undefined) { index = nodes.length; nodes.push(node); known.set(key, index); }
+      return { ref: index };
+    };
+    const entry = encode(snapshot);
+    return { entry, nodes };
+  }
+  function unpoolSnapshot(input, logicalLength) {
+    if (!plain(input) || !Array.isArray(input.nodes) || !input.nodes.length || !plain(input.entry) || input.entry.ref !== input.nodes.length - 1) throw Error("团队报告快照复用索引无效");
+    const values = [], lengths = [], depths = [];
+    const reference = (item, index) => {
+      if (!item || typeof item !== "object") {
+        if (!["string", "number", "boolean"].includes(typeof item) && item !== null || typeof item === "number" && !Number.isFinite(item)) throw Error("团队报告快照复用数据无效");
+        return { value: item, length: JSON.stringify(item).length, depth: 0 };
+      }
+      if (!plain(item) || Object.keys(item).length !== 1 || !Number.isSafeInteger(item.ref) || item.ref < 0 || item.ref >= index) throw Error("团队报告快照包含循环或无效引用");
+      return { value: values[item.ref], length: lengths[item.ref], depth: depths[item.ref] };
+    };
+    for (let index = 0; index < input.nodes.length; index++) {
+      const node = input.nodes[index];
+      if (!Array.isArray(node) || node.length !== 2 || !["array", "object"].includes(node[0]) || !Array.isArray(node[1])) throw Error("团队报告快照复用结构无效");
+      let length = 2 + Math.max(0, node[1].length - 1), depth = 1;
+      const value = node[0] === "array" ? [] : {}, keys = new Set();
+      for (const item of node[1]) {
+        if (node[0] === "array") { const decoded = reference(item, index); value.push(decoded.value); length += decoded.length; depth = Math.max(depth, decoded.depth + 1); }
+        else {
+          if (!Array.isArray(item) || item.length !== 2 || typeof item[0] !== "string" || keys.has(item[0]) || ["__proto__", "prototype", "constructor"].includes(item[0])) throw Error("团队报告快照复用字段无效");
+          const decoded = reference(item[1], index); keys.add(item[0]); value[item[0]] = decoded.value; length += JSON.stringify(item[0]).length + 1 + decoded.length; depth = Math.max(depth, decoded.depth + 1);
+        }
+        if (!Number.isSafeInteger(length) || length > logicalLength || depth > 70) throw Error("团队报告快照展开范围无效");
+      }
+      values.push(value); lengths.push(length); depths.push(depth);
+    }
+    if (lengths.at(-1) !== logicalLength || !plain(values.at(-1))) throw Error("团队报告快照展开长度无效");
+    return values.at(-1);
+  }
+  async function pack(input) {
+    const document = normalize(input), original = JSON.stringify(document.snapshot), pooled = JSON.stringify(poolSnapshot(document.snapshot)), chunks = [];
+    const compact = pooled.length + 160 < original.length, encoded = compact ? pooled : original;
+    for (let offset = 0; offset < encoded.length; offset += chunkSize) { const index = chunks.length; chunks.push({ id: chunkId(document.id, index), reportId: document.id, index, text: encoded.slice(offset, offset + chunkSize) }); }
+    const { snapshot, ...metadata } = document;
+    metadata.snapshotInfo = { count: chunks.length, length: encoded.length, sha256: await digest(encoded) };
+    if (compact) Object.assign(metadata.snapshotInfo, { encoding: "object-pool-v1", logicalLength: original.length, logicalSha256: await digest(original) });
+    return { metadata, chunks };
+  }
+  async function unpack(input, chunks) {
+    const metadata = normalize(input, { metadata: true }), rows = [...chunks].sort((a, b) => a.index - b.index);
+    if (rows.length !== metadata.snapshotInfo.count || rows.some((row, index) => { validateChunk(row); return row.reportId !== metadata.id || row.index !== index; })) throw Error("团队报告快照不完整");
+    const encoded = rows.map(row => row.text).join("");
+    if (encoded.length !== metadata.snapshotInfo.length || await digest(encoded) !== metadata.snapshotInfo.sha256) throw Error("团队报告快照校验失败");
+    const { snapshotInfo, ...document } = metadata;
+    let snapshot = JSON.parse(encoded);
+    if (snapshotInfo.encoding) {
+      snapshot = unpoolSnapshot(snapshot, snapshotInfo.logicalLength);
+      const original = JSON.stringify(snapshot);
+      if (original.length !== snapshotInfo.logicalLength || await digest(original) !== snapshotInfo.logicalSha256) throw Error("团队报告快照展开校验失败");
+    }
+    return normalize({ ...document, snapshot });
+  }
+  function summary(input) {
+    const document = normalize(input, { metadata: true });
+    return { id: document.id, title: document.title, revision: document.revision, created: document.created, updated: document.updated, kind:"team", groupId:document.configuration.groupId || "", participantCount: document.configuration.athleteIds?.length || document.configuration.participants?.length || 0, window:clone(document.configuration.window||{}) };
+  }
+  function remapMetadata(input, maps = {}) {
+    const document = normalize(input, { metadata: true });
+    const mapped = (name, id) => maps[name] instanceof Map ? maps[name].get(id) || id : maps[name]?.[id] || id;
+    const fields = { recordId: "recordMap", athleteId: "athleteMap", focusAthleteId: "athleteMap", sportId: "sportMap", subdivisionId: "subdivisionMap", ageBandId: "ageBandMap", groupId: "groupMap", teamId: "groupMap", evaluationProfileId: "profileMap", profileId: "profileMap" };
+    const walk = value => Array.isArray(value) ? value.map(walk) : plain(value) ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, fields[key] && typeof item === "string" ? mapped(fields[key], item) : walk(item)])) : value;
+    document.configuration = walk(document.configuration);
+    if(document.configuration.athleteIds)document.configuration.athleteIds=document.configuration.athleteIds.map(id=>mapped("athleteMap",id));
+    if (document.configuration.profileSnapshot?.id) document.configuration.profileSnapshot.id = mapped("profileMap", document.configuration.profileSnapshot.id);
+    // Frozen values and their original provenance stay byte-identical. Mappings
+    // connect that provenance to local copies when an explicit refresh is made.
+    const serial = Object.fromEntries(Object.entries(maps).map(([name, map]) => [name, map instanceof Map ? Object.fromEntries(map) : clone(map)]).filter(([, map]) => Object.keys(map).length));
+    if (Object.keys(serial).length) document.sourceMappings = { ...document.sourceMappings, ...serial };
+    return document;
+  }
+  function remapDocument(input, maps = {}) {
+    const document = normalize(input), metadata = remapMetadata({ ...document, snapshotInfo: { count: 1, length: 2, sha256: "0".repeat(64) } }, maps);
+    delete metadata.snapshotInfo;
+    return normalize({ ...metadata, snapshot: document.snapshot });
+  }
+  root.RingsideTeamStore = { normalize, narrative, pack, unpack, validateChunk, chunkId, summary, remapMetadata, remapDocument };
+})(typeof window !== "undefined" ? window : globalThis);
+
+
+</script>
+<script>
+(function (root) {
+  "use strict";
   const M = root.RingsideModel, E = root.RingsideEvaluation;
   const clone = v => JSON.parse(JSON.stringify(v)), uid = () => root.crypto.randomUUID();
-  const tables = ["athletes", "records", "recordIndex", "groups", "profiles", "config", "horizontalReports", "horizontalSnapshots"];
+  const tables = ["athletes", "records", "recordIndex", "groups", "profiles", "config", "horizontalReports", "horizontalSnapshots", "teamReports", "teamSnapshots"];
   const request = r => new Promise((resolve,reject) => { r.onsuccess=()=>resolve(r.result); r.onerror=()=>reject(r.error); });
   const completed = tx => new Promise((resolve,reject) => { tx.oncomplete=resolve; tx.onabort=()=>reject(tx.error || Error("保存事务已取消")); tx.onerror=()=>{}; });
   const keyRange = generation => IDBKeyRange.bound([generation, ""], [generation, "\uffff"]);
@@ -14377,13 +14557,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     else if (type === "config") { M.validateCatalog(value.catalog); validateTestPlans(value.testPlans,value.catalog); longitudinalReports(value.longitudinalReports); if(value.classifications!==undefined)root.RingsideClassifications.normalize(value.classifications); if (value.defaultEvaluationProfileId !== "" && !safe(value.defaultEvaluationProfileId)) throw Error("默认评价方案无效"); }
     else if (type === "horizontal-report") root.RingsideHorizontalStore.normalize(value,{metadata:true});
     else if (type === "horizontal-snapshot") root.RingsideHorizontalStore.validateChunk(value);
+    else if (type === "team-report") root.RingsideTeamStore.normalize(value,{metadata:true});
+    else if (type === "team-snapshot") root.RingsideTeamStore.validateChunk(value);
     else throw Error("备份包含未知资料类型");
-    if (!["record","config","horizontal-snapshot"].includes(type) && !safe(value.id)) throw Error("资料 ID 无效");
+    if (!["record","config","horizontal-snapshot","team-snapshot"].includes(type) && !safe(value.id)) throw Error("资料 ID 无效");
   }
   class Repository {
     constructor(db) { this.db=db; this.generation=""; this.queue=Promise.resolve(); this.metadataHashes=new Map(); }
     static async open(pathname=root.location.pathname) {
-      const r=indexedDB.open("motionbench-v3:"+pathname,2);
+      const r=indexedDB.open("motionbench-v3:"+pathname,3);
       r.onupgradeneeded=()=>{
         if(!r.result.objectStoreNames.contains("meta"))r.result.createObjectStore("meta",{keyPath:"id"});
         for(const name of tables) if(!r.result.objectStoreNames.contains(name))r.result.createObjectStore(name,{keyPath:["generation","id"]});
@@ -14418,6 +14600,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       const owners=new Map(athletes.map(a=>[a.id,{...a,records:[]} ]));
       for(const r of index) owners.get(r.athleteId)?.records.push(r);
       const lib={...config,testPlans:config.testPlans||[],athletes:[...owners.values()],groups,evaluationProfiles:profiles};
+      const teamDocuments=await this.values("teamReports",generation);
+      if(teamDocuments.length)lib.teamReports=teamDocuments.map(value=>({...root.RingsideTeamStore.summary(value),_summary:true}));
       if(generation===this.generation){
         this.metadataHashes.clear();
         for(const [table,items] of [["athletes",athletes],["groups",groups],["profiles",profiles],["config",[{...config,id:"library"}]]])
@@ -14517,6 +14701,81 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     getHorizontalDocument(id){return this.getHorizontalReport(id);}
     saveHorizontalDocument(document,checks){return this.saveHorizontalReport(document,checks);}
     deleteHorizontalDocument(id,checks){return this.deleteHorizontalReport(id,checks);}
+    loadTeamSources({window={},recordIds=[],athleteIds=[],onProgress=()=>{}}={}) {
+      return this.enqueue(()=>{
+        const generation=this.generation;
+        return this.stableRead(generation,async()=>{
+          const library=await this.directory(generation),state=await this.versionState(),selected=new Set(recordIds.filter(Boolean)),members=new Set(athleteIds);
+          const owners=library.athletes.filter(owner=>!owner.deletedAt&&!owner.sample&&(!members.size||members.has(owner.id)));
+          const candidates=owners.flatMap(owner=>owner.records.filter(record=>!record.deletedAt&&!record.demo&&(selected.has(record.recordId)||(!window.from||record.athlete.date>=window.from)&&(!window.to||record.athlete.date<=window.to))));
+          const records=[];
+          for(let offset=0;offset<candidates.length;offset+=40){
+            const tx=this.db.transaction("records"),batch=await Promise.all(candidates.slice(offset,offset+40).map(record=>request(tx.objectStore("records").get([generation,record.recordId]))));
+            if(batch.some(row=>!row))throw Error("团队记录在读取期间发生变化，请重新生成");
+            records.push(...batch.map(row=>row.value));await onProgress(records.length,candidates.length);
+          }
+          return {library,records,revision:state.revision,generation};
+        });
+      });
+    }
+    async listTeamReports() {
+      return this.enqueue(()=>{
+        const generation=this.generation;
+        return this.stableRead(generation,async()=> (await this.values("teamReports",generation)).map(root.RingsideTeamStore.summary).sort((a,b)=>b.updated.localeCompare(a.updated)||a.id.localeCompare(b.id)));
+      });
+    }
+    async readTeamReport(id,generation=this.generation) {
+      const tx=this.db.transaction(["teamReports","teamSnapshots"]),metadata=(await request(tx.objectStore("teamReports").get([generation,id])))?.value;
+      if(!metadata)return null;
+      const rows=await request(tx.objectStore("teamSnapshots").getAll(IDBKeyRange.bound([generation,id+":"],[generation,id+":\uffff"])));
+      return root.RingsideTeamStore.unpack(metadata,rows.map(row=>row.value).filter(value=>value.reportId===id));
+    }
+    getTeamReport(id) {return this.enqueue(()=>{const generation=this.generation;return this.stableRead(generation,()=>this.readTeamReport(id,generation));});}
+    saveTeamReport(input,{expectedRevision}={}) {
+      if(expectedRevision!==null&&(!Number.isSafeInteger(expectedRevision)||expectedRevision<1))throw Error("保存团队报告缺少原版本校验依据");
+      const generation=this.generation,document=root.RingsideTeamStore.normalize(input);
+      return this.enqueue(async()=>{
+        const packed=await root.RingsideTeamStore.pack(document),tx=this.db.transaction(["meta","teamReports","teamSnapshots"],"readwrite"),done=completed(tx);
+        try{
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开团队报告");
+          const old=(await request(tx.objectStore("teamReports").get([generation,document.id])))?.value;
+          if((old?.revision??null)!==expectedRevision)throw Error("团队报告已在其他页面修改或删除，请重新打开并核对后保存");
+          const stamp=new Date().toISOString();packed.metadata.created=old?.created||document.created||stamp;packed.metadata.updated=stamp;packed.metadata.revision=(old?.revision||0)+1;
+          if(old?.snapshotInfo.sha256!==packed.metadata.snapshotInfo.sha256){
+            const prior=await request(tx.objectStore("teamSnapshots").getAll(IDBKeyRange.bound([generation,document.id+":"],[generation,document.id+":\uffff"])));
+            for(const row of prior)if(row.value.reportId===document.id)tx.objectStore("teamSnapshots").delete([generation,row.id]);
+            for(const value of packed.chunks)tx.objectStore("teamSnapshots").put({generation,id:value.id,value});
+          }
+          tx.objectStore("teamReports").put({generation,id:document.id,value:packed.metadata});tx.objectStore("meta").put({id:"revision",value:uid()});await done;
+          const {snapshotInfo,...metadata}=packed.metadata;return root.RingsideTeamStore.normalize({...metadata,snapshot:document.snapshot});
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
+    deleteTeamReport(id,{expectedRevision}={}) {
+      if(!Number.isSafeInteger(expectedRevision)||expectedRevision<1)throw Error("删除团队报告缺少原版本校验依据");
+      const generation=this.generation;
+      return this.enqueue(async()=>{
+        const tx=this.db.transaction(["meta","teamReports","teamSnapshots"],"readwrite"),done=completed(tx);
+        try{
+          if((await request(tx.objectStore("meta").get("active")))?.value!==generation)throw Error("资料库已在其他页面切换，请重新打开团队报告");
+          const old=(await request(tx.objectStore("teamReports").get([generation,id])))?.value;
+          if(old?.revision!==expectedRevision)throw Error("团队报告已在其他页面修改或删除，请重新打开后操作");
+          const chunks=await request(tx.objectStore("teamSnapshots").getAll(IDBKeyRange.bound([generation,id+":"],[generation,id+":\uffff"])));
+          for(const row of chunks)if(row.value.reportId===id)tx.objectStore("teamSnapshots").delete([generation,row.id]);
+          tx.objectStore("teamReports").delete([generation,id]);tx.objectStore("meta").put({id:"revision",value:uid()});await done;return true;
+        }catch(error){try{tx.abort();}catch(_){}await done.catch(()=>{});throw error;}
+      });
+    }
+    async importTeamReport(input,maps={}) {
+      let document=root.RingsideTeamStore.remapDocument(input,maps),old=await this.getTeamReport(document.id);
+      if(old&&E.canonical(old)===E.canonical(document))return old;
+      if(old)document={...document,id:"team_"+uid(),title:document.title+"（导入副本）",revision:0};
+      return this.saveTeamReport(document,{expectedRevision:null});
+    }
+    listTeamDocuments(){return this.listTeamReports();}
+    getTeamDocument(id){return this.getTeamReport(id);}
+    saveTeamDocument(document,checks){return this.saveTeamReport(document,checks);}
+    deleteTeamDocument(id,checks){return this.deleteTeamReport(id,checks);}
     enqueue(operation) { const task=this.queue.then(operation); this.queue=task.catch(()=>{});return task; }
     flush() { return this.queue; }
     saveRecords(records=[],checks={},options={}) {
@@ -14677,11 +14936,12 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       }
     }
     async *rows(generation=this.generation) {
-      const hasHorizontal=(await this.values("horizontalReports",generation)).length>0;
-      yield {type:"header",format:"motionbench-backup",schema:hasHorizontal?4:3,created:new Date().toISOString()};
+      const hasHorizontal=(await this.values("horizontalReports",generation)).length>0,hasTeam=(await this.values("teamReports",generation)).length>0;
+      yield {type:"header",format:"motionbench-backup",schema:hasTeam?5:hasHorizontal?4:3,created:new Date().toISOString()};
       const counts={athlete:0,record:0,group:0,profile:0,config:0};
-      if(hasHorizontal){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}
-      for(const [table,type] of [["config","config"],["groups","group"],["profiles","profile"],["athletes","athlete"],["records","record"],...(hasHorizontal?[["horizontalReports","horizontal-report"],["horizontalSnapshots","horizontal-snapshot"]]:[])]) {
+      if(hasHorizontal||hasTeam){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}
+      if(hasTeam){counts["team-report"]=0;counts["team-snapshot"]=0;}
+      for(const [table,type] of [["config","config"],["groups","group"],["profiles","profile"],["athletes","athlete"],["records","record"],...(hasHorizontal?[["horizontalReports","horizontal-report"],["horizontalSnapshots","horizontal-snapshot"]]:[]),...(hasTeam?[["teamReports","team-report"],["teamSnapshots","team-snapshot"]]:[])]) {
         for await(const batch of this.batches(table,generation)) for(const value of batch){counts[type]++;yield {type,value};}
       }
       yield {type:"end",counts};
@@ -14703,6 +14963,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         }
         const documents=await this.values("horizontalReports",generation);
         if(documents.length){lib.horizontalReports=[];for(const document of documents)lib.horizontalReports.push(await this.readHorizontalReport(document.id,generation));}
+        const teams=await this.values("teamReports",generation);
+        if(teams.length){lib.teamReports=[];for(const document of teams)lib.teamReports.push(await this.readTeamReport(document.id,generation));}else delete lib.teamReports;
         return lib;
       });
     }
@@ -14759,10 +15021,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     async stageImport(iterable,{merge=false,onProgress=()=>{},upgradeCheckpoint=null,expectedRevision,expectedState}={}) {
       const generation="generation_"+uid(),oldGeneration=this.generation,initial=await this.versionState(),obsoleteGeneration=initial.previous,revision=initial.revision;
       if(initial.active!==oldGeneration || expectedState&&!this.sameVersion(initial,expectedState) || expectedRevision!==undefined&&revision!==expectedRevision)throw Error("资料已在其他页面修改，请重新打开后升级或导入");
-      const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config","horizontal-report":"horizontalReports","horizontal-snapshot":"horizontalSnapshots"};
+      const mapTable={athlete:"athletes",record:"records",group:"groups",profile:"profiles",config:"config","horizontal-report":"horizontalReports","horizontal-snapshot":"horizontalSnapshots","team-report":"teamReports","team-snapshot":"teamSnapshots"};
       const seen=new Map(Object.keys(mapTable).map(k=>[k,new Set()])),references=[],owners=new Map(),profiles=new Map(),groups=new Map(),profileMap=new Map(),groupMap=new Map(),recordMap={};
       let config=null,header=false,ended=false,pending=[], imported=0,seeded=false,lastType=-1,backupSchema=3;
-      let classificationMaps={};const horizontalMap=new Map(),horizontalIds=new Set();
+      let classificationMaps={};const horizontalMap=new Map(),horizontalIds=new Set(),teamMap=new Map(),teamIds=new Set();
       let incomingPlans=[],incomingReports=[],plansMerged=false;const planMap=new Map();
       const mergePlans=()=>{
         if(plansMerged)return;plansMerged=true;
@@ -14798,13 +15060,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         }
         for await(const raw of iterable){
           if(ended)throw Error("备份结束标记后仍有内容");
-          if(!header){if(raw.type!=="header"||raw.format!=="motionbench-backup"||![3,4].includes(raw.schema))throw Error("不是支持的 MotionBench 备份");backupSchema=raw.schema;if(backupSchema===4){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}header=true;continue;}
+          if(!header){if(raw.type!=="header"||raw.format!=="motionbench-backup"||![3,4,5].includes(raw.schema))throw Error("不是支持的 MotionBench 备份");backupSchema=raw.schema;if(backupSchema>=4){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;}if(backupSchema>=5){counts["team-report"]=0;counts["team-snapshot"]=0;}header=true;continue;}
           if(raw.type==="end"){
             if(E.canonical(raw.counts)!==E.canonical(counts))throw Error("备份条数校验失败");ended=true;continue;
           }
           if(!mapTable[raw.type])throw Error("备份包含未知类型");
           if(backupSchema===3&&raw.type.startsWith("horizontal-"))throw Error("横向报告需要新版备份格式");
-          const order=["config","group","profile","athlete","record","horizontal-report","horizontal-snapshot"].indexOf(raw.type);
+          if(backupSchema<5&&raw.type.startsWith("team-"))throw Error("团队报告需要新版备份格式");
+          const order=["config","group","profile","athlete","record","horizontal-report","horizontal-snapshot","team-report","team-snapshot"].indexOf(raw.type);
           if(order<lastType)throw Error("备份资料顺序无效");lastType=order;
           const row={type:raw.type,value:raw.type==="profile"&&E.serializeProfile?E.serializeProfile(raw.value):clone(raw.value)},v=row.value;validateEntity(row.type,v);
           const incomingId=row.type==="record"?v.recordId:row.type==="config"?"library":v.id;
@@ -14856,6 +15119,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
             if(!seen.get("horizontal-report").has(v.reportId))throw Error("横向报告快照缺少所属报告");
             v.reportId=horizontalMap.get(v.reportId)||v.reportId;v.id=root.RingsideHorizontalStore.chunkId(v.reportId,v.index);
           }
+          if(row.type==="team-report"){
+            const mapped=root.RingsideTeamStore.remapMetadata(v,{recordMap,profileMap,groupMap,...classificationMaps});
+            Object.assign(v,mapped);
+            const old=seeded?await this.get("teamReports",v.id,generation):null;
+            if(old&&E.canonical(old)===E.canonical(v)){
+              const tx=this.db.transaction("teamSnapshots","readwrite"),done=completed(tx),chunks=await request(tx.objectStore("teamSnapshots").getAll(IDBKeyRange.bound([generation,v.id+":"],[generation,v.id+":\uffff"])));
+              for(const chunk of chunks)if(chunk.value.reportId===v.id)tx.objectStore("teamSnapshots").delete([generation,chunk.id]);await done;
+            }else if(old){const next="team_"+uid();teamMap.set(v.id,next);v.id=next;v.title+="（导入副本）";}
+            teamIds.add(v.id);
+          }
+          if(row.type==="team-snapshot"){
+            if(!seen.get("team-report").has(v.reportId))throw Error("团队报告快照缺少所属报告");
+            v.reportId=teamMap.get(v.reportId)||v.reportId;v.id=root.RingsideTeamStore.chunkId(v.reportId,v.index);
+          }
           pending.push(row);if(pending.length>=40)await flush();
         }
         if(!header||!ended||counts.config!==1)throw Error("备份不完整，原资料库保持不变");
@@ -14882,6 +15159,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         for(const id of horizontalIds)await this.readHorizontalReport(id,generation);
         const reportIds=new Set((await this.values("horizontalReports",generation)).map(document=>document.id));
         for await(const batch of this.batches("horizontalSnapshots",generation))for(const chunk of batch)if(!reportIds.has(chunk.reportId))throw Error("横向报告快照归属缺失");
+        for(const id of teamIds)await this.readTeamReport(id,generation);
+        const teamReportIds=new Set((await this.values("teamReports",generation)).map(document=>document.id));
+        for await(const batch of this.batches("teamSnapshots",generation))for(const chunk of batch)if(!teamReportIds.has(chunk.reportId))throw Error("团队报告快照归属缺失");
         const actual=[await this.values("athletes",generation),await this.values("recordIndex",generation)];
         if(actual[0].length>2000||actual[1].length>10000)throw Error("合并后资料超过容量边界");
         const tx=this.db.transaction("meta","readwrite"),done=completed(tx);
@@ -14895,7 +15175,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         tx.objectStore("meta").put({id:"previous",value:oldGeneration});await done;
         this.generation=generation;this.metadataHashes.clear();
         if(obsoleteGeneration&&obsoleteGeneration!==oldGeneration)await this.discardGeneration(obsoleteGeneration).catch(()=>{});
-        return{added:imported,skipped:counts.record-imported,recordMap,profileMap:Object.fromEntries(profileMap),groupMap:Object.fromEntries(groupMap),...classificationMaps,horizontalMap:Object.fromEntries(horizontalMap),horizontalReportMap:Object.fromEntries(horizontalMap)};
+        return{added:imported,skipped:counts.record-imported,recordMap,profileMap:Object.fromEntries(profileMap),groupMap:Object.fromEntries(groupMap),...classificationMaps,horizontalMap:Object.fromEntries(horizontalMap),horizontalReportMap:Object.fromEntries(horizontalMap),teamMap:Object.fromEntries(teamMap),teamReportMap:Object.fromEntries(teamMap)};
       }catch(error){await this.discardGeneration(generation).catch(()=>{});throw error;}
     }
     async discardGeneration(generation) {
@@ -14925,9 +15205,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     close(){this.db.close();}
   }
   async function *libraryRows(lib){
-    const horizontal=lib.horizontalReports||[];
-    yield{type:"header",format:"motionbench-backup",schema:horizontal.length?4:3};
+    const horizontal=lib.horizontalReports||[],team=lib.teamReports||[];
+    yield{type:"header",format:"motionbench-backup",schema:team.length?5:horizontal.length?4:3};
     const counts={athlete:0,record:0,group:0,profile:0,config:1};
+    if(team.length){counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;counts["team-report"]=0;counts["team-snapshot"]=0;}
     yield{type:"config",value:configuration(lib)};
     for(const value of lib.groups||[]){counts.group++;yield{type:"group",value};}
     for(const value of lib.evaluationProfiles){counts.profile++;yield{type:"profile",value:E.serializeProfile?E.serializeProfile(value):value};}
@@ -14937,6 +15218,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       counts["horizontal-report"]=0;counts["horizontal-snapshot"]=0;
       const packed=[];for(const document of horizontal){const value=await root.RingsideHorizontalStore.pack(document);packed.push(value);counts["horizontal-report"]++;yield{type:"horizontal-report",value:value.metadata};}
       for(const document of packed)for(const value of document.chunks){counts["horizontal-snapshot"]++;yield{type:"horizontal-snapshot",value};}
+    }
+    if(team.length){
+      counts["team-report"]=0;counts["team-snapshot"]=0;
+      const packed=[];for(const document of team){const value=await root.RingsideTeamStore.pack(document);packed.push(value);counts["team-report"]++;yield{type:"team-report",value:value.metadata};}
+      for(const document of packed)for(const value of document.chunks){counts["team-snapshot"]++;yield{type:"team-snapshot",value};}
     }
     yield{type:"end",counts};
   }
@@ -19878,8 +20164,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
 
   function cleanClone(reportElement,snapshot) {
     const clone = reportElement.cloneNode(true);
+    if(snapshot?.teamModel)root.RingsideTeamView.preparePrint(clone,snapshot.teamModel,snapshot.teamViews||{});
     if(snapshot?.horizontalModel)root.RingsideHorizontalView.preparePrint(clone,snapshot.horizontalModel,snapshot.horizontalViews||{});
-    if(snapshot && clone.dataset.longitudinal !== "true" && clone.dataset.horizontal !== "true")root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
+    if(snapshot && clone.dataset.longitudinal !== "true" && clone.dataset.horizontal !== "true" && clone.dataset.team !== "true")root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
     if (clone.dataset.longitudinal === "true") {
       clone.querySelector("#directionMetrics")?.remove();
       clone.querySelector("#radarLegend")?.closest(".card-foot")?.remove();
@@ -19984,7 +20271,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
 
   function backgroundFields(snapshot) {
-    if (snapshot.horizontal) return [];
+    if (snapshot.horizontal || snapshot.team) return [];
     const athlete = snapshot.athlete || {};
     return [
       ["sport", "专项", athlete.sport],
@@ -20465,6 +20752,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
 
   function reportIdentity(snapshot) {
+    if(snapshot.team){const count=snapshot.teamModel?.participants?.length||0,title=snapshot.teamTitle||"团队报告",subject="团队报告 · "+count+" 名运动员";return {title,subject,header:subject,footer:"团队报告"};}
     if(snapshot.horizontal){
       const model=snapshot.horizontalModel||{},count=model.participants?.length||0,reference=model.references?.find(item=>item.id===snapshot.horizontalViews?.activeReferenceId)||model.references?.[0],kind=count?"横向比较报告":"群体统计报告",title=snapshot.horizontalTitle||kind,subject=kind+" · "+(count?count+" 名运动员":reference?.label||"群体结果");
       return {title,subject,header:subject,footer:kind};
@@ -20515,6 +20803,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     let content;
     function newPage() {
       const page = element("div", "ringside-pdf-document ringside-pdf-page");
+      if (snapshot.team) page.dataset.team = "true";
       const header = element("div", "ringside-pdf-page-head");
       header.append(
         element("span", "", "MotionBench · 运动表现评估"),
@@ -21024,6 +21313,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const primaryLayouts = layoutPrimaryPairs(source, stage);
       root.RingsideReport.layoutCharts(source, { print: true });
       if (source.dataset.longitudinal === "true") root.RingsideLongitudinalView?.layout(source, { print: true });
+      if (source.dataset.team === "true") root.RingsideTeamView.layout(source, { print: true });
       if (source.dataset.horizontal === "true") root.RingsideHorizontalView.layout(source, { print: true });
       freezePrimaryColumns(source);
       await freezeCharts(source);
@@ -22680,7 +22970,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const subject=Eval.ruleSubjects(lib().catalog,editor.profile).find(s=>s.id===id||s.metricId===id);if(subject){editor.subjectId=subject.id;editor.projectId=subject.testId;}render();
   }
   function backup() {
-    return `<div class="backup-grid"><article class="form-card"><h2>完整备份</h2><p>包含运动员、历次测试、队伍、回收站、测试方案、指标库、评价方案、专项与年龄分组，以及已保存的纵向和横向报告。</p><button class="btn primary" onclick="App.downloadLibrary()">导出完整备份</button></article><article class="form-card"><h2>导入与恢复</h2>${field("导入方式",'<select id="backupImportMode"><option value="merge">合并到当前资料库</option><option value="replace">恢复为完整资料库</option></select>')}<button class="btn primary" onclick="document.getElementById('importFile').click()">选择备份文件</button><p class="note">支持完整 JSONL 备份、旧 JSON 和已保存的 HTML。</p>${button("恢复上次资料库","restore-library")}</article><article class="form-card"><h2>升级资料</h2><p>查看本次升级前保留的资料和迁移核对结果。</p><div class="row"><button class="btn" onclick="App.downloadUpgradeBackup()">导出升级前资料</button><button class="btn" onclick="App.downloadMigrationReport()">迁移核对清单</button></div><details class="rule-conditions"><summary>回退到升级前版本</summary><p>先下载当前完整备份。回退会恢复升级前的资料并结束本页面，再使用已备份的旧版程序。</p><div class="row"><button class="btn" onclick="App.downloadLibrary()">下载当前完整备份</button><button class="btn" onclick="App.downloadUpgradeBackup()">下载升级前备份</button><button class="btn" onclick="App.downloadRollbackRecoveryBackup()">导出回退前新版资料</button><button class="btn" onclick="App.prepareVersionRollback()">恢复升级前资料并结束页面</button></div></details></article></div><details class="rule-conditions"><summary>旧版兼容导出</summary><p>旧版兼容格式不包含新评价方案中的完整计分配置；需要完整恢复时使用升级前备份。</p><div class="row"><button class="btn" onclick="App.downloadLegacyLibrary()">导出旧版兼容 JSON</button><button class="btn" onclick="App.downloadPreMigration()">下载旧格式迁移前资料</button></div></details>`;
+    return `<div class="backup-grid"><article class="form-card"><h2>完整备份</h2><p>包含运动员、历次测试、队伍、回收站、测试方案、指标库、评价方案、专项与年龄分组，以及已保存的纵向、横向和团队报告。</p><button class="btn primary" onclick="App.downloadLibrary()">导出完整备份</button></article><article class="form-card"><h2>导入与恢复</h2>${field("导入方式",'<select id="backupImportMode"><option value="merge">合并到当前资料库</option><option value="replace">恢复为完整资料库</option></select>')}<button class="btn primary" onclick="document.getElementById('importFile').click()">选择备份文件</button><p class="note">支持完整 JSONL 备份、旧 JSON 和已保存的 HTML。</p>${button("恢复上次资料库","restore-library")}</article><article class="form-card"><h2>升级资料</h2><p>查看本次升级前保留的资料和迁移核对结果。</p><div class="row"><button class="btn" onclick="App.downloadUpgradeBackup()">导出升级前资料</button><button class="btn" onclick="App.downloadMigrationReport()">迁移核对清单</button></div><details class="rule-conditions"><summary>回退到升级前版本</summary><p>先下载当前完整备份。回退会恢复升级前的资料并结束本页面，再使用已备份的旧版程序。</p><div class="row"><button class="btn" onclick="App.downloadLibrary()">下载当前完整备份</button><button class="btn" onclick="App.downloadUpgradeBackup()">下载升级前备份</button><button class="btn" onclick="App.downloadRollbackRecoveryBackup()">导出回退前新版资料</button><button class="btn" onclick="App.prepareVersionRollback()">恢复升级前资料并结束页面</button></div></details></article></div><details class="rule-conditions"><summary>旧版兼容导出</summary><p>旧版兼容格式不包含新评价方案中的完整计分配置；需要完整恢复时使用升级前备份。</p><div class="row"><button class="btn" onclick="App.downloadLegacyLibrary()">导出旧版兼容 JSON</button><button class="btn" onclick="App.downloadPreMigration()">下载旧格式迁移前资料</button></div></details>`;
   }
   function render(options={}) {
     if(!lib())return;
@@ -24753,6 +25043,574 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
 <script>
 (function (root) {
   "use strict";
+  const M = root.RingsideModel, E = root.RingsideEvaluation, T = root.RingsideTests, C = root.RingsideComparison;
+  const N = value => root.Calc.num(value), clone = value => JSON.parse(JSON.stringify(value));
+  const hasValue = cell => cell && N(cell.value) !== null;
+  const hash = value => C.contentHash(E.canonical(value));
+  const canonicalMember = id => String(id).includes(":") ? String(id) : "metric:" + id;
+  const flagged = status => status === "red" || status === "amber";
+  // Exact SI scale factors, plus the conventional standard-gravity definition of kgf.
+  // A matching dimension is required; labels such as %, scores and ratios are not interchangeable.
+  const units = { mm: ["length", .001], cm: ["length", .01], m: ["length", 1], km: ["length", 1000],
+    ms: ["time", .001], s: ["time", 1], min: ["time", 60], h: ["time", 3600], g: ["mass", .001], kg: ["mass", 1],
+    N: ["force", 1], kN: ["force", 1000], kgf: ["force", 9.80665], "m/s": ["speed", 1], "km/h": ["speed", 1 / 3.6] };
+  function unitFactor(from, to) { const existing = M.unitFactor(from, to); if (existing !== null) return existing; return units[from] && units[to] && units[from][0] === units[to][0] ? units[from][1] / units[to][1] : null; }
+  function scale(value, factor) { if (N(value) === null) return value; const result = N(value) * factor; if (!Number.isFinite(result)) throw Error("单位换算超出有效数值范围"); return result; }
+  function scaleRanges(ranges, factor) { return (ranges || []).map(range => ({ ...range, min: scale(range.min, factor), max: scale(range.max, factor) })); }
+  function profileForRecord(profile, record) {
+    if (!profile) return null;
+    const next = clone(profile);
+    for (const rule of next.standards) {
+      const definition = rule.kind === "metric" && record.definitions.find(item => item.id === rule.metricId);
+      if (!definition || !T.isManualMetric(definition) || M.unitFactor(rule.context.unit, definition.unit) !== null) continue;
+      const factor = unitFactor(rule.context.unit, definition.unit); if (factor === null) continue;
+      rule.context.unit = definition.unit; rule.target = scale(rule.target, factor); rule.ranges = scaleRanges(rule.ranges, factor);
+      for (const group of rule.referenceGroups || []) { group.target = scale(group.target, factor); group.ranges = scaleRanges(group.ranges, factor); }
+      for (const axis of Object.values(next.aggregations)) {
+        const transform = axis.transforms?.["metric:" + definition.id] || axis.transforms?.[definition.id];
+        if (transform?.kind === "anchors") transform.points.forEach(point => { point.value = scale(point.value, factor); });
+        if (transform?.kind === "table") transform.ranges = scaleRanges(transform.ranges, factor);
+      }
+    }
+    return next;
+  }
+  function teamCell(cell, period, catalog, unit) {
+    const definition = period.source?.definitions.find(item => item.id === (cell.metricId || cell.id)) || cell.definition || cell.canonicalDefinition;
+    const catalogDefinition = catalog?.definitions.find(item => item.id === (cell.metricId || cell.id));
+    const meaning = root.RingsideMetricSemantics.resolve(definition || { measurementScale: cell.measurementScale }, { catalogDefinition }).meaning;
+    if (meaning !== "numeric") return C.horizontalCell(cell, period, catalog, cell.unit || "");
+    if (M.unitFactor(cell.unit || "", unit) !== null) return C.horizontalCell(cell, period, catalog, unit);
+    const factor = unitFactor(cell.unit || "", unit);
+    if (factor === null || cell.measurementScale === "ordinal") return C.horizontalCell(cell, period, catalog, cell.unit || "");
+    const next = clone(cell), metricId = cell.metricId || cell.id;
+    const adaptDefinition = definition => definition && ({ ...definition, unit, target: scale(definition.target, factor), ranges: scaleRanges(definition.ranges, factor) });
+    next.rawValue = cell.rawValue ?? cell.value; next.rawUnit = cell.rawUnit ?? cell.unit; next.unit = unit; next.value = scale(cell.value, factor);
+    if (next.context && Object.hasOwn(next.context, "unit")) next.context.unit = unit;
+    if (next.context?.force?.unit === cell.unit) next.context.force.unit = unit;
+    if (next.definition) next.definition = adaptDefinition(next.definition);
+    if (next.displayDefinition) next.displayDefinition = adaptDefinition(next.displayDefinition);
+    if (next.evaluation) { next.evaluation.target = scale(next.evaluation.target, factor); next.evaluation.value = scale(next.evaluation.value, factor); }
+    next.referenceTarget = scale(next.referenceTarget, factor);
+    if (next.statistics) for (const key of ["mean", "sd", "min", "max"]) if (next.statistics[key] !== undefined) next.statistics[key] = scale(next.statistics[key], factor);
+    const adaptRecord = record => ({ ...record, definitions: record.definitions.map(definition => definition.id === metricId ? adaptDefinition(definition) : definition) });
+    const result = C.horizontalCell(next, { ...period, record: adaptRecord(period.record), source: adaptRecord(period.source || period.record) }, catalog, unit);
+    // The displayed assessment uses the common unit. Evaluation evidence keeps
+    // its original value, unit, target and score conversion together.
+    if (cell.evaluation) result.evaluation = clone(cell.evaluation);
+    return result;
+  }
+
+  function quantile(values, p) {
+    if (!values.length) return null;
+    const x = (values.length - 1) * p, lower = Math.floor(x), upper = Math.ceil(x);
+    return values[lower] + (values[upper] - values[lower]) * (x - lower);
+  }
+  function statistics(entries, meaning = "numeric") {
+    const values = entries.map(entry => N(typeof entry === "number" ? entry : entry.value)).filter(value => value !== null).sort((a, b) => a - b);
+    const n = values.length, continuous = meaning === "numeric";
+    const result = { n, min: n ? values[0] : null, max: n ? values.at(-1) : null, mean: null, sd: null,
+      q1: null, median: null, q3: null, lowerWhisker: null, upperWhisker: null, outliers: [], boxAvailable: continuous && n >= 3 };
+    if (!continuous || !n) return result;
+    Object.assign(result, root.Calc.descriptive(values, false)); delete result.cv;
+    result.q1 = quantile(values, .25); result.median = quantile(values, .5); result.q3 = quantile(values, .75);
+    const iqr = result.q3 - result.q1, lower = result.q1 - 1.5 * iqr, upper = result.q3 + 1.5 * iqr;
+    result.lowerWhisker = values.find(value => value >= lower); result.upperWhisker = values.findLast(value => value <= upper);
+    result.outliers = values.filter(value => value < result.lowerWhisker || value > result.upperWhisker);
+    return result;
+  }
+  function histogram(entries) {
+    const valid = entries.filter(hasValue), n = valid.length;
+    if (!n) return [];
+    const values = valid.map(entry => entry.value), min = Math.min(...values), max = Math.max(...values);
+    if (min === max) return [{ from: min, to: max, count: n, members: clone(valid), lastInclusive: true }];
+    const count = Math.ceil(Math.log2(n) + 1), width = (max - min) / count;
+    const bins = Array.from({ length: count }, (_, index) => ({ from: min + width * index, to: index === count - 1 ? max : min + width * (index + 1), count: 0, members: [], lastInclusive: index === count - 1 }));
+    for (const entry of valid) {
+      // Comparing stored edges also makes exactly-on-edge values reproducible.
+      const index = bins.findIndex(bin => entry.value >= bin.from && (entry.value < bin.to || bin.lastInclusive && entry.value <= bin.to));
+      const bin = bins[index < 0 ? bins.length - 1 : index]; bin.members.push(clone(entry)); bin.count++;
+    }
+    return bins;
+  }
+  function distribution(entries) {
+    const values = [...new Set(entries.filter(hasValue).map(entry => entry.value))].sort((a, b) => a - b);
+    return values.map(value => { const members = entries.filter(entry => entry.value === value); return { value, label: String(value), count: members.length, members: clone(members) }; });
+  }
+  function rankings(metric, people) {
+    const entries = people.map((person, index) => ({ athleteId: person.athleteId, name: person.name, recordId: person.recordId, date: person.date,
+      value: N(metric.cells[index]?.value), rank: null, missing: !hasValue(metric.cells[index]), index }));
+    const sign = metric.rankable && metric.direction === "lower" ? 1 : -1;
+    entries.sort((a, b) => Number(a.missing) - Number(b.missing) || (!a.missing ? sign * (a.value - b.value) : 0) || a.index - b.index);
+    let previous = null, rank = 0;
+    entries.forEach((entry, index) => { if (!entry.missing && metric.rankable) { if (previous === null || entry.value !== previous) rank = index + 1; entry.rank = rank; previous = entry.value; } delete entry.index; });
+    return entries;
+  }
+  function intervalScore(cell) {
+    return cell?.evaluation?.scoreContributions?.some(contribution => contribution.transform?.shape === "range") || false;
+  }
+  function makeRows(periods, people, maps, catalog) {
+    const keys = [...new Set(maps.flatMap(map => [...map.keys()]))], rows = [];
+    for (const key of keys) {
+      const exemplar = maps.map(map => map.get(key)).find(Boolean), catalogMetric = catalog?.definitions?.find(item => item.id === (exemplar.metricId || key));
+      const unit = catalogMetric && unitFactor(exemplar.unit || "", catalogMetric.unit || "") !== null ? catalogMetric.unit || "" : exemplar.unit || "";
+      const normalized = maps.map((map, index) => map.has(key) ? teamCell(map.get(key), periods[index], catalog, unit) : null);
+      const contexts = [...new Set(normalized.filter(Boolean).map(cell => cell.contextKey))].sort();
+      for (const contextKey of contexts) {
+        const template = normalized.find(cell => cell?.contextKey === contextKey), cells = normalized.map((cell, index) => cell?.contextKey === contextKey ? { ...cell,
+          athleteId: people[index].athleteId, name: people[index].name, recordId: people[index].recordId, date: people[index].date } : null);
+        const directions = [...new Set(cells.filter(Boolean).map(cell => cell.direction))], direction = directions.length === 1 ? directions[0] : "unconfirmed";
+        const id = key + (contexts.length > 1 ? ":" + hash(contextKey).slice(-8) : ""), groupId = contexts.length > 1 ? hash(contextKey) : "default";
+        const row = { id, metricId: exemplar.metricId || exemplar.id || key, subjectId: exemplar.subjectId || exemplar.id || key, testId: exemplar.testId,
+          name: exemplar.name, unit: template.unit, measurementScale: template.measurementScale || "unknown", meaning: template.meaning || "numeric", direction,
+          rankable: template.meaning !== "category" && ["higher", "lower"].includes(direction) && !cells.some(intervalScore),
+          contextKey, context: template.comparisonContext || {}, groupId, contextLabel: contexts.length > 1 ? "测量条件 " + (contexts.indexOf(contextKey) + 1) : "", cells,
+          ...Object.fromEntries(["section", "sourceKind", "groupName", "region", "directionId", "pairId", "parentId"].filter(field => exemplar[field] !== undefined).map(field => [field, exemplar[field]])) };
+        row.ranking = rankings(row, people); row.statistics = statistics(row.ranking, row.meaning); row.distribution = distribution(row.ranking);
+        // A partial strength measurement can create a balance-ratio placeholder;
+        // only ratios observed for at least one team member belong in this union.
+        if (row.section === "balance" && !row.statistics.n) continue;
+        rows.push(row);
+      }
+    }
+    return rows;
+  }
+  function observations(period) {
+    if (!period) return new Map();
+    const result = C.observations(period);
+    // Bilateral FMS inputs are distinct recorded metrics, in addition to their fixed lower-side score.
+    for (const [index, item] of (period.stats.raw.fms?.items || []).entries()) if (item.bilateral) for (const side of ["left", "right"]) {
+      const value = N(item[side]); if (value === null) continue;
+      const id = "fms:" + index + ":" + side;
+      result.set(id, { id, metricId: id, testId: "fms", name: item.name + " · " + (side === "left" ? "左侧" : "右侧"), value, unit: "分",
+        measurementScale: "ordinal", context: { item: index, side, name: item.name }, canonicalDefinition: { resultMeaning: "ordinal", direction: "higher", directionStatus: "confirmed" },
+        evaluation: { grade: M.fixedFmsAssessment(value) }, notes: item.notes || "", pain: value === 0 });
+    }
+    return result;
+  }
+  function overview(periods, people, profile, catalog) {
+    const result = { axes: [], series: [], total: people.length, issues: [] };
+    if (!profile) return result;
+    const configuration = profile.aggregations || {}, configured = Object.keys(configuration).filter(key => ["primary", "mean"].includes(configuration[key].method));
+    const order = T.abilityGroups(catalog || {}).map(group => T.axisKey(group.key));
+    configured.sort((a, b) => (order.includes(a) ? order.indexOf(a) : order.length) - (order.includes(b) ? order.indexOf(b) : order.length));
+    const scoreRows = [];
+    for (const id of configured) {
+      const cfg = configuration[id], key = id.replace(/^ability:/, ""), expected = (cfg.method === "primary" ? [cfg.primary] : cfg.members || []).map(canonicalMember);
+      const cells = periods.map((period, index) => {
+        const axis = period?.stats.axes.find(item => T.axisKey(item.key) === T.axisKey(key));
+        if (!axis || axis.method !== cfg.method || E.canonical(axis.members) !== E.canonical(expected) || N(axis.value) === null) {
+          const issue = period?.stats.aggregationIssues.find(item => item.ability === key)?.reason || (period ? "本次缺少适用的能力分数" : "本次未测");
+          result.issues.push({ athleteId: people[index].athleteId, axisId: id, reason: issue }); return null;
+        }
+        return { athleteId: people[index].athleteId, value: axis.value, members: clone(axis.members), evidence: period.stats.evaluationResults.filter(item => expected.includes(item.subjectId)) };
+      });
+      const valid = cells.filter(Boolean), value = valid.length ? valid.reduce((sum, cell) => sum + cell.value / valid.length, 0) : null;
+      const label = T.abilityLabel(catalog || {}, key);
+      result.axes.push({ id, key, label, value, n: valid.length, total: people.length, status: "gray", identity: hash({ profile: E.signature(profile), id, configuration: cfg }), cells });
+      scoreRows.push(cells);
+    }
+    result.series.push({ id: "team", label: "团队平均", color: "#65717c", values: result.axes.map(axis => axis.value), counts: result.axes.map(axis => axis.n) });
+    people.forEach((person, index) => result.series.push({ id: person.athleteId, athleteId: person.athleteId, label: person.name, color: person.color, values: scoreRows.map(cells => cells[index]?.value ?? null) }));
+    return result;
+  }
+  function regionAliases() {
+    const aliases = new Map();
+    for (const id of Object.keys(M.REG)) {
+      aliases.set(id, { id, side: "" });
+      for (const [side, full] of [["L", "left"], ["R", "right"]]) for (const alias of [id + "_" + side.toLowerCase(), full + "_" + id, id + "_" + full, full + id[0].toUpperCase() + id.slice(1), id + "-" + full]) aliases.set(alias, { id, side });
+    }
+    return aliases;
+  }
+  function risk(periods, people) {
+    const aliases = regionAliases(), regions = Object.entries(M.REG).map(([id, label]) => ({ id, key: id, label, measuredCount: 0, assessedCount: 0, flaggedCount: 0,
+      amberCount: 0, redCount: 0, members: [], total: people.length, value: null })), byId = new Map(regions.map(region => [region.id, region])), unlocalized = [], assessedPeople = new Set();
+    periods.forEach((period, index) => {
+      if (!period) return;
+      const person = people[index], local = new Map();
+      if (period.stats.evaluationResults.some(item => ["red", "amber", "green"].includes(item.grade?.status) && (item.testId === "fms" || period.record.definitions.some(definition => definition.id === item.metricId && definition.category === "screen")))) assessedPeople.add(person.athleteId);
+      for (const [key, detail] of Object.entries(period.stats.signals.regions)) {
+        const mapped = aliases.get(key); if (!mapped) continue;
+        const entry = local.get(mapped.id) || { measured: false, assessed: false, status: "gray", sides: new Set(), tests: [] };
+        entry.measured ||= detail.hasMeasured === true; entry.assessed ||= ["red", "amber", "green"].includes(detail.status);
+        if (detail.status === "red" || detail.status === "amber" && entry.status !== "red") entry.status = detail.status;
+        if (flagged(detail.status)) {
+          if (mapped.side) entry.sides.add(mapped.side);
+          for (const test of detail.tests || []) if (test.hasMeasured && flagged(test.status)) entry.tests.push({ ...clone(test), side: test.side || mapped.side });
+        }
+        local.set(mapped.id, entry);
+      }
+      for (const [id, entry] of local) {
+        const region = byId.get(id); if (entry.measured) region.measuredCount++; if (entry.assessed) { region.assessedCount++; assessedPeople.add(person.athleteId); }
+        if (flagged(entry.status)) { region.flaggedCount++; region[entry.status === "red" ? "redCount" : "amberCount"]++;
+          region.members.push({ athleteId: person.athleteId, name: person.name, recordId: person.recordId, date: person.date, status: entry.status, sides: [...entry.sides], tests: entry.tests }); }
+      }
+      const findings = period.stats.signals.signals.filter(item => flagged(item.status) && !aliases.has(item.region));
+      if (findings.length) unlocalized.push({ athleteId: person.athleteId, name: person.name, recordId: person.recordId, date: person.date,
+        status: findings.some(item => item.status === "red") ? "red" : "amber", findings: clone(findings), tests: clone(findings) });
+    });
+    regions.forEach(region => { region.value = region.assessedCount ? region.flaggedCount : null; });
+    return { regions, axes: regions, unlocalized, total: people.length, max: people.length, assessedCount: assessedPeople.size,
+      flaggedCount: new Set([...regions.flatMap(region => region.members), ...unlocalized].map(person => person.athleteId)).size };
+  }
+  function normalizeConfiguration(options) {
+    const supplied = options.configuration || options, configuration = {};
+    for (const key of ["title", "titleAuto", "groupId", "window", "mode", "profileId"]) if (supplied[key] !== undefined) configuration[key] = clone(supplied[key]);
+    configuration.mode ||= "best"; configuration.profileId ||= "";
+    if (!["best", "mean"].includes(configuration.mode)) throw Error("个人代表成绩须为最佳值或均值");
+    const selected = supplied.participants || [];
+    configuration.participants = selected.map(item => ({ athleteId: item.athleteId, recordId: item.recordId || "" }));
+    if (supplied.athleteIds) for (const athleteId of supplied.athleteIds) if (!configuration.participants.some(item => item.athleteId === athleteId)) configuration.participants.push({ athleteId, recordId: "" });
+    if (!configuration.participants.length || configuration.participants.some(item => typeof item.athleteId !== "string" || !item.athleteId) || new Set(configuration.participants.map(item => item.athleteId)).size !== configuration.participants.length) throw Error("团队报告须选择不重复的运动员");
+    const window = configuration.window || { kind: "all", from: null, to: null };
+    if (window.from && !C.validDate(window.from) || window.to && !C.validDate(window.to) || window.from && window.to && window.from > window.to) throw Error("报告日期范围无效");
+    configuration.window = window; return configuration;
+  }
+  function* buildSteps(records, options = {}) {
+    if (!Array.isArray(records)) throw Error("测试记录须为列表");
+    const configuration = normalizeConfiguration(options), sources = new Map(), athletes = new Map((options.athletes || []).map(person => [person.id || person.athleteId, person]));
+    for (const record of records) { if (sources.has(record.recordId)) throw Error("测试记录编号重复"); sources.set(record.recordId, record); }
+    const catalog = options.catalog ? clone(options.catalog) : null, profile = options.profile ? E.serializeProfile(E.normalizeProfile(clone(options.profile), catalog)) : null;
+    if (profile) E.validateProfile(profile);
+    const periods = [], people = [];
+    for (const participant of configuration.participants) {
+      const source = participant.recordId ? sources.get(participant.recordId) : null, owner = athletes.get(participant.athleteId);
+      if (participant.recordId && (!source || source.athleteId !== participant.athleteId || !C.validDate(source.athlete?.date))) throw Error("所选测试记录不存在、人员不匹配或日期无效");
+      if ([owner, source].some(item => item && (item.demo || item.sample || item.deleted || item.deletedAt))) throw Error("示例数据或回收站资料不能进入团队报告");
+      if (source && (configuration.window.from && source.athlete.date < configuration.window.from || configuration.window.to && source.athlete.date > configuration.window.to)) throw Error("所选测试记录不在报告日期范围内");
+      const athlete = clone(owner?.profile || source?.athlete || {}), name = athlete.name || owner?.name || participant.athleteId;
+      const person = { id: participant.athleteId, athleteId: participant.athleteId, name, label: name, athlete, groupId: owner?.groupId || "",
+        recordId: source?.recordId || null, date: source?.athlete.date || null, missing: !source, record: source ? clone(source) : null,
+        color: C.colors[parseInt(hash(participant.athleteId).slice(-8), 16) % C.colors.length], sourceFingerprint: source ? hash(source) : null };
+      const period = source ? C.prepareRecord(source, { mode: configuration.mode, profile: profileForRecord(profile, source), catalog }) : null;
+      if (period) period.source = source;
+      people.push(person); periods.push(period); yield { prepared: people.length, total: configuration.participants.length };
+    }
+    const maps = periods.map(observations), rows = makeRows(periods, people, maps, catalog), descriptors = new Map();
+    for (const period of periods.filter(Boolean)) for (const project of period.report.projects) if (!descriptors.has(project.id)) descriptors.set(project.id, project);
+    const projects = [...descriptors.values()].map(project => {
+      const metrics = rows.filter(row => row.testId === project.id), defaultMetric = metrics.find(row => row.metricId === "cmj_height") || metrics.find(row => row.metricId === project.primaryMetricId) || metrics[0];
+      return { id: project.id, name: project.name, category: project.category, renderer: project.renderer, primaryAbility: project.primaryAbility,
+        defaultMetricId: defaultMetric?.id || "", metrics, groups: [...new Map(metrics.map(row => [row.groupId, { id: row.groupId, label: row.contextLabel || "相同测量条件" }])).values()] };
+    }).filter(project => project.metrics.length);
+    const capabilityMaps = periods.map(period => {
+      if (!period) return { maps: new Map(), cards: [] };
+      const capability = C.capability([period]), maps = new Map();
+      for (const card of capability.cards) for (const row of card.metrics) if (row.cells[0]) maps.set(card.id + ":" + row.id, { ...row.cells[0], id: card.id + ":" + row.id, metricId: row.metricId, name: row.name, cardId: card.id });
+      return { maps, cards: capability.cards };
+    });
+    const capabilityRows = makeRows(periods, people, capabilityMaps.map(item => item.maps), catalog), cards = [...new Map(capabilityMaps.flatMap(item => item.cards.map(card => [card.id, card]))).values()].map(card => {
+      const metrics = capabilityRows.filter(row => row.id.startsWith(card.id + ":")); return { id: card.id, projectId: "capability:" + card.id, title: card.title, name: card.title, metrics, defaultMetricId: metrics[0]?.id || "" };
+    }).filter(card => card.metrics.some(metric => metric.statistics.n));
+    const riskData = risk(periods, people), overviewData = overview(periods, people, profile, catalog);
+    const model = { kind: "team", version: 1, configuration, mode: configuration.mode, profile, catalog, people, participants: people, projects, capability: { cards }, overview: overviewData, risk: riskData,
+      summary: { total: people.length, people: people.length, recorded: people.filter(person => !person.missing).length, missing: people.filter(person => person.missing).length,
+        projects: projects.length, screened: people.filter((person, index) => periods[index] && (Object.values(periods[index].stats.signals.regions).some(region => region.hasMeasured) || periods[index].stats.raw.fms?.completed > 0)).length, flagged: riskData.flaggedCount } };
+    model.fingerprint = hash({ version: 1, configuration, profile, catalog, people: people.map(({ record, ...person }) => person) }); model.basis = model.fingerprint;
+    return clone(model);
+  }
+  function build(records, options = {}) { const iterator = buildSteps(records, options); let next; do { next = iterator.next(); } while (!next.done); return next.value; }
+  async function buildAsync(records, options = {}, { batchSize = 8, isCancelled = () => false, onProgress, yieldControl = () => new Promise(resolve => root.setTimeout(resolve, 0)) } = {}) {
+    if (!Number.isSafeInteger(batchSize) || batchSize < 1) throw Error("分批处理条数须为正整数");
+    const iterator = buildSteps(records, options); let prepared = 0;
+    try { if (isCancelled()) return null; onProgress?.({ prepared }); await yieldControl(); while (!isCancelled()) {
+      const next = iterator.next(); if (next.done) return isCancelled() ? null : next.value;
+      prepared = next.value.prepared; if (prepared % batchSize === 0) { onProgress?.(next.value); await yieldControl(); }
+    } return null; } finally { iterator.return(); }
+  }
+  function chart(model, projectId, view = {}) {
+    const project = model.projects.find(item => item.id === projectId) || model.capability.cards.find(item => item.projectId === projectId || item.id === projectId);
+    if (!project) return { kind: "column", entries: [], points: [], missing: model.people, n: 0, total: model.people.length, note: "没有该项目结果" };
+    const metric = project.metrics.find(item => item.id === view.metricId) || project.metrics.find(item => item.metricId === view.metricId && (!view.groupId || item.groupId === view.groupId)) || project.metrics.find(item => item.id === project.defaultMetricId) || project.metrics[0];
+    if (!metric) return { kind: "column", entries: [], points: [], missing: model.people, n: 0, total: model.people.length, note: "尚无有效指标" };
+    const requestedKind = ["column", "dot", "box", "histogram"].includes(view.kind) ? view.kind : "column";
+    const kind = metric.meaning === "category" ? "distribution" : metric.meaning === "ordinal" && ["box", "histogram"].includes(requestedKind) ? "column" : requestedKind;
+    const entries = metric.ranking.filter(entry => !entry.missing), missing = metric.ranking.filter(entry => entry.missing);
+    return { kind, requestedKind, metric, entries, points: entries, missing, n: entries.length, total: model.people.length, rankable: metric.rankable, statistics: metric.statistics,
+      bins: kind === "histogram" ? histogram(entries) : metric.distribution,
+      note: kind === "box" && entries.length < 3 ? "有效人数不足 3 人，保留个人点" : metric.meaning === "category" ? "类别结果按人数展示" : metric.meaning === "ordinal" && kind !== requestedKind ? "等级结果使用柱状图或点图" : !metric.rankable ? "按数值排列，不表示表现优劣" : "" };
+  }
+  function facts(model, views = {}) {
+    const row = metric => ({ id: metric.id, metricId: metric.metricId, name: metric.name, unit: metric.unit, meaning: metric.meaning, direction: metric.direction,
+      rankable: metric.rankable, ranking: metric.ranking, context: metric.context, statistics: metric.statistics,
+      cells: metric.cells.map(cell => !cell ? null : ({ athleteId: cell.athleteId, value: cell.value, rawValue: cell.rawValue, rawUnit: cell.rawUnit, evaluation: cell.evaluation, notes: cell.notes, pain: cell.pain })) });
+    return clone({ type: "team-report", configuration: model.configuration, fingerprint: model.fingerprint, profile: model.profile ? { id: model.profile.id, name: model.profile.name, revision: model.profile.revision } : null,
+      people: model.people.map(({ record, ...person }) => person), summary: model.summary, projects: model.projects.map(project => ({ id: project.id, name: project.name, metrics: project.metrics.map(row) })),
+      capability: { cards: model.capability.cards.map(card => ({ id: card.id, title: card.title, metrics: card.metrics.map(row) })) }, overview: model.overview, risk: model.risk, views });
+  }
+  function localText(model, views = {}) {
+    const format = value => N(value) === null ? "—" : String(Number(value.toFixed(4))), summary = model.summary;
+    const lines = [model.configuration.title || "团队报告", `报告 ${summary.total} 人，有测试记录 ${summary.recorded} 人，暂无记录 ${summary.missing} 人；${summary.projects} 个项目，${summary.screened} 人有筛查数据。`,
+      "个人代表成绩：" + (model.mode === "mean" ? "试次均值" : "最佳试次")];
+    const axes = model.overview.axes.filter(axis => axis.n);
+    if (axes.length) lines.push("运动表现概览：" + axes.map(axis => `${axis.label}平均 ${format(axis.value)} 分（${axis.n}/${axis.total} 人）`).join("；") + "。");
+    for (const project of model.projects) {
+      const selected = chart(model, project.id, views.charts?.[project.id] || {}), metric = selected.metric;
+      if (!metric || !selected.n) continue;
+      const context = metric.contextLabel ? " · " + metric.contextLabel : "";
+      if (metric.meaning === "category" || metric.meaning === "ordinal") lines.push(project.name + " · " + metric.name + context + "：" + metric.distribution.map(item => `${item.label}，${item.count} 人`).join("；") + "。");
+      else lines.push(project.name + " · " + metric.name + context + `：有效 ${selected.n}/${selected.total} 人，平均 ${format(metric.statistics.mean)} ${metric.unit}，中位数 ${format(metric.statistics.median)} ${metric.unit}，范围 ${format(metric.statistics.min)}–${format(metric.statistics.max)} ${metric.unit}。`);
+      if (metric.rankable) { const leaders = selected.entries.filter(entry => entry.rank === 1); if (leaders.length) lines.push("该指标第 1 名：" + leaders.map(entry => entry.name + " " + format(entry.value) + " " + metric.unit).join("；") + "。"); }
+    }
+    const regions = model.risk.regions.filter(region => region.flaggedCount);
+    lines.push(model.risk.assessedCount ? `筛查关注人数：${model.risk.flaggedCount} 人（${model.risk.assessedCount} 人有可评价结果）。` : summary.screened ? "已录入筛查数据，尚无可评价结果。" : "尚无筛查数据。");
+    for (const region of regions) lines.push(region.label + `：${region.flaggedCount} 人（已评价 ${region.assessedCount} 人），` + region.members.map(member => member.name + (member.status === "red" ? "·预警" : "·关注") + (member.sides.length ? "·" + member.sides.map(side => side === "L" ? "左" : "右").join("/") : "")).join("；") + "。");
+    if (model.risk.unlocalized.length) lines.push("未定位筛查提示：" + model.risk.unlocalized.map(person => person.name).join("、") + "。");
+    return lines.join("\n");
+  }
+  root.RingsideTeam = { build, buildAsync, chart, facts, localText, statistics, histogram, quantile, unitFactor, normalizeConfiguration };
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
+  const E = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const N = value => value === null || value === undefined || value === "" ? null : Number.isFinite(Number(value)) ? Number(value) : null;
+  const F = (value, digits = 2) => N(value) === null ? "—" : Number(value).toLocaleString("zh-CN", {maximumFractionDigits: digits});
+  const kinds = [["column", "排名柱状图"], ["dot", "排名点图"], ["box", "箱线分布图"], ["histogram", "直方图"]];
+  const chunks = (values, size) => Array.from({length: Math.ceil(values.length / size)}, (_, index) => values.slice(index * size, (index + 1) * size));
+  const theme = () => root.RingsideReportAppearance?.theme || {ink:"#213836", muted:"#60736e", grid:"#dce6e2", accent:"#066c64", persons8:["#067970", "#2c7fb1", "#a1732b", "#945a8f"]};
+  const personId = person => person.athleteId || person.id;
+  const personName = person => person.name || person.athlete?.name || person.label || personId(person);
+  const metricMeaning = metric => metric.meaning || (metric.measurementScale === "ordinal" ? "ordinal" : "numeric");
+  const precision = metric => Number.isInteger(metric?.digits) ? metric.digits : metricMeaning(metric || {}) === "ordinal" ? 0 : 2;
+  function binPrecision(data) {
+    const widths=(data.bins||[]).map(bin=>bin.to-bin.from).filter(width=>width>0),base=precision(data.metric||{});
+    if(widths.length)return Math.min(15,Math.max(base,Math.ceil(-Math.log10(Math.min(...widths)))+1));
+    const value=data.bins?.[0]?.from,parts=String(value??"").toLowerCase().split("e"),decimals=(parts[0].split(".")[1]||"").length-Number(parts[1]||0);
+    return Math.min(15,Math.max(base,decimals));
+  }
+  const binValue = (value, data) => {const digits=binPrecision(data);return value!==0&&Math.abs(value)<10**-digits?Number(value).toExponential(5):F(value,digits);};
+  const metricLabel = metric => metric.name + (metric.contextLabel ? " · " + metric.contextLabel : "");
+  const line = (x1, y1, x2, y2, attrs = "") => `<line x1="${F(x1, 3).replace(/,/g, "")}" y1="${y1}" x2="${F(x2, 3).replace(/,/g, "")}" y2="${y2}" stroke="${theme().grid}" ${attrs}/>`;
+  const text = (x, y, value, attrs = "") => `<text x="${x}" y="${y}" fill="${theme().ink}"${/font-size=/.test(attrs) ? "" : ' font-size="12"'} ${attrs}>${E(value)}</text>`;
+  const words = (value, width = 6) => { const chars = Array.from(String(value || "")); return chunks(chars, width).map(group => group.join("")); };
+  const lines = (x, y, values, attrs = "", step = 15) => `<text x="${x}" y="${y}" fill="${theme().ink}"${/font-size=/.test(attrs) ? "" : ' font-size="12"'} ${attrs}>${values.map((value, i) => `<tspan x="${x}" dy="${i ? step : 0}">${E(value)}</tspan>`).join("")}</text>`;
+  const svg = (width, height, title, content, description = title) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${E(title)}" data-pixel-layout="true" style="font-family:Segoe UI,Microsoft YaHei,sans-serif;--team-chart-width:${width}px"><desc>${E(description)}</desc>${content}</svg>`;
+  const hit = (content, tooltip, attrs = "") => `<g class="team-chart-hit" tabindex="0" data-team-tooltip="${E(tooltip)}" aria-label="${E(tooltip)}" ${attrs}>${content}</g>`;
+  function range(values, zero = false) {
+    const finite = values.map(N).filter(value => value !== null);
+    let min = finite.length ? Math.min(...finite) : 0, max = finite.length ? Math.max(...finite) : 1;
+    if (zero) { min = Math.min(0, min); max = Math.max(0, max); }
+    if (min === max) { const padding = Math.max(Math.abs(min) * .1, 1); min -= zero && min === 0 ? 0 : padding; max += padding; }
+    const padding = (max - min) * .08;
+    return {min: min < 0 || !zero ? min - padding : 0, max: max > 0 || !zero ? max + padding : 0};
+  }
+  function yGrid(width, top, bottom, extent, unit) {
+    const left = 62, right = width - 20, y = value => bottom - (value - extent.min) / (extent.max - extent.min) * (bottom - top);
+    let out = text(left, 17, unit || "无单位", 'font-size="11"');
+    for (let i = 0; i <= 4; i++) { const value = extent.min + (extent.max - extent.min) * i / 4, py = y(value); out += line(left, py, right, py) + text(left - 9, py + 4, F(value), 'text-anchor="end" font-size="10"'); }
+    if (extent.min <= 0 && extent.max >= 0) out += line(left, y(0), right, y(0), 'stroke-width="1.2"');
+    return {left, right, y, out};
+  }
+  function rankChart(data, {width = 720, print = false, entries = data.entries, allEntries = data.entries} = {}) {
+    const column = data.kind === "column", slotWidth = print ? 62 : 64, w = print ? width : Math.max(width, 82 + entries.length * slotWidth),
+      labels = entries.map(entry => words(entry.name || entry.label || entry.athleteId, print ? 5 : 6)),
+      labelHeight = Math.max(1, ...labels.map(value => value.length)) * 15, top = 35, bottom = 252, h = bottom + 50 + labelHeight,
+      grid = yGrid(w, top, bottom, range(allEntries.map(entry => entry.value), column), data.metric.unit), slot = (grid.right - grid.left) / Math.max(1, entries.length);
+    let out = grid.out;
+    entries.forEach((entry, index) => {
+      const x = grid.left + slot * (index + .5), py = grid.y(entry.value), value = F(entry.value, precision(data.metric)),
+        tooltip = [entry.name || entry.label, `${data.metric.name} ${value}${data.metric.unit ? " " + data.metric.unit : ""}`, entry.rank != null ? `第 ${entry.rank} 名` : "", entry.date || ""].filter(Boolean).join(" · "),
+        shape = column ? `<rect x="${x - Math.min(36, slot * .6) / 2}" y="${Math.min(py, grid.y(0))}" width="${Math.min(36, slot * .6)}" height="${Math.max(0, Math.abs(grid.y(0) - py))}" rx="2" fill="${theme().accent}" fill-opacity=".84"/>${entry.value === 0 ? line(x - 13, py, x + 13, py, `style="stroke:${theme().accent}" stroke-width="3"`) : ""}` : `<circle cx="${x}" cy="${py}" r="5" fill="${theme().accent}"/>`;
+      out += hit(shape + text(x, entry.value < 0 && column ? py + 16 : py - 10, value, 'text-anchor="middle" font-size="11"'), tooltip, `role="button" data-team-person="${E(entry.athleteId)}"`);
+      out += lines(x, bottom + 23, labels[index], 'text-anchor="middle" font-size="11"') + (entry.rank != null ? text(x, h - 9, `第 ${entry.rank} 名`, 'text-anchor="middle" font-size="10"') : "");
+    });
+    return svg(w, h, data.metric.name + " · " + (column ? "排名柱状图" : "排名点图"), out, "每位运动员一个代表结果，按该指标的成绩方向排序；缺测不作零值。");
+  }
+  function boxChart(data, width = 720) {
+    const w = Math.max(290, width), left = 62, right = w - 24, top = 48, bottom = 220, extent = range(data.entries.map(entry => entry.value)),
+      x = value => left + (value - extent.min) / (extent.max - extent.min) * (right - left), stat = data.statistics || {}, cy = 105;
+    let out = text(left, 23, data.metric.unit || "无单位", 'font-size="11"');
+    for (let i = 0; i <= 4; i++) { const value = extent.min + (extent.max - extent.min) * i / 4, px = x(value); out += line(px, top, px, bottom) + text(px, bottom + 23, F(value), 'text-anchor="middle" font-size="10"'); }
+    if (data.n >= 3 && stat.boxAvailable !== false && [stat.q1, stat.median, stat.q3, stat.lowerWhisker, stat.upperWhisker].every(value => N(value) !== null)) {
+      out += line(x(stat.lowerWhisker), cy, x(stat.upperWhisker), cy, `style="stroke:${theme().accent}" stroke-width="2"`) +
+        line(x(stat.lowerWhisker), cy - 17, x(stat.lowerWhisker), cy + 17, `style="stroke:${theme().accent}" stroke-width="2"`) + line(x(stat.upperWhisker), cy - 17, x(stat.upperWhisker), cy + 17, `style="stroke:${theme().accent}" stroke-width="2"`) +
+        `<rect x="${x(stat.q1)}" y="${cy - 25}" width="${Math.max(1, x(stat.q3) - x(stat.q1))}" height="50" fill="${theme().accent}" fill-opacity=".15" stroke="${theme().accent}"/>` +
+        line(x(stat.median), cy - 25, x(stat.median), cy + 25, `style="stroke:${theme().accent}" stroke-width="2.5"`);
+      out += text(x(stat.median), cy - 36, "中位数 " + F(stat.median, precision(data.metric)), 'text-anchor="middle" font-size="11"');
+    } else out += text((left + right) / 2, cy, "少于 3 人，显示个人结果", 'text-anchor="middle" font-size="12"');
+    const lanes = new Map();
+    data.entries.forEach(entry => {
+      const bucket = Math.round(x(entry.value) / 12), lane = lanes.get(bucket) || 0; lanes.set(bucket, lane + 1);
+      const py = 175 + ((lane % 7) - 3) * 7;
+      const same = data.entries.filter(other => other.value === entry.value);
+      out += hit(`<circle cx="${x(entry.value)}" cy="${py}" r="4.5" fill="${theme().accent}" fill-opacity=".78" stroke="white" stroke-width="1"/>`, `${entry.name} · ${data.metric.name} ${F(entry.value, precision(data.metric))} ${data.metric.unit || ""}${same.length > 1 ? `\n同值 ${same.length} 人：` + same.map(person=>person.name).join("、") : ""}`, `role="button" data-team-person="${E(entry.athleteId)}"`);
+    });
+    return svg(w, 263, data.metric.name + " · 箱线分布图", out, "每个点代表一名运动员。箱体为第一至第三四分位数，中线为中位数；须限于四分位距 1.5 倍范围内的实测值，所有个人点均保留。");
+  }
+  function histogramChart(data, width = 720) {
+    const category = data.kind === "distribution", bins = data.bins || [], w = Math.max(width, category ? bins.length * 86 + 82 : 0),
+      labels = bins.map(bin => category ? words(bin.label ?? bin.value, 6) : [binValue(bin.from,data),"– " + binValue(bin.to,data)]),
+      labelHeight = Math.max(1, ...labels.map(parts => parts.length)) * 15, top = 32, bottom = 242, left = 62, right = w - 20,
+      max = Math.max(1, ...bins.map(bin => bin.count)), y = value => bottom - value / max * (bottom - top), slot = (right - left) / Math.max(1, bins.length);
+    let out = text(left, 17, "人数", 'font-size="11"');
+    [...new Set(Array.from({length: 5}, (_, index) => Math.round(max * index / 4)))].forEach(value => { out += line(left, y(value), right, y(value)) + text(left - 9, y(value) + 4, value, 'text-anchor="end" font-size="10"'); });
+    bins.forEach((bin, index) => {
+      const bx = left + index * slot, label = category ? String(bin.label ?? bin.value) : `${binValue(bin.from,data)} ≤ 结果 ${bin.lastInclusive ? "≤" : "<"} ${binValue(bin.to,data)}`,
+        members = (bin.members || []).map(member => typeof member === "string" ? member : member.name || member.label || member.athleteId), tooltip = `${label} · ${bin.count} 人${members.length ? "\n" + members.join("、") : ""}`;
+      out += hit(`<rect x="${bx + (category ? slot * .16 : 1)}" y="${y(bin.count)}" width="${Math.max(1, slot * (category ? .68 : 1) - (category ? 0 : 2))}" height="${bottom - y(bin.count)}" fill="${theme().accent}" fill-opacity=".82"/>` + text(bx + slot / 2, y(bin.count) - 9, bin.count, 'text-anchor="middle" font-size="11"'), tooltip, `role="button" data-team-bin="${index}"`);
+      out += lines(bx + slot / 2, bottom + 23, labels[index], 'text-anchor="middle" font-size="10"');
+    });
+    out += text((left + right) / 2, bottom + 35 + labelHeight, category ? data.metric.name : data.metric.name + (data.metric.unit ? " · " + data.metric.unit : ""), 'text-anchor="middle" font-size="11"');
+    return svg(w, bottom + 49 + labelHeight, data.metric.name + (category ? " · 人数分布" : " · 直方图"), out);
+  }
+  function chartHTML(data, options = {}) {
+    if (!data?.metric) return '<p class="team-empty">暂无可显示的指标。</p>';
+    if (!data.n) return '<p class="team-empty">该指标暂无有效结果。</p>';
+    const width = options.width || (options.print ? 680 : 720), ranked = ["column", "dot"].includes(data.kind), groups = options.print && ranked ? chunks(data.entries, 9) : [data.entries];
+    return groups.map((entries, index) => `<div class="team-chart-panel" data-pdf-atomic>${groups.length > 1 ? `<p class="team-chart-continuation">${E(data.metric.name)} · ${index * 9 + 1}–${index * 9 + entries.length} / ${data.n} 人</p>` : ""}${ranked ? rankChart(data, {...options, width, entries}) : data.kind === "box" ? boxChart(data, width) : histogramChart(data, width)}</div>`).join("");
+  }
+  function radarHTML(axes, series, {risk = false, total = 0} = {}) {
+    if (!axes.length) return '<p class="team-empty">暂无可评价的维度。</p>';
+    const w = 460, h = 378, cx = w / 2, cy = 180, radius = 112, upper = risk ? Math.max(1, total, ...axes.map(axis => axis.flaggedCount || 0)) : 100,
+      at = (index, r) => [cx + r * Math.cos(-Math.PI / 2 + index * 2 * Math.PI / axes.length), cy + r * Math.sin(-Math.PI / 2 + index * 2 * Math.PI / axes.length)], pointsText = points => points.map(point => point.join(",")).join(" ");
+    let out = "";
+    const ticks = risk ? [...new Set(Array.from({length: 5}, (_, i) => Math.max(1, Math.round(upper * (i + 1) / 5))))] : [20, 40, 60, 80, 100];
+    ticks.forEach(value => { const points = axes.map((_, index) => at(index, radius * value / upper)); out += axes.length >= 3 ? `<polygon points="${pointsText(points)}" fill="none" stroke="${theme().grid}"/>` : `<circle cx="${cx}" cy="${cy}" r="${radius * value / upper}" fill="none" stroke="${theme().grid}"/>`; out += text(cx + 4, cy - radius * value / upper + 12, value, 'font-size="9"'); });
+    axes.forEach((axis, index) => { const end = at(index, radius); out += line(cx, cy, ...end); });
+    series.forEach((item, seriesIndex) => {
+      const color = item.color || (seriesIndex === 0 ? theme().accent : theme().persons8[(seriesIndex + 1) % theme().persons8.length]), points = axes.map((_, index) => N(item.values?.[index]) === null ? null : at(index, radius * Math.max(0, Math.min(upper, item.values[index])) / upper));
+      if (axes.length >= 3 && points.every(Boolean)) out += `<polygon data-team-radar-series="${E(item.id)}" points="${pointsText(points)}" fill="${color}" fill-opacity="${seriesIndex ? .025 : .09}" stroke="${color}" stroke-width="${seriesIndex ? 1.8 : 2.5}"/>`;
+      else points.forEach((point, index) => { const next = points[(index + 1) % points.length]; if (point && next && axes.length > 2) out += line(...point, ...next, `style="stroke:${color}" stroke-width="2" data-team-radar-series="${E(item.id)}"`); });
+      points.forEach((point, index) => {
+        if (!point) return;
+        const axis = axes[index], tip = risk ? riskTooltip(axis) : `${item.label} · ${axis.label} ${F(item.values[index], 1)} 分${item.id === "team" ? ` · ${axis.n || 0}/${axis.total ?? total} 人` : ""}`;
+        out += hit(`<circle cx="${point[0]}" cy="${point[1]}" r="4" fill="${color}" stroke="white" stroke-width="1.3"/>`, tip, risk ? `role="button" data-team-risk="${E(axis.id || axis.key)}"` : "");
+      });
+    });
+    axes.forEach((axis, index) => {
+      const point = at(index, radius + 30), anchor = point[0] < cx - 16 ? "end" : point[0] > cx + 16 ? "start" : "middle", labelParts = words(axis.label, 6), labelY = point[1] - (labelParts.length - 1) * 8,
+        value = risk ? axis.assessedCount ? `${axis.flaggedCount || 0} 人 · 已评 ${axis.assessedCount}` : `未评价 · 已测 ${axis.measuredCount || 0}` : `${F(axis.value, 1)} 分 · ${axis.n || 0}/${axis.total ?? total} 人`,
+        label = lines(point[0], labelY, labelParts, `text-anchor="${anchor}" font-size="12" font-weight="600"`) + text(point[0], labelY + labelParts.length * 15 + 2, value, `text-anchor="${anchor}" font-size="10"`);
+      out += risk ? hit(label, riskTooltip(axis), `role="button" data-team-risk="${E(axis.id || axis.key)}"`) : label;
+    });
+    return svg(w, h, risk ? "各部位需关注人数" : "团队运动表现概览", out, risk ? "人数为预警与关注的去重人数。点击部位查看具体名单。" : "团队平均为各维度有效个人评分的算术平均，缺失不补零。") + (!risk ? `<div class="team-radar-legend">${series.map((item, index) => `<span><i style="background:${item.color || (index ? theme().persons8[(index + 1) % theme().persons8.length] : theme().accent)}"></i>${E(item.label)}</span>`).join("")}</div>` : "");
+  }
+  function riskTooltip(region) {
+    const names = (region.members || []).map(member => `${member.name}${member.status === "red" ? "（预警）" : "（关注）"}`).join("、");
+    return region.assessedCount ? `${region.label} · 需关注 ${region.flaggedCount || 0} 人（预警 ${region.redCount || 0}、关注 ${region.amberCount || 0}）\n已测 ${region.measuredCount || 0} 人 · 已评价 ${region.assessedCount} 人${names ? "\n" + names : "\n暂无需关注人员"}` : `${region.label} · 尚无可评价结果\n已测 ${region.measuredCount || 0} 人`;
+  }
+  function evidenceText(test) {
+    if(typeof test==="string")return test;
+    const side=test.sideLabel||({L:"左侧",R:"右侧",C:"中线",left:"左侧",right:"右侧"}[test.side])||test.side||"",
+      title=[test.testName&&test.testName!==test.name?test.testName:"",test.name||test.title||test.label||"测试",side].filter(Boolean).join(" · "),
+      facts=[test.missing?"未测":N(test.value)!==null?F(test.value)+(test.unit?" "+test.unit:""):"",N(test.target)!==null?"参考目标 "+F(test.target)+(test.unit?" "+test.unit:""):"",N(test.asym)!==null?"双侧差异 "+F(test.asym,1)+"%":"",test.pain?"疼痛":"",test.reason||test.detail||"",...(Array.isArray(test.reasons)?test.reasons:[]),...(Array.isArray(test.notes)?test.notes:[test.notes||""])].filter(Boolean).map(String);
+    return title+([...new Set(facts)].length?"："+[...new Set(facts)].join(" · "):"");
+  }
+  function memberHTML(member) {
+    const sideLabel = side => ({left:"左侧", right:"右侧", L:"左侧", R:"右侧", bilateral:"双侧"}[side] || side), sides = Array.isArray(member.sides) ? member.sides.map(sideLabel).join("、") : member.sides || "",
+      tests = [...new Set((member.tests || []).map(evidenceText).filter(Boolean))].join("；");
+    return `<li><strong>${E(member.name || member.athleteId)}</strong><span class="pill ${member.status === "red" ? "red" : "amber"}">${member.status === "red" ? "预警" : "关注"}</span>${sides ? `<span>${E(sides)}</span>` : ""}${tests ? `<small>${E(tests)}</small>` : ""}</li>`;
+  }
+  function riskLists(risk, print = false) {
+    const regions = risk?.regions || [], unlocalized = risk?.unlocalized || [], content = regions.map(region => `<section data-team-risk-region="${E(region.id || region.key)}"><h4 tabindex="-1">${E(region.label)} <small>${region.assessedCount ? `${region.flaggedCount || 0} 人 · 已测 ${region.measuredCount || 0} 人 · 已评价 ${region.assessedCount} 人` : `未评价 · 已测 ${region.measuredCount || 0} 人`}</small></h4>${region.members?.length ? `<ul>${region.members.map(memberHTML).join("")}</ul>` : `<p class="note">${region.assessedCount ? "暂无需关注人员。" : "尚无可评价结果。"}</p>`}</section>`).join("") +
+      (unlocalized.length ? `<section class="team-unlocalized"><h4>未定位到具体部位的筛查提示</h4><ul>${unlocalized.map(memberHTML).join("")}</ul></section>` : "");
+    return print ? `<div class="team-risk-lists team-risk-print"><h4>筛查名单</h4>${content}</div>` : `<details class="team-risk-lists" data-team-risk-lists><summary>查看各部位名单</summary>${content}</details>`;
+  }
+  function overviewHTML(model, views, print) {
+    const overview = model.overview || {}, axes = overview.axes || [], allowed = new Set((views.overviewAthleteIds || []).slice(0, 3)),
+      series = (overview.series || []).filter(series => series.id === "team" || allowed.has(series.id)), people = model.participants || [],
+      controls = print ? "" : `<details class="team-overlay-control no-print"><summary>叠加个人${allowed.size ? `（${allowed.size}/3）` : ""}</summary><input type="search" data-team-overlay-search placeholder="搜索队员姓名" aria-label="搜索叠加队员"><div>${people.map(person => `<label><input type="checkbox" data-team-overlay="${E(personId(person))}"${allowed.has(personId(person)) ? " checked" : ""}${allowed.size >= 3 && !allowed.has(personId(person)) ? " disabled" : ""}><span>${E(personName(person))}</span></label>`).join("")}</div><p class="note">最多选择 3 人，与团队平均共同显示。</p></details>`;
+    const valid = axes.filter(axis => axis.n > 0 && N(axis.value) !== null);
+    if (valid.length < 3) return controls + (valid.length ? `<div class="team-overview-values"><p class="note">有效维度不足 3 项，显示已有评分。</p>${valid.map(axis => `<div><strong>${E(axis.label)}</strong><span>${F(axis.value,1)} 分</span><small>${axis.n}/${axis.total ?? people.length} 人</small></div>`).join("")}</div>` : '<p class="team-empty">暂无可用于团队概览的评分。</p>');
+    return controls + `<div class="team-radar">${radarHTML(axes, series, {total: people.length})}</div>`;
+  }
+  function cellHTML(cell, metric) {
+    if (!cell || cell.value === null || cell.value === undefined || cell.value === "") return '<span class="team-missing">—</span>';
+    const value = metricMeaning(metric) === "numeric" || metricMeaning(metric) === "ordinal" ? F(cell.value, precision(metric)) : E(cell.value),
+      grade = cell.evaluation?.grade, date = cell.date || "", notes = Array.isArray(cell.notes) ? cell.notes.filter(Boolean).join("；") : cell.notes || "";
+    return `<strong>${value}</strong>${grade?.label && ["red","amber","green"].includes(grade.status) ? `<span class="pill ${grade.status}">${E(grade.label)}</span>` : ""}${cell.pain ? '<small class="team-pain">疼痛</small>' : ""}${notes ? `<small>${E(notes)}</small>` : ""}${cell.sourceDate && cell.sourceDate !== date ? `<small>${E(cell.sourceDate)}</small>` : ""}`;
+  }
+  function tableHTML(project, model, data, {print = false} = {}) {
+    const people = model.participants || [], byPerson = new Map(people.map((person, index) => [personId(person), {person, index}])),
+      entries = [...(data.entries || []), ...(data.missing || [])], ordered = [], seen = new Set();
+    entries.forEach(entry => { const id = personId(entry); if (byPerson.has(id) && !seen.has(id)) { ordered.push({...byPerson.get(id), rank:entry.rank ?? null}); seen.add(id); } });
+    people.forEach((person, index) => { if (!seen.has(personId(person))) ordered.push({person, index, rank:null}); });
+    const metrics = project.metrics || [], groups = print ? chunks(metrics, 4) : [metrics];
+    return groups.map((group, index) => `<div class="team-table-wrap"><table class="team-results"${print ? "" : ` style="min-width:${210 + group.length * 135}px"}`}><caption>${E(project.name)} · 全部指标${groups.length > 1 ? `（${index + 1}/${groups.length}）` : ""}</caption><colgroup><col class="team-name-column"><col class="team-rank-column">${group.map(() => '<col class="team-metric-column">').join("")}</colgroup><thead><tr><th scope="col">运动员</th><th scope="col">名次</th>${group.map(metric => `<th scope="col"${metric.id === data.metric?.id ? ' class="team-selected-metric"' : ""}>${E(metric.name)}${metric.unit ? `<small>${E(metric.unit)}</small>` : ""}${metric.contextLabel ? `<small>${E(metric.contextLabel)}</small>` : ""}</th>`).join("")}</tr></thead><tbody>${ordered.map(({person,index:personIndex,rank}) => `<tr data-team-row="${E(personId(person))}"><th scope="row"><span>${E(personName(person))}</span><small>${E(person.date || "未选择测试记录")}</small></th><td>${rank === null ? "—" : rank}</td>${group.map(metric => `<td${metric.id === data.metric?.id ? ' class="team-selected-metric"' : ""}>${cellHTML(metric.cells?.[personIndex], metric)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`).join("");
+  }
+  function projectHTML(project, model, views, {print = false} = {}) {
+    const saved = views.charts?.[project.id] || {}, data = root.RingsideTeam.chart(model, project.id, saved), metric = data.metric,
+      kind = saved.kind || "column", metricOptions = (project.metrics || []).map(row => `<option value="${E(row.id)}"${row.id === metric?.id ? " selected" : ""}>${E(metricLabel(row))}${row.unit ? " · " + E(row.unit) : ""}</option>`).join(""),
+      controls = print ? "" : `<div class="team-chart-controls no-print"><label>指标<select data-team-metric="${E(project.id)}" aria-label="${E(project.name)}图表指标">${metricOptions}</select></label><label>图形<select data-team-kind="${E(project.id)}" aria-label="${E(project.name)}图形"${data.kind === "distribution" ? " disabled" : ""}>${data.kind === "distribution" ? '<option value="distribution">人数分布</option>' : kinds.map(([value,label]) => `<option value="${value}"${value === (metricMeaning(metric || {}) === "ordinal" ? data.kind : kind) ? " selected" : ""}${metricMeaning(metric || {}) === "ordinal" && ["box","histogram"].includes(value) ? " disabled" : ""}>${label}</option>`).join("")}</select></label></div>`,
+      caption = metric ? `${metric.name}${metric.unit ? " · " + metric.unit : ""} · ${data.n}/${data.total} 人${data.kind === "distribution" ? " · 人数分布" : data.rankable ? "" : " · 按数值排列"}` : "暂无指标";
+    return `<article class="test-block team-test" data-team-project="${E(project.id)}"><div class="test-title"><h4>${E(project.name)}</h4></div>${controls}<p class="team-chart-caption${print ? " longitudinal-chart-title" : ""}">${E(caption)}</p><div class="team-chart-scroll" data-team-chart="${E(project.id)}">${chartHTML(data,{print})}</div>${print ? "" : '<section class="team-chart-inspector no-print" data-team-inspector hidden aria-live="polite"></section>'}${data.note ? `<p class="note team-chart-note">${E(data.note)}</p>` : ""}${tableHTML(project, model, data, {print})}</article>`;
+  }
+  function detailsHTML(model, views, print = false) {
+    const projects = model.projects || [], sections = [["screen", "损伤风险筛查"], ["performance", "运动表现测试"]];
+    let html = sections.map(([category, label]) => { const selected = projects.filter(project => category === "screen" ? project.category === "screen" : project.category !== "screen"); return selected.length ? `<details class="details-group team-details" id="team-${category}" open><summary>${label}<span>团队结果</span></summary><div class="quality-group">${selected.map(project => projectHTML(project,model,views,{print})).join("")}</div></details>` : ""; }).join("");
+    const cards = model.capability?.cards || [];
+    if (cards.length) html += `<details class="details-group team-details" id="team-capability" open><summary>能力结构分析<span>团队结果</span></summary><div class="quality-group">${cards.filter(card => card.metrics?.length).map(card => projectHTML({...card,id:card.projectId || card.id,name:card.title || card.name},model,views,{print})).join("")}</div></details>`;
+    return html || '<p class="team-empty">所选队员在本次范围内暂无测试结果。</p>';
+  }
+  function render(model, {views = {}, print = false} = {}) {
+    const people = model.participants || [], configuration = model.configuration || {}, teamName = configuration.teamName || model.groups?.find(group=>group.id===configuration.groupId)?.name || model.team?.name || model.title || "团队报告",
+      dates = [...new Set(people.map(person => person.date).filter(Boolean))].sort(), dateText = dates.length ? dates[0] === dates.at(-1) ? dates[0] : dates[0] + " — " + dates.at(-1) : "暂无测试日期",
+      missing = people.filter(person => person.missing || !person.recordId).length, risk = model.risk || {}, regions = risk.regions || [],
+      flagged = risk.flaggedCount ?? new Set([...regions.flatMap(region=>region.members||[]),...(risk.unlocalized||[])].map(person=>person.athleteId)).size,
+      card = (title,value,note) => `<article class="micro-card team-summary"><div class="micro-head"><h3>${E(title)}</h3></div><div class="micro-value">${value}</div><p>${E(note)}</p></article>`,
+      summary = card("报告人数",people.length,teamName) + card("有记录人数",people.length-missing,dateText) + card("已录入项目数",model.projects?.length||0,model.mode==="mean"?"个人代表成绩：试次均值":"个人代表成绩：最佳试次") + card("筛查关注人数",flagged,risk.assessedCount != null ? `已评价 ${risk.assessedCount} 人` : "至少一项筛查需关注"),
+      riskRadar = radarHTML(regions, [{id:"risk",label:"需关注人数",values:regions.map(region => region.assessedCount ? region.flaggedCount : null)}], {risk:true,total:risk.total || people.length});
+    return {controls:"", summary, body:`<div class="team-radar">${riskRadar}</div><p class="team-risk-key"><span><i class="dot red"></i>预警</span><span><i class="dot amber"></i>关注</span></p>`, screenItems:print ? "" : riskLists(risk), screenPill:"各部位需关注人数", overview:overviewHTML(model,views,print), referenceLabel:model.profile?.name || configuration.profileName || "团队平均评分", legend:"", details:(print ? riskLists(risk,true) : '<div class="team-report-tools no-print"><button type="button" class="btn small" data-team-refresh>更新已选记录数据</button></div>') + detailsHTML(model,views,print)};
+  }
+  function layout(container, {print = false} = {}) {
+    if (!container) return;
+    container.querySelectorAll(".team-chart-scroll").forEach(node => { node.style.overflowX = print ? "visible" : "auto"; });
+  }
+  function bind(container, model, views = {}, {updateViews = () => {}} = {}) {
+    if (!container) return;
+    container.__teamBinding?.abort();
+    const abort = new AbortController(); container.__teamBinding = abort; const options = {signal:abort.signal};
+    container.querySelector(".team-tooltip")?.remove();
+    const tooltip = container.ownerDocument.createElement("div"); tooltip.className = "team-tooltip no-print"; tooltip.setAttribute("role","tooltip"); tooltip.hidden = true; container.append(tooltip);
+    const show = (target, event) => { tooltip.textContent = target.dataset.teamTooltip || ""; tooltip.hidden = !tooltip.textContent; const box = target.getBoundingClientRect(), doc = container.ownerDocument.documentElement; tooltip.style.left = Math.max(8, Math.min((event?.clientX || box.left + box.width / 2) + 12, doc.clientWidth - Math.min(360, doc.clientWidth - 24) - 12)) + "px"; tooltip.style.top = Math.max(8, Math.min((event?.clientY || box.bottom) + 12, doc.clientHeight - tooltip.offsetHeight - 12)) + "px"; };
+    const hide = () => { tooltip.hidden = true; };
+    container.addEventListener("pointerover", event => { const target = event.target.closest("[data-team-tooltip]"); if (target) show(target,event); }, options);
+    container.addEventListener("pointerout", event => { if (event.target.closest("[data-team-tooltip]")) hide(); }, options);
+    container.addEventListener("focusin", event => { const target = event.target.closest("[data-team-tooltip]"); if (target) show(target); }, options);
+    container.addEventListener("focusout", hide, options);
+    const openRisk = key => { const lists = container.querySelector("[data-team-risk-lists]"); if (!lists) return; lists.open = true; const section = [...lists.querySelectorAll("[data-team-risk-region]")].find(node => node.dataset.teamRiskRegion === key); section?.querySelector("h4")?.focus({preventScroll:true}); section?.scrollIntoView({block:"nearest",behavior:"smooth"}); hide(); };
+    const locatePerson = (project,id) => { project.querySelectorAll("[data-team-row]").forEach(row=>{row.classList.toggle("team-row-highlight",row.dataset.teamRow===id);}); const row=[...project.querySelectorAll("[data-team-row]")].find(row=>row.dataset.teamRow===id); if(row){row.tabIndex=-1;row.focus({preventScroll:true});row.scrollIntoView({block:"nearest",behavior:"smooth"});} };
+    const inspect = target => {
+      const project=target.closest("[data-team-project]"),panel=project?.querySelector("[data-team-inspector]"); if(!project||!panel)return;
+      const data=root.RingsideTeam.chart(model,project.dataset.teamProject,views.charts?.[project.dataset.teamProject]||{}),bin=target.hasAttribute("data-team-bin")?data.bins?.[Number(target.dataset.teamBin)]:null,person=data.entries.find(entry=>entry.athleteId===target.dataset.teamPerson),members=bin?.members||(person?data.kind==="box"?data.entries.filter(entry=>entry.value===person.value):[person]:[]);
+      const label=bin?data.kind==="distribution"?String(bin.label??bin.value):`${binValue(bin.from,data)} ≤ 结果 ${bin.lastInclusive?"≤":"<"} ${binValue(bin.to,data)}`:data.metric.name;
+      panel.innerHTML=`<div class="team-inspector-head"><strong>${E(label)} · ${members.length} 人</strong><button type="button" class="text-btn" data-team-close-inspector>收起名单</button></div><ul>${members.map(member=>`<li><button type="button" class="text-btn" data-team-locate-person="${E(member.athleteId)}">${E(member.name||member.label||member.athleteId)}</button><span>${F(member.value,precision(data.metric))}${data.metric.unit?" "+E(data.metric.unit):""}</span></li>`).join("")}</ul>`;
+      panel.hidden=false; hide(); panel.scrollIntoView({block:"nearest",behavior:"smooth"});
+    };
+    container.addEventListener("click", event => { const risk=event.target.closest("[data-team-risk]"),point=event.target.closest("[data-team-person],[data-team-bin]"),locate=event.target.closest("[data-team-locate-person]"),close=event.target.closest("[data-team-close-inspector]"); if(risk)openRisk(risk.dataset.teamRisk);else if(point)inspect(point);else if(locate)locatePerson(locate.closest("[data-team-project]"),locate.dataset.teamLocatePerson);else if(close)close.closest("[data-team-inspector]").hidden=true; }, options);
+    container.addEventListener("keydown", event => { if(event.key==="Escape")hide(); const risk=event.target.closest("[data-team-risk]"),point=event.target.closest("[data-team-person],[data-team-bin]"); if((risk||point)&&["Enter"," "].includes(event.key)){event.preventDefault();if(risk)openRisk(risk.dataset.teamRisk);else inspect(point);} }, options);
+    const filterOverlays = value => { const query=String(value||"").trim().toLocaleLowerCase();container.__teamOverlaySearch=value;container.querySelectorAll("[data-team-overlay]").forEach(input=>{input.closest("label").hidden=!input.closest("label").textContent.toLocaleLowerCase().includes(query);}); };
+    const search=container.querySelector("[data-team-overlay-search]"),overlay=container.querySelector(".team-overlay-control");if(search){search.value=container.__teamOverlaySearch||"";filterOverlays(search.value);}if(overlay){if(container.__teamOverlayOpen)overlay.open=true;overlay.addEventListener("toggle",()=>{container.__teamOverlayOpen=overlay.open;},options);}
+    container.addEventListener("input",event=>{if(event.target.matches("[data-team-overlay-search]"))filterOverlays(event.target.value);},options);
+    container.addEventListener("change", event => {
+      const input = event.target;
+      if (input.matches("[data-team-kind],[data-team-metric]")) { const projectId = input.dataset.teamKind || input.dataset.teamMetric, key = input.hasAttribute("data-team-kind") ? "kind" : "metricId"; updateViews({charts:{...(views.charts || {}),[projectId]:{...(views.charts?.[projectId] || {}),[key]:input.value}}}); }
+      if (input.matches("[data-team-overlay]")) { container.__teamOverlayOpen=true;const selected = [...container.querySelectorAll("[data-team-overlay]:checked")].map(node => node.dataset.teamOverlay).slice(0,3); updateViews({overviewAthleteIds:selected}); }
+    }, options);
+  }
+  function preparePrint(container, model, views = {}) {
+    const output = render(model,{views,print:true}); container.dataset.team = "true";
+    for (const [id, key] of [["microCards","summary"],["bodyChart","body"],["screenItems","screenItems"],["radarChart","overview"]]) { const node = container.querySelector("#" + id); if (node) node.innerHTML = output[key]; }
+    const data = container.querySelector("#detailContent,#testDetails,[data-team-details]");
+    if (data) data.innerHTML = output.details;
+    else { const first = container.querySelector(".team-details"); if (first) { const parent = first.parentElement; parent.querySelectorAll(".team-details,.team-risk-print").forEach(node=>node.remove()); parent.insertAdjacentHTML("beforeend",output.details); } }
+    container.querySelectorAll(".team-tooltip,.team-overlay-control,.team-chart-controls").forEach(node=>node.remove());
+    layout(container,{print:true}); return output;
+  }
+  function prepareBrowserPrint(container, model, views = {}) {
+    if (!container?.ownerDocument) return () => {};
+    const clone = container.cloneNode(true); clone.removeAttribute("id"); clone.classList.add("team-browser-print"); preparePrint(clone,model,views); container.ownerDocument.body.append(clone); container.ownerDocument.body.classList.add("team-print-active");
+    return () => { clone.remove(); container.ownerDocument.body.classList.remove("team-print-active"); };
+  }
+  root.RingsideTeamView = {render,layout,bind,preparePrint,prepareBrowserPrint,chartHTML,radarHTML,tableHTML,kinds};
+})(typeof window !== "undefined" ? window : globalThis);
+
+</script>
+<script>
+(function (root) {
+  "use strict";
   const N = value => root.Calc.num(value), E = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
   const F = (value, digits = 2) => N(value) === null ? "—" : Number(value).toLocaleString("zh-CN", { maximumFractionDigits: digits });
   const coordinate = value => Number(value).toFixed(2);
@@ -25836,6 +26694,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     function render(){
       const node=host.element?.();if(!node||!library())return;sync();
+      const team=host.team?.();
+      if(team){
+        const config=team.configuration,window=config.window||{};
+        node.innerHTML=`<div class="selection-row"><button type="button" class="selection-trigger" data-edit-team><span>团队报告 · ${config.participants.length} 人</span><strong>${E(team.title)}</strong><i aria-hidden="true">⌄</i></button><button type="button" class="selection-trigger" data-edit-team><span>测试日期</span><strong>${E(window.from===window.to?window.from:window.from+' — '+window.to)}</strong><i aria-hidden="true">⌄</i></button><div class="selection-submit"><button type="button" class="btn small" data-create-team>新建团队报告</button><button type="button" class="btn small" data-leave-team>其他报告</button></div></div>`;
+        node.querySelectorAll('[data-edit-team]').forEach(el=>el.onclick=()=>host.editTeam?.());
+        node.querySelector('[data-create-team]').onclick=()=>host.openTeam?.();
+        node.querySelector('[data-leave-team]').onclick=()=>host.leaveTeam?.();return;
+      }
       const draft=selection.get(),q=query.trim().toLocaleLowerCase(),selected=new Set(draft.athletes.map(p=>p.athleteId)),classes=root.RingsideClassifications.normalize(library().classifications||{});
       const people=library().athletes.filter(a=>!a.deletedAt&&!a.archived&&(!group||a.groupId===group)&&(!q||[a.name,a.id,root.RingsideClassifications.resolve(a.profile||{},classes).sportName].join(" ").toLocaleLowerCase().includes(q)));
       const focused=root.document.activeElement,searchFocused=focused?.dataset?.selectionSearch!==undefined,position=focused?.selectionStart;
@@ -25843,6 +26709,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(panel==="records"&&!draft.athletes.length)panel="";
       const button=(key,label,value,disabled=false)=>`<button type="button" class="selection-trigger" data-selection-toggle="${key}" aria-expanded="${panel===key}" aria-controls="reportSelection-${key}"${disabled?" disabled":""}><span>${label}</span><strong>${E(value)}</strong><i aria-hidden="true">⌄</i></button>`;
       node.innerHTML=`<div class="selection-row">${button("athletes","选择运动员",objectSummary(draft))}${button("records","测试记录",recordSummary(draft),!draft.athletes.length)}<div class="selection-submit"><button type="button" class="btn primary small" data-apply-selection${currentApplying||!["ready","empty"].includes(status)?" disabled":""}>${currentApplying?"正在更新…":"查看报告"}</button><button type="button" class="btn small" data-revert-selection${!dirty?" disabled":""}>撤销选择</button>${selection.multiple()?`<button type="button" class="text-btn selection-settings-toggle" data-selection-settings-toggle aria-expanded="${settingsOpen}" aria-controls="reportSelection-settings">报告设置</button>`:""}</div></div><section id="reportSelection-athletes" class="selection-panel" data-selection-panel="athletes" aria-label="选择报告对象"${panel==="athletes"?"":" hidden"}><div class="selection-panel-head"><strong>选择报告对象</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-picked">${draft.athletes.map(p=>`<span class="selection-chip"><span>${E(athleteName(p.athleteId))}</span><button type="button" data-remove-athlete="${E(p.athleteId)}" aria-label="移除 ${E(athleteName(p.athleteId))}">×</button></span>`).join("")}${draft.references.map(ref=>`<span class="selection-chip selection-cohort"><button type="button" data-edit-reference="${E(ref.id)}">${E(ref.label||"群体参照")}</button><button type="button" data-remove-reference="${E(ref.id)}" aria-label="移除群体 ${E(ref.label||"群体参照")}">×</button></span>`).join("")}</div><button type="button" class="selection-reference-action" data-add-reference><span>群体参照</span><small>按成员条件与统计日期配置</small><b aria-hidden="true">＋</b></button><div class="selection-search"><input type="search" data-selection-search value="${E(query)}" placeholder="搜索姓名、专项或编号" aria-label="搜索运动员"><select data-selection-group aria-label="筛选队伍">${opt("","全部队伍",group)}${(library().groups||[]).map(g=>opt(g.id,g.name,group)).join("")}</select></div><div class="selection-athletes">${people.slice(0,80).map(a=>`<label><input type="checkbox" data-select-athlete="${E(a.id)}"${selected.has(a.id)?" checked":""}><span>${E(a.name||a.profile?.name)}<small>${E(library().groups?.find(g=>g.id===a.groupId)?.name||a.id.slice(-6))}</small></span></label>`).join("")||'<p class="empty">没有匹配的运动员</p>'}</div>${people.length>80?'<p class="muted">请搜索姓名或选择队伍以缩小范围。</p>':""}</section><section id="reportSelection-records" class="selection-panel" data-selection-panel="records" aria-label="选择测试记录"${panel==="records"?"":" hidden"}><div class="selection-panel-head"><strong>选择测试记录</strong><button type="button" class="text-btn" data-selection-close>收起</button></div><div class="selection-people">${draft.athletes.map(personHTML).join("")}</div></section>${selection.multiple()?`<section id="reportSelection-settings" class="selection-options"${settingsOpen?"":" hidden"}>${field("统一评价方案",`<select data-profile>${opt("","不使用评价方案",draft.profileId)}${draft.profileId&&!(library().evaluationProfiles||[]).some(p=>p.id===draft.profileId)?`<option value="${E(draft.profileId)}" selected disabled>评价方案已不可用</option>`:""}${(library().evaluationProfiles||[]).filter(p=>!p.disabled||p.id===draft.profileId).map(p=>opt(p.id,p.name,draft.profileId)).join("")}</select>`)}${field("报告名称（可选）",`<input data-report-title value="${E(draft.title||"")}" placeholder="随报告重点生成">`)}</section>`:""}<p class="selection-status" role="status">${E(error||(currentApplying?"正在更新报告…":note))}</p>`;
+      if(host.openTeam){const button=root.document.createElement('button');button.type='button';button.className='btn small';button.dataset.createTeam='';button.textContent='团队报告';button.onclick=()=>host.openTeam();node.querySelector('.selection-submit').append(button);}
       node.querySelectorAll("[data-selection-toggle]").forEach(button=>button.onclick=()=>{const key=button.dataset.selectionToggle;panel=panel===key?"":key;settingsOpen=false;render();node.querySelector(`[data-selection-toggle="${key}"]`)?.focus({preventScroll:true});});
       node.querySelectorAll("[data-selection-close]").forEach(button=>button.onclick=()=>closePanel(true));
       node.querySelector("[data-selection-search]").oninput=e=>{query=e.target.value;render();};
@@ -26073,6 +26940,233 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
 
 </script>
 <script>
+(function(root){
+  "use strict";
+  const copy=v=>JSON.parse(JSON.stringify(v)), E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[c]));
+  const option=(value,label,current)=>`<option value="${E(value)}"${value===current?' selected':''}>${E(label)}</option>`;
+  function candidates(athlete,window){
+    if(!window?.from||!window?.to||window.from>window.to)return [];
+    return (athlete?.records||[]).filter(r=>!r.deletedAt&&!r.deleted&&!r.archived&&!r.demo&&!r.sample&&r.athlete?.date>=window.from&&r.athlete.date<=window.to)
+      .sort((a,b)=>b.athlete.date.localeCompare(a.athlete.date)||String(a.recordId).localeCompare(String(b.recordId)));
+  }
+  function resolveSelection(athlete,window,recordId=""){
+    const records=candidates(athlete,window),kept=records.find(r=>r.recordId===recordId);
+    if(kept)return {recordId:kept.recordId,records,ambiguous:false};
+    const latest=records.filter(r=>r.athlete.date===records[0]?.athlete.date);
+    return {recordId:latest.length===1?latest[0].recordId:"",records,ambiguous:latest.length>1};
+  }
+  function create(host){
+    let dialog=null,draft=null,editingId=null,busy=false,query="",error="",ticket=0;
+    const library=()=>host.library(),available=()=>library().athletes.filter(a=>!a.deletedAt&&!a.deleted&&!a.archived&&!a.demo&&!a.sample);
+    function syncRecords(reset=false){for(const p of draft.participants){const a=available().find(a=>a.id===p.athleteId);p.recordId=resolveSelection(a,draft.window,reset?"":p.recordId).recordId;}}
+    function close(){if(busy)return false;ticket++;dialog?.close();dialog?.remove();dialog=null;draft=null;host.onClose?.();return true;}
+    function render(){
+      if(!dialog||!draft)return;
+      const focused=root.document.activeElement,key=focused?.dataset?.teamField,search=focused?.hasAttribute('data-team-search'),position=focused?.selectionStart;
+      const people=available(),chosen=new Set(draft.participants.map(p=>p.athleteId)),q=query.trim().toLocaleLowerCase(),group=library().groups.find(g=>g.id===draft.groupId);
+      const field=(label,html)=>`<label class="field"><span>${label}</span>${html}</label>`;
+      dialog.innerHTML=`<form class="team-selection-form"><header class="modal-head"><h2>团队报告</h2><button type="button" class="close" data-team-cancel aria-label="关闭">×</button></header><section class="team-selection-body"><div class="form-grid">${field('队伍',`<select data-team-field="groupId">${option('','请选择队伍',draft.groupId)}${library().groups.map(g=>option(g.id,g.name,draft.groupId)).join('')}</select>`)}${field('报告名称',`<input data-team-field="title" value="${E(draft.title)}" placeholder="${E((group?.name||'团队')+' · 团队报告')}">`)}${field('开始日期',`<input type="date" required data-team-field="from" value="${E(draft.window.from)}">`)}${field('结束日期',`<input type="date" required data-team-field="to" value="${E(draft.window.to)}">`)}${field('代表结果',`<select data-team-field="mode">${option('best','最佳',draft.mode)}${option('mean','均值',draft.mode)}</select>`)}${field('评价方案',`<select data-team-field="profileId">${option('','不使用评价方案',draft.profileId)}${library().evaluationProfiles.map(p=>option(p.id,p.name,draft.profileId)).join('')}</select>`)}</div><div class="team-selection-members"><section><h3>报告成员 <small>${chosen.size} 人</small></h3><input type="search" data-team-search value="${E(query)}" placeholder="搜索姓名或编号，补选成员" aria-label="搜索团队报告成员"><div class="team-member-options">${people.filter(a=>!q||[a.name,a.id].join(' ').toLocaleLowerCase().includes(q)).map(a=>`<label><input type="checkbox" data-team-person="${E(a.id)}"${chosen.has(a.id)?' checked':''}><span>${E(a.name)}<small>${E(library().groups.find(g=>g.id===a.groupId)?.name||'未分组')} · ${E(a.id.slice(-6))}</small></span></label>`).join('')||'<p class="empty">没有匹配的运动员</p>'}</div></section><section><h3>所选测试记录</h3><p class="note">每人使用一条记录；缺少的指标保留为空。同日多条记录需手动选择。</p><div class="team-record-options">${draft.participants.map(p=>{const a=people.find(a=>a.id===p.athleteId)||library().athletes.find(a=>a.id===p.athleteId),resolved=resolveSelection(a,draft.window,p.recordId);return `<label class="field"><span>${E(a?.name||'人员不可用')} <small>${E(p.athleteId.slice(-6))}${people.some(a=>a.id===p.athleteId)?'':' · 已归档或移除'}</small><button type="button" class="text-btn" data-team-remove="${E(p.athleteId)}" aria-label="移除 ${E(a?.name||p.athleteId)}">移除</button></span>${resolved.records.length?`<select data-team-record="${E(p.athleteId)}">${option('',resolved.ambiguous?'同日有多条记录，请选择':'请选择记录',p.recordId)}${resolved.records.map(r=>option(r.recordId,`${r.athlete.date} · ${r.title||'测试记录'} · ${r.recordId.slice(-6)}`,p.recordId)).join('')}</select>`:`<span class="note">${draft.window.from&&draft.window.to?'日期范围内无测试记录':'请先选择日期范围'}</span>`}</label>`;}).join('')||'<p class="empty">选择队伍或勾选成员</p>'}</div></section></div><p class="field-error" role="alert" data-team-selection-error>${E(error)}</p></section><footer class="modal-foot"><button type="button" class="btn" data-team-cancel${busy?' disabled':''}>取消</button><button type="submit" class="btn primary"${busy?' disabled':''}>${busy?'正在生成…':editingId?'更新团队报告':'查看团队报告'}</button></footer></form>`;
+      dialog.querySelectorAll('[data-team-cancel]').forEach(el=>el.onclick=close);
+      dialog.querySelectorAll('[data-team-field]').forEach(el=>el.onchange=()=>{
+        const name=el.dataset.teamField;if(name==='from'||name==='to'){draft.window[name]=el.value;if(name==='from'&&!draft.window.to)draft.window.to=el.value;syncRecords(true);}
+        else if(name==='groupId'){draft.groupId=el.value;draft.participants=people.filter(a=>a.groupId===el.value&&el.value).map(a=>({athleteId:a.id,recordId:''}));syncRecords(true);}
+        else draft[name]=el.value;error='';render();
+      });
+      dialog.querySelector('[data-team-search]').oninput=event=>{query=event.target.value;render();};
+      dialog.querySelectorAll('[data-team-person]').forEach(el=>el.onchange=()=>{const id=el.dataset.teamPerson;if(el.checked&&!chosen.has(id))draft.participants.push({athleteId:id,recordId:resolveSelection(people.find(a=>a.id===id),draft.window).recordId});else if(!el.checked)draft.participants=draft.participants.filter(p=>p.athleteId!==id);error='';render();});
+      dialog.querySelectorAll('[data-team-remove]').forEach(el=>el.onclick=event=>{event.preventDefault();draft.participants=draft.participants.filter(p=>p.athleteId!==el.dataset.teamRemove);error='';render();});
+      dialog.querySelectorAll('[data-team-record]').forEach(el=>el.onchange=()=>{draft.participants.find(p=>p.athleteId===el.dataset.teamRecord).recordId=el.value;error='';});
+      dialog.querySelector('form').onsubmit=async event=>{
+        event.preventDefault();if(busy)return;
+        const value=copy(draft),valid=root.RingsideLongitudinalStore.validDate;
+        if(!valid(value.window.from)||!valid(value.window.to)||value.window.from>value.window.to)error='请选择有效的起止日期。';
+        else if(!value.participants.length)error='请至少选择一名运动员。';
+        else if(value.participants.some(p=>!people.some(a=>a.id===p.athleteId)))error='部分成员已归档或移除，请调整报告名单。';
+        else if(value.participants.some(p=>candidates(people.find(a=>a.id===p.athleteId),value.window).length&&!p.recordId))error='请为有多条记录的运动员指定一条测试记录。';
+        if(error){render();return;}
+        const sequence=++ticket;busy=true;render();
+        value.titleAuto=!value.title.trim();value.title=value.title.trim()||(group?.name||'团队')+' · 团队报告';
+        try{const ok=await host.select(value,{reportId:editingId,isCurrent:()=>ticket===sequence});if(ok){busy=false;close();}else error='报告尚未生成，请检查页面提示后重试。';}
+        catch(e){error=e.message||String(e);}finally{busy=false;render();}
+      };
+      if(search){const node=dialog.querySelector('[data-team-search]');node.focus({preventScroll:true});node.setSelectionRange(position,position);}else if(key)dialog.querySelector(`[data-team-field="${key}"]`)?.focus({preventScroll:true});
+    }
+    async function open(configuration=null,{reportId=null}={}){
+      if(busy)return false;if(host.beforeOpen&&!await host.beforeOpen())return false;
+      close();draft=configuration?copy(configuration):{groupId:'',participants:[],window:{kind:'custom',from:'',to:''},mode:'best',profileId:library().defaultEvaluationProfileId||'',title:''};
+      editingId=reportId;query='';error='';draft.window={kind:'custom',from:'',to:'',...draft.window};draft.participants||=[];
+      dialog=root.document.createElement('dialog');dialog.id='teamReportDialog';dialog.className='team-selection-dialog';dialog.setAttribute('aria-label','团队报告设置');root.document.body.append(dialog);
+      dialog.addEventListener('cancel',event=>{event.preventDefault();close();});render();dialog.showModal();return true;
+    }
+    return {open,close,isOpen:()=>!!dialog,desktopCloseStatus:()=>({busy,dirty:!!dialog})};
+  }
+  root.RingsideTeamSelection={create,candidates,resolveSelection};
+})(window);
+
+</script>
+<script>
+(function(root){
+  "use strict";
+  const copy=v=>JSON.parse(JSON.stringify(v)),E=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const stamp=()=>new Date().toISOString(),id=()=>"team-"+(root.crypto?.randomUUID?.()||Date.now().toString(36)+Math.random().toString(36).slice(2));
+  const stable=d=>JSON.stringify({...d,revision:0,updated:""});
+  function create(host){
+    let document=null,suspended=false,loading=false,ticket=0,queue=Promise.resolve(),savedRevision=null,savedBody="",displayBarrier=null,displayPending=0,displayTicket=0,committedViews={};
+    const active=()=>!!document&&!suspended,model=()=>document?.snapshot,owner=()=>active()?"team:"+document.id:"";
+    const error=e=>host.error?.(e.message||String(e));
+    function clear(){ticket++;displayTicket++;document=null;savedRevision=null;savedBody="";committedViews={};suspended=loading=false;}
+    function touch(){document.updated=stamp();}
+    function enqueue(operation){const task=queue.then(operation);queue=task.then(()=>{},()=>{});return task;}
+    async function saveCurrent(current,guard){
+      if(guard&&!guard())return false;if(!current||document!==current)return true;const snapshot=root.RingsideTeamStore.normalize(document),body=stable(snapshot);if(body===savedBody)return true;
+      try{const result=await host.repository().saveTeamReport(snapshot,{expectedRevision:savedRevision});if(document===current){savedRevision=result.revision;document.revision=result.revision;savedBody=stable(result);committedViews=copy(result.views||{});}return true;}catch(e){error(e);return false;}
+    }
+    function save({guard}={}){const current=document;return current?enqueue(()=>saveCurrent(current,guard)):Promise.resolve(true);}
+    function setNarrative(value,previous=false){if(!active())return false;if(previous)document.previousNarrative=copy(document.narrative);document.narrative=copy(value);touch();return true;}
+    function setViews(value,replace=false){if(!active())return false;const next=replace?copy(value):{...document.views,...copy(value)};if(JSON.stringify(next)===JSON.stringify(document.views))return false;document.views=next;touch();return true;}
+    async function updateViews(delta){
+      if(!active()||loading)return false;host.captureView?.();const current=document,sequence=++displayTicket;
+      if(!displayBarrier){let resolve;const promise=new Promise(done=>{resolve=done;});displayBarrier={promise,resolve};}displayPending++;
+      try{setViews(delta);host.render();host.remember?.();const ok=await save();if(!ok&&document===current&&sequence===displayTicket){for(const key of Object.keys(delta)){if(Object.hasOwn(committedViews,key))document.views[key]=copy(committedViews[key]);else delete document.views[key];}touch();host.render();}return ok;}finally{displayPending--;if(!displayPending){const settled=displayBarrier;displayBarrier=null;settled.resolve();}}
+    }
+    function candidate(next){
+      return root.RingsideTeamStore.normalize({...next,...(document?.id===next.id?{revision:document.revision,views:{...copy(next.views||{}),...compatibleViews(document)},narrative:copy(document.narrative),...(document.previousNarrative?{previousNarrative:copy(document.previousNarrative)}:{})}:{})});
+    }
+    async function undoCommit(commit){
+      const repository=host.repository(),stored=await repository.getTeamReport(commit.result.id);
+      // Only undo the revision written by this request. A later save belongs to
+      // its own owner and must survive cancellation of this request.
+      if(!stored||stored.revision!==commit.result.revision)return false;
+      if(!commit.backup){await repository.deleteTeamReport(stored.id,{expectedRevision:stored.revision});return true;}
+      const restore=document?.id===stored.id?copy(document):copy(commit.backup),saved=await repository.saveTeamReport(restore,{expectedRevision:stored.revision});
+      if(document?.id===stored.id){document.revision=saved.revision;savedRevision=saved.revision;savedBody=stable(saved);committedViews=copy(saved.views||{});}
+      return true;
+    }
+    async function undoCurrentCommit(commit){
+      try{return await undoCommit(commit);}catch(e){const latest=await host.repository().getTeamReport(commit.result.id);if(latest?.revision===commit.result.revision)error(e);return false;}
+    }
+    function cancelCommit(commit){return enqueue(()=>undoCurrentCommit(commit));}
+    async function stageCurrent(next,guard,priorCommit=null){
+      if(guard&&!guard())return null;
+      const prepared=candidate(next),same=document?.id===prepared.id,expectedRevision=same?savedRevision:priorCommit?.result.revision||prepared.revision||null;
+      if(priorCommit&&expectedRevision===priorCommit.result.revision&&stable(prepared)===stable(priorCommit.result))return priorCommit;
+      const backup=priorCommit?priorCommit.backup:expectedRevision===null?null:same?copy(document):await host.repository().getTeamReport(prepared.id);
+      const result=await host.repository().saveTeamReport(prepared,{expectedRevision}),commit={result,backup};
+      if(guard&&!guard()){await undoCurrentCommit(commit);return null;}
+      // The editor continues to own its old snapshot until activation. Its
+      // saves must nevertheless compare against the revision just committed.
+      if(same){document.revision=result.revision;savedRevision=result.revision;}
+      return commit;
+    }
+    function stage(next,guard,priorCommit=null){return enqueue(()=>stageCurrent(next,guard,priorCommit));}
+    async function activate(next,{persist=false,flush=true,duringTransfer=false,guard}={}){
+      const sequence=ticket,allowed=()=>sequence===ticket&&(!guard||guard());
+      if(flush){if(host.saveEditor)host.saveEditor();if(!await host.save({duringTransfer}))return false;}
+      if(!allowed())return false;
+      const selected=next.configuration.participants.find(p=>p.recordId),lib=host.library(),athlete=selected&&lib.athletes.find(a=>a.id===selected.athleteId&&!a.deletedAt),indexed=athlete?.records.find(r=>r.recordId===selected.recordId&&!r.deletedAt),record=indexed&&(host.repository().loadRecord?await host.repository().loadRecord(selected.recordId):indexed),live=record&&!record.deletedAt;if(!allowed())return false;
+      let commit=persist?await stage(next,allowed):null;if(persist&&!commit)return false;
+      const rollback=async()=>{if(commit)await cancelCommit(commit);host.render();return false;};
+      try{
+      if(!allowed())return rollback();
+      // switchRecord can save the editor more than once. Keep both the visible
+      // editor and its owner on the prior report throughout those awaits.
+      if(live&&host.switchRecord&&!await host.switchRecord(athlete,record,{team:true,duringTransfer}))return rollback();
+      if(!allowed())return rollback();
+      return await enqueue(async()=>{
+        const rollbackCurrent=async()=>{if(commit)await undoCurrentCommit(commit);host.render();return false;};
+        for(;;){
+          if(!allowed())return rollbackCurrent();
+          host.saveEditor?.();
+          if((!persist||document?.id!==next.id)&&!await saveCurrent(document,allowed))return rollbackCurrent();
+          if(!allowed())return rollbackCurrent();
+          let adopted;
+          if(persist){const updated=await stageCurrent(next,allowed,commit);if(!updated)return false;commit=updated;adopted=commit.result;}
+          else{adopted=await host.repository().getTeamReport(next.id);if(!adopted)throw Error("此团队报告已不存在");}
+          host.saveEditor?.();
+          if(!allowed())return rollbackCurrent();
+          const unsettled=persist&&document?.id===next.id?stable(candidate(commit.result))!==stable(commit.result):document&&stable(root.RingsideTeamStore.normalize(document))!==savedBody;
+          if(unsettled)continue;
+          // Commit and owner adoption share one queue operation. Old-owner saves
+          // queued during the commit cannot write its snapshot after adoption.
+          document=root.RingsideTeamStore.normalize(adopted);savedRevision=document.revision;savedBody=stable(document);committedViews=copy(document.views||{});suspended=false;
+          host.cancelAI?.();host.activate?.({detached:!live});host.restoreView?.(document.views);host.render();host.remember?.();return true;
+        }
+      });
+      }catch(e){await rollback();throw e;}
+    }
+    function progress(prepared){const node=root.document?.querySelector?.("[data-team-progress]");if(node){node.hidden=false;node.textContent=prepared===undefined?"正在读取测试记录…":`已处理 ${prepared} 条测试`;}}
+    function compatibleViews(prior){
+      if(!prior)return {};
+      const views=copy(prior.views||{}),mappings=prior.sourceMappings||{};
+      if(views.overviewAthleteIds)views.overviewAthleteIds=views.overviewAthleteIds.map(id=>mappings.athleteMap?.[id]||id);
+      return views;
+    }
+    async function build(configuration,{prior=document,isCurrent=()=>true}={}){
+      loading=true;const sequence=++ticket,current=()=>sequence===ticket&&isCurrent();progress();
+      try{
+        host.saveEditor?.();if(!await host.save()||!current())return false;
+        const participants=configuration.participants||[],athleteIds=configuration.athleteIds||participants.map(p=>p.athleteId);
+        const source=await host.repository().loadTeamSources({window:configuration.window||{},athleteIds,recordIds:participants.map(p=>p.recordId).filter(Boolean)});if(!current())return false;
+        const lib=source.library,profileId=Object.hasOwn(configuration,"profileId")?configuration.profileId:lib.defaultEvaluationProfileId;
+        const profile=profileId===""?null:lib.evaluationProfiles.find(p=>p.id===profileId);if(typeof profileId!=="string"||profileId&&!profile)throw Error("请选择可用的评价方案");
+        const frozen=copy(configuration);frozen.profileId=profileId;frozen.profileSnapshot=copy(profile);
+        const priorViews=compatibleViews(prior),modelOptions={...frozen,profile,catalog:lib.catalog,athletes:lib.athletes,groups:lib.groups,classifications:lib.classifications,views:priorViews};
+        const snapshot=root.RingsideTeam.buildAsync?await root.RingsideTeam.buildAsync(source.records,modelOptions,{isCancelled:()=>!current(),onProgress:({prepared})=>{if(current())progress(prepared);}}):root.RingsideTeam.build(source.records,modelOptions);if(!snapshot||!current())return false;
+        snapshot.sourceRevision=source.revision;snapshot.sourceGeneration=source.generation;snapshot.classifications=copy(lib.classifications||{});snapshot.groups=copy(lib.groups||[]);snapshot.libraryVersion=lib.version;
+        const neededProfiles=new Set((snapshot.participants||snapshot.people||[]).map(p=>p.record?.evaluationProfileId).concat(profile?.id).filter(Boolean));
+        snapshot.evaluationProfiles=lib.evaluationProfiles.filter(p=>neededProfiles.has(p.id)).map(p=>root.RingsideEvaluation.serializeProfile(p));
+        const resolved={...frozen,...copy(snapshot.configuration||{}),profileId,profileSnapshot:copy(profile)};
+        const now=stamp(),next=root.RingsideTeamStore.normalize({version:1,id:prior?.id||id(),title:configuration.title||prior?.title||"团队报告",configuration:resolved,snapshot,narrative:prior?.narrative||{text:"",html:"",revision:0,basis:"",origin:"manual"},...(prior?.previousNarrative?{previousNarrative:prior.previousNarrative}:{}),views:priorViews,basis:snapshot.fingerprint||snapshot.basis,created:prior?.created||now,updated:now,revision:prior?.revision||0});
+        if(!current())return false;return await activate(next,{persist:true,flush:false,guard:current});
+      }catch(e){error(e);return false;}finally{if(sequence===ticket)loading=false;}
+    }
+    async function restore(value,options={}){const reportId=typeof value==="string"?value:value?.id;if(!reportId)return false;const sequence=ticket,current=()=>sequence===ticket&&(!options.guard||options.guard()),next=await host.repository().getTeamReport(reportId);if(!current())return false;if(!next)throw Error("此团队报告已不存在");return activate(next,{...options,guard:current});}
+    async function refresh(){if(!document)return false;return build(document.configuration,{prior:document});}
+    async function changeMode(mode){if(!["best","mean"].includes(mode)||!document)return false;return build({...copy(document.configuration),mode},{prior:document});}
+    function render(){
+      if(!active())return false;
+      const $=id=>root.document.getElementById(id),m=model(),out=root.RingsideTeamView.render(m,{views:document.views}),view=$("reportView");
+      for(const key of ["horizontal","horizontalOwner","horizontalLayout","longitudinal","longitudinalOwner"])delete view.dataset[key];
+      view.dataset.team="true";view.dataset.teamOwner=owner();view.dataset.reportKind="team";
+      for(const [element,key]of[["microCards","summary"],["bodyChart","body"],["screenItems","screenItems"],["radarChart","overview"],["radarLegend","legend"],["detailContent","details"]])if($(element))$(element).innerHTML=out[key]||"";
+      const people=m.participants||m.people||[],group=m.groups?.find(g=>g.id===document.configuration.groupId),groupName=group?.name||m.groupName||"团队";
+      $("reportTitle").textContent=document.configuration.titleAuto?groupName+" · 团队报告":document.title||"团队报告";
+      $("athleteMeta").innerHTML=[groupName,people.length+" 名运动员",m.profile?.name].filter(Boolean).map(value=>`<span>${E(value)}</span>`).join("");
+      if($("horizontalReportControls")){$("horizontalReportControls").innerHTML="";$("horizontalReportControls").hidden=true;}
+      for(const [element,value]of[["recordContext",people.length+" 名运动员 · 团队报告"],["screenPill",out.screenPill],["referenceLabel",out.referenceLabel],["dataCount","团队排名与全部指标"],["editButton","编辑团队配置"]])if($(element))$(element).textContent=value||"";
+      if($("aggMode"))$("aggMode").value=m.mode||document.configuration.mode||"best";
+      if($("screenPill"))$("screenPill").className="pill";
+      if($("directionMetrics"))$("directionMetrics").hidden=true;
+      if($("migrationReviewNotice"))$("migrationReviewNotice").hidden=true;
+      const exportSummary=$("reportExportMenu")?.querySelector("summary");if(exportSummary)exportSummary.textContent="导出团队报告";
+      view.__teamViews=copy(document.views);
+      root.RingsideTeamView.bind?.(view,m,document.views,{updateViews});root.RingsideTeamView.layout?.(view,{print:false});
+      view.querySelectorAll("details[id]").forEach(node=>{if(document.views.detailOpen?.[node.id]!==undefined)node.open=document.views.detailOpen[node.id];});
+      const refreshButton=view.querySelector("[data-team-refresh]");if(refreshButton)refreshButton.onclick=async()=>{refreshButton.disabled=true;try{await refresh();}finally{if(refreshButton.isConnected)refreshButton.disabled=false;}};
+      return true;
+    }
+    function payload(){
+      if(!document)return null;
+      const m=model(),people=m.participants||m.people||[],records=people.filter(p=>p.record).map(p=>copy(p.record));
+      const owners=people.map(p=>({id:p.athleteId,name:p.name||p.athlete?.name||p.label||p.athleteId,profile:copy(p.athlete||{name:p.name||p.athleteId}),groupId:p.groupId||"",archived:false,deletedAt:null,records:records.filter(r=>r.athleteId===p.athleteId)}));
+      const profiles=[...new Map([...(m.evaluationProfiles||[]),...(m.profile?[m.profile]:[])].map(p=>[p.id,root.RingsideEvaluation.serializeProfile(p)])).values()];
+      const exported=copy(document);
+      if(exported.sourceMappings){exported.configuration.participants=people.map(p=>({athleteId:p.athleteId,recordId:p.recordId||""}));if(exported.configuration.athleteIds)exported.configuration.athleteIds=people.map(p=>p.athleteId);exported.configuration.groupId=m.configuration?.groupId||"";exported.configuration.profileId=m.profile?.id||"";exported.configuration.profileSnapshot=copy(m.profile||null);}
+      delete exported.sourceMappings;
+      const groupIds=new Set([...owners.map(a=>a.groupId),exported.configuration.groupId].filter(Boolean));
+      return {schema:1,kind:"team-report",document:exported,library:{schema:3,kind:"athlete-library",version:m.libraryVersion||root.RingsideBuild?.version,catalog:copy(m.catalog),classifications:copy(m.classifications||{}),testPlans:[],groups:copy((m.groups||[]).filter(g=>groupIds.has(g.id))),evaluationProfiles:profiles,defaultEvaluationProfileId:m.profile?.id||profiles[0]?.id||"",athletes:owners,activeAthleteId:owners[0]?.id||"",activeRecordId:records.find(r=>r.athleteId===owners[0]?.id)?.recordId||"",updated:stamp()}};
+    }
+    async function importPayload(value){const sequence=ticket;let incoming=root.RingsideTeamStore.normalize(value.document),prior=await host.repository().getTeamReport(incoming.id);if(sequence!==ticket)return false;if(prior)incoming={...incoming,id:id(),revision:0};const saved=await host.repository().saveTeamReport(incoming,{expectedRevision:null});return activate(saved,{guard:()=>sequence===ticket});}
+    async function deleteReport(reportId){if(loading)return false;try{if(displayBarrier)await displayBarrier.promise;await queue;if(document?.id===reportId){host.saveEditor?.();if(!await save())return false;}const stored=await host.repository().getTeamReport(reportId);if(!stored)return false;if(!host.confirmDeleteReport)throw Error("报告删除确认暂不可用");if(!await host.confirmDeleteReport({id:stored.id,title:stored.title,revision:stored.revision}))return false;await host.repository().deleteTeamReport(reportId,{expectedRevision:stored.revision});if(document?.id===reportId){clear();host.render();host.remember?.();}return true;}catch(e){error(e);return false;}}
+    function listReports(){return host.listReports?.();}
+    function openSetup(initial=undefined){const config=initial?.configuration||initial||(initial===null?null:document?.configuration);return host.editSelection?.(config);}    return {active,model,document:()=>document,narrative:()=>document?.narrative,setNarrative,setViews,updateViews,payload,facts:()=>root.RingsideTeam.facts(model(),document?.views||{}),owner,basis:()=>document?.basis||"",save,clear,suspend:()=>{suspended=true;},resume:async()=>{if(document){suspended=false;host.render();}return !!document;},restore,openSetup,listReports,deleteReport,refresh,render,edit:()=>openSetup(),selection:()=>document?{id:document.id}:null,cancelPending:()=>{ticket++;loading=false;},changeMode,isLoading:()=>loading||!!displayBarrier,pendingDisplaySave:()=>displayBarrier?.promise||null,importPayload,configure:build,createReport:configuration=>build(configuration,{prior:null})};
+  }
+  root.RingsideTeamController={create};
+})(typeof window!=="undefined"?window:globalThis);
+
+
+</script>
+<script>
 (function(root) {
   'use strict';
   function create({controllers, state}) {
@@ -26286,7 +27380,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     pdfJob = false,
     scrollFrame = null,
     uiSaveTimer;
-  let longitudinalStoredJSON = "[]", initialLongitudinal = null, initialHorizontal = null;
+  let longitudinalStoredJSON = "[]", initialLongitudinal = null, initialHorizontal = null, initialTeam = null;
   const longitudinal = window.RingsideLongitudinalController.create({
     state:()=>state, library:()=>library, repository:()=>repository, save:persist, saveEditor,
     switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close,
@@ -26298,7 +27392,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   const horizontal = window.RingsideHorizontalController.create({
     state:()=>state, library:()=>library, repository:()=>repository, save:persist, saveEditor,
     switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close,
-    activate:({detached=false}={})=>{longitudinal.clear();if(detached){state=null;library.activeAthleteId="";library.activeRecordId="";}ui.mode="report";reportDirty=true;},
+    activate:({detached=false}={})=>{team.clear();longitudinal.clear();if(detached){state=null;library.activeAthleteId="";library.activeRecordId="";}ui.mode="report";reportDirty=true;},
     confirmDeleteReport:({title})=>Promise.resolve(confirm("删除横向报告“"+(title||"横向比较报告")+"”？报告正文和统计快照将删除，原始测试记录保留。")),
     error:message=>toast(message), render:()=>{renderReport(false);renderWorkspace();},
     captureView:captureReportUI, renderDisplay:()=>renderReport(),
@@ -26309,12 +27403,29 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     listReports:()=>openManagement("records",{view:"reports"}),
     evaluationConflicts:conflicts=>reportSelection.showConflicts(conflicts),
   });
-  const reports = window.RingsideReportOwner.create({controllers:[horizontal,longitudinal],state:()=>state});
+  const team = window.RingsideTeamController.create({
+    state:()=>state, library:()=>library, repository:()=>repository, save:options=>persist({...options,readOnlyRecord:true}), saveEditor,
+    switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close, commitLibraryChange,
+    activate:({detached=false}={})=>{horizontal.clear();longitudinal.clear();if(detached){state=null;library.activeAthleteId="";library.activeRecordId="";}ui.mode="report";reportDirty=true;},
+    confirmDeleteReport:({title})=>Promise.resolve(confirm("删除团队报告“"+(title||"团队报告")+"”？报告正文和统计快照将删除，原始测试记录保留。")),
+    error:message=>toast(message),render:()=>{renderReport(false);renderWorkspace();},
+    captureView:captureReportUI,renderDisplay:()=>renderReport(),
+    restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
+    editSelection:configuration=>teamSelection.open(configuration,{reportId:configuration?team.document()?.id:null}),
+    listReports:()=>openManagement("records",{view:"reports"}),
+  });
+  const reports = window.RingsideReportOwner.create({controllers:[team,horizontal,longitudinal],state:()=>state});
+  const teamSelection = window.RingsideTeamSelection.create({
+    library:()=>library,beforeOpen:async()=>{if(managementNavigationBlocked())return false;saveEditor();return persist();},
+    select:(configuration,options)=>team.configure(configuration,{...options,prior:team.document()?.id===options.reportId?team.document():null}),
+  });
   const reportSelection = window.RingsideReportSelection.create({
     library:()=>library,element:()=>$("reportSelection"),current:()=>state,
     configuration:()=>horizontal.active()?horizontal.document().configuration:null,
     longitudinal:()=>longitudinal.active()?longitudinal.selection():null,
     identity:()=>reports.owner()||state?.recordId||"",reportId:()=>horizontal.active()?horizontal.document().id:null,
+    team:()=>team.active()?team.document():null,openTeam:()=>teamSelection.open(),editTeam:()=>team.edit(),
+    leaveTeam:async()=>{saveEditor();if(!await persist())return false;team.clear();reportSelection.reset();renderReport(false);renderWorkspace();rememberUI();return true;},
     select:applyReportSelection,cancelPending:()=>{selectionSequence++;reports.cancelPending();},
     manage:(tab,onReturn)=>openClassifications(tab,{onReturn:async()=>{await showReport(false);onReturn();},returnLabel:"返回报告选择"}),
   });
@@ -26562,7 +27673,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const person=people[0],athlete=library.athletes.find(a=>a.id===person?.athleteId&&!a.deletedAt),ids=person?.recordIds||[];
       if(person&&!athlete)throw Error("所选运动员已不存在");
       if(!isCurrent())return false;
-      horizontal.clear();
+      team.clear();horizontal.clear();
       if(ids.length>1)return longitudinal.select(ids,{athleteId:person.athleteId,...(Object.hasOwn(value,"profileId")?{evaluationProfileId:value.profileId}:{})});
       return switchRecord(athlete||null,ids.length?athlete.records.find(r=>r.recordId===ids[0]):null);
     }
@@ -26901,7 +28012,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     } else controls.replaceChildren();
     const canUseExcel = people.every(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived));
     if (!window.RingsideExcelFlow.isBusy()) document.querySelectorAll("[data-entry-excel-action]").forEach(el => { el.disabled = !canUseExcel; el.title = canUseExcel ? "" : "录入并保存后，运动员建档完成即可使用 Excel"; });
-    $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : horizontal.active() && ui.mode === "report" ? `${horizontal.model().participants.length} 名运动员 · 横向比较` : longitudinal.active() && ui.mode === "report" ? `${a?.profile.name || state.athlete.name || ""} · ${longitudinal.selection().recordIds.length} 次测试` : context;
+    $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : team.active() && ui.mode === "report" ? `${team.model().participants.length} 名运动员 · 团队报告` : horizontal.active() && ui.mode === "report" ? `${horizontal.model().participants.length} 名运动员 · 横向比较` : longitudinal.active() && ui.mode === "report" ? `${a?.profile.name || state.athlete.name || ""} · ${longitudinal.selection().recordIds.length} 次测试` : context;
     $("entryIdentity").textContent = context;
     const tabs = entryTabs(),
       index = tabs.findIndex((t) => t[0] === entryTab);
@@ -27015,6 +28126,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         if (old) { lastRestorePayload = {rawText:old}; input = JSON.parse(old); }
       }
       lastRestorePayload = input || lastRestorePayload;
+      if (input?.kind === "team-report") { initialTeam=input.document;input=input.library; }
       if (input?.kind === "horizontal-report") { initialHorizontal=input.document;input=input.library; }
       if (input?.kind === "longitudinal-report") { initialLongitudinal=input.selection;input=input.library; }
       const migrated = window.RingsideEvaluation.migrate(input || M.libraryDefaults());
@@ -27026,8 +28138,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         migrated.athletes.push({id:record.athleteId,name:"示例",profile:M.profileFromRecord(record),sample:true,groupId:"",archived:false,deletedAt:null,records:[record]});
         migrated.activeAthleteId = record.athleteId; migrated.activeRecordId = record.recordId;
       }
+      if(initialTeam)migrated.teamReports=[window.RingsideTeamStore.normalize(initialTeam)];
       if(initialHorizontal)migrated.horizontalReports=[window.RingsideHorizontalStore.normalize(initialHorizontal)];
       const imported=await repository.importLibrary(migrated);
+      if(initialTeam)initialTeam={id:imported.teamMap?.[initialTeam.id]||initialTeam.id};
       if(initialHorizontal)initialHorizontal={id:imported.horizontalMap?.[initialHorizontal.id]||initialHorizontal.id};
     }
     await repository.upgradeMeasurementContract();
@@ -27054,6 +28168,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           lastViewed: ui.lastViewed || {},
           longitudinal: longitudinal.selection(),
           horizontal: horizontal.selection(),
+          team: team.selection(),
         }),
       );
     } catch {}
@@ -27061,15 +28176,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function reportViewOwned() {
     if (!reports.hasContent() || ui.mode !== "report") return false;
     const view = $("reportView");
+    if (team.active()) return view.dataset.team === "true" && view.dataset.teamOwner === team.owner();
     if (horizontal.active()) return view.dataset.horizontal === "true" && view.dataset.horizontalOwner === horizontal.owner();
     if (longitudinal.active()) return view.dataset.longitudinal === "true" && view.dataset.longitudinalOwner === longitudinal.owner();
-    return view.dataset.longitudinal !== "true" && view.dataset.horizontal !== "true" && view.dataset.reportRecordId === state.recordId;
+    return view.dataset.team !== "true" && view.dataset.longitudinal !== "true" && view.dataset.horizontal !== "true" && view.dataset.reportRecordId === state.recordId;
   }
   function captureReportUI() {
     if (!reportViewOwned()) return;
     ui.reportScroll = window.scrollY;
     document
-      .querySelectorAll(horizontal.active()?"#reportView details[id]":"#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings],#reportView .longitudinal-capability-parameters")
+      .querySelectorAll(horizontal.active()||team.active()?"#reportView details[id]":"#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings],#reportView .longitudinal-capability-parameters")
       .forEach((el) => {if(el.id)ui.detailOpen[el.id] = el.open;});
     if (reports.active()) return reports.setViews({...reports.document().views,reportScroll:ui.reportScroll,detailOpen:{...ui.detailOpen}});
     ui.records[state.recordId] = {
@@ -27184,6 +28300,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     ui.returnMode = "report";
     await longitudinal.resume();
     await horizontal.resume();
+    await team.resume();
     renderWorkspace();
     renderReport(false);
     closeMobileSidebar();
@@ -27348,13 +28465,13 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       '<button class="btn small" onclick="App.addRow(\'imtp\')">＋ 新增试次</button>'
     );
   }
-  function persist({duringTransfer = false, longitudinalDisplay = false, horizontalDisplay = false} = {}) {
+  function persist({duringTransfer = false, longitudinalDisplay = false, horizontalDisplay = false, teamDisplay = false, readOnlyRecord = false} = {}) {
     const displaySave = reports.pendingDisplaySave();
-    if (displaySave && !longitudinalDisplay && !horizontalDisplay)
-      return displaySave.then(() => persist({duringTransfer}));
+    if (displaySave && !longitudinalDisplay && !horizontalDisplay && !teamDisplay)
+      return displaySave.then(() => persist({duringTransfer,readOnlyRecord}));
     if (!library || !repository) return Promise.resolve(false);
     if (libraryTransferActive && !duringTransfer) return Promise.resolve(false);
-    if (state) { try { if (!reports.active()) M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }
+    if (state) { try { if (!reports.active()&&!readOnlyRecord) M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }
     clearTimeout(saveTimer); saveTimer = null;
     if (entrySession?.records.some(r => r.recordId === state?.recordId)) {
       const index = entrySession.records.findIndex(r => r.recordId === state.recordId);
@@ -27396,6 +28513,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       }
       await repository.saveRecords(writeRecord ? [snapshot] : [], checks, options);
       if (!await horizontal.save()) throw Error("横向报告尚未保存，请重试");
+      if (!await team.save()) throw Error("团队报告尚未保存，请重试");
       longitudinalStoredJSON = serializedDocuments;
       if (writeRecord) rememberRecordBaseline(snapshot);
     });
@@ -27540,16 +28658,16 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   async function switchRecord(a, r, options = {}) {
     const sequence = ++selectionSequence;
-    if (!options.longitudinal && !options.horizontal) reports.cancelPending();
+    if (!options.longitudinal && !options.horizontal && !options.team) reports.cancelPending();
     if(reportEditInfo(document.activeElement))commitReportControl(document.activeElement);
     if (state) { captureReportUI(); saveEditor(); }
-    if (!await persist({duringTransfer:!!options.duringTransfer})) return;
+    if (!await persist({duringTransfer:!!options.duringTransfer,readOnlyRecord:!!options.team})) return;
     if (sequence !== selectionSequence) return;
-    if (!options.longitudinal && !options.horizontal) reports.clear();
+    if (!options.longitudinal && !options.horizontal && !options.team) reports.clear();
     await leaveEntrySession();
     const stored = r ? await repository.loadRecord(r.recordId) : null;
     if (sequence !== selectionSequence) return;
-    const upgrade = stored && !((options.longitudinal || options.horizontal) && !options.edit) ? upgradeDemo(stored) : {changed:false};
+    const upgrade = stored && !((options.longitudinal || options.horizontal || options.team) && !options.edit) ? upgradeDemo(stored) : {changed:false};
     const loaded = stored ? M.normalizeRecord(upgrade.record || stored) : null;
     if (loaded && options.longitudinal && !options.edit) M.applyAge(loaded);
     if (upgrade.changed) {
@@ -27565,7 +28683,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const saved = loaded && ui.records[loaded.recordId];
     ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
     ui.mode = options.edit && loaded ? "entry" : "report";
-    await persist({duringTransfer:!!options.duringTransfer}); renderReport(false);
+    await persist({duringTransfer:!!options.duringTransfer,readOnlyRecord:!!options.team}); renderReport(false);
     if (ui.mode === "entry") renderEntry();
     renderWorkspace(); closeMobileSidebar(); window.scrollTo({top:ui.mode === "report" ? ui.reportScroll:0,behavior:"instant"});
     return true;
@@ -27807,7 +28925,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (window.RingsideManagement.beforeLeave?.("entry") === false) return false;
     if (creation?.submitting) return;
     if (!library) return;
-    if(longitudinal.selection()||horizontal.selection()){saveEditor();if(!await persist())return;reports.clear();cancelJob();}
+    if(longitudinal.selection()||horizontal.selection()||team.selection()){saveEditor();if(!await persist())return;reports.clear();cancelJob();}
     const wanted = requestedIds || (athleteId ? [athleteId] : []);
     if (wanted.some(id=>!library.athletes.some(a=>a.id===id&&!a.deletedAt&&!a.archived))) return toast("所选运动员已归档或移入回收站，请先恢复");
     if (entrySession) {
@@ -28347,6 +29465,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     renderSelectors();
     if (reports.active()) {
       if(!horizontal.active())$("horizontalReportControls").hidden=true;
+      if(!team.active()){delete $("reportView").dataset.team;delete $("reportView").dataset.teamOwner;}
       reports.render();renderNarrativeStatus();reportDirty=false;refreshEntryChrome();renderNavigation();
       if(previousScroll!==null)window.scrollTo({top:previousScroll,behavior:"instant"});
       return;
@@ -28355,6 +29474,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     delete $("reportView").dataset.longitudinalOwner;
     delete $("reportView").dataset.horizontal;
     delete $("reportView").dataset.horizontalOwner;
+    delete $("reportView").dataset.team;
+    delete $("reportView").dataset.teamOwner;
     delete $("reportView").dataset.reportKind;
     $("horizontalReportControls").hidden=true;
     $("directionMetrics").hidden = false;
@@ -30349,6 +31470,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function localDraft() {
     if (job) return;
+    if(team.active()){
+      preview(window.RingsideTeam.localText(team.model(),team.document().views),"本地",{...snapshot(),capabilityDirectionsBasis:capabilityDirectionsBasis()});return;
+    }
     if(horizontal.active()){
       preview(window.RingsideHorizontal.localText(horizontal.model(),horizontal.document().views),"本地",{...snapshot(),capabilityDirectionsBasis:capabilityDirectionsBasis()});
       setAIStatus("ready","离线摘要已生成，等待应用","");return;
@@ -30622,7 +31746,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   async function ai() {
     if(reports.isLoading())return;
     if (job) return toast("当前分析正在生成", "ai");
-    const hasData = horizontal.active() ? [...horizontal.model().projects,...horizontal.model().references.flatMap(ref=>ref.projects||[])].some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null)||N(row.benchmark?.mean)!==null)) : longitudinal.active() ? longitudinal.model().periods.some(period=>period.stats.validTests.size) : M.stats(effectiveRecord()).validTests.size;
+    const hasData = team.active() ? team.model().projects.some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null))) : horizontal.active() ? [...horizontal.model().projects,...horizontal.model().references.flatMap(ref=>ref.projects||[])].some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null)||N(row.benchmark?.mean)!==null)) : longitudinal.active() ? longitudinal.model().periods.some(period=>period.stats.validTests.size) : M.stats(effectiveRecord()).validTests.size;
     if (!hasData) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
     const requestedBinding = reports.binding();
     let connection;
@@ -30645,8 +31769,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     renderNarrativeStatus();
     try {
       const messages = [
-        { role: "system", content: window.RingsideInterventions.systemPrompt + (horizontal.active() ? "\n当前任务为横向比较或群体统计报告。以 presentation.focus 为解读重点，以 presentation.activeReferenceId 指定的当前群体及 presentation.baseline 为比较依据，采用提供的统一差值；无基准时不生成相对优势或不足。使用各指标实际人数、最近可比测试／期间最佳成绩／期间均值的取样口径及来源。群体评价依据先汇总后评价的结果；数据库参照不等于常模或评价标准。不同人的差异不写成时间上的改善或下降。根据实际数值与已有评价提出具体建议，不编造统计检验或把群体参数拼成真实个人。" : longitudinal.active() ? "\n当前任务为同一运动员的纵向比较。逐期对照所给统一计算结果，使用程序提供的变化值。缺测不能作为零；不得自行计算或编造显著性、p值、MDC、标准化效果量、改善方向。分清测量变化、评价条件变化和训练推断。" : "") },
-        { role: "user", content: "生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n" + JSON.stringify(facts()) },
+        { role: "system", content: window.RingsideInterventions.systemPrompt + (team.active() ? "\n当前任务为团队报告。使用每人所选单条记录的代表结果，按程序给出的排序、分布、有效人数和筛查人员说明全队情况。运动表现是各人按统一方案有效得分后的均值；筛查为红黄提示的去重人数，不是损伤发生概率。缺测不当零，不编造统计检验或时间变化，不把团队均值写成某个人成绩。" : horizontal.active() ? "\n当前任务为横向比较或群体统计报告。以 presentation.focus 为解读重点，以 presentation.activeReferenceId 指定的当前群体及 presentation.baseline 为比较依据，采用提供的统一差值；无基准时不生成相对优势或不足。使用各指标实际人数、最近可比测试／期间最佳成绩／期间均值的取样口径及来源。群体评价依据先汇总后评价的结果；数据库参照不等于常模或评价标准。不同人的差异不写成时间上的改善或下降。根据实际数值与已有评价提出具体建议，不编造统计检验或把群体参数拼成真实个人。" : longitudinal.active() ? "\n当前任务为同一运动员的纵向比较。逐期对照所给统一计算结果，使用程序提供的变化值。缺测不能作为零；不得自行计算或编造显著性、p值、MDC、标准化效果量、改善方向。分清测量变化、评价条件变化和训练推断。" : "") },
+        { role: "user", content: (team.active()?"生成团队解读：先概括全队表现、项目排名与分布，再列出需要关注的人员及其已有筛查依据。使用实际有效人数，不重复描述图形外观。\n":"生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n") + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
       let validated, pages;
@@ -30733,7 +31857,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     clone.querySelector("#embedded-data").textContent = JSON.stringify(
       payload,
     ).replace(/</g, "\\u003c");
-    clone.querySelectorAll('#horizontalDialog,#classificationModal,#reportReferenceDialog').forEach(node=>node.remove());
+    clone.querySelectorAll('#horizontalDialog,#classificationModal,#reportReferenceDialog,#teamReportDialog').forEach(node=>node.remove());
     for (const id of [
       "entryNav",
       "entryContent",
@@ -30842,6 +31966,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   function filename(ext) {
+    if(team.active())return "MotionBench_团队报告_"+(team.document().title||team.document().id).replace(/[<>:\"/\\|?*\s]/g,"_")+"."+ext;
     if(horizontal.active())return "MotionBench_横向比较_"+(horizontal.document().title||horizontal.document().id).replace(/[<>:"/\\|?*\s]/g,"_")+"."+ext;
     if(longitudinal.active())return "MotionBench_"+(state.athlete.name||"athlete").replace(/[<>:"/\\|?*\s]/g,"_")+"_纵向比较_"+longitudinal.model().periods[0].date+"_"+longitudinal.model().periods.at(-1).date+"."+ext;
     return (
@@ -30911,11 +32036,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     } catch(error) {toast(error.message);}
   }
   async function prepareVersionRollback() {
-    if(!confirm("恢复为升级前资料，并结束当前页面。升级后资料仍会保留。继续前请导出当前完整备份；随后关闭本项目的其他页面，用 2.18.0-local 替换程序。是否继续？"))return;
+    if(!confirm("恢复历史升级检查点中的资料，并结束当前页面。继续前请导出完整备份。此操作不会降低数据库版本；如需使用旧程序，应恢复与旧程序配套的资料目录副本。是否继续？"))return;
     try {
       if(!await persist())throw Error("当前修改尚未保存");
       libraryTransferActive=true;await repository.restoreUpgradeCheckpoint();cancelJob();
-      document.body.innerHTML='<main style="max-width:720px;margin:10vh auto;padding:32px"><h1>升级前资料已恢复</h1><p>请关闭本项目的所有页面，将 2.18.0-local 程序放回原路径，再使用原浏览器和原地址打开。</p><p>升级后的资料副本仍保存在本机。再次使用新版会重新执行升级。</p></main>';
+      document.body.innerHTML='<main style="max-width:720px;margin:10vh auto;padding:32px"><h1>升级前资料已恢复</h1><p>请关闭本项目的所有页面。当前数据库结构保持新版；如需使用旧程序，请同时恢复与它配套的升级前资料目录副本。</p><p>升级后的资料副本仍保存在本机。再次使用新版会重新执行升级。</p></main>';
     } catch(error) {libraryTransferActive=false;toast(error.message);}
   }
   async function downloadLegacyLibrary() {
@@ -30958,8 +32083,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   async function importPayload(parsed, conflictChoice = "merge") {
     return runLibraryTransfer(async()=>{
     const incomingSelection=parsed?.kind==="longitudinal-report"?parsed.selection:null;
+    const incomingTeam=parsed?.kind==="team-report"?window.RingsideTeamStore.normalize(parsed.document):null;
     const incomingHorizontal=parsed?.kind==="horizontal-report"?window.RingsideHorizontalStore.normalize(parsed.document):null;
-    const incoming=window.RingsideEvaluation.migrate(incomingSelection||incomingHorizontal?parsed.library:parsed);
+    const incoming=window.RingsideEvaluation.migrate(incomingSelection||incomingHorizontal||incomingTeam?parsed.library:parsed);
+    if(incomingTeam)incoming.teamReports=[incomingTeam];
     if(incomingHorizontal)incoming.horizontalReports=[incomingHorizontal];
     if(incomingSelection&&!window.RingsideLongitudinalStore.get(incoming,incomingSelection.athleteId,incomingSelection.recordIds))throw Error("比较报告缺少对应正文或所选记录。");
     if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
@@ -30976,6 +32103,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     ui.mode="report";
     if(incomingSelection)await longitudinal.restore({...incomingSelection,athleteId:result.athleteMap?.[incomingSelection.athleteId]||incomingSelection.athleteId,recordIds:incomingSelection.recordIds.map(id=>result.recordMap[id]||id)});
+    if(incomingTeam&&!await team.restore({id:result.teamMap?.[incomingTeam.id]||incomingTeam.id},{flush:false,duringTransfer:true}))throw Error("已导入团队报告，但无法打开，请从报告列表重开。");
     if(incomingHorizontal&&!await horizontal.restore({id:result.horizontalMap?.[incomingHorizontal.id]||incomingHorizontal.id},{flush:false,duringTransfer:true}))throw Error("已导入横向报告，但无法打开，请从横向报告列表重开。");
     renderReport(false);renderWorkspace();return result;
     });
@@ -31123,7 +32251,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       return toast(e.message);
     }
     renderReport();
-    const record = horizontal.active() ? {...copy(horizontal.model().participants[0]?.record||{}),horizontal:true,horizontalModel:copy(horizontal.model()),horizontalViews:copy(horizontal.document().views),horizontalTitle:$("reportTitle").textContent,narrative:copy(horizontal.narrative())} : longitudinal.active() ? {...copy(longitudinal.model().periods.at(-1).record),longitudinal:true,longitudinalDateRange:longitudinal.model().periods[0].date+" — "+longitudinal.model().periods.at(-1).date,narrative:copy(longitudinal.narrative())} : effectiveRecord(),
+    const record = team.active() ? {team:true,teamModel:copy(team.model()),teamViews:copy(team.document().views),teamTitle:$("reportTitle").textContent,narrative:copy(team.narrative())} : horizontal.active() ? {...copy(horizontal.model().participants[0]?.record||{}),horizontal:true,horizontalModel:copy(horizontal.model()),horizontalViews:copy(horizontal.document().views),horizontalTitle:$("reportTitle").textContent,narrative:copy(horizontal.narrative())} : longitudinal.active() ? {...copy(longitudinal.model().periods.at(-1).record),longitudinal:true,longitudinalDateRange:longitudinal.model().periods[0].date+" — "+longitudinal.model().periods.at(-1).date,narrative:copy(longitudinal.narrative())} : effectiveRecord(),
       name = filename("pdf"),
       report = $("reportView").cloneNode(true);
     pdfJob = true;
@@ -31164,10 +32292,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     cancelJob();
     const groups = [...document.querySelectorAll(".details-group")],
       old = groups.map((g) => g.open);
+    const cleanupTeam=team.active()?window.RingsideTeamView.prepareBrowserPrint($("reportView"),team.model(),copy(team.document().views)):null;
     const cleanupHorizontal=horizontal.active()?window.RingsideHorizontalView.prepareBrowserPrint($("reportView"),horizontal.model(),copy(horizontal.document().views)):null;
-    if(!horizontal.active())groups.forEach((g) => (g.open = true));
+    if(!horizontal.active()&&!team.active())groups.forEach((g) => (g.open = true));
     const restorePrint = () => {
-      cleanupHorizontal?.();
+      cleanupTeam?.();cleanupHorizontal?.();
       groups.forEach((g, i) => (g.open = old[i]));
       window.removeEventListener("afterprint", restorePrint);
     };
@@ -31180,9 +32309,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     await window.App.ready;
     if (!library || !repository) return {ok:true};
     const management = window.RingsideManagement.desktopCloseStatus?.() || {};
-    const reportChoice = reportSelection.desktopCloseStatus();
+    const reportChoice = reportSelection.desktopCloseStatus(), teamChoice=teamSelection.desktopCloseStatus();
     if (desktopPreferencesBusy) return {ok:false,reason:"正在保存启动检查设置，请保存完成后再退出或更新。"};
-    if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || reportChoice.busy || window.RingsideExcelFlow.isBusy())
+    if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || reportChoice.busy || teamChoice.busy || window.RingsideExcelFlow.isBusy())
       return {ok:false,reason:"正在处理资料、AI 设置或文件导出，请完成或取消当前操作后再退出。"};
     saveEditor(); saveDrafts(); saveEntrySession(); rememberUI();
     if (!await persist()) return {ok:false,reason:"当前数据尚未保存。请修正输入或重试保存，再退出程序。"};
@@ -31192,13 +32321,18 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     saveDrafts(); saveEntrySession();
     if (storageFailed || entrySessionStorageFailed || inputDraftStorageFailed)
       return {ok:false,reason:"本机保存失败，请检查磁盘空间并导出资料后重试。"};
-    if (!discardSettings && (aiDirty || management.unsaved || reportChoice.unsaved || creation || catalogEdit || unitChange))
+    if (!discardSettings && (aiDirty || management.unsaved || reportChoice.unsaved || teamChoice.dirty || creation || catalogEdit || unitChange))
       return {ok:false,discardable:true,reason:"有尚未提交的报告选择、设置或管理表单。"};
     if (job) cancelJob();
     return {ok:true};
   }
   window.App = {
-    selectRecords: async ids=>{if(horizontal.active()){saveEditor();if(!await persist())return false;horizontal.clear();}return longitudinal.select(ids);},
+    selectRecords: async ids=>{if(team.active()){saveEditor();if(!await persist())return false;team.clear();}if(horizontal.active()){saveEditor();if(!await persist())return false;horizontal.clear();}return longitudinal.select(ids);},
+    openTeam: options=>teamSelection.open(options?.configuration||null,{reportId:options?.reportId||null}),
+    selectTeam:configuration=>team.createReport(configuration),
+    getTeam:()=>team.active()?team.model():null,
+    getTeamDocument:()=>team.document()?copy(team.document()):null,
+    refreshTeam:()=>team.refresh(),
     openHorizontal: options=>horizontal.openSetup(options),
     openHorizontalReports: ()=>horizontal.listReports(),
     selectHorizontal: options=>horizontal.createReport(options),
@@ -31209,9 +32343,9 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     editReportSelection:configuration=>reportSelection.edit(configuration),
     getReportSelection:()=>reportSelection.state(),
     applyReportSelection:()=>reportSelection.apply(),
-    listSavedReports:async()=> (await repository.listHorizontalReports()).map(row=>({...row,kind:row.participantCount?"horizontal":"cohort",subtitle:row.participantCount?`${row.participantCount} 人 · ${row.referenceCount} 个群体参照`:`${row.referenceCount} 个群体`})),
-    restoreSavedReport:async id=>{if(window.RingsideManagement.beforeLeave?.("report")===false)return false;const ok=await horizontal.restore(id);if(ok){ui.mode="report";reportSelection.reset();renderReport(false);renderWorkspace();}return ok;},
-    deleteSavedReport:id=>horizontal.deleteReport(id),
+    listSavedReports:async()=> [...(await repository.listHorizontalReports()).map(row=>({...row,kind:row.participantCount?"horizontal":"cohort",subtitle:row.participantCount?`${row.participantCount} 人 · ${row.referenceCount} 个群体参照`:`${row.referenceCount} 个群体`})),...(await repository.listTeamReports()).map(row=>({...row,id:"team:"+row.id,kind:"team",subtitle:`团队报告 · ${row.participantCount} 人`}))],
+    restoreSavedReport:async id=>{if(window.RingsideManagement.beforeLeave?.("report")===false)return false;const ok=String(id).startsWith("team:")?await team.restore(id.slice(5)):await horizontal.restore(id);if(ok){ui.mode="report";reportSelection.reset();renderReport(false);renderWorkspace();}return ok;},
+    deleteSavedReport:id=>String(id).startsWith("team:")?team.deleteReport(id.slice(5)):horizontal.deleteReport(id),
     getLongitudinal:()=>longitudinal.active()?longitudinal.model():null,
     getLongitudinalDocument:()=>longitudinal.document()?copy(longitudinal.document()):null,
     openEntry,
@@ -31988,7 +33122,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           const object = value => value && typeof value === "object" && !Array.isArray(value);
           ui.records = Object.fromEntries(Object.entries(object(saved.records) ? saved.records : {}).filter(([,view]) => object(view)));
           if(state){
-            const personal = ui.records[state.recordId] || (saved.recordId === state.recordId && !saved.longitudinal && !saved.horizontal ? saved : null);
+            const personal = ui.records[state.recordId] || (saved.recordId === state.recordId && !saved.longitudinal && !saved.horizontal && !saved.team ? saved : null);
             if(object(personal)){
               ui.reportScroll = Number.isFinite(personal.reportScroll) ? Math.max(0,personal.reportScroll) : 0;
               ui.detailOpen = object(personal.detailOpen) ? {...personal.detailOpen} : {};
@@ -31996,7 +33130,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
             }
           }
           if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}
-          if(!initialHorizontal&&!initialLongitudinal){initialLongitudinal=saved.longitudinal;initialHorizontal=saved.horizontal;}
+          if(!initialHorizontal&&!initialLongitudinal&&!initialTeam){initialLongitudinal=saved.longitudinal;initialHorizontal=saved.horizontal;initialTeam=saved.team;}
         }
       } catch {}
       if(initialLongitudinal){
@@ -32006,6 +33140,10 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(initialHorizontal){
         try{await horizontal.restore(initialHorizontal);if(ui.mode==="entry"&&entryTab!=="narrative")horizontal.suspend();}
         catch(error){horizontal.clear();toast(error.message);}
+      }
+      if(initialTeam){
+        try{await team.restore(initialTeam);if(ui.mode==="entry"&&entryTab!=="narrative")team.suspend();}
+        catch(error){team.clear();toast(error.message);}
       }
       document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);
       renderReport(false);if(ui.mode==="entry")renderEntry();renderWorkspace();

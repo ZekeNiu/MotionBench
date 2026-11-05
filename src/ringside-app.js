@@ -172,7 +172,7 @@
     pdfJob = false,
     scrollFrame = null,
     uiSaveTimer;
-  let longitudinalStoredJSON = "[]", initialLongitudinal = null, initialHorizontal = null;
+  let longitudinalStoredJSON = "[]", initialLongitudinal = null, initialHorizontal = null, initialTeam = null;
   const longitudinal = window.RingsideLongitudinalController.create({
     state:()=>state, library:()=>library, repository:()=>repository, save:persist, saveEditor,
     switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close,
@@ -184,7 +184,7 @@
   const horizontal = window.RingsideHorizontalController.create({
     state:()=>state, library:()=>library, repository:()=>repository, save:persist, saveEditor,
     switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close,
-    activate:({detached=false}={})=>{longitudinal.clear();if(detached){state=null;library.activeAthleteId="";library.activeRecordId="";}ui.mode="report";reportDirty=true;},
+    activate:({detached=false}={})=>{team.clear();longitudinal.clear();if(detached){state=null;library.activeAthleteId="";library.activeRecordId="";}ui.mode="report";reportDirty=true;},
     confirmDeleteReport:({title})=>Promise.resolve(confirm("删除横向报告“"+(title||"横向比较报告")+"”？报告正文和统计快照将删除，原始测试记录保留。")),
     error:message=>toast(message), render:()=>{renderReport(false);renderWorkspace();},
     captureView:captureReportUI, renderDisplay:()=>renderReport(),
@@ -195,12 +195,29 @@
     listReports:()=>openManagement("records",{view:"reports"}),
     evaluationConflicts:conflicts=>reportSelection.showConflicts(conflicts),
   });
-  const reports = window.RingsideReportOwner.create({controllers:[horizontal,longitudinal],state:()=>state});
+  const team = window.RingsideTeamController.create({
+    state:()=>state, library:()=>library, repository:()=>repository, save:options=>persist({...options,readOnlyRecord:true}), saveEditor,
+    switchRecord, cancelAI:cancelJob, remember:rememberUI, modal, close, commitLibraryChange,
+    activate:({detached=false}={})=>{horizontal.clear();longitudinal.clear();if(detached){state=null;library.activeAthleteId="";library.activeRecordId="";}ui.mode="report";reportDirty=true;},
+    confirmDeleteReport:({title})=>Promise.resolve(confirm("删除团队报告“"+(title||"团队报告")+"”？报告正文和统计快照将删除，原始测试记录保留。")),
+    error:message=>toast(message),render:()=>{renderReport(false);renderWorkspace();},
+    captureView:captureReportUI,renderDisplay:()=>renderReport(),
+    restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
+    editSelection:configuration=>teamSelection.open(configuration,{reportId:configuration?team.document()?.id:null}),
+    listReports:()=>openManagement("records",{view:"reports"}),
+  });
+  const reports = window.RingsideReportOwner.create({controllers:[team,horizontal,longitudinal],state:()=>state});
+  const teamSelection = window.RingsideTeamSelection.create({
+    library:()=>library,beforeOpen:async()=>{if(managementNavigationBlocked())return false;saveEditor();return persist();},
+    select:(configuration,options)=>team.configure(configuration,{...options,prior:team.document()?.id===options.reportId?team.document():null}),
+  });
   const reportSelection = window.RingsideReportSelection.create({
     library:()=>library,element:()=>$("reportSelection"),current:()=>state,
     configuration:()=>horizontal.active()?horizontal.document().configuration:null,
     longitudinal:()=>longitudinal.active()?longitudinal.selection():null,
     identity:()=>reports.owner()||state?.recordId||"",reportId:()=>horizontal.active()?horizontal.document().id:null,
+    team:()=>team.active()?team.document():null,openTeam:()=>teamSelection.open(),editTeam:()=>team.edit(),
+    leaveTeam:async()=>{saveEditor();if(!await persist())return false;team.clear();reportSelection.reset();renderReport(false);renderWorkspace();rememberUI();return true;},
     select:applyReportSelection,cancelPending:()=>{selectionSequence++;reports.cancelPending();},
     manage:(tab,onReturn)=>openClassifications(tab,{onReturn:async()=>{await showReport(false);onReturn();},returnLabel:"返回报告选择"}),
   });
@@ -448,7 +465,7 @@
       const person=people[0],athlete=library.athletes.find(a=>a.id===person?.athleteId&&!a.deletedAt),ids=person?.recordIds||[];
       if(person&&!athlete)throw Error("所选运动员已不存在");
       if(!isCurrent())return false;
-      horizontal.clear();
+      team.clear();horizontal.clear();
       if(ids.length>1)return longitudinal.select(ids,{athleteId:person.athleteId,...(Object.hasOwn(value,"profileId")?{evaluationProfileId:value.profileId}:{})});
       return switchRecord(athlete||null,ids.length?athlete.records.find(r=>r.recordId===ids[0]):null);
     }
@@ -787,7 +804,7 @@
     } else controls.replaceChildren();
     const canUseExcel = people.every(r => library.athletes.some(a => a.id === r.athleteId && !a.deletedAt && !a.archived));
     if (!window.RingsideExcelFlow.isBusy()) document.querySelectorAll("[data-entry-excel-action]").forEach(el => { el.disabled = !canUseExcel; el.title = canUseExcel ? "" : "录入并保存后，运动员建档完成即可使用 Excel"; });
-    $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : horizontal.active() && ui.mode === "report" ? `${horizontal.model().participants.length} 名运动员 · 横向比较` : longitudinal.active() && ui.mode === "report" ? `${a?.profile.name || state.athlete.name || ""} · ${longitudinal.selection().recordIds.length} 次测试` : context;
+    $("recordContext").textContent = ui.mode === "settings" && settingsTab === "app" ? "" : team.active() && ui.mode === "report" ? `${team.model().participants.length} 名运动员 · 团队报告` : horizontal.active() && ui.mode === "report" ? `${horizontal.model().participants.length} 名运动员 · 横向比较` : longitudinal.active() && ui.mode === "report" ? `${a?.profile.name || state.athlete.name || ""} · ${longitudinal.selection().recordIds.length} 次测试` : context;
     $("entryIdentity").textContent = context;
     const tabs = entryTabs(),
       index = tabs.findIndex((t) => t[0] === entryTab);
@@ -901,6 +918,7 @@
         if (old) { lastRestorePayload = {rawText:old}; input = JSON.parse(old); }
       }
       lastRestorePayload = input || lastRestorePayload;
+      if (input?.kind === "team-report") { initialTeam=input.document;input=input.library; }
       if (input?.kind === "horizontal-report") { initialHorizontal=input.document;input=input.library; }
       if (input?.kind === "longitudinal-report") { initialLongitudinal=input.selection;input=input.library; }
       const migrated = window.RingsideEvaluation.migrate(input || M.libraryDefaults());
@@ -912,8 +930,10 @@
         migrated.athletes.push({id:record.athleteId,name:"示例",profile:M.profileFromRecord(record),sample:true,groupId:"",archived:false,deletedAt:null,records:[record]});
         migrated.activeAthleteId = record.athleteId; migrated.activeRecordId = record.recordId;
       }
+      if(initialTeam)migrated.teamReports=[window.RingsideTeamStore.normalize(initialTeam)];
       if(initialHorizontal)migrated.horizontalReports=[window.RingsideHorizontalStore.normalize(initialHorizontal)];
       const imported=await repository.importLibrary(migrated);
+      if(initialTeam)initialTeam={id:imported.teamMap?.[initialTeam.id]||initialTeam.id};
       if(initialHorizontal)initialHorizontal={id:imported.horizontalMap?.[initialHorizontal.id]||initialHorizontal.id};
     }
     await repository.upgradeMeasurementContract();
@@ -940,6 +960,7 @@
           lastViewed: ui.lastViewed || {},
           longitudinal: longitudinal.selection(),
           horizontal: horizontal.selection(),
+          team: team.selection(),
         }),
       );
     } catch {}
@@ -947,15 +968,16 @@
   function reportViewOwned() {
     if (!reports.hasContent() || ui.mode !== "report") return false;
     const view = $("reportView");
+    if (team.active()) return view.dataset.team === "true" && view.dataset.teamOwner === team.owner();
     if (horizontal.active()) return view.dataset.horizontal === "true" && view.dataset.horizontalOwner === horizontal.owner();
     if (longitudinal.active()) return view.dataset.longitudinal === "true" && view.dataset.longitudinalOwner === longitudinal.owner();
-    return view.dataset.longitudinal !== "true" && view.dataset.horizontal !== "true" && view.dataset.reportRecordId === state.recordId;
+    return view.dataset.team !== "true" && view.dataset.longitudinal !== "true" && view.dataset.horizontal !== "true" && view.dataset.reportRecordId === state.recordId;
   }
   function captureReportUI() {
     if (!reportViewOwned()) return;
     ui.reportScroll = window.scrollY;
     document
-      .querySelectorAll(horizontal.active()?"#reportView details[id]":"#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings],#reportView .longitudinal-capability-parameters")
+      .querySelectorAll(horizontal.active()||team.active()?"#reportView details[id]":"#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings],#reportView .longitudinal-capability-parameters")
       .forEach((el) => {if(el.id)ui.detailOpen[el.id] = el.open;});
     if (reports.active()) return reports.setViews({...reports.document().views,reportScroll:ui.reportScroll,detailOpen:{...ui.detailOpen}});
     ui.records[state.recordId] = {
@@ -1070,6 +1092,7 @@
     ui.returnMode = "report";
     await longitudinal.resume();
     await horizontal.resume();
+    await team.resume();
     renderWorkspace();
     renderReport(false);
     closeMobileSidebar();
@@ -1234,13 +1257,13 @@
       '<button class="btn small" onclick="App.addRow(\'imtp\')">＋ 新增试次</button>'
     );
   }
-  function persist({duringTransfer = false, longitudinalDisplay = false, horizontalDisplay = false} = {}) {
+  function persist({duringTransfer = false, longitudinalDisplay = false, horizontalDisplay = false, teamDisplay = false, readOnlyRecord = false} = {}) {
     const displaySave = reports.pendingDisplaySave();
-    if (displaySave && !longitudinalDisplay && !horizontalDisplay)
-      return displaySave.then(() => persist({duringTransfer}));
+    if (displaySave && !longitudinalDisplay && !horizontalDisplay && !teamDisplay)
+      return displaySave.then(() => persist({duringTransfer,readOnlyRecord}));
     if (!library || !repository) return Promise.resolve(false);
     if (libraryTransferActive && !duringTransfer) return Promise.resolve(false);
-    if (state) { try { if (!reports.active()) M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }
+    if (state) { try { if (!reports.active()&&!readOnlyRecord) M.applyAge(state); M.validateAthleteContext(state); } catch (error) { $("saveStatus").textContent="保存失败 · "+error.message;return Promise.resolve(false); } }
     clearTimeout(saveTimer); saveTimer = null;
     if (entrySession?.records.some(r => r.recordId === state?.recordId)) {
       const index = entrySession.records.findIndex(r => r.recordId === state.recordId);
@@ -1282,6 +1305,7 @@
       }
       await repository.saveRecords(writeRecord ? [snapshot] : [], checks, options);
       if (!await horizontal.save()) throw Error("横向报告尚未保存，请重试");
+      if (!await team.save()) throw Error("团队报告尚未保存，请重试");
       longitudinalStoredJSON = serializedDocuments;
       if (writeRecord) rememberRecordBaseline(snapshot);
     });
@@ -1426,16 +1450,16 @@
   }
   async function switchRecord(a, r, options = {}) {
     const sequence = ++selectionSequence;
-    if (!options.longitudinal && !options.horizontal) reports.cancelPending();
+    if (!options.longitudinal && !options.horizontal && !options.team) reports.cancelPending();
     if(reportEditInfo(document.activeElement))commitReportControl(document.activeElement);
     if (state) { captureReportUI(); saveEditor(); }
-    if (!await persist({duringTransfer:!!options.duringTransfer})) return;
+    if (!await persist({duringTransfer:!!options.duringTransfer,readOnlyRecord:!!options.team})) return;
     if (sequence !== selectionSequence) return;
-    if (!options.longitudinal && !options.horizontal) reports.clear();
+    if (!options.longitudinal && !options.horizontal && !options.team) reports.clear();
     await leaveEntrySession();
     const stored = r ? await repository.loadRecord(r.recordId) : null;
     if (sequence !== selectionSequence) return;
-    const upgrade = stored && !((options.longitudinal || options.horizontal) && !options.edit) ? upgradeDemo(stored) : {changed:false};
+    const upgrade = stored && !((options.longitudinal || options.horizontal || options.team) && !options.edit) ? upgradeDemo(stored) : {changed:false};
     const loaded = stored ? M.normalizeRecord(upgrade.record || stored) : null;
     if (loaded && options.longitudinal && !options.edit) M.applyAge(loaded);
     if (upgrade.changed) {
@@ -1451,7 +1475,7 @@
     const saved = loaded && ui.records[loaded.recordId];
     ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
     ui.mode = options.edit && loaded ? "entry" : "report";
-    await persist({duringTransfer:!!options.duringTransfer}); renderReport(false);
+    await persist({duringTransfer:!!options.duringTransfer,readOnlyRecord:!!options.team}); renderReport(false);
     if (ui.mode === "entry") renderEntry();
     renderWorkspace(); closeMobileSidebar(); window.scrollTo({top:ui.mode === "report" ? ui.reportScroll:0,behavior:"instant"});
     return true;
@@ -1693,7 +1717,7 @@
     if (window.RingsideManagement.beforeLeave?.("entry") === false) return false;
     if (creation?.submitting) return;
     if (!library) return;
-    if(longitudinal.selection()||horizontal.selection()){saveEditor();if(!await persist())return;reports.clear();cancelJob();}
+    if(longitudinal.selection()||horizontal.selection()||team.selection()){saveEditor();if(!await persist())return;reports.clear();cancelJob();}
     const wanted = requestedIds || (athleteId ? [athleteId] : []);
     if (wanted.some(id=>!library.athletes.some(a=>a.id===id&&!a.deletedAt&&!a.archived))) return toast("所选运动员已归档或移入回收站，请先恢复");
     if (entrySession) {
@@ -2233,6 +2257,7 @@
     renderSelectors();
     if (reports.active()) {
       if(!horizontal.active())$("horizontalReportControls").hidden=true;
+      if(!team.active()){delete $("reportView").dataset.team;delete $("reportView").dataset.teamOwner;}
       reports.render();renderNarrativeStatus();reportDirty=false;refreshEntryChrome();renderNavigation();
       if(previousScroll!==null)window.scrollTo({top:previousScroll,behavior:"instant"});
       return;
@@ -2241,6 +2266,8 @@
     delete $("reportView").dataset.longitudinalOwner;
     delete $("reportView").dataset.horizontal;
     delete $("reportView").dataset.horizontalOwner;
+    delete $("reportView").dataset.team;
+    delete $("reportView").dataset.teamOwner;
     delete $("reportView").dataset.reportKind;
     $("horizontalReportControls").hidden=true;
     $("directionMetrics").hidden = false;
@@ -4235,6 +4262,9 @@
   }
   function localDraft() {
     if (job) return;
+    if(team.active()){
+      preview(window.RingsideTeam.localText(team.model(),team.document().views),"本地",{...snapshot(),capabilityDirectionsBasis:capabilityDirectionsBasis()});return;
+    }
     if(horizontal.active()){
       preview(window.RingsideHorizontal.localText(horizontal.model(),horizontal.document().views),"本地",{...snapshot(),capabilityDirectionsBasis:capabilityDirectionsBasis()});
       setAIStatus("ready","离线摘要已生成，等待应用","");return;
@@ -4508,7 +4538,7 @@
   async function ai() {
     if(reports.isLoading())return;
     if (job) return toast("当前分析正在生成", "ai");
-    const hasData = horizontal.active() ? [...horizontal.model().projects,...horizontal.model().references.flatMap(ref=>ref.projects||[])].some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null)||N(row.benchmark?.mean)!==null)) : longitudinal.active() ? longitudinal.model().periods.some(period=>period.stats.validTests.size) : M.stats(effectiveRecord()).validTests.size;
+    const hasData = team.active() ? team.model().projects.some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null))) : horizontal.active() ? [...horizontal.model().projects,...horizontal.model().references.flatMap(ref=>ref.projects||[])].some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null)||N(row.benchmark?.mean)!==null)) : longitudinal.active() ? longitudinal.model().periods.some(period=>period.stats.validTests.size) : M.stats(effectiveRecord()).validTests.size;
     if (!hasData) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
     const requestedBinding = reports.binding();
     let connection;
@@ -4531,8 +4561,8 @@
     renderNarrativeStatus();
     try {
       const messages = [
-        { role: "system", content: window.RingsideInterventions.systemPrompt + (horizontal.active() ? "\n当前任务为横向比较或群体统计报告。以 presentation.focus 为解读重点，以 presentation.activeReferenceId 指定的当前群体及 presentation.baseline 为比较依据，采用提供的统一差值；无基准时不生成相对优势或不足。使用各指标实际人数、最近可比测试／期间最佳成绩／期间均值的取样口径及来源。群体评价依据先汇总后评价的结果；数据库参照不等于常模或评价标准。不同人的差异不写成时间上的改善或下降。根据实际数值与已有评价提出具体建议，不编造统计检验或把群体参数拼成真实个人。" : longitudinal.active() ? "\n当前任务为同一运动员的纵向比较。逐期对照所给统一计算结果，使用程序提供的变化值。缺测不能作为零；不得自行计算或编造显著性、p值、MDC、标准化效果量、改善方向。分清测量变化、评价条件变化和训练推断。" : "") },
-        { role: "user", content: "生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n" + JSON.stringify(facts()) },
+        { role: "system", content: window.RingsideInterventions.systemPrompt + (team.active() ? "\n当前任务为团队报告。使用每人所选单条记录的代表结果，按程序给出的排序、分布、有效人数和筛查人员说明全队情况。运动表现是各人按统一方案有效得分后的均值；筛查为红黄提示的去重人数，不是损伤发生概率。缺测不当零，不编造统计检验或时间变化，不把团队均值写成某个人成绩。" : horizontal.active() ? "\n当前任务为横向比较或群体统计报告。以 presentation.focus 为解读重点，以 presentation.activeReferenceId 指定的当前群体及 presentation.baseline 为比较依据，采用提供的统一差值；无基准时不生成相对优势或不足。使用各指标实际人数、最近可比测试／期间最佳成绩／期间均值的取样口径及来源。群体评价依据先汇总后评价的结果；数据库参照不等于常模或评价标准。不同人的差异不写成时间上的改善或下降。根据实际数值与已有评价提出具体建议，不编造统计检验或把群体参数拼成真实个人。" : longitudinal.active() ? "\n当前任务为同一运动员的纵向比较。逐期对照所给统一计算结果，使用程序提供的变化值。缺测不能作为零；不得自行计算或编造显著性、p值、MDC、标准化效果量、改善方向。分清测量变化、评价条件变化和训练推断。" : "") },
+        { role: "user", content: (team.active()?"生成团队解读：先概括全队表现、项目排名与分布，再列出需要关注的人员及其已有筛查依据。使用实际有效人数，不重复描述图形外观。\n":"生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n") + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
       let validated, pages;
@@ -4619,7 +4649,7 @@
     clone.querySelector("#embedded-data").textContent = JSON.stringify(
       payload,
     ).replace(/</g, "\\u003c");
-    clone.querySelectorAll('#horizontalDialog,#classificationModal,#reportReferenceDialog').forEach(node=>node.remove());
+    clone.querySelectorAll('#horizontalDialog,#classificationModal,#reportReferenceDialog,#teamReportDialog').forEach(node=>node.remove());
     for (const id of [
       "entryNav",
       "entryContent",
@@ -4728,6 +4758,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   function filename(ext) {
+    if(team.active())return "MotionBench_团队报告_"+(team.document().title||team.document().id).replace(/[<>:\"/\\|?*\s]/g,"_")+"."+ext;
     if(horizontal.active())return "MotionBench_横向比较_"+(horizontal.document().title||horizontal.document().id).replace(/[<>:"/\\|?*\s]/g,"_")+"."+ext;
     if(longitudinal.active())return "MotionBench_"+(state.athlete.name||"athlete").replace(/[<>:"/\\|?*\s]/g,"_")+"_纵向比较_"+longitudinal.model().periods[0].date+"_"+longitudinal.model().periods.at(-1).date+"."+ext;
     return (
@@ -4797,11 +4828,11 @@
     } catch(error) {toast(error.message);}
   }
   async function prepareVersionRollback() {
-    if(!confirm("恢复为升级前资料，并结束当前页面。升级后资料仍会保留。继续前请导出当前完整备份；随后关闭本项目的其他页面，用 2.18.0-local 替换程序。是否继续？"))return;
+    if(!confirm("恢复历史升级检查点中的资料，并结束当前页面。继续前请导出完整备份。此操作不会降低数据库版本；如需使用旧程序，应恢复与旧程序配套的资料目录副本。是否继续？"))return;
     try {
       if(!await persist())throw Error("当前修改尚未保存");
       libraryTransferActive=true;await repository.restoreUpgradeCheckpoint();cancelJob();
-      document.body.innerHTML='<main style="max-width:720px;margin:10vh auto;padding:32px"><h1>升级前资料已恢复</h1><p>请关闭本项目的所有页面，将 2.18.0-local 程序放回原路径，再使用原浏览器和原地址打开。</p><p>升级后的资料副本仍保存在本机。再次使用新版会重新执行升级。</p></main>';
+      document.body.innerHTML='<main style="max-width:720px;margin:10vh auto;padding:32px"><h1>升级前资料已恢复</h1><p>请关闭本项目的所有页面。当前数据库结构保持新版；如需使用旧程序，请同时恢复与它配套的升级前资料目录副本。</p><p>升级后的资料副本仍保存在本机。再次使用新版会重新执行升级。</p></main>';
     } catch(error) {libraryTransferActive=false;toast(error.message);}
   }
   async function downloadLegacyLibrary() {
@@ -4844,8 +4875,10 @@
   async function importPayload(parsed, conflictChoice = "merge") {
     return runLibraryTransfer(async()=>{
     const incomingSelection=parsed?.kind==="longitudinal-report"?parsed.selection:null;
+    const incomingTeam=parsed?.kind==="team-report"?window.RingsideTeamStore.normalize(parsed.document):null;
     const incomingHorizontal=parsed?.kind==="horizontal-report"?window.RingsideHorizontalStore.normalize(parsed.document):null;
-    const incoming=window.RingsideEvaluation.migrate(incomingSelection||incomingHorizontal?parsed.library:parsed);
+    const incoming=window.RingsideEvaluation.migrate(incomingSelection||incomingHorizontal||incomingTeam?parsed.library:parsed);
+    if(incomingTeam)incoming.teamReports=[incomingTeam];
     if(incomingHorizontal)incoming.horizontalReports=[incomingHorizontal];
     if(incomingSelection&&!window.RingsideLongitudinalStore.get(incoming,incomingSelection.athleteId,incomingSelection.recordIds))throw Error("比较报告缺少对应正文或所选记录。");
     if (!await persist({duringTransfer:true})) throw Error("当前修改尚未保存");
@@ -4862,6 +4895,7 @@
     }
     ui.mode="report";
     if(incomingSelection)await longitudinal.restore({...incomingSelection,athleteId:result.athleteMap?.[incomingSelection.athleteId]||incomingSelection.athleteId,recordIds:incomingSelection.recordIds.map(id=>result.recordMap[id]||id)});
+    if(incomingTeam&&!await team.restore({id:result.teamMap?.[incomingTeam.id]||incomingTeam.id},{flush:false,duringTransfer:true}))throw Error("已导入团队报告，但无法打开，请从报告列表重开。");
     if(incomingHorizontal&&!await horizontal.restore({id:result.horizontalMap?.[incomingHorizontal.id]||incomingHorizontal.id},{flush:false,duringTransfer:true}))throw Error("已导入横向报告，但无法打开，请从横向报告列表重开。");
     renderReport(false);renderWorkspace();return result;
     });
@@ -5009,7 +5043,7 @@
       return toast(e.message);
     }
     renderReport();
-    const record = horizontal.active() ? {...copy(horizontal.model().participants[0]?.record||{}),horizontal:true,horizontalModel:copy(horizontal.model()),horizontalViews:copy(horizontal.document().views),horizontalTitle:$("reportTitle").textContent,narrative:copy(horizontal.narrative())} : longitudinal.active() ? {...copy(longitudinal.model().periods.at(-1).record),longitudinal:true,longitudinalDateRange:longitudinal.model().periods[0].date+" — "+longitudinal.model().periods.at(-1).date,narrative:copy(longitudinal.narrative())} : effectiveRecord(),
+    const record = team.active() ? {team:true,teamModel:copy(team.model()),teamViews:copy(team.document().views),teamTitle:$("reportTitle").textContent,narrative:copy(team.narrative())} : horizontal.active() ? {...copy(horizontal.model().participants[0]?.record||{}),horizontal:true,horizontalModel:copy(horizontal.model()),horizontalViews:copy(horizontal.document().views),horizontalTitle:$("reportTitle").textContent,narrative:copy(horizontal.narrative())} : longitudinal.active() ? {...copy(longitudinal.model().periods.at(-1).record),longitudinal:true,longitudinalDateRange:longitudinal.model().periods[0].date+" — "+longitudinal.model().periods.at(-1).date,narrative:copy(longitudinal.narrative())} : effectiveRecord(),
       name = filename("pdf"),
       report = $("reportView").cloneNode(true);
     pdfJob = true;
@@ -5050,10 +5084,11 @@
     cancelJob();
     const groups = [...document.querySelectorAll(".details-group")],
       old = groups.map((g) => g.open);
+    const cleanupTeam=team.active()?window.RingsideTeamView.prepareBrowserPrint($("reportView"),team.model(),copy(team.document().views)):null;
     const cleanupHorizontal=horizontal.active()?window.RingsideHorizontalView.prepareBrowserPrint($("reportView"),horizontal.model(),copy(horizontal.document().views)):null;
-    if(!horizontal.active())groups.forEach((g) => (g.open = true));
+    if(!horizontal.active()&&!team.active())groups.forEach((g) => (g.open = true));
     const restorePrint = () => {
-      cleanupHorizontal?.();
+      cleanupTeam?.();cleanupHorizontal?.();
       groups.forEach((g, i) => (g.open = old[i]));
       window.removeEventListener("afterprint", restorePrint);
     };
@@ -5066,9 +5101,9 @@
     await window.App.ready;
     if (!library || !repository) return {ok:true};
     const management = window.RingsideManagement.desktopCloseStatus?.() || {};
-    const reportChoice = reportSelection.desktopCloseStatus();
+    const reportChoice = reportSelection.desktopCloseStatus(), teamChoice=teamSelection.desktopCloseStatus();
     if (desktopPreferencesBusy) return {ok:false,reason:"正在保存启动检查设置，请保存完成后再退出或更新。"};
-    if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || reportChoice.busy || window.RingsideExcelFlow.isBusy())
+    if (creation?.submitting || libraryTransferActive || aiBusy || pdfJob || management.busy || reportChoice.busy || teamChoice.busy || window.RingsideExcelFlow.isBusy())
       return {ok:false,reason:"正在处理资料、AI 设置或文件导出，请完成或取消当前操作后再退出。"};
     saveEditor(); saveDrafts(); saveEntrySession(); rememberUI();
     if (!await persist()) return {ok:false,reason:"当前数据尚未保存。请修正输入或重试保存，再退出程序。"};
@@ -5078,13 +5113,18 @@
     saveDrafts(); saveEntrySession();
     if (storageFailed || entrySessionStorageFailed || inputDraftStorageFailed)
       return {ok:false,reason:"本机保存失败，请检查磁盘空间并导出资料后重试。"};
-    if (!discardSettings && (aiDirty || management.unsaved || reportChoice.unsaved || creation || catalogEdit || unitChange))
+    if (!discardSettings && (aiDirty || management.unsaved || reportChoice.unsaved || teamChoice.dirty || creation || catalogEdit || unitChange))
       return {ok:false,discardable:true,reason:"有尚未提交的报告选择、设置或管理表单。"};
     if (job) cancelJob();
     return {ok:true};
   }
   window.App = {
-    selectRecords: async ids=>{if(horizontal.active()){saveEditor();if(!await persist())return false;horizontal.clear();}return longitudinal.select(ids);},
+    selectRecords: async ids=>{if(team.active()){saveEditor();if(!await persist())return false;team.clear();}if(horizontal.active()){saveEditor();if(!await persist())return false;horizontal.clear();}return longitudinal.select(ids);},
+    openTeam: options=>teamSelection.open(options?.configuration||null,{reportId:options?.reportId||null}),
+    selectTeam:configuration=>team.createReport(configuration),
+    getTeam:()=>team.active()?team.model():null,
+    getTeamDocument:()=>team.document()?copy(team.document()):null,
+    refreshTeam:()=>team.refresh(),
     openHorizontal: options=>horizontal.openSetup(options),
     openHorizontalReports: ()=>horizontal.listReports(),
     selectHorizontal: options=>horizontal.createReport(options),
@@ -5095,9 +5135,9 @@
     editReportSelection:configuration=>reportSelection.edit(configuration),
     getReportSelection:()=>reportSelection.state(),
     applyReportSelection:()=>reportSelection.apply(),
-    listSavedReports:async()=> (await repository.listHorizontalReports()).map(row=>({...row,kind:row.participantCount?"horizontal":"cohort",subtitle:row.participantCount?`${row.participantCount} 人 · ${row.referenceCount} 个群体参照`:`${row.referenceCount} 个群体`})),
-    restoreSavedReport:async id=>{if(window.RingsideManagement.beforeLeave?.("report")===false)return false;const ok=await horizontal.restore(id);if(ok){ui.mode="report";reportSelection.reset();renderReport(false);renderWorkspace();}return ok;},
-    deleteSavedReport:id=>horizontal.deleteReport(id),
+    listSavedReports:async()=> [...(await repository.listHorizontalReports()).map(row=>({...row,kind:row.participantCount?"horizontal":"cohort",subtitle:row.participantCount?`${row.participantCount} 人 · ${row.referenceCount} 个群体参照`:`${row.referenceCount} 个群体`})),...(await repository.listTeamReports()).map(row=>({...row,id:"team:"+row.id,kind:"team",subtitle:`团队报告 · ${row.participantCount} 人`}))],
+    restoreSavedReport:async id=>{if(window.RingsideManagement.beforeLeave?.("report")===false)return false;const ok=String(id).startsWith("team:")?await team.restore(id.slice(5)):await horizontal.restore(id);if(ok){ui.mode="report";reportSelection.reset();renderReport(false);renderWorkspace();}return ok;},
+    deleteSavedReport:id=>String(id).startsWith("team:")?team.deleteReport(id.slice(5)):horizontal.deleteReport(id),
     getLongitudinal:()=>longitudinal.active()?longitudinal.model():null,
     getLongitudinalDocument:()=>longitudinal.document()?copy(longitudinal.document()):null,
     openEntry,
@@ -5874,7 +5914,7 @@
           const object = value => value && typeof value === "object" && !Array.isArray(value);
           ui.records = Object.fromEntries(Object.entries(object(saved.records) ? saved.records : {}).filter(([,view]) => object(view)));
           if(state){
-            const personal = ui.records[state.recordId] || (saved.recordId === state.recordId && !saved.longitudinal && !saved.horizontal ? saved : null);
+            const personal = ui.records[state.recordId] || (saved.recordId === state.recordId && !saved.longitudinal && !saved.horizontal && !saved.team ? saved : null);
             if(object(personal)){
               ui.reportScroll = Number.isFinite(personal.reportScroll) ? Math.max(0,personal.reportScroll) : 0;
               ui.detailOpen = object(personal.detailOpen) ? {...personal.detailOpen} : {};
@@ -5882,7 +5922,7 @@
             }
           }
           if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}
-          if(!initialHorizontal&&!initialLongitudinal){initialLongitudinal=saved.longitudinal;initialHorizontal=saved.horizontal;}
+          if(!initialHorizontal&&!initialLongitudinal&&!initialTeam){initialLongitudinal=saved.longitudinal;initialHorizontal=saved.horizontal;initialTeam=saved.team;}
         }
       } catch {}
       if(initialLongitudinal){
@@ -5892,6 +5932,10 @@
       if(initialHorizontal){
         try{await horizontal.restore(initialHorizontal);if(ui.mode==="entry"&&entryTab!=="narrative")horizontal.suspend();}
         catch(error){horizontal.clear();toast(error.message);}
+      }
+      if(initialTeam){
+        try{await team.restore(initialTeam);if(ui.mode==="entry"&&entryTab!=="narrative")team.suspend();}
+        catch(error){team.clear();toast(error.message);}
       }
       document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);
       renderReport(false);if(ui.mode==="entry")renderEntry();renderWorkspace();

@@ -26,8 +26,9 @@ function harness(baseline){
     },
   });c.window=c;c.RingsideStore={summary:value=>({recordId:value.recordId,athleteId:value.athleteId})};c.RingsideEvaluation={upgradeLibraryProfiles:()=>false};
   c.horizontal={active:()=>false,isLoading:()=>false,owner:()=>"",save:async()=>true};
+  c.team={active:()=>false,isLoading:()=>false,owner:()=>"",save:async()=>true};
   vm.runInContext(fs.readFileSync(path.join(__dirname,"../src/ringside-report-owner.js"),"utf8"),c);
-  c.reports=c.RingsideReportOwner.create({controllers:[c.horizontal,c.longitudinal],state:()=>c.state});
+  c.reports=c.RingsideReportOwner.create({controllers:[c.team,c.horizontal,c.longitudinal],state:()=>c.state});
   // Production load/baseline/persist code runs against synthetic storage and DOM boundaries.
   for(const[startMarker,endMarker]of [["  function recordContent(record) {","  function draftRecordKey("],["  async function loadDirectory(","  async function saveLibraryChanges("],["  function persist(","  function persistSessionRecord("]]){
     const start=app.indexOf(startMarker),end=app.indexOf(endMarker,start+startMarker.length);assert.ok(start>=0&&end>start);vm.runInContext(app.slice(start,end),c);

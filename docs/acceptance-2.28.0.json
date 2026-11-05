@@ -1,0 +1,204 @@
+{
+  "pass": true,
+  "version": "2.28.0",
+  "desktopVersion": "2.28.0-desktop.1",
+  "scope": [
+    "Independent frozen team reports with explicit roster/date/record selection and no changes to original athlete records",
+    "Competition ranks, compatible units, complete metric unions and four suitable descriptive chart types",
+    "Equal-weight averages of individual capability scores and deduplicated body-region screening counts with accessible names and evidence",
+    "Version-3 database, version-5 backups, durable owner-specific saves, native import/export and complete team PDFs; original three report types preserved"
+  ],
+  "artifact": {
+    "file": "MotionBench.html",
+    "sha256": "0fd41516b363e037b35573eb3735790dba9c0a762a0661a0e903717eec89b961",
+    "bytes": 5401409
+  },
+  "unitSuites": 88,
+  "unitChecks": 1307,
+  "browserSuites": 18,
+  "browserChecks": 206,
+  "browserPDFDocuments": 16,
+  "browserPDFPages": 78,
+  "nativeChecks": 36,
+  "evidence": [
+    {
+      "file": "output/release/2.28.0-local/acceptance/unit-final/unit-results.json",
+      "sha256": "6434b1b6cf1385d2371d0250445cb82cb607429498af9f1c1006c5849a0b3e4f",
+      "checks": 88
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/desktop-unit/results.json",
+      "sha256": "3272e61c0f66680e36a78f5671dafe4ba183109dcdadc339b87d3484d3d69f23",
+      "checks": 5
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/methods-chrome/chrome-results.json",
+      "sha256": "a105ea8cee7738f631224907d838505cddf85d9e4adc68c0fc3bdfe0587bb3bc",
+      "checks": 3
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/operation-chrome/chrome-results.json",
+      "sha256": "3c6238c907d6e334f9f516c48f87b3128ceb16519641e0ef0a883fbcef50f8fa",
+      "checks": 21
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/calculations-chrome/results.json",
+      "sha256": "c974264d8e8a9d52c2fe0771663ad847102e46506f7dd7120fac6ec7ede2771c",
+      "checks": 11
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/none-chrome/results.json",
+      "sha256": "e7745821327333e6085c938b85d1d7d712338baa06cc0d8e0145e016a6df2da6",
+      "checks": 13
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/surface-chrome/results.json",
+      "sha256": "eef88139ace014c03a8bf006eecd9f16c469e4e35d4d8b544ae7300db02e6e66",
+      "checks": 10
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/methods-msedge/msedge-results.json",
+      "sha256": "e9991fac7460fcd51d6f6484672c2e6c038355ba860bb929fca2e01999d05007",
+      "checks": 3
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/operation-msedge/msedge-results.json",
+      "sha256": "469fafb8af2b5babe701bf28e3a8917d82e7c5b62670651b9aca629d0d6fe99d",
+      "checks": 21
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/calculations-msedge/results.json",
+      "sha256": "2957150745caf4a7a775d9c8ff1bbeccc9835cbb2cc43b660bd5be0b86a8ed9c",
+      "checks": 11
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/none-msedge/results.json",
+      "sha256": "163d6d0d0965938603ebb37fd442e2545ef84547c9c5df55be4f44360826a2ea",
+      "checks": 13
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/surface-msedge/results.json",
+      "sha256": "689860fac4f9e192359b44f6639819faaccd8f515c8e586cb7b33c5cb302d6a5",
+      "checks": 10
+    },
+    {
+      "file": "output/playwright/team-report/chrome/results.json",
+      "sha256": "6b646cf94bbb7ead8e526f6da5c64c3fc632fee2f2a792a5b86b7225c8528120",
+      "checks": 9
+    },
+    {
+      "file": "output/playwright/team-view/chrome/receipt.json",
+      "sha256": "2aae0089d2938c33f7f082a91e3cae21d57978048624efe8f08b71066f37f038",
+      "checks": 13
+    },
+    {
+      "file": "output/playwright/team-storage/result-chrome.json",
+      "sha256": "12b91ae2466d1f6587c6a43f8beddecd0c69cab8adbc336210aa7885d9a2ca01",
+      "checks": 14
+    },
+    {
+      "file": "output/playwright/team-lifecycle/result-chrome.json",
+      "sha256": "cfded4423826bd413eaa60d129e311227d9dd062225625154fd5284110a77d06",
+      "checks": 9
+    },
+    {
+      "file": "output/playwright/team-report/msedge/results.json",
+      "sha256": "bd9db7d938f5e3047c1fa7eac125243092777e83b103239489bb7ecc5c2202a5",
+      "checks": 9
+    },
+    {
+      "file": "output/playwright/team-view/msedge/receipt.json",
+      "sha256": "d7c21121085cd29f2588ef231933194979c10881a01ca4b8d6d4edd5f714aa90",
+      "checks": 13
+    },
+    {
+      "file": "output/playwright/team-storage/result-msedge.json",
+      "sha256": "0d91dbd517a0599775387091d4a5e768bf0ba0b72bfe9b8c9ecf03021792e688",
+      "checks": 14
+    },
+    {
+      "file": "output/playwright/team-lifecycle/result-msedge.json",
+      "sha256": "20ae84653fb5dd348ca17f7b0998d89692dde99ab49aba7e7d8c8d55783452b6",
+      "checks": 9
+    },
+    {
+      "file": "output/playwright/team-native/results.json",
+      "sha256": "b12005c643339f31bc22d5a51c6e7233f4aff80c9d12ba8ef804a68dee8c1cb8",
+      "checks": 7
+    },
+    {
+      "file": "output/release/2.28.0-local/native-smoke/results.json",
+      "sha256": "7e6fc46c419cc13d504da0c3eba47cef40513c36f79f2200cf1a1a1bc7c71aa2",
+      "checks": 16
+    },
+    {
+      "file": "output/horizontal-refinement/native-2.26.3/results.json",
+      "sha256": "0dc45b0f56767a4ab8842295bed65e3358547d4c7459af289975ef7e74a075b5",
+      "checks": 11
+    },
+    {
+      "file": "output/release/2.26.3-local/native-failure-tests/results.json",
+      "sha256": "4f797c005ef7f832ea5d48741f3c1d2a9fe0289af4a911662f368331feb69d19",
+      "checks": 2
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/regression-verification.json",
+      "sha256": "6aefd175da0e7562cae77062f6cb9b89fdc871bebd7786a6459f5c41c65117e8"
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/regression-visual-review.json",
+      "sha256": "4f6b6ae28878ae8b0b72372a9f17a0078e5f63a2cbdd253788e465da8944ab8d"
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/team-visual-review-0fd41516.json",
+      "sha256": "b09dc3297ddd9dc3844a7d24c6c2e3c71ca8b551e7dc2e2772e3fc834f422df9"
+    },
+    {
+      "file": "output/release/2.28.0-local/acceptance/report-selection-final-0fd41516.json",
+      "sha256": "f17515ffebb934b9a174f88b3452b3e0a31de71df90a5be233d11f73b63505bc"
+    },
+    {
+      "file": "output/release/2.28.0-local/package-check.json",
+      "sha256": "0dd285c0562139a16d0098d87f6db21ed3438c676eaffc4a689046cefa3778e9"
+    },
+    {
+      "file": "output/release/2.28.0-local/packaging-evidence.json",
+      "sha256": "d3c7b32b211a2a32e8d64b3635f599914b1f3ed9fa33d0e51349c8ab4bae6427"
+    }
+  ],
+  "package": {
+    "archiveSha256": "39ae696dde9497c0f95e9e2c3f3fa3bad4877c4d8dea6b6a6ef1d380bef669ea",
+    "htmlSha256": "0fd41516b363e037b35573eb3735790dba9c0a762a0661a0e903717eec89b961",
+    "assets": 271,
+    "installerSha256": "30283227483bbd3fe652446cd09e69aa8d1b83a009c399d6031dbfdf6b43a2c9",
+    "portableSha256": "da1272005f36bb0f5eadf5419cd75b11f6eed16aa9ef104c58fab4888b3fc602",
+    "updaterSha256": "11bb24e4f4d5075c3a48cd7827f3a620092432ccca25a7edae75bffbc11dc9d6",
+    "artifacts": [
+      {
+        "file": "MotionBench-2.28.0-desktop.1-Setup-x64.exe",
+        "bytes": 113761013,
+        "sha256": "30283227483bbd3fe652446cd09e69aa8d1b83a009c399d6031dbfdf6b43a2c9",
+        "sha512": "ubc31KpGdy3WoWyNDWdjouiHj3T/yXxACyb5HIN+c/PifPEq2GCw48vTul6Hvs2Upu2tRvYrc0FSgBwElz9FLw=="
+      },
+      {
+        "file": "MotionBench-2.28.0-desktop.1-Setup-x64.exe.blockmap",
+        "bytes": 119829,
+        "sha256": "e13535b2ff57d5e0c8fde618b00c7eafd3fff85d764f50a438c9f34bcb32c5d4",
+        "sha512": "WKLzmSmRK1NSSMYb9snIu21/37tJvVrfMA4tozaRXFiCG8YDBDVlW98menJQaxP4ZMzIx78iZ9ufUe2MlWijsQ=="
+      },
+      {
+        "file": "MotionBench-2.28.0-desktop.1-Portable-x64.exe",
+        "bytes": 113524619,
+        "sha256": "da1272005f36bb0f5eadf5419cd75b11f6eed16aa9ef104c58fab4888b3fc602",
+        "sha512": "LW1B+ghHVW9sUmRRWk+2jpnWz72xYFKlvJM6Y1aNCet7U63f8oFCfQ1RPuz1H8IrQ8pk8FFl15ExWsJvAdrS2w=="
+      },
+      {
+        "file": "desktop.yml",
+        "bytes": 392,
+        "sha256": "11bb24e4f4d5075c3a48cd7827f3a620092432ccca25a7edae75bffbc11dc9d6",
+        "sha512": "07cCNweoDVWxAI3tIXnTVB7K3G1Pj7dB8vFHnATdHARp8/p2mIJIHvNNCYEeJl4i0TI4QQ5GHpQa1H2AgVPDQA=="
+      }
+    ]
+  },
+  "privateDataIncluded": false
+}

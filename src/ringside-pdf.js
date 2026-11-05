@@ -212,8 +212,9 @@
 
   function cleanClone(reportElement,snapshot) {
     const clone = reportElement.cloneNode(true);
+    if(snapshot?.teamModel)root.RingsideTeamView.preparePrint(clone,snapshot.teamModel,snapshot.teamViews||{});
     if(snapshot?.horizontalModel)root.RingsideHorizontalView.preparePrint(clone,snapshot.horizontalModel,snapshot.horizontalViews||{});
-    if(snapshot && clone.dataset.longitudinal !== "true" && clone.dataset.horizontal !== "true")root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
+    if(snapshot && clone.dataset.longitudinal !== "true" && clone.dataset.horizontal !== "true" && clone.dataset.team !== "true")root.RingsideReport.prepareFVPPrint?.(clone,snapshot);
     if (clone.dataset.longitudinal === "true") {
       clone.querySelector("#directionMetrics")?.remove();
       clone.querySelector("#radarLegend")?.closest(".card-foot")?.remove();
@@ -318,7 +319,7 @@
   }
 
   function backgroundFields(snapshot) {
-    if (snapshot.horizontal) return [];
+    if (snapshot.horizontal || snapshot.team) return [];
     const athlete = snapshot.athlete || {};
     return [
       ["sport", "专项", athlete.sport],
@@ -799,6 +800,7 @@
   }
 
   function reportIdentity(snapshot) {
+    if(snapshot.team){const count=snapshot.teamModel?.participants?.length||0,title=snapshot.teamTitle||"团队报告",subject="团队报告 · "+count+" 名运动员";return {title,subject,header:subject,footer:"团队报告"};}
     if(snapshot.horizontal){
       const model=snapshot.horizontalModel||{},count=model.participants?.length||0,reference=model.references?.find(item=>item.id===snapshot.horizontalViews?.activeReferenceId)||model.references?.[0],kind=count?"横向比较报告":"群体统计报告",title=snapshot.horizontalTitle||kind,subject=kind+" · "+(count?count+" 名运动员":reference?.label||"群体结果");
       return {title,subject,header:subject,footer:kind};
@@ -849,6 +851,7 @@
     let content;
     function newPage() {
       const page = element("div", "ringside-pdf-document ringside-pdf-page");
+      if (snapshot.team) page.dataset.team = "true";
       const header = element("div", "ringside-pdf-page-head");
       header.append(
         element("span", "", "MotionBench · 运动表现评估"),
@@ -1358,6 +1361,7 @@
       const primaryLayouts = layoutPrimaryPairs(source, stage);
       root.RingsideReport.layoutCharts(source, { print: true });
       if (source.dataset.longitudinal === "true") root.RingsideLongitudinalView?.layout(source, { print: true });
+      if (source.dataset.team === "true") root.RingsideTeamView.layout(source, { print: true });
       if (source.dataset.horizontal === "true") root.RingsideHorizontalView.layout(source, { print: true });
       freezePrimaryColumns(source);
       await freezeCharts(source);
