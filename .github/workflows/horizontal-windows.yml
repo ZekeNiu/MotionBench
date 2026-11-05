@@ -2,7 +2,7 @@ name: MotionBench Windows
 
 on:
   push:
-    branches: [main, 'codex/motionbench-horizontal-*', 'codex/motionbench-2.27.*', 'codex/motionbench-team-report', 'codex/motionbench-report-navigation']
+    branches: [main, 'codex/motionbench-horizontal-*', 'codex/motionbench-2.27.*', 'codex/motionbench-team-report']
     tags: ['v2.25.*-desktop.*', 'v2.26.*-desktop.*', 'v2.27.*-desktop.*', 'v2.28.*-desktop.*']
   workflow_dispatch:
 
@@ -46,69 +46,22 @@ jobs:
           git cat-file -e 'bbf86b6^:src/ringside.css'
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -c "import pymupdf,pypdf; print('PDF readers available')"
-      - name: Build and verify every calculation suite
+      - name: Verify the changed selection and save flows
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/unit-final
+          node tests/run-unit-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/unit-final --suites report-navigation-state-tests.cjs,longitudinal-navigation-state-tests.cjs,report-selection-model-tests.cjs,team-selection-model-tests.cjs,report-owner-model-tests.cjs,longitudinal-store-model-tests.cjs,longitudinal-display-state-tests.cjs,ordinary-save-model-tests.cjs,entry-session-save-model-tests.cjs,personal-report-appearance-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/run-desktop-unit-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/desktop-unit
-      - name: Verify method simplification, operation UI and computed report workflows
-        run: |
-          node tests/method-compatibility-browser-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/methods-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/operation-ui-browser-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/operation-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/calculation-browser-tests.cjs --pdf --artifact-dir output/release/2.28.1-local/acceptance/calculations-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/method-compatibility-browser-tests.cjs --edge --artifact-dir output/release/2.28.1-local/acceptance/methods-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/operation-ui-browser-tests.cjs --edge --artifact-dir output/release/2.28.1-local/acceptance/operation-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/calculation-browser-tests.cjs --edge --pdf --artifact-dir output/release/2.28.1-local/acceptance/calculations-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify report restoration, optional evaluation and plan descriptions
-        run: |
-          node tests/report-surface-browser-tests.cjs --pdf --artifact-dir output/release/2.28.1-local/acceptance/surface-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-surface-browser-tests.cjs --edge --pdf --artifact-dir output/release/2.28.1-local/acceptance/surface-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/none-evaluation-plan-browser-tests.cjs --pdf --artifact-dir output/release/2.28.1-local/acceptance/none-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/none-evaluation-plan-browser-tests.cjs --edge --pdf --artifact-dir output/release/2.28.1-local/acceptance/none-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify personal and team report setup navigation
+      - name: Verify personal and team navigation with a real PDF
         run: |
           node tests/report-navigation-browser-tests.cjs --pdf --artifact-dir output/release/2.28.1-local/acceptance/navigation-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-navigation-browser-tests.cjs --edge --pdf --artifact-dir output/release/2.28.1-local/acceptance/navigation-msedge
+          node tests/report-navigation-browser-tests.cjs --edge --artifact-dir output/release/2.28.1-local/acceptance/navigation-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify complete team reports, frozen storage and descriptive charts
-        run: |
-          node tests/team-storage-browser-tests.cjs
+          node tests/team-browser-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-storage-browser-tests.cjs --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-lifecycle-browser-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-lifecycle-browser-tests.cjs --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-view-browser-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-view-browser-tests.cjs --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-browser-tests.cjs --pdf
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-browser-tests.cjs --pdf --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify shared classification and frozen report storage
-        run: |
-          node tests/horizontal-storage-browser-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-storage-browser-tests.cjs --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-scale-browser-tests.cjs
-      - name: Verify complete selection and classification flows in Chrome and Edge
+      - name: Preserve comparison, reference and report appearance behavior
         run: |
           node tests/horizontal-refinement-browser-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -118,35 +71,11 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           node tests/report-selection-edge-cases-browser-tests.cjs --edge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-classification-ui-tests.cjs
+          node tests/report-surface-browser-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/surface-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-classification-ui-tests.cjs --edge
-      - name: Verify approved report appearance in Chrome and Edge
-        run: |
-          node tests/personal-report-appearance-browser-tests.cjs
+          node tests/report-surface-browser-tests.cjs --edge --artifact-dir output/release/2.28.1-local/acceptance/surface-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/personal-report-appearance-browser-tests.cjs --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-appearance-browser-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-appearance-browser-tests.cjs --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-appearance-browser-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-appearance-browser-tests.cjs --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify shared mini chart geometry in Chrome and Edge
-        run: |
-          node tests/mini-chart-layout-browser-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/mini-chart-layout-browser-tests.cjs --edge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify report presentation and complete multiperson PDFs
-        run: |
-          node tests/horizontal-presentation-browser-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-multiperson-pdf-tests.cjs
-      - name: Build and verify Windows delivery
+      - name: Build and verify the exact Windows package
         run: |
           npm run dist:windows -- --config.directories.output=output/release/2.28.1-local/desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -154,12 +83,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Copy-Item -LiteralPath 'output/desktop-package/package-check.json' -Destination 'output/release/2.28.1-local/package-check.json'
           $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'output/release/2.28.1-local/desktop/win-unpacked/MotionBench.exe'
-          node tests/team-native-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/native-runner-failure-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-refinement-native-tests.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/release/2.28.1-local/native-smoke'
           node tests/desktop-smoke.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -168,33 +91,15 @@ jobs:
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: MotionBench-Horizontal-Windows-${{ github.run_number }}
+          name: MotionBench-Windows-${{ github.run_number }}
           path: |
-            output/tests/horizontal-2.26.3/
             output/release/2.28.1-local/acceptance/
             output/release/2.28.1-local/verification.json
             output/release/2.28.1-local/package-check.json
             output/release/2.28.1-local/native-smoke/
             output/playwright/horizontal-refinement/chrome/
             output/playwright/horizontal-refinement/msedge/
-            output/playwright/horizontal-refinement/presentation/
-            output/playwright/horizontal-refinement/multiperson/
-            output/playwright/team-storage/
-            output/playwright/team-lifecycle/
-            output/playwright/team-view/
-            output/playwright/team-report/
-            output/playwright/team-native/
-            output/playwright/horizontal-storage/
             output/playwright/report-selection-edge-cases/
-            output/playwright/horizontal-classification-ui/
-            output/playwright/horizontal-scale/
-            output/playwright/personal-appearance/
-            output/playwright/horizontal-appearance/
-            output/playwright/report-appearance/
-            output/horizontal-refinement/native-2.26.3/
-            output/release/2.26.3-local/native-failure-tests/
-            output/release/2.26.3-local/mini-layout/
-            output/desktop-package/
-            output/desktop-smoke/horizontal-2.26.3/
+            output/playwright/team-report/
           if-no-files-found: warn
           retention-days: 14

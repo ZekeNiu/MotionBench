@@ -134,6 +134,8 @@ def verify(require_ci=False):
         if channel == 'chrome':
             assert nav['pdfRequested'] and nav['pdfDiagnostics']['status'] == 'complete'
             assert any(item['kind'] == 'pdf' for item in nav['artifacts'])
+        surface = record(OUT / ('surface-' + channel) / 'results.json', 'tests/report-surface-browser-tests.cjs', 7, channel=channel)
+        assert surface['fixtureSha256'] == digest(ROOT / 'tests/helpers/longitudinal-fixture.cjs')
 
     # The approved change alters selection and adoption, not calculations or export layout.
     # Prove every other production module is byte-identical to the delivered base.
@@ -149,6 +151,11 @@ def verify(require_ci=False):
         expected = hashlib.sha256(previous).hexdigest()
         assert digest(file) == expected, 'Unexpected production change: ' + file.name
         unchanged[file.name] = expected
+    for name in subprocess.check_output(['git', 'ls-files', 'desktop', 'vendor', 'scripts/build.py'], cwd=ROOT, text=True).splitlines():
+        previous = subprocess.check_output(['git', 'show', baseline + ':' + name], cwd=ROOT)
+        expected = hashlib.sha256(previous).hexdigest()
+        assert digest(ROOT / name) == expected, 'Unexpected runtime change: ' + name
+        unchanged[name] = expected
 
     package_path = ROOT / 'output/release/2.28.1-local/package-check.json'
     package = package_evidence(source_hash, package_path)

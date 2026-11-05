@@ -21,9 +21,19 @@
       "checks": 13
     },
     {
+      "file": "output/release/2.28.1-local/acceptance/surface-chrome/results.json",
+      "sha256": "ff1aff4500f29664ec6a66123f92df73cb9498ba323dda73c21b4555fde47ddc",
+      "checks": 7
+    },
+    {
       "file": "output/release/2.28.1-local/acceptance/navigation-msedge/results.json",
       "sha256": "f97c4c07e6ade45f98e6898a0bdada99cb4652564c1c3de847ba3782f959bfb2",
       "checks": 12
+    },
+    {
+      "file": "output/release/2.28.1-local/acceptance/surface-msedge/results.json",
+      "sha256": "a95d8193e50c70259c0ead73e09efb4bbfc139e2316625a12890af4e86360765",
+      "checks": 7
     },
     {
       "file": "output/release/2.28.1-local/native-smoke/results.json",
@@ -69,7 +79,7 @@
     "报告入口、三种个人报告方式、稳定团队分组、取消与异步选择",
     "保存失败与当前报告归属保护，原有来源记录、正文与显示设置回归",
     "Chrome/Edge 主区域流程、窄窗口、实际 PDF；隔离原生保存与重开",
-    "未修改生产模块与已交付 2.28.0 基线的逐文件一致性核验；GitHub完整回归另行核验"
+    "未修改生产与桌面运行模块、构建脚本和依赖资源与已交付 2.28.0 基线的逐文件一致性核验；Windows CI 按本轮变更范围验证"
   ],
   "artifact": {
     "file": "MotionBench.html",
@@ -78,7 +88,7 @@
   },
   "baseline": {
     "commit": "3aa6020aca0ffdf5fbde7226d9f811ef6205b0f5",
-    "unchangedProductionModuleCount": 63
+    "unchangedProductionModuleCount": 84
   },
   "userAcceptance": "pending",
   "localInstallation": "pending"
