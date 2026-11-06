@@ -1,0 +1,41 @@
+{
+  "pass": true,
+  "version": "2.29.2",
+  "desktopVersion": "2.29.2-desktop.1",
+  "scope": "Report type CSS only; existing Chrome selection checks and desktop/narrow visual review. No calculation or PDF rerun.",
+  "artifact": {
+    "file": "MotionBench.html",
+    "bytes": 5525582,
+    "sha256": "21d9dea8bd9ec4c2de5dfd7355f2cdbdf718e68a31e86448ca25e5e3195608cb"
+  },
+  "unitSuites": 0,
+  "unitChecks": 0,
+  "browserChecks": {
+    "chrome": 4
+  },
+  "viewportsReviewed": [
+    1440,
+    390
+  ],
+  "runtimeSourceChanges": [
+    "src/ringside-report-selection.css"
+  ],
+  "evidence": [
+    {
+      "file": "output/release/2.29.2-local/acceptance/report-type-chrome/results.json",
+      "sha256": "363e384dbfc29bc581f730dca85d3e4d3e30c65865fa42deebea1926232291d4",
+      "checks": 4
+    },
+    {
+      "file": "output/release/2.29.2-local/acceptance/visual-qa.json",
+      "sha256": "9a7119979fc89d553b8cce09757e2c919750c507a084c4a8e61c5039eb32b21e",
+      "checks": 2
+    }
+  ],
+  "package": {
+    "archiveSha256": "201b8ae9e5ac7edf17a3111e9d1aba466a85b5437a5a8be863b134566ae313d9",
+    "assets": 271,
+    "installerSha256": "158aa48036dd98db02edc51bf5680ae48c528930236cda273142f8e9d643e671",
+    "portableSha256": "a4e0a849df91854274eb488402bdc937aba4c089de842fa2d148dbbec8778350"
+  }
+}

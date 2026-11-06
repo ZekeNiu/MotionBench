@@ -16,7 +16,7 @@ concurrency:
 jobs:
   verify:
     runs-on: windows-latest
-    timeout-minutes: 90
+    timeout-minutes: 30
     env:
       CI: true
       CSC_IDENTITY_AUTO_DISCOVERY: false
@@ -32,55 +32,31 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.12'
-      - name: Install locked dependencies and browsers
+      - name: Install locked dependencies and Chrome
         run: |
           npm ci --no-audit --no-fund
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          npx playwright install chrome msedge
-      - name: Install PDF verification readers
-        run: python -m pip install pypdf==6.10.2 pymupdf==1.28.2
-      - name: Verify affected report models and selection state
+          npx playwright install chrome
+      - name: Verify report selection on desktop and narrow screens
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/release/2.29.1-local/acceptance/unit-final --suites team-comparison-model-tests.cjs,team-comparison-view-tests.cjs,team-store-model-tests.cjs,team-selection-model-tests.cjs,report-selection-model-tests.cjs
+          node tests/report-selection-regression-browser-tests.cjs --artifact-dir output/release/2.29.2-local/acceptance/report-type-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify report creation and clickable workflow steps
+      - name: Build and verify the Windows style update
         run: |
-          node tests/report-selection-regression-browser-tests.cjs --artifact-dir output/release/2.29.1-local/acceptance/selection-chrome
+          npm run dist:windows -- --config.directories.output=output/release/2.29.2-local/desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-selection-regression-browser-tests.cjs --edge --artifact-dir output/release/2.29.1-local/acceptance/selection-msedge
+          node scripts/check-desktop-package.cjs output/release/2.29.2-local/desktop/win-unpacked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/workflow-step-navigation-browser-tests.cjs --artifact-dir output/release/2.29.1-local/acceptance/step-navigation-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/workflow-step-navigation-browser-tests.cjs --edge --artifact-dir output/release/2.29.1-local/acceptance/step-navigation-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify team member charts, missing results and mini trends
-        run: |
-          node tests/team-comparison-view-browser-tests.cjs --artifact-dir output/release/2.29.1-local/acceptance/team-comparison-view-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-comparison-view-browser-tests.cjs --edge --artifact-dir output/release/2.29.1-local/acceptance/team-comparison-view-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Build the Windows package and verify native comparison persistence and PDF export
-        run: |
-          npm run dist:windows -- --config.directories.output=output/release/2.29.1-local/desktop
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node scripts/check-desktop-package.cjs output/release/2.29.1-local/desktop/win-unpacked
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Copy-Item -LiteralPath 'output/desktop-package/package-check.json' -Destination 'output/release/2.29.1-local/package-check.json'
-          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'output/release/2.29.1-local/desktop/win-unpacked/MotionBench.exe'
-          node tests/report-refinement-native-tests.cjs --artifact-dir output/release/2.29.1-local/native-smoke
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/verify_v2291.py
+          Copy-Item -LiteralPath 'output/desktop-package/package-check.json' -Destination 'output/release/2.29.2-local/package-check.json'
       - name: Preserve synthetic verification artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: MotionBench-Windows-${{ github.run_number }}
           path: |
-            output/release/2.29.1-local/acceptance/
-            output/release/2.29.1-local/verification.json
-            output/release/2.29.1-local/package-check.json
-            output/release/2.29.1-local/native-smoke/
+            output/release/2.29.2-local/acceptance/
+            output/release/2.29.2-local/package-check.json
           if-no-files-found: warn
           retention-days: 14

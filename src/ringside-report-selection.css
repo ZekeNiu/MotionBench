@@ -85,14 +85,14 @@
 .selection-review-item>span{color:var(--muted,#6b7280);overflow-wrap:anywhere}
 .selection-review-item>strong{font-weight:600;overflow-wrap:anywhere}
 .selection-review-note{font-size:14px;color:var(--muted,#6b7280);margin:0 0 16px}
-#reportFamilyStep{min-height:0;padding:24px}
-#reportFamilyStep h2{font-size:18px;margin:0 0 20px}
-#reportFamilyStep .report-family-choices{max-width:none;gap:18px}
-#reportFamilyStep .check-tile{margin:0;min-height:104px;padding:24px;border:1px solid var(--line,#dfe3e8);border-radius:8px;background:var(--paper,#fff);cursor:pointer;transition:border-color .15s,background-color .15s}
-#reportFamilyStep .check-tile:hover{border-color:var(--green,#067970)}
-#reportFamilyStep .check-tile:has(input:checked){border-color:var(--green,#067970);background:var(--soft,#f1f6f5)}
-#reportFamilyStep .check-tile:focus-within{outline:2px solid var(--green,#067970);outline-offset:3px}
-#reportFamilyStep input[type=radio]{width:18px;height:18px;min-height:0;flex:none;margin:0;accent-color:var(--green,#067970)}
-#reportFamilyStep .check-tile>span{font-weight:600;font-size:16px}
+#reportFamilyStep{min-height:0;padding:18px}
+#reportFamilyStep h2{font-size:16px;margin:0 0 14px}
+#reportFamilyStep .report-family-choices{max-width:none;gap:12px}
+#reportFamilyStep .check-tile{margin:0;min-height:64px;padding:14px 16px;gap:10px;border:1px solid var(--line,#dfe3e8);border-radius:8px;background:var(--paper,#fff);cursor:pointer;transition:border-color .15s,background-color .15s}
+#reportFamilyStep .check-tile:hover{border-color:var(--blue,#365b7a)}
+#reportFamilyStep .check-tile:has(input:checked){border-color:#a9bdce;background:var(--blue-soft,#e8eef3);color:var(--blue,#365b7a)}
+#reportFamilyStep .check-tile:focus-within{outline:2px solid var(--blue,#365b7a);outline-offset:3px}
+#reportFamilyStep input[type=radio]{width:16px;height:16px;min-height:0;flex:none;margin:0;accent-color:var(--blue,#365b7a)}
+#reportFamilyStep .check-tile>span{font-weight:600;font-size:14px}
 @media(max-width:650px){.report-selection-stepped .selection-athletes,.report-selection-stepped .selection-people,.report-selection-stepped .selection-options{grid-template-columns:minmax(0,1fr)}.report-selection-stepped .selection-analysis{max-width:none}.selection-review-item{align-items:flex-start;flex-direction:column}}
-@media(max-width:650px){#reportFamilyStep{padding:18px}#reportFamilyStep .report-family-choices{gap:12px}#reportFamilyStep .check-tile{min-height:82px;padding:20px}}
+@media(max-width:650px){#reportFamilyStep{padding:16px}#reportFamilyStep .report-family-choices{gap:10px}#reportFamilyStep .check-tile{min-height:56px;padding:12px 14px}}
