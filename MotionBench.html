@@ -3000,7 +3000,8 @@ body.sidebar-collapsed .workspace {
 .export-options{position:absolute;right:0;top:calc(100% + 8px);padding:8px;min-width:245px;background:white;border:1px solid #d9e1e9;border-radius:10px;box-shadow:0 10px 30px #24394a22;display:grid;gap:4px;z-index:30}
 .export-options button{text-align:left;justify-content:start}
 .workflow-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 22px}
-.workflow-step{display:flex;align-items:center;gap:8px;color:var(--muted);border-bottom:2px solid #e1e6ec;padding:8px 0 13px;font-size:12px}
+.workflow-step{display:flex;align-items:center;gap:8px;color:var(--muted);border:0;border-bottom:2px solid #e1e6ec;background:transparent;border-radius:0;padding:8px 0 13px;font:inherit;font-size:12px;text-align:left;min-width:0;cursor:pointer}
+.workflow-step:hover:not(:disabled){color:#294d69;border-bottom-color:#7f98ad}.workflow-step:focus-visible{outline:2px solid #486c88;outline-offset:4px}.workflow-step:disabled{cursor:wait;opacity:.65}
 .workflow-step b{display:grid;place-items:center;width:24px;height:24px;flex-shrink:0;border-radius:50%;background:#e9edf2;color:#617388;font-size:11px}
 .workflow-step.active{color:#294d69;border-color:#486c88;font-weight:650}.workflow-step.active b{background:#486c88;color:white}.workflow-step.done{color:var(--muted)}
 .creation-page{max-width:1100px;margin:auto}.creation-page>.modal-head{position:static;padding:24px 26px 0;border:0}.creation-page>.modal-head h1{font-size:var(--ui-font-page,25px);margin:0}
@@ -3980,7 +3981,17 @@ body.sidebar-collapsed .workspace {
 .selection-review-item>span{color:var(--muted,#6b7280);overflow-wrap:anywhere}
 .selection-review-item>strong{font-weight:600;overflow-wrap:anywhere}
 .selection-review-note{font-size:14px;color:var(--muted,#6b7280);margin:0 0 16px}
+#reportFamilyStep{min-height:0;padding:24px}
+#reportFamilyStep h2{font-size:18px;margin:0 0 20px}
+#reportFamilyStep .report-family-choices{max-width:none;gap:18px}
+#reportFamilyStep .check-tile{margin:0;min-height:104px;padding:24px;border:1px solid var(--line,#dfe3e8);border-radius:8px;background:var(--paper,#fff);cursor:pointer;transition:border-color .15s,background-color .15s}
+#reportFamilyStep .check-tile:hover{border-color:var(--green,#067970)}
+#reportFamilyStep .check-tile:has(input:checked){border-color:var(--green,#067970);background:var(--soft,#f1f6f5)}
+#reportFamilyStep .check-tile:focus-within{outline:2px solid var(--green,#067970);outline-offset:3px}
+#reportFamilyStep input[type=radio]{width:18px;height:18px;min-height:0;flex:none;margin:0;accent-color:var(--green,#067970)}
+#reportFamilyStep .check-tile>span{font-weight:600;font-size:16px}
 @media(max-width:650px){.report-selection-stepped .selection-athletes,.report-selection-stepped .selection-people,.report-selection-stepped .selection-options{grid-template-columns:minmax(0,1fr)}.report-selection-stepped .selection-analysis{max-width:none}.selection-review-item{align-items:flex-start;flex-direction:column}}
+@media(max-width:650px){#reportFamilyStep{padding:18px}#reportFamilyStep .report-family-choices{gap:12px}#reportFamilyStep .check-tile{min-height:82px;padding:20px}}
 
 [data-team="true"] .screen-layout,[data-team="true"] .performance-layout{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;min-height:0;gap:0;padding-top:8px;}
 [data-team="true"] .body-art,[data-team="true"] .radar{width:100%;max-width:none;min-height:0;}
@@ -4023,20 +4034,17 @@ body.sidebar-collapsed .workspace {
 .team-comparison-table th:first-child,.team-comparison-table td:first-child{position:static;}
 .team-comparison-note{margin-top:0;}.team-paired-results th:first-child{width:30%;position:static;}
 .team-paired-results .team-difference{font-size:12px;margin:0;color:var(--ink);}
-.team-personal-history{margin:12px 0;border-top:1px solid var(--line);padding-top:12px;}
-.team-personal-history>summary{cursor:pointer;font-size:12px;font-weight:600;line-height:1.7;}
-.team-personal-results .team-trend-column{width:var(--result-trend-column-width,184px);}
-.team-personal-results td[data-label="变化趋势"]{padding-top:5px;padding-bottom:5px;vertical-align:middle;}
+.team-trend-results .team-trend-column{width:var(--result-trend-column-width,184px);}
+.team-trend-results td[data-label="均值趋势"]{padding-top:5px;padding-bottom:5px;vertical-align:middle;}
 .ringside-pdf-document[data-team="true"] .team-results tbody th[scope="row"],.team-browser-print .team-results tbody th[scope="row"]{background:#fff!important;}
 .ringside-pdf-document .team-comparison-figure,.team-browser-print .team-comparison-figure{break-inside:avoid;}
 .ringside-pdf-document .team-comparison-table .team-comparison-name-column,.team-browser-print .team-comparison-table .team-comparison-name-column{width:140px;}
-.ringside-pdf-document .team-personal-history,.team-browser-print .team-personal-history{break-inside:auto;}
 .ringside-pdf-document[data-team="true"] .summary-grid .team-comparison-table .team-comparison-name-column,.team-browser-print .summary-grid .team-comparison-table .team-comparison-name-column{width:90px;}
 .ringside-pdf-document[data-team="true"] .summary-grid .team-comparison-table th,.ringside-pdf-document[data-team="true"] .summary-grid .team-comparison-table td,.team-browser-print .summary-grid .team-comparison-table th,.team-browser-print .summary-grid .team-comparison-table td{font-size:10px!important;padding:4px 5px!important;line-height:1.4!important;}
 .ringside-pdf-document[data-team="true"] .summary-grid .team-comparison-table small,.team-browser-print .summary-grid .team-comparison-table small{font-size:9px;line-height:1.3;margin-top:2px;}
 .ringside-pdf-document[data-team="true"] .summary-grid .team-comparison-table tbody th>small,.team-browser-print .summary-grid .team-comparison-table tbody th>small{display:inline;margin-left:4px;}
 @media(max-width:650px){.team-summary .micro-value.text{font-size:18px;}.team-paired-results{min-width:530px;}}
-@media print{.team-comparison-controls{display:none!important;}.team-comparison-figure{break-inside:avoid;}.team-personal-history{break-inside:auto;}.team-test>.test-title,.team-chart-caption,.team-personal-history>summary{break-after:avoid;}.team-results tbody th[scope="row"]{background:#fff!important;}}
+@media print{.team-comparison-controls{display:none!important;}.team-comparison-figure{break-inside:avoid;}.team-test>.test-title,.team-chart-caption{break-after:avoid;}.team-results tbody th[scope="row"]{background:#fff!important;}}
 
 #teamReportSelection{width:100%;min-width:0}
 .team-selection-form{display:flex;flex-direction:column;min-width:0;min-height:0;margin:0;color:var(--ink)}
@@ -4611,7 +4619,7 @@ body.sidebar-collapsed .workspace {
       null
     </script>
     <script>
-window.RingsideBuild=Object.freeze({"version": "2.29.0"});
+window.RingsideBuild=Object.freeze({"version": "2.29.1"});
 </script>
 <script>
 (function (root) {
@@ -25474,7 +25482,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           return { id: object.id, label: object.label || reference.label || "参考群体", kind, reference: root.RingsideHorizontal.normalizeReference(reference) };
         }
         const normalized = normalizeConfiguration({ participants: object.participants || [], mode: out.mode, window: object.window || { kind: "all" } });
-        return { id: object.id, label: object.label || "团队", kind, groupId: object.groupId || "", participants: normalized.participants, window: normalized.window };
+        return { id: object.id, label: object.label || "团队", kind, groupId: object.groupId || "", participants: normalized.participants, window: normalized.window,
+          ...(object.evaluationOverrides ? { evaluationOverrides: clone(object.evaluationOverrides) } : {}) };
       });
       out.participants = [...new Map(out.objects.flatMap(object => object.participants || []).map(person => [person.athleteId, person])).values()];
     }
@@ -25583,7 +25592,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
           model = yield { kind: "team", records, options: { ...baseOptions, participants: object.participants, window: object.window } };
           const selected = new Set(object.participants.map(person => person.recordId).filter(Boolean));
           candidates = records.filter(record => selected.has(record.recordId)); selected.forEach(recordId => used.add(recordId));
-          reference = { id: object.id, label: object.label, scope: "all", sampling: "latest", window: { kind: "all" } };
+          reference = { id: object.id, label: object.label, scope: "all", sampling: "latest", window: { kind: "all" },
+            ...(object.evaluationOverrides ? { evaluationOverrides: object.evaluationOverrides } : {}) };
         } else reference = { ...object.reference, id: object.id, label: object.label };
         const horizontal = yield { kind: "reference", records: candidates, options: { ...baseOptions, participants: [], references: [reference] } };
         const referenceModel = horizontal.references[0];
@@ -25630,6 +25640,48 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   }
   function hasData(model) {
     return !!model && ((model.projects || []).some(project => (project.metrics || []).some(row => row.statistics?.n > 0 || (row.cells || []).some(cell => cell && (N(cell.value) !== null || cell.n > 0 || cell.pain)))) || (model.risk?.regions || []).some(region => region.measuredCount > 0));
+  }
+  function memberSeries(model, row) {
+    const longitudinal = model?.analysisMode === "longitudinal", horizontal = model?.analysisMode === "horizontal";
+    const supported = !!row && (longitudinal || horizontal) && row.meaning !== "category", unit = row?.unit || "";
+    const result = { supported, ordering: longitudinal ? "roster" : "descending-value", categories: [], series: [] };
+    if (!row || !longitudinal && !horizontal || row.meaning === "category") return result;
+    const summarize = (series, missingNames, total) => {
+      const entries = series.cells.filter(hasValue);
+      return { ...series, n: entries.length, statistics: statistics(entries, row.aggregation?.mean === true ? "numeric" : row.meaning || "numeric"),
+        distribution: distribution(entries), missingCount: Math.max(0, total - entries.length), missingNames };
+    };
+    if (longitudinal) {
+      const people = row.people || [];
+      result.categories = people.map(person => ({ id: person.athleteId, label: person.name || person.athleteId }));
+      result.series = (model.periods || []).map((period, index) => {
+        const cells = people.map(person => {
+          const cell = person.cells[index];
+          return hasValue(cell) ? { ...clone(cell), athleteId: person.athleteId, name: person.name || person.athleteId, unit } : null;
+        });
+        return summarize({ id: period.id || period.date, label: period.label || period.date, date: period.date, mean: N(row.cells[index]?.value), cells },
+          people.filter((person, slot) => !cells[slot]).map(person => person.name || person.athleteId), people.length);
+      });
+    } else {
+      result.series = (model.objects || []).map((object, index) => {
+        const benchmark = row.cells[index], roster = object.model?.people || object.model?.participants || [];
+        const cells = (benchmark?.contributors || []).map(person => {
+          const factor = unitFactor(person.unit || benchmark?.unit || unit, unit), value = N(person.value);
+          if (factor === null || value === null) return null;
+          const cell = { athleteId: person.athleteId, name: person.name || person.athleteId, value: value * factor, unit };
+          for (const key of ["recordId", "date", "effectiveSampling", "recordCount", "dateRange", "sources", "pain", "assessment", "display"])
+            if (person[key] !== undefined) cell[key] = clone(person[key]);
+          return cell;
+        }).filter(Boolean).sort((a, b) => b.value - a.value || String(a.athleteId).localeCompare(String(b.athleteId)));
+        const measured = new Set(cells.map(cell => cell.athleteId)), missingNames = roster.filter(person => !measured.has(person.athleteId)).map(person => person.name || person.athlete?.name || person.athleteId);
+        return summarize({ id: object.id, label: object.label, mean: N(benchmark?.value), sampling: benchmark?.sampling || object.referenceModel?.spec?.sampling || "latest", cells },
+          missingNames, roster.length || benchmark?.eligibleAthletes || object.referenceModel?.eligibleAthletes || cells.length);
+      });
+      const count = Math.max(0, ...result.series.map(series => series.cells.length));
+      result.categories = Array.from({ length: count }, (_, index) => ({ id: String(index + 1), label: "第 " + (index + 1) + " 位" }));
+      result.series.forEach(series => { while (series.cells.length < count) series.cells.push(null); });
+    }
+    return result;
   }
   function chart(model, projectId, view = {}) {
     const project = model.projects.find(item => item.id === projectId) || model.capability.cards.find(item => item.projectId === projectId || item.id === projectId);
@@ -25687,7 +25739,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (model.risk.unlocalized.length) lines.push("未定位筛查提示：" + model.risk.unlocalized.map(person => person.name).join("、") + "。");
     return lines.join("\n");
   }
-  root.RingsideTeam = { build, buildAsync, chart, facts, localText, statistics, histogram, quantile, unitFactor, normalizeConfiguration, selectedSources, present, hasData };
+  root.RingsideTeam = { build, buildAsync, chart, facts, localText, statistics, histogram, quantile, unitFactor, normalizeConfiguration, selectedSources, present, hasData, memberSeries };
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -25726,10 +25778,11 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const padding = (max - min) * .08;
     return {min: min < 0 || !zero ? min - padding : 0, max: max > 0 || !zero ? max + padding : 0};
   }
-  function yGrid(width, top, bottom, extent, unit) {
+  function yGrid(width, top, bottom, extent, unit, integer = false) {
     const left = 62, right = width - 20, y = value => bottom - (value - extent.min) / (extent.max - extent.min) * (bottom - top);
     let out = text(left, 17, unit || "无单位", 'font-size="11"');
-    for (let i = 0; i <= 4; i++) { const value = extent.min + (extent.max - extent.min) * i / 4, py = y(value); out += line(left, py, right, py) + text(left - 9, py + 4, F(value), 'text-anchor="end" font-size="10"'); }
+    const ticks = [...new Set(Array.from({length:5},(_,i) => { const value=extent.min+(extent.max-extent.min)*i/4;return integer ? Math.round(value) : value; }))];
+    for (const value of ticks) { const py = y(value); out += line(left, py, right, py) + text(left - 9, py + 4, F(value), 'text-anchor="end" font-size="10"'); }
     if (extent.min <= 0 && extent.max >= 0) out += line(left, y(0), right, y(0), 'stroke-width="1.2"');
     return {left, right, y, out};
   }
@@ -25790,6 +25843,68 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if (!data.n) return '<p class="team-empty">该指标暂无有效结果。</p>';
     const width = options.width || (options.print ? 680 : 720), ranked = ["column", "dot"].includes(data.kind), groups = options.print && ranked ? chunks(data.entries, 9) : [data.entries];
     return groups.map((entries, index) => `<div class="team-chart-panel" data-pdf-atomic>${groups.length > 1 ? `<p class="team-chart-continuation">${E(data.metric.name)} · ${index * 9 + 1}–${index * 9 + entries.length} / ${data.n} 人</p>` : ""}${ranked ? rankChart(data, {...options, width, entries}) : data.kind === "box" ? boxChart(data, width) : histogramChart(data, width)}</div>`).join("");
+  }
+  function comparisonLegend(series) {
+    return `<div class="team-radar-legend team-comparison-legend">${series.map(item => `<span><i style="background:${item.color}"></i>${E(item.label)}${item.n == null ? "" : ` · ${item.n} 人`}</span>`).join("")}</div>`;
+  }
+  function groupedChart(data, {width, print, categories, series, extent}) {
+    const column = data.kind !== "dot", mean = data.ordering === "mean", slotWidth = mean ? series.length * 100 : Math.max(86, series.length * 48 + 20), w = print ? width : Math.max(width,82 + categories.length * slotWidth), bottom = 252,
+      grid = yGrid(w,35,bottom,extent,data.counts ? "人数" : data.metric.unit,!!data.counts), slot = (grid.right - grid.left) / Math.max(1,categories.length), inner = mean ? slot / Math.max(1,series.length) : Math.min(slot * .8,series.length * 36) / Math.max(1,series.length),
+      names = data.ordering === "descending-value" || mean, nameWidth = mean ? Math.max(3,Math.min(24,Math.floor(inner / 10) - 1)) : 3,
+      nameParts = value => mean && /^\d{4}-\d{2}-\d{2}$/.test(value) && inner >= 64 ? [value] : words(value,nameWidth),
+      nameLines = names ? series.flatMap(item => categories.map(category => nameParts(item.cells[category.index]?.name || (mean ? item.label : "")))) : [],
+      nameHeight = Math.max(0,...nameLines.map(parts => parts.length)) * 15,
+      categoryHeight = Math.max(1,...categories.map(category => words(category.label,10).length)) * 15;
+    let out = grid.out;
+    categories.forEach((category,index) => {
+      series.forEach((item,seriesIndex) => {
+        const cell = item.cells[category.index], value = N(cell?.value), x = grid.left + slot * (index + .5) + inner * (seriesIndex - (series.length - 1) / 2), attrs = `data-team-member-series="${E(item.id)}" data-team-member-category="${E(category.id)}"`;
+        if (value === null) { out += `<g ${attrs} data-team-missing-slot>${text(x,bottom - 10,"—",'text-anchor="middle" font-size="11"')}</g>`; return; }
+        const py = grid.y(value), size = Math.min(32,inner * .9), formatted = F(value,data.counts ? 0 : precision(data.metric)),
+          grade = cell.assessment && ["red","amber","green"].includes(cell.assessment.status) ? cell.assessment.label || root.RingsideResultDisplay.trafficLabel(cell.assessment.status) : "",
+          tooltip = [item.label,cell.name || category.label,`${data.metric.name} ${formatted}${data.counts ? " 人" : data.metric.unit ? " " + data.metric.unit : ""}`,cell.pain ? "疼痛记录：预警" : grade,cell.tooltip || ""].filter(Boolean).join(" · "),
+          shape = column ? `<rect x="${x-size/2}" y="${Math.min(py,grid.y(0))}" width="${size}" height="${Math.abs(grid.y(0)-py)}" rx="2" fill="${item.color}" fill-opacity=".84"/>${value === 0 ? line(x-size/2,py,x+size/2,py,`style="stroke:${item.color}" stroke-width="3"`) : ""}` : `<circle cx="${x}" cy="${py}" r="5" fill="${item.color}"/>`;
+        out += hit(shape + text(x,value < 0 && column ? py + 16 : py - 10,formatted,'text-anchor="middle" font-size="11"'),tooltip,`${attrs} data-team-member-value="${value}" data-team-member-name="${E(cell.name || "")}"`);
+        if (names) out += lines(x,bottom+23,nameParts(cell.name || item.label),'text-anchor="middle" font-size="10"');
+      });
+      if (data.ordering !== "mean") out += lines(grid.left+slot*(index+.5),bottom+23+nameHeight,words(category.label,10),'text-anchor="middle" font-size="11"');
+    });
+    return svg(w,bottom+38+nameHeight+(data.ordering === "mean" ? 0 : categoryHeight),data.metric.name + (column ? " · 分组柱状图" : " · 分组点图"),out,"同色表示同一日期或比较对象。缺测保留空位，不作零值；数值名次不表示成绩好坏。");
+  }
+  function comparisonBoxes(data, {width, series, extent}) {
+    const left = 62, right = width - 24, top = 36, bottom = 50 + series.length * 84,
+      x = value => left + (value-extent.min)/(extent.max-extent.min)*(right-left);
+    let out = text(left,17,data.metric.unit || "无单位",'font-size="11"');
+    for (let i=0;i<=4;i++) { const value=extent.min+(extent.max-extent.min)*i/4,px=x(value); out+=line(px,top,px,bottom)+text(px,bottom+23,F(value),'text-anchor="middle" font-size="10"'); }
+    series.forEach((item,index) => {
+      const cy=70+index*84, stat=item.statistics || {}, entries=item.cells.filter(cell=>N(cell?.value)!==null), color=item.color;
+      out+=text(left,cy-15,item.label + ` · ${entries.length} 人`,'font-size="11"');
+      if (entries.length >= 3 && stat.boxAvailable && [stat.q1,stat.median,stat.q3,stat.lowerWhisker,stat.upperWhisker].every(value=>N(value)!==null)) {
+        out+=line(x(stat.lowerWhisker),cy+5,x(stat.upperWhisker),cy+5,`style="stroke:${color}" stroke-width="2"`)+line(x(stat.lowerWhisker),cy-7,x(stat.lowerWhisker),cy+17,`style="stroke:${color}" stroke-width="2"`)+line(x(stat.upperWhisker),cy-7,x(stat.upperWhisker),cy+17,`style="stroke:${color}" stroke-width="2"`)+`<rect data-team-box="${E(item.id)}" x="${x(stat.q1)}" y="${cy-12}" width="${Math.max(1,x(stat.q3)-x(stat.q1))}" height="34" fill="${color}" fill-opacity=".15" stroke="${color}"/>`+line(x(stat.median),cy-12,x(stat.median),cy+22,`style="stroke:${color}" stroke-width="2.5"`);
+      } else out+=text(right,cy-15,entries.length ? "少于 3 人，显示个人结果" : "暂无有效结果",'text-anchor="end" font-size="10"');
+      const lanes=new Map();
+      entries.forEach(cell=>{const bucket=Math.round(x(cell.value)/12),lane=lanes.get(bucket)||0;lanes.set(bucket,lane+1);out+=hit(`<circle cx="${x(cell.value)}" cy="${cy+37+(lane%5-2)*4}" r="4" fill="${color}" fill-opacity=".78" stroke="white"/>`,`${item.label} · ${cell.name} · ${F(cell.value,precision(data.metric))} ${data.metric.unit || ""}`,`data-team-box-member="${E(cell.athleteId)}" data-team-member-series="${E(item.id)}"`);});
+    });
+    return svg(width,bottom+42,data.metric.name+" · 箱线分布图",out,"箱体为成员结果的第一至第三四分位数，中线为中位数；少于三人仅显示真实成员点。");
+  }
+  function comparisonChartHTML(input, {width = 720, print = false} = {}) {
+    if (!input.series.some(item=>item.cells.some(cell=>N(cell?.value)!==null))) return '<p class="team-empty">所选指标暂无有效结果。</p>';
+    let data = input;
+    if (data.kind === "histogram") {
+      const bins=root.RingsideTeam.histogram(data.series.flatMap((item,seriesIndex)=>item.cells.filter(cell=>N(cell?.value)!==null).map(cell=>({...cell,seriesIndex})))), binData={metric:data.metric,bins};
+      data={...data,kind:"column",counts:true,ordering:"distribution",categories:bins.map((bin,index)=>({id:"bin-"+index,label:binValue(bin.from,binData)+" – "+binValue(bin.to,binData)})),series:data.series.map((item,seriesIndex)=>({...item,cells:bins.map(bin=>{const members=bin.members.filter(cell=>cell.seriesIndex===seriesIndex);return {value:members.length,tooltip:members.map(cell=>cell.name).join("、")};})}))};
+    }
+    const allValues=data.series.flatMap(item=>item.cells.map(cell=>N(cell?.value))).filter(value=>value!==null), extent=data.counts ? {min:0,max:Math.max(1,...allValues)} : range(allValues,data.kind!=="box" && data.kind!=="dot"),
+      seriesGroups=print ? chunks(data.series,data.kind==="box" ? 5 : data.ordering==="mean" ? Math.max(1,Math.floor((width-82)/86)) : 10) : [data.series];
+    return seriesGroups.flatMap(series=>{
+      const categories=data.categories.map((category,index)=>({...category,index})), capacity=Math.max(1,Math.floor((width-82)/Math.max(86,series.length*48+20))), categoryGroups=print && data.kind!=="box" ? chunks(categories,capacity) : [categories];
+      return categoryGroups.map(group=>{
+        const objectRange=data.kind==="box" || data.ordering==="mean", start=objectRange ? data.series.findIndex(item=>item.id===series[0].id) : group[0]?.index || 0, count=objectRange ? series.length : group.length,
+          label=objectRange ? "对象" : data.ordering==="descending-value" ? "数值名次" : data.ordering==="distribution" ? data.metric.meaning==="category" ? "类别" : "区间" : "成员",
+          continuation=print && (seriesGroups.length>1 || categoryGroups.length>1) ? `<p class="team-chart-continuation">${E(data.metric.name)} · ${label} ${start+1}–${start+count} / ${objectRange ? data.series.length : categories.length}</p>` : "";
+        return `<div class="team-chart-panel" data-pdf-atomic>${continuation}${comparisonLegend(series)}${data.kind==="box" ? comparisonBoxes(data,{width,series,extent}) : groupedChart(data,{width,print,categories:group,series,extent})}</div>`;
+      });
+    }).join("");
   }
   function radarHTML(axes, series, {risk = false, total = 0} = {}) {
     if (!axes.length) return '<p class="team-empty">暂无可评价的维度。</p>';
@@ -25938,7 +26053,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     container.addEventListener("change", event => {
       const input = event.target;
       if (input.matches("[data-team-presentation]")) updateViews({[input.dataset.teamPresentation]:input.value});
-      if (input.matches("[data-team-kind],[data-team-metric]")) { const projectId = input.dataset.teamKind || input.dataset.teamMetric, key = input.hasAttribute("data-team-kind") ? "kind" : "metricId"; updateViews({charts:{...(views.charts || {}),[projectId]:{...(views.charts?.[projectId] || {}),[key]:input.value}}}); }
+      if (input.matches("[data-team-kind],[data-team-metric],[data-team-data]")) { const projectId = input.dataset.teamKind || input.dataset.teamMetric || input.dataset.teamData, key = input.hasAttribute("data-team-kind") ? "kind" : input.hasAttribute("data-team-data") ? "data" : "metricId"; updateViews({charts:{...(views.charts || {}),[projectId]:{...(views.charts?.[projectId] || {}),[key]:input.value}}}); }
       if (input.matches("[data-team-overlay]")) { container.__teamOverlayOpen=true;const selected = [...container.querySelectorAll("[data-team-overlay]:checked")].map(node => node.dataset.teamOverlay).slice(0,3); updateViews({overviewAthleteIds:selected}); }
     }, options);
     container.__teamResizeObserver?.disconnect();
@@ -25962,7 +26077,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     const clone = container.cloneNode(true); clone.removeAttribute("id"); clone.classList.add("team-browser-print"); preparePrint(clone,model,views); container.ownerDocument.body.append(clone); container.ownerDocument.body.classList.add("team-print-active");
     return () => { clone.remove(); container.ownerDocument.body.classList.remove("team-print-active"); };
   }
-  root.RingsideTeamView = {render,layout,bind,preparePrint,prepareBrowserPrint,chartHTML,radarHTML,tableHTML,kinds,summaryCards,summaryHTML,cellHTML,riskLists};
+  root.RingsideTeamView = {render,layout,bind,preparePrint,prepareBrowserPrint,chartHTML,comparisonChartHTML,radarHTML,tableHTML,kinds,summaryCards,summaryHTML,cellHTML,riskLists};
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -27041,10 +27156,19 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       unit = change.kind === "percentage-point" ? " 个百分点" : row.unit ? " " + E(row.unit) : "";
     return `<small class="team-difference"${change.improvement ? ` data-improvement="${E(change.improvement)}"` : ""}>${signed(change.delta)}${unit}${N(change.percent) !== null ? `（${signed(change.percent)}%）` : ""}</small>`;
   }
-  function comparisonTable(rows, columns, {print = false, focus = "", baseline = "", longitudinal = false} = {}) {
+  function summaryTrend(row, periods, print) {
+    if (row.meaning === "category" || periods.length < 2 || !(row.cells || []).some(cell => cell?.n > 0 && N(cell.value ?? cell.mean) !== null)) return missing;
+    const cells = periods.map((_, index) => { const cell = row.cells?.[index], value = cell?.n > 0 ? N(cell.value ?? cell.mean) : null; return value === null ? null : {value,unit:row.unit || "",contextKey:row.contextKey || row.id,evaluationKey:"",direction:null}; });
+    return root.RingsideResultDisplay.render(root.RingsideResultDisplay.trend({...row,name:metricName(row) + " · 各日期群体均值",cells},periods,root.RingsideLongitudinal.change),print);
+  }
+  function comparisonTable(rows, columns, {print = false, focus = "", baseline = "", longitudinal = false, mini = false} = {}) {
     if (!rows.length) return "";
-    const indexed = columns.map((column, i) => ({...column, index:i})), groups = print ? chunks(indexed, 3) : [indexed];
-    return groups.map(group => `<div class="team-table-wrap"><table class="team-results team-comparison-table"${print ? "" : ` style="min-width:${160 + group.length * 155}px"}`}><colgroup><col class="team-comparison-name-column">${group.map(() => "<col>").join("")}</colgroup><thead><tr><th scope="col">指标</th>${group.map(column => `<th scope="col"${column.id === focus ? ' class="team-comparison-focus"' : ""}>${E(column.label || column.date)}${column.id === baseline ? "<small>比较基准</small>" : ""}</th>`).join("")}</tr></thead><tbody>${rows.map(row => `<tr data-team-comparison-metric="${E(row.id)}"><th scope="row">${E(metricName(row))}${row.unit ? `<small>${E(row.unit)}</small>` : ""}</th>${group.map(column => `<td data-team-column="${E(column.id)}">${aggregateCell(row.cells?.[column.index], row, {difference:longitudinal ? null : row.differences?.[column.index] || row.cells?.[column.index]?.difference, baseline:column.id === baseline})}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`).join("");
+    const indexed = columns.map((column, i) => ({...column, index:i})), groups = print ? chunks(indexed, 3) : [indexed],
+      hasTrend = longitudinal && mini && columns.length > 1 && rows.some(row => summaryTrend(row,columns,print) !== missing);
+    return groups.map((group,index) => {
+      const showTrend = hasTrend && index === groups.length - 1;
+      return `<div class="team-table-wrap"><table class="team-results team-comparison-table${showTrend ? " team-trend-results" : ""}"${print ? "" : ` style="min-width:calc(${160 + group.length * 155}px + ${showTrend ? "var(--result-trend-column-width,184px)" : "0px"})"`}><colgroup><col class="team-comparison-name-column">${group.map(() => "<col>").join("")}${showTrend ? '<col class="team-trend-column">' : ""}</colgroup><thead><tr><th scope="col">指标</th>${group.map(column => `<th scope="col"${column.id === focus ? ' class="team-comparison-focus"' : ""}>${E(column.label || column.date)}${column.id === baseline ? "<small>比较基准</small>" : ""}</th>`).join("")}${showTrend ? '<th scope="col">均值趋势</th>' : ""}</tr></thead><tbody>${rows.map(row => `<tr data-team-comparison-metric="${E(row.id)}"><th scope="row">${E(metricName(row))}${row.unit ? `<small>${E(row.unit)}</small>` : ""}</th>${group.map(column => `<td data-team-column="${E(column.id)}">${aggregateCell(row.cells?.[column.index], row, {difference:longitudinal ? null : row.differences?.[column.index] || row.cells?.[column.index]?.difference, baseline:column.id === baseline})}</td>`).join("")}${showTrend ? `<td data-label="均值趋势">${summaryTrend(row,columns,print)}</td>` : ""}</tr>`).join("")}</tbody></table></div>`;
+    }).join("");
   }
   function pairedTable(rows, periods, print) {
     const spans = [{key:"overall", label:"首末日期"}, ...(periods.length > 2 ? [{key:"recent", label:"最近两次"}] : [])];
@@ -27053,26 +27177,34 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       return `<tr><th scope="row">${E(metricName(row))}${row.unit ? `<small>${E(row.unit)}</small>` : ""}</th><td>${change?.n > 0 ? change.n : missing}</td><td>${available ? F(change.fromMean) + `<small>${E(change.from)}</small>` : missing}</td><td>${available ? F(change.toMean) + `<small>${E(change.to)}</small>` : missing}</td><td>${available ? differenceHTML(change, row) : missing}${!available && change?.reason ? `<small>${E(change.reason)}</small>` : ""}</td></tr>`;
     }).join("")}</tbody></table></div>`).join("") + '<p class="note team-comparison-note">配对变化只使用该指标在比较两端都有有效结果的同一批成员；各日期群体均值使用当日有效结果。</p>';
   }
-  function personalHistory(row, periods, print) {
-    const people = row.people || [], indexed = periods.map((period, index) => ({...period, index})), groups = print ? chunks(indexed, 3) : [indexed],
-      hasTrend = row.meaning !== "category" && periods.length > 1 && people.some(person => person.cells?.some(cell => N(cell?.value) !== null)),
-      trend = person => person.cells?.some(cell => N(cell?.value) !== null) ? root.RingsideResultDisplay.render(root.RingsideResultDisplay.trend({...row,id:row.metricId || row.id,cells:person.cells},periods,root.RingsideLongitudinal.change),print) : missing;
-    return `<details class="team-personal-history"${print ? " open" : ""}><summary>${E(metricName(row))} · 个人逐日结果</summary>${groups.map((group,index) => {
-      const showTrend = hasTrend && index === groups.length - 1;
-      return `<div class="team-table-wrap"><table class="team-results team-comparison-table team-personal-results"${print ? "" : ` style="min-width:calc(${160 + group.length * 130}px + ${showTrend ? "var(--result-trend-column-width,184px)" : "0px"})"}`}><colgroup><col class="team-comparison-name-column">${group.map(() => "<col>").join("")}${showTrend ? '<col class="team-trend-column">' : ""}</colgroup><thead><tr><th scope="col">运动员</th>${group.map(period => `<th scope="col">${E(period.date)}</th>`).join("")}${showTrend ? '<th scope="col">变化趋势</th>' : ""}</tr></thead><tbody>${people.map(person => `<tr data-team-history-person="${E(person.athleteId)}"><th scope="row">${E(person.name || person.athleteId)}</th>${group.map(period => `<td data-team-history-date="${E(period.date)}">${root.RingsideTeamView.cellHTML(person.cells?.[period.index], row)}</td>`).join("")}${showTrend ? `<td data-label="变化趋势">${trend(person)}</td>` : ""}</tr>`).join("")}</tbody></table></div>`;
-    }).join("")}</details>`;
+  function chartProjection(row, model, periods, dataKind, kind) {
+    const metric = {id:row.id,name:metricName(row),unit:row.unit || "",digits:row.digits,meaning:row.meaning,measurementScale:row.measurementScale};
+    if (row.meaning === "category") {
+      const categories = [...new Map((row.cells || []).flatMap(cell => (cell?.distribution || []).map(item => [String(item.value),{id:String(item.value),label:String(item.label ?? item.value)}]))).values()];
+      return {metric,kind:"column",counts:true,ordering:"distribution",categories,series:periods.map((period,index) => ({...period,n:row.cells?.[index]?.n || 0,cells:categories.map(category => row.cells?.[index]?.n ? {value:row.cells[index].distribution?.find(item => String(item.value) === category.id)?.count || 0} : null)}))};
+    }
+    if (dataKind === "mean") return {metric,kind,ordering:"mean",categories:[{id:"mean",label:"群体均值"}],series:periods.map((period,index) => ({...period,n:row.cells?.[index]?.n || 0,cells:[row.cells?.[index]?.n ? {value:N(row.cells[index].value ?? row.cells[index].mean),name:period.label,tooltip:`有效 ${row.cells[index].n} 人`} : null]}))};
+    const projection = root.RingsideTeam.memberSeries(model,row);
+    return {metric,kind,ordering:projection.ordering,categories:projection.categories.map(category => ({...category,label:projection.ordering === "descending-value" ? "数值名次 " + category.id : category.label})),series:projection.series.map(item => ({id:item.id,label:item.label,n:item.n,statistics:item.statistics,color:periods.find(period => period.id === item.id)?.color,cells:item.cells.map(cell => cell ? {athleteId:cell.athleteId,name:cell.name,value:cell.value,assessment:cell.assessment || cell.evaluation?.grade,pain:cell.pain} : null)}))};
   }
   function projectHTML(project, model, views, print) {
     const longitudinal = model.analysisMode === "longitudinal", rows = project.metrics || [], saved = views.charts?.[project.id] || {},
-      row = rows.find(item => item.id === saved.metricId) || rows.find(item => item.id === project.defaultMetricId || item.metricId === project.defaultMetricId) || rows[0],
-      columns = longitudinal ? decoratedPeriods(model) : model.objects || [], palette = root.RingsideReportAppearance.colors(columns.map(column => column.id)),
+      row = rows.find(item => item.id === saved.metricId) || rows.find(item => item.id === project.defaultMetricId || item.metricId === project.defaultMetricId) || rows[0];
+    if (!row) return "";
+    const columns = longitudinal ? decoratedPeriods(model) : model.objects || [], palette = root.RingsideReportAppearance.colors(columns.map(column => column.id)),
       periods = columns.map(column => ({id:column.id,date:column.date || "",label:column.label || column.date,color:column.color || palette[column.id],latest:column.latest})),
-      controls = print || rows.length < 2 ? "" : `<div class="team-chart-controls no-print"><label>图表指标<select data-team-metric="${E(project.id)}" aria-label="${E(project.name)}图表指标">${rows.map(item => `<option value="${E(item.id)}"${item.id === row?.id ? " selected" : ""}>${E(metricName(item))}${item.unit ? " · " + E(item.unit) : ""}</option>`).join("")}</select></label></div>`,
-      title = row ? metricName(row) + (longitudinal ? " · 各日期群体均值" : " · 群体代表结果") : project.name,
-      spec = row && {kind:longitudinal ? "cod-trend" : "columns",title,showTitle:false,subjectKind:longitudinal ? "date" : "athlete",unit:row.unit || "无单位",periods,values:(row.cells || []).map(cell => ({value:N(cell?.value ?? cell?.mean)}))},
-      chart = spec && spec.values.some(cell => cell.value !== null) ? figures(spec, print) : empty(row?.meaning === "category" || row?.meaning === "ordinal" ? "等级与类别结果见人数分布表。" : "所选指标暂无有效群体结果。"),
-      table = comparisonTable(rows, columns, {print,longitudinal,focus:views.focusObjectId,baseline:views.baselineObjectId});
-    return `<article class="test-block team-test team-comparison-project" data-team-project="${E(project.id)}"><div class="test-title"><h4>${E(project.name)}</h4></div>${controls}<p class="team-chart-caption">${E(title)}</p>${chart}${table}${longitudinal ? pairedTable(rows, periods, print) + rows.map(item => personalHistory(item, columns, print)).join("") : ""}</article>`;
+      category = row.meaning === "category", meanAvailable = !category && rows.length && (row.cells || []).some(cell => N(cell?.value ?? cell?.mean) !== null),
+      dataKind = saved.data === "mean" && meanAvailable ? "mean" : "members",
+      kinds = category ? [["column","人数分布"]] : dataKind === "mean" ? [...(longitudinal ? [["trend","日期趋势图"]] : []),["column","柱状图"],["dot","点图"]] : [["column","分组柱状图"],["dot","分组点图"],...(row.meaning === "ordinal" ? [] : [["box","箱线分布图"],["histogram","直方图"]])],
+      kind = kinds.some(([value]) => value === saved.kind) ? saved.kind : dataKind === "mean" && longitudinal ? "trend" : "column",
+      options = (items, selected) => items.map(([id,label]) => `<option value="${E(id)}"${id === selected ? " selected" : ""}>${E(label)}</option>`).join(""),
+      controls = print ? "" : `<div class="team-chart-controls no-print">${rows.length > 1 ? `<label>图表指标<select data-team-metric="${E(project.id)}" aria-label="${E(project.name)}图表指标">${rows.map(item => `<option value="${E(item.id)}"${item.id === row.id ? " selected" : ""}>${E(metricName(item))}${item.unit ? " · " + E(item.unit) : ""}</option>`).join("")}</select></label>` : ""}<label>呈现数据<select data-team-data="${E(project.id)}" aria-label="${E(project.name)}呈现数据"${!meanAvailable ? " disabled" : ""}>${options([["members","成员结果"],...(meanAvailable ? [["mean","群体均值"]] : [])],dataKind)}</select></label><label>图表类型<select data-team-kind="${E(project.id)}" aria-label="${E(project.name)}图表类型"${category ? " disabled" : ""}>${options(kinds,kind)}</select></label></div>`,
+      title = metricName(row) + " · " + (category ? "类别人数分布" : dataKind === "mean" ? longitudinal ? "各日期群体均值" : "群体均值" : longitudinal ? "成员结果 · 同一成员各日期并列" : "成员结果 · 各组按数值从高到低排列"),
+      spec = {kind:"cod-trend",title,showTitle:false,subjectKind:"date",unit:row.unit || "无单位",periods,values:(row.cells || []).map(cell => ({value:cell?.n ? N(cell.value ?? cell.mean) : null}))},
+      projection = chartProjection(row,model,periods,dataKind,kind),
+      chart = kind === "trend" ? figures(spec,print) : `<div class="team-chart-scroll" data-team-comparison-chart="${E(JSON.stringify(projection))}">${root.RingsideTeamView.comparisonChartHTML(projection,{print,width:print ? 680 : 720})}</div>`,
+      table = comparisonTable(rows,columns,{print,longitudinal,focus:views.focusObjectId,baseline:views.baselineObjectId,mini:true});
+    return `<article class="test-block team-test team-comparison-project" data-team-project="${E(project.id)}"><div class="test-title"><h4>${E(project.name)}</h4></div>${controls}<p class="team-chart-caption">${E(title)}</p>${chart}${table}${longitudinal ? pairedTable(rows,periods,print) : ""}</article>`;
   }
   function detailsHTML(model, views, print) {
     const projects = model.projects || [], section = (category, title) => {
@@ -27137,9 +27269,14 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function layout(container, {print = false} = {}) {
     root.RingsideResultDisplay.layout(container,{print});
     if (!print) root.RingsideResultDisplay.mount(container);
-    container.querySelectorAll(".team-personal-results").forEach(table => {
+    container.querySelectorAll(".team-trend-results").forEach(table => {
       const widths = [...table.querySelectorAll("[data-result-trend]")].map(node => Number.parseFloat(node.style.getPropertyValue("--result-trend-width")) || 160);
       table.style.setProperty("--result-trend-column-width", (Math.max(160,...widths) + (print ? 16 : 24)) + "px");
+    });
+    container.querySelectorAll("[data-team-comparison-chart]").forEach(node => {
+      const width = print ? 680 : Math.max(290,Math.round(node.clientWidth || 720)), key = width + ":" + print;
+      if (node.dataset.teamComparisonLayout === key) return;
+      node.innerHTML = root.RingsideTeamView.comparisonChartHTML(JSON.parse(node.dataset.teamComparisonChart),{width,print}); node.dataset.teamComparisonLayout = key;
     });
     container.querySelectorAll("[data-team-figure]").forEach(node => {
       const width = print ? 680 : Math.max(250,Math.round(node.clientWidth || 720)), key = width + ":" + print;
@@ -27147,7 +27284,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       node.innerHTML = root.RingsideLongitudinalView.draw(JSON.parse(node.dataset.teamFigure),width,print); node.dataset.teamFigureLayout = key;
     });
   }
-  root.RingsideTeamComparisonView = {render,layout,comparisonTable,aggregateCell,objectSummary,pairedTable,personalHistory};
+  root.RingsideTeamComparisonView = {render,layout,comparisonTable,aggregateCell,objectSummary,pairedTable,summaryTrend};
 })(typeof window !== "undefined" ? window : globalThis);
 
 </script>
@@ -27227,7 +27364,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
   function create(host){
     const selection=state(),field=(label,input)=>`<label class="field"><span>${E(label)}</span>${input}</label>`;
     let initialized=false,dirty=false,applying=0,applyingSequence=0,sequence=0,query="",group="",error="",conflicts=[],panel="",settingsOpen=false,sourceIdentity="",editingReportId=null,baseline=null,sessionActive=false;
-    let referenceDraft=null,referenceError="",referenceReturnId="",step=null;
+    let referenceDraft=null,referenceError="",referenceReturnId="",standardsOnly=false,step=null;
     const dialogId=host.referenceDialogId||"reportReferenceDialog",library=()=>host.library(),identity=()=>host.identity?.()||"",dialog=()=>root.document.getElementById(dialogId);
     const athleteName=id=>{const a=library().athletes.find(a=>a.id===id);return a?.name||a?.profile?.name||"运动员不可用";};
     function fromConfiguration(config){
@@ -27343,8 +27480,8 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       const override=referenceDraft?.evaluationOverrides?.[conflict.metricKey]?.standard,selected=override?conflict.candidates.findIndex(c=>JSON.stringify(c.standard)===JSON.stringify(override)):-1;
       return `<fieldset class="selection-standard" data-standard="${E(conflict.metricKey)}"><legend>${E(conflict.name)} · ${E(conflict.unit||"")}</legend><label>统一评价标准<select data-standard-choice><option value="">请选择共同适用标准</option>${override&&selected<0?'<option value="custom" selected>已配置的统一标准</option>':""}${conflict.candidates.map((c,i)=>opt(String(i),`${c.standard.referenceGroup?.name||c.standard.name||"标准 "+(i+1)} · ${c.standard.target!=null?"目标 "+c.standard.target+(c.standard.unit?" "+c.standard.unit:""):"分级区间"} · 版本 ${c.standard.revision||0}`,selected===i?String(i):"custom")).join("")}</select></label>${override?`${["metric","iso"].includes(override.kind)?`<label>统一目标<input type="number" step="any" data-standard-target value="${E(override.target??"")}"></label>`:""}<small>单位：${E(override.unit||conflict.unit||"无")} · 来源版本 ${E(override.revision||0)}${override.configured?" · 自定统一标准":""}</small><div class="selection-standard-ranges">${(override.ranges||[]).map((range,i)=>`<div data-standard-range="${i}"><label>下限<input type="number" step="any" data-range-field="min" value="${E(range.min??"")}"></label><label><input type="checkbox" data-range-field="includeMin"${range.includeMin!==false?" checked":""}>包含下限</label><label>上限<input type="number" step="any" data-range-field="max" value="${E(range.max??"")}"></label><label><input type="checkbox" data-range-field="includeMax"${range.includeMax!==false?" checked":""}>包含上限</label><label>评价名称<input data-range-field="label" value="${E(range.label||"")}"></label><label>等级<select data-range-field="status">${[["green","绿色"],["amber","黄色"],["red","红色"],["gray","灰色"]].map(([v,l])=>opt(v,l,range.status)).join("")}</select></label><button type="button" class="btn small" data-remove-range="${i}">移除区间</button></div>`).join("")}${["metric","balance"].includes(override.kind)?'<button type="button" class="btn small" data-add-range>添加分级区间</button>':""}</div>`:""}</fieldset>`;
     }
-    function openReference(id){
-      const existing=selection.get().references.find(ref=>ref.id===id);referenceDraft=existing?copy(existing):{id:uid(),label:"",scope:"all",sex:"",explicitConditions:true,sampling:"latest",window:{kind:"",from:"",to:""}};
+    function openReference(id,{standards=false}={}){
+      standardsOnly=standards;const existing=selection.get().references.find(ref=>ref.id===id);referenceDraft=existing?copy(existing):{id:uid(),label:"",scope:"all",sex:"",explicitConditions:true,sampling:"latest",window:{kind:"",from:"",to:""}};
       referenceError="";referenceReturnId=existing?.id||"";panel="";render();renderReference();dialog().showModal();
     }
     function finishReference(restoreFocus=true){
@@ -27355,7 +27492,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       if(!referenceDraft)return;let modal=dialog();
       if(!modal){modal=root.document.createElement("dialog");modal.id=dialogId;modal.className="selection-reference-dialog";modal.setAttribute("aria-labelledby",dialogId+"Title");root.document.body.append(modal);modal.addEventListener("cancel",event=>{event.preventDefault();finishReference();});modal.addEventListener("click",event=>{if(event.target===modal){const b=modal.getBoundingClientRect();if(event.clientX<b.left||event.clientX>b.right||event.clientY<b.top||event.clientY>b.bottom)finishReference();}});}
       const ref=referenceDraft,classes=root.RingsideClassifications.normalize(library().classifications||{}),sport=classes.sports.find(s=>s.id===ref.sportId),choose=(key,items,current)=>`<select data-reference-field="${key}">${items.map(([v,l])=>opt(v,l,current)).join("")}</select>`,window=ref.window||{};
-      modal.innerHTML=`<form class="selection-reference-form"><header class="modal-head"><h2 id="${dialogId}Title">${selection.get().references.some(r=>r.id===ref.id)?"编辑":"添加"}群体参照</h2><button type="button" class="close" data-reference-cancel aria-label="取消群体设置">×</button></header><section class="selection-reference-body" data-reference="${E(ref.id)}"><p class="note">设置成员条件、统计日期和每人取样方式。确认后加入本次选择，再点击“查看报告”。</p><div class="form-grid">${field("群体名称",`<input data-reference-field="label" value="${E(ref.label||"")}" placeholder="按成员条件命名">`)}${field("性别",choose("sex",[["","全部性别"],["男","男"],["女","女"],["未注明","未注明"]],ref.sex||""))}${field("队伍",choose("teamId",[["","全部队伍"],...(library().groups||[]).map(g=>[g.id,g.name])],ref.teamId||""))}${field("专项",choose("sportId",[["","全部专项"],...classes.sports.filter(s=>!s.disabled||s.id===ref.sportId).map(s=>[s.id,s.name])],ref.sportId||""))}${field(sport?.subdivisionLabel||"专项细分",choose("subdivisionId",[["","全部"],...classes.subdivisions.filter(s=>s.sportId===ref.sportId&&(!s.disabled||s.id===ref.subdivisionId)).map(s=>[s.id,s.name])],ref.subdivisionId||""))}${field("年龄分组",choose("ageBandId",[["","全部年龄"],...classes.ageBands.filter(a=>!a.disabled||a.id===ref.ageBandId).map(a=>[a.id,`${a.name}（${a.min}–${a.max} 岁）`])],ref.ageBandId||""))}${field("日期范围",choose("window.kind",dates,window.kind||""))}${window.kind==="custom"?field("开始日期",`<input type="date" data-reference-field="window.from" value="${E(window.from||"")}">`)+field("结束日期",`<input type="date" data-reference-field="window.to" value="${E(window.to||"")}">`):""}${field("每人取样",choose("sampling",[["latest","最近可比测试"],["period-record","期间最佳成绩"],["period-mean","期间均值"]],ref.sampling||"latest"))}</div><div class="row"><button type="button" class="btn small" data-manage="sports">管理专项分类</button><button type="button" class="btn small" data-manage="ageBands">管理年龄分组</button></div>${standardsFor(ref).map(conflictHTML).join("")}<p class="field-error" data-reference-error role="alert">${E(referenceError)}</p></section><footer class="modal-foot"><button type="button" class="btn" data-reference-cancel>取消</button><button type="submit" class="btn primary" data-reference-confirm>确认群体</button></footer></form>`;
+      modal.innerHTML=`<form class="selection-reference-form"><header class="modal-head"><h2 id="${dialogId}Title">${standardsOnly?E(ref.label||"团队")+" · 统一评价标准":(selection.get().references.some(r=>r.id===ref.id)?"编辑":"添加")+"群体参照"}</h2><button type="button" class="close" data-reference-cancel aria-label="取消群体设置">×</button></header><section class="selection-reference-body" data-reference="${E(ref.id)}">${standardsOnly?'<p class="note">为当前团队选择共同适用的评价标准，确认后再次查看报告。</p>':`<p class="note">设置成员条件、统计日期和每人取样方式。确认后加入本次选择，再点击“查看报告”。</p><div class="form-grid">${field("群体名称",`<input data-reference-field="label" value="${E(ref.label||"")}" placeholder="按成员条件命名">`)}${field("性别",choose("sex",[["","全部性别"],["男","男"],["女","女"],["未注明","未注明"]],ref.sex||""))}${field("队伍",choose("teamId",[["","全部队伍"],...(library().groups||[]).map(g=>[g.id,g.name])],ref.teamId||""))}${field("专项",choose("sportId",[["","全部专项"],...classes.sports.filter(s=>!s.disabled||s.id===ref.sportId).map(s=>[s.id,s.name])],ref.sportId||""))}${field(sport?.subdivisionLabel||"专项细分",choose("subdivisionId",[["","全部"],...classes.subdivisions.filter(s=>s.sportId===ref.sportId&&(!s.disabled||s.id===ref.subdivisionId)).map(s=>[s.id,s.name])],ref.subdivisionId||""))}${field("年龄分组",choose("ageBandId",[["","全部年龄"],...classes.ageBands.filter(a=>!a.disabled||a.id===ref.ageBandId).map(a=>[a.id,`${a.name}（${a.min}–${a.max} 岁）`])],ref.ageBandId||""))}${field("日期范围",choose("window.kind",dates,window.kind||""))}${window.kind==="custom"?field("开始日期",`<input type="date" data-reference-field="window.from" value="${E(window.from||"")}">`)+field("结束日期",`<input type="date" data-reference-field="window.to" value="${E(window.to||"")}">`):""}${field("每人取样",choose("sampling",[["latest","最近可比测试"],["period-record","期间最佳成绩"],["period-mean","期间均值"]],ref.sampling||"latest"))}</div><div class="row"><button type="button" class="btn small" data-manage="sports">管理专项分类</button><button type="button" class="btn small" data-manage="ageBands">管理年龄分组</button></div>`}${standardsFor(ref).map(conflictHTML).join("")}<p class="field-error" data-reference-error role="alert">${E(referenceError)}</p></section><footer class="modal-foot"><button type="button" class="btn" data-reference-cancel>取消</button><button type="submit" class="btn primary" data-reference-confirm>${standardsOnly?"确认标准":"确认群体"}</button></footer></form>`;
       modal.querySelectorAll("[data-reference-cancel]").forEach(button=>button.onclick=()=>finishReference());modal.querySelector("form").onsubmit=event=>{event.preventDefault();confirmReference();};
       modal.querySelectorAll("[data-reference-field]").forEach(input=>input.onchange=()=>{
         const key=input.dataset.referenceField,ref=referenceDraft;referenceError="";
@@ -27377,14 +27514,15 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     }
     function confirmReference(){
       try{
-        const ref=copy(referenceDraft);ref.window=root.RingsideHorizontalSetup.dateWindow(ref.window?.kind,ref.window?.from,ref.window?.to,ref.window?.to||undefined);
-        const normalized=root.RingsideHorizontalSetup.resolveReferences([ref],{athletes:library().athletes,classifications:root.RingsideClassifications.normalize(library().classifications||{}),groups:library().groups||[]})[0];
+        const ref=copy(referenceDraft);
+        if(!standardsOnly)ref.window=root.RingsideHorizontalSetup.dateWindow(ref.window?.kind,ref.window?.from,ref.window?.to,ref.window?.to||undefined);
+        const normalized=standardsOnly?ref:root.RingsideHorizontalSetup.resolveReferences([ref],{athletes:library().athletes,classifications:root.RingsideClassifications.normalize(library().classifications||{}),groups:library().groups||[]})[0];
         if(conflicts.some(c=>c.referenceId===ref.id&&!normalized.evaluationOverrides?.[c.metricKey]?.standard))throw Error("请为以下指标明确选择共同适用标准。");
         if(selection.get().references.some(r=>r.id===ref.id))selection.update(d=>{d.references[d.references.findIndex(r=>r.id===ref.id)]=normalized;});else selection.reference(normalized);
         finishReference();changed({preserveConflicts:true});host.onReferencesChanged?.(selection.get().references);
       }catch(error){referenceError=error.message||String(error);dialog().querySelector("[data-reference-error]").textContent=referenceError;}
     }
-    function clearDraftUI(){dirty=false;conflicts=[];error="";panel="";settingsOpen=false;referenceDraft=null;referenceError="";referenceReturnId="";dialog()?.close();}
+    function clearDraftUI(){dirty=false;conflicts=[];error="";panel="";settingsOpen=false;referenceDraft=null;referenceError="";referenceReturnId="";standardsOnly=false;dialog()?.close();}
     function begin({intent="new",configuration,analysisMode,step:requestedStep=null}={}){
       sequence++;host.cancelPending?.();clearDraftUI();query="";group="";sessionActive=true;step=[2,3,4].includes(requestedStep)?requestedStep:null;panel=step===2?"athletes":step===3?"records":"";settingsOpen=step===4;
       const value=configuration?fromConfiguration(configuration):intent==="edit"?fromCurrent():{athletes:[],references:[],mode:"best",profileId:library()?.defaultEvaluationProfileId||"",analysisMode:"single"};
@@ -27398,12 +27536,12 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     root.document?.addEventListener("pointerdown",event=>{if(panel&&!host.element?.()?.contains(event.target))closePanel();});
     root.document?.addEventListener("keydown",event=>{if(event.key==="Escape"&&panel&&!dialog()?.open){event.preventDefault();closePanel(true);}});
     return {render,apply,sync,begin,cancel,setStep,validateStep,getStep:()=>step,openReference,state:()=>selection.get(),get:()=>selection.get(),isPending:()=>!!applying,desktopCloseStatus:()=>({busy:!!applying,unsaved:dirty||!!referenceDraft}),
-      showConflicts(value){conflicts=copy(value);error="以下指标适用多个评价标准，请明确选定群体统一标准。";render();if(conflicts.length)openReference(conflicts[0].referenceId);},
+      showConflicts(value,{standards=false}={}){conflicts=copy(value);error="以下指标适用多个评价标准，请明确选定群体统一标准。";render();const id=conflicts[0]?.referenceId;if(!id||!selection.get().references.some(ref=>ref.id===id))return false;openReference(id,{standards});return true;},
       edit(configuration){return begin({intent:"edit",configuration});},reset};
   }
   function createReferenceEditor(host){
     let api;api=create({...host,element:()=>null,identity:()=>"reference-editor",onChange:undefined,onReferencesChanged:references=>host.onChange?.(references)});
-    return {open(references=[],id){api.begin({intent:"edit",configuration:{analysisMode:"horizontal",athletes:[],references}});api.openReference(id);},showConflicts(conflicts,references=[]){api.begin({intent:"edit",configuration:{analysisMode:"horizontal",athletes:[],references}});api.showConflicts(conflicts);},cancel:()=>api.cancel(),state:()=>api.state().references};
+    return {open(references=[],id){api.begin({intent:"edit",configuration:{analysisMode:"horizontal",athletes:[],references}});api.openReference(id);},showConflicts(conflicts,references=[]){api.begin({intent:"edit",configuration:{analysisMode:"horizontal",athletes:[],references}});return api.showConflicts(conflicts);},showStandards(conflicts,subjects=[]){api.begin({intent:"edit",configuration:{analysisMode:"horizontal",athletes:[],references:subjects}});return api.showConflicts(conflicts,{standards:true});},cancel:()=>api.cancel(),state:()=>api.state().references};
   }
   root.RingsideReportSelection={state,create,createReferenceEditor};
 })(typeof window!=="undefined"?window:globalThis);
@@ -27583,7 +27721,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return [...groups.filter(g=>g.id===groupId),...groups.filter(g=>g.id!==groupId),{id:'',name:'未分组'}].map(group=>({...group,own:!!groupId&&group.id===groupId,people:people.filter(a=>group.id?a.groupId===group.id:!known.has(a.groupId))})).filter(group=>group.people.length);
   }
   function create(host){
-    let node=null,draft=null,editingId=null,busy=false,query="",error="",ticket=0,panel="members",step=null,objectId="",referenceEditor=null,conflicts=[];
+    let node=null,draft=null,editingId=null,busy=false,query="",error="",ticket=0,panel="members",step=null,objectId="",referenceEditor=null,standardsEditor=null,conflicts=[];
     const library=()=>host.library(),available=()=>(library().athletes||[]).filter(eligible),analysis=()=>draft?.analysisMode||"single",name=a=>a?.name||a?.profile?.name||'人员不可用';
     const activeObject=()=>draft?.objects?.find(object=>object.id===objectId&&object.kind==="team")||null,memberOwner=()=>analysis()==="horizontal"?activeObject():draft;
     const references=()=>draft?.objects?.filter(object=>object.kind==="reference").map(object=>({...object.reference,id:object.id}))||[];
@@ -27596,7 +27734,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       draft.dateParticipants=draft.dates.map(date=>({date,participants:ids.map(athleteId=>{const person=prior.find(item=>item.date===date)?.participants.find(item=>item.athleteId===athleteId),rows=candidates(available().find(a=>a.id===athleteId),{from:date,to:date});return {athleteId,recordId:person&&rows.some(row=>row.recordId===person.recordId)?person.recordId:rows.length===1?rows[0].recordId:""};})}));
     }
     function syncRecords(){for(const owner of [draft,...(draft.objects||[]).filter(object=>object.kind==="team")])for(const person of owner.participants||[])person.recordId=resolveSelection(available().find(a=>a.id===person.athleteId),draft.window,person.recordId).recordId;if(analysis()==="longitudinal")syncLongitudinal();}
-    function cancel(){ticket++;busy=false;referenceEditor?.cancel();draft=null;editingId=null;query="";error="";panel="members";objectId="";conflicts=[];step=null;if(node)node.innerHTML="";node=null;return true;}
+    function cancel(){ticket++;busy=false;referenceEditor?.cancel();standardsEditor?.cancel();draft=null;editingId=null;query="";error="";panel="members";objectId="";conflicts=[];step=null;if(node)node.innerHTML="";node=null;return true;}
     async function userCancel(){if(!draft)return false;cancel();await host.onCancel?.();return true;}
     function validation(value,people,at=4){
       if(!value)return {message:"请选择报告内容。",panel:"members"};const kind=value.analysisMode||"single",objects=value.objects||[],roster=kind==="horizontal"?objects.filter(object=>object.kind==="team").flatMap(object=>object.participants||[]):value.participants||[];
@@ -27619,7 +27757,17 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
         if(!draft)return;const pending=new Map(refs.map(reference=>[reference.id,reference]));draft.objects=(draft.objects||[]).map(object=>{if(object.kind!=="reference")return object;const reference=pending.get(object.id);pending.delete(object.id);return reference?{...object,label:reference.label||"参考群体",reference}:null;}).filter(Boolean);draft.objects.push(...[...pending.values()].map(reference=>({id:reference.id,kind:"reference",label:reference.label||"参考群体",reference})));changed();
       }});return referenceEditor;
     }
-    function showConflicts(value){conflicts=copy(value||[]);if(conflicts.length){error="请为参考群体选择共同适用的评价标准。";render();editor().showConflicts(conflicts,references());}return !!conflicts.length;}
+    function showConflicts(value){
+      conflicts=copy(value||[]);if(!conflicts.length)return false;
+      const object=draft?.objects?.find(item=>item.id===conflicts[0].referenceId);
+      if(!object){error="所选比较对象已变更，请重新查看报告。";render();return false;}
+      error="请为“"+(object.label||"比较对象")+"”选择共同适用的评价标准。";render();
+      if(object.kind==='reference')return editor().showConflicts(conflicts,references());
+      if(!standardsEditor)standardsEditor=root.RingsideReportSelection.createReferenceEditor({library,referenceDialogId:"teamReportStandardsDialog",onChange:subjects=>{
+        if(!draft)return;for(const subject of subjects){const target=draft.objects.find(item=>item.kind==='team'&&item.id===subject.id);if(target&&subject.evaluationOverrides)target.evaluationOverrides=copy(subject.evaluationOverrides);}changed();
+      }});
+      return standardsEditor.showStandards(conflicts,draft.objects.filter(item=>item.kind==='team').map(item=>({id:item.id,label:item.label,evaluationOverrides:copy(item.evaluationOverrides||{})})));
+    }
     async function apply(){
       if(!draft||busy)return false;const value=copy(draft),issue=validation(value,available());if(issue){error=issue.message;panel=issue.panel;render();return false;}
       const sequence=++ticket,reportId=editingId,current=()=>!!draft&&ticket===sequence;busy=true;error="";render();notify();value.reportTitle=(value.reportTitle??value.title??"").trim();
@@ -27942,6 +28090,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     entryReturn = null,
     entrySession = null,
     entryTab = "athlete",
+    entryWorkflowPending = false,
     settingsTab = "definitions",
     selectedDef = "cmj_height",
     isoFilter = "all",
@@ -28449,22 +28598,36 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     $("reportWorkflowBack").hidden=step===1;$("reportWorkflowBack").disabled=!!reportSetup.busy;
     $("reportWorkflowNext").disabled=!!reportSetup.busy;
     $("reportWorkflowNext").textContent=reportSetup.busy?"正在生成…":step===4?"查看报告":"下一步";
+    $("reportSetupSteps").querySelectorAll("button").forEach(button=>button.disabled=!!reportSetup.busy);
+  }
+  function reportWorkflowGoTo(target) {
+    if(!reportSetup||reportSetup.busy||!Number.isInteger(target)||target<1||target>4)return false;
+    const session=reportSetup,selector=session.family==="team"?teamSelection:reportSelection;
+    if(target===session.step)return true;
+    let message="",next=target;
+    if(target>session.step)for(let step=2;step<target;step++){
+      const check=selector.validateStep(step);
+      if(!check.valid){next=step;message=check.message||"请完成当前选择";break;}
+    }
+    session.step=next;
+    if(next>1)selector.setStep(next);
+    renderWorkspace();$("reportWorkflowError").textContent=message;
+    $("reportSetupSteps").querySelector(`[data-report-step="${next}"]`)?.focus({preventScroll:true});
+    return !message;
   }
   async function reportWorkflowNext() {
     if(!reportSetup||reportSetup.busy)return false;
     const session=reportSetup,selector=session.family==="team"?teamSelection:reportSelection;
     $("reportWorkflowError").textContent="";
     if(session.step>1){const check=selector.validateStep(session.step);if(!check.valid){$("reportWorkflowError").textContent=check.message||"请完成当前选择";return false;}}
-    if(session.step<4){session.step++;selector.setStep(session.step);renderWorkspace();return true;}
+    if(session.step<4)return reportWorkflowGoTo(session.step+1);
     session.busy=true;renderReportWorkflowActions();
     try{return await selector.apply();}catch(error){$("reportWorkflowError").textContent=error.message;return false;}
     finally{if(reportSetup===session){session.busy=false;renderReportWorkflowActions();}}
   }
   function reportWorkflowBack() {
     if(!reportSetup||reportSetup.busy||reportSetup.step<=1)return;
-    reportSetup.step--;$("reportWorkflowError").textContent="";
-    if(reportSetup.step>1)(reportSetup.family==="team"?teamSelection:reportSelection).setStep(reportSetup.step);
-    renderWorkspace();
+    return reportWorkflowGoTo(reportSetup.step-1);
   }
   function cancelReportSetup() {
     const backTo=reportSetupReturn;
@@ -28773,8 +28936,32 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     if(reports.active())return [["narrative","解读与干预建议"]];
     return [["athlete", "本次背景"], ["plan", "测试项目与标准"], ...orderedEntryProjects().map(t=>[t.id,t.name]), ["review", "核对本次结果"], ["narrative", "解读与干预建议"]];
   }
-  function workflowSteps(step) {
-    return ["选择运动员", "设置本次测试", "按项目录入", "核对并查看报告"].map((name,i)=>`<span class="workflow-step ${step===i+1?"active":step>i+1?"done":""}" ${step===i+1?'aria-current="step"':""}><b>${i+1}</b>${name}</span>`).join("");
+  function workflowSteps(step,{report=false,disabled=false}={}) {
+    const names=report?["选择报告类型","选择分析方式与对象","选择测试记录","核对并查看报告"]:["选择运动员","设置本次测试","按项目录入","核对并查看报告"];
+    disabled=disabled||!report&&(entryWorkflowPending||!!creation?.submitting);
+    return names.map((name,i)=>`<button type="button" class="workflow-step ${step===i+1?"active":step>i+1?"done":""}" data-${report?"report":"entry"}-step="${i+1}" onclick="App.${report?"reportWorkflowGoTo":"entryWorkflowGoTo"}(${i+1})" ${step===i+1?'aria-current="step"':""}${disabled?" disabled":""}><b>${i+1}</b>${name}</button>`).join("");
+  }
+  async function entryWorkflowGoTo(target) {
+    if(entryWorkflowPending||creation?.submitting||!Number.isInteger(target)||target<1||target>4||!["creation","entry"].includes(ui.mode))return false;
+    entryWorkflowPending=true;
+    document.querySelectorAll("[data-entry-step]").forEach(button=>button.disabled=true);
+    try{
+      if(creation){
+        const draft=creation;
+        if(target===1){if(draft.step==="test")creationBack();return true;}
+        if(draft.step!=="test")await creationNext();
+        if(creation!==draft||draft.step!=="test")return false;
+        if(target===2)return true;
+        if(!await submitCreation())return false;
+      }
+      const tab=target===1?"athlete":target===2?"plan":target===4?"review":orderedEntryProjects()[0]?.id||"plan";
+      openEntry(tab);
+      if(target===1)$("entryAthleteSelect")?.focus({preventScroll:true});
+      return ui.mode==="entry"&&entryTab===tab;
+    }finally{
+      entryWorkflowPending=false;
+      document.querySelectorAll("[data-entry-step]").forEach(button=>button.disabled=!!creation?.submitting);
+    }
   }
   function renderEntryNavigation() {
     const computed = reports.active() ? null : M.stats(effectiveRecord());
@@ -28839,7 +29026,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     $("entryNext").textContent = tabs[index+1]?.[0] === "review" ? "下一步：核对结果" : "下一项";
     $("entryFinish").hidden = !["review","narrative"].includes(entryTab);
     $("entryFinish").textContent = "保存并查看报告";
-    $("entrySteps").innerHTML = workflowSteps(["athlete","plan"].includes(entryTab) ? 2 : ["review","narrative"].includes(entryTab) ? 4 : 3);
+    $("entrySteps").innerHTML = workflowSteps(entryTab==="athlete" ? 1 : entryTab==="plan" ? 2 : ["review","narrative"].includes(entryTab) ? 4 : 3);
     const drafts = Object.entries(draftsFor()).filter(([key]) =>
       resolveDraftPath(key),
     );
@@ -29026,7 +29213,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
       $("reportSetupTitle").textContent="测试报告";
       $("reportSetupTitle").setAttribute("tabindex","-1");
       const step=reportSetup.step||1;
-      $("reportSetupSteps").innerHTML=["选择报告类型","选择分析方式与对象","选择测试记录","核对并查看报告"].map((name,i)=>`<span class="workflow-step ${step===i+1?"active":step>i+1?"done":""}" ${step===i+1?'aria-current="step"':""}><b>${i+1}</b>${name}</span>`).join("");
+      $("reportSetupSteps").innerHTML=workflowSteps(step,{report:true,disabled:!!reportSetup.busy});
       $("reportFamilyStep").hidden=step!==1;
       document.querySelectorAll('[name="reportFamily"]').forEach(input=>{input.checked=input.value===reportSetup.family;input.disabled=!!reportSetup.busy;});
       renderReportWorkflowActions();
@@ -33216,7 +33403,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     return {ok:true};
   }
   window.App = {
-    openReportSetup,openReportWorkflow,chooseReportFamily,reportWorkflowNext,reportWorkflowBack,adjustCurrentReport,cancelReportSetup,editReportData,getReportSetup:()=>reportSetup?copy(reportSetup):null,
+    openReportSetup,openReportWorkflow,chooseReportFamily,reportWorkflowNext,reportWorkflowBack,reportWorkflowGoTo,adjustCurrentReport,cancelReportSetup,editReportData,getReportSetup:()=>reportSetup?copy(reportSetup):null,
     selectRecords: async ids=>{if(reportSetup)discardReportSetup();return longitudinal.select(ids);},
     openTeam: options=>openReportSetup("team",{edit:!!options?.reportId,configuration:options?.configuration,reportId:options?.reportId}),
     selectTeam:configuration=>team.createReport(configuration),
@@ -33262,7 +33449,7 @@ jumpFVP 是统一计算的跳跃剖面和表现响应结果。FVP的不平衡性
     checkDesktopUpdate: () => desktopUpdateAction("checkForUpdates"),
     downloadDesktopUpdate: () => desktopUpdateAction("downloadUpdate"),
     installDesktopUpdate: () => desktopUpdateAction("installUpdate"),
-    creationNext,
+    creationNext,entryWorkflowGoTo,
     selectCreationContext, creationDateChanged, creationContextInput, reuseCreationTraining, reusePreviousTraining,
     editCurrentAthlete() { const owner=activeAthlete();if(owner)window.RingsideManagement.editAthlete(owner.id); },
     downloadExcelTemplate, importExcelFile, commitExcel, showExcelRecord, selectEntryAthlete,

@@ -49,6 +49,7 @@
     entryReturn = null,
     entrySession = null,
     entryTab = "athlete",
+    entryWorkflowPending = false,
     settingsTab = "definitions",
     selectedDef = "cmj_height",
     isoFilter = "all",
@@ -556,22 +557,36 @@
     $("reportWorkflowBack").hidden=step===1;$("reportWorkflowBack").disabled=!!reportSetup.busy;
     $("reportWorkflowNext").disabled=!!reportSetup.busy;
     $("reportWorkflowNext").textContent=reportSetup.busy?"正在生成…":step===4?"查看报告":"下一步";
+    $("reportSetupSteps").querySelectorAll("button").forEach(button=>button.disabled=!!reportSetup.busy);
+  }
+  function reportWorkflowGoTo(target) {
+    if(!reportSetup||reportSetup.busy||!Number.isInteger(target)||target<1||target>4)return false;
+    const session=reportSetup,selector=session.family==="team"?teamSelection:reportSelection;
+    if(target===session.step)return true;
+    let message="",next=target;
+    if(target>session.step)for(let step=2;step<target;step++){
+      const check=selector.validateStep(step);
+      if(!check.valid){next=step;message=check.message||"请完成当前选择";break;}
+    }
+    session.step=next;
+    if(next>1)selector.setStep(next);
+    renderWorkspace();$("reportWorkflowError").textContent=message;
+    $("reportSetupSteps").querySelector(`[data-report-step="${next}"]`)?.focus({preventScroll:true});
+    return !message;
   }
   async function reportWorkflowNext() {
     if(!reportSetup||reportSetup.busy)return false;
     const session=reportSetup,selector=session.family==="team"?teamSelection:reportSelection;
     $("reportWorkflowError").textContent="";
     if(session.step>1){const check=selector.validateStep(session.step);if(!check.valid){$("reportWorkflowError").textContent=check.message||"请完成当前选择";return false;}}
-    if(session.step<4){session.step++;selector.setStep(session.step);renderWorkspace();return true;}
+    if(session.step<4)return reportWorkflowGoTo(session.step+1);
     session.busy=true;renderReportWorkflowActions();
     try{return await selector.apply();}catch(error){$("reportWorkflowError").textContent=error.message;return false;}
     finally{if(reportSetup===session){session.busy=false;renderReportWorkflowActions();}}
   }
   function reportWorkflowBack() {
     if(!reportSetup||reportSetup.busy||reportSetup.step<=1)return;
-    reportSetup.step--;$("reportWorkflowError").textContent="";
-    if(reportSetup.step>1)(reportSetup.family==="team"?teamSelection:reportSelection).setStep(reportSetup.step);
-    renderWorkspace();
+    return reportWorkflowGoTo(reportSetup.step-1);
   }
   function cancelReportSetup() {
     const backTo=reportSetupReturn;
@@ -880,8 +895,32 @@
     if(reports.active())return [["narrative","解读与干预建议"]];
     return [["athlete", "本次背景"], ["plan", "测试项目与标准"], ...orderedEntryProjects().map(t=>[t.id,t.name]), ["review", "核对本次结果"], ["narrative", "解读与干预建议"]];
   }
-  function workflowSteps(step) {
-    return ["选择运动员", "设置本次测试", "按项目录入", "核对并查看报告"].map((name,i)=>`<span class="workflow-step ${step===i+1?"active":step>i+1?"done":""}" ${step===i+1?'aria-current="step"':""}><b>${i+1}</b>${name}</span>`).join("");
+  function workflowSteps(step,{report=false,disabled=false}={}) {
+    const names=report?["选择报告类型","选择分析方式与对象","选择测试记录","核对并查看报告"]:["选择运动员","设置本次测试","按项目录入","核对并查看报告"];
+    disabled=disabled||!report&&(entryWorkflowPending||!!creation?.submitting);
+    return names.map((name,i)=>`<button type="button" class="workflow-step ${step===i+1?"active":step>i+1?"done":""}" data-${report?"report":"entry"}-step="${i+1}" onclick="App.${report?"reportWorkflowGoTo":"entryWorkflowGoTo"}(${i+1})" ${step===i+1?'aria-current="step"':""}${disabled?" disabled":""}><b>${i+1}</b>${name}</button>`).join("");
+  }
+  async function entryWorkflowGoTo(target) {
+    if(entryWorkflowPending||creation?.submitting||!Number.isInteger(target)||target<1||target>4||!["creation","entry"].includes(ui.mode))return false;
+    entryWorkflowPending=true;
+    document.querySelectorAll("[data-entry-step]").forEach(button=>button.disabled=true);
+    try{
+      if(creation){
+        const draft=creation;
+        if(target===1){if(draft.step==="test")creationBack();return true;}
+        if(draft.step!=="test")await creationNext();
+        if(creation!==draft||draft.step!=="test")return false;
+        if(target===2)return true;
+        if(!await submitCreation())return false;
+      }
+      const tab=target===1?"athlete":target===2?"plan":target===4?"review":orderedEntryProjects()[0]?.id||"plan";
+      openEntry(tab);
+      if(target===1)$("entryAthleteSelect")?.focus({preventScroll:true});
+      return ui.mode==="entry"&&entryTab===tab;
+    }finally{
+      entryWorkflowPending=false;
+      document.querySelectorAll("[data-entry-step]").forEach(button=>button.disabled=!!creation?.submitting);
+    }
   }
   function renderEntryNavigation() {
     const computed = reports.active() ? null : M.stats(effectiveRecord());
@@ -946,7 +985,7 @@
     $("entryNext").textContent = tabs[index+1]?.[0] === "review" ? "下一步：核对结果" : "下一项";
     $("entryFinish").hidden = !["review","narrative"].includes(entryTab);
     $("entryFinish").textContent = "保存并查看报告";
-    $("entrySteps").innerHTML = workflowSteps(["athlete","plan"].includes(entryTab) ? 2 : ["review","narrative"].includes(entryTab) ? 4 : 3);
+    $("entrySteps").innerHTML = workflowSteps(entryTab==="athlete" ? 1 : entryTab==="plan" ? 2 : ["review","narrative"].includes(entryTab) ? 4 : 3);
     const drafts = Object.entries(draftsFor()).filter(([key]) =>
       resolveDraftPath(key),
     );
@@ -1133,7 +1172,7 @@
       $("reportSetupTitle").textContent="测试报告";
       $("reportSetupTitle").setAttribute("tabindex","-1");
       const step=reportSetup.step||1;
-      $("reportSetupSteps").innerHTML=["选择报告类型","选择分析方式与对象","选择测试记录","核对并查看报告"].map((name,i)=>`<span class="workflow-step ${step===i+1?"active":step>i+1?"done":""}" ${step===i+1?'aria-current="step"':""}><b>${i+1}</b>${name}</span>`).join("");
+      $("reportSetupSteps").innerHTML=workflowSteps(step,{report:true,disabled:!!reportSetup.busy});
       $("reportFamilyStep").hidden=step!==1;
       document.querySelectorAll('[name="reportFamily"]').forEach(input=>{input.checked=input.value===reportSetup.family;input.disabled=!!reportSetup.busy;});
       renderReportWorkflowActions();
@@ -5323,7 +5362,7 @@
     return {ok:true};
   }
   window.App = {
-    openReportSetup,openReportWorkflow,chooseReportFamily,reportWorkflowNext,reportWorkflowBack,adjustCurrentReport,cancelReportSetup,editReportData,getReportSetup:()=>reportSetup?copy(reportSetup):null,
+    openReportSetup,openReportWorkflow,chooseReportFamily,reportWorkflowNext,reportWorkflowBack,reportWorkflowGoTo,adjustCurrentReport,cancelReportSetup,editReportData,getReportSetup:()=>reportSetup?copy(reportSetup):null,
     selectRecords: async ids=>{if(reportSetup)discardReportSetup();return longitudinal.select(ids);},
     openTeam: options=>openReportSetup("team",{edit:!!options?.reportId,configuration:options?.configuration,reportId:options?.reportId}),
     selectTeam:configuration=>team.createReport(configuration),
@@ -5369,7 +5408,7 @@
     checkDesktopUpdate: () => desktopUpdateAction("checkForUpdates"),
     downloadDesktopUpdate: () => desktopUpdateAction("downloadUpdate"),
     installDesktopUpdate: () => desktopUpdateAction("installUpdate"),
-    creationNext,
+    creationNext,entryWorkflowGoTo,
     selectCreationContext, creationDateChanged, creationContextInput, reuseCreationTraining, reusePreviousTraining,
     editCurrentAthlete() { const owner=activeAthlete();if(owner)window.RingsideManagement.editAthlete(owner.id); },
     downloadExcelTemplate, importExcelFile, commitExcel, showExcelRecord, selectEntryAthlete,

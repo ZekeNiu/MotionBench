@@ -110,7 +110,8 @@
 .export-options{position:absolute;right:0;top:calc(100% + 8px);padding:8px;min-width:245px;background:white;border:1px solid #d9e1e9;border-radius:10px;box-shadow:0 10px 30px #24394a22;display:grid;gap:4px;z-index:30}
 .export-options button{text-align:left;justify-content:start}
 .workflow-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 22px}
-.workflow-step{display:flex;align-items:center;gap:8px;color:var(--muted);border-bottom:2px solid #e1e6ec;padding:8px 0 13px;font-size:12px}
+.workflow-step{display:flex;align-items:center;gap:8px;color:var(--muted);border:0;border-bottom:2px solid #e1e6ec;background:transparent;border-radius:0;padding:8px 0 13px;font:inherit;font-size:12px;text-align:left;min-width:0;cursor:pointer}
+.workflow-step:hover:not(:disabled){color:#294d69;border-bottom-color:#7f98ad}.workflow-step:focus-visible{outline:2px solid #486c88;outline-offset:4px}.workflow-step:disabled{cursor:wait;opacity:.65}
 .workflow-step b{display:grid;place-items:center;width:24px;height:24px;flex-shrink:0;border-radius:50%;background:#e9edf2;color:#617388;font-size:11px}
 .workflow-step.active{color:#294d69;border-color:#486c88;font-weight:650}.workflow-step.active b{background:#486c88;color:white}.workflow-step.done{color:var(--muted)}
 .creation-page{max-width:1100px;margin:auto}.creation-page>.modal-head{position:static;padding:24px 26px 0;border:0}.creation-page>.modal-head h1{font-size:var(--ui-font-page,25px);margin:0}

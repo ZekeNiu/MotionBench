@@ -32,10 +32,11 @@
     const padding = (max - min) * .08;
     return {min: min < 0 || !zero ? min - padding : 0, max: max > 0 || !zero ? max + padding : 0};
   }
-  function yGrid(width, top, bottom, extent, unit) {
+  function yGrid(width, top, bottom, extent, unit, integer = false) {
     const left = 62, right = width - 20, y = value => bottom - (value - extent.min) / (extent.max - extent.min) * (bottom - top);
     let out = text(left, 17, unit || "无单位", 'font-size="11"');
-    for (let i = 0; i <= 4; i++) { const value = extent.min + (extent.max - extent.min) * i / 4, py = y(value); out += line(left, py, right, py) + text(left - 9, py + 4, F(value), 'text-anchor="end" font-size="10"'); }
+    const ticks = [...new Set(Array.from({length:5},(_,i) => { const value=extent.min+(extent.max-extent.min)*i/4;return integer ? Math.round(value) : value; }))];
+    for (const value of ticks) { const py = y(value); out += line(left, py, right, py) + text(left - 9, py + 4, F(value), 'text-anchor="end" font-size="10"'); }
     if (extent.min <= 0 && extent.max >= 0) out += line(left, y(0), right, y(0), 'stroke-width="1.2"');
     return {left, right, y, out};
   }
@@ -96,6 +97,68 @@
     if (!data.n) return '<p class="team-empty">该指标暂无有效结果。</p>';
     const width = options.width || (options.print ? 680 : 720), ranked = ["column", "dot"].includes(data.kind), groups = options.print && ranked ? chunks(data.entries, 9) : [data.entries];
     return groups.map((entries, index) => `<div class="team-chart-panel" data-pdf-atomic>${groups.length > 1 ? `<p class="team-chart-continuation">${E(data.metric.name)} · ${index * 9 + 1}–${index * 9 + entries.length} / ${data.n} 人</p>` : ""}${ranked ? rankChart(data, {...options, width, entries}) : data.kind === "box" ? boxChart(data, width) : histogramChart(data, width)}</div>`).join("");
+  }
+  function comparisonLegend(series) {
+    return `<div class="team-radar-legend team-comparison-legend">${series.map(item => `<span><i style="background:${item.color}"></i>${E(item.label)}${item.n == null ? "" : ` · ${item.n} 人`}</span>`).join("")}</div>`;
+  }
+  function groupedChart(data, {width, print, categories, series, extent}) {
+    const column = data.kind !== "dot", mean = data.ordering === "mean", slotWidth = mean ? series.length * 100 : Math.max(86, series.length * 48 + 20), w = print ? width : Math.max(width,82 + categories.length * slotWidth), bottom = 252,
+      grid = yGrid(w,35,bottom,extent,data.counts ? "人数" : data.metric.unit,!!data.counts), slot = (grid.right - grid.left) / Math.max(1,categories.length), inner = mean ? slot / Math.max(1,series.length) : Math.min(slot * .8,series.length * 36) / Math.max(1,series.length),
+      names = data.ordering === "descending-value" || mean, nameWidth = mean ? Math.max(3,Math.min(24,Math.floor(inner / 10) - 1)) : 3,
+      nameParts = value => mean && /^\d{4}-\d{2}-\d{2}$/.test(value) && inner >= 64 ? [value] : words(value,nameWidth),
+      nameLines = names ? series.flatMap(item => categories.map(category => nameParts(item.cells[category.index]?.name || (mean ? item.label : "")))) : [],
+      nameHeight = Math.max(0,...nameLines.map(parts => parts.length)) * 15,
+      categoryHeight = Math.max(1,...categories.map(category => words(category.label,10).length)) * 15;
+    let out = grid.out;
+    categories.forEach((category,index) => {
+      series.forEach((item,seriesIndex) => {
+        const cell = item.cells[category.index], value = N(cell?.value), x = grid.left + slot * (index + .5) + inner * (seriesIndex - (series.length - 1) / 2), attrs = `data-team-member-series="${E(item.id)}" data-team-member-category="${E(category.id)}"`;
+        if (value === null) { out += `<g ${attrs} data-team-missing-slot>${text(x,bottom - 10,"—",'text-anchor="middle" font-size="11"')}</g>`; return; }
+        const py = grid.y(value), size = Math.min(32,inner * .9), formatted = F(value,data.counts ? 0 : precision(data.metric)),
+          grade = cell.assessment && ["red","amber","green"].includes(cell.assessment.status) ? cell.assessment.label || root.RingsideResultDisplay.trafficLabel(cell.assessment.status) : "",
+          tooltip = [item.label,cell.name || category.label,`${data.metric.name} ${formatted}${data.counts ? " 人" : data.metric.unit ? " " + data.metric.unit : ""}`,cell.pain ? "疼痛记录：预警" : grade,cell.tooltip || ""].filter(Boolean).join(" · "),
+          shape = column ? `<rect x="${x-size/2}" y="${Math.min(py,grid.y(0))}" width="${size}" height="${Math.abs(grid.y(0)-py)}" rx="2" fill="${item.color}" fill-opacity=".84"/>${value === 0 ? line(x-size/2,py,x+size/2,py,`style="stroke:${item.color}" stroke-width="3"`) : ""}` : `<circle cx="${x}" cy="${py}" r="5" fill="${item.color}"/>`;
+        out += hit(shape + text(x,value < 0 && column ? py + 16 : py - 10,formatted,'text-anchor="middle" font-size="11"'),tooltip,`${attrs} data-team-member-value="${value}" data-team-member-name="${E(cell.name || "")}"`);
+        if (names) out += lines(x,bottom+23,nameParts(cell.name || item.label),'text-anchor="middle" font-size="10"');
+      });
+      if (data.ordering !== "mean") out += lines(grid.left+slot*(index+.5),bottom+23+nameHeight,words(category.label,10),'text-anchor="middle" font-size="11"');
+    });
+    return svg(w,bottom+38+nameHeight+(data.ordering === "mean" ? 0 : categoryHeight),data.metric.name + (column ? " · 分组柱状图" : " · 分组点图"),out,"同色表示同一日期或比较对象。缺测保留空位，不作零值；数值名次不表示成绩好坏。");
+  }
+  function comparisonBoxes(data, {width, series, extent}) {
+    const left = 62, right = width - 24, top = 36, bottom = 50 + series.length * 84,
+      x = value => left + (value-extent.min)/(extent.max-extent.min)*(right-left);
+    let out = text(left,17,data.metric.unit || "无单位",'font-size="11"');
+    for (let i=0;i<=4;i++) { const value=extent.min+(extent.max-extent.min)*i/4,px=x(value); out+=line(px,top,px,bottom)+text(px,bottom+23,F(value),'text-anchor="middle" font-size="10"'); }
+    series.forEach((item,index) => {
+      const cy=70+index*84, stat=item.statistics || {}, entries=item.cells.filter(cell=>N(cell?.value)!==null), color=item.color;
+      out+=text(left,cy-15,item.label + ` · ${entries.length} 人`,'font-size="11"');
+      if (entries.length >= 3 && stat.boxAvailable && [stat.q1,stat.median,stat.q3,stat.lowerWhisker,stat.upperWhisker].every(value=>N(value)!==null)) {
+        out+=line(x(stat.lowerWhisker),cy+5,x(stat.upperWhisker),cy+5,`style="stroke:${color}" stroke-width="2"`)+line(x(stat.lowerWhisker),cy-7,x(stat.lowerWhisker),cy+17,`style="stroke:${color}" stroke-width="2"`)+line(x(stat.upperWhisker),cy-7,x(stat.upperWhisker),cy+17,`style="stroke:${color}" stroke-width="2"`)+`<rect data-team-box="${E(item.id)}" x="${x(stat.q1)}" y="${cy-12}" width="${Math.max(1,x(stat.q3)-x(stat.q1))}" height="34" fill="${color}" fill-opacity=".15" stroke="${color}"/>`+line(x(stat.median),cy-12,x(stat.median),cy+22,`style="stroke:${color}" stroke-width="2.5"`);
+      } else out+=text(right,cy-15,entries.length ? "少于 3 人，显示个人结果" : "暂无有效结果",'text-anchor="end" font-size="10"');
+      const lanes=new Map();
+      entries.forEach(cell=>{const bucket=Math.round(x(cell.value)/12),lane=lanes.get(bucket)||0;lanes.set(bucket,lane+1);out+=hit(`<circle cx="${x(cell.value)}" cy="${cy+37+(lane%5-2)*4}" r="4" fill="${color}" fill-opacity=".78" stroke="white"/>`,`${item.label} · ${cell.name} · ${F(cell.value,precision(data.metric))} ${data.metric.unit || ""}`,`data-team-box-member="${E(cell.athleteId)}" data-team-member-series="${E(item.id)}"`);});
+    });
+    return svg(width,bottom+42,data.metric.name+" · 箱线分布图",out,"箱体为成员结果的第一至第三四分位数，中线为中位数；少于三人仅显示真实成员点。");
+  }
+  function comparisonChartHTML(input, {width = 720, print = false} = {}) {
+    if (!input.series.some(item=>item.cells.some(cell=>N(cell?.value)!==null))) return '<p class="team-empty">所选指标暂无有效结果。</p>';
+    let data = input;
+    if (data.kind === "histogram") {
+      const bins=root.RingsideTeam.histogram(data.series.flatMap((item,seriesIndex)=>item.cells.filter(cell=>N(cell?.value)!==null).map(cell=>({...cell,seriesIndex})))), binData={metric:data.metric,bins};
+      data={...data,kind:"column",counts:true,ordering:"distribution",categories:bins.map((bin,index)=>({id:"bin-"+index,label:binValue(bin.from,binData)+" – "+binValue(bin.to,binData)})),series:data.series.map((item,seriesIndex)=>({...item,cells:bins.map(bin=>{const members=bin.members.filter(cell=>cell.seriesIndex===seriesIndex);return {value:members.length,tooltip:members.map(cell=>cell.name).join("、")};})}))};
+    }
+    const allValues=data.series.flatMap(item=>item.cells.map(cell=>N(cell?.value))).filter(value=>value!==null), extent=data.counts ? {min:0,max:Math.max(1,...allValues)} : range(allValues,data.kind!=="box" && data.kind!=="dot"),
+      seriesGroups=print ? chunks(data.series,data.kind==="box" ? 5 : data.ordering==="mean" ? Math.max(1,Math.floor((width-82)/86)) : 10) : [data.series];
+    return seriesGroups.flatMap(series=>{
+      const categories=data.categories.map((category,index)=>({...category,index})), capacity=Math.max(1,Math.floor((width-82)/Math.max(86,series.length*48+20))), categoryGroups=print && data.kind!=="box" ? chunks(categories,capacity) : [categories];
+      return categoryGroups.map(group=>{
+        const objectRange=data.kind==="box" || data.ordering==="mean", start=objectRange ? data.series.findIndex(item=>item.id===series[0].id) : group[0]?.index || 0, count=objectRange ? series.length : group.length,
+          label=objectRange ? "对象" : data.ordering==="descending-value" ? "数值名次" : data.ordering==="distribution" ? data.metric.meaning==="category" ? "类别" : "区间" : "成员",
+          continuation=print && (seriesGroups.length>1 || categoryGroups.length>1) ? `<p class="team-chart-continuation">${E(data.metric.name)} · ${label} ${start+1}–${start+count} / ${objectRange ? data.series.length : categories.length}</p>` : "";
+        return `<div class="team-chart-panel" data-pdf-atomic>${continuation}${comparisonLegend(series)}${data.kind==="box" ? comparisonBoxes(data,{width,series,extent}) : groupedChart(data,{width,print,categories:group,series,extent})}</div>`;
+      });
+    }).join("");
   }
   function radarHTML(axes, series, {risk = false, total = 0} = {}) {
     if (!axes.length) return '<p class="team-empty">暂无可评价的维度。</p>';
@@ -244,7 +307,7 @@
     container.addEventListener("change", event => {
       const input = event.target;
       if (input.matches("[data-team-presentation]")) updateViews({[input.dataset.teamPresentation]:input.value});
-      if (input.matches("[data-team-kind],[data-team-metric]")) { const projectId = input.dataset.teamKind || input.dataset.teamMetric, key = input.hasAttribute("data-team-kind") ? "kind" : "metricId"; updateViews({charts:{...(views.charts || {}),[projectId]:{...(views.charts?.[projectId] || {}),[key]:input.value}}}); }
+      if (input.matches("[data-team-kind],[data-team-metric],[data-team-data]")) { const projectId = input.dataset.teamKind || input.dataset.teamMetric || input.dataset.teamData, key = input.hasAttribute("data-team-kind") ? "kind" : input.hasAttribute("data-team-data") ? "data" : "metricId"; updateViews({charts:{...(views.charts || {}),[projectId]:{...(views.charts?.[projectId] || {}),[key]:input.value}}}); }
       if (input.matches("[data-team-overlay]")) { container.__teamOverlayOpen=true;const selected = [...container.querySelectorAll("[data-team-overlay]:checked")].map(node => node.dataset.teamOverlay).slice(0,3); updateViews({overviewAthleteIds:selected}); }
     }, options);
     container.__teamResizeObserver?.disconnect();
@@ -268,5 +331,5 @@
     const clone = container.cloneNode(true); clone.removeAttribute("id"); clone.classList.add("team-browser-print"); preparePrint(clone,model,views); container.ownerDocument.body.append(clone); container.ownerDocument.body.classList.add("team-print-active");
     return () => { clone.remove(); container.ownerDocument.body.classList.remove("team-print-active"); };
   }
-  root.RingsideTeamView = {render,layout,bind,preparePrint,prepareBrowserPrint,chartHTML,radarHTML,tableHTML,kinds,summaryCards,summaryHTML,cellHTML,riskLists};
+  root.RingsideTeamView = {render,layout,bind,preparePrint,prepareBrowserPrint,chartHTML,comparisonChartHTML,radarHTML,tableHTML,kinds,summaryCards,summaryHTML,cellHTML,riskLists};
 })(typeof window !== "undefined" ? window : globalThis);

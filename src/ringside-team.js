@@ -319,7 +319,8 @@
           return { id: object.id, label: object.label || reference.label || "参考群体", kind, reference: root.RingsideHorizontal.normalizeReference(reference) };
         }
         const normalized = normalizeConfiguration({ participants: object.participants || [], mode: out.mode, window: object.window || { kind: "all" } });
-        return { id: object.id, label: object.label || "团队", kind, groupId: object.groupId || "", participants: normalized.participants, window: normalized.window };
+        return { id: object.id, label: object.label || "团队", kind, groupId: object.groupId || "", participants: normalized.participants, window: normalized.window,
+          ...(object.evaluationOverrides ? { evaluationOverrides: clone(object.evaluationOverrides) } : {}) };
       });
       out.participants = [...new Map(out.objects.flatMap(object => object.participants || []).map(person => [person.athleteId, person])).values()];
     }
@@ -428,7 +429,8 @@
           model = yield { kind: "team", records, options: { ...baseOptions, participants: object.participants, window: object.window } };
           const selected = new Set(object.participants.map(person => person.recordId).filter(Boolean));
           candidates = records.filter(record => selected.has(record.recordId)); selected.forEach(recordId => used.add(recordId));
-          reference = { id: object.id, label: object.label, scope: "all", sampling: "latest", window: { kind: "all" } };
+          reference = { id: object.id, label: object.label, scope: "all", sampling: "latest", window: { kind: "all" },
+            ...(object.evaluationOverrides ? { evaluationOverrides: object.evaluationOverrides } : {}) };
         } else reference = { ...object.reference, id: object.id, label: object.label };
         const horizontal = yield { kind: "reference", records: candidates, options: { ...baseOptions, participants: [], references: [reference] } };
         const referenceModel = horizontal.references[0];
@@ -475,6 +477,48 @@
   }
   function hasData(model) {
     return !!model && ((model.projects || []).some(project => (project.metrics || []).some(row => row.statistics?.n > 0 || (row.cells || []).some(cell => cell && (N(cell.value) !== null || cell.n > 0 || cell.pain)))) || (model.risk?.regions || []).some(region => region.measuredCount > 0));
+  }
+  function memberSeries(model, row) {
+    const longitudinal = model?.analysisMode === "longitudinal", horizontal = model?.analysisMode === "horizontal";
+    const supported = !!row && (longitudinal || horizontal) && row.meaning !== "category", unit = row?.unit || "";
+    const result = { supported, ordering: longitudinal ? "roster" : "descending-value", categories: [], series: [] };
+    if (!row || !longitudinal && !horizontal || row.meaning === "category") return result;
+    const summarize = (series, missingNames, total) => {
+      const entries = series.cells.filter(hasValue);
+      return { ...series, n: entries.length, statistics: statistics(entries, row.aggregation?.mean === true ? "numeric" : row.meaning || "numeric"),
+        distribution: distribution(entries), missingCount: Math.max(0, total - entries.length), missingNames };
+    };
+    if (longitudinal) {
+      const people = row.people || [];
+      result.categories = people.map(person => ({ id: person.athleteId, label: person.name || person.athleteId }));
+      result.series = (model.periods || []).map((period, index) => {
+        const cells = people.map(person => {
+          const cell = person.cells[index];
+          return hasValue(cell) ? { ...clone(cell), athleteId: person.athleteId, name: person.name || person.athleteId, unit } : null;
+        });
+        return summarize({ id: period.id || period.date, label: period.label || period.date, date: period.date, mean: N(row.cells[index]?.value), cells },
+          people.filter((person, slot) => !cells[slot]).map(person => person.name || person.athleteId), people.length);
+      });
+    } else {
+      result.series = (model.objects || []).map((object, index) => {
+        const benchmark = row.cells[index], roster = object.model?.people || object.model?.participants || [];
+        const cells = (benchmark?.contributors || []).map(person => {
+          const factor = unitFactor(person.unit || benchmark?.unit || unit, unit), value = N(person.value);
+          if (factor === null || value === null) return null;
+          const cell = { athleteId: person.athleteId, name: person.name || person.athleteId, value: value * factor, unit };
+          for (const key of ["recordId", "date", "effectiveSampling", "recordCount", "dateRange", "sources", "pain", "assessment", "display"])
+            if (person[key] !== undefined) cell[key] = clone(person[key]);
+          return cell;
+        }).filter(Boolean).sort((a, b) => b.value - a.value || String(a.athleteId).localeCompare(String(b.athleteId)));
+        const measured = new Set(cells.map(cell => cell.athleteId)), missingNames = roster.filter(person => !measured.has(person.athleteId)).map(person => person.name || person.athlete?.name || person.athleteId);
+        return summarize({ id: object.id, label: object.label, mean: N(benchmark?.value), sampling: benchmark?.sampling || object.referenceModel?.spec?.sampling || "latest", cells },
+          missingNames, roster.length || benchmark?.eligibleAthletes || object.referenceModel?.eligibleAthletes || cells.length);
+      });
+      const count = Math.max(0, ...result.series.map(series => series.cells.length));
+      result.categories = Array.from({ length: count }, (_, index) => ({ id: String(index + 1), label: "第 " + (index + 1) + " 位" }));
+      result.series.forEach(series => { while (series.cells.length < count) series.cells.push(null); });
+    }
+    return result;
   }
   function chart(model, projectId, view = {}) {
     const project = model.projects.find(item => item.id === projectId) || model.capability.cards.find(item => item.projectId === projectId || item.id === projectId);
@@ -532,5 +576,5 @@
     if (model.risk.unlocalized.length) lines.push("未定位筛查提示：" + model.risk.unlocalized.map(person => person.name).join("、") + "。");
     return lines.join("\n");
   }
-  root.RingsideTeam = { build, buildAsync, chart, facts, localText, statistics, histogram, quantile, unitFactor, normalizeConfiguration, selectedSources, present, hasData };
+  root.RingsideTeam = { build, buildAsync, chart, facts, localText, statistics, histogram, quantile, unitFactor, normalizeConfiguration, selectedSources, present, hasData, memberSeries };
 })(typeof window !== "undefined" ? window : globalThis);

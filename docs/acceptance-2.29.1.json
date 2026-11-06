@@ -1,0 +1,95 @@
+{
+  "pass": true,
+  "version": "2.29.1",
+  "desktopVersion": "2.29.1-desktop.1",
+  "scope": "Affected report comparison, selection, step navigation, native save/reopen and PDF export only.",
+  "artifact": {
+    "file": "MotionBench.html",
+    "bytes": 5525549,
+    "sha256": "834d28388cfa02bbe360866f5b1c7d4252f920a4808f3653fd19cced5bd49657"
+  },
+  "unitSuites": 5,
+  "unitChecks": 90,
+  "browserChecks": {
+    "chrome": 18,
+    "msedge": 18
+  },
+  "nativeChecks": 3,
+  "pdfPagesReviewed": 5,
+  "evidence": [
+    {
+      "file": "output/release/2.29.1-local/acceptance/unit-final/unit-results.json",
+      "sha256": "b0cf057d924152ceeaaaed06f6831bfbbc6b87ec3e7847e79ab026d2106fc0c6",
+      "checks": 5
+    },
+    {
+      "file": "output/release/2.29.1-local/acceptance/selection-chrome/results.json",
+      "sha256": "2af6a20cb96e8b8e68698474eaadb16270eb32275e08da1f8d67aa6b24ffca9f",
+      "checks": 4
+    },
+    {
+      "file": "output/release/2.29.1-local/acceptance/step-navigation-chrome/results.json",
+      "sha256": "1f7d56d0e991a7df84344ffd261695cb06af9a6f515fffc34a2247e2e5a6a7af",
+      "checks": 4
+    },
+    {
+      "file": "output/release/2.29.1-local/acceptance/team-comparison-view-chrome/receipt.json",
+      "sha256": "e2cf750739c9961b374242cfac909a1a7f3671648d5e674ce9d9f2094ffc1402",
+      "checks": 10
+    },
+    {
+      "file": "output/release/2.29.1-local/acceptance/selection-msedge/results.json",
+      "sha256": "ba80696587f36d225d6269fa2ffd1583c6e69a5239a6dc3e54fa208832c2ffe6",
+      "checks": 4
+    },
+    {
+      "file": "output/release/2.29.1-local/acceptance/step-navigation-msedge/results.json",
+      "sha256": "f5bba0ebdbbdf1fcda6fd05422d2ed15460e13780049fcb24b60ee8c22e590a3",
+      "checks": 4
+    },
+    {
+      "file": "output/release/2.29.1-local/acceptance/team-comparison-view-msedge/receipt.json",
+      "sha256": "f5c78b24833a3823b36c1be8e952aadce9a22f8c226ffe4480306690a76873fd",
+      "checks": 10
+    },
+    {
+      "file": "output/release/2.29.1-local/native-smoke/results.json",
+      "sha256": "aa938de5e77fdcae8924212a4bfc38b10a59dcb094680d30826a372835937302",
+      "checks": 3
+    }
+  ],
+  "package": {
+    "archiveSha256": "1743f7e88f5f85129f759d4a82623c4f13f012f027bab9ef07972a7f61a687ab",
+    "htmlSha256": "834d28388cfa02bbe360866f5b1c7d4252f920a4808f3653fd19cced5bd49657",
+    "assets": 271,
+    "installerSha256": "e356703e92a787380576a0093b09059d09d03c1b170c8e10daae7484c7f1e177",
+    "portableSha256": "28e287aa4dae1ffaa4ff7f274317cde275600493c0764cd9b11fbe7ba4e1ed27",
+    "updaterSha256": "e5d63d13727dc770713645467530e7b34fa85641e44b8e25510e8d6835470e75",
+    "artifacts": [
+      {
+        "file": "MotionBench-2.29.1-desktop.1-Setup-x64.exe",
+        "bytes": 113783385,
+        "sha256": "e356703e92a787380576a0093b09059d09d03c1b170c8e10daae7484c7f1e177",
+        "sha512": "weXTI0+SAuICXsqSYWdsmrC84jp8mV9oU2k9d262sDhiEOLA8UpL/Qwi6Hs1vn961SpyHYtdJWBCmAzy1XGqvw=="
+      },
+      {
+        "file": "MotionBench-2.29.1-desktop.1-Setup-x64.exe.blockmap",
+        "bytes": 119699,
+        "sha256": "9e4138596278672aa7abdc9bd0f03e7cd68cf6420f46e8ebc89f4ecfa0098129",
+        "sha512": "3meY8JF1bKACElPJf3a50cTHQLuvkyXVcV4nNJ3ei3Y7XAJHYwvh1ApI2Npd7q5TWAtuJtBGQy0nvRGjXK1kxg=="
+      },
+      {
+        "file": "MotionBench-2.29.1-desktop.1-Portable-x64.exe",
+        "bytes": 113546980,
+        "sha256": "28e287aa4dae1ffaa4ff7f274317cde275600493c0764cd9b11fbe7ba4e1ed27",
+        "sha512": "GYFVli3xF1q9dGX6u/Z7NhpyTZL2/MMht9qrOaYAnwn14Ljmz2AZReyARjr9D/k3sGU3UwVduXYta3aHsYkclw=="
+      },
+      {
+        "file": "desktop.yml",
+        "bytes": 392,
+        "sha256": "e5d63d13727dc770713645467530e7b34fa85641e44b8e25510e8d6835470e75",
+        "sha512": "UTxtxLgYj3IGkQnQZqbcEugjCF+AIB+vuzna2mr/a1CWbGEuhGxjHcKlkx/cy5R32z4Ld3I5KZU5GOAW4afqFQ=="
+      }
+    ]
+  }
+}

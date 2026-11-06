@@ -30,10 +30,19 @@
       unit = change.kind === "percentage-point" ? " 个百分点" : row.unit ? " " + E(row.unit) : "";
     return `<small class="team-difference"${change.improvement ? ` data-improvement="${E(change.improvement)}"` : ""}>${signed(change.delta)}${unit}${N(change.percent) !== null ? `（${signed(change.percent)}%）` : ""}</small>`;
   }
-  function comparisonTable(rows, columns, {print = false, focus = "", baseline = "", longitudinal = false} = {}) {
+  function summaryTrend(row, periods, print) {
+    if (row.meaning === "category" || periods.length < 2 || !(row.cells || []).some(cell => cell?.n > 0 && N(cell.value ?? cell.mean) !== null)) return missing;
+    const cells = periods.map((_, index) => { const cell = row.cells?.[index], value = cell?.n > 0 ? N(cell.value ?? cell.mean) : null; return value === null ? null : {value,unit:row.unit || "",contextKey:row.contextKey || row.id,evaluationKey:"",direction:null}; });
+    return root.RingsideResultDisplay.render(root.RingsideResultDisplay.trend({...row,name:metricName(row) + " · 各日期群体均值",cells},periods,root.RingsideLongitudinal.change),print);
+  }
+  function comparisonTable(rows, columns, {print = false, focus = "", baseline = "", longitudinal = false, mini = false} = {}) {
     if (!rows.length) return "";
-    const indexed = columns.map((column, i) => ({...column, index:i})), groups = print ? chunks(indexed, 3) : [indexed];
-    return groups.map(group => `<div class="team-table-wrap"><table class="team-results team-comparison-table"${print ? "" : ` style="min-width:${160 + group.length * 155}px"}`}><colgroup><col class="team-comparison-name-column">${group.map(() => "<col>").join("")}</colgroup><thead><tr><th scope="col">指标</th>${group.map(column => `<th scope="col"${column.id === focus ? ' class="team-comparison-focus"' : ""}>${E(column.label || column.date)}${column.id === baseline ? "<small>比较基准</small>" : ""}</th>`).join("")}</tr></thead><tbody>${rows.map(row => `<tr data-team-comparison-metric="${E(row.id)}"><th scope="row">${E(metricName(row))}${row.unit ? `<small>${E(row.unit)}</small>` : ""}</th>${group.map(column => `<td data-team-column="${E(column.id)}">${aggregateCell(row.cells?.[column.index], row, {difference:longitudinal ? null : row.differences?.[column.index] || row.cells?.[column.index]?.difference, baseline:column.id === baseline})}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`).join("");
+    const indexed = columns.map((column, i) => ({...column, index:i})), groups = print ? chunks(indexed, 3) : [indexed],
+      hasTrend = longitudinal && mini && columns.length > 1 && rows.some(row => summaryTrend(row,columns,print) !== missing);
+    return groups.map((group,index) => {
+      const showTrend = hasTrend && index === groups.length - 1;
+      return `<div class="team-table-wrap"><table class="team-results team-comparison-table${showTrend ? " team-trend-results" : ""}"${print ? "" : ` style="min-width:calc(${160 + group.length * 155}px + ${showTrend ? "var(--result-trend-column-width,184px)" : "0px"})"`}><colgroup><col class="team-comparison-name-column">${group.map(() => "<col>").join("")}${showTrend ? '<col class="team-trend-column">' : ""}</colgroup><thead><tr><th scope="col">指标</th>${group.map(column => `<th scope="col"${column.id === focus ? ' class="team-comparison-focus"' : ""}>${E(column.label || column.date)}${column.id === baseline ? "<small>比较基准</small>" : ""}</th>`).join("")}${showTrend ? '<th scope="col">均值趋势</th>' : ""}</tr></thead><tbody>${rows.map(row => `<tr data-team-comparison-metric="${E(row.id)}"><th scope="row">${E(metricName(row))}${row.unit ? `<small>${E(row.unit)}</small>` : ""}</th>${group.map(column => `<td data-team-column="${E(column.id)}">${aggregateCell(row.cells?.[column.index], row, {difference:longitudinal ? null : row.differences?.[column.index] || row.cells?.[column.index]?.difference, baseline:column.id === baseline})}</td>`).join("")}${showTrend ? `<td data-label="均值趋势">${summaryTrend(row,columns,print)}</td>` : ""}</tr>`).join("")}</tbody></table></div>`;
+    }).join("");
   }
   function pairedTable(rows, periods, print) {
     const spans = [{key:"overall", label:"首末日期"}, ...(periods.length > 2 ? [{key:"recent", label:"最近两次"}] : [])];
@@ -42,26 +51,34 @@
       return `<tr><th scope="row">${E(metricName(row))}${row.unit ? `<small>${E(row.unit)}</small>` : ""}</th><td>${change?.n > 0 ? change.n : missing}</td><td>${available ? F(change.fromMean) + `<small>${E(change.from)}</small>` : missing}</td><td>${available ? F(change.toMean) + `<small>${E(change.to)}</small>` : missing}</td><td>${available ? differenceHTML(change, row) : missing}${!available && change?.reason ? `<small>${E(change.reason)}</small>` : ""}</td></tr>`;
     }).join("")}</tbody></table></div>`).join("") + '<p class="note team-comparison-note">配对变化只使用该指标在比较两端都有有效结果的同一批成员；各日期群体均值使用当日有效结果。</p>';
   }
-  function personalHistory(row, periods, print) {
-    const people = row.people || [], indexed = periods.map((period, index) => ({...period, index})), groups = print ? chunks(indexed, 3) : [indexed],
-      hasTrend = row.meaning !== "category" && periods.length > 1 && people.some(person => person.cells?.some(cell => N(cell?.value) !== null)),
-      trend = person => person.cells?.some(cell => N(cell?.value) !== null) ? root.RingsideResultDisplay.render(root.RingsideResultDisplay.trend({...row,id:row.metricId || row.id,cells:person.cells},periods,root.RingsideLongitudinal.change),print) : missing;
-    return `<details class="team-personal-history"${print ? " open" : ""}><summary>${E(metricName(row))} · 个人逐日结果</summary>${groups.map((group,index) => {
-      const showTrend = hasTrend && index === groups.length - 1;
-      return `<div class="team-table-wrap"><table class="team-results team-comparison-table team-personal-results"${print ? "" : ` style="min-width:calc(${160 + group.length * 130}px + ${showTrend ? "var(--result-trend-column-width,184px)" : "0px"})"}`}><colgroup><col class="team-comparison-name-column">${group.map(() => "<col>").join("")}${showTrend ? '<col class="team-trend-column">' : ""}</colgroup><thead><tr><th scope="col">运动员</th>${group.map(period => `<th scope="col">${E(period.date)}</th>`).join("")}${showTrend ? '<th scope="col">变化趋势</th>' : ""}</tr></thead><tbody>${people.map(person => `<tr data-team-history-person="${E(person.athleteId)}"><th scope="row">${E(person.name || person.athleteId)}</th>${group.map(period => `<td data-team-history-date="${E(period.date)}">${root.RingsideTeamView.cellHTML(person.cells?.[period.index], row)}</td>`).join("")}${showTrend ? `<td data-label="变化趋势">${trend(person)}</td>` : ""}</tr>`).join("")}</tbody></table></div>`;
-    }).join("")}</details>`;
+  function chartProjection(row, model, periods, dataKind, kind) {
+    const metric = {id:row.id,name:metricName(row),unit:row.unit || "",digits:row.digits,meaning:row.meaning,measurementScale:row.measurementScale};
+    if (row.meaning === "category") {
+      const categories = [...new Map((row.cells || []).flatMap(cell => (cell?.distribution || []).map(item => [String(item.value),{id:String(item.value),label:String(item.label ?? item.value)}]))).values()];
+      return {metric,kind:"column",counts:true,ordering:"distribution",categories,series:periods.map((period,index) => ({...period,n:row.cells?.[index]?.n || 0,cells:categories.map(category => row.cells?.[index]?.n ? {value:row.cells[index].distribution?.find(item => String(item.value) === category.id)?.count || 0} : null)}))};
+    }
+    if (dataKind === "mean") return {metric,kind,ordering:"mean",categories:[{id:"mean",label:"群体均值"}],series:periods.map((period,index) => ({...period,n:row.cells?.[index]?.n || 0,cells:[row.cells?.[index]?.n ? {value:N(row.cells[index].value ?? row.cells[index].mean),name:period.label,tooltip:`有效 ${row.cells[index].n} 人`} : null]}))};
+    const projection = root.RingsideTeam.memberSeries(model,row);
+    return {metric,kind,ordering:projection.ordering,categories:projection.categories.map(category => ({...category,label:projection.ordering === "descending-value" ? "数值名次 " + category.id : category.label})),series:projection.series.map(item => ({id:item.id,label:item.label,n:item.n,statistics:item.statistics,color:periods.find(period => period.id === item.id)?.color,cells:item.cells.map(cell => cell ? {athleteId:cell.athleteId,name:cell.name,value:cell.value,assessment:cell.assessment || cell.evaluation?.grade,pain:cell.pain} : null)}))};
   }
   function projectHTML(project, model, views, print) {
     const longitudinal = model.analysisMode === "longitudinal", rows = project.metrics || [], saved = views.charts?.[project.id] || {},
-      row = rows.find(item => item.id === saved.metricId) || rows.find(item => item.id === project.defaultMetricId || item.metricId === project.defaultMetricId) || rows[0],
-      columns = longitudinal ? decoratedPeriods(model) : model.objects || [], palette = root.RingsideReportAppearance.colors(columns.map(column => column.id)),
+      row = rows.find(item => item.id === saved.metricId) || rows.find(item => item.id === project.defaultMetricId || item.metricId === project.defaultMetricId) || rows[0];
+    if (!row) return "";
+    const columns = longitudinal ? decoratedPeriods(model) : model.objects || [], palette = root.RingsideReportAppearance.colors(columns.map(column => column.id)),
       periods = columns.map(column => ({id:column.id,date:column.date || "",label:column.label || column.date,color:column.color || palette[column.id],latest:column.latest})),
-      controls = print || rows.length < 2 ? "" : `<div class="team-chart-controls no-print"><label>图表指标<select data-team-metric="${E(project.id)}" aria-label="${E(project.name)}图表指标">${rows.map(item => `<option value="${E(item.id)}"${item.id === row?.id ? " selected" : ""}>${E(metricName(item))}${item.unit ? " · " + E(item.unit) : ""}</option>`).join("")}</select></label></div>`,
-      title = row ? metricName(row) + (longitudinal ? " · 各日期群体均值" : " · 群体代表结果") : project.name,
-      spec = row && {kind:longitudinal ? "cod-trend" : "columns",title,showTitle:false,subjectKind:longitudinal ? "date" : "athlete",unit:row.unit || "无单位",periods,values:(row.cells || []).map(cell => ({value:N(cell?.value ?? cell?.mean)}))},
-      chart = spec && spec.values.some(cell => cell.value !== null) ? figures(spec, print) : empty(row?.meaning === "category" || row?.meaning === "ordinal" ? "等级与类别结果见人数分布表。" : "所选指标暂无有效群体结果。"),
-      table = comparisonTable(rows, columns, {print,longitudinal,focus:views.focusObjectId,baseline:views.baselineObjectId});
-    return `<article class="test-block team-test team-comparison-project" data-team-project="${E(project.id)}"><div class="test-title"><h4>${E(project.name)}</h4></div>${controls}<p class="team-chart-caption">${E(title)}</p>${chart}${table}${longitudinal ? pairedTable(rows, periods, print) + rows.map(item => personalHistory(item, columns, print)).join("") : ""}</article>`;
+      category = row.meaning === "category", meanAvailable = !category && rows.length && (row.cells || []).some(cell => N(cell?.value ?? cell?.mean) !== null),
+      dataKind = saved.data === "mean" && meanAvailable ? "mean" : "members",
+      kinds = category ? [["column","人数分布"]] : dataKind === "mean" ? [...(longitudinal ? [["trend","日期趋势图"]] : []),["column","柱状图"],["dot","点图"]] : [["column","分组柱状图"],["dot","分组点图"],...(row.meaning === "ordinal" ? [] : [["box","箱线分布图"],["histogram","直方图"]])],
+      kind = kinds.some(([value]) => value === saved.kind) ? saved.kind : dataKind === "mean" && longitudinal ? "trend" : "column",
+      options = (items, selected) => items.map(([id,label]) => `<option value="${E(id)}"${id === selected ? " selected" : ""}>${E(label)}</option>`).join(""),
+      controls = print ? "" : `<div class="team-chart-controls no-print">${rows.length > 1 ? `<label>图表指标<select data-team-metric="${E(project.id)}" aria-label="${E(project.name)}图表指标">${rows.map(item => `<option value="${E(item.id)}"${item.id === row.id ? " selected" : ""}>${E(metricName(item))}${item.unit ? " · " + E(item.unit) : ""}</option>`).join("")}</select></label>` : ""}<label>呈现数据<select data-team-data="${E(project.id)}" aria-label="${E(project.name)}呈现数据"${!meanAvailable ? " disabled" : ""}>${options([["members","成员结果"],...(meanAvailable ? [["mean","群体均值"]] : [])],dataKind)}</select></label><label>图表类型<select data-team-kind="${E(project.id)}" aria-label="${E(project.name)}图表类型"${category ? " disabled" : ""}>${options(kinds,kind)}</select></label></div>`,
+      title = metricName(row) + " · " + (category ? "类别人数分布" : dataKind === "mean" ? longitudinal ? "各日期群体均值" : "群体均值" : longitudinal ? "成员结果 · 同一成员各日期并列" : "成员结果 · 各组按数值从高到低排列"),
+      spec = {kind:"cod-trend",title,showTitle:false,subjectKind:"date",unit:row.unit || "无单位",periods,values:(row.cells || []).map(cell => ({value:cell?.n ? N(cell.value ?? cell.mean) : null}))},
+      projection = chartProjection(row,model,periods,dataKind,kind),
+      chart = kind === "trend" ? figures(spec,print) : `<div class="team-chart-scroll" data-team-comparison-chart="${E(JSON.stringify(projection))}">${root.RingsideTeamView.comparisonChartHTML(projection,{print,width:print ? 680 : 720})}</div>`,
+      table = comparisonTable(rows,columns,{print,longitudinal,focus:views.focusObjectId,baseline:views.baselineObjectId,mini:true});
+    return `<article class="test-block team-test team-comparison-project" data-team-project="${E(project.id)}"><div class="test-title"><h4>${E(project.name)}</h4></div>${controls}<p class="team-chart-caption">${E(title)}</p>${chart}${table}${longitudinal ? pairedTable(rows,periods,print) : ""}</article>`;
   }
   function detailsHTML(model, views, print) {
     const projects = model.projects || [], section = (category, title) => {
@@ -126,9 +143,14 @@
   function layout(container, {print = false} = {}) {
     root.RingsideResultDisplay.layout(container,{print});
     if (!print) root.RingsideResultDisplay.mount(container);
-    container.querySelectorAll(".team-personal-results").forEach(table => {
+    container.querySelectorAll(".team-trend-results").forEach(table => {
       const widths = [...table.querySelectorAll("[data-result-trend]")].map(node => Number.parseFloat(node.style.getPropertyValue("--result-trend-width")) || 160);
       table.style.setProperty("--result-trend-column-width", (Math.max(160,...widths) + (print ? 16 : 24)) + "px");
+    });
+    container.querySelectorAll("[data-team-comparison-chart]").forEach(node => {
+      const width = print ? 680 : Math.max(290,Math.round(node.clientWidth || 720)), key = width + ":" + print;
+      if (node.dataset.teamComparisonLayout === key) return;
+      node.innerHTML = root.RingsideTeamView.comparisonChartHTML(JSON.parse(node.dataset.teamComparisonChart),{width,print}); node.dataset.teamComparisonLayout = key;
     });
     container.querySelectorAll("[data-team-figure]").forEach(node => {
       const width = print ? 680 : Math.max(250,Math.round(node.clientWidth || 720)), key = width + ":" + print;
@@ -136,5 +158,5 @@
       node.innerHTML = root.RingsideLongitudinalView.draw(JSON.parse(node.dataset.teamFigure),width,print); node.dataset.teamFigureLayout = key;
     });
   }
-  root.RingsideTeamComparisonView = {render,layout,comparisonTable,aggregateCell,objectSummary,pairedTable,personalHistory};
+  root.RingsideTeamComparisonView = {render,layout,comparisonTable,aggregateCell,objectSummary,pairedTable,summaryTrend};
 })(typeof window !== "undefined" ? window : globalThis);

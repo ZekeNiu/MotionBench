@@ -19,7 +19,7 @@
     return [...groups.filter(g=>g.id===groupId),...groups.filter(g=>g.id!==groupId),{id:'',name:'未分组'}].map(group=>({...group,own:!!groupId&&group.id===groupId,people:people.filter(a=>group.id?a.groupId===group.id:!known.has(a.groupId))})).filter(group=>group.people.length);
   }
   function create(host){
-    let node=null,draft=null,editingId=null,busy=false,query="",error="",ticket=0,panel="members",step=null,objectId="",referenceEditor=null,conflicts=[];
+    let node=null,draft=null,editingId=null,busy=false,query="",error="",ticket=0,panel="members",step=null,objectId="",referenceEditor=null,standardsEditor=null,conflicts=[];
     const library=()=>host.library(),available=()=>(library().athletes||[]).filter(eligible),analysis=()=>draft?.analysisMode||"single",name=a=>a?.name||a?.profile?.name||'人员不可用';
     const activeObject=()=>draft?.objects?.find(object=>object.id===objectId&&object.kind==="team")||null,memberOwner=()=>analysis()==="horizontal"?activeObject():draft;
     const references=()=>draft?.objects?.filter(object=>object.kind==="reference").map(object=>({...object.reference,id:object.id}))||[];
@@ -32,7 +32,7 @@
       draft.dateParticipants=draft.dates.map(date=>({date,participants:ids.map(athleteId=>{const person=prior.find(item=>item.date===date)?.participants.find(item=>item.athleteId===athleteId),rows=candidates(available().find(a=>a.id===athleteId),{from:date,to:date});return {athleteId,recordId:person&&rows.some(row=>row.recordId===person.recordId)?person.recordId:rows.length===1?rows[0].recordId:""};})}));
     }
     function syncRecords(){for(const owner of [draft,...(draft.objects||[]).filter(object=>object.kind==="team")])for(const person of owner.participants||[])person.recordId=resolveSelection(available().find(a=>a.id===person.athleteId),draft.window,person.recordId).recordId;if(analysis()==="longitudinal")syncLongitudinal();}
-    function cancel(){ticket++;busy=false;referenceEditor?.cancel();draft=null;editingId=null;query="";error="";panel="members";objectId="";conflicts=[];step=null;if(node)node.innerHTML="";node=null;return true;}
+    function cancel(){ticket++;busy=false;referenceEditor?.cancel();standardsEditor?.cancel();draft=null;editingId=null;query="";error="";panel="members";objectId="";conflicts=[];step=null;if(node)node.innerHTML="";node=null;return true;}
     async function userCancel(){if(!draft)return false;cancel();await host.onCancel?.();return true;}
     function validation(value,people,at=4){
       if(!value)return {message:"请选择报告内容。",panel:"members"};const kind=value.analysisMode||"single",objects=value.objects||[],roster=kind==="horizontal"?objects.filter(object=>object.kind==="team").flatMap(object=>object.participants||[]):value.participants||[];
@@ -55,7 +55,17 @@
         if(!draft)return;const pending=new Map(refs.map(reference=>[reference.id,reference]));draft.objects=(draft.objects||[]).map(object=>{if(object.kind!=="reference")return object;const reference=pending.get(object.id);pending.delete(object.id);return reference?{...object,label:reference.label||"参考群体",reference}:null;}).filter(Boolean);draft.objects.push(...[...pending.values()].map(reference=>({id:reference.id,kind:"reference",label:reference.label||"参考群体",reference})));changed();
       }});return referenceEditor;
     }
-    function showConflicts(value){conflicts=copy(value||[]);if(conflicts.length){error="请为参考群体选择共同适用的评价标准。";render();editor().showConflicts(conflicts,references());}return !!conflicts.length;}
+    function showConflicts(value){
+      conflicts=copy(value||[]);if(!conflicts.length)return false;
+      const object=draft?.objects?.find(item=>item.id===conflicts[0].referenceId);
+      if(!object){error="所选比较对象已变更，请重新查看报告。";render();return false;}
+      error="请为“"+(object.label||"比较对象")+"”选择共同适用的评价标准。";render();
+      if(object.kind==='reference')return editor().showConflicts(conflicts,references());
+      if(!standardsEditor)standardsEditor=root.RingsideReportSelection.createReferenceEditor({library,referenceDialogId:"teamReportStandardsDialog",onChange:subjects=>{
+        if(!draft)return;for(const subject of subjects){const target=draft.objects.find(item=>item.kind==='team'&&item.id===subject.id);if(target&&subject.evaluationOverrides)target.evaluationOverrides=copy(subject.evaluationOverrides);}changed();
+      }});
+      return standardsEditor.showStandards(conflicts,draft.objects.filter(item=>item.kind==='team').map(item=>({id:item.id,label:item.label,evaluationOverrides:copy(item.evaluationOverrides||{})})));
+    }
     async function apply(){
       if(!draft||busy)return false;const value=copy(draft),issue=validation(value,available());if(issue){error=issue.message;panel=issue.panel;render();return false;}
       const sequence=++ticket,reportId=editingId,current=()=>!!draft&&ticket===sequence;busy=true;error="";render();notify();value.reportTitle=(value.reportTitle??value.title??"").trim();

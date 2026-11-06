@@ -40,8 +40,7 @@ test("relative weakness uses supplied capability scores, retains ties and never 
 test("actual-date group means and same-person changes remain separate",()=>{
   const row=f.longitudinal.projects[0].metrics[0],out=View.render(f.longitudinal);
   assert.equal(row.cells[0].value,15);assert.equal(row.cells[2].value,60);assert.equal(row.pairedChanges.overall.delta,10);assert.equal(row.pairedChanges.overall.n,1);
-  assert.match(out.details,/各日期群体均值/);assert.match(out.details,/同人配对变化/);assert.match(out.details,/2026-01-03/);assert.match(out.details,/data-team-history-person="empty"/);
-  assert.match(ComparisonView.personalHistory(row,f.longitudinal.periods,false),/team-missing/);
+  assert.match(out.details,/各日期群体均值/);assert.match(out.details,/同人配对变化/);assert.match(out.details,/2026-01-03/);assert.doesNotMatch(out.details,/个人逐日结果|team-personal-history/);assert.match(out.details,/均值趋势/);assert.match(out.details,/data-team-member-category="empty"/);
 });
 test("horizontal reports retain all objects with no forced focus or baseline",()=>{
   const out=View.render(f.horizontal);
@@ -55,23 +54,35 @@ test("changing focus or baseline cannot change any frozen source or remove objec
   for(const id of ["team-first","team-last","reference"])assert.match(out.details,new RegExp('data-team-column="'+id+'"'));
   assert.match(out.details,/\+45/);assert.match(out.details,/比较基准/);
 });
-test("print repeats all member names when dates split and removes operation controls",()=>{
+test("print repeats metric labels across date groups and includes one complete mean trend",()=>{
   const model=copy(f.longitudinal),periods=Array.from({length:7},(_,i)=>({id:"p"+i,date:"2026-03-0"+(i+1)})),row=model.projects[0].metrics[0];
-  row.people.forEach(person=>person.cells=periods.map((_,i)=>person.cells[i%3]));
-  const html=ComparisonView.personalHistory(row,periods,true);assert.equal((html.match(/data-team-history-person="empty"/g)||[]).length,3);assert.match(html,/<details class="team-personal-history" open>/);assert.equal((html.match(/<th scope="col">变化趋势<\/th>/g)||[]).length,1);
-  const out=View.render(f.horizontal,{print:true});assert.equal(out.controls,"");assert.doesNotMatch(out.details,/data-team-metric=|data-team-refresh/);
+  row.cells=periods.map((_,i)=>row.cells[i%3]);
+  const html=ComparisonView.comparisonTable([row],periods,{print:true,longitudinal:true,mini:true});assert.equal((html.match(/data-team-comparison-metric=/g)||[]).length,3);assert.equal((html.match(/<th scope="col">均值趋势<\/th>/g)||[]).length,1);assert.equal((html.match(/data-trend-point=/g)||[]).length,7);
+  const out=View.render(f.horizontal,{print:true});assert.equal(out.controls,"");assert.doesNotMatch(out.details,/data-team-metric=|data-team-refresh|<select/);
   assert.equal((out.summary.match(/class="micro-cards team-summary-set"/g)||[]).length,3);
 });
-test("personal trends preserve every date and never bridge a missing result",()=>{
-  const row=copy(f.longitudinal.projects[0].metrics[0]);row.people=[row.people.find(person=>person.athleteId==="a")];row.people[0].cells[1]=null;
-  const html=ComparisonView.personalHistory(row,f.longitudinal.periods,false);assert.match(html,/变化趋势/);assert.equal((html.match(/data-trend-point=/g)||[]).length,3);assert.doesNotMatch(html,/data-trend-segment=/);
+test("summary mini trends preserve every date, break missing results and stay neutral",()=>{
+  const row=copy(f.longitudinal.projects[0].metrics[0]);row.cells[1]=null;
+  const html=ComparisonView.summaryTrend(row,f.longitudinal.periods,false);assert.equal((html.match(/data-trend-point=/g)||[]).length,3);assert.doesNotMatch(html,/data-trend-segment=/);
+  assert.match(ComparisonView.summaryTrend(f.longitudinal.projects[0].metrics[0],f.longitudinal.periods,false),/data-result-trend=/);
 });
-test("numeric category codes retain daily results without a continuous personal trend",()=>{
+test("numeric category codes use count distributions without any continuous trend",()=>{
   const records=copy(f.records);records.forEach(record=>{const definition=record.definitions.find(item=>item.id==="view_value");definition.resultMeaning="category";definition.direction="none";definition.directionStatus="confirmed";});
-  const model=Team.build(records,{configuration:f.longitudinal.configuration,athletes:f.athletes}),row=model.projects[0].metrics[0],html=ComparisonView.personalHistory(row,model.periods,false);
-  assert.equal(row.meaning,"category");assert.doesNotMatch(html,/data-result-trend=|data-trend-segment=|变化趋势/);assert.equal((html.match(/data-team-history-date=/g)||[]).length,12);
-  for(const value of [10,15,20])assert.match(html,new RegExp("<strong>"+value+"</strong>"));
-  assert.match(ComparisonView.personalHistory(f.longitudinal.projects[0].metrics[0],f.longitudinal.periods,false),/data-result-trend=/);
+  const model=Team.build(records,{configuration:f.longitudinal.configuration,athletes:f.athletes}),row=model.projects[0].metrics[0],out=View.render(model);
+  assert.equal(row.meaning,"category");assert.doesNotMatch(out.details,/data-result-trend=|data-trend-segment=|均值趋势|个人逐日结果/);assert.match(out.details,/人数分布/);assert.equal((out.details.match(/data-team-column=/g)||[]).length,3);
+});
+test("default member charts preserve roster slots and horizontal numeric ordering",()=>{
+  const out=View.render(f.longitudinal),horizontal=View.render(f.horizontal);
+  assert.match(out.details,/<option value="members" selected>/);assert.match(out.details,/<option value="column" selected>/);assert.equal((out.details.match(/data-team-member-value=/g)||[]).length,5);assert.equal((out.details.match(/data-team-missing-slot/g)||[]).length,7);
+  assert.match(horizontal.details,/数值/);assert.doesNotMatch(horizontal.details,/个人逐日结果/);
+  assert.equal((horizontal.details.match(/data-team-member-value=/g)||[]).length,7);
+});
+test("comparison chart choices use real samples and never alter source snapshots",()=>{
+  const before=JSON.stringify(f),project=f.longitudinal.projects[0].id;
+  for(const kind of ["column","dot","box","histogram"])assert.match(View.render(f.longitudinal,{views:{charts:{[project]:{data:"members",kind}}}}).details,/data-team-comparison-chart/);
+  const trend=View.render(f.longitudinal,{views:{charts:{[project]:{data:"mean",kind:"trend"}}}});assert.match(trend.details,/data-cod-point/);
+  const box=View.render(f.longitudinal,{views:{charts:{[project]:{data:"members",kind:"box"}}}});assert.equal((box.details.match(/data-team-box-member=/g)||[]).length,5);assert.doesNotMatch(box.details,/data-team-box="/);
+  assert.equal(JSON.stringify(f),before);
 });
 console.log(`${passed} team comparison view checks passed`);
 }

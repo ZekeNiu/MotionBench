@@ -2,7 +2,7 @@ name: MotionBench Windows
 
 on:
   push:
-    branches: [main, 'codex/motionbench-horizontal-*', 'codex/motionbench-2.27.*', 'codex/motionbench-team-report', 'codex/motionbench-team-comparisons']
+    branches: [main, 'codex/motionbench-horizontal-*', 'codex/motionbench-2.27.*', 'codex/motionbench-team-report', 'codex/motionbench-team-comparisons', 'codex/motionbench-team-report-refinement']
     tags: ['v2.25.*-desktop.*', 'v2.26.*-desktop.*', 'v2.27.*-desktop.*', 'v2.28.*-desktop.*', 'v2.29.*-desktop.*']
   workflow_dispatch:
 
@@ -39,87 +39,48 @@ jobs:
           npx playwright install chrome msedge
       - name: Install PDF verification readers
         run: python -m pip install pypdf==6.10.2 pymupdf==1.28.2
-      - name: Verify report baseline history and PDF dependencies
-        run: |
-          git cat-file -e '3ba6426:MotionBench.html'
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          git cat-file -e 'bbf86b6^:src/ringside.css'
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python -c "import pymupdf,pypdf; print('PDF readers available')"
-      - name: Verify the changed selection and save flows
+      - name: Verify affected report models and selection state
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/unit-final --suites report-navigation-state-tests.cjs,longitudinal-navigation-state-tests.cjs,team-selection-model-tests.cjs,team-model-tests.cjs,team-comparison-model-tests.cjs,team-comparison-view-tests.cjs,team-store-model-tests.cjs,report-selection-model-tests.cjs,report-owner-model-tests.cjs,ordinary-save-model-tests.cjs,entry-session-save-model-tests.cjs,report-appearance-model-tests.cjs,personal-report-appearance-tests.cjs,horizontal-appearance-model-tests.cjs,horizontal-representative-model-tests.cjs,horizontal-difference-display-tests.cjs,horizontal-model-tests.cjs,horizontal-async-model-tests.cjs,horizontal-view-controller-tests.cjs,horizontal-migration-proof-tests.cjs,longitudinal-model-tests.cjs,longitudinal-view-tests.cjs,longitudinal-store-model-tests.cjs,longitudinal-display-state-tests.cjs,comparison-trend-tests.cjs,pdf-metadata-model-tests.cjs,none-evaluation-plan-model-tests.cjs,method-compatibility-model-tests.cjs,calculation-model-tests.cjs
+          node tests/run-unit-tests.cjs --artifact-dir output/release/2.29.1-local/acceptance/unit-final --suites team-comparison-model-tests.cjs,team-comparison-view-tests.cjs,team-store-model-tests.cjs,team-selection-model-tests.cjs,report-selection-model-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-desktop-unit-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/desktop-unit
-      - name: Verify personal and team navigation with a real PDF
+      - name: Verify report creation and clickable workflow steps
         run: |
-          node tests/report-navigation-browser-tests.cjs --pdf --artifact-dir output/release/2.29.0-local/acceptance/navigation-chrome
+          node tests/report-selection-regression-browser-tests.cjs --artifact-dir output/release/2.29.1-local/acceptance/selection-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-navigation-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/navigation-msedge
+          node tests/report-selection-regression-browser-tests.cjs --edge --artifact-dir output/release/2.29.1-local/acceptance/selection-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/team-chrome
+          node tests/workflow-step-navigation-browser-tests.cjs --artifact-dir output/release/2.29.1-local/acceptance/step-navigation-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/team-msedge
+          node tests/workflow-step-navigation-browser-tests.cjs --edge --artifact-dir output/release/2.29.1-local/acceptance/step-navigation-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Preserve comparison, reference and report appearance behavior
+      - name: Verify team member charts, missing results and mini trends
         run: |
-          node tests/horizontal-refinement-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/horizontal-refinement-chrome
+          node tests/team-comparison-view-browser-tests.cjs --artifact-dir output/release/2.29.1-local/acceptance/team-comparison-view-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-refinement-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/horizontal-refinement-msedge
+          node tests/team-comparison-view-browser-tests.cjs --edge --artifact-dir output/release/2.29.1-local/acceptance/team-comparison-view-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-selection-edge-cases-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/selection-edge-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-selection-edge-cases-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/selection-edge-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-surface-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/surface-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-surface-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/surface-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Verify the four-step workflow, team comparisons and data return
+      - name: Build the Windows package and verify native comparison persistence and PDF export
         run: |
-          node tests/report-upgrade-browser-tests.cjs --pdf --artifact-dir output/release/2.29.0-local/acceptance/upgrade-chrome
+          npm run dist:windows -- --config.directories.output=output/release/2.29.1-local/desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-upgrade-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/upgrade-msedge
+          node scripts/check-desktop-package.cjs output/release/2.29.1-local/desktop/win-unpacked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-data-return-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/data-return-chrome
+          Copy-Item -LiteralPath 'output/desktop-package/package-check.json' -Destination 'output/release/2.29.1-local/package-check.json'
+          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'output/release/2.29.1-local/desktop/win-unpacked/MotionBench.exe'
+          node tests/report-refinement-native-tests.cjs --artifact-dir output/release/2.29.1-local/native-smoke
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-data-return-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/data-return-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-title-transaction-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/title-transaction-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-title-transaction-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/title-transaction-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-workflow-selection-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/workflow-selection-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-workflow-selection-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/workflow-selection-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-comparison-view-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/team-comparison-view-chrome
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-comparison-view-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/team-comparison-view-msedge
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-      - name: Build and verify the exact Windows package
-        run: |
-          npm run dist:windows -- --config.directories.output=output/release/2.29.0-local/desktop
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node scripts/check-desktop-package.cjs output/release/2.29.0-local/desktop/win-unpacked
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Copy-Item -LiteralPath 'output/desktop-package/package-check.json' -Destination 'output/release/2.29.0-local/package-check.json'
-          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'output/release/2.29.0-local/desktop/win-unpacked/MotionBench.exe'
-          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/release/2.29.0-local/native-smoke'
-          node tests/desktop-smoke.cjs
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/verify_v2290.py
+          python scripts/verify_v2291.py
       - name: Preserve synthetic verification artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: MotionBench-Windows-${{ github.run_number }}
           path: |
-            output/release/2.29.0-local/acceptance/
-            output/release/2.29.0-local/verification.json
-            output/release/2.29.0-local/package-check.json
-            output/release/2.29.0-local/native-smoke/
+            output/release/2.29.1-local/acceptance/
+            output/release/2.29.1-local/verification.json
+            output/release/2.29.1-local/package-check.json
+            output/release/2.29.1-local/native-smoke/
           if-no-files-found: warn
           retention-days: 14
