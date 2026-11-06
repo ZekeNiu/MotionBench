@@ -25,7 +25,7 @@
     out.text = root.RingsideModel.htmlToText(out.html);
     return out;
   }
-  function normalize(input, { archive = false } = {}) {
+  function normalize(input, { archive = false, selectionArchive = false } = {}) {
     json(input);
     if (!plain(input) || input.version !== undefined && input.version !== 1) throw Error("纵向报告格式或版本无效");
     const documentKey = key(input.athleteId, input.recordIds), recordIds = [...new Set(input.recordIds)].sort();
@@ -39,6 +39,9 @@
     if (input.importedVersions !== undefined && (archive || !Array.isArray(input.importedVersions) || input.importedVersions.length > 1000)) throw Error("纵向报告导入历史格式无效");
     const importedVersions=input.importedVersions?.map(value=>normalize(value,{archive:true}));
     if(importedVersions?.some(value=>value.key!==documentKey))throw Error("纵向报告导入历史与所选记录不一致");
+    if (input.selectionHistory !== undefined && (archive || selectionArchive || !Array.isArray(input.selectionHistory) || input.selectionHistory.length > 1000)) throw Error("纵向报告选择历史格式无效");
+    const selectionHistory=input.selectionHistory?.map(value=>normalize(value,{selectionArchive:true}));
+    if(selectionHistory?.some(value=>value.athleteId!==input.athleteId))throw Error("纵向报告选择历史须属于同一运动员");
     const profileId = Object.hasOwn(input,"evaluationProfileId") ? input.evaluationProfileId : input.profileSnapshot?.id || "";
     const profileSnapshot = profileId !== "" && input.profileSnapshot ? root.RingsideEvaluation.serializeProfile(input.profileSnapshot) : null;
     if (profileSnapshot) root.RingsideEvaluation.validateProfile(profileSnapshot);
@@ -48,6 +51,7 @@
       views: root.RingsideLongitudinalViews ? root.RingsideLongitudinalViews.normalize(input.views || {}, recordIds) : clone(input.views || {}), narrative: narrative(input.narrative),
       ...(input.previousNarrative ? { previousNarrative: narrative(input.previousNarrative) } : {}),
       ...(importedVersions?.length ? { importedVersions } : {}),
+      ...(selectionHistory?.length ? { selectionHistory } : {}),
       basis: input.basis || "", created: input.created || "", updated: input.updated || "", revision: input.revision || 0 };
   }
   function normalizeList(input) {
@@ -95,7 +99,9 @@
     if (document.profileSnapshot) document.profileSnapshot.id = mapped(maps.profileMap, document.profileSnapshot.id);
     const remapView = value => Array.isArray(value) ? value.map(remapView) : plain(value) ? Object.fromEntries(Object.entries(value).map(([name, item]) => [name, remapView(item)])) : typeof value === "string" ? mapped(maps.recordMap, value) : value;
     document.views = remapView(document.views);
+    if(typeof document.views.reportIdentity==="string")try{const [owner,ids]=JSON.parse(document.views.reportIdentity);if(key(owner,ids)===document.views.reportIdentity)document.views.reportIdentity=key(mapped(maps.athleteMap,owner),ids.map(id=>mapped(maps.recordMap,id)));}catch{}
     if (document.importedVersions) document.importedVersions = document.importedVersions.map(value => remap(value, maps));
+    if (document.selectionHistory) document.selectionHistory = document.selectionHistory.map(value => remap(value, maps));
     document.key = key(document.athleteId, document.recordIds);
     return normalize(document);
   }
@@ -117,20 +123,21 @@
     return output;
   }
   function exportLibrary(library, input, records) {
-    const document = normalize(input), selected = document.recordIds.map(id => records?.find(record => record.recordId === id));
+    const document = normalize(input), documents=[document,...(document.selectionHistory||[])], sourceIds=[...new Set(documents.flatMap(value=>value.recordIds))], selected = sourceIds.map(id => records?.find(record => record.recordId === id));
     if (selected.some(record => !record || record._summary)) throw Error("导出纵向报告需要全部所选测试的完整记录");
     const sourceOwner = library.athletes.find(athlete => athlete.id === document.athleteId);
     if (!sourceOwner) throw Error("纵向报告运动员不存在");
     const owner = { ...clone(sourceOwner), records: clone(selected) };
-    const profileIds = new Set([...selected.map(record => record.evaluationProfileId), document.evaluationProfileId].filter(Boolean));
+    const profilesInDocuments=documents.flatMap(value=>[value,...(value.importedVersions||[])]);
+    const profileIds = new Set([...selected.map(record => record.evaluationProfileId), ...profilesInDocuments.map(value=>value.evaluationProfileId)].filter(Boolean));
     const profiles = (library.evaluationProfiles || []).filter(profile => profileIds.has(profile.id)).map(profile => root.RingsideEvaluation.serializeProfile(profile));
-    if(document.profileSnapshot && profileIds.has(document.profileSnapshot.id) && !profiles.some(profile=>profile.id===document.profileSnapshot.id))profiles.push(clone(document.profileSnapshot));
+    for(const value of profilesInDocuments)if(value.profileSnapshot && profileIds.has(value.profileSnapshot.id) && !profiles.some(profile=>profile.id===value.profileSnapshot.id))profiles.push(clone(value.profileSnapshot));
     if (profiles.length !== profileIds.size) throw Error("导出纵向报告缺少所选测试的评价方案");
     const output = { schema: 3, kind: "athlete-library", version: library.version, catalog: clone(library.catalog), testPlans: [],
       ...(library.classifications !== undefined ? { classifications: clone(library.classifications) } : {}),
       groups: clone((library.groups || []).filter(group => group.id === owner.groupId)), evaluationProfiles: profiles,
       defaultEvaluationProfileId: document.evaluationProfileId, athletes: [owner],
-      activeAthleteId: owner.id, activeRecordId: selected.slice().sort((a, b) => a.athlete.date.localeCompare(b.athlete.date) || String(a.created || "").localeCompare(String(b.created || "")) || a.recordId.localeCompare(b.recordId)).at(-1).recordId,
+      activeAthleteId: owner.id, activeRecordId: selected.filter(record=>document.recordIds.includes(record.recordId)).sort((a, b) => a.athlete.date.localeCompare(b.athlete.date) || String(a.created || "").localeCompare(String(b.created || "")) || a.recordId.localeCompare(b.recordId)).at(-1).recordId,
       longitudinalReports: [document], updated: library.updated || "" };
     validateReferences(document, output, { active: true });
     return output;

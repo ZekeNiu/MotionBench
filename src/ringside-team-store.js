@@ -109,7 +109,7 @@
   }
   function summary(input) {
     const document = normalize(input, { metadata: true });
-    return { id: document.id, title: document.title, revision: document.revision, created: document.created, updated: document.updated, kind:"team", groupId:document.configuration.groupId || "", participantCount: document.configuration.athleteIds?.length || document.configuration.participants?.length || 0, window:clone(document.configuration.window||{}) };
+    return { id: document.id, title: document.views.reportTitle || document.title, revision: document.revision, created: document.created, updated: document.updated, kind:"team", analysisMode:document.configuration.analysisMode||"single", groupId:document.configuration.groupId || "", participantCount: document.configuration.athleteIds?.length || document.configuration.participants?.length || 0, dateCount:document.configuration.dates?.length||0, objectCount:document.configuration.objects?.length||0, referenceCount:(document.configuration.objects||[]).filter(object=>object.kind==="reference").length, window:clone(document.configuration.window||{}) };
   }
   function remapMetadata(input, maps = {}) {
     const document = normalize(input, { metadata: true });

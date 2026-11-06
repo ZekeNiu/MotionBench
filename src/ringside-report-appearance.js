@@ -115,4 +115,9 @@
     for (const [name, value] of Object.entries(theme)) if (typeof value === "string" && value.startsWith("#")) container.style.setProperty("--report-appearance-" + name.replace(/[A-Z]/g, letter => "-" + letter.toLowerCase()), value);
   }
   root.RingsideReportAppearance = Object.freeze({ theme, tokens: () => theme, testColor: id => own(theme.jumps, id) ? theme.jumps[id] : theme.accent, colors, dates, project, apply });
+  const defaultTitle = "损伤风险筛查与运动表现测试报告";
+  root.RingsideReportTitle = Object.freeze({defaultTitle, resolve({views = {}, legacyTitle = "", legacyTitleAuto = true} = {}) {
+    if (typeof views.reportTitle === "string") return views.reportTitle.trim() || defaultTitle;
+    return legacyTitleAuto !== true && legacyTitle.trim() ? legacyTitle.trim() : defaultTitle;
+  }});
 })(typeof window !== "undefined" ? window : globalThis);

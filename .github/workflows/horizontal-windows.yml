@@ -2,8 +2,8 @@ name: MotionBench Windows
 
 on:
   push:
-    branches: [main, 'codex/motionbench-horizontal-*', 'codex/motionbench-2.27.*', 'codex/motionbench-team-report']
-    tags: ['v2.25.*-desktop.*', 'v2.26.*-desktop.*', 'v2.27.*-desktop.*', 'v2.28.*-desktop.*']
+    branches: [main, 'codex/motionbench-horizontal-*', 'codex/motionbench-2.27.*', 'codex/motionbench-team-report', 'codex/motionbench-team-comparisons']
+    tags: ['v2.25.*-desktop.*', 'v2.26.*-desktop.*', 'v2.27.*-desktop.*', 'v2.28.*-desktop.*', 'v2.29.*-desktop.*']
   workflow_dispatch:
 
 permissions:
@@ -50,56 +50,76 @@ jobs:
         run: |
           python scripts/build.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-unit-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/unit-final --suites report-navigation-state-tests.cjs,longitudinal-navigation-state-tests.cjs,report-selection-model-tests.cjs,team-selection-model-tests.cjs,report-owner-model-tests.cjs,longitudinal-store-model-tests.cjs,longitudinal-display-state-tests.cjs,ordinary-save-model-tests.cjs,entry-session-save-model-tests.cjs,personal-report-appearance-tests.cjs
+          node tests/run-unit-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/unit-final --suites report-navigation-state-tests.cjs,longitudinal-navigation-state-tests.cjs,team-selection-model-tests.cjs,team-model-tests.cjs,team-comparison-model-tests.cjs,team-comparison-view-tests.cjs,team-store-model-tests.cjs,report-selection-model-tests.cjs,report-owner-model-tests.cjs,ordinary-save-model-tests.cjs,entry-session-save-model-tests.cjs,report-appearance-model-tests.cjs,personal-report-appearance-tests.cjs,horizontal-appearance-model-tests.cjs,horizontal-representative-model-tests.cjs,horizontal-difference-display-tests.cjs,horizontal-model-tests.cjs,horizontal-async-model-tests.cjs,horizontal-view-controller-tests.cjs,horizontal-migration-proof-tests.cjs,longitudinal-model-tests.cjs,longitudinal-view-tests.cjs,longitudinal-store-model-tests.cjs,longitudinal-display-state-tests.cjs,comparison-trend-tests.cjs,pdf-metadata-model-tests.cjs,none-evaluation-plan-model-tests.cjs,method-compatibility-model-tests.cjs,calculation-model-tests.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/run-desktop-unit-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/desktop-unit
+          node tests/run-desktop-unit-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/desktop-unit
       - name: Verify personal and team navigation with a real PDF
         run: |
-          node tests/report-navigation-browser-tests.cjs --pdf --artifact-dir output/release/2.28.1-local/acceptance/navigation-chrome
+          node tests/report-navigation-browser-tests.cjs --pdf --artifact-dir output/release/2.29.0-local/acceptance/navigation-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-navigation-browser-tests.cjs --edge --artifact-dir output/release/2.28.1-local/acceptance/navigation-msedge
+          node tests/report-navigation-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/navigation-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/team-browser-tests.cjs
+          node tests/team-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/team-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/team-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/team-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Preserve comparison, reference and report appearance behavior
         run: |
-          node tests/horizontal-refinement-browser-tests.cjs
+          node tests/horizontal-refinement-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/horizontal-refinement-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/horizontal-refinement-browser-tests.cjs --edge
+          node tests/horizontal-refinement-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/horizontal-refinement-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-selection-edge-cases-browser-tests.cjs
+          node tests/report-selection-edge-cases-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/selection-edge-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-selection-edge-cases-browser-tests.cjs --edge
+          node tests/report-selection-edge-cases-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/selection-edge-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-surface-browser-tests.cjs --artifact-dir output/release/2.28.1-local/acceptance/surface-chrome
+          node tests/report-surface-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/surface-chrome
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node tests/report-surface-browser-tests.cjs --edge --artifact-dir output/release/2.28.1-local/acceptance/surface-msedge
+          node tests/report-surface-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/surface-msedge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify the four-step workflow, team comparisons and data return
+        run: |
+          node tests/report-upgrade-browser-tests.cjs --pdf --artifact-dir output/release/2.29.0-local/acceptance/upgrade-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-upgrade-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/upgrade-msedge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-data-return-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/data-return-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-data-return-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/data-return-msedge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-title-transaction-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/title-transaction-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-title-transaction-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/title-transaction-msedge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-workflow-selection-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/workflow-selection-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/report-workflow-selection-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/workflow-selection-msedge
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/team-comparison-view-browser-tests.cjs --artifact-dir output/release/2.29.0-local/acceptance/team-comparison-view-chrome
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node tests/team-comparison-view-browser-tests.cjs --edge --artifact-dir output/release/2.29.0-local/acceptance/team-comparison-view-msedge
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build and verify the exact Windows package
         run: |
-          npm run dist:windows -- --config.directories.output=output/release/2.28.1-local/desktop
+          npm run dist:windows -- --config.directories.output=output/release/2.29.0-local/desktop
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          node scripts/check-desktop-package.cjs output/release/2.28.1-local/desktop/win-unpacked
+          node scripts/check-desktop-package.cjs output/release/2.29.0-local/desktop/win-unpacked
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          Copy-Item -LiteralPath 'output/desktop-package/package-check.json' -Destination 'output/release/2.28.1-local/package-check.json'
-          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'output/release/2.28.1-local/desktop/win-unpacked/MotionBench.exe'
-          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/release/2.28.1-local/native-smoke'
+          Copy-Item -LiteralPath 'output/desktop-package/package-check.json' -Destination 'output/release/2.29.0-local/package-check.json'
+          $env:MOTIONBENCH_EXECUTABLE = Join-Path $env:GITHUB_WORKSPACE 'output/release/2.29.0-local/desktop/win-unpacked/MotionBench.exe'
+          $env:MOTIONBENCH_DESKTOP_ARTIFACT_DIR = 'output/release/2.29.0-local/native-smoke'
           node tests/desktop-smoke.cjs
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/verify_v2281.py
+          python scripts/verify_v2290.py
       - name: Preserve synthetic verification artifacts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: MotionBench-Windows-${{ github.run_number }}
           path: |
-            output/release/2.28.1-local/acceptance/
-            output/release/2.28.1-local/verification.json
-            output/release/2.28.1-local/package-check.json
-            output/release/2.28.1-local/native-smoke/
-            output/playwright/horizontal-refinement/chrome/
-            output/playwright/horizontal-refinement/msedge/
-            output/playwright/report-selection-edge-cases/
-            output/playwright/team-report/
+            output/release/2.29.0-local/acceptance/
+            output/release/2.29.0-local/verification.json
+            output/release/2.29.0-local/package-check.json
+            output/release/2.29.0-local/native-smoke/
           if-no-files-found: warn
           retention-days: 14

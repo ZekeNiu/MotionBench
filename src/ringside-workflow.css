@@ -12,8 +12,18 @@
 .report-setup-heading h1{margin:0 0 6px;font-size:24px;letter-spacing:0}
 .report-setup-heading p{margin:0;color:#71808e;font-size:13px;line-height:1.65}
 .report-setup-view>:is(.report-selection-unified,#teamReportSelection){padding:18px;background:#fff;border:1px solid #dce3e9;border-radius:10px}
-.report-reading-toolbar{display:flex!important;justify-content:flex-end;min-height:58px}
-.report-reading-toolbar[hidden],.report-setup-view[hidden]{display:none!important}
+.report-setup-view[hidden]{display:none!important}
+.report-step-content{padding:24px;min-height:260px;background:#fff;border:1px solid #dce3e9;border-radius:10px}
+.report-step-content h2{margin:0 0 24px}.report-family-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:680px}
+.report-family-choices .check-tile{display:flex;align-items:center;gap:12px;padding:24px;min-height:84px;font-size:16px}
+.report-workflow-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 0 0;position:sticky;bottom:0;background:var(--paper,#f5f7fa);z-index:3}
+.report-workflow-actions .row{display:flex;gap:10px}.report-workflow-actions .btn{margin:0}
+#reportWorkflowError:empty{display:none}
+.hero>div:first-child{min-width:0;flex:1}.hero .hero-status{flex:none;align-items:flex-end;gap:8px}.hero .report-actions{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.hero .report-actions[hidden]{display:none}.hero .icon-btn{width:34px;height:34px;min-width:34px;padding:7px;border:0;background:transparent;color:var(--muted);box-shadow:none}
+.hero .icon-btn:hover{color:var(--ink);background:var(--soft)}.hero .export-menu>summary{list-style:none}.hero .export-menu>summary::-webkit-details-marker{display:none}
+.hero .save-status:empty{display:none}.report-source-list{display:grid;gap:8px;max-height:55vh;overflow:auto}.report-source-list .btn{text-align:left;display:grid;gap:4px;white-space:normal}.report-source-list span{font-size:12px;color:var(--muted)}.report-source-list [hidden]{display:none}
+@media(max-width:650px){.report-family-choices{grid-template-columns:1fr}.report-step-content{padding:16px}.report-workflow-actions{gap:8px}.hero{gap:10px}.hero .hero-status{max-width:120px}}
 @media(max-width:650px){.report-setup-view{padding:18px 12px}.report-setup-heading{gap:10px;flex-wrap:wrap}.report-setup-view>:is(.report-selection-unified,#teamReportSelection){padding:12px}.report-reading-toolbar{padding:10px 12px}.report-reading-toolbar .report-actions{flex-wrap:wrap;justify-content:flex-end}}
 @media print{.report-setup-view{display:none!important}}
 /* Operation surfaces share one type and spacing scale; reports and navigation retain their own styles. */

@@ -4,6 +4,7 @@
   const N = value => root.Calc.num(value), clone = value => JSON.parse(JSON.stringify(value));
   const hasValue = cell => cell && N(cell.value) !== null;
   const hash = value => C.contentHash(E.canonical(value));
+  const calculationConfiguration = value => { const result = clone(value); for (const key of ["title", "titleAuto", "reportTitle"]) delete result[key]; return result; };
   const canonicalMember = id => String(id).includes(":") ? String(id) : "metric:" + id;
   const flagged = status => status === "red" || status === "amber";
   // Exact SI scale factors, plus the conventional standard-gravity definition of kgf.
@@ -32,13 +33,14 @@
     return next;
   }
   function teamCell(cell, period, catalog, unit) {
+    const temporal = value => { if (value) value.temporalDirection = cell.direction || null; return value; };
     const definition = period.source?.definitions.find(item => item.id === (cell.metricId || cell.id)) || cell.definition || cell.canonicalDefinition;
     const catalogDefinition = catalog?.definitions.find(item => item.id === (cell.metricId || cell.id));
     const meaning = root.RingsideMetricSemantics.resolve(definition || { measurementScale: cell.measurementScale }, { catalogDefinition }).meaning;
-    if (meaning !== "numeric") return C.horizontalCell(cell, period, catalog, cell.unit || "");
-    if (M.unitFactor(cell.unit || "", unit) !== null) return C.horizontalCell(cell, period, catalog, unit);
+    if (meaning !== "numeric") return temporal(C.horizontalCell(cell, period, catalog, cell.unit || ""));
+    if (M.unitFactor(cell.unit || "", unit) !== null) return temporal(C.horizontalCell(cell, period, catalog, unit));
     const factor = unitFactor(cell.unit || "", unit);
-    if (factor === null || cell.measurementScale === "ordinal") return C.horizontalCell(cell, period, catalog, cell.unit || "");
+    if (factor === null || cell.measurementScale === "ordinal") return temporal(C.horizontalCell(cell, period, catalog, cell.unit || ""));
     const next = clone(cell), metricId = cell.metricId || cell.id;
     const adaptDefinition = definition => definition && ({ ...definition, unit, target: scale(definition.target, factor), ranges: scaleRanges(definition.ranges, factor) });
     next.rawValue = cell.rawValue ?? cell.value; next.rawUnit = cell.rawUnit ?? cell.unit; next.unit = unit; next.value = scale(cell.value, factor);
@@ -54,7 +56,7 @@
     // The displayed assessment uses the common unit. Evaluation evidence keeps
     // its original value, unit, target and score conversion together.
     if (cell.evaluation) result.evaluation = clone(cell.evaluation);
-    return result;
+    return temporal(result);
   }
 
   function quantile(values, p) {
@@ -119,7 +121,7 @@
         const id = key + (contexts.length > 1 ? ":" + hash(contextKey).slice(-8) : ""), groupId = contexts.length > 1 ? hash(contextKey) : "default";
         const row = { id, metricId: exemplar.metricId || exemplar.id || key, subjectId: exemplar.subjectId || exemplar.id || key, testId: exemplar.testId,
           name: exemplar.name, unit: template.unit, measurementScale: template.measurementScale || "unknown", meaning: template.meaning || "numeric", direction,
-          rankable: template.meaning !== "category" && ["higher", "lower"].includes(direction) && !cells.some(intervalScore),
+          rankable: template.meaning !== "category" && ["higher", "lower"].includes(direction) && !cells.some(intervalScore), aggregation: clone(template.aggregation || null),
           contextKey, context: template.comparisonContext || {}, groupId, contextLabel: contexts.length > 1 ? "测量条件 " + (contexts.indexOf(contextKey) + 1) : "", cells,
           ...Object.fromEntries(["section", "sourceKind", "groupName", "region", "directionId", "pairId", "parentId"].filter(field => exemplar[field] !== undefined).map(field => [field, exemplar[field]])) };
         row.ranking = rankings(row, people); row.statistics = statistics(row.ranking, row.meaning); row.distribution = distribution(row.ranking);
@@ -211,6 +213,7 @@
   }
   function normalizeConfiguration(options) {
     const supplied = options.configuration || options, configuration = {};
+    if (supplied.analysisMode && supplied.analysisMode !== "single") return normalizeComparisonConfiguration(supplied);
     for (const key of ["title", "titleAuto", "groupId", "window", "mode", "profileId"]) if (supplied[key] !== undefined) configuration[key] = clone(supplied[key]);
     configuration.mode ||= "best"; configuration.profileId ||= "";
     if (!["best", "mean"].includes(configuration.mode)) throw Error("个人代表成绩须为最佳值或均值");
@@ -262,17 +265,216 @@
     const model = { kind: "team", version: 1, configuration, mode: configuration.mode, profile, catalog, people, participants: people, projects, capability: { cards }, overview: overviewData, risk: riskData,
       summary: { total: people.length, people: people.length, recorded: people.filter(person => !person.missing).length, missing: people.filter(person => person.missing).length,
         projects: projects.length, screened: people.filter((person, index) => periods[index] && (Object.values(periods[index].stats.signals.regions).some(region => region.hasMeasured) || periods[index].stats.raw.fms?.completed > 0)).length, flagged: riskData.flaggedCount } };
-    model.fingerprint = hash({ version: 1, configuration, profile, catalog, people: people.map(({ record, ...person }) => person) }); model.basis = model.fingerprint;
+    model.fingerprint = hash({ version: 1, configuration: calculationConfiguration(configuration), profile, catalog, people: people.map(({ record, ...person }) => person) }); model.basis = model.fingerprint;
     return clone(model);
   }
-  function build(records, options = {}) { const iterator = buildSteps(records, options); let next; do { next = iterator.next(); } while (!next.done); return next.value; }
+  function buildSingle(records, options = {}) { const iterator = buildSteps(records, options); let next; do { next = iterator.next(); } while (!next.done); return next.value; }
+  function build(records, options = {}) {
+    const configuration = options.configuration || options;
+    return configuration.analysisMode && configuration.analysisMode !== "single" ? buildComparison(records, options) : buildSingle(records, options);
+  }
   async function buildAsync(records, options = {}, { batchSize = 8, isCancelled = () => false, onProgress, yieldControl = () => new Promise(resolve => root.setTimeout(resolve, 0)) } = {}) {
     if (!Number.isSafeInteger(batchSize) || batchSize < 1) throw Error("分批处理条数须为正整数");
+    if ((options.configuration || options).analysisMode && (options.configuration || options).analysisMode !== "single") {
+      if (isCancelled()) return null;
+      await yieldControl();
+      return buildComparisonAsync(records, options, { batchSize, isCancelled, onProgress, yieldControl });
+    }
     const iterator = buildSteps(records, options); let prepared = 0;
     try { if (isCancelled()) return null; onProgress?.({ prepared }); await yieldControl(); while (!isCancelled()) {
       const next = iterator.next(); if (next.done) return isCancelled() ? null : next.value;
       prepared = next.value.prepared; if (prepared % batchSize === 0) { onProgress?.(next.value); await yieldControl(); }
     } return null; } finally { iterator.return(); }
+  }
+  function normalizeComparisonConfiguration(supplied) {
+    if (!["longitudinal", "horizontal"].includes(supplied.analysisMode)) throw Error("团队分析方式无效");
+    const out = { analysisMode: supplied.analysisMode, mode: supplied.mode || "best", profileId: supplied.profileId || "" };
+    for (const key of ["title", "titleAuto", "groupId"]) if (supplied[key] !== undefined) out[key] = clone(supplied[key]);
+    if (!["best", "mean"].includes(out.mode)) throw Error("个人代表成绩须为最佳值或均值");
+    if (out.analysisMode === "longitudinal") {
+      const ids = supplied.athleteIds || (supplied.participants || []).map(person => person.athleteId);
+      if (!ids.length || ids.some(id => typeof id !== "string" || !id) || new Set(ids).size !== ids.length) throw Error("团队纵向须选择不重复的运动员");
+      out.athleteIds = [...ids];
+      const dates = supplied.dates || (supplied.dateParticipants || []).map(period => period.date);
+      if (dates.length < 2 || dates.some(date => !C.validDate(date)) || new Set(dates).size !== dates.length) throw Error("团队纵向须选择至少两个不同的有效测试日期");
+      out.dates = [...dates].sort();
+      const rows = supplied.dateParticipants || [];
+      if (new Set(rows.map(row => row.date)).size !== rows.length || rows.some(row => !out.dates.includes(row.date))) throw Error("测试日期与记录选择不一致");
+      out.dateParticipants = out.dates.map(date => {
+        const selected = rows.find(row => row.date === date)?.participants || [];
+        if (new Set(selected.map(person => person.athleteId)).size !== selected.length || selected.some(person => !ids.includes(person.athleteId))) throw Error("每个日期的运动员须来自固定名单且不能重复");
+        return { date, participants: ids.map(athleteId => ({ athleteId, recordId: selected.find(person => person.athleteId === athleteId)?.recordId || "" })) };
+      });
+      out.participants = ids.map(athleteId => ({ athleteId, recordId: "" }));
+    } else {
+      const objects = supplied.objects || [];
+      if (!objects.length || new Set(objects.map(object => object.id)).size !== objects.length || objects.some(object => typeof object.id !== "string" || !object.id)) throw Error("请选择不重复的团队或参考群体");
+      if (objects.length < 2 && !objects.some(object => object.kind === "reference")) throw Error("团队横向须选择至少两个团队，或添加参考群体");
+      out.objects = objects.map(object => {
+        const kind = object.kind || (object.reference ? "reference" : "team");
+        if (!["team", "reference"].includes(kind)) throw Error("团队比较对象类型无效");
+        if (kind === "reference") {
+          const reference = { ...clone(object.reference || {}), id: object.id };
+          reference.window ||= { kind: "all" }; reference.sampling ||= "latest";
+          return { id: object.id, label: object.label || reference.label || "参考群体", kind, reference: root.RingsideHorizontal.normalizeReference(reference) };
+        }
+        const normalized = normalizeConfiguration({ participants: object.participants || [], mode: out.mode, window: object.window || { kind: "all" } });
+        return { id: object.id, label: object.label || "团队", kind, groupId: object.groupId || "", participants: normalized.participants, window: normalized.window };
+      });
+      out.participants = [...new Map(out.objects.flatMap(object => object.participants || []).map(person => [person.athleteId, person])).values()];
+    }
+    return out;
+  }
+  function selectedSources(configuration) {
+    const participants = configuration.analysisMode === "longitudinal" ? (configuration.dateParticipants || []).flatMap(period => period.participants || []) : configuration.analysisMode === "horizontal" ? (configuration.objects || []).flatMap(object => object.participants || []) : configuration.participants || [];
+    return { participants, athleteIds: [...new Set([...(configuration.athleteIds || []), ...participants.map(person => person.athleteId)])], recordIds: [...new Set(participants.map(person => person.recordId).filter(Boolean))], hasReferences: configuration.analysisMode === "horizontal" && (configuration.objects || []).some(object => object.kind === "reference") };
+  }
+  function comparisonKey(row) {
+    const context = clone(row.context || {}); delete context.unit; if (context.force) delete context.force.unit;
+    const physical = units[row.unit]?.[0] || row.unit || "";
+    return E.canonical({ metricId: row.metricId || row.subjectId || row.id, context: JSON.parse(E.contextSignature(context)), meaning: row.meaning, scale: row.measurementScale, unit: physical });
+  }
+  function convertComparisonCell(cell, fromUnit, unit, contextKey) {
+    if (!cell) return null;
+    const factor = unitFactor(fromUnit || "", unit || "");
+    if (factor === null) return null;
+    const value = clone(cell); value.unit = unit; value.contextKey = contextKey;
+    if (Object.hasOwn(cell, "temporalDirection")) value.direction = cell.temporalDirection;
+    if (N(value.value) !== null) value.value *= factor;
+    if (value.statistics) for (const key of ["mean", "sd", "min", "max"]) if (N(value.statistics[key]) !== null) value.statistics[key] *= Math.abs(factor);
+    return value;
+  }
+  function pairChange(row, periods, fromIndex, toIndex) {
+    const base = { available: false, from: periods[fromIndex].date, to: periods[toIndex].date, fromIndex, toIndex, n: 0, fromMean: null, toMean: null, delta: null, improvement: null, people: [] };
+    if (row.meaning === "category") return { ...base, reason: "类别结果按分布展示" };
+    for (const person of row.people) {
+      const change = root.RingsideLongitudinal.change(person.cells, fromIndex, toIndex, periods, row.measurementScale);
+      if (change.available) base.people.push({ athleteId: person.athleteId, name: person.name, from: change.from.value, to: change.to.value, delta: change.delta, improvement: change.improvement, reason: change.reason });
+    }
+    base.n = base.people.length;
+    if (!base.n) return { ...base, reason: "没有两端均有可比结果的运动员" };
+    base.fromMean = base.people.reduce((sum, person) => sum + person.from / base.n, 0);
+    base.toMean = base.people.reduce((sum, person) => sum + person.to / base.n, 0);
+    // Ordinary ordinal/category codes retain transitions, never a numerical team average.
+    if (row.meaning !== "numeric" && row.aggregation?.mean !== true) return { ...base, fromMean: null, toMean: null, transitions: base.people, reason: "等级结果查看个人变化" };
+    const difference = C.difference(base.toMean, base.fromMean, row.measurementScale, row.unit);
+    Object.assign(base, difference, { available: true });
+    if (base.people.every(person => person.improvement !== null) && ["higher", "lower"].includes(row.direction)) base.improvement = difference.delta === 0 ? "unchanged" : difference.delta * (row.direction === "higher" ? 1 : -1) > 0 ? "improved" : "declined";
+    base.improved = base.people.filter(person => person.improvement === "improved").length;
+    base.declined = base.people.filter(person => person.improvement === "declined").length;
+    return base;
+  }
+  function comparisonProjects(entries, longitudinal, people) {
+    const projects = new Map();
+    for (const entry of entries) for (const project of entry.projects || []) {
+      if (!projects.has(project.id)) projects.set(project.id, { ...clone(project), metrics: [], _rows: new Map() });
+      const target = projects.get(project.id);
+      for (const metric of project.metrics || []) {
+        const key = comparisonKey(metric);
+        if (!target._rows.has(key)) target._rows.set(key, { ...clone(metric), id: (metric.metricId || metric.id) + ":" + C.contentHash(key).slice(-8), contextKey: key, cells: [], people: [], _source: metric });
+      }
+    }
+    for (const project of projects.values()) {
+      for (const [key, row] of project._rows) {
+        const matches = entries.map(entry => entry.projects.find(item => item.id === project.id)?.metrics.find(metric => comparisonKey(metric) === key));
+        if (longitudinal) {
+          row.people = people.map(person => ({ athleteId: person.athleteId, name: person.name, cells: matches.map(metric => {
+            const cell = metric?.cells.find(cell => cell?.athleteId === person.athleteId);
+            return convertComparisonCell(cell, metric?.unit, row.unit, key);
+          }) }));
+          row.cells = matches.map((metric, index) => {
+            const members = row.people.map(person => person.cells[index]), stat = statistics(members.filter(hasValue), row.aggregation?.mean === true ? "numeric" : row.meaning), value = stat.mean;
+            return { value, mean: value, n: stat.n, total: people.length, unit: row.unit, statistics: stat, distribution: distribution(members.filter(hasValue)), members, contextKey: key };
+          });
+          row.pairedChanges = { overall: pairChange(row, entries, 0, entries.length - 1), recent: entries.length > 2 ? pairChange(row, entries, entries.length - 2, entries.length - 1) : null };
+          row.changes = row.pairedChanges;
+        } else {
+          row.cells = matches.map(metric => {
+            if (!metric?.benchmark) return null;
+            const cell = clone(metric.benchmark), factor = unitFactor(metric.unit || "", row.unit || "");
+            if (factor === null) return null;
+            for (const field of ["mean", "sd", "best", "min", "max"]) if (N(cell[field]) !== null) cell[field] *= factor;
+            cell.value = cell.mean; cell.unit = row.unit; cell.contextKey = key; return cell;
+          });
+        }
+        delete row._source; delete row.ranking; delete row.statistics; delete row.distribution; delete row.benchmark;
+        project.metrics.push(row);
+      }
+      const originalDefault = entries.map(entry => entry.projects.find(item => item.id === project.id)?.metrics.find(metric => metric.id === project.defaultMetricId || metric.metricId === project.defaultMetricId)).find(Boolean);
+      project.defaultMetricId = (originalDefault && project.metrics.find(metric => metric.contextKey === comparisonKey(originalDefault)) || project.metrics[0])?.id || "";
+      delete project._rows;
+    }
+    return [...projects.values()];
+  }
+  function* comparisonSteps(records, options) {
+    const configuration = normalizeComparisonConfiguration(options.configuration || options), profile = options.profile || null, catalog = options.catalog || null;
+    const sourceMap = new Map();
+    for (const record of records) { if (sourceMap.has(record.recordId)) throw Error("测试记录编号重复"); sourceMap.set(record.recordId, record); }
+    const baseOptions = { mode: configuration.mode, profileId: configuration.profileId, profile, catalog, athletes: options.athletes || [] }, used = new Set(), periods = [], objects = [];
+    if (configuration.analysisMode === "longitudinal") {
+      for (const selection of configuration.dateParticipants) {
+        for (const person of selection.participants) if (person.recordId) {
+          const source = sourceMap.get(person.recordId);
+          if (!source || source.athlete?.date !== selection.date) throw Error("所选记录与团队比较日期不一致");
+          used.add(person.recordId);
+        }
+        const model = yield { kind: "team", records, options: { ...baseOptions, participants: selection.participants, window: { from: selection.date, to: selection.date } } };
+        periods.push({ id: selection.date, date: selection.date, label: selection.date, projects: [...model.projects, ...model.capability.cards.map(card => ({ ...card, id: card.projectId || card.id, name: card.title || card.name, category: "capability" }))], model });
+      }
+    } else {
+      for (const object of configuration.objects) {
+        let model = null, reference, candidates = records;
+        if (object.kind === "team") {
+          model = yield { kind: "team", records, options: { ...baseOptions, participants: object.participants, window: object.window } };
+          const selected = new Set(object.participants.map(person => person.recordId).filter(Boolean));
+          candidates = records.filter(record => selected.has(record.recordId)); selected.forEach(recordId => used.add(recordId));
+          reference = { id: object.id, label: object.label, scope: "all", sampling: "latest", window: { kind: "all" } };
+        } else reference = { ...object.reference, id: object.id, label: object.label };
+        const horizontal = yield { kind: "reference", records: candidates, options: { ...baseOptions, participants: [], references: [reference] } };
+        const referenceModel = horizontal.references[0];
+        for (const project of [...referenceModel.projects, ...referenceModel.capability.cards]) for (const row of project.metrics || []) for (const person of row.benchmark?.contributors || []) for (const source of person.sources || []) used.add(source.recordId);
+        objects.push({ id: object.id, label: object.label, kind: object.kind, model, referenceModel });
+      }
+    }
+    const sourceRecords = records.filter(record => used.has(record.recordId)).map(clone), sourceOwnerIds = new Set(sourceRecords.map(record => record.athleteId));
+    const sourceAthletes = (options.athletes || []).filter(person => sourceOwnerIds.has(person.id)).map(person => ({ id: person.id, name: person.name || person.profile?.name || person.id, profile: clone(person.profile || {}), groupId: person.groupId || "" }));
+    for (const record of sourceRecords) if (!sourceAthletes.some(person => person.id === record.athleteId)) sourceAthletes.push({ id: record.athleteId, name: record.athlete.name || record.athleteId, profile: clone(record.athlete), groupId: "" });
+    const last = periods.at(-1)?.model, people = last ? clone(last.people) : [...new Map([...objects.flatMap(object => object.model?.people || []), ...sourceAthletes.map(person => ({ athleteId: person.id, id: person.id, name: person.name, athlete: person.profile, groupId: person.groupId }))].map(person => [person.athleteId, person])).values()];
+    const projects = comparisonProjects(last ? periods : objects.map(object => ({ ...object.referenceModel, projects: [...object.referenceModel.projects, ...object.referenceModel.capability.cards.map(card => ({ ...card, id: "capability:" + card.id, name: card.title || card.name, category: "capability" }))] })), !!last, people);
+    const model = { kind: "team", version: 2, analysisMode: configuration.analysisMode, configuration, mode: configuration.mode, profile: clone(profile), catalog: clone(catalog), people, participants: people, projects, periods, objects, sourceRecords, sourceAthletes,
+      overview: last?.overview || { axes: [], series: [] }, risk: last?.risk || { regions: [], assessedCount: 0, flaggedCount: null }, capability: { cards: [] }, summary: last?.summary || { total: people.length, people: people.length, flagged: null },
+      evaluationConflicts: objects.flatMap(object => [...object.referenceModel.projects, ...object.referenceModel.capability.cards].flatMap(project => (project.metrics || []).filter(row => row.benchmark?.evaluationConflict).map(row => ({ referenceId: object.id, name: row.name, unit: row.unit, ...row.benchmark.evaluationConflict })))) };
+    model.fingerprint = hash({ version: 2, configuration: calculationConfiguration(configuration), profile, catalog, sources: sourceRecords.map(record => ({ id: record.recordId, fingerprint: M.fingerprint(record) })), athletes: sourceAthletes }); model.basis = model.fingerprint;
+    return clone(model);
+  }
+  function buildComparison(records, options) {
+    const iterator = comparisonSteps(records, options); let step = iterator.next();
+    while (!step.done) { const job = step.value; step = iterator.next(job.kind === "team" ? buildSingle(job.records, job.options) : root.RingsideHorizontal.build(job.records, job.options)); }
+    return step.value;
+  }
+  async function buildComparisonAsync(records, options, controls) {
+    const iterator = comparisonSteps(records, options); let step = iterator.next(), prepared = 0;
+    try { while (!step.done) {
+      if (controls.isCancelled()) return null;
+      const job = step.value, progress = { ...controls, onProgress: state => controls.onProgress?.({ prepared: prepared + state.prepared }) };
+      const result = job.kind === "team" ? await buildAsync(job.records, job.options, progress) : await root.RingsideHorizontal.buildAsync(job.records, job.options, progress);
+      if (!result || controls.isCancelled()) return null;
+      prepared += job.records.length; step = iterator.next(result); await controls.yieldControl();
+    } return controls.isCancelled() ? null : step.value; } finally { iterator.return(); }
+  }
+  function present(input, views = {}) {
+    const model = clone(input);
+    if (model.analysisMode !== "horizontal") return model;
+    const ids = model.objects.map(object => object.id), focusObjectId = ids.includes(views.focusObjectId) ? views.focusObjectId : "", baselineObjectId = ids.includes(views.baselineObjectId) ? views.baselineObjectId : "", baselineIndex = ids.indexOf(baselineObjectId);
+    model.presentation = { focusObjectId, baselineObjectId };
+    for (const project of model.projects) for (const row of project.metrics) {
+      row.differences = row.cells.map((cell, index) => baselineIndex < 0 || index === baselineIndex || row.meaning === "category" ? { available: false } : C.difference(cell?.value, row.cells[baselineIndex]?.value, row.measurementScale, row.unit));
+      row.cells.forEach((cell, index) => { if (cell) cell.difference = row.differences[index]; });
+    }
+    return model;
+  }
+  function hasData(model) {
+    return !!model && ((model.projects || []).some(project => (project.metrics || []).some(row => row.statistics?.n > 0 || (row.cells || []).some(cell => cell && (N(cell.value) !== null || cell.n > 0 || cell.pain)))) || (model.risk?.regions || []).some(region => region.measuredCount > 0));
   }
   function chart(model, projectId, view = {}) {
     const project = model.projects.find(item => item.id === projectId) || model.capability.cards.find(item => item.projectId === projectId || item.id === projectId);
@@ -287,6 +489,12 @@
       note: kind === "box" && entries.length < 3 ? "有效人数不足 3 人，保留个人点" : metric.meaning === "category" ? "类别结果按人数展示" : metric.meaning === "ordinal" && kind !== requestedKind ? "等级结果使用柱状图或点图" : !metric.rankable ? "按数值排列，不表示表现优劣" : "" };
   }
   function facts(model, views = {}) {
+    if (model.analysisMode && model.analysisMode !== "single") {
+      const shown = present(model, views);
+      return clone({ type: "team-" + model.analysisMode, configuration: model.configuration, presentation: shown.presentation || null, projects: shown.projects, people: model.people.map(({ record, ...person }) => person),
+        periods: model.periods.map(period => ({ date: period.date, summary: period.model.summary, overview: period.model.overview, risk: period.model.risk })), objects: model.objects.map(object => ({ id: object.id, label: object.label, kind: object.kind, reference: object.referenceModel, summary: object.model?.summary || null })),
+        interpretation: "Each date retains the entire selected roster. Date means use that date's valid observations; changes use the same people at the two stated endpoints. Reference screening grades describe aggregated representative values, never a number of flagged people." });
+    }
     const row = metric => ({ id: metric.id, metricId: metric.metricId, name: metric.name, unit: metric.unit, meaning: metric.meaning, direction: metric.direction,
       rankable: metric.rankable, ranking: metric.ranking, context: metric.context, statistics: metric.statistics,
       cells: metric.cells.map(cell => !cell ? null : ({ athleteId: cell.athleteId, value: cell.value, rawValue: cell.rawValue, rawUnit: cell.rawUnit, evaluation: cell.evaluation, notes: cell.notes, pain: cell.pain })) });
@@ -295,6 +503,16 @@
       capability: { cards: model.capability.cards.map(card => ({ id: card.id, title: card.title, metrics: card.metrics.map(row) })) }, overview: model.overview, risk: model.risk, views });
   }
   function localText(model, views = {}) {
+    if (model.analysisMode && model.analysisMode !== "single") {
+      const lines = [model.configuration.title || "损伤风险筛查与运动表现测试报告", model.analysisMode === "longitudinal" ? "团队纵向比较" : "团队横向比较"];
+      for (const project of model.projects) for (const row of project.metrics) {
+        const values = row.cells.map((cell, index) => `${model.analysisMode === "longitudinal" ? model.periods[index].date : model.objects[index].label}：${N(cell?.value) === null ? "—" : Number(cell.value.toFixed(4))}${row.unit || ""}（有效 ${cell?.n || 0} 人）`);
+        lines.push(project.name + " · " + row.name + "：" + values.join("；"));
+        const change = row.pairedChanges?.overall;
+        if (change?.available) lines.push(`同人变化：${change.from} → ${change.to}，配对 ${change.n} 人，${Number(change.fromMean.toFixed(4))} → ${Number(change.toMean.toFixed(4))}${row.unit || ""}，差值 ${Number(change.delta.toFixed(4))}${row.unit || ""}。`);
+      }
+      return lines.join("\n");
+    }
     const format = value => N(value) === null ? "—" : String(Number(value.toFixed(4))), summary = model.summary;
     const lines = [model.configuration.title || "团队报告", `报告 ${summary.total} 人，有测试记录 ${summary.recorded} 人，暂无记录 ${summary.missing} 人；${summary.projects} 个项目，${summary.screened} 人有筛查数据。`,
       "个人代表成绩：" + (model.mode === "mean" ? "试次均值" : "最佳试次")];
@@ -314,5 +532,5 @@
     if (model.risk.unlocalized.length) lines.push("未定位筛查提示：" + model.risk.unlocalized.map(person => person.name).join("、") + "。");
     return lines.join("\n");
   }
-  root.RingsideTeam = { build, buildAsync, chart, facts, localText, statistics, histogram, quantile, unitFactor, normalizeConfiguration };
+  root.RingsideTeam = { build, buildAsync, chart, facts, localText, statistics, histogram, quantile, unitFactor, normalizeConfiguration, selectedSources, present, hasData };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -175,24 +175,45 @@
   }
   function detailsHTML(model, views, print = false) {
     const projects = model.projects || [], sections = [["screen", "损伤风险筛查"], ["performance", "运动表现测试"]];
-    let html = sections.map(([category, label]) => { const selected = projects.filter(project => category === "screen" ? project.category === "screen" : project.category !== "screen"); return selected.length ? `<details class="details-group team-details" id="team-${category}" open><summary>${label}<span>团队结果</span></summary><div class="quality-group">${selected.map(project => projectHTML(project,model,views,{print})).join("")}</div></details>` : ""; }).join("");
+    let html = sections.map(([category, label]) => { const selected = projects.filter(project => category === "screen" ? project.category === "screen" : project.category !== "screen"); return selected.length ? `<details class="details-group team-details" id="team-${category}" open><summary>${label}</summary><div class="quality-group">${selected.map(project => projectHTML(project,model,views,{print})).join("")}</div></details>` : ""; }).join("");
     const cards = model.capability?.cards || [];
-    if (cards.length) html += `<details class="details-group team-details" id="team-capability" open><summary>能力结构分析<span>团队结果</span></summary><div class="quality-group">${cards.filter(card => card.metrics?.length).map(card => projectHTML({...card,id:card.projectId || card.id,name:card.title || card.name},model,views,{print})).join("")}</div></details>`;
+    if (cards.length) html += `<details class="details-group team-details" id="team-capability" open><summary>能力结构分析</summary><div class="quality-group">${cards.filter(card => card.metrics?.length).map(card => projectHTML({...card,id:card.projectId || card.id,name:card.title || card.name},model,views,{print})).join("")}</div></details>`;
     return html || '<p class="team-empty">所选队员在本次范围内暂无测试结果。</p>';
   }
+  function summaryCards(model, {label = ""} = {}) {
+    const people = model.participants || model.people || [], risk = model.risk || {}, regions = risk.regions || [],
+      total = model.summary?.total ?? people.length, assessed = N(risk.assessedCount),
+      countsAvailable = risk.countsAvailable !== false && assessed !== null && assessed > 0,
+      flagged = risk.flaggedCount ?? new Set([...regions.flatMap(region => region.members || []), ...(risk.unlocalized || [])].map(person => person.athleteId)).size,
+      candidates = regions.filter(region => region.assessedCount > 0 && region.flaggedCount > 0), most = Math.max(0, ...candidates.map(region => region.flaggedCount)),
+      sites = candidates.filter(region => region.flaggedCount === most), axes = (model.overview?.axes || []).filter(axis => axis.n > 0 && N(axis.value) !== null),
+      minimum = axes.length ? Math.min(...axes.map(axis => axis.value)) : null,
+      weak = axes.filter(axis => Number(axis.value.toFixed(1)) === Number(minimum?.toFixed(1))), equal = axes.length > 1 && weak.length === axes.length;
+    const siteValue = sites.length ? sites.map(region => region.label).join("、") : !countsAvailable ? "待评价" : risk.unlocalized?.length ? "暂无可定位部位" : "暂无关注部位",
+      siteNote = sites.length ? sites.map(region => `${region.label} ${region.flaggedCount}/${region.assessedCount} 人需关注`).join("；") : risk.unlocalized?.length ? "存在未定位到具体部位的筛查提示" : countsAvailable ? "依据已评价的筛查结果" : "尚无可评价的部位结果",
+      weakValue = !axes.length ? "待评价" : axes.length < 2 ? "暂无法比较" : equal ? "各能力得分一致" : weak.map(axis => axis.label).join("、"),
+      weakNote = !axes.length ? "尚无可用于比较的能力评分" : axes.length < 2 ? "仅一项能力有有效评分" : equal ? `${F(minimum, 1)} 分 · 按各项有效评分计算` : weak.map(axis => `${axis.label} ${F(axis.value, 1)} 分 · ${axis.n}/${axis.total ?? total} 人`).join("；");
+    return [
+      {title:"报告人数", value:total, note:label || model.configuration?.teamName || model.groups?.find(group => group.id === model.configuration?.groupId)?.name || "已选报告成员"},
+      {title:"筛查关注人数", value:countsAvailable ? flagged : "—", note:countsAvailable ? `已评价 ${assessed}/${total} 人` : "尚无可评价的筛查结果"},
+      {title:"主要关注部位", value:siteValue, note:siteNote, text:true},
+      {title:"相对薄弱能力", value:weakValue, note:weakNote, text:true}
+    ];
+  }
+  function summaryHTML(model, options) {
+    return summaryCards(model, options).map(card => `<article class="micro-card team-summary"><div class="micro-head"><h3>${E(card.title)}</h3></div><div class="micro-value${card.text ? " text" : ""}">${E(card.value)}</div><p>${E(card.note)}</p></article>`).join("");
+  }
   function render(model, {views = {}, print = false} = {}) {
-    const people = model.participants || [], configuration = model.configuration || {}, teamName = configuration.teamName || model.groups?.find(group=>group.id===configuration.groupId)?.name || model.team?.name || model.title || "团队报告",
-      dates = [...new Set(people.map(person => person.date).filter(Boolean))].sort(), dateText = dates.length ? dates[0] === dates.at(-1) ? dates[0] : dates[0] + " — " + dates.at(-1) : "暂无测试日期",
-      missing = people.filter(person => person.missing || !person.recordId).length, risk = model.risk || {}, regions = risk.regions || [],
-      flagged = risk.flaggedCount ?? new Set([...regions.flatMap(region=>region.members||[]),...(risk.unlocalized||[])].map(person=>person.athleteId)).size,
-      card = (title,value,note) => `<article class="micro-card team-summary"><div class="micro-head"><h3>${E(title)}</h3></div><div class="micro-value">${value}</div><p>${E(note)}</p></article>`,
-      summary = card("报告人数",people.length,teamName) + card("有记录人数",people.length-missing,dateText) + card("已录入项目数",model.projects?.length||0,model.mode==="mean"?"个人代表成绩：试次均值":"个人代表成绩：最佳试次") + card("筛查关注人数",flagged,risk.assessedCount != null ? `已评价 ${risk.assessedCount} 人` : "至少一项筛查需关注"),
+    if (["longitudinal", "horizontal"].includes(model.analysisMode)) return root.RingsideTeamComparisonView.render(model, {views, print});
+    const people = model.participants || [], configuration = model.configuration || {}, risk = model.risk || {}, regions = risk.regions || [],
+      summary = summaryHTML(model),
       riskRadar = radarHTML(regions, [{id:"risk",label:"需关注人数",values:regions.map(region => region.assessedCount ? region.flaggedCount : null)}], {risk:true,total:risk.total || people.length});
     return {controls:"", summary, body:`<div class="team-radar">${riskRadar}</div><p class="team-risk-key"><span><i class="dot red"></i>预警</span><span><i class="dot amber"></i>关注</span></p>`, screenItems:print ? "" : riskLists(risk), screenPill:"各部位需关注人数", overview:overviewHTML(model,views,print), referenceLabel:model.profile?.name || configuration.profileName || "团队平均评分", legend:"", details:(print ? riskLists(risk,true) : '<div class="team-report-tools no-print"><button type="button" class="btn small" data-team-refresh>更新已选记录数据</button></div>') + detailsHTML(model,views,print)};
   }
   function layout(container, {print = false} = {}) {
     if (!container) return;
     container.querySelectorAll(".team-chart-scroll").forEach(node => { node.style.overflowX = print ? "visible" : "auto"; });
+    root.RingsideTeamComparisonView?.layout(container, {print});
   }
   function bind(container, model, views = {}, {updateViews = () => {}} = {}) {
     if (!container) return;
@@ -222,17 +243,24 @@
     container.addEventListener("input",event=>{if(event.target.matches("[data-team-overlay-search]"))filterOverlays(event.target.value);},options);
     container.addEventListener("change", event => {
       const input = event.target;
+      if (input.matches("[data-team-presentation]")) updateViews({[input.dataset.teamPresentation]:input.value});
       if (input.matches("[data-team-kind],[data-team-metric]")) { const projectId = input.dataset.teamKind || input.dataset.teamMetric, key = input.hasAttribute("data-team-kind") ? "kind" : "metricId"; updateViews({charts:{...(views.charts || {}),[projectId]:{...(views.charts?.[projectId] || {}),[key]:input.value}}}); }
       if (input.matches("[data-team-overlay]")) { container.__teamOverlayOpen=true;const selected = [...container.querySelectorAll("[data-team-overlay]:checked")].map(node => node.dataset.teamOverlay).slice(0,3); updateViews({overviewAthleteIds:selected}); }
     }, options);
+    container.__teamResizeObserver?.disconnect();
+    if (model.analysisMode && typeof ResizeObserver !== "undefined") {
+      let scheduled = false;
+      const observer = new ResizeObserver(() => { if (scheduled) return; scheduled = true; requestAnimationFrame(() => { scheduled = false; if (container.isConnected && !abort.signal.aborted) layout(container); }); });
+      container.__teamResizeObserver = observer; observer.observe(container); abort.signal.addEventListener("abort", () => observer.disconnect(), {once:true});
+    }
   }
   function preparePrint(container, model, views = {}) {
     const output = render(model,{views,print:true}); container.dataset.team = "true";
-    for (const [id, key] of [["microCards","summary"],["bodyChart","body"],["screenItems","screenItems"],["radarChart","overview"]]) { const node = container.querySelector("#" + id); if (node) node.innerHTML = output[key]; }
+    for (const [id, key] of [["microCards","summary"],["bodyChart","body"],["screenItems","screenItems"],["radarChart","overview"]]) { const node = container.querySelector("#" + id); if (node) { node.innerHTML = output[key]; if (id === "microCards") node.classList.toggle("team-summary-multiple", !!node.querySelector(".team-summary-set")); } }
     const data = container.querySelector("#detailContent,#testDetails,[data-team-details]");
     if (data) data.innerHTML = output.details;
     else { const first = container.querySelector(".team-details"); if (first) { const parent = first.parentElement; parent.querySelectorAll(".team-details,.team-risk-print").forEach(node=>node.remove()); parent.insertAdjacentHTML("beforeend",output.details); } }
-    container.querySelectorAll(".team-tooltip,.team-overlay-control,.team-chart-controls").forEach(node=>node.remove());
+    container.querySelectorAll(".team-tooltip,.team-overlay-control,.team-chart-controls,.team-comparison-controls").forEach(node=>node.remove());
     layout(container,{print:true}); return output;
   }
   function prepareBrowserPrint(container, model, views = {}) {
@@ -240,5 +268,5 @@
     const clone = container.cloneNode(true); clone.removeAttribute("id"); clone.classList.add("team-browser-print"); preparePrint(clone,model,views); container.ownerDocument.body.append(clone); container.ownerDocument.body.classList.add("team-print-active");
     return () => { clone.remove(); container.ownerDocument.body.classList.remove("team-print-active"); };
   }
-  root.RingsideTeamView = {render,layout,bind,preparePrint,prepareBrowserPrint,chartHTML,radarHTML,tableHTML,kinds};
+  root.RingsideTeamView = {render,layout,bind,preparePrint,prepareBrowserPrint,chartHTML,radarHTML,tableHTML,kinds,summaryCards,summaryHTML,cellHTML,riskLists};
 })(typeof window !== "undefined" ? window : globalThis);

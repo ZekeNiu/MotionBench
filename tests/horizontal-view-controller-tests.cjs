@@ -121,4 +121,11 @@ test("clearing while a restore read is pending cannot activate its old report",a
   f.repo.getHorizontalReport=async id=>{const saved=await read(id);enter();await gate;return saved;};
   const task=h.restore(reportId);await entered;h.clear();release();assert.equal(await task,false);assert.equal(h.document(),null);assert.equal(f.activations.length,1);
 });
+test("a requested title shares the comparison transaction and survives concurrent independent views",async()=>{
+  const f=controllerFixture(),h=f.controller;assert.equal(await h.createReport(config,{reportTitle:"原横向名称"}),true);const before=copy(h.document());f.setFail(true);
+  assert.equal(await h.configure({...copy(config),mode:"best"},{reportTitle:"新横向名称"}),false);assert.deepEqual(copy(h.document()),before);assert.deepEqual(f.saved.get(before.id),before);
+  f.setFail(false);f.setSwitch(async()=>{h.setNarrative({text:"提交期间补写正文"});h.setViews({reportScroll:93});return h.save();});assert.equal(await h.configure({...copy(config),mode:"best"},{reportTitle:"新横向名称"}),true);
+  const saved=f.saved.get(before.id);assert.equal(saved.views.reportTitle,"新横向名称");assert.equal(saved.title,"新横向名称");assert.equal(saved.views.reportScroll,93);assert.equal(saved.narrative.text,"提交期间补写正文");assert.equal(saved.configuration.mode,"best");assert.equal(saved.configuration.reportTitle,undefined);
+});
+
 (async()=>{for(const[name,fn]of tests){await fn();passed++;console.log("PASS "+name);}console.log(passed+" horizontal view/controller checks passed");})().catch(e=>{console.error(e);process.exitCode=1;});

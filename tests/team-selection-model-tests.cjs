@@ -37,9 +37,12 @@ test("date range changes release an out-of-range prior selection", () => {
   const owner = { records: [record("old", "2026-11-01"), record("new", "2026-11-05")] };
   assert.equal(Selection.resolveSelection(owner, { ...window, from: "2026-11-02" }, "old").recordId, "new");
 });
-test("missing or reversed date windows cannot preselect a record", () => {
-  const owner = { records: [record("a", "2026-11-01")] };
-  for (const dateRange of [null, {}, { from: "2026-11-01" }, { from: "2026-11-05", to: "2026-11-01" }]) assert.equal(Selection.candidates(owner, dateRange).length, 0);
+test("empty and one-sided dates expose all matching history while reversed dates remain invalid", () => {
+  const owner = {records:[record("old","2026-10-01"),record("a","2026-11-01"),record("later","2026-12-01")]};
+  for(const range of [null,{}, {from:"",to:""}])assert.equal(Selection.candidates(owner,range).length,3);
+  assert.deepEqual(copy(Selection.candidates(owner,{from:"2026-11-01"}).map(r=>r.recordId)),["later","a"]);
+  assert.deepEqual(copy(Selection.candidates(owner,{to:"2026-11-01"}).map(r=>r.recordId)),["a","old"]);
+  for(const range of [{from:"2026-11-05",to:"2026-11-01"},{from:"bad"}])assert.equal(Selection.candidates(owner,range).length,0);
 });
 test("archived and recycle-bin records cannot be silently preselected", () => {
   const owner = { records: [record("valid", "2026-11-01"), record("archived", "2026-11-04", { archived: true }), record("trash", "2026-11-05", { deletedAt: "2026-11-05" })] };
@@ -94,13 +97,13 @@ async function asyncTest(name, run) { try { await run(); passed++; console.log("
   await asyncTest("open mounts in the main host with complete identifiers and a visible validation status", async () => {
     const { api, node } = harness(); assert.equal(await api.open(), true);
     assert.match(node.innerHTML, /<form novalidate class="team-selection-form"/); assert.doesNotMatch(node.innerHTML, /<dialog|modal-head|modal-foot/);
-    assert.match(node.innerHTML, /data-team-selection-error/); assert.match(node.innerHTML, /请选择有效的起止日期/);
+    assert.match(node.innerHTML, /data-team-selection-error/); assert.match(node.innerHTML, /请至少选择一名运动员/);
     assert.match(node.innerHTML, /编号 a-123456/); assert.match(node.innerHTML, /编号 b-123456/); assert.equal(api.isOpen(), true);
     assert.deepEqual(copy(api.desktopCloseStatus()), { busy: false, dirty: true }); api.cancel(); assert.equal(node.innerHTML, "");
   });
   await asyncTest("search and unchecking a member preserve fixed records and remaining row order", async () => {
     const { api, controls, node } = harness(), input = configuration(), before = JSON.stringify(input); await api.open(input);
-    controls.search.oninput({ target: { value: "乙" } }); assert.deepEqual(copy(api.state()), input);
+    const opened=copy(api.state()); controls.search.oninput({ target: { value: "乙" } }); assert.deepEqual(copy(api.state()), opened);
     controls.search.oninput({ target: { value: "" } });
     const order = ["a-123456", "missing", "b-123456"].map(id => node.innerHTML.indexOf('data-team-person="' + id + '"'));
     controls.people["a-123456"].checked = false; controls.people["a-123456"].onchange();
@@ -110,10 +113,10 @@ async function asyncTest(name, run) { try { await run(); passed++; console.log("
     assert.equal(JSON.stringify(input), before);
   });
   await asyncTest("editing keeps report identity, explicit old record, representative mode and profile", async () => {
-    const { api, calls } = harness(); await api.open(configuration({ mode: "mean", title: "自定名称", profileId: "" }), { reportId: "existing-report" });
+    const { api, calls } = harness(); await api.open(configuration({ mode: "mean", title: "自定名称", titleAuto:false, profileId: "" }), { reportId: "existing-report" });
     assert.equal(await api.apply(), true); assert.equal(calls.selected[0].options.reportId, "existing-report");
     assert.equal(calls.selected[0].value.participants[0].recordId, "ra"); assert.equal(calls.selected[0].value.mode, "mean"); assert.equal(calls.selected[0].value.profileId, "");
-    assert.equal(calls.selected[0].value.titleAuto, false); assert.equal(calls.applied, 1); assert.equal(calls.cancelled, 0); assert.equal(api.isOpen(), false);
+    assert.equal(calls.selected[0].value.reportTitle, "自定名称"); assert.equal(calls.applied, 1); assert.equal(calls.cancelled, 0); assert.equal(api.isOpen(), false);
   });
   await asyncTest("changing dates still resets representatives and adding a member uses that date range", async () => {
     const { api, controls } = harness(); await api.open(configuration());
@@ -122,13 +125,13 @@ async function asyncTest(name, run) { try { await run(); passed++; console.log("
     controls.people["b-123456"].checked = true; controls.people["b-123456"].onchange();
     assert.equal(api.state().participants.find(p => p.athleteId === "b-123456").recordId, "");
   });
-  await asyncTest("required dates and ambiguous records block submission while unmeasured members are valid", async () => {
+  await asyncTest("empty dates allow submission while ambiguous records need a choice and unmeasured members stay valid", async () => {
     const { api, calls, library } = harness(); await api.open(configuration({ window: { kind: "custom", from: "", to: "" } }));
-    assert.equal(await api.apply(), false); assert.equal(calls.selected.length, 0);
+    assert.equal(await api.apply(), true); assert.equal(calls.selected.length, 1);
     library.athletes[0].records.push(record("same-day", "2026-11-05")); await api.open(configuration({ participants: [{ athleteId: "a-123456", recordId: "" }] }));
-    assert.equal(await api.apply(), false); assert.equal(calls.selected.length, 0);
+    assert.equal(await api.apply(), false); assert.equal(calls.selected.length, 1);
     await api.open(configuration({ participants: [{ athleteId: "missing", recordId: "" }] })); assert.equal(await api.apply(), true);
-    assert.deepEqual(copy(calls.selected[0].value.participants), [{ athleteId: "missing", recordId: "" }]);
+    assert.deepEqual(copy(calls.selected.at(-1).value.participants), [{ athleteId: "missing", recordId: "" }]);
   });
   await asyncTest("root cancellation invalidates a busy select without invoking callbacks or clearing a new draft", async () => {
     const wait = deferred(); let guard, applied = 0, cancelled = 0;
@@ -157,6 +160,27 @@ async function asyncTest(name, run) { try { await run(); passed++; console.log("
     await api.open(configuration()); const pending = api.apply(); await controls.cancel.onclick();
     assert.equal(calls.cancelled, 1); assert.equal(api.isOpen(), false); assert.equal(api.desktopCloseStatus().busy, false);
     wait.resolve(true); assert.equal(await pending, false); assert.equal(calls.applied, 0); assert.equal(calls.cancelled, 1);
+  });
+  await asyncTest("widening the date range preserves an explicit in-range record",async()=>{
+    const {api,controls}=harness();await api.open(configuration());controls.fields.to.value="2026-12-01";controls.fields.to.onchange();assert.equal(api.state().participants[0].recordId,"ra");
+  });
+  await asyncTest("workflow validates objects independently from records and retains its draft across steps",async()=>{
+    const {api}=harness();await api.open(configuration({participants:[{athleteId:"a-123456",recordId:""}]}),{step:2});assert.equal(api.getStep(),2);assert.equal(api.validateStep(2).valid,true);assert.equal(api.validateStep(3).valid,false);const before=copy(api.state());api.setStep(4);assert.deepEqual(copy(api.state()),before);assert.equal(api.getStep(),4);
+  });
+  await asyncTest("longitudinal selection fixes the roster and creates explicit missing cells per actual date",async()=>{
+    const {api}=harness();await api.open(configuration({analysisMode:"longitudinal",athleteIds:["a-123456","missing"],dates:["2026-11-01","2026-11-05"],dateParticipants:[]}),{step:3});const d=api.state();assert.deepEqual(copy(d.athleteIds),["a-123456","missing"]);assert.deepEqual(copy(d.dateParticipants),[{date:"2026-11-01",participants:[{athleteId:"a-123456",recordId:"ra"},{athleteId:"missing",recordId:""}]},{date:"2026-11-05",participants:[{athleteId:"a-123456",recordId:"ra-new"},{athleteId:"missing",recordId:""}]}]);assert.equal(api.validateStep(3).valid,true);
+  });
+  await asyncTest("longitudinal same-day duplicates remain unresolved until an explicit source is supplied",async()=>{
+    const {api,library}=harness();library.athletes[0].records.push(record("second","2026-11-05"));await api.open(configuration({analysisMode:"longitudinal",dates:["2026-11-01","2026-11-05"]}),{step:3});assert.equal(api.validateStep(3).valid,false);assert.equal(api.state().dateParticipants[1].participants[0].recordId,"");
+  });
+  await asyncTest("horizontal starts without invented objects and accepts a standalone reference",async()=>{
+    const {api}=harness();await api.open(configuration({analysisMode:"horizontal",objects:[]}),{step:2});assert.equal(api.validateStep(2).valid,false);assert.deepEqual(copy(api.state().objects),[]);await api.open(configuration({analysisMode:"horizontal",participants:[],objects:[{id:"ref",kind:"reference",label:"群体",reference:{id:"ref",sampling:"period-mean",window:{kind:"all",from:"",to:""}}}]}),{step:2});assert.equal(api.validateStep(2).valid,true);assert.equal(api.validateStep(3).valid,true);
+  });
+  await asyncTest("horizontal teams keep separate per-person choices and require a real comparison",async()=>{
+    const {api}=harness(),object={id:"one",kind:"team",label:"甲",participants:[{athleteId:"a-123456",recordId:"ra"}]};await api.open(configuration({analysisMode:"horizontal",objects:[object]}),{step:2});assert.equal(api.validateStep(2).valid,false);await api.open(configuration({analysisMode:"horizontal",objects:[object,{id:"two",kind:"team",label:"乙",participants:[{athleteId:"b-123456",recordId:"rb"}]}]}),{step:3});assert.equal(api.validateStep(3).valid,true);assert.deepEqual(copy(api.state().objects[0]),object);
+  });
+  await asyncTest("report naming is independent of the source configuration title",async()=>{
+    const {api,controls}=harness();await api.open(configuration({title:"原记录名称"}),{step:4});controls.fields.title.value="团队新报告";controls.fields.title.onchange();assert.equal(api.state().title,"原记录名称");assert.equal(api.state().reportTitle,"团队新报告");
   });
   console.log(`${passed} team selection model checks passed; ${failed} failed`); if (failed) process.exitCode = 1;
 })().catch(error => { console.error(error); process.exitCode = 1; });

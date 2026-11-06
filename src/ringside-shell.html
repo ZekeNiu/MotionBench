@@ -38,9 +38,7 @@
           <span class="nav-label">日常使用</span>
           <button data-workspace-nav="entry" onclick="App.startDataEntry()">数据录入</button>
           <button data-workspace-nav="records" onclick="App.openManagement('records')">测试记录</button>
-          <span class="nav-label">测试报告</span>
-          <button data-report-family="personal" onclick="App.openReportSetup('personal')">个人报告</button>
-          <button data-report-family="team" onclick="App.openReportSetup('team')">团队报告</button>
+          <button data-workspace-nav="reports" onclick="App.openReportWorkflow()">测试报告</button>
           <span class="nav-label">人员管理</span>
           <button data-workspace-nav="teams" onclick="App.openManagement('teams')">队伍管理</button>
           <button data-workspace-nav="athletes" onclick="App.openManagement('athletes')">运动员管理</button>
@@ -84,7 +82,15 @@
         </div>
       </header>
       <section id="reportSetupView" class="wrap workspace-view report-setup-view operation-ui" hidden aria-labelledby="reportSetupTitle">
-        <header class="report-setup-heading"><div><h1 id="reportSetupTitle">个人报告</h1><p id="reportSetupDescription">选择报告方式、运动员和测试记录。</p></div></header>
+        <header class="report-setup-heading"><h1 id="reportSetupTitle" tabindex="-1">测试报告</h1></header>
+        <div id="reportSetupSteps" class="workflow-steps" aria-label="报告生成步骤"></div>
+        <section id="reportFamilyStep" class="report-step-content" aria-label="选择报告类型">
+          <h2>选择报告类型</h2>
+          <div class="report-family-choices">
+            <label class="check-tile"><input type="radio" name="reportFamily" value="personal" onchange="App.chooseReportFamily(this.value)"><span>个人报告</span></label>
+            <label class="check-tile"><input type="radio" name="reportFamily" value="team" onchange="App.chooseReportFamily(this.value)"><span>团队报告</span></label>
+          </div>
+        </section>
       <div id="reportControls" class="report-selection-unified"><div id="reportSelection"></div>
       <div hidden aria-hidden="true">
         <div class="report-field report-team"><label for="reportGroupFilter">队伍</label><select id="reportGroupFilter" onchange="App.selectReportGroup(this.value)"><option value="">全部队伍</option></select></div>
@@ -104,12 +110,11 @@
         </div>
       </div></div>
         <div id="teamReportSelection" hidden></div>
-      </section>
-      <section id="reportToolbar" class="report-toolbar report-reading-toolbar no-print" aria-label="报告操作">
-        <div id="reportActions" class="report-actions" hidden><span id="sampleLabel" class="pill hidden">示例</span><button id="adjustReportButton" type="button" class="btn small" data-adjust-report onclick="App.adjustCurrentReport()">调整当前报告</button><button id="editButton" class="btn small report-edit" onclick="App.openEntry()">编辑本次数据</button><details id="reportExportMenu" class="export-menu"><summary class="btn small primary">导出本次测试</summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">报告 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">报告数据 JSON</button></div></details></div>
+        <p id="reportWorkflowError" class="field-error" role="status"></p>
+        <footer class="report-workflow-actions"><button type="button" class="btn" onclick="App.cancelReportSetup()">取消</button><div class="row"><button id="reportWorkflowBack" type="button" class="btn" onclick="App.reportWorkflowBack()">上一步</button><button id="reportWorkflowNext" type="button" class="btn primary" onclick="App.reportWorkflowNext()">下一步</button></div></footer>
       </section>
       <p id="startupStatus" class="startup-status" role="status">正在打开本机资料库…</p>
-      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>从侧栏选择个人报告或团队报告，再选择人员与测试记录。</p><div class="row"><button class="btn primary" onclick="App.openReportSetup('personal')">选择报告</button><button class="btn" onclick="App.startDataEntry()">开始数据录入</button></div></section>
+      <section id="emptyReport" class="wrap empty-workspace" hidden><h1>测试报告</h1><p>选择报告类型、人员与测试记录。</p><div class="row"><button class="btn primary" onclick="App.openReportWorkflow()">选择报告</button><button class="btn" onclick="App.startDataEntry()">开始数据录入</button></div></section>
       <div id="aiProgress" class="ai-progress no-print" role="status" aria-live="polite" hidden>
         <div><strong id="aiProgressTitle"></strong><p id="aiProgressDetail"></p></div>
         <div class="row">
@@ -123,13 +128,15 @@
         <div id="horizontalReportControls" class="no-print" hidden></div>
         <div class="hero">
           <div>
-            <h1 id="reportTitle">运动表现与损伤风险筛查报告</h1>
-            <div id="athleteMeta" class="hero-sub"></div>
+            <h1 id="reportTitle">损伤风险筛查与运动表现测试报告</h1>
             <p id="migrationReviewNotice" class="notice" hidden></p>
           </div>
           <div class="hero-status no-print">
-            <span id="saveStatus" class="save-status">数据保留在本机浏览器</span
-            ><span id="pdfProgress" role="status" hidden></span>
+            <div id="reportActions" class="report-actions" hidden>
+              <span id="sampleLabel" class="pill hidden">示例</span>
+              <button id="editButton" type="button" class="icon-btn report-edit" onclick="App.editReportData()" title="编辑测试数据" aria-label="编辑测试数据"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5l5 5M4 20l5-1L21 7l-5-5L4 14z"/></svg></button>
+              <details id="reportExportMenu" class="export-menu"><summary class="icon-btn" title="导出报告" aria-label="导出报告"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 16v5h16v-5"/></svg></summary><div class="export-options"><button class="btn" data-pdf-action onclick="App.downloadPDF()">报告 PDF</button><button class="btn" onclick="App.downloadHTML()">报告 HTML（可编辑）</button><button class="btn" onclick="App.downloadJSON()">报告数据 JSON</button></div></details></div>
+            <span id="saveStatus" class="save-status" role="status"></span><span id="pdfProgress" role="status" hidden></span>
           </div>
         </div>
         <section id="summary">
@@ -138,7 +145,6 @@
               <span class="section-number">01</span>
               <div>
                 <h2>快速摘要</h2>
-                <p>先看重点，再看能力结构</p>
               </div>
             </div>
           </div>
@@ -189,7 +195,6 @@
               <span class="section-number">02</span>
               <div>
                 <h2>具体数据</h2>
-                <p id="dataCount"></p>
               </div>
             </div>
             <label class="aggregation no-print"
@@ -208,7 +213,6 @@
               <span class="section-number">03</span>
               <div>
                 <h2>解读与干预建议</h2>
-                <p>表现意义 · 训练优先级 · 执行方式</p>
               </div>
             </div>
             <div class="row no-print"><span id="interpState" class="pill no-print" hidden></span><button id="reportNarrativeButton" type="button" class="btn small report-icon-button" aria-label="编辑解读" title="编辑解读" onclick="App.openEntry('narrative')"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15z"/></svg></button><button id="reportAIButton" type="button" class="btn small report-icon-button report-ai-button" aria-label="生成AI分析" title="生成AI分析" onclick="App.ai()"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4Z"/><path d="m20 2 .7 2.3L23 5l-2.3.7L20 8l-.7-2.3L17 5l2.3-.7Z"/></svg></button></div>

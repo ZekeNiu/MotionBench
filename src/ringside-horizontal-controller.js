@@ -22,8 +22,10 @@
       if(!displayBarrier){let resolve;const promise=new Promise(done=>{resolve=done;});displayBarrier={promise,resolve};}displayPending++;
       try{setViews(delta);host.render();host.remember?.();const ok=await save();if(!ok&&document===current&&sequence===displayTicket){for(const key of Object.keys(delta)){if(Object.hasOwn(committedViews,key))document.views[key]=copy(committedViews[key]);else delete document.views[key];}touch();host.render();}return ok;}finally{displayPending--;if(!displayPending){const settled=displayBarrier;displayBarrier=null;settled.resolve();}}
     }
-    function candidate(next){
-      return root.RingsideHorizontalStore.normalize({...next,...(document?.id===next.id?{revision:document.revision,views:{...copy(next.views||{}),...compatibleViews(document)},narrative:copy(document.narrative),...(document.previousNarrative?{previousNarrative:copy(document.previousNarrative)}:{})}:{})});
+    function candidate(next,reportTitle){
+      const current=document?.id===next.id,views={...copy(next.views||{}),...(current?compatibleViews(document):{})};
+      if(reportTitle!==undefined)views.reportTitle=String(reportTitle).trim()||"损伤风险筛查与运动表现测试报告";
+      return root.RingsideHorizontalStore.normalize({...next,...(current?{revision:document.revision,narrative:copy(document.narrative),...(document.previousNarrative?{previousNarrative:copy(document.previousNarrative)}:{})}:{}),views,...(reportTitle!==undefined?{title:views.reportTitle}:{})});
     }
     async function undoCommit(commit){
       const repository=host.repository(),stored=await repository.getHorizontalReport(commit.result.id);
@@ -39,9 +41,9 @@
       try{return await undoCommit(commit);}catch(e){const latest=await host.repository().getHorizontalReport(commit.result.id);if(latest?.revision===commit.result.revision)error(e);return false;}
     }
     function cancelCommit(commit){return enqueue(()=>undoCurrentCommit(commit));}
-    async function stageCurrent(next,guard,priorCommit=null){
+    async function stageCurrent(next,guard,priorCommit=null,reportTitle){
       if(guard&&!guard())return null;
-      const prepared=candidate(next),same=document?.id===prepared.id,expectedRevision=same?savedRevision:priorCommit?.result.revision||prepared.revision||null;
+      const prepared=candidate(next,reportTitle),same=document?.id===prepared.id,expectedRevision=same?savedRevision:priorCommit?.result.revision||prepared.revision||null;
       if(priorCommit&&expectedRevision===priorCommit.result.revision&&stable(prepared)===stable(priorCommit.result))return priorCommit;
       const backup=priorCommit?priorCommit.backup:expectedRevision===null?null:same?copy(document):await host.repository().getHorizontalReport(prepared.id);
       const result=await host.repository().saveHorizontalReport(prepared,{expectedRevision}),commit={result,backup};
@@ -51,13 +53,13 @@
       if(same){document.revision=result.revision;savedRevision=result.revision;}
       return commit;
     }
-    function stage(next,guard,priorCommit=null){return enqueue(()=>stageCurrent(next,guard,priorCommit));}
-    async function activate(next,{persist=false,flush=true,duringTransfer=false,guard}={}){
+    function stage(next,guard,priorCommit=null,reportTitle){return enqueue(()=>stageCurrent(next,guard,priorCommit,reportTitle));}
+    async function activate(next,{persist=false,flush=true,duringTransfer=false,guard,reportTitle}={}){
       const sequence=ticket,allowed=()=>sequence===ticket&&(!guard||guard());
       if(flush){if(host.saveEditor)host.saveEditor();if(!await host.save({duringTransfer}))return false;}
       if(!allowed())return false;
       const selected=next.configuration.participants.find(p=>p.athleteId===next.configuration.focusAthleteId)||next.configuration.participants[0],lib=host.library(),athlete=selected&&lib.athletes.find(a=>a.id===selected.athleteId&&!a.deletedAt),indexed=athlete?.records.find(r=>r.recordId===selected.recordId&&!r.deletedAt),record=indexed&&(host.repository().loadRecord?await host.repository().loadRecord(selected.recordId):indexed),live=record&&!record.deletedAt;if(!allowed())return false;
-      let commit=persist?await stage(next,allowed):null;if(persist&&!commit)return false;
+      let commit=persist?await stage(next,allowed,null,reportTitle):null;if(persist&&!commit)return false;
       const rollback=async()=>{if(commit)await cancelCommit(commit);host.render();return false;};
       try{
       if(!allowed())return rollback();
@@ -73,11 +75,11 @@
           if((!persist||document?.id!==next.id)&&!await saveCurrent(document,allowed))return rollbackCurrent();
           if(!allowed())return rollbackCurrent();
           let adopted;
-          if(persist){const updated=await stageCurrent(next,allowed,commit);if(!updated)return false;commit=updated;adopted=commit.result;}
+          if(persist){const updated=await stageCurrent(next,allowed,commit,reportTitle);if(!updated)return false;commit=updated;adopted=commit.result;}
           else{adopted=await host.repository().getHorizontalReport(next.id);if(!adopted)throw Error("此横向报告已不存在");}
           host.saveEditor?.();
           if(!allowed())return rollbackCurrent();
-          const unsettled=persist&&document?.id===next.id?stable(candidate(commit.result))!==stable(commit.result):document&&stable(root.RingsideHorizontalStore.normalize(document))!==savedBody;
+          const unsettled=persist&&document?.id===next.id?stable(candidate(commit.result,reportTitle))!==stable(commit.result):document&&stable(root.RingsideHorizontalStore.normalize(document))!==savedBody;
           if(unsettled)continue;
           // Commit and owner adoption share one queue operation. Old-owner saves
           // queued during the commit cannot write its snapshot after adoption.
@@ -98,7 +100,7 @@
       for(const chart of Object.values(views.charts||{}))if(chart.recordIds)chart.recordIds=chart.recordIds.map(record);
       return views;
     }
-    async function build(configuration,{prior=document,isCurrent=()=>true}={}){
+    async function build(configuration,{prior=document,isCurrent=()=>true,reportTitle}={}){
       loading=true;const sequence=++ticket,current=()=>sequence===ticket&&isCurrent();progress();
       try{
         host.saveEditor?.();if(!await host.save()||!current())return false;
@@ -106,7 +108,7 @@
         const source=await host.repository().loadHorizontalSources({window,recordIds:configuration.participants.map(p=>p.recordId)});if(!current())return false;
         const lib=source.library,profileId=Object.hasOwn(configuration,"profileId")?configuration.profileId:lib.defaultEvaluationProfileId;
         const profile=profileId===""?null:lib.evaluationProfiles.find(p=>p.id===profileId);if(typeof profileId!=="string"||profileId&&!profile)throw Error("请选择可用的评价方案");
-        const frozen=copy(configuration);frozen.profileId=profileId;frozen.profileSnapshot=copy(profile);
+        const frozen=copy(configuration);delete frozen.reportTitle;frozen.profileId=profileId;frozen.profileSnapshot=copy(profile);
         frozen.references=root.RingsideHorizontalSetup.resolveReferences(frozen.references||[],{perspective:frozen.perspective,focus:frozen.participants.find(p=>p.athleteId===frozen.focusAthleteId)||frozen.participants[0],athletes:lib.athletes,classifications:root.RingsideClassifications.normalize(lib.classifications||{}),groups:lib.groups});
         frozen.window=root.RingsideHorizontal.normalizeWindow(frozen.window||{kind:"all"});frozen.references.forEach(reference=>{reference.window=root.RingsideHorizontal.normalizeWindow(reference.window||frozen.window);});
         const priorViews=compatibleViews(prior),modelOptions={...frozen,profile,catalog:lib.catalog,athletes:lib.athletes,groups:lib.groups,classifications:lib.classifications,views:priorViews},snapshot=root.RingsideHorizontal.buildAsync?await root.RingsideHorizontal.buildAsync(source.records,modelOptions,{isCancelled:()=>!current(),onProgress:({prepared})=>{if(current())progress(prepared);}}):root.RingsideHorizontal.build(source.records,modelOptions);if(!snapshot||!current())return false;
@@ -115,7 +117,7 @@
         snapshot.participants.forEach(p=>{p.groupId=lib.athletes.find(a=>a.id===p.athleteId)?.groupId||"";});
         const neededProfiles=new Set(snapshot.participants.map(p=>p.record.evaluationProfileId).concat(profile?.id).filter(Boolean));snapshot.evaluationProfiles=lib.evaluationProfiles.filter(p=>neededProfiles.has(p.id)).map(p=>root.RingsideEvaluation.serializeProfile(p));
         const now=stamp(),next=root.RingsideHorizontalStore.normalize({version:1,id:prior?.id||id(),title:configuration.title||prior?.title||"横向比较报告",configuration:frozen,snapshot,narrative:prior?.narrative||{text:"",html:"",revision:0,basis:"",origin:"manual"},...(prior?.previousNarrative?{previousNarrative:prior.previousNarrative}:{}),views:priorViews,basis:snapshot.fingerprint||snapshot.basis,created:prior?.created||now,updated:now,revision:prior?.revision||0});
-        if(!current())return false;return await activate(next,{persist:true,flush:false,guard:current});
+        if(!current())return false;return await activate(next,{persist:true,flush:false,guard:current,reportTitle});
       }catch(e){error(e);return false;}finally{if(sequence===ticket)loading=false;}
     }
     async function restore(value,options={}){const reportId=typeof value==="string"?value:value?.id;if(!reportId)return false;const sequence=ticket,current=()=>sequence===ticket&&(!options.guard||options.guard()),next=await host.repository().getHorizontalReport(reportId);if(!current())return false;if(!next)throw Error("此横向报告已不存在");return activate(next,{...options,guard:current});}
@@ -125,13 +127,11 @@
       if(!active())return false;const $=id=>root.document.getElementById(id),m=model(),out=root.RingsideHorizontalView.render(m,{views:document.views}),view=$("reportView");view.dataset.horizontal="true";view.dataset.horizontalLayout=out.layout;view.dataset.horizontalOwner=owner();view.dataset.reportKind="horizontal";delete view.dataset.longitudinal;delete view.dataset.longitudinalOwner;
       for(const [element,key]of[["microCards","summary"],["bodyChart","body"],["screenItems","screenItems"],["radarChart","overview"],["radarLegend","legend"],["detailContent","details"]])if($(element))$(element).innerHTML=out[key]||"";
       const shown=root.RingsideHorizontal.present?.(m,document.views)||m,focus=shown.presentation?.focus,focusPerson=focus?.kind==="athlete"?m.participants.find(p=>p.athleteId===focus.id):null,group=m.references.find(r=>r.id===shown.presentation?.activeReferenceId)||m.references[0],groupOnly=!m.participants.length;
-      $("reportTitle").textContent=document.configuration.titleAuto?(focusPerson?(focusPerson.athlete?.name||focusPerson.name)+" · 横向比较报告":groupOnly?(group?.spec?.label||group?.label||"群体")+" · 群体报告":"运动表现与损伤风险横向比较"):document.title||"运动表现与损伤风险横向比较";
-      $("athleteMeta").innerHTML=[groupOnly?(group?.spec?.label||group?.label||"群体报告"):m.participants.length+" 名运动员",m.profile?.name].filter(Boolean).map(v=>`<span>${E(v)}</span>`).join("");
+      $("reportTitle").textContent=root.RingsideReportTitle.resolve({views:document.views,legacyTitle:document.title,legacyTitleAuto:document.configuration.titleAuto!==false});
       if($("horizontalReportControls")){ $("horizontalReportControls").innerHTML=out.controls||"";$("horizontalReportControls").hidden=!out.controls; }
-      for(const [element,value]of[["recordContext",m.participants.length+" 名运动员 · 横向比较"],["screenPill",out.screenPill],["referenceLabel",out.referenceLabel],["dataCount",groupOnly?"群体结果与实际取样来源":m.references.length?"个人代表成绩与已保存群体参照":m.perspective==="focus"?"个人代表成绩 · 差值相对比较主角":"个人代表成绩并列对照"],["editButton","编辑比较配置"]])if($(element))$(element).textContent=value;
+      for(const [element,value]of[["recordContext",m.participants.length+" 名运动员 · 横向比较"],["screenPill",out.screenPill],["referenceLabel",out.referenceLabel]])if($(element))$(element).textContent=value;
       if(groupOnly&&$("recordContext"))$("recordContext").textContent=(group?.spec?.label||group?.label||"群体")+" · 群体报告";
       if($("aggMode"))$("aggMode").value=m.mode;if($("screenPill"))$("screenPill").className="pill";if($("directionMetrics"))$("directionMetrics").hidden=true;if($("migrationReviewNotice"))$("migrationReviewNotice").hidden=true;
-      $("reportExportMenu")?.querySelector("summary")&&( $("reportExportMenu").querySelector("summary").textContent=groupOnly?"导出群体报告":"导出横向报告");
       view.__horizontalViews=copy(document.views);root.RingsideHorizontalView.mount(view,m,{onChange:updateViews});const refreshButton=view.querySelector("[data-horizontal-refresh]");if(refreshButton)refreshButton.onclick=async()=>{refreshButton.disabled=true;refreshButton.textContent="正在更新…";try{await refresh();}finally{if(refreshButton.isConnected){refreshButton.disabled=false;refreshButton.textContent="更新参照数据";}}};view.querySelectorAll("details[id]").forEach(node=>{if(document.views.detailOpen?.[node.id]!==undefined)node.open=document.views.detailOpen[node.id];});return true;
     }
     function payload(){
@@ -143,7 +143,7 @@
     async function importPayload(value){const sequence=ticket;let incoming=root.RingsideHorizontalStore.normalize(value.document),prior=await host.repository().getHorizontalReport(incoming.id);if(sequence!==ticket)return false;if(prior)incoming={...incoming,id:id(),revision:0};const saved=await host.repository().saveHorizontalReport(incoming,{expectedRevision:null});return activate(saved,{guard:()=>sequence===ticket});}
     async function deleteReport(reportId){if(loading)return false;try{if(displayBarrier)await displayBarrier.promise;await queue;if(document?.id===reportId){host.saveEditor?.();if(!await save())return false;}const stored=await host.repository().getHorizontalReport(reportId);if(!stored)return false;if(!host.confirmDeleteReport)throw Error("报告删除确认暂不可用");if(!await host.confirmDeleteReport({id:stored.id,title:stored.title,revision:stored.revision}))return false;await host.repository().deleteHorizontalReport(reportId,{expectedRevision:stored.revision});if(document?.id===reportId){clear();host.render();host.remember?.();}return true;}catch(e){error(e);return false;}}
     function listReports(){return host.listReports?.();}
-    function openSetup(initial=undefined){const config=initial?.configuration||initial||(initial===null?null:document?.configuration);return host.editSelection?.(config);}    return {active,model,document:()=>document,narrative:()=>document?.narrative,setNarrative,setViews,updateViews,payload,facts:()=>root.RingsideHorizontal.facts(model(),document?.views||{}),owner,basis:()=>document?(document.basis+":"+root.RingsideComparison.contentHash(JSON.stringify({focus:document.views.focus,baseline:document.views.baseline,activeReferenceId:document.views.activeReferenceId}))):"",save,clear,suspend:()=>{suspended=true;},resume:async()=>{if(document){suspended=false;host.render();}return !!document;},restore,openSetup,listReports,deleteReport,refresh,render,edit:()=>openSetup(),selection:()=>document?{id:document.id}:null,cancelPending:()=>{ticket++;loading=false;},changeMode,isLoading:()=>loading||!!displayBarrier,pendingDisplaySave:()=>displayBarrier?.promise||null,importPayload,configure:build,createReport:configuration=>build(configuration,{prior:null})};
+    function openSetup(initial=undefined){const config=initial?.configuration||initial||(initial===null?null:document?.configuration);return host.editSelection?.(config);}    return {active,model,document:()=>document,narrative:()=>document?.narrative,setNarrative,setViews,updateViews,payload,facts:()=>root.RingsideHorizontal.facts(model(),document?.views||{}),owner,basis:()=>document?(document.basis+":"+root.RingsideComparison.contentHash(JSON.stringify({focus:document.views.focus,baseline:document.views.baseline,activeReferenceId:document.views.activeReferenceId}))):"",save,clear,suspend:()=>{suspended=true;},resume:async()=>{if(document){suspended=false;host.render();}return !!document;},restore,openSetup,listReports,deleteReport,refresh,render,edit:()=>openSetup(),selection:()=>document?{id:document.id}:null,cancelPending:()=>{ticket++;loading=false;},changeMode,isLoading:()=>loading||!!displayBarrier,pendingDisplaySave:()=>displayBarrier?.promise||null,importPayload,configure:build,createReport:(configuration,options={})=>build(configuration,{...options,prior:null})};
   }
   root.RingsideHorizontalController={create};
 })(typeof window!=="undefined"?window:globalThis);

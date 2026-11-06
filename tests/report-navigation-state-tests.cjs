@@ -14,7 +14,7 @@ function record(id, athleteId) {
 function harness(flag, { fail = false } = {}) {
   const previous = record("previous-record", "previous-athlete"), incoming = record("incoming-record", "incoming-athlete");
   const athlete = { id: incoming.athleteId, records: [copy(incoming)] }, commit = deferred(), started = deferred(), calls = [], status = { textContent: "" };
-  let owner = "team:previous-owner", savedSelection = { activeAthleteId: previous.athleteId, activeRecordId: previous.recordId };
+  let storedRecord=copy(incoming),owner = "team:previous-owner", savedSelection = { activeAthleteId: previous.athleteId, activeRecordId: previous.recordId };
   const c = vm.createContext({ console, M, state: copy(previous), library: { ...savedSelection, athletes: [{ id: previous.athleteId, records: [copy(previous)] }, athlete] },
     reportSetup: flag === "reportSetup" ? { family: "personal", intent: "edit" } : null, selectionSequence: 0,
     ui: { mode: flag === "reportSetup" ? "report-setup" : "report", reportScroll: 37, detailOpen: { previous: true }, records: { [incoming.recordId]: { reportScroll: 88, detailOpen: { incoming: true } } }, lastViewed: { [previous.athleteId]: previous.recordId } },
@@ -27,23 +27,25 @@ function harness(flag, { fail = false } = {}) {
     renderReport: () => calls.push("renderReport"), renderEntry: () => calls.push("renderEntry"), renderWorkspace: () => calls.push("renderWorkspace"), closeMobileSidebar: () => calls.push("closeSidebar"),
     discardReportSetup: () => { throw Error("prepared selections must keep their active setup until completion"); },
   });
-  c.window = c; c.scrollTo = () => calls.push("scrollTo");
+  c.window = c; c.copy=copy;c.RingsideReportTitle={defaultTitle:"损伤风险筛查与运动表现测试报告"};c.scrollTo = () => calls.push("scrollTo");
   c.persist = async options => {
     calls.push({ type: "persist", options: copy(options) });
     savedSelection = { activeAthleteId: c.library.activeAthleteId, activeRecordId: c.library.activeRecordId }; return true;
   };
   c.repository = {
-    loadRecord: async id => { assert.equal(id, incoming.recordId); return copy(incoming); },
+    loadRecord: async id => { assert.equal(id, incoming.recordId); return copy(storedRecord); },
     saveRecords: async (records, checks, options) => {
-      assert.deepEqual(copy(records), []); assert.deepEqual(copy(checks), {});
+      if(records.length){assert.equal(records.length,1);assert.equal(checks.expectedRecords[incoming.recordId],JSON.stringify(storedRecord));}
+      else assert.deepEqual(copy(checks), {});
+      if(!options){storedRecord=copy(records[0]);calls.push("titleRollback");return;}
       assert.deepEqual(copy(options.selection), { activeAthleteId: incoming.athleteId, activeRecordId: incoming.recordId });
       calls.push("selectionStarted"); started.resolve(); await commit.promise;
       if (fail) throw Error("synthetic selection commit failed");
-      savedSelection = copy(options.selection); calls.push("selectionCommitted");
+      if(records.length)storedRecord=copy(records[0]);savedSelection = copy(options.selection); calls.push("selectionCommitted");
     },
   };
   vm.runInContext(productionSwitch + "\nglobalThis.switchRecordUnderTest=switchRecord;", c);
-  return { c, incoming, previous, calls, status, commit, started, saved: () => copy(savedSelection),
+  return { c, incoming, previous, calls, status, commit, started, saved: () => copy(savedSelection),stored:()=>copy(storedRecord),
     snapshot: () => copy({ state: c.state, activeAthleteId: c.library.activeAthleteId, activeRecordId: c.library.activeRecordId, owner, ui: c.ui, entryTab: c.entryTab, isoFilter: c.isoFilter, reportDirty: c.reportDirty, reportSetup: c.reportSetup }),
     run: (options = {}) => c.switchRecordUnderTest(athlete, incoming, { [flag]: true, ...options }),
   };
@@ -76,4 +78,16 @@ for (const flag of ["reportSetup", "longitudinal", "horizontal", "team"]) {
     assert.ok(h.calls.indexOf("selectionCommitted") < h.calls.indexOf("cancelJob")); assert.ok(h.calls.indexOf("selectionCommitted") < h.calls.indexOf("renderReport"));
   });
 }
+test("single report title and selected record commit together before owner adoption",async()=>{
+  const h=harness("reportSetup"),before=h.snapshot(),task=h.run({reportTitle:"新报告名称"});await h.started.promise;assert.deepEqual(h.snapshot(),before);assert.equal(h.stored().views?.reportTitle,undefined);
+  h.commit.resolve();assert.equal(await task,true);assert.equal(h.snapshot().state.views.reportTitle,"新报告名称");assert.equal(h.stored().views.reportTitle,"新报告名称");assert.equal(h.stored().title,h.incoming.title);
+});
+test("single report title save failure retains the old owner, record and report name",async()=>{
+  const h=harness("reportSetup",{fail:true}),before=h.snapshot(),task=h.run({reportTitle:"保存失败的新名称"}),failed=assert.rejects(task,/synthetic selection commit failed/);await h.started.promise;h.commit.resolve();await failed;
+  assert.deepEqual(h.snapshot(),before);assert.deepEqual(h.stored(),h.incoming);
+});
+test("canceling a single report selection rolls back its committed display title",async()=>{
+  const h=harness("reportSetup"),before=h.snapshot();let current=true;const task=h.run({reportTitle:"已取消的新名称",isCurrent:()=>current});await h.started.promise;current=false;h.commit.resolve();assert.equal(await task,false);
+  assert.deepEqual(h.snapshot(),before);assert.deepEqual(h.stored(),h.incoming);assert.ok(h.calls.includes("titleRollback"));
+});
 (async () => { for (const [name, run] of tests) { await run(); console.log("PASS " + name); } console.log(tests.length + " report navigation state checks passed"); })().catch(error => { console.error(error); process.exitCode = 1; });

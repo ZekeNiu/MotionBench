@@ -64,7 +64,7 @@
   let aiConfig = null, aiDirty = false, aiBusy = false, aiConfigLoad = null, aiEditSequence = 0;
   let desktopUpdate = null, desktopUpdateLoad = null, desktopActionBusy = false, desktopPreferencesBusy = false, desktopUpdateUnsubscribe = null, desktopUpdateRevision = 0;
   let settingsReturn = null;
-  let reportSetup = null, reportSetupReturn = null, reportSetupSequence = 0;
+  let reportSetup = null, reportSetupReturn = null, reportSetupSequence = 0, reportDataReturn = null;
   const ui = {
     mode: "report",
     returnMode: "report",
@@ -207,20 +207,28 @@
     restoreView:views=>{ui.reportScroll=views.reportScroll||0;ui.detailOpen={...views.detailOpen};},
     editSelection:configuration=>openReportSetup("team",{edit:!!configuration,configuration,reportId:configuration?team.document()?.id:null}),
     listReports:()=>openManagement("records",{view:"reports"}),
+    onEvaluationConflicts:conflicts=>teamSelection.showConflicts(conflicts),
   });
   const reports = window.RingsideReportOwner.create({controllers:[team,horizontal,longitudinal],state:()=>state});
   const teamSelection = window.RingsideTeamSelection.create({
     library:()=>library,element:()=>$("teamReportSelection"),
-    select:(configuration,options)=>team.configure(configuration,{...options,isCurrent:reportSetupGuard(options.isCurrent),prior:team.document()?.id===options.reportId?team.document():null}),
+    select:async(configuration,options)=>{
+      const guard=reportSetupGuard(options.isCurrent),{reportTitle,...input}=configuration;
+      if(unchangedReportSelection(teamSelection))return saveReportTitle(reportTitle??configuration.title);
+      return team.configure(input,{...options,reportTitle:reportTitle??configuration.title,isCurrent:guard,prior:team.document()?.id===options.reportId?team.document():null});
+    },
+    onChange:()=>renderReportWorkflowActions(),
     onApplied:finishReportSetup,onCancel:cancelReportSetup,
+    manage:(tab,onReturn)=>openClassifications(tab,{keepReportSetup:true,onReturn:()=>{if(reportSetup){ui.mode="report-setup";renderWorkspace();onReturn();}},returnLabel:"返回报告选择"}),
   });
   const reportSelection = window.RingsideReportSelection.create({
     library:()=>library,element:()=>$("reportSelection"),current:()=>state,
-    configuration:()=>horizontal.active()?horizontal.document().configuration:null,
-    longitudinal:()=>longitudinal.active()?{...longitudinal.selection(),evaluationProfileId:longitudinal.document().evaluationProfileId}:null,
+    configuration:()=>horizontal.active()?{...horizontal.document().configuration,reportTitle:currentReportTitle()}:null,
+    longitudinal:()=>longitudinal.active()?{...longitudinal.selection(),evaluationProfileId:longitudinal.document().evaluationProfileId,reportTitle:currentReportTitle()}:null,
     identity:()=>reports.owner()||state?.recordId||"",reportId:()=>horizontal.active()?horizontal.document().id:null,
     select:(value,options)=>applyReportSelection(value,{...options,isCurrent:reportSetupGuard(options.isCurrent)}),cancelPending:()=>{selectionSequence++;reports.cancelPending();},
     onApplied:finishReportSetup,onCancel:cancelReportSetup,
+    onChange:()=>renderReportWorkflowActions(),
     manage:(tab,onReturn)=>openClassifications(tab,{keepReportSetup:true,onReturn:()=>{if(reportSetup){ui.mode="report-setup";renderWorkspace();onReturn();}},returnLabel:"返回报告选择"}),
   });
   const narrativeOwner = () => reports.document();
@@ -471,7 +479,7 @@
     reportSetup=null;reportSetupReturn=null;
     if(ui.mode==="report-setup")ui.mode="report";
   }
-  async function openReportSetup(family,{edit=false,configuration,reportId,analysisMode}={}) {
+  async function openReportSetup(family,{edit=false,configuration,reportId,analysisMode,step=2}={}) {
     if(!["personal","team"].includes(family)||!library||managementNavigationBlocked())return false;
     if(window.RingsideManagement.beforeLeave?.("report")===false||creation?.submitting)return false;
     const sequence=++reportSetupSequence;
@@ -483,20 +491,87 @@
     if(sequence!==reportSetupSequence)return false;
     reportSelection.cancel?.();teamSelection.cancel?.();
     creation=null;entryReturn=null;
-    reportSetupReturn=backTo;reportSetup={family,intent:edit?"edit":"new"};
+    reportSetupReturn=backTo;reportSetup={family,intent:edit?"edit":"new",step,originalFamily:family,originalIntent:edit?"edit":"new",drafts:{}};
     ui.mode="report-setup";ui.returnMode="report";
-    if(family==="personal")reportSelection.begin({intent:reportSetup.intent,configuration,analysisMode});
+    if(family==="personal")reportSelection.begin({intent:reportSetup.intent,configuration,analysisMode,step:Math.max(2,step)});
     else {
       const current=edit?team.document():null;
-      await teamSelection.open(configuration===undefined?current?.configuration||null:configuration,{reportId:edit?(reportId||current?.id||null):null});
+      const initial=configuration===undefined?current?{...current.configuration,reportTitle:currentReportTitle()}:null:configuration;
+      await teamSelection.open(initial,{reportId:edit?(reportId||current?.id||null):null,step:Math.max(2,step)});
       if(sequence!==reportSetupSequence)return false;
     }
+    reportSetup.initialSelection=selectionDataIdentity((family==="team"?teamSelection:reportSelection).state());
+    reportSetup.originalOwner=reports.owner()||state?.recordId||"";
     renderWorkspace();closeMobileSidebar();window.scrollTo({top:0,behavior:"instant"});
     $("reportSetupTitle").focus({preventScroll:true});
     return true;
   }
   function adjustCurrentReport() {
-    return openReportSetup(team.active()?"team":"personal",{edit:true});
+    return openReportSetup(team.active()?"team":"personal",{edit:true,step:1});
+  }
+  function currentReportTitle() {
+    const doc=reports.document();
+    return window.RingsideReportTitle.resolve({views:doc?.views,legacyTitle:reports.active()?doc.title||"":"",legacyTitleAuto:doc?.configuration?.titleAuto!==false});
+  }
+  function selectionDataIdentity(value) {
+    const clean=input=>Array.isArray(input)?input.map(clean):input&&typeof input==="object"?Object.fromEntries(Object.entries(input).filter(([key])=>!["title","titleAuto","reportTitle"].includes(key)).map(([key,item])=>[key,clean(item)])):input;
+    return window.RingsideEvaluation.canonical(clean(value));
+  }
+  function unchangedReportSelection(selector) {
+    return reportSetup?.intent==="edit"&&reportSetup.family===reportSetup.originalFamily&&reportSetup.originalOwner===(reports.owner()||state?.recordId||"")&&reportSetup.initialSelection===selectionDataIdentity(selector.state());
+  }
+  async function saveReportTitle(value) {
+    if(value===undefined)return true;
+    const reportTitle=String(value).trim()||window.RingsideReportTitle.defaultTitle;
+    const controller=reports.controller(),target=controller?.document()||state,previousViews=copy(target?.views||{}),previousTitle=target?.title;
+    if(reports.active())reports.setViews({reportTitle});
+    else if(state){state.views||={};state.views.reportTitle=reportTitle;}
+    const ok=await persist();
+    if(!ok&&target&&(controller?controller.document()===target:state===target)&&target.views?.reportTitle===reportTitle){
+      const reverted={...target.views};if(Object.hasOwn(previousViews,"reportTitle"))reverted.reportTitle=previousViews.reportTitle;else delete reverted.reportTitle;
+      if(controller)controller.setViews(reverted,true);else target.views=reverted;
+      if(previousTitle!==undefined)target.title=previousTitle;
+    }
+    $("reportTitle").textContent=currentReportTitle();return ok;
+  }
+  async function openReportWorkflow() {
+    if(reportDataReturn&&!await showReport(false))return false;
+    if(reportSetup){reportSetup.step=1;renderWorkspace();return true;}
+    return openReportSetup(team.active()?"team":"personal",{edit:reports.hasContent(),step:1});
+  }
+  async function chooseReportFamily(family) {
+    if(!reportSetup||reportSetup.busy||!["personal","team"].includes(family)||family===reportSetup.family)return;
+    const session=reportSetup,previous=session.family;
+    session.drafts[previous]=(previous==="team"?teamSelection:reportSelection).state();
+    reportSelection.cancel();teamSelection.cancel();reports.cancelPending();selectionSequence++;
+    session.family=family;session.intent=family===session.originalFamily?session.originalIntent:"new";
+    const configuration=session.drafts[family];
+    if(family==="personal")reportSelection.begin({intent:session.intent,configuration,step:2});
+    else await teamSelection.open(configuration||null,{reportId:session.intent==="edit"?team.document()?.id:null,step:2});
+    if(reportSetup===session)renderWorkspace();
+  }
+  function renderReportWorkflowActions() {
+    if(!reportSetup||!$("reportWorkflowNext"))return;
+    const step=reportSetup.step||1;
+    $("reportWorkflowBack").hidden=step===1;$("reportWorkflowBack").disabled=!!reportSetup.busy;
+    $("reportWorkflowNext").disabled=!!reportSetup.busy;
+    $("reportWorkflowNext").textContent=reportSetup.busy?"正在生成…":step===4?"查看报告":"下一步";
+  }
+  async function reportWorkflowNext() {
+    if(!reportSetup||reportSetup.busy)return false;
+    const session=reportSetup,selector=session.family==="team"?teamSelection:reportSelection;
+    $("reportWorkflowError").textContent="";
+    if(session.step>1){const check=selector.validateStep(session.step);if(!check.valid){$("reportWorkflowError").textContent=check.message||"请完成当前选择";return false;}}
+    if(session.step<4){session.step++;selector.setStep(session.step);renderWorkspace();return true;}
+    session.busy=true;renderReportWorkflowActions();
+    try{return await selector.apply();}catch(error){$("reportWorkflowError").textContent=error.message;return false;}
+    finally{if(reportSetup===session){session.busy=false;renderReportWorkflowActions();}}
+  }
+  function reportWorkflowBack() {
+    if(!reportSetup||reportSetup.busy||reportSetup.step<=1)return;
+    reportSetup.step--;$("reportWorkflowError").textContent="";
+    if(reportSetup.step>1)(reportSetup.family==="team"?teamSelection:reportSelection).setStep(reportSetup.step);
+    renderWorkspace();
   }
   function cancelReportSetup() {
     const backTo=reportSetupReturn;
@@ -515,23 +590,23 @@
   }
   async function applyReportSelection(value,{isCurrent=()=>true,reportId=null}={}) {
     saveEditor();if(!await persist()||!isCurrent())return false;
+    if(unchangedReportSelection(reportSelection))return saveReportTitle(value.reportTitle??value.title);
     const people=value.athletes||[],references=value.references||[];
     if(!references.length&&people.length<=1){
       const person=people[0],athlete=library.athletes.find(a=>a.id===person?.athleteId&&!a.deletedAt),ids=person?.recordIds||[];
       if(person&&!athlete)throw Error("所选运动员已不存在");
       if(!isCurrent())return false;
-      if(ids.length>1)return longitudinal.select(ids,{athleteId:person.athleteId,isCurrent,...(Object.hasOwn(value,"profileId")?{evaluationProfileId:value.profileId}:{})});
-      return switchRecord(athlete||null,ids.length?athlete.records.find(r=>r.recordId===ids[0]):null,{isCurrent,reportSetup:true});
+      const reportTitle=value.reportTitle??value.title;
+      const editCurrent=reportSetup?.intent==="edit"&&reportSetup.originalOwner===reports.owner()&&longitudinal.active()&&longitudinal.selection()?.athleteId===person?.athleteId;
+      return ids.length>1?longitudinal.select(ids,{athleteId:person.athleteId,isCurrent,reportTitle,editCurrent,...(Object.hasOwn(value,"profileId")?{evaluationProfileId:value.profileId}:{})}):switchRecord(athlete||null,ids.length?athlete.records.find(r=>r.recordId===ids[0]):null,{isCurrent,reportSetup:true,reportTitle});
     }
     const config={participants:people.map(p=>({athleteId:p.athleteId,recordId:p.recordIds[0]})),references,
       mode:value.mode||state?.mode||"best",profileId:Object.hasOwn(value,"profileId")?value.profileId:library.defaultEvaluationProfileId,
       title:value.title||"",titleAuto:!value.title,window:{kind:"all",from:"",to:""},perspective:people.length===1?"focus":"peers",focusAthleteId:people.length===1?people[0].athleteId:""};
     if(!isCurrent())return false;
-    // A changed object selection owns a new narrative; editing the same saved
-    // configuration may refresh its snapshot while retaining that document.
+    // Editing a saved report retains its identity and authored interpretation.
     const current=horizontal.active()?horizontal.document():null;
-    const samePeople=current&&JSON.stringify(current.configuration.participants)===JSON.stringify(config.participants);
-    return horizontal.configure(config,{prior:samePeople&&current.id===reportId?current:null,isCurrent});
+    return horizontal.configure(config,{prior:current?.id===reportId?current:null,isCurrent,reportTitle:value.reportTitle??value.title});
   }
   function activeAthlete() {
     return library?.athletes.find((a) => a.id === (state?.athleteId || library.activeAthleteId)) || entrySession?.pendingAthletes.find(a => a.id === state?.athleteId);
@@ -837,7 +912,7 @@
   }
   function refreshEntryChrome() {
     if(reports.active()){
-      const title=reports.document().title||"比较报告";
+      const title=currentReportTitle();
       if($("entryIdentity"))$("entryIdentity").textContent=title;
       $("entryAthleteControls")?.replaceChildren();
       $("entryProjectTitle").textContent="解读与干预建议";
@@ -997,6 +1072,7 @@
   function rememberUI() {
     saveEntrySession();
     if (!library) return;
+    if(reportDataReturn&&!reportDataController(reportDataReturn))reportDataReturn=null;
     try {
       draftStorage.setItem(
         uiKey,
@@ -1015,6 +1091,7 @@
           longitudinal: longitudinal.selection(),
           horizontal: horizontal.selection(),
           team: team.selection(),
+          reportDataReturn,
         }),
       );
     } catch {}
@@ -1032,7 +1109,7 @@
     ui.reportScroll = window.scrollY;
     document
       .querySelectorAll(horizontal.active()||team.active()?"#reportView details[id]":"#reportView .details-group,#reportView [data-raw-trials],#reportView [data-sprint-fvp-display-settings],#reportView .longitudinal-capability-parameters")
-      .forEach((el) => {if(el.id)ui.detailOpen[el.id] = el.open;});
+      .forEach((el) => {if(el.id&&!el.closest(".report-actions"))ui.detailOpen[el.id] = el.open;});
     if (reports.active()) return reports.setViews({...reports.document().views,reportScroll:ui.reportScroll,detailOpen:{...ui.detailOpen}});
     ui.records[state.recordId] = {
       reportScroll: ui.reportScroll,
@@ -1050,22 +1127,25 @@
     $("creationView").hidden = ui.mode !== "creation";
     $("emptyReport").hidden = !reading || reports.hasContent();
     $("reportSetupView").hidden=!selecting;
-    $("teamReportSelection").hidden=!selecting||reportSetup.family!=="team";
+    $("teamReportSelection").hidden=!selecting||reportSetup.family!=="team"||reportSetup.step===1;
     document.body.classList.toggle("report-setup-mode",selecting);
     if(selecting){
-      $("reportSetupTitle").textContent=(reportSetup.intent==="edit"?"调整":"")+(reportSetup.family==="team"?"团队报告":"个人报告");
+      $("reportSetupTitle").textContent="测试报告";
       $("reportSetupTitle").setAttribute("tabindex","-1");
-      $("reportSetupDescription").textContent=reportSetup.family==="team"?"选择队伍与成员、测试日期及记录，查看团队报告。":"选择报告方式，再选择运动员和测试记录。";
+      const step=reportSetup.step||1;
+      $("reportSetupSteps").innerHTML=["选择报告类型","选择分析方式与对象","选择测试记录","核对并查看报告"].map((name,i)=>`<span class="workflow-step ${step===i+1?"active":step>i+1?"done":""}" ${step===i+1?'aria-current="step"':""}><b>${i+1}</b>${name}</span>`).join("");
+      $("reportFamilyStep").hidden=step!==1;
+      document.querySelectorAll('[name="reportFamily"]').forEach(input=>{input.checked=input.value===reportSetup.family;input.disabled=!!reportSetup.busy;});
+      renderReportWorkflowActions();
     }
     document.body.classList.toggle("management-mode", management);
-    $("reportToolbar").hidden = !reading||!reports.hasContent();
-    $("reportControls").hidden = !selecting||reportSetup.family!=="personal";
+    $("reportControls").hidden = !selecting||reportSetup.family!=="personal"||reportSetup.step===1;
     $("reportActions").hidden = !reading || !reports.hasContent();
     $("reportView").hidden = !reading || !reports.hasContent();
     $("entryView").hidden = ui.mode !== "entry";
     $("settingsView").hidden = ui.mode !== "settings";
     $("entryNav").hidden = ui.mode !== "entry";
-    $("editButton").hidden = !reports.hasContent()||reports.active();
+    $("editButton").hidden = !reports.hasContent();
     $("workspaceLabel").textContent = management ? "资料管理" : ui.mode === "creation" || ui.mode === "entry" ? "数据录入" : ui.mode === "settings" ? window.RingsideSettings.scopes[window.RingsideSettings.scopeFor(settingsTab)].title : "测试报告";
     if (management || ui.mode === "creation" || ui.mode === "settings" && settingsTab === "app") $("recordContext").textContent = "";
     if(selecting)$("recordContext").textContent=(reportSetup.family==="team"?"团队报告":"个人报告")+" · 选择数据";
@@ -1075,7 +1155,7 @@
   }
   function renderNavigation() {
     renderDesktopUpdateNavigation();
-    const active = ui.mode === "management" ? window.RingsideManagement.tab() : ["entry","creation"].includes(ui.mode) ? "entry" : "";
+    const active = ui.mode === "management" ? window.RingsideManagement.tab() : ["entry","creation"].includes(ui.mode) ? "entry" : ["report","report-setup"].includes(ui.mode)?"reports":"";
     document.querySelectorAll("[data-workspace-nav]").forEach(button=>{
       const selected=button.dataset.workspaceNav===active;
       button.classList.toggle("active",selected);
@@ -1157,6 +1237,16 @@
     saveEditor();
     if (!await persist()) return false;
     await leaveEntrySession();
+    if(reportDataReturn){
+      const backTo=reportDataReturn,controller=reportDataController(backTo);reportDataReturn=null;entryReturn=null;creation=null;ui.mode="report";ui.returnMode="report";
+      const resumed=controller?await controller.resume():false;
+      const updated=controller===longitudinal?resumed:controller?await controller.refresh():false;
+      if(!updated)toast("测试数据已保存，报告更新未完成，请重试更新。");
+      ui.reportScroll=backTo.scroll;renderWorkspace();renderReport(false);
+      rememberUI();
+      if(restoreScroll)window.scrollTo({top:backTo.scroll,behavior:"instant"});
+      return ui.mode;
+    }
     creation = null;
     entryReturn = null;
     ui.mode = "report";
@@ -1382,7 +1472,7 @@
       if (!await team.save()) throw Error("团队报告尚未保存，请重试");
     });
     const task = saving.then(() => {
-      if (sequence === saveSequence) { storageFailed = false; $("saveStatus").textContent = "已保存到本机"; if (state) refreshEntryChrome(); }
+      if (sequence === saveSequence) { storageFailed = false; $("saveStatus").textContent = ""; if (state) refreshEntryChrome(); }
       return true;
     }).catch(error => {
       storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message;
@@ -1422,7 +1512,7 @@
         });
         library = next; record.updated = snapshot.updated;
         session.savedIds.add(record.recordId); rememberRecordBaseline(snapshot);
-        storageFailed = false; $("saveStatus").textContent = "已保存到本机"; saveEntrySession(); refreshEntryChrome(); return true;
+        storageFailed = false; $("saveStatus").textContent = ""; saveEntrySession(); refreshEntryChrome(); return true;
       } finally { pendingSaves--; }
     }).catch(error => { storageFailed = true; $("saveStatus").textContent = "保存失败 · " + error.message; saveEntrySession(); refreshEntryChrome(); return false; });
     entryPersistQueue = task; return task;
@@ -1542,15 +1632,22 @@
       if (index >= 0) a.records[index] = window.RingsideStore.summary(loaded);
     }
     if (!current()) return false;
+    const previousStored=upgrade.changed?copy(loaded):stored;
+    const nextTitle=options.reportTitle===undefined?undefined:String(options.reportTitle).trim()||window.RingsideReportTitle.defaultTitle;
+    const titleChanged=!!loaded&&nextTitle!==undefined&&loaded.views?.reportTitle!==nextTitle;
+    if(titleChanged){loaded.views={...loaded.views,reportTitle:nextTitle};}
     if(preparedSelection){
-      try{await repository.saveRecords([],{}, {selection:{activeAthleteId:a?.id||"",activeRecordId:loaded?.recordId||""}});}
+      try{await repository.saveRecords(titleChanged?[loaded]:[],titleChanged?{expectedRecords:{[loaded.recordId]:JSON.stringify(previousStored)}}:{}, {selection:{activeAthleteId:a?.id||"",activeRecordId:loaded?.recordId||""}});}
       catch(error){$("saveStatus").textContent="保存失败 · "+error.message;throw error;}
-      if(!current()){await persist({readOnlyRecord:true});return false;}
+      if(!current()){
+        if(titleChanged){const committed=await repository.loadRecord(loaded.recordId);if(JSON.stringify(committed)===JSON.stringify(loaded))await repository.saveRecords([previousStored],{expectedRecords:{[loaded.recordId]:JSON.stringify(committed)}});}
+        await persist({readOnlyRecord:true});return false;
+      }
     }
-    if (!options.longitudinal && !options.horizontal && !options.team) reports.clear();
+    if (!options.longitudinal && !options.horizontal && !options.team) { reportDataReturn=null;reports.clear(); }
     cancelJob();
     state = loaded; library.activeAthleteId = a?.id || ""; library.activeRecordId = loaded?.recordId || "";
-    if (loaded) { rememberRecordBaseline(loaded, upgrade.changed ? loaded : stored); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
+    if (loaded) { rememberRecordBaseline(loaded, upgrade.changed || titleChanged ? loaded : stored); ui.lastViewed ||= {}; ui.lastViewed[a.id] = loaded.recordId; }
     entryTab = options.edit && state ? orderedEntryProjects()[0]?.id || "plan" : "athlete"; isoFilter = "all"; reportDirty = true;
     const saved = loaded && ui.records[loaded.recordId];
     ui.reportScroll = saved?.reportScroll || 0; ui.detailOpen = {...saved?.detailOpen};
@@ -2121,7 +2218,7 @@
         }
         saveEntrySession();if(ui.mode==="entry"){renderEntry();renderWorkspace();}
       }
-      creation=null;reportDirty=true;renderSelectors();$("saveStatus").textContent="已保存到本机";
+      creation=null;reportDirty=true;renderSelectors();$("saveStatus").textContent="";
     }finally{libraryTransferActive=false;}
   }
   async function showExcelRecord(athleteId,recordId){
@@ -2353,13 +2450,10 @@
     delete $("reportView").dataset.reportKind;
     $("horizontalReportControls").hidden=true;
     $("directionMetrics").hidden = false;
-    $("editButton").textContent = "编辑本次数据";
-    $("reportExportMenu").querySelector("summary").textContent = "导出本次测试";
     const report = window.RingsideReport.build(effectiveRecord(), { catalog: library.catalog }),
       s = report.stats,
       a = state.athlete;
-    $("reportTitle").textContent=state.title&&state.title!=="运动表现与损伤风险筛查"?state.title:"运动表现与损伤风险筛查报告";
-    $("athleteMeta").innerHTML=[a.date,state.testPlanSnapshot?.name,state.demo?"示例":""].filter(Boolean).map(x=>`<span>${E(x)}</span>`).join("");
+    $("reportTitle").textContent=currentReportTitle();
     $("aggMode").value = state.mode;
     const migrationReasons = [
       ...(state.unitMigration?.reasons || []),
@@ -2371,8 +2465,6 @@
         [...new Set(migrationReasons)].join("；") +
         "。无法可靠换算的人工文字已保留原文，请核对后编辑。"
       : "";
-    $("dataCount").textContent =
-      s.progress.recorded + " / " + s.progress.planned + " 项已录入";
     $("microCards").innerHTML = window.RingsideReport.summary(report);
     refreshEntryChrome();
     $("bodyChart").innerHTML = V.body(
@@ -2684,13 +2776,51 @@
   function speedUnitControl() {
     return '<p class="note">速度统一使用 m/s。</p>';
   }
+  function reportSourceIds(model) {
+    const ids=new Set(),seen=new WeakSet();
+    const walk=value=>{if(!value||typeof value!=="object"||seen.has(value))return;seen.add(value);if(typeof value.recordId==="string"&&value.recordId)ids.add(value.recordId);for(const child of Object.values(value))if(child&&typeof child==="object")walk(child);};
+    walk(model);return [...ids];
+  }
+  function reportDataController(value) {
+    if(!value)return null;
+    const controller=value.kind==="team"?team:value.kind==="horizontal"?horizontal:value.kind==="longitudinal"?longitudinal:null,document=controller?.document();
+    if(!document)return null;
+    if(value.kind!=="longitudinal")return document.id===value.reportId?controller:null;
+    try{return document.key===window.RingsideLongitudinalStore.key(value.selection.athleteId,value.selection.recordIds)?controller:null;}catch{return null;}
+  }
+  function reportDataSelection(controller,athlete,record) {
+    const kind=controller===team?"team":controller===horizontal?"horizontal":"longitudinal";
+    return {kind,...(kind==="longitudinal"?{selection:controller.selection()}:{reportId:controller.document().id}),athleteId:athlete.id,recordId:record.recordId,scroll:ui.reportScroll};
+  }
+  async function editReportData() {
+    if(!reports.active())return openEntry();
+    captureReportUI();saveEditor();if(!await persist())return false;
+    const controller=reports.controller(),doc=controller.document(),mapping=doc.sourceMappings?.recordMap||{},ids=new Set(reportSourceIds(controller.model()).map(id=>mapping[id]||id));
+    const choices=library.athletes.flatMap(athlete=>athlete.deletedAt?[]:athlete.records.filter(record=>ids.has(record.recordId)&&!record.deletedAt).map(record=>({athlete,record})));
+    const box=$("longitudinalEditChoices");
+    box.innerHTML='<label class="field"><span>搜索姓名、日期或记录名称</span><input type="search" data-source-search></label><div class="report-source-list">'+choices.map(({athlete,record})=>`<button type="button" class="btn" data-report-source="${E(record.recordId)}"><strong>${E(athlete.name||athlete.profile?.name)}</strong><span>${E(record.athlete?.date||record.date||"")} · ${E(record.title||"测试记录")}</span></button>`).join("")+'</div>'+(choices.length?'':'<p class="empty">此报告的来源记录当前不在本机资料库中。</p>');
+    box.querySelector('[data-source-search]').oninput=event=>{const q=event.target.value.trim().toLocaleLowerCase();box.querySelectorAll('[data-report-source]').forEach(button=>button.hidden=!button.textContent.toLocaleLowerCase().includes(q));};
+    box.querySelectorAll('[data-report-source]').forEach(button=>button.onclick=async()=>{
+      if(controller!==reports.controller())return;
+      const selected=choices.find(item=>item.record.recordId===button.dataset.reportSource);if(!selected)return;
+      box.querySelectorAll('button').forEach(item=>item.disabled=true);
+      const backTo=reportDataSelection(controller,selected.athlete,selected.record);
+      close("longitudinalEditModal");controller.suspend();
+      try{
+        const ok=await switchRecord(selected.athlete,selected.record,{edit:true,...(controller===team?{team:true}:controller===horizontal?{horizontal:true}:{longitudinal:true})});
+        if(ok){reportDataReturn=backTo;rememberUI();return;}
+        await controller.resume();
+      }catch(error){await controller.resume();toast(error.message);}
+    });
+    modal("longitudinalEditModal");return true;
+  }
   function openEntry(tab) {
     if (managementNavigationBlocked()) return false;
     if (window.RingsideManagement.beforeLeave?.("entry") === false) return false;
     if (creation?.submitting) return;
     if(reportSetup)discardReportSetup();
     if (!reports.hasContent()) return startDataEntry();
-    if (reports.active() && tab !== "narrative") return reports.edit();
+    if (reports.active() && tab !== "narrative") return editReportData();
     if (ui.mode === "report") captureReportUI();
     saveEditor();
     persist();
@@ -4622,7 +4752,7 @@
   async function ai() {
     if(reports.isLoading())return;
     if (job) return toast("当前分析正在生成", "ai");
-    const hasData = team.active() ? team.model().projects.some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null))) : horizontal.active() ? [...horizontal.model().projects,...horizontal.model().references.flatMap(ref=>ref.projects||[])].some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null)||N(row.benchmark?.mean)!==null)) : longitudinal.active() ? longitudinal.model().periods.some(period=>period.stats.validTests.size) : M.stats(effectiveRecord()).validTests.size;
+    const hasData = team.active() ? window.RingsideTeam.hasData(team.model()) : horizontal.active() ? [...horizontal.model().projects,...horizontal.model().references.flatMap(ref=>ref.projects||[])].some(project=>project.metrics.some(row=>row.cells.some(cell=>N(cell?.value)!==null)||N(row.benchmark?.mean)!==null)) : longitudinal.active() ? longitudinal.model().periods.some(period=>period.stats.validTests.size) : M.stats(effectiveRecord()).validTests.size;
     if (!hasData) return setAIStatus("error", "还没有可供分析的数据", "请先录入至少一项有效测试结果。");
     const requestedBinding = reports.binding();
     let connection;
@@ -4645,7 +4775,7 @@
     renderNarrativeStatus();
     try {
       const messages = [
-        { role: "system", content: window.RingsideInterventions.systemPrompt + (team.active() ? "\n当前任务为团队报告。使用每人所选单条记录的代表结果，按程序给出的排序、分布、有效人数和筛查人员说明全队情况。运动表现是各人按统一方案有效得分后的均值；筛查为红黄提示的去重人数，不是损伤发生概率。缺测不当零，不编造统计检验或时间变化，不把团队均值写成某个人成绩。" : horizontal.active() ? "\n当前任务为横向比较或群体统计报告。以 presentation.focus 为解读重点，以 presentation.activeReferenceId 指定的当前群体及 presentation.baseline 为比较依据，采用提供的统一差值；无基准时不生成相对优势或不足。使用各指标实际人数、最近可比测试／期间最佳成绩／期间均值的取样口径及来源。群体评价依据先汇总后评价的结果；数据库参照不等于常模或评价标准。不同人的差异不写成时间上的改善或下降。根据实际数值与已有评价提出具体建议，不编造统计检验或把群体参数拼成真实个人。" : longitudinal.active() ? "\n当前任务为同一运动员的纵向比较。逐期对照所给统一计算结果，使用程序提供的变化值。缺测不能作为零；不得自行计算或编造显著性、p值、MDC、标准化效果量、改善方向。分清测量变化、评价条件变化和训练推断。" : "") },
+        { role: "system", content: window.RingsideInterventions.systemPrompt + (team.active() ? "\n当前任务为团队报告，先根据analysisMode区分单次、纵向、横向。单次描述逐人成绩、分布和实际关注人数。纵向将各日期有效均值与同人配对变化分开，变化仅使用提供的配对结果和人数，缺测不算恢复。横向依据所选重点和基准比较群体代表结果；参考群体关注人数未知，不从群体等级推算。保留每项有效人数和取样方式，不把缺测当零，不编造统计检验，不把统计代表值写成一次真实个人测量。" : horizontal.active() ? "\n当前任务为横向比较或群体统计报告。以 presentation.focus 为解读重点，以 presentation.activeReferenceId 指定的当前群体及 presentation.baseline 为比较依据，采用提供的统一差值；无基准时不生成相对优势或不足。使用各指标实际人数、最近可比测试／期间最佳成绩／期间均值的取样口径及来源。群体评价依据先汇总后评价的结果；数据库参照不等于常模或评价标准。不同人的差异不写成时间上的改善或下降。根据实际数值与已有评价提出具体建议，不编造统计检验或把群体参数拼成真实个人。" : longitudinal.active() ? "\n当前任务为同一运动员的纵向比较。逐期对照所给统一计算结果，使用程序提供的变化值。缺测不能作为零；不得自行计算或编造显著性、p值、MDC、标准化效果量、改善方向。分清测量变化、评价条件变化和训练推断。" : "") },
         { role: "user", content: (team.active()?"生成团队解读：先概括全队表现、项目排名与分布，再列出需要关注的人员及其已有筛查依据。使用实际有效人数，不重复描述图形外观。\n":"生成解读与干预建议：优先采用 selectedCapabilityDirections 提供的有效能力方向、指标、数值和判定，其余能力参数用于综合分析。EUR 与 CMJ–SJ 增益直接采用输入中的同一训练方向规则：EUR＞1.1 强调向心能力，EUR≤1.1 强调利用 SSC 的能力。用具体实测、发展方向、训练动作与安排、进阶和复测条件组织正文。跳跃 FVP 弹性绑定选定 SJ/CMJ 协议；冲刺 FVP 弹性绑定目标距离和适用条件。ER 比较两端等比例变化的模型响应，EN 表示响应大小。将实测和情景结果分别准确称为实测值与模型预测值；协议与假设用于核对依据，避免在正文重复泛泛的边界说明。\n") + JSON.stringify(facts()) },
       ];
       const selectedModel = connection.model;
@@ -4733,7 +4863,7 @@
     clone.querySelector("#embedded-data").textContent = JSON.stringify(
       payload,
     ).replace(/</g, "\\u003c");
-    clone.querySelectorAll('#horizontalDialog,#classificationModal,#reportReferenceDialog,#teamReportDialog').forEach(node=>node.remove());
+    clone.querySelectorAll('#horizontalDialog,#classificationModal,#reportReferenceDialog,#teamReportReferenceDialog,#teamReportDialog').forEach(node=>node.remove());
     for (const id of [
       "entryNav",
       "entryContent",
@@ -4751,7 +4881,6 @@
       "detailContent",
       "interpEditor",
       "narrativeView",
-      "athleteMeta",
       "reportNav",
       "recordContext",
       "editorState",
@@ -4843,19 +4972,8 @@
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
   function filename(ext) {
-    if(team.active())return "MotionBench_团队报告_"+(team.document().title||team.document().id).replace(/[<>:\"/\\|?*\s]/g,"_")+"."+ext;
-    if(horizontal.active())return "MotionBench_横向比较_"+(horizontal.document().title||horizontal.document().id).replace(/[<>:"/\\|?*\s]/g,"_")+"."+ext;
-    if(longitudinal.active())return "MotionBench_"+(state.athlete.name||"athlete").replace(/[<>:"/\\|?*\s]/g,"_")+"_纵向比较_"+longitudinal.model().periods[0].date+"_"+longitudinal.model().periods.at(-1).date+"."+ext;
-    return (
-      "MotionBench_" +
-      (state.athlete.name || "athlete").replace(/[<>:"/\\|?*\s]/g, "_") +
-      "_" +
-      (state.athlete.date || "report") +
-      "_" +
-      state.recordId.slice(0, 6) +
-      "." +
-      ext
-    );
+    const suffix=reports.active()?reports.document().id||reports.document().key:state?.recordId;
+    return "MotionBench_"+currentReportTitle().replace(/[<>:"/\\|?*\s]/g,"_")+"_"+String(suffix||"report").slice(-8)+"."+ext;
   }
   async function downloadHTML() {
     $("reportExportMenu").open=false;
@@ -5131,6 +5249,7 @@
     const record = team.active() ? {team:true,teamModel:copy(team.model()),teamViews:copy(team.document().views),teamTitle:$("reportTitle").textContent,narrative:copy(team.narrative())} : horizontal.active() ? {...copy(horizontal.model().participants[0]?.record||{}),horizontal:true,horizontalModel:copy(horizontal.model()),horizontalViews:copy(horizontal.document().views),horizontalTitle:$("reportTitle").textContent,narrative:copy(horizontal.narrative())} : longitudinal.active() ? {...copy(longitudinal.model().periods.at(-1).record),longitudinal:true,longitudinalDateRange:longitudinal.model().periods[0].date+" — "+longitudinal.model().periods.at(-1).date,narrative:copy(longitudinal.narrative())} : effectiveRecord(),
       name = filename("pdf"),
       report = $("reportView").cloneNode(true);
+    record.reportTitle=currentReportTitle();
     pdfJob = true;
     setPDFStatus(true, "生成 PDF…");
     $("pdfProgress").hidden = false;
@@ -5204,7 +5323,7 @@
     return {ok:true};
   }
   window.App = {
-    openReportSetup,adjustCurrentReport,cancelReportSetup,getReportSetup:()=>reportSetup?copy(reportSetup):null,
+    openReportSetup,openReportWorkflow,chooseReportFamily,reportWorkflowNext,reportWorkflowBack,adjustCurrentReport,cancelReportSetup,editReportData,getReportSetup:()=>reportSetup?copy(reportSetup):null,
     selectRecords: async ids=>{if(reportSetup)discardReportSetup();return longitudinal.select(ids);},
     openTeam: options=>openReportSetup("team",{edit:!!options?.reportId,configuration:options?.configuration,reportId:options?.reportId}),
     selectTeam:configuration=>team.createReport(configuration),
@@ -5989,6 +6108,7 @@
   });
   async function initializeApplication() {
     $("startupStatus").hidden = false;
+    let restoreDataReturn=null,restoreDataTab="";
     try {
       await restore();
       window.RingsideManagement.init();
@@ -6009,6 +6129,11 @@
           }
           if(state&&saved.recordId===state.recordId&&saved.mode==="entry"){ui.mode="entry";entryTab=saved.entryTab||orderedEntryProjects()[0]?.id||"plan";entryReturn=saved.entryReturn?.mode==="management"?saved.entryReturn:null;}
           if(!initialHorizontal&&!initialLongitudinal&&!initialTeam){initialLongitudinal=saved.longitudinal;initialHorizontal=saved.horizontal;initialTeam=saved.team;}
+          const pending=saved.reportDataReturn;
+          if(saved.mode==="entry"&&object(pending)&&["team","horizontal","longitudinal"].includes(pending.kind)&&typeof pending.recordId==="string"&&pending.recordId&&typeof pending.athleteId==="string"&&pending.athleteId){
+            const identity=pending.kind==="longitudinal"?object(pending.selection)&&typeof pending.selection.athleteId==="string"&&Array.isArray(pending.selection.recordIds)&&pending.selection.recordIds.length>1:typeof pending.reportId==="string"&&pending.reportId;
+            if(identity){restoreDataReturn={...copy(pending),scroll:Number.isFinite(pending.scroll)?Math.max(0,pending.scroll):0};restoreDataTab=typeof saved.entryTab==="string"?saved.entryTab:"";initialTeam=pending.kind==="team"?{id:pending.reportId}:null;initialHorizontal=pending.kind==="horizontal"?{id:pending.reportId}:null;initialLongitudinal=pending.kind==="longitudinal"?pending.selection:null;}
+          }
         }
       } catch {}
       if(initialLongitudinal){
@@ -6022,6 +6147,15 @@
       if(initialTeam){
         try{await team.restore(initialTeam);if(ui.mode==="entry"&&entryTab!=="narrative")team.suspend();}
         catch(error){team.clear();toast(error.message);}
+      }
+      if(restoreDataReturn){
+        const controller=reportDataController(restoreDataReturn),athlete=library.athletes.find(person=>person.id===restoreDataReturn.athleteId&&!person.deletedAt),record=athlete?.records.find(item=>item.recordId===restoreDataReturn.recordId&&!item.deletedAt);
+        if(athlete&&record){
+          if(controller){reportDataReturn=restoreDataReturn;controller.suspend();}
+          const options={edit:true,...(controller?{[restoreDataReturn.kind]:true}:{})};
+          if(await switchRecord(athlete,record,options)){entryTab=restoreDataTab||orderedEntryProjects()[0]?.id||"plan";ui.returnMode="report";if(!controller)toast("原报告已不可用，已恢复来源测试的编辑。");}
+          else{reportDataReturn=null;if(controller)await controller.resume();toast("未能恢复上次编辑，请重新打开来源测试。");}
+        }else{reportDataReturn=null;ui.mode="report";toast("上次编辑的来源记录已不可用，已保留可打开的报告。");}
       }
       document.body.classList.toggle("sidebar-collapsed",ui.sidebarCollapsed);
       renderReport(false);if(ui.mode==="entry")renderEntry();renderWorkspace();

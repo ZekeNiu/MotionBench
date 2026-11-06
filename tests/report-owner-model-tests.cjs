@@ -35,6 +35,8 @@ function harness({ actualPersist = false } = {}) {
     request:async()=>({choices:[{message:{content:"synthetic AI text"},finish_reason:"stop"}]}),showAIDraft:()=>{},
   });
   c.window = c;c.RingsideModel=c.M;
+  vm.runInContext(source("calc"), c);
+  vm.runInContext(source("team"), c);
   documents.personal = c.state;
   c.horizontal = controller("horizontal"); c.longitudinal = controller("longitudinal"); c.team = controller("team");
   vm.runInContext(source("report-owner"), c);

@@ -164,7 +164,9 @@
     .ringside-pdf-document .iso-charts>img+img{margin-top:10px!important;}
     .ringside-pdf-document table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important;font-size:12px!important;text-align:left!important;margin:0!important;}
     .ringside-pdf-document th,.ringside-pdf-document td{font-size:12px!important;line-height:1.55!important;padding:7px 6px!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:top!important;border-bottom:1px solid #e1e5e9!important;}
-    .ringside-pdf-document th{font-weight:600!important;color:#636b76!important;background:#f3f5f7!important;}
+    .ringside-pdf-document th{font-weight:600!important;color:#636b76!important;}
+    .ringside-pdf-document thead th{background:#f3f5f7!important;}
+    .ringside-pdf-document tbody th{background:#fff!important;}
     .ringside-pdf-document .table-wrap{overflow:visible!important;max-width:100%!important;}
     .ringside-pdf-document tbody tr,.ringside-pdf-document tbody td,.ringside-pdf-document .selected-result{background:#fff!important;}
     .ringside-pdf-document .stat-row{display:flex!important;gap:8px!important;flex-wrap:wrap!important;margin:0!important;}
@@ -333,22 +335,6 @@
         key,
         text: label + "：" + String(value).trim(),
       }));
-  }
-
-  function syncBackground(source, snapshot) {
-    const metadata = source.querySelector(".hero-sub");
-    if (!metadata) return;
-    for (const field of backgroundFields(snapshot)) {
-      const existing =
-        metadata.querySelector('[data-athlete-field="' + field.key + '"]') ||
-        [...metadata.querySelectorAll("span")].find(
-          (node) => node.textContent.trim() === field.text,
-        );
-      const node = existing || element("span");
-      node.dataset.athleteField = field.key;
-      node.textContent = field.text;
-      if (!existing) metadata.append(node);
-    }
   }
 
   async function readyImages(container) {
@@ -535,7 +521,7 @@
   function collectBlocks(source, options = {}) {
     const blocks = [];
     const headingSelectors =
-      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading,.longitudinal-chart-title,.longitudinal-table-caption,.longitudinal-period-heading";
+      ".section-heading,.quality-heading,.test-title,.pdf-group-heading,.capability-parameter-heading,.longitudinal-chart-title,.longitudinal-table-caption,.longitudinal-period-heading,.team-chart-caption";
     const atomicSelectors =
       ".hero,.micro-cards,.summary-grid,.stat-row,.empty,.aux-metrics,.card-foot,.longitudinal-print-panel,.longitudinal-direction-period,[data-pdf-atomic]";
     function push(node, kind, keepWithNext) {
@@ -805,7 +791,7 @@
       const model=snapshot.horizontalModel||{},count=model.participants?.length||0,reference=model.references?.find(item=>item.id===snapshot.horizontalViews?.activeReferenceId)||model.references?.[0],kind=count?"横向比较报告":"群体统计报告",title=snapshot.horizontalTitle||kind,subject=kind+" · "+(count?count+" 名运动员":reference?.label||"群体结果");
       return {title,subject,header:subject,footer:kind};
     }
-    return {title:[snapshot.athlete?.name,"运动表现与筛查"].filter(Boolean).join(" · "),
+    return {title:snapshot.reportTitle || root.RingsideReportTitle?.resolve({views:snapshot.views}) || "损伤风险筛查与运动表现测试报告",
       subject:["选定测试报告",...backgroundFields(snapshot).map(field=>field.text)].join(" · "),
       header:[snapshot.athlete?.name,snapshot.longitudinal&&snapshot.longitudinalDateRange||snapshot.athlete?.date].filter(Boolean).join(" · "),
       footer:"运动表现与损伤风险筛查报告"};
@@ -1338,7 +1324,6 @@
         throw new Error("离线 PDF 组件未加载，请使用完整报告文件。");
       captured = JSON.parse(JSON.stringify(snapshot || {}));
       source = cleanClone(reportElement,captured);
-      syncBackground(source, captured);
     } catch (error) {
       lastDiagnostics = {
         ...lastDiagnostics,

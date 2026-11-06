@@ -152,4 +152,28 @@ test("canceling work from a replaced library never saves into the replacement ge
   assert.deepEqual(replacement.longitudinalReports,[]);assert.equal(f.calls.length,start+2);
 });
 
+test("a requested title commits with changed dates and rolls back with their failed save",async()=>{
+  const f=await activeFixture();f.controller.setViews({reportTitle:"原纵向名称"});await f.host.save();const before=ownerSnapshot(f),documents=f.saved(),start=f.calls.length;
+  f.saveWith(call=>call.number===start+2?false:true);assert.equal(await f.controller.select(f.ids.slice(2),{reportTitle:"新纵向名称"}),false);assertOwner(f,before);assert.deepEqual(f.saved(),documents);
+  f.saveWith(()=>true);assert.equal(await f.controller.select(f.ids.slice(2),{reportTitle:"新纵向名称"}),true);assert.equal(f.controller.document().views.reportTitle,"新纵向名称");assert.equal(f.saved().find(doc=>doc.key===f.controller.document().key).views.reportTitle,"新纵向名称");assert.equal(f.controller.document().reportTitle,undefined);
+});
+
+test("editing current dates moves one report while preserving its identity narrative and display",async()=>{
+  const f=await activeFixture(),before=ownerSnapshot(f);assert.equal(await f.controller.select(f.ids.slice(2),{editCurrent:true,reportTitle:"更改日期后的名称"}),true);
+  const after=f.controller.document();assert.notEqual(after.key,before.document.key);assert.equal(f.controller.owner(),before.owner);assert.deepEqual(copy(after.narrative),before.document.narrative);assert.equal(after.created,before.document.created);assert.equal(after.views.reportScroll,37);assert.deepEqual(copy(after.views.future),{preserved:true});assert.equal(after.views.reportTitle,"更改日期后的名称");assert.equal(f.saved().length,1);assert.equal(f.saved()[0].key,after.key);
+});
+test("failed or cancelled current-date migration restores both keys without losing later edits",async()=>{
+  for(const cancel of [false,true]){const f=await activeFixture(),before=ownerSnapshot(f),start=f.calls.length,gate=deferred();f.saveWith(call=>call.number===start+2?gate.promise:true);const task=f.controller.select(f.ids.slice(2),{editCurrent:true,reportTitle:"尚未保存的新名称"});await until(()=>f.calls.length===start+2);assert.equal(f.library().longitudinalReports.length,1);assert.notEqual(f.library().longitudinalReports[0].key,before.document.key);if(cancel){f.controller.setNarrative({text:"等待时保留的补写"});f.controller.cancelPending();}gate.resolve(cancel);assert.equal(await task,false);assert.equal(f.controller.owner(),before.owner);assert.equal(f.saved().length,1);assert.equal(f.saved()[0].key,before.document.key);if(cancel)assert.equal(f.saved()[0].narrative.text,"等待时保留的补写");else assertOwner(f,before);}
+});
+test("current-date migration preserves edits made during its successful storage wait",async()=>{
+  const f=await activeFixture(),start=f.calls.length,gate=deferred();f.saveWith(call=>call.number===start+2?gate.promise:true);const task=f.controller.select(f.ids.slice(2),{editCurrent:true,reportTitle:"迁移名称"});await until(()=>f.calls.length===start+2);f.controller.setNarrative({text:"等待时的新正文"});f.controller.setViews({reportScroll:99});gate.resolve(true);assert.equal(await task,true);assert.equal(f.saved().length,1);assert.equal(f.saved()[0].narrative.text,"等待时的新正文");assert.equal(f.saved()[0].views.reportScroll,99);assert.equal(f.saved()[0].views.reportTitle,"迁移名称");
+});
+test("editing dates cannot overwrite another saved report at the target selection",async()=>{
+  const f=await activeFixture(),before=ownerSnapshot(f),other=c.RingsideLongitudinalStore.normalize({...copy(before.document),key:c.RingsideLongitudinalStore.key(source.athleteId,f.ids.slice(2)),recordIds:f.ids.slice(2),narrative:{text:"独立报告正文"}});c.RingsideLongitudinalStore.put(f.library(),other);await f.host.save();const documents=f.saved();await assert.rejects(f.controller.select(f.ids.slice(2),{editCurrent:true}),/已有纵向报告/);assertOwner(f,before);assert.deepEqual(f.saved(),documents);
+});
+test("moving imported selection history keeps its original document and complete export sources",async()=>{
+  const f=await activeFixture(),old=copy(f.controller.document());f.controller.document().importedVersions=[{...copy(old),narrative:{text:"原导入版本正文"}}];f.controller.setViews({reportTitle:"原有导入报告"});await f.host.save();const before=copy(c.RingsideLongitudinalStore.normalize(f.controller.document()));assert.equal(await f.controller.select(f.ids.slice(2),{editCurrent:true}),true);const after=f.controller.document();assert.equal(after.importedVersions,undefined);assert.equal(after.selectionHistory.length,1);assert.deepEqual(copy(after.selectionHistory[0]),before);assert.equal(f.saved().length,1);
+  const payload=f.controller.payload();assert.equal(payload.library.athletes[0].records.length,4);assert.equal(payload.library.longitudinalReports[0].selectionHistory[0].key,before.key);const mapping=Object.fromEntries(f.ids.map((id,index)=>[id,"mapped-"+index])),mapped=c.RingsideLongitudinalStore.remap(after,{athleteMap:{[source.athleteId]:"mapped-athlete"},recordMap:mapping});assert.deepEqual(copy(mapped.selectionHistory[0].recordIds),before.recordIds.map(id=>mapping[id]).sort());assert.equal(mapped.selectionHistory[0].importedVersions[0].athleteId,"mapped-athlete");assert.throws(()=>c.RingsideLongitudinalStore.normalize({...copy(after),selectionHistory:[{...copy(before),selectionHistory:[old]}]}),/选择历史格式/);
+});
+
 (async()=>{for(const[name,run]of tests){await run();console.log("PASS "+name);}console.log(tests.length+" longitudinal navigation state tests passed");})().catch(error=>{console.error(error);process.exitCode=1;});

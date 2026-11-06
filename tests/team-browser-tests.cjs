@@ -1,10 +1,12 @@
 "use strict";
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{createHash}=require('node:crypto'),{pathToFileURL}=require('node:url');
+const {selectionUI}=require('./helpers/report-selection-ui.cjs');
 const {chromium}=require('./helpers/playwright.cjs'),{createFixture}=require('./helpers/longitudinal-fixture.cjs');
 const root=path.resolve(__dirname,'..'),channel=process.argv.includes('--edge')?'msedge':'chrome',pdf=process.argv.includes('--pdf');
-const out=path.join(root,'output/playwright/team-report',channel),source=path.join(root,'MotionBench.html'),hash=f=>createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+const arg=(name,fallback)=>process.argv.includes(name)?process.argv[process.argv.indexOf(name)+1]:fallback;
+const out=path.resolve(arg('--artifact-dir',path.join(root,'output/release/2.29.0-local/acceptance/team-'+channel))),source=path.resolve(arg('--source',path.join(root,'MotionBench.html'))),hash=f=>createHash('sha256').update(fs.readFileSync(f)).digest('hex');
 async function main(){
- fs.mkdirSync(out,{recursive:true});const result={synthetic:true,channel,sourceHash:hash(source),runnerSha256:hash(__filename),checks:[],errors:[],pass:false};let browser,page,context,ids,baseline;
+ fs.mkdirSync(out,{recursive:true});const result={synthetic:true,channel,sourceHash:hash(source),runnerSha256:hash(__filename),fixtureSha256:hash(path.join(__dirname,"helpers/longitudinal-fixture.cjs")),selectionUiHelperSha256:hash(path.join(__dirname,"helpers/report-selection-ui.cjs")),checks:[],errors:[],pass:false};let browser,page,context,ids,baseline;
  const check=async(name,fn)=>{await fn();result.checks.push(name);console.log('PASS '+name);};
  const ready=async p=>{await p.waitForFunction(()=>window.App?.ready);assert.equal(await p.evaluate(()=>App.ready),true,await p.locator('#startupStatus').innerText());};
  const watch=p=>p.on('pageerror',e=>result.errors.push(e.stack||e.message));
@@ -21,11 +23,11 @@ async function main(){
    baseline=await page.evaluate(async ids=>Promise.all(ids.map(id=>App.getRepository().loadRecord(id))),ids.records);
   });
   await check('team setup selects entire team and one latest record per person',async()=>{
-   await page.locator('[data-report-family="team"]').click();const dialog=page.locator('#teamReportSelection');await dialog.locator('[data-team-field="groupId"]').selectOption('team-fixture');await dialog.locator('[data-team-toggle="records"]').click();
+   await page.evaluate(()=>App.openReportSetup('team',{step:2}));const dialog=page.locator('#teamReportSelection');await dialog.locator('[data-team-field="groupId"]').selectOption('team-fixture');await page.locator('#reportWorkflowNext').click();
    await dialog.locator('[data-team-field="from"]').fill('2026-11-04');await dialog.locator('[data-team-field="from"]').press('Tab');await dialog.locator('[data-team-field="to"]').fill('2026-11-05');await dialog.locator('[data-team-field="to"]').press('Tab');
    assert.equal(await dialog.locator('[data-team-person]:checked').count(),4);assert.equal(await dialog.locator('[data-team-record]').count(),3);
    const selected=await dialog.locator('[data-team-record]').evaluateAll(nodes=>nodes.map(n=>n.value));assert.deepEqual(selected,['team-record-0-1','team-record-1-1','team-record-2-1']);
-   await dialog.locator('button[type="submit"]').click();await page.waitForFunction(()=>App.getTeam()?.participants.length===4);await page.waitForFunction(()=>App.getReportSetup()===null);
+   await page.locator('#reportWorkflowNext').click();await page.locator('#reportWorkflowNext').click();await page.waitForFunction(()=>App.getTeam()?.participants.length===4);await page.waitForFunction(()=>App.getReportSetup()===null);
    assert.equal(await page.locator('#reportView').getAttribute('data-team'),'true');assert.equal(await page.locator('#directionMetrics').isVisible(),false);
    assert.equal(await page.locator('#bodyChart img').count(),0);assert.ok(await page.locator('[data-team-project]').count()>0);
    assert.deepEqual(await page.evaluate(async ids=>Promise.all(ids.map(id=>App.getRepository().loadRecord(id))),ids.records),baseline);
@@ -51,7 +53,7 @@ async function main(){
   });
   await check('team report is listed, can reopen, and switching to personal removes team styling',async()=>{
    const docId=await page.evaluate(()=>App.getTeamDocument().id),row=await page.evaluate(async id=>(await App.listSavedReports()).find(r=>r.id==='team:'+id),docId);assert.equal(row.kind,'team');
-   await page.locator('[data-report-family="personal"]').click();await page.locator('[data-analysis-mode]').selectOption('single');if(await page.locator('[data-selection-toggle="athletes"]').getAttribute('aria-expanded')!=='true')await page.locator('[data-selection-toggle="athletes"]').click();await page.locator('[data-select-athlete="team-person-0"]').check();if(await page.locator('[data-selection-toggle="records"]').getAttribute('aria-expanded')!=='true')await page.locator('[data-selection-toggle="records"]').click();await page.locator('[data-select-record="team-record-0-0"]').check();await page.locator('[data-apply-selection]').click();await page.waitForFunction(()=>!App.getTeam()&&App.getReportSetup()===null);assert.equal(await page.locator('#reportView').getAttribute('data-team'),null);
+   await page.evaluate(()=>App.openReportSetup('personal',{step:2}));const u=selectionUI(page);await u.mode('single');await u.chooseAthlete('team-person-0');await u.chooseRecord('team-person-0','team-record-0-0');await u.apply();await page.waitForFunction(()=>!App.getTeam()&&App.getReportSetup()===null);assert.equal(await page.locator('#reportView').getAttribute('data-team'),null);
    assert.equal(await page.evaluate(id=>App.restoreSavedReport('team:'+id),docId),true);assert.equal(await page.locator('#reportView').getAttribute('data-team'),'true');
   });
   await check('desktop and narrow layouts preserve complete scrollable report without page overflow',async()=>{
@@ -67,7 +69,7 @@ async function main(){
    const file=await download('PDF');assert.ok(fs.statSync(file).size>10000);result.pdf=file;result.pdfSha256=hash(file);result.pdfDiagnostics=await page.evaluate(()=>RingsidePDF.lastDiagnostics);result.pdfPages=await page.evaluate(()=>window.teamPDFPages);
    assert.ok(result.pdfPages.length>0);assert.ok(result.pdfPages.some(p=>p.radar));for(const p of result.pdfPages){assert.equal(p.team,'true');assert.ok(p.feet.every(display=>display==='none'));if(p.radar){const r=p.radar;assert.ok(r.width>250);assert.ok(Math.abs(r.width/r.height-r.naturalWidth/r.naturalHeight)<.01,JSON.stringify(r));}}
   });
-  assert.deepEqual(result.errors,[]);result.pass=true;
+  assert.deepEqual(result.errors,[]);assert.equal(hash(source),result.sourceHash);assert.equal(hash(__filename),result.runnerSha256);assert.equal(hash(path.join(__dirname,"helpers/longitudinal-fixture.cjs")),result.fixtureSha256);assert.equal(hash(path.join(__dirname,"helpers/report-selection-ui.cjs")),result.selectionUiHelperSha256);result.sourceUnchanged=true;result.pass=true;
  }catch(e){result.error=e.stack||String(e);console.error(result.error);if(page){result.layoutDiagnostics=await page.evaluate(()=>({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('body *')].map(node=>{const box=node.getBoundingClientRect(),style=getComputedStyle(node);return {tag:node.tagName,id:node.id,class:typeof node.className==='string'?node.className:'svg',right:box.right,left:box.left,width:box.width,overflow:style.overflowX,position:style.position};}).filter(node=>node.width>0&&(node.right>document.documentElement.clientWidth+1||node.left< -1)).slice(0,70),feet:[...document.querySelectorAll('.summary-grid .card-foot')].map(node=>({html:node.outerHTML,display:getComputedStyle(node).display,matched:node.matches('[data-team="true"] .screen-layout+.card-foot,[data-team="true"] .performance-layout+.card-foot')}))})).catch(()=>null);await page.screenshot({path:path.join(out,'failure.png'),fullPage:true}).catch(()=>{});}process.exitCode=1;}
  finally{fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));await browser?.close();}
 }

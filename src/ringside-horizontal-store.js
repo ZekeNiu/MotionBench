@@ -109,7 +109,7 @@
   }
   function summary(input) {
     const document = normalize(input, { metadata: true });
-    return { id: document.id, title: document.title, revision: document.revision, created: document.created, updated: document.updated, perspective: document.configuration.perspective || "focus", participantCount: document.configuration.participants?.length || 0, referenceCount: document.configuration.references?.length || 0 };
+    return { id: document.id, title: document.views?.reportTitle || document.title, revision: document.revision, created: document.created, updated: document.updated, perspective: document.configuration.perspective || "focus", participantCount: document.configuration.participants?.length || 0, referenceCount: document.configuration.references?.length || 0 };
   }
   function remapMetadata(input, maps = {}) {
     const document = normalize(input, { metadata: true });

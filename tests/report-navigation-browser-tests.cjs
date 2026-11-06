@@ -7,7 +7,7 @@ const {chromium} = require("./helpers/playwright.cjs"), {createFixture} = requir
 const ROOT = path.resolve(__dirname, ".."), channel = process.argv.includes("--edge") ? "msedge" : "chrome";
 const arg = (name, fallback) => process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : fallback;
 const source = path.resolve(arg("--source", path.join(ROOT, "MotionBench.html")));
-const out = path.resolve(arg("--artifact-dir", path.join(ROOT, "output/release/2.28.1-local/acceptance/navigation-" + channel)));
+const out = path.resolve(arg("--artifact-dir", path.join(ROOT, "output/report-upgrade-2.29.0/navigation-" + channel)));
 const pdfRequested = process.argv.includes("--pdf"), hash = file => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
 const outputRelative = path.relative(path.join(ROOT, "output"), out);
 assert.ok(outputRelative && !outputRelative.startsWith("..") && !path.isAbsolute(outputRelative));
@@ -36,13 +36,14 @@ async function main() {
     const state=await page.evaluate(()=>App.getReportSetup());assert.equal(state.family,family);assert.equal(state.intent,edit?"edit":"new");
     assert.equal(await page.locator("#reportView").isVisible(),false);
   };
-  const panel = async kind => {const button=personal().locator('[data-selection-toggle="'+kind+'"]');if(await button.getAttribute("aria-expanded")!=="true")await button.click();};
-  const mode = async value => {await personal().locator("[data-analysis-mode]").selectOption(value);assert.equal(await personal().locator("[data-analysis-mode]").inputValue(),value);};
+  const goStep=async target=>{for(let i=0;i<4;i++){const step=await page.evaluate(()=>App.getReportSetup().step);if(step===target)return;await page.locator(step>target?"#reportWorkflowBack":"#reportWorkflowNext").click();assert.notEqual(await page.evaluate(()=>App.getReportSetup().step),step,await page.locator("#reportWorkflowError").innerText());}};
+  const panel = async kind => goStep(kind==="athletes"?2:3);
+  const mode = async value => {await goStep(2);await personal().locator("[data-analysis-mode]").selectOption(value);assert.equal(await personal().locator("[data-analysis-mode]").inputValue(),value);};
   const choosePerson = async (id, query) => {await panel("athletes");await personal().locator("[data-selection-search]").fill(query);await personal().locator('[data-select-athlete="'+id+'"]').check();};
   const chooseRecord = async (athleteId,recordId,checked=true) => {await panel("records");await personal().locator('[data-person="'+athleteId+'"] [data-select-record="'+recordId+'"]').setChecked(checked);};
   const reportMode = async () => {await page.waitForFunction(()=>App.getReportSetup()===null);assert.equal(await page.locator("#reportSetupView").isVisible(),false);assert.equal(await page.locator("#reportView").isVisible(),true);};
-  const applyPersonal = async () => {await personal().locator("[data-apply-selection]").click();await reportMode();};
-  const teamPanel = async name => {const button=team().locator('[data-team-toggle="'+name+'"]');if(await team().locator('[data-team-panel="'+name+'"]').isHidden())await button.click();};
+  const applyPersonal = async () => {await goStep(4);await page.locator("#reportWorkflowNext").click();await reportMode();};
+  const teamPanel = async name => goStep(name==="members"?2:3);
   const teamDates = async () => {
     await teamPanel("records");
     for(const [field,value] of [["from","2026-11-04"],["to","2026-11-06"]]){const input=team().locator('[data-team-field="'+field+'"]');await input.fill(value);await input.press("Tab");}
@@ -51,14 +52,14 @@ async function main() {
   const shot = async name => {await page.evaluate(()=>document.fonts.ready);const file=path.join(out,name+".png");await page.screenshot({path:file,fullPage:false});artifact(file,"screenshot");};
   const fits = async () => {
     await page.waitForFunction(()=>document.documentElement.scrollWidth<=innerWidth+1);
-    const result=await team().locator('button[type="submit"]').evaluate(node=>{const r=node.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,viewport:[innerWidth,innerHeight]};});
+    const result=await page.locator('#reportWorkflowNext').evaluate(node=>{const r=node.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,viewport:[innerWidth,innerHeight]};});
     assert.ok(result.top>=0&&result.bottom<=result.viewport[1]+1&&result.left>=0&&result.right<=result.viewport[0]+1,JSON.stringify(result));
   };
   try {
     browser=await chromium.launch({channel,headless:true});context=await browser.newContext({offline:true,locale:"zh-CN",viewport:{width:1440,height:900},reducedMotion:"reduce",acceptDownloads:true});
     page=await context.newPage();page.setDefaultTimeout(30000);page.on("pageerror",error=>receipt.errors.push(error.stack||error.message));page.on("dialog",dialog=>dialog.accept());
     await page.goto(pathToFileURL(isolated).href);await ready();
-    await check("isolated 158-person library opens its report with two clear family entries",async()=>{
+    await check("isolated 158-person library opens with one report workflow entry",async()=>{
       ids=await page.evaluate(async factory=>{
         const f=(0,eval)("("+factory+")")(window,3),M=RingsideModel,lib=M.libraryDefaults();lib.schema=3;lib.catalog=f.catalog;
         lib.groups=[{id:"navigation-other",name:"其他合成队"},{id:"navigation-team",name:"目标合成队"}];
@@ -71,11 +72,11 @@ async function main() {
         lib.activeAthleteId=lib.athletes[0].id;lib.activeRecordId=lib.athletes[0].records[0].recordId;await App.importPayload(lib,"replace-library");await App.showReport(false);if(!await App.saveNow())throw Error("synthetic fixture save failed");
         return {a:lib.athletes[0].id,b:lib.athletes[1].id,aRecords:lib.athletes[0].records.map(r=>r.recordId),bRecords:lib.athletes[1].records.map(r=>r.recordId),records:lib.athletes.flatMap(a=>a.records.map(r=>r.recordId))};
       },createFixture.toString());baseline=await rawRecords();await reportMode();
-      assert.equal(await page.locator('[data-report-family="personal"]').count(),1);assert.equal(await page.locator('[data-report-family="team"]').count(),1);
+      assert.equal(await page.locator('[data-workspace-nav="reports"]').count(),1);assert.equal(await page.locator("[data-report-family]").count(),0);
       assert.equal(await page.locator("#teamReportDialog").count(),0);assert.equal(await page.evaluate(()=>App.getLibrary().athletes.length),158);
     });
     await check("personal setup preserves the original person then record then View flow and search does not change choices",async()=>{
-      await page.locator('[data-report-family="personal"]').click();await page.locator("#reportSetupView").waitFor({state:"visible"});assert.equal(await page.evaluate(()=>App.getReportSetup().family),"personal");assert.equal(await page.locator("#reportView").isVisible(),false);
+      await page.locator('[data-workspace-nav="reports"]').click();await page.locator('input[name="reportFamily"][value="personal"]').check();await page.locator("#reportWorkflowNext").click();await page.locator("#reportSetupView").waitFor({state:"visible"});assert.equal(await page.evaluate(()=>App.getReportSetup().family),"personal");assert.equal(await page.locator("#reportView").isVisible(),false);
       await mode("single");await panel("athletes");await personal().locator("[data-selection-group]").selectOption("navigation-other");await choosePerson(ids.a,"导航甲");
       const selected=await page.evaluate(()=>App.getReportSelection().athletes);await personal().locator("[data-selection-search]").fill("导航乙");assert.deepEqual(await page.evaluate(()=>App.getReportSelection().athletes),selected);await personal().locator("[data-selection-search]").fill("");
       await chooseRecord(ids.a,ids.aRecords[0]);await shot("personal-selection");await applyPersonal();assert.equal((await owner()).id,ids.aRecords[0]);
@@ -92,17 +93,17 @@ async function main() {
     await check("editing an existing horizontal report preserves its identity and authored narrative",async()=>{
       await page.evaluate(()=>App.openEntry("narrative"));await page.locator("#interpEditor").fill("导航验收人工解读，调整当前配置时保留。");await page.evaluate(()=>App.showReport(false));
       const previous=await page.evaluate(()=>({id:App.getHorizontalDocument().id,narrative:App.getHorizontalDocument().narrative.text}));await setup("personal",{edit:true});
-      await personal().locator("[data-selection-settings-toggle]").click();await personal().locator("[data-report-title]").fill("调整当前横向报告");await personal().locator("[data-report-title]").blur();await applyPersonal();
+      await goStep(4);await personal().locator("[data-report-title]").fill("调整当前横向报告");await personal().locator("[data-report-title]").blur();await applyPersonal();
       assert.deepEqual(await page.evaluate(()=>({id:App.getHorizontalDocument().id,narrative:App.getHorizontalDocument().narrative.text})),previous);
     });
     await check("cancelling a different-family setup returns to the original owner and reading position",async()=>{
       await page.evaluate(()=>window.scrollTo({top:320,behavior:"instant"}));const previous=await owner(),scroll=await page.evaluate(()=>scrollY);
-      await setup("team");await teamSource();await team().locator("[data-team-cancel]").click();await reportMode();assert.deepEqual(await owner(),previous);await page.waitForFunction(value=>Math.abs(scrollY-value)<3,scroll);
+      await setup("team");await teamSource();await page.locator('.report-workflow-actions>button').click();await reportMode();assert.deepEqual(await owner(),previous);await page.waitForFunction(value=>Math.abs(scrollY-value)<3,scroll);
     });
     await check("a late source read cannot replace a newer setup choice",async()=>{
       const previous=await owner();await setup("personal",{edit:true});await chooseRecord(ids.b,ids.bRecords[1]);
       await page.evaluate(()=>{const repo=App.getRepository();window.navigationOriginalRead=repo.loadHorizontalSources.bind(repo);repo.loadHorizontalSources=async options=>{await new Promise(resolve=>window.navigationReleaseRead=resolve);return navigationOriginalRead(options);};});
-      await personal().locator("[data-apply-selection]").click();await page.waitForFunction(()=>typeof navigationReleaseRead==="function");
+      await goStep(4);await page.locator("#reportWorkflowNext").click();await page.waitForFunction(()=>typeof navigationReleaseRead==="function");
       await page.evaluate(()=>{window.navigationSwitch=App.openReportSetup("team",{edit:false});});await page.evaluate(()=>navigationReleaseRead());await page.evaluate(()=>navigationSwitch);
       await page.waitForFunction(()=>App.getReportSetup()?.family==="team");assert.deepEqual(await owner(),previous);await page.evaluate(()=>{App.getRepository().loadHorizontalSources=navigationOriginalRead;});await page.evaluate(()=>App.cancelReportSetup());await reportMode();
     });
@@ -115,14 +116,14 @@ async function main() {
     });
     await check("failed team persistence leaves the previous report and a retryable setup",async()=>{
       const previous=await owner();await page.evaluate(()=>{const repo=App.getRepository();window.navigationOriginalSave=repo.saveTeamReport.bind(repo);repo.saveTeamReport=async()=>{throw Error("合成团队保存失败");};});
-      await team().locator('button[type="submit"]').click();await page.waitForFunction(()=>document.querySelector('#teamReportSelection [data-team-selection-error]')?.classList.contains("field-error")&&!document.querySelector('#teamReportSelection button[type="submit"]')?.disabled);
+      await goStep(4);await page.locator('#reportWorkflowNext').click();await page.waitForFunction(()=>document.querySelector('#teamReportSelection [data-team-selection-error]')?.classList.contains("field-error")&&!document.querySelector('#reportWorkflowNext')?.disabled);
       assert.equal(await page.evaluate(()=>App.getReportSetup()?.family),"team");assert.deepEqual(await owner(),previous);assert.equal(await page.locator("#reportView").isVisible(),false);
-      await page.evaluate(()=>{App.getRepository().saveTeamReport=navigationOriginalSave;});await team().locator('button[type="submit"]').click();await reportMode();assert.equal((await owner()).kind,"team");assert.equal(await page.evaluate(()=>App.getTeam().participants.length),30);
+      await page.evaluate(()=>{App.getRepository().saveTeamReport=navigationOriginalSave;});await page.locator('#reportWorkflowNext').click();await reportMode();assert.equal((await owner()).kind,"team");assert.equal(await page.evaluate(()=>App.getTeam().participants.length),30);
     });
     await check("adjusting a team keeps its document while a new source intent creates another document",async()=>{
       await page.evaluate(()=>App.openEntry("narrative"));await page.locator("#interpEditor").fill("团队导航人工正文。");await page.evaluate(()=>App.showReport(false));
-      firstTeam=await page.evaluate(()=>({id:App.getTeamDocument().id,narrative:App.getTeamDocument().narrative.text}));await setup("team",{edit:true});await teamPanel("records");await team().locator('[data-team-field="title"]').fill("当前团队配置已调整");await team().locator('[data-team-field="title"]').blur();await team().locator('button[type="submit"]').click();await reportMode();assert.deepEqual(await page.evaluate(()=>({id:App.getTeamDocument().id,narrative:App.getTeamDocument().narrative.text})),firstTeam);
-      await setup("team");await teamSource();await team().locator('button[type="submit"]').click();await reportMode();assert.notEqual(await page.evaluate(()=>App.getTeamDocument().id),firstTeam.id);assert.notEqual(await page.evaluate(()=>App.getTeamDocument().narrative.text),firstTeam.narrative);
+      firstTeam=await page.evaluate(()=>({id:App.getTeamDocument().id,narrative:App.getTeamDocument().narrative.text}));await setup("team",{edit:true});await goStep(4);await team().locator('[data-team-field="title"]').fill("当前团队配置已调整");await team().locator('[data-team-field="title"]').blur();await page.locator('#reportWorkflowNext').click();await reportMode();assert.deepEqual(await page.evaluate(()=>({id:App.getTeamDocument().id,narrative:App.getTeamDocument().narrative.text})),firstTeam);
+      await setup("team");await teamSource();await goStep(4);await page.locator('#reportWorkflowNext').click();await reportMode();assert.notEqual(await page.evaluate(()=>App.getTeamDocument().id),firstTeam.id);assert.notEqual(await page.evaluate(()=>App.getTeamDocument().narrative.text),firstTeam.narrative);
     });
     await check("normal reload and saved-report reopen show the report instead of its setup",async()=>{
       const previous=await owner();await page.reload();await ready();await reportMode();assert.deepEqual(await owner(),previous);
@@ -133,9 +134,11 @@ async function main() {
       receipt.pdfDiagnostics=await page.evaluate(()=>RingsidePDF.lastDiagnostics);assert.equal(receipt.pdfDiagnostics.status,"complete");for(const name of ["missingRows","duplicateRows","changedRows","missingCharts","duplicateCharts"])assert.deepEqual(receipt.pdfDiagnostics[name],[]);
     });
     await check("all measured source records and the tested build remain unchanged",async()=>{
-      assert.deepEqual(await rawRecords(),baseline);assert.equal(hash(source),receipt.sourceHash);assert.equal(hash(isolated),receipt.sourceHash);assert.equal(hash(__filename),receipt.runnerSha256);
+      const actual=await rawRecords(),expected=structuredClone(baseline);
+      for(let i=0;i<actual.length;i++)if(!Object.hasOwn(expected[i].views,"reportTitle")&&actual[i].views?.reportTitle==="损伤风险筛查与运动表现测试报告"){expected[i].views.reportTitle=actual[i].views.reportTitle;expected[i].updated=actual[i].updated;}
+      assert.deepEqual(actual,expected);assert.equal(hash(source),receipt.sourceHash);assert.equal(hash(isolated),receipt.sourceHash);assert.equal(hash(__filename),receipt.runnerSha256);
     });
-    assert.deepEqual(receipt.errors,[]);receipt.pass=true;
+    assert.deepEqual(receipt.errors,[]);assert.equal(hash(path.join(__dirname,"helpers/longitudinal-fixture.cjs")),receipt.fixtureSha256);receipt.sourceUnchanged=true;receipt.pass=true;
   } catch(error) {
     receipt.failure=error.stack||String(error);console.error(receipt.failure);
     if(page){receipt.failureState=await page.evaluate(()=>({setup:App.getReportSetup?.(),selection:App.getReportSelection?.(),toast:document.querySelector("#toast")?.textContent})).catch(()=>null);const file=path.join(out,"failure.png");await page.screenshot({path:file,fullPage:true}).catch(()=>{});if(fs.existsSync(file))artifact(file,"failure-screenshot");}

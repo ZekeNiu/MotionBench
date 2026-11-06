@@ -21,6 +21,8 @@ const availableSuites = [
   "longitudinal-navigation-state-tests.cjs",
   "team-selection-model-tests.cjs",
   "team-model-tests.cjs",
+  "team-comparison-model-tests.cjs",
+  "team-comparison-view-tests.cjs",
   "team-store-model-tests.cjs",
   "calculation-model-tests.cjs",
   "calculation-excel-tests.cjs",

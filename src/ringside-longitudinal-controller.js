@@ -5,7 +5,7 @@
   const validDate = value => root.RingsideLongitudinalStore.validDate(value);
   const order = (a,b) => String(a.athlete.date).localeCompare(String(b.athlete.date)) || String(a.created || '').localeCompare(String(b.created || '')) || a.recordId.localeCompare(b.recordId);
   function create(host) {
-    let selection = null, model = null, document = null, rawRecords = [], sequence = 0, suspended = false, loading = false, pendingIds = null;
+    let selection = null, model = null, document = null, rawRecords = [], historyRecords = [], sequence = 0, suspended = false, loading = false, pendingIds = null;
     let chartSequence = 0, chartPending = 0, chartSaveBarrier = null, savedCharts, pendingDocument = null;
     root.document.addEventListener('pointerdown', event => { const menu=root.document.getElementById('recordChoiceMenu');if(menu?.open&&!menu.contains(event.target))menu.open=false; });
     root.document.addEventListener('keydown', event => { const menu=root.document.getElementById('recordChoiceMenu');if(event.key==='Escape'&&menu?.open){menu.open=false;root.document.getElementById('recordChoiceLabel').focus();event.preventDefault();} });
@@ -14,14 +14,16 @@
     function revertDocument(transaction) {
       if (!transaction || transaction.adopted || transaction.reverted) return;
       transaction.reverted = true;
-      const store = root.RingsideLongitudinalStore, value = store.get(transaction.library, transaction.key);
-      // A later edit or another request owns its own value. Revert only this
-      // request's exact staged document, never an entire stale library snapshot.
-      if (JSON.stringify(value) !== transaction.serialized) return;
-      transaction.previous ? store.put(transaction.library, transaction.previous) : store.remove(transaction.library, transaction.key);
+      const store = root.RingsideLongitudinalStore;
+      // A later edit owns its value. Restore only exact values staged by this request.
+      for(const change of [...(transaction.changes||[transaction])].reverse()){
+        const value=store.get(transaction.library,change.key);
+        if(JSON.stringify(value)!==change.serialized)continue;
+        change.previous?store.put(transaction.library,change.previous):store.remove(transaction.library,change.key);
+      }
     }
     function discardPendingDocument() { const transaction = pendingDocument; pendingDocument = null; revertDocument(transaction); }
-    function clear() { sequence++; chartSequence++; discardPendingDocument(); selection = model = document = null; rawRecords = []; pendingIds = null; savedCharts = undefined; suspended = loading = false; }
+    function clear() { sequence++; chartSequence++; discardPendingDocument(); selection = model = document = null; rawRecords = []; historyRecords = []; pendingIds = null; savedCharts = undefined; suspended = loading = false; }
     function cancelPending() { sequence++; discardPendingDocument(); pendingIds = null; loading = false; }
     function recordIds() { return selection?.recordIds || (host.state() ? [host.state().recordId] : []); }
     function renderPicker() {
@@ -70,28 +72,59 @@
         if (records.some(r => !r || r.deletedAt || r.archived || r.athleteId !== athleteId)) throw Error('所选测试记录已变化，请重新选择。');
         records.sort(order);
         const latest = records.at(-1), store = root.RingsideLongitudinalStore;
-        const saved = store.get(lib, athleteId, ids);
+        const target = store.get(lib, athleteId, ids), prior = options.editCurrent && document?.athleteId === athleteId ? document : null;
+        const nextKey = store.key(athleteId,ids), moved = !!prior && prior.key !== nextKey;
+        if(moved && target)throw Error('这组测试记录已有纵向报告，请打开已有报告或选择其他记录。');
+        const saved = prior ? clone(prior) : target;
         const mode = options.mode || saved?.mode || latest.mode;
         const profileId = Object.hasOwn(options,"evaluationProfileId") ? options.evaluationProfileId : Object.hasOwn(latest,"evaluationProfileId") ? latest.evaluationProfileId : lib.defaultEvaluationProfileId;
         const profile = profileId === "" ? null : lib.evaluationProfiles.find(p => p.id === profileId);
         if (typeof profileId !== "string" || profileId && !profile) throw Error("请选择可用的评价方案");
-        const built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog, views:saved?.views || {}});
+        let built = root.RingsideLongitudinal.build(records, {athleteId, mode, profile, catalog:lib.catalog, views:saved?.views || {}});
         if (!current()) return false;
         host.cancelAI();
         const stamp = new Date().toISOString();
         const nextSelection = {athleteId, recordIds:records.map(r => r.recordId), mode};
-        const nextDocument = store.normalize({...saved, version:1, key:store.key(athleteId,ids), athleteId, recordIds:nextSelection.recordIds, mode,
-          evaluationProfileId:profileId, profileSnapshot:profile ? clone(profile) : null, views:saved?.views || {},
-          narrative:saved?.narrative || {text:'',html:'',revision:0,basis:'',origin:'manual'}, basis:built.fingerprint || built.basis,
-          created:saved?.created || stamp, updated:stamp, revision:saved?.revision || 0});
-        store.put(lib, nextDocument);
-        transaction = {library:lib,key:nextDocument.key,previous:saved,serialized:JSON.stringify(store.get(lib,nextDocument.key)),saveAttempted:false,adopted:false,reverted:false};
-        pendingDocument = transaction;
+        const inheritedIdentity=value=>JSON.stringify(value);
+        let inherited=saved, nextDocument;
+        const prepareDocument=source=>{
+          const base=source?clone(source):{};
+          if(moved){
+            if(base.importedVersions?.length){const {selectionHistory=[],...archive}=clone(base);base.selectionHistory=[...selectionHistory,archive];}
+            delete base.importedVersions;
+          }
+          return store.normalize({...base, version:1, key:nextKey, athleteId, recordIds:nextSelection.recordIds, mode,
+            evaluationProfileId:profileId, profileSnapshot:profile ? clone(profile) : null,
+            views:{...(source?.views || {}),...(prior?{reportIdentity:source?.views?.reportIdentity||prior.key}:{}),...(options.reportTitle!==undefined?{reportTitle:String(options.reportTitle).trim()||"损伤风险筛查与运动表现测试报告"}:{})},
+            narrative:source?.narrative || {text:'',html:'',revision:0,basis:'',origin:'manual'}, basis:built.fingerprint || built.basis,
+            created:source?.created || stamp, updated:stamp, revision:source?.revision || 0});
+        };
+        nextDocument=prepareDocument(inherited);
+        const historicalIds=[...new Set((nextDocument.selectionHistory||[]).flatMap(value=>value.recordIds))].filter(id=>!ids.includes(id));
+        const historical=await Promise.all(historicalIds.map(id=>host.repository().loadRecord(id)));
+        if(!current())return false;
+        const stageDocument=source=>{
+          nextDocument=prepareDocument(source);store.put(lib,nextDocument);
+          if(moved)store.remove(lib,prior.key);
+          const changes=[{key:nextKey,previous:prior&&!moved?source:target,serialized:JSON.stringify(store.get(lib,nextKey))}];
+          if(moved)changes.push({key:prior.key,previous:source,serialized:JSON.stringify(null)});
+          if(transaction)transaction.changes=changes;
+          else transaction={library:lib,key:nextKey,changes,saveAttempted:false,adopted:false,reverted:false};
+          pendingDocument=transaction;
+        };
+        stageDocument(inherited);
         if (!options.restoring) { transaction.saveAttempted = true; if (!await host.save()) return false; }
         if (!current()) return false;
         if (!options.restoring && host.state()?.recordId !== latest.recordId && !await host.switchRecord(a, latest, {longitudinal:true,isCurrent:current})) return false;
         if (!current()) return false;
-        selection = nextSelection; document = nextDocument; rawRecords = records; model = built; suspended = false;
+        // Preserve edits made to the old owner while its selection is awaiting storage.
+        while(prior && document===prior && inheritedIdentity(document)!==inheritedIdentity(inherited)){
+          inherited=clone(document);built=root.RingsideLongitudinal.build(records,{athleteId,mode,profile,catalog:lib.catalog,views:inherited.views||{}});
+          stageDocument(inherited);
+          if(!options.restoring){transaction.saveAttempted=true;if(!await host.save())return false;}
+          if(!current())return false;
+        }
+        selection = nextSelection; document = nextDocument; rawRecords = records; historyRecords = historical.filter(Boolean); model = built; suspended = false;
         transaction.adopted = true; if (pendingDocument === transaction) pendingDocument = null;
         savedCharts = document.views.charts === undefined ? undefined : clone(document.views.charts);
         host.prepareAnchor?.();
@@ -191,8 +224,7 @@
       const $ = id => root.document.getElementById(id), out = root.RingsideLongitudinalView.render(model, {views:document.views});
       $('reportView').dataset.longitudinal = 'true';
       $('reportView').dataset.longitudinalOwner = document.key;
-      $('reportTitle').textContent = '运动表现与损伤风险纵向比较';
-      $('athleteMeta').innerHTML = [host.state()?.athlete.name, `${selection.recordIds.length} 次测试`, `${model.periods[0].date} — ${model.periods.at(-1).date}`, document.profileSnapshot?.name].filter(Boolean).map(s => `<span>${esc(s)}</span>`).join('');
+      $('reportTitle').textContent = root.RingsideReportTitle.resolve({views:document.views});
       $('recordContext').textContent = `${host.state()?.athlete.name || ''} · ${selection.recordIds.length} 次测试`;
       $('aggMode').value = selection.mode;
       $('migrationReviewNotice').hidden = true;
@@ -205,9 +237,6 @@
       $('radarLegend').innerHTML = out.legend || '';
       $('directionMetrics').hidden = true;
       $('detailContent').innerHTML = out.details || '';
-      $('dataCount').textContent = `${selection.recordIds.length} 次测试 · 统一代表成绩与评价方案`;
-      $('editButton').textContent = '编辑测试记录';
-      $('reportExportMenu').querySelector('summary').textContent = '导出比较报告';
       root.RingsideLongitudinalView.mount?.($('reportView'), model, {onChange:updateChartView});
       $('reportView').querySelectorAll('details[id]').forEach(node => { if (document.views.detailOpen?.[node.id] !== undefined) node.open = document.views.detailOpen[node.id]; });
       return true;
@@ -227,13 +256,13 @@
     }
     function payload() {
       if (!active()) return null;
-      return {schema:1, kind:'longitudinal-report', library:root.RingsideLongitudinalStore.exportLibrary(host.library(),document,rawRecords), selection:currentSelection()};
+      return {schema:1, kind:'longitudinal-report', library:root.RingsideLongitudinalStore.exportLibrary(host.library(),document,[...rawRecords,...historyRecords]), selection:currentSelection()};
     }
     return {active, clear, cancelPending, select, refresh, changeMode, render, renderPicker, edit, payload, setNarrative, setViews, updateChartView,
       selection:currentSelection, model:() => model, document:() => document, isLoading:() => loading || chartPending > 0,
       pendingDisplaySave:() => chartSaveBarrier?.promise || null,
       narrative:() => document?.narrative, basis:() => model?.fingerprint || model?.basis || '',
-      owner:() => active() ? document.key : '', facts:() => root.RingsideLongitudinal.facts(model),
+      owner:() => active() ? document.views.reportIdentity || document.key : '', facts:() => root.RingsideLongitudinal.facts(model),
       suspend:()=>{suspended=true;},
       restore:async value => { if(value?.recordIds?.length>1) return select(value.recordIds,{...value,restoring:true}); },
       resume:async () => { if(selection) { suspended=false;return refresh(); } }};

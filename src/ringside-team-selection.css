@@ -26,3 +26,24 @@
 .team-selection-form .note{font-size:12px;color:var(--muted);line-height:1.6;margin:10px 0}
 @media(max-width:650px){.team-member-search,.team-selection-settings{grid-template-columns:minmax(0,1fr)}.team-member-options,.team-record-options{grid-template-columns:minmax(0,1fr)}.team-selection-content{max-height:calc(100dvh - 300px)}.team-selection-actions .selection-submit{justify-content:flex-start}.team-selection-form .selection-trigger{min-height:54px}}
 @media print{#teamReportSelection{display:none!important}}
+.team-selection-form.report-selection-stepped .team-selection-content{max-height:none;overflow:visible;scrollbar-gutter:auto}
+.team-selection-form.report-selection-stepped .team-selection-actions[hidden],.team-selection-form [hidden]{display:none!important}
+.team-analysis-field{max-width:320px;margin-bottom:22px}
+.team-analysis-field select{min-height:40px}
+.team-object-actions{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin:0 0 18px}
+.team-object-actions>.field{flex:1;min-width:200px}
+.team-object-actions>.btn{min-height:40px;margin:0}
+.team-object-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:0 0 22px}
+.team-object{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line,#dfe3e8);border-radius:8px;background:#fff}
+.team-object.active{border-color:#7393ad;background:#f5f8fb}
+.team-object-open{flex:1;display:grid;gap:6px;min-width:0;padding:0;text-align:left;background:none;border:0;color:inherit;font:inherit;cursor:pointer}
+.team-object-open strong{font-size:14px;overflow-wrap:anywhere}.team-object-open span{font-size:12px;color:var(--muted,#6b7280)}
+.team-object>.text-btn{flex:none;font-size:12px}
+.team-object-list+.field{margin-bottom:20px}
+.team-date-options{display:flex;flex-wrap:wrap;gap:10px 20px;margin:20px 0}
+.team-date-options label{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:14px;cursor:pointer}
+.team-date-records{margin:24px 0 0;padding-top:18px;border-top:1px solid var(--line,#dfe3e8)}
+.team-date-records>h3{font-size:16px;margin:0 0 14px}
+.team-date-fields>.field:last-child{grid-column:auto}
+.team-review-settings{margin:0}.team-review-settings>.team-selection-settings{margin-top:24px;padding-top:20px;border-top:1px solid var(--line,#dfe3e8)}
+@media(max-width:650px){.team-analysis-field{max-width:none}.team-object-list{grid-template-columns:minmax(0,1fr)}.team-object-actions>.field{flex-basis:100%}.team-date-options{gap:6px 16px}}

@@ -1,0 +1,65 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),crypto=require("node:crypto"),{chromium}=require("./helpers/playwright.cjs");
+const ROOT=path.resolve(__dirname,".."),channel=process.argv.includes("--edge")?"msedge":"chrome",artifactIndex=process.argv.indexOf("--artifact-dir"),out=path.resolve(ROOT,artifactIndex<0?"output/release/2.29.0-local/acceptance/team-comparison-view-"+channel:process.argv[artifactIndex+1]);
+const scripts=["calc","scoring","fvp","sprint-fvp","sprint-elasticity","sprint-fvp-confidence","sources","cpet-reference","iso-reference","definitions","tests","generic-report","model","evaluation","interventions","report-appearance","viz","report","result-display","longitudinal","metric-semantics","comparison","horizontal","team","longitudinal-view","team-view","team-comparison-view"];
+const styles=["ringside.css","ringside-report-refinement.css","ringside-longitudinal.css","ringside-horizontal.css","ringside-team.css"],sourceFiles=[...scripts.map(name=>"src/ringside-"+name+".js"),...styles.map(file=>"src/"+file),"tests/team-comparison-view-tests.cjs","tests/helpers/longitudinal-fixture.cjs","tests/helpers/playwright.cjs"],sha=file=>crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex"),hashSources=()=>Object.fromEntries(sourceFiles.map(file=>[file,sha(path.join(ROOT,file))])),runnerSha256=sha(__filename),sources=hashSources(),{fixture}=require("./team-comparison-view-tests.cjs");
+const shell='<main id="reportView" class="wrap report-view" data-team="true"><div id="horizontalReportControls"></div><div class="hero"><h1>损伤风险筛查与运动表现测试报告</h1></div><section><div id="microCards" class="micro-cards"></div><div class="summary-grid"><article class="card"><div class="card-head"><h3>损伤风险筛查</h3></div><div id="bodyChart"></div><div id="screenItems"></div></article><article class="card"><div class="card-head"><h3>运动表现概览</h3></div><div id="radarChart"></div></article></div></section><section><div id="detailContent"></div></section></main>';
+async function main(){
+  fs.mkdirSync(out,{recursive:true});const receipt={synthetic:true,channel,runner:"tests/team-comparison-view-browser-tests.cjs",runnerSha256,sources,sourceUnchanged:false,pass:false,checks:[],errors:[]},browser=await chromium.launch({channel,headless:true}),page=await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:"reduce"});
+  page.on("pageerror",e=>receipt.errors.push(e.stack||e.message));
+  const check=async(name,fn)=>{await fn();receipt.checks.push(name);console.log("PASS "+name);};
+  try{
+    await page.setContent(shell);
+    for(const file of styles)await page.addStyleTag({path:path.join(ROOT,"src",file)});
+    for(const name of scripts)await page.addScriptTag({path:path.join(ROOT,"src/ringside-"+name+".js")});
+    await page.evaluate(()=>{window.mountTeam=(model,views={})=>{window.teamModel=model;window.teamViews=views;window.drawTeam=()=>{const out=RingsideTeamView.render(teamModel,{views:teamViews});for(const [id,key]of [["horizontalReportControls","controls"],["microCards","summary"],["bodyChart","body"],["screenItems","screenItems"],["radarChart","overview"],["detailContent","details"]])document.getElementById(id).innerHTML=out[key]||"";RingsideTeamView.bind(document.getElementById("reportView"),teamModel,teamViews,{updateViews:delta=>{teamViews={...teamViews,...delta};drawTeam();}});RingsideTeamView.layout(document.getElementById("reportView"));};drawTeam();};});
+    const f=fixture();
+    await check("longitudinal charts use real date spacing and preserve all missing member cells",async()=>{
+      await page.evaluate(model=>mountTeam(model),f.longitudinal);
+      const points=await page.locator("#detailContent [data-cod-point]").evaluateAll(nodes=>nodes.map(n=>Number(n.getAttribute("cx"))));assert.equal(points.length,3);assert.ok(Math.abs((points[2]-points[1])/(points[1]-points[0])-14.5)<.01);
+      await page.locator(".team-personal-history summary").first().click();assert.equal(await page.locator('[data-team-history-person="empty"] [data-team-history-date]').count(),3);assert.deepEqual(await page.locator('[data-team-history-person="empty"] [data-team-history-date]').allTextContents(),["—","—","—"]);
+      assert.match(await page.locator(".team-paired-results").first().innerText(),/\+10/);assert.match(await page.locator("#detailContent .team-comparison-table").first().innerText(),/60/);
+      await page.screenshot({path:path.join(out,"longitudinal-desktop.png"),fullPage:true});
+    });
+    await check("a missing middle date breaks the trend instead of joining endpoints",async()=>{
+      const model=structuredClone(f.longitudinal);model.projects[0].metrics[0].cells[1]={value:null,n:0,total:4};await page.evaluate(model=>mountTeam(model),model);
+      assert.equal(await page.locator('#detailContent [data-observed-change="result"]').count(),0);assert.equal(await page.locator("#detailContent [data-cod-point]").count(),2);
+    });
+    await check("personal mini trends reuse the accepted geometry and break at missing dates",async()=>{
+      const model=structuredClone(f.longitudinal);model.projects[0].metrics[0].people.find(person=>person.athleteId==="a").cells[1]=null;await page.evaluate(model=>mountTeam(model),model);await page.locator(".team-personal-history summary").first().click();
+      const trend=page.locator('[data-team-history-person="a"] [data-result-trend]');assert.equal(await trend.locator("[data-trend-point]").count(),3);assert.equal(await trend.locator("[data-trend-segment]").count(),0);
+      const projection=await trend.evaluate(node=>JSON.parse(node.dataset.resultTrend));assert.deepEqual(projection.points.map(point=>point.value),[10,null,20]);assert.equal(JSON.stringify(projection.points.map(point=>point.date)),JSON.stringify(f.longitudinal.periods.map(period=>period.date)));
+      assert.equal(await trend.locator("svg").getAttribute("height"),"72");assert.equal(await page.locator('[data-team-history-person="empty"] [data-label="变化趋势"]').innerText(),"—");
+      const clipped=await trend.evaluate(node=>node.getBoundingClientRect().right>node.closest("td").getBoundingClientRect().right);assert.equal(clipped,false);await page.screenshot({path:path.join(out,"longitudinal-personal-trends.png"),fullPage:true});
+    });
+    await check("horizontal focus and baseline are independent while all objects remain visible",async()=>{
+      await page.evaluate(model=>mountTeam(model),f.horizontal);assert.equal(await page.locator('[data-team-presentation="focusObjectId"]').inputValue(),"");assert.equal(await page.locator('[data-team-presentation="baselineObjectId"]').inputValue(),"");
+      await page.locator('[data-team-presentation="focusObjectId"]').selectOption("team-last");await page.locator('[data-team-presentation="baselineObjectId"]').selectOption("team-first");
+      assert.equal(await page.locator('#microCards [data-team-summary-object="team-last"]').count(),4);assert.equal(await page.locator('#microCards [data-team-summary-object="team-first"]').count(),0);
+      assert.equal(await page.locator('[data-team-column="reference"]').count(),1);assert.match(await page.locator('[data-team-column="team-last"]').innerText(),/\+45/);
+      await page.locator('[data-team-presentation="focusObjectId"]').selectOption("reference");assert.equal(await page.locator("#microCards .micro-card").nth(1).locator(".micro-value").innerText(),"—");
+      assert.equal(await page.evaluate(()=>JSON.stringify(teamModel)),JSON.stringify(f.horizontal));await page.screenshot({path:path.join(out,"horizontal-desktop.png"),fullPage:true});
+    });
+    await check("table row headers remain white on screen and in PDF scope",async()=>{
+      const screen=await page.locator(".team-comparison-table").first().evaluate(table=>({body:getComputedStyle(table.querySelector("tbody th")).backgroundColor,head:getComputedStyle(table.querySelector("thead th")).backgroundColor}));assert.equal(screen.body,"rgb(255, 255, 255)");assert.equal(screen.head,"rgb(243, 245, 247)");
+      const printed=await page.evaluate(()=>{const clone=document.getElementById("reportView").cloneNode(true),style=document.createElement("style");style.textContent=".ringside-pdf-document th{background:#f3f5f7!important}";document.head.append(style);clone.id="print-proof";clone.classList.add("ringside-pdf-document");document.body.append(clone);RingsideTeamView.preparePrint(clone,teamModel,teamViews);const result={background:getComputedStyle(clone.querySelector(".team-results tbody th")).backgroundColor,controls:clone.querySelectorAll("[data-team-presentation],[data-team-metric],[data-team-refresh]").length};clone.remove();style.remove();return result;});assert.equal(printed.background,"rgb(255, 255, 255)");assert.equal(printed.controls,0);
+    });
+    await check("summary wraps and wide tables scroll within the report on narrow screens",async()=>{
+      await page.setViewportSize({width:700,height:900});await page.evaluate(model=>mountTeam(model),f.horizontal);
+      const bounds=await page.evaluate(()=>({width:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth}));assert.ok(bounds.scroll<=bounds.width+1,JSON.stringify(bounds));await page.screenshot({path:path.join(out,"horizontal-narrow.png"),fullPage:true});
+    });
+    await check("all-object capability and screening charts use the common group representation",async()=>{
+      const model=structuredClone(f.horizontal);model.objects.forEach((object,i)=>{object.referenceModel.overview={rows:["力量","速度","耐力"].map((name,k)=>({id:"ability"+k,name,benchmark:{score:60+i*10+k*3,mean:60+i*10+k*3,n:2,assessment:{status:"gray"}}}))};object.referenceModel.risk={rows:["肩","膝","踝"].map((name,k)=>({id:"site"+k,name,benchmark:{score:k+1,mean:k+1,n:2,assessment:{status:k===0?"red":k===1?"amber":"green"}}}))};});
+      await page.setViewportSize({width:1440,height:1000});await page.evaluate(model=>mountTeam(model),model);assert.equal(await page.locator("#radarChart .longitudinal-legend span").count(),3);assert.equal(await page.locator("#bodyChart .longitudinal-legend span").count(),3);
+      await page.screenshot({path:path.join(out,"horizontal-overviews.png"),fullPage:true});await page.evaluate(()=>{window.cleanPrint=RingsideTeamView.prepareBrowserPrint(document.getElementById("reportView"),teamModel,teamViews);});await page.pdf({path:path.join(out,"team-horizontal.pdf"),format:"A4",printBackground:true});await page.evaluate(()=>cleanPrint());
+    });
+    await check("printing many comparison objects keeps one complete summary set per object",async()=>{
+      const model=structuredClone(f.horizontal);model.objects=Array.from({length:12},(_,index)=>({...structuredClone(model.objects[index%3]),id:"object-"+index,label:"合成对象"+(index+1)}));await page.evaluate(model=>mountTeam(model),model);
+      const result=await page.evaluate(()=>{const clone=document.getElementById("reportView").cloneNode(true);clone.classList.add("ringside-pdf-document");document.body.append(clone);RingsideTeamView.preparePrint(clone,teamModel,{});const values={sets:clone.querySelectorAll(".team-summary-set").length,cards:[...clone.querySelectorAll(".team-summary-set")].map(node=>node.querySelectorAll(".micro-card").length),display:getComputedStyle(clone.querySelector("#microCards")).display};clone.remove();return values;});assert.equal(result.sets,12);assert.deepEqual(result.cards,Array(12).fill(4));assert.equal(result.display,"block");
+    });
+    assert.deepEqual(receipt.errors,[]);assert.deepEqual(hashSources(),sources,"Source files changed while the browser suite was running");assert.equal(sha(__filename),runnerSha256,"Runner changed while suite was running");receipt.sourceUnchanged=true;
+    receipt.artifacts=["longitudinal-desktop.png","longitudinal-personal-trends.png","horizontal-desktop.png","horizontal-narrow.png","horizontal-overviews.png","team-horizontal.pdf"].map(file=>{const full=path.join(out,file);return {path:path.relative(ROOT,full).split(path.sep).join("/"),sha256:sha(full),bytes:fs.statSync(full).size};});receipt.pass=true;
+  }finally{fs.writeFileSync(path.join(out,"receipt.json"),JSON.stringify(receipt,null,2));await browser.close();}
+  console.log(receipt.checks.length+" team comparison browser checks passed");
+}
+main().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

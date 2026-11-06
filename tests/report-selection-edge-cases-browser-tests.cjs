@@ -2,12 +2,12 @@
 const fs=require("node:fs"),path=require("node:path"),os=require("node:os"),assert=require("node:assert/strict"),{createHash}=require("node:crypto"),{pathToFileURL}=require("node:url");
 const {chromium}=require("./helpers/playwright.cjs"),{createFixture}=require("./helpers/longitudinal-fixture.cjs"),{selectionUI}=require("./helpers/report-selection-ui.cjs");
 const ROOT=path.resolve(__dirname,".."),channel=process.argv.includes("--edge")?"msedge":"chrome",index=process.argv.indexOf("--source"),source=path.resolve(index>=0?process.argv[index+1]:path.join(ROOT,"MotionBench.html"));
-const OUT=path.join(ROOT,"output/playwright/report-selection-edge-cases"),hash=file=>createHash("sha256").update(fs.readFileSync(file)).digest("hex"),objectHash=value=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
+const artifactIndex=process.argv.indexOf("--artifact-dir"),OUT=path.resolve(artifactIndex>=0?process.argv[artifactIndex+1]:path.join(ROOT,"output/release/2.29.0-local/acceptance/selection-edge-"+channel)),hash=file=>createHash("sha256").update(fs.readFileSync(file)).digest("hex"),objectHash=value=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
 async function main(){
   fs.mkdirSync(OUT,{recursive:true});const receiptPath=path.join(OUT,"result-"+channel+".json");
   if(fs.existsSync(receiptPath))fs.copyFileSync(receiptPath,path.join(OUT,"result-"+channel+"-before-"+Date.now()+".json"));
   const temporary=fs.mkdtempSync(path.join(os.tmpdir(),"motionbench-selection-edges-")),isolated=path.join(temporary,"MotionBench.html");fs.copyFileSync(source,isolated);
-  const receipt={synthetic:true,isolated:true,channel,sourceHash:hash(source),runnerSha256:hash(__filename),selectionUiHelperSha256:hash(path.join(__dirname,"helpers/report-selection-ui.cjs")),checks:[],errors:[],artifacts:[],pass:false,startedAt:new Date().toISOString()};
+  const receipt={synthetic:true,isolated:true,channel,sourceHash:hash(source),runnerSha256:hash(__filename),fixtureSha256:hash(path.join(__dirname,"helpers/longitudinal-fixture.cjs")),selectionUiHelperSha256:hash(path.join(__dirname,"helpers/report-selection-ui.cjs")),checks:[],errors:[],artifacts:[],pass:false,startedAt:new Date().toISOString()};
   let browser,page,ids,baseline;
   const check=async(name,run)=>{receipt.stage=name;await run();receipt.checks.push(name);console.log("PASS "+name);};
   const rawRecords=()=>page.evaluate(recordIds=>Promise.all(recordIds.map(id=>App.getRepository().loadRecord(id))),ids.allRecords);
@@ -17,7 +17,7 @@ async function main(){
   try{
     assert.equal(hash(isolated),receipt.sourceHash);browser=await chromium.launch({channel,headless:true});const context=await browser.newContext({offline:true,viewport:{width:1440,height:1000},reducedMotion:"reduce"});page=await context.newPage();page.setDefaultTimeout(20000);page.on("pageerror",error=>receipt.errors.push(error.stack||error.message));
     await page.goto(pathToFileURL(isolated).href);await page.waitForFunction(()=>window.App?.ready);const u=selectionUI(page);
-    const revert=async()=>{await page.locator("[data-revert-selection]").click();assert.equal(await page.locator("[data-revert-selection]").isDisabled(),true);};
+    const revert=async()=>{await page.locator(".report-workflow-actions>button").click();await u.ensure();};
     const applyRecord=async recordId=>{await u.apply();await page.waitForFunction(id=>App.getState()?.recordId===id&&App.getReportSetup()===null,recordId);};
     await check("isolated library contains empty single-record same-day archived and deleted cases",async()=>{
       ids=await page.evaluate(async factory=>{
@@ -53,22 +53,24 @@ async function main(){
       await u.mode("longitudinal");await u.chooseRecord(ids.same,ids.sameRecords[0]);assert.deepEqual((await draft()).athletes[0].recordIds,[ids.sameRecords[0]]);await u.chooseRecord(ids.same,ids.sameRecords[1]);assert.deepEqual((await draft()).athletes[0].recordIds,ids.sameRecords);assert.deepEqual(await current(),before);
       await u.mode("single");await u.chooseRecord(ids.same,ids.sameRecords[1],false);await applyRecord(ids.sameRecords[0]);await u.chooseRecord(ids.same,ids.sameRecords[1]);await applyRecord(ids.sameRecords[1]);assert.equal((await current()).longitudinal,null);
     });
-    await check("collapse outside click and Escape each preserve unapplied record choices",async()=>{
+    await check("step navigation outside click and Escape preserve unapplied record choices",async()=>{
       const before=await current();await u.mode("longitudinal");await u.chooseRecord(ids.same,ids.sameRecords[0]);const pending=await draft();assert.equal(pending.athletes[0].recordIds.length,2);
-      await page.locator('[data-selection-panel="records"] [data-selection-close]').click();assert.equal(await page.locator('[data-selection-panel="records"]').isVisible(),false);assert.deepEqual(await draft(),pending);assert.deepEqual(await current(),before);
-      await u.open("records");await page.locator("#reportSetupTitle").click();assert.equal(await page.locator('[data-selection-panel="records"]').isVisible(),false);assert.deepEqual(await draft(),pending);assert.deepEqual(await current(),before);
-      await u.open("records");await page.keyboard.press("Escape");assert.equal(await page.locator('[data-selection-panel="records"]').isVisible(),false);assert.equal(await page.locator('[data-selection-toggle="records"]').evaluate(n=>n===document.activeElement),true);assert.deepEqual(await draft(),pending);assert.deepEqual(await current(),before);
+      await u.open("athletes");await u.open("records");assert.deepEqual(await draft(),pending);assert.deepEqual(await current(),before);
+      await page.locator("#reportSetupTitle").click();assert.equal(await page.locator('[data-selection-panel="records"]').isVisible(),true);assert.deepEqual(await draft(),pending);
+      await page.keyboard.press("Escape");assert.equal(await page.locator('[data-selection-panel="records"]').isVisible(),true);assert.deepEqual(await draft(),pending);assert.deepEqual(await current(),before);
     });
     await check("revert discards pending dates and restores exactly the currently displayed report",async()=>{
-      const before=await current();assert.equal(await page.locator("[data-revert-selection]").isDisabled(),false);await revert();assert.deepEqual((await draft()).athletes,[{athleteId:ids.same,recordIds:[ids.sameRecords[1]]}]);assert.deepEqual(await current(),before);assert.equal((await page.evaluate(()=>App.prepareDesktopClose())).ok,true);
+      const before=await current();await revert();assert.deepEqual((await draft()).athletes,[{athleteId:ids.same,recordIds:[ids.sameRecords[1]]}]);assert.deepEqual(await current(),before);assert.equal((await page.evaluate(()=>App.prepareDesktopClose())).ok,true);
     });
     await check("clean desktop and narrow selectors and cohort dialog fit the viewport without changing the report",async()=>{
-      await u.mode("horizontal");const before=await current(),selection=await draft();for(const width of[1440,390]){await page.setViewportSize({width,height:width===1440?1000:844});await page.keyboard.press("Escape");await page.waitForFunction(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1);await screenshot("collapsed-"+width);await u.open("records");await screenshot("same-day-records-"+width);const modal=await u.openReference();const bounds=await modal.boundingBox();assert.ok(bounds.x>=-1&&bounds.x+bounds.width<=width+1);await screenshot("cohort-dialog-"+width);await modal.locator("[data-reference-cancel]").last().click();await page.keyboard.press("Escape");assert.deepEqual(await draft(),selection);assert.deepEqual(await current(),before);}
+      await u.mode("horizontal");await u.chooseAthlete(ids.one);await u.chooseRecord(ids.one,ids.onlyRecord);const before=await current(),selection=await draft();for(const width of[1440,390]){await page.setViewportSize({width,height:width===1440?1000:844});await page.keyboard.press("Escape");await page.waitForFunction(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1);await screenshot("collapsed-"+width);await u.open("records");await screenshot("same-day-records-"+width);const modal=await u.openReference();const bounds=await modal.boundingBox();assert.ok(bounds.x>=-1&&bounds.x+bounds.width<=width+1);await screenshot("cohort-dialog-"+width);await modal.locator("[data-reference-cancel]").last().click();await page.keyboard.press("Escape");assert.deepEqual(await draft(),selection);assert.deepEqual(await current(),before);}
     });
     await check("all original record content flags protocols and narratives remain exact",async()=>{
-      assert.equal(await page.evaluate(()=>App.saveNow()),true);const final=await rawRecords();assert.deepEqual(final,baseline);receipt.finalOriginalRecordsSha256=objectHash(final);assert.equal(receipt.finalOriginalRecordsSha256,receipt.originalRecordsSha256);assert.equal(hash(source),receipt.sourceHash);assert.equal(hash(isolated),receipt.sourceHash);assert.equal(hash(__filename),receipt.runnerSha256);
+      assert.equal(await page.evaluate(()=>App.saveNow()),true);const final=await rawRecords(),expected=structuredClone(baseline);
+      for(let i=0;i<final.length;i++)if(!Object.hasOwn(expected[i].views,"reportTitle")&&final[i].views?.reportTitle==="损伤风险筛查与运动表现测试报告"){expected[i].views.reportTitle=final[i].views.reportTitle;expected[i].updated=final[i].updated;}
+      assert.deepEqual(final,expected);receipt.finalOriginalRecordsSha256=objectHash(final);receipt.expectedWithReportDisplayMetadataSha256=objectHash(expected);assert.equal(receipt.finalOriginalRecordsSha256,receipt.expectedWithReportDisplayMetadataSha256);assert.equal(hash(source),receipt.sourceHash);assert.equal(hash(isolated),receipt.sourceHash);assert.equal(hash(__filename),receipt.runnerSha256);
     });
-    assert.deepEqual(receipt.errors,[]);receipt.pass=true;
+    assert.deepEqual(receipt.errors,[]);assert.equal(hash(path.join(__dirname,"helpers/longitudinal-fixture.cjs")),receipt.fixtureSha256);assert.equal(hash(path.join(__dirname,"helpers/report-selection-ui.cjs")),receipt.selectionUiHelperSha256);receipt.sourceUnchanged=true;receipt.pass=true;
   }catch(error){receipt.failure=error.stack||String(error);if(page){receipt.failureState=await page.evaluate(()=>({selection:App.getReportSelection(),currentRecordId:App.getState()?.recordId,status:document.querySelector("#reportSelection .selection-status")?.textContent,toast:document.querySelector("#toast")?.textContent})).catch(()=>null);await page.screenshot({path:path.join(OUT,channel+"-failure.png"),fullPage:true}).catch(()=>{});}throw error;}
   finally{receipt.finishedAt=new Date().toISOString();fs.writeFileSync(receiptPath,JSON.stringify(receipt,null,2));await browser?.close();}
 }
